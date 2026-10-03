@@ -79,3 +79,25 @@ Verification: 506 native tests passed, 55 ignored; WebAssembly check and optimiz
 Deployed as `4f254643`; viewer-check, Pages and Session mini tests are green. Public headed Chrome navigation checks preserve all three quality configurations. The real published floor loads in 1149 ms desktop, 875 ms at phone dimensions, and 3076 ms with 6× CPU throttling, with one scene replacement per run; explicit opacity checks also pass. These use the desktop NVIDIA GPU and local network, not the user's phone or its connection.
 
 The user confirmed the appearance is correct and that both loading and camera movement remain extremely slow on their phone. Actual current phone diagnostics are still needed to distinguish network, CPU conversion and GPU startup delays. Phase 3 CPU restructuring remains conditional on that evidence.
+
+## Bound camera frames by GPU completion
+
+The user confirmed faster loading but still reported extremely slow phone rotation. Browser redraws previously submitted camera frames independently of GPU completion. Headed Chrome using the Intel integrated GPU reproduced a queue of eight outstanding submissions during 180 right-drag movements at the phone canvas size, 824×1830, opacity 1 and MSAA 1.
+
+The browser now waits for the preceding redraw batch, including egui uploads and pick work, before encoding another. Mouse and touch input continue updating the camera; completion wakes the latest state only if another redraw was requested. This also makes the existing drag-tier timing follow GPU throughput instead of the CPU submission rate. No canvas-resolution, antialiasing or edge-visibility settings change. Native synchronous offscreen rendering is unchanged.
+
+| Actual Intel WebGPU queue measurement | Before | After |
+| --- | ---: | ---: |
+| Maximum outstanding submissions | 8 | 2 |
+| Median submission-to-completion time | 60.9 ms | 14.9 ms |
+| 95th percentile completion time | 155.1 ms | 39.4 ms |
+
+Two submissions are the UI upload and scene within one redraw batch. The final camera matrix and named GPU allocation estimates match. These are actual GPU completion timings without artificial delay, measured on Intel gen-12lp; they do not establish performance on the user's Qualcomm phone.
+
+The same deterministic regression fails on the old deployed viewer, which makes 108 GPU submissions while completion is held. The corrected build passes all four gestures. The deterministic headed regression separately holds completion promises. Mouse orbit, touch orbit, two-finger pan/pinch and touch cancellation preserve the final pose, resume without another input, retain the sharp canvas and stop drawing at idle. WebAssembly and optimized Trunk builds pass. Native tests pass 506 cases with 55 ignored when run serially; the initial parallel run crashed with SIGSEGV during GPU tests and is not counted as passing.
+
+The existing sharpness regression passes for default phone, explicit phone and desktop; all 24 headed close-up views pass. Local load checks take 815 ms desktop, 829 ms phone dimensions and 2983 ms at 6× CPU throttle, with one live replacement and all explicit-opacity checks passing. Device loss still stops every GPU operation and recovers its saved report after reload. Its stale test selector was updated to the current “Download previous report” button.
+
+Native 40-frame orbit measurements produce byte-identical final images and unchanged GPU allocations. The existing adaptive tier alternates full and plane visibility: before p50/p95 were 20.4/44.1 ms, after 40.0/44.6 ms, with tier-1 medians 20.0/17.3 ms. The overall medians reflect different tier occupancy; no native speed improvement is claimed for this browser-only scheduling change.
+
+The maintained command-input check also passes immediate typing, named View commands, fresh right-click Move repeat, mouse orbit/jitter and phone navigation.

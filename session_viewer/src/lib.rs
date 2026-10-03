@@ -224,6 +224,11 @@ impl ApplicationHandler<Msg> for App {
                     return;
                 }
 
+                if !state.gpu.pacing.ready() {
+                    state.needs_frame = false;
+                    return; // GPU completion wakes the latest camera state.
+                }
+
                 // resize first; a resize not ready yet holds the frame
                 let held = match desired_canvas_size() {
                     Some((w, h)) if (w, h) != (state.gpu.config.width, state.gpu.config.height) => {
@@ -239,6 +244,11 @@ impl ApplicationHandler<Msg> for App {
                     let repaint = self.ui.as_mut().is_some_and(|ui| ui.frame(state)); // register:egui
                     state.render();
                     repaint_if(state, repaint); // register:egui
+                    // Include UI uploads and pick work in the same completion fence.
+                    state
+                        .gpu
+                        .pacing
+                        .submitted(&state.gpu.ctx.queue, state.window.clone());
                 }
 
                 false

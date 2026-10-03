@@ -12,6 +12,12 @@ Open `/text-quality.html` for the same-font white-on-black comparison. The displ
 sizes and metrics come from the Rust fixture; the browser reference loads the same
 bundled font bytes and explicitly enables kerning/common ligatures.
 
+`node tests/navigation-pacing.cjs` holds real GPU completion callbacks to verify
+bounded redraw batches, preservation of the latest camera pose, release/cancellation
+wakeup and return to idle. It compares mouse orbit, touch orbit and two-finger
+pan/pinch with unblocked input. This is a deterministic regression, not a phone
+speed benchmark; canvas resolution and MSAA remain unchanged.
+
 The text browser check needs Playwright 1.58.2 and Chrome. Dependencies and screenshots
 can live outside the repository:
 

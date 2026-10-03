@@ -77,7 +77,7 @@ async function main() {
         await page.reload();
         await page.locator('#viewer-diagnostics').waitFor({state: 'visible'});
         const recovered = page.waitForEvent('download');
-        await page.getByRole('button', {name: 'Download diagnostic report'}).click();
+        await page.getByRole('button', {name: 'Download previous report', exact: true}).click();
         await (await recovered).saveAs(`${output}/recovered.json`);
         assert.equal(JSON.parse(await fs.readFile(`${output}/recovered.json`, 'utf8')).failure.message,
             report.failure.message);

@@ -86,6 +86,8 @@ Shape and curve-gathering commands share option matching in `app/command/tool/op
 
 ## A frame
 
+The browser permits one redraw batch at a time, including UI uploads and picking. If the GPU is busy, input continues updating the camera and commands; GPU completion requests a redraw of the latest state. No old camera frames accumulate in the queue, and completion does not wake an idle view. Native headless rendering retains its synchronous readback path.
+
 `Gpu::encode_frame` in `gpu/render.rs`:
 
 ```mermaid

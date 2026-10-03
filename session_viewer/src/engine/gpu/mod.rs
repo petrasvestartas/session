@@ -15,6 +15,8 @@ pub mod objects;
 pub mod slots; // register:slots
 
 pub mod lane; // register:lane
+#[cfg(target_arch = "wasm32")]
+mod pacing;
 pub mod pass; // register:pass
 pub(crate) mod patch; // register:patch
 pub mod pick; // register:pick
@@ -68,6 +70,8 @@ pub use view::View;
 
 /// Everything on the GPU: the device, the frame and one field per lane.
 pub struct Gpu {
+    #[cfg(target_arch = "wasm32")]
+    pub(crate) pacing: pacing::FramePacing,
     pub surface: Option<wgpu::Surface<'static>>, // the canvas; None when headless
     pub ctx: GpuCtx,                             // device and queue
     pub config: wgpu::SurfaceConfiguration,      // canvas size and format
@@ -223,6 +227,8 @@ impl Gpu {
         crate::app::feedback::phase("pipeline setup", started, 0, "GPU");
         crate::engine::performance::mark("gpu built");
         let mut gpu = Self {
+            #[cfg(target_arch = "wasm32")]
+            pacing: pacing::FramePacing::default(),
             surface,
             ctx,
             config,
