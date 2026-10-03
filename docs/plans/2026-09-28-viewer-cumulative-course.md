@@ -24,6 +24,14 @@ Use REGEN_PROTO=0: current session_proto checkout is older than the kernel’s c
 
 Live services: docs preview port8788; same-tab BrowserAct session viewer-course-foreground; watcher target/course-checks/watch-docs-foreground.cjs (log docs-refresh-foreground.log); production dist static server8770; course verification bundles8781. Keep the reader’s current Chrome hash and tab on rebuild.
 
+## Placement tutorial batch — 2026-10-03
+
+New cumulative checkpoints 27-placement, 27a-world, 27b-model, 27c-move and 27d-history complete local/world ownership, affine placements, world bounds/picking, per-object GPU model uniforms and typed Move with one history transaction. Each is within the 60-minute typing target (17–44 minutes). All35 endpoints have current native/wasm/build and Chrome source/checker evidence. Final endpoint passes46 Rust tests. Browser checks prove Move/Undo/Redo pixel round trips, malformed/missing/non-finite numeric errors, zero-offset history, missing selection, and interior placed-object picking. Exact raster-edge ownership is deferred to GPU-ID picking; a diagnostic showed an edge raster pixel missed by the CPU ray.
+
+Course capture now saves each passed checkpoint immediately and records optional browser_check module hashes. Native builds depend on implementation, not these browser modules. render.ts rejects stale extra-checker screenshots. The placement module is docs/journey/checks/browser/placement.cjs. All35 capture records were refreshed after the common checker changed; final27b–d were recaptured after adding internal-whitespace rejection.
+
+Next: publish this batch, rebuild Vue and verify same-tab refresh; then source-document lesson28 and the17 oversized checkpoint splits. The close-up line problem remains open. Read-only inspection of the reverted ee3db14a oracle located src/selftest/oracle.rs and its near-plate GPU reproduction; no shader or oracle code has been reinstated. Dirty session_data/session_proto/session_py and workspace/journey remain untouched.
+
 ## Current work and latest instructions
 
 The user resumed tutorial development after the allowance pause. The course remains unfinished; the old pause request is revoked. They now request a GitHub push after each completed tutorial and a URL for reviewing each one. They prefer the existing http://127.0.0.1:8788/docs/#/course address; replace an old server if it is running, rebuild, and supply actual tutorial URLs.

@@ -41,7 +41,8 @@ export function generate() {
             'Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.', step.result);
         const evidence = browser[step.id];
         if (evidence && evidence.source === signature(step.id)
-            && evidence.checker === hash(read(path.join(docs, 'capture_journey.cjs')))) {
+            && evidence.checker === hash(read(path.join(docs, 'capture_journey.cjs')))
+            && (!step.browser_check || evidence.extraChecker === hash(read(path.join(docs, step.browser_check))))) {
             page.push('**Actual Chrome screenshot.**',
                 ...(step.browser_caption ? [step.browser_caption] : []),
                 `![Actual browser result: ${step.title}.](../screenshots/journey/${evidence.file})`,

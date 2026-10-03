@@ -1,0 +1,2 @@
+            "Fit Selected",
+            "Move",

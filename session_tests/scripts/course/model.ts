@@ -15,6 +15,7 @@ export interface Step {
     result: string; experiment: string; production: string; browser_status?: string;
     browser_result_status?: string;
     browser_caption?: string;
+    browser_check?: string;
     frame?: string;
     frame_constructor?: string;
     frame_size?: [number, number];

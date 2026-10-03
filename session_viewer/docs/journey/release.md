@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 30 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–26 plus the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 35 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–27 plus four short placement follow-ups plus the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -13,13 +13,14 @@ This is the opening of the full viewer course. The [remaining lesson checklist](
 - Lesson 04 submits Background twice and compares every scene pixel above the folded dock. The second submission restores the original drawing exactly.
 - Later checks cover command actions, picking, resizing, orbit and release, wheel without page scrolling, immediate command-field focus without losing the first character, and Open with whole-import Undo/Redo.
 - Fit is checked for repeatability, recovery after panning, document history, and geometry margins in wide and tall windows.
+- Placement lessons keep local mesh coordinates separate from model matrices; bounds, ray picking and GPU drawing share world placement. Typed Move checks world-axis composition, immutable shared geometry, Undo/Redo, finite arguments and zero-offset history. Chrome checks rendered interior picking and visible command errors; exact raster-edge ownership is deferred to GPU picking.
 - Lesson 25 checks the perspective/orthographic pixel round trip and selects a visible imported beam in each projection. Its 39 Rust tests also check camera, fitting, picking and document invariants.
 
 The scene comparison excludes the command strip. When a key opens completion over the drawing, the test dismisses that overlay before checking camera pixels. Full-page screenshots still show the real interface.
 
 ## Screenshot evidence
 
-Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, checker hash, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
+Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
 
 The initial browser viewport is 900 × 760 CSS pixels at display density 1. The evidence records that viewport, the canvas bounds and the final screenshot viewport. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
 

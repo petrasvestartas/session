@@ -301,17 +301,23 @@ async function capture() {
                 await page.waitForTimeout(200);
             }
             if (id === '25-projection') await projection(page);
+            if (step.browser_check) {
+                assert(/^journey\/checks\/browser\/[a-z0-9-]+\.cjs$/.test(step.browser_check), 'Invalid checkpoint browser check');
+                await require(path.resolve('docs', step.browser_check))(page, {command, drawing, step});
+            }
             const canvas = await drawing(page);
             assert.deepEqual(errors, []);
             assert.equal(await page.locator('#status').textContent(), step.browser_result_status || step.browser_status);
             const file = `${id}-browser.png`;
             await page.screenshot({path: path.join(output, file), fullPage: true});
             records.steps[id] = {source: builds[id].source, checker: hash(fs.readFileSync(__filename)),
+                extraChecker: step.browser_check ? hash(fs.readFileSync(path.join('docs', step.browser_check))) : null,
                 browser: browser.version(), headless, captured: new Date().toISOString(), status, canvas, file,
                 initialViewport: viewport, initialCanvas: box, screenshotViewport: page.viewportSize(),
                 bundle: hash(fs.readFileSync(`target/course-checks/${id}/dist/index.html`)),
                 commands: (step.browser_actions || []).filter(action => action.command).map(action => action.command),
                 keyboardRoundtrip: id === '04-input'};
+            fs.writeFileSync(saved, JSON.stringify(records, null, 2) + '\n');
             console.log(`${id}: browser checks and screenshot passed`);
         }
         fs.writeFileSync(path.join(output, 'browser.json'), JSON.stringify(records, null, 2) + '\n');

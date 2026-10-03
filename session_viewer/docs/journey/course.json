@@ -2466,6 +2466,445 @@
           "why": "Check both projection modes, selection, shared mesh identity, history and the empty-selection case."
         }
       ]
+    },
+    {
+      "id": "27-placement",
+      "title": "Give each object a placement",
+      "page": "journey/27-placement.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Keep local mesh coordinates and an independent object placement.",
+      "trace": "Local vertex → Object::world_point → placement matrix → world point",
+      "question": "Which value changes when an object moves without changing shape?",
+      "answer": "Its placement matrix changes. The shared mesh keeps local coordinates. Multiplying a local point by the placement produces its world position; multiplying that world point by the camera later produces its screen position.",
+      "story": "A mesh describes a shape. A placement describes where one use of that shape belongs. Keeping both in Object lets history retain the same shared mesh while remembering a different placement.\n\nAdd an identity matrix to every newly inserted object. Identity leaves coordinates unchanged, so this checkpoint preserves the working picture. Object::world_point borrows a six-float vertex, uses its first three values as a position, and returns a double-precision world point. Its color is not a coordinate and never enters the transform.\n\n![Local coordinates stay in the shared mesh; Object owns the placement.](../illustrations/journey-27.svg)\n\nScene::place finds the stable ID before replacing its matrix. It rejects a non-finite matrix and a projective last row. Object placements are affine: they can translate, rotate, scale or shear a shape, but perspective belongs to Camera. Returning Result makes a missing object or invalid placement visible to the caller.\n\nThe two checks deliberately use the same Rc<Mesh> before and after a placement. Clone on Rc creates another owner of the allocation. It does not duplicate or rewrite the vertex array. Bounds, picking and GPU presentation will adopt this placement in the next two small lessons; no Move command is exposed yet.",
+      "result": "Run View Isometric, Select Next twice, and Fit Selected. The existing turquoise triangle is framed. Run the Rust checks to compare one local vertex with its placed world point and to verify that a missing object or invalid matrix leaves the object alone.",
+      "experiment": "In the state check, change translation from (2, −1, 0.5) to (−3, 4, 0). Predict the resulting world point before running the check, then restore it. Explain why the local vertex and Rc allocation stay unchanged.",
+      "production": "The maintained viewer stores placement separately from source geometry and composes placements for instances. This checkpoint establishes the document value. World-space queries and GPU model matrices come next.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/27-placement.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "    pub mesh: Rc<Mesh>,\n",
+          "snippet": "journey/code/27-placement-01.rs",
+          "why": "Store one placement beside the shared local mesh."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "#[derive(Clone)]\npub struct Scene {\n",
+          "snippet": "journey/code/27-placement-02.rs",
+          "why": "Transform position only; return world coordinates without changing the mesh."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        self.objects.push(Object { id, mesh: Rc::new(mesh), source: None });\n",
+          "snippet": "journey/code/27-placement-03.rs",
+          "why": "Identity preserves the behavior of all existing objects."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn remove(&mut self, id: ObjectId) -> bool {\n",
+          "snippet": "journey/code/27-placement-04.rs",
+          "why": "Check the placement before mutating the object found by its stable ID."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod selected_fit_tests;\n",
+          "snippet": "journey/code/27-placement-05.rs",
+          "why": "Register the placement checks."
+        },
+        {
+          "path": "src/placement_tests.rs",
+          "before": null,
+          "snippet": "journey/code/27-placement-06.rs",
+          "why": "Prove mesh identity and local coordinates survive placement, and failed updates leave it unchanged."
+        }
+      ],
+      "browser_caption": "Give each object a placement. The actual command dock drives this checkpoint; the selected object is highlighted.",
+      "image_result": "The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels."
+    },
+    {
+      "id": "27a-world",
+      "title": "Ask geometry questions in world coordinates",
+      "page": "journey/27a-world.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Use placement for scene bounds, selected bounds and ray picking.",
+      "trace": "Object placement → world vertices → bounds or ray/triangle query",
+      "question": "Why must picking and fitting use the same placement as drawing?",
+      "answer": "A camera ray and a fitted camera target are expressed in world coordinates. Comparing them with unplaced local vertices asks about a different location. Apply Object::world_point at each query boundary so both questions refer to the placed object.",
+      "story": "A local vertex is useful for sharing a shape, but the camera does not live in every object’s local coordinate system. Bounds and ray tests must agree on where that object is.\n\nReuse world_point in the whole-scene bounds loop, the selected-object bounds loop and the picking loop. Each loop borrows the original mesh. The returned points are temporary query values, not replacement geometry.\n\n![World-space bounds and picking share the same placement boundary.](../illustrations/journey-27a.svg)\n\nPicking now receives three doubles per position. Colors are irrelevant to intersection. Keep the triangle calculation in doubles instead of subtracting floats and converting only the already-rounded result.\n\nThe new state check places a triangle, asks for its bounds, projects its centroid and casts the camera ray back through that pixel. These are connected observations: the same stable ID must be found at its new world location. The live commands still use identity placements until the next lesson connects model matrices to the GPU.",
+      "result": "Run Example Box, Select Next three times, View Orthographic and Fit Selected. The box is framed. Run the world-query check: its moved triangle must be picked at its placed centroid and its world bounds must shift by the same offset.",
+      "experiment": "Change the world-query test’s translation to (4, 2, −0.25). Predict the new bounds and camera target, then restore it. Explain why querying colors would not help identify the triangle’s position.",
+      "production": "The production viewer combines source bounds and world placements, including inherited instance transforms. These loops establish one coordinate convention before adding hierarchy and shared GPU storage.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "View Orthographic"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/27a-world.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "                let point = [vertex[0] as f64, vertex[1] as f64, vertex[2] as f64];\n",
+          "snippet": "journey/code/27a-world-01.rs",
+          "why": "Whole-scene bounds include placed points."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        let mut bounds = crate::bounds::Bounds::point([\n            first[0] as f64, first[1] as f64, first[2] as f64,\n        ]);\n        for vertex in vertices {\n            bounds.include([vertex[0] as f64, vertex[1] as f64, vertex[2] as f64]);\n",
+          "snippet": "journey/code/27a-world-02.rs",
+          "why": "Use the same placed coordinates for fitting the selected object."
+        },
+        {
+          "path": "src/picking.rs",
+          "before": "            let a = vertices[triangle[0] as usize];\n            let b = vertices[triangle[1] as usize];\n            let c = vertices[triangle[2] as usize];\n",
+          "snippet": "journey/code/27a-world-03.rs",
+          "why": "Ask whether the world ray hits the placed triangle."
+        },
+        {
+          "path": "src/picking.rs",
+          "before": "fn triangle_distance(ray: &Ray, a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f64> {\n    let edge1 = Vector::new((b[0] - a[0]) as f64, (b[1] - a[1]) as f64, (b[2] - a[2]) as f64);\n    let edge2 = Vector::new((c[0] - a[0]) as f64, (c[1] - a[1]) as f64, (c[2] - a[2]) as f64);\n",
+          "snippet": "journey/code/27a-world-04.rs",
+          "why": "Compute differences in the double-precision coordinates supplied by placement."
+        },
+        {
+          "path": "src/picking.rs",
+          "before": "    let origin = &ray.origin - &Point::new(a[0] as f64, a[1] as f64, a[2] as f64);\n",
+          "snippet": "journey/code/27a-world-05.rs",
+          "why": "Build the triangle origin from the same world point."
+        },
+        {
+          "path": "src/placement_tests.rs",
+          "before": "use session_rust::Xform;\n",
+          "snippet": "journey/code/27a-world-06.rs",
+          "why": "Connect placement, both bounds and camera-ray picking in one state check."
+        }
+      ],
+      "browser_caption": "Ask geometry questions in world coordinates. The actual command dock drives this checkpoint; the selected object is highlighted.",
+      "image_result": "The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels."
+    },
+    {
+      "id": "27b-model",
+      "title": "Apply object placement on the GPU",
+      "page": "journey/27b-model.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Send a separate model matrix for each draw while retaining local vertex buffers.",
+      "trace": "Local vertex → model uniform → world point → camera uniform → clip position",
+      "question": "Why do model and camera matrices need separate owners?",
+      "answer": "The object owns where its shape belongs; the camera owns how the scene is viewed. Binding the object model before each draw lets local mesh data stay unchanged while the same camera draws many placements.",
+      "story": "Bounds and picking now understand placement. Drawing must apply that same matrix, or the visible object and the selectable object would disagree.\n\nAdd a second uniform binding to the shader. Group 0 remains the shared camera transform. Group 1 contains one object’s model matrix. The vertex shader first produces a world position, then applies the camera. The fragment shader receives that world position so its derivative-based lighting follows the placed surface too.\n\n![The camera binding is shared; the model binding changes for each object draw.](../illustrations/journey-27b.svg)\n\nGpuMesh uploads the original local vertices, encodes the sixteen model values as floats, and creates the object bind group from the pipeline’s group-1 layout. The bind group retains its referenced buffer. Bind it immediately before drawing that object’s indices.\n\nFinally change Example Box: create its shape around the local origin, then give the Object the translation that used to be baked into its vertices. Its world appearance stays consistent. Its local box coordinates are now reusable. The current renderer still rebuilds uploads on scene changes; later shared-storage lessons will update changed ranges.",
+      "result": "Run Example Box, Select Next three times, View Isometric and Fit Selected. The box must appear at its placed world position, remain selectable, and fit correctly. Its local coordinates stay centred around zero. Check the shader trace: model first, camera second.",
+      "experiment": "Change Example Box’s placement translation from (0.9, 0, 0.4) to (1.4, 0, 0.4). Predict where Fit Selected will aim and verify the visible box and its pick agree. Restore the original value. Do not move the box by rewriting its mesh.",
+      "production": "The maintained viewer shares local geometry across instances and supplies placement data to GPU draws. This checkpoint introduces the same ownership boundary with one bind group per object; batching and resource accounting follow later.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/27b-model.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/triangle.wgsl",
+          "before": "@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;\n",
+          "snippet": "journey/code/27b-model-01.wgsl",
+          "why": "Keep camera and object placement in separate uniform groups."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    output.position = transform * vec4<f32>(position, 1.0);\n    output.colour = colour;\n    output.world = position;\n",
+          "snippet": "journey/code/27b-model-02.wgsl",
+          "why": "Place the vertex before projecting it; use world position for lighting."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "use crate::mesh::Mesh;\n",
+          "snippet": "journey/code/27b-model-03.rs",
+          "why": "Upload an object’s mesh and placement together."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    index_count: u32,\n",
+          "snippet": "journey/code/27b-model-04.rs",
+          "why": "Retain the object bind group alongside its vertex/index buffers."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    pub fn upload(device: &wgpu::Device, mesh: &Mesh, selected: bool) -> Self {\n",
+          "snippet": "journey/code/27b-model-05.rs",
+          "why": "Borrow local mesh coordinates and the model from the same Object."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "        Self { vertices, indices, index_count: mesh.indices().len() as u32 }\n",
+          "snippet": "journey/code/27b-model-06.rs",
+          "why": "Encode the model’s column-major values and bind the uniform buffer."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {\n",
+          "snippet": "journey/code/27b-model-07.rs",
+          "why": "Choose this object’s placement before its indexed draw."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh, false)).collect();\n",
+          "snippet": "journey/code/27b-model-08.rs",
+          "why": "Remove the upload that ran before the pipeline layout was available."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let uniform = device.create_buffer(&wgpu::BufferDescriptor {\n",
+          "snippet": "journey/code/27b-model-09.rs",
+          "why": "Upload objects using the model layout inferred from the shader."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {\n        self.meshes = scene.objects().iter().map(|object| {\n            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))\n",
+          "snippet": "journey/code/27b-model-10.rs",
+          "why": "Include each placement when a scene update rebuilds the current uploads."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        source.transform(&session_rust::Xform::translation(0.9, 0.0, 0.4));\n",
+          "snippet": "journey/code/27b-model-11.rs",
+          "why": "Keep the generated box centred in its local coordinates."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        self.insert(Mesh::from_kernel(&source)?)\n",
+          "snippet": "journey/code/27b-model-12.rs",
+          "why": "Assign its world placement after inserting the local mesh."
+        }
+      ],
+      "browser_caption": "Apply object placement on the GPU. The actual command dock drives this checkpoint; the selected object is highlighted.",
+      "image_result": "The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels.",
+      "browser_check": "journey/checks/browser/placement.cjs"
+    },
+    {
+      "id": "27c-move",
+      "title": "Move a placed object with a typed offset",
+      "page": "journey/27c-move.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Translate selected geometry through the existing command and history route.",
+      "trace": "Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload",
+      "question": "Why is a world translation multiplied on the left of the existing placement?",
+      "answer": "The existing placement first takes a local point into world coordinates. The new translation then shifts that world point. Translation times existing placement moves along world axes; reversing their order can move along scaled or rotated local axes instead.",
+      "story": "The complete path is ready for a real command: local vertices, world queries and a GPU model matrix. Add Move x,y,z without adding a second editing owner.\n\nThe offset parser accepts exactly three comma-separated finite numbers. Spaces around those numbers are harmless. A missing coordinate, extra coordinate, NaN or infinity is an error. Result separates a valid offset from a useful explanation.\n\n![One typed Move becomes one document transaction and one new object placement.](../illustrations/journey-27c.svg)\n\nEditor asks for the selected stable ID, composes a world translation with its existing model, and submits Scene::place through History::try_edit. The local mesh is still shared. A zero offset changes nothing and does not create an undo entry.\n\nThe dock recognizes Move with arguments. It records the submitted line once; result replaces that line’s preliminary answer when parsing or editing fails. The browser still redraws the dock on an error, so an explanation is visible immediately. Later tool lessons will add Move with picked base/target points and command repetition. Today Move needs its complete offset on the line.",
+      "result": "Run Example Box, Select Next three times, View Isometric, and Move 0.6,0.2,0. Then run Fit. The box moves while the other objects stay put. Undo restores its previous placement; Redo restores the moved placement. Move with nothing selected must explain the problem rather than changing another object.",
+      "experiment": "Run Move 0,0,0 followed by Undo. Explain why the zero offset creates no history entry. Try Move 1,2 and Move NaN,0,0: both must report an error without moving geometry. Restore the checkpoint before saving.",
+      "production": "The maintained viewer’s Move accepts a typed offset or starts a tool that collects points. This lesson completes the direct typed-offset route using the shared placement/history boundary. Interactive Move and repeating tools will extend it in the tool chapters.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Move 0.6,0.2,0"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "frame": "journey/checks/27c-move.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod editor;\n",
+          "snippet": "journey/code/27c-move-01.rs",
+          "why": "Register the small numeric parser."
+        },
+        {
+          "path": "src/offset.rs",
+          "before": null,
+          "snippet": "journey/code/27c-move-02.rs",
+          "why": "Validate a complete numeric offset before it reaches the document."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    AddBox,\n",
+          "snippet": "journey/code/27c-move-03.rs",
+          "why": "Carry the offset as data in the existing Action enum."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),\n",
+          "snippet": "journey/code/27c-move-04.rs",
+          "why": "Move along world axes and commit one placement change through document history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Fit Selected\",\n",
+          "snippet": "journey/code/27c-move-05.rs",
+          "why": "Offer the named command in the dock vocabulary."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "            .any(|name| name.eq_ignore_ascii_case(&line))\n",
+          "snippet": "journey/code/27c-move-06.rs",
+          "why": "Recognize Move followed by arguments; the parser validates those arguments."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "    pub fn update(\n",
+          "snippet": "journey/code/27c-move-07.rs",
+          "why": "Replace the latest command’s answer without recording the line twice."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            } else {\n                let action = match line.as_str() {\n",
+          "snippet": "journey/code/27c-move-08.rs",
+          "why": "A valid offset becomes an Action; a parse error becomes a dock answer and still redraws."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                Err(error) => {\n                    report(error);\n                    return;\n                }\n",
+          "snippet": "journey/code/27c-move-09.rs",
+          "why": "Display editing failures in the command dock and continue to its normal redraw."
+        }
+      ],
+      "browser_caption": "Move a placed object with a typed offset. The actual command dock drives this checkpoint; the selected object is highlighted.",
+      "image_result": "The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels.",
+      "browser_check": "journey/checks/browser/placement.cjs"
+    },
+    {
+      "id": "27d-history",
+      "title": "Prove placement and history agree",
+      "page": "journey/27d-history.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.",
+      "trace": "Parsed offset → world translation → shared mesh → Undo/Redo → identical placement",
+      "question": "What evidence distinguishes moving a placement from rewriting a mesh?",
+      "answer": "The world point shifts by the requested offset, the Rc allocation and local vertices stay identical, and Undo/Redo restore the placement while leaving the camera alone. Invalid input and zero movement must not consume the document’s redo or undo history.",
+      "story": "The visible result is useful evidence, but a moved picture alone does not prove which data changed. These checks follow the values that future editing tools must preserve.\n\nFirst parse valid and invalid lines. Then start with a scaled placement. A world-axis Move must shift its world point by the exact requested offset, regardless of that existing scale. Retain an Rc handle and compare local vertices as well as world coordinates.\n\n![World placement changes; local mesh and camera survive history travel.](../illustrations/journey-27d.svg)\n\nScene::place takes ownership of its Xform. Save the sixteen-value array before that call when a later assertion needs it. The array is Copy; the kernel Xform is not.\n\nUndo must restore the complete old placement, and Redo must restore the moved placement. Insert invalid and zero moves between Undo and Redo: neither may discard the redo record. This is why a history transaction belongs in Editor rather than in a browser key handler.\n\nThe native frame also projects a known point on the moved box, casts its picking ray, and samples the resulting GPU pixels. Chrome repeats the typed move/Undo/Redo picture round trip and checks visible errors. These are separate checks of state, shader presentation and event delivery. An exact edge click compares two different calculations—the CPU ray and GPU raster. Here we test an interior fragment; the later GPU-ID lesson covers exact raster ownership.",
+      "result": "Run Example Box, Select Next three times, View Orthographic, Move 0,0.6,0, and Fit. Then Undo and Redo the move. Run the Rust checks and compare the local mesh, model matrix, world point, selected ID and camera values at each stage.",
+      "experiment": "Change the existing x scale in the world-axis test from 2 to 3. Predict the local-axis error you would see if the multiplication order were reversed. Confirm the existing implementation still shifts the world point by the same amount, then restore the test.",
+      "production": "These invariants carry into picked-point Move, Copy, Rotate, Scale, previews and cancellation. The production course must keep the same source/placement distinction while adding large scenes, instancing and incremental uploads.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "View Orthographic"
+        },
+        {
+          "command": "Move 0,0.6,0"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "frame": "journey/checks/27d-history.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod placement_tests;\n",
+          "snippet": "journey/code/27d-history-01.rs",
+          "why": "Register the direct Move and history checks."
+        },
+        {
+          "path": "src/move_tests.rs",
+          "before": null,
+          "snippet": "journey/code/27d-history-02.rs",
+          "why": "Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection."
+        }
+      ],
+      "browser_caption": "Prove placement and history agree. The actual command dock drives this checkpoint; the selected object is highlighted.",
+      "image_result": "The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels.",
+      "browser_check": "journey/checks/browser/placement.cjs",
+      "browser_result_status": "Select an object before Move"
     }
   ]
 }
