@@ -582,3 +582,41 @@ fn close_floor_edges_are_continuous_at_phone_and_desktop_sizes() {
         }
     }
 }
+
+/// Off-screen boundary axes still draw when a wide pen reaches the viewport.
+#[test]
+fn offscreen_stroke_axes_keep_their_visible_width() {
+    if pollster::block_on(Gpu::new_headless(8, 8)).is_err() {
+        eprintln!("no GPU adapter; skipped");
+        return;
+    }
+    for width in [40.0, 80.0] {
+        for (axis, side) in [(0, -1.0), (0, 1.0), (1, -1.0), (1, 1.0)] {
+            let mut a = [0.0; 3]; let mut b = a;
+            a[axis] = side * 110.0; b[axis] = a[axis];
+            a[1-axis] = -20.0; b[1-axis] = 20.0;
+            a[2] = 10.0; b[2] = 10.0;
+            let shape = BRep::create_box(if axis == 0 { 20.0 } else { 40.0 }, if axis == 1 { 20.0 } else { 40.0 }, 20.0);
+            let mut session = Session::new("stroke fringe");
+            let mut shift = [0.0; 3]; shift[axis] = side * 120.0;
+            let id = shape.guid().to_string(); session.add_brep(shape, None);
+            session.set_xform(&id, Xform::translation(shift[0], shift[1], shift[2]));
+            let (oracle, rgba) = render_configured(session, (256, 256), |camera, _| {
+                camera.set_view(crate::camera::View::Top);
+                camera.target = [0.0; 3];
+                camera.distance = 100.0 * camera.unit.to_meters() / (crate::camera::FOVY_DEG * 0.5).to_radians().tan();
+                camera.update_position();
+            }, |gpu| {
+                gpu.view.show_grid = false; gpu.view.markers = false;
+                gpu.view.show_outlines = false; gpu.view.opacity = 1.0;
+                gpu.view.thickness_px = width as f32; gpu.view.msaa_forced = Some(1);
+            });
+            for endpoint in [a, b] {
+                let (x, y) = oracle.screen(&endpoint).expect("in front of camera");
+                assert!(x < 0.0 || x > 256.0 || y < 0.0 || y > 256.0, "axis must be outside the viewport");
+            }
+            let inked = rgba.chunks_exact(4).filter(|p| p[0] < 190 && p[1] < 190 && p[2] < 190).count();
+            assert!(inked > 150, "the stroke's width must still reach the viewport: axis {axis}, side {side}, width {width}, inked {inked}");
+        }
+    }
+}

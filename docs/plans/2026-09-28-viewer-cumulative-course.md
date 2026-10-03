@@ -530,3 +530,15 @@ Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, 
 - [x] Native suite: 505 passed / 55 ignored; WebAssembly and optimized Trunk builds pass. Same Chrome documentation tab refreshed with the selected 32gia route retained.
 - [ ] Confirm latest pushed viewer-check, Pages and Session mini workflows and public navigation acceptance.
 - [ ] Continue the 89-checkpoint cumulative course with explicit Delete/Save replay, owned fetch/replay tickets and automatic cold-source editing. The full course and production robustness inventory remain unfinished.
+
+### 2026-10-03 · Phone loading and camera movement
+
+- [x] User confirms appearance is correct; both phone startup and camera movement remain extremely slow.
+- [x] Skip off-screen expanded stroke boxes before visibility and joint work, preserving world/pen widths, antialiasing and depth tests.
+- [x] Integrated Intel GPU, phone-sized canvas, 20-frame before/after: close view 24.2 → 14.2 ms median, ink 18.914 → 9.252 ms; fitted view 31.4 → 29.9 ms. Both image pairs are byte-identical; actual Qualcomm performance remains unmeasured.
+- [x] Four viewport boundaries × two wide pen sizes retain visible fringes with their axes outside the viewport. Full native suite: 506 passed / 55 ignored; WebAssembly check passes.
+- [x] Optimized browser build and headed Chrome checks: 24 close-up views, three slow-navigation quality configurations, no browser errors.
+- [ ] Publish this optimization; wait for viewer-check, Pages and Session mini results and verify the deployed viewer.
+- [ ] Obtain a current phone Diagnostic Report to distinguish download, decode, walk and first-GPU-frame delay. CPU restructuring remains conditional on that evidence.
+- [ ] Resume course building: explicit-target Delete (32giba), captured Move/Delete/Save replay (32gibb), owned pending tickets (32gic), automatic cold-source edits (32gid), headed failure/timing acceptance (32gj), then listeners/device recovery and remaining geometry/rendering/attributes/command parity.
+- [ ] Split the 17 oversized early lessons and complete all 71 future checkpoints; keep the 89 verified checkpoints and learner work intact. Retire old references only after complete replacement acceptance.

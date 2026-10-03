@@ -60,3 +60,20 @@ Headed Chrome checks now pass for the phone default (824×1830, 1× MSAA), expli
 A new real-floor CPU ray oracle checks six close-up views at desktop and portrait phone sizes, zoom scales 0.3/0.1 and grazing angles 3°/12°. All sampled visible edges draw, with no detected hidden-edge leaks. This supplements the six permanent far-view cases and the close-up plate cases; it does not establish coverage of an unspecified user camera view.
 
 The 900×700 NVIDIA selftest (20 frames, solid opacity) remains comparable: previous median frame 4.4 ms / ink 3.445 ms; current median frame 4.6 ms / ink 3.588 ms. GPU allocation estimates and non-background pixel count are unchanged. This fixes a navigation quality policy; these runs do not demonstrate a rendering speedup.
+
+## Off-screen stroke work
+
+At close zoom the renderer still visited off-screen stroke vertices and calculated their sag, visibility and neighbouring joints before raster clipping discarded them. A conservative expanded screen box now rejects a stroke only when its full width and end-cap/filter expansion cannot reach the viewport. Thick world-width strokes and selected/ordinary pen widths retain their margin; no visibility tolerance, tessellation or pixel resolution changes.
+
+NVIDIA/Intel are desktop measurements, not Qualcomm phone acceptance. On Intel RPL-S at the phone canvas size 824×1830, solid opacity, 1× MSAA and 20 frames:
+
+| View | Previous median frame | Current median frame | Previous ink | Current ink |
+| --- | ---: | ---: | ---: | ---: |
+| Fitted floor | 31.4 ms | 29.9 ms | 26.088 ms | 25.384 ms |
+| Zoom to 0.3× fit distance | 24.2 ms | 14.2 ms | 18.914 ms | 9.252 ms |
+
+Both before/after PPMs are byte-identical and allocation estimates are unchanged. The close-view median frame improves about 41%; fitted-view change is small. This improves work during navigation; it does not establish a shorter initial phone load. A GPU regression keeps visible stroke fringes when the axis itself is outside each of the four viewport sides, using two wide pen sizes.
+
+Verification: 506 native tests passed, 55 ignored; WebAssembly check and optimized Trunk build passed. Headed Chrome retained visible box edges in all 24 close-up cases and canvas/MSAA quality after slow drags in default phone, explicit phone and desktop cases, with no browser errors.
+
+The user confirmed the appearance is correct and that both loading and camera movement remain extremely slow on their phone. Actual current phone diagnostics are still needed to distinguish network, CPU conversion and GPU startup delays. Phase 3 CPU restructuring remains conditional on that evidence.

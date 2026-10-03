@@ -422,6 +422,14 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let vp = vec2<f32>(line.vp_w, line.vp_h);
     let s0 = (e0.xy / e0.w * 0.5 + 0.5) * vp;
     let s1 = (e1.xy / e1.w * 0.5 + 0.5) * vp;
+    // The expanded quad cannot reach the viewport: skip visibility and neighbour work.
+    // Two half widths bound the sideways + end-cap expansion, including selected hairlines.
+    let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
+    let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
+    let reach = 2.0 * (max(max(raw0, raw1), 0.5) + FILTER_REACH);
+    if (any(max(s0, s1) + reach < vec2<f32>(0.0)) || any(min(s0, s1) - reach > vp)) {
+        return dead_vertex();
+    }
     // the stroke's rise off its faces, as the farther end sees it
     let sag = max(sag_terms(w0, c0, seg.sag), sag_terms(w1, c1, seg.sag));
 
@@ -436,8 +444,6 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let n = vec2<f32>(-dir.y, dir.x);
 
     // half widths at both ends; a selected stroke is at least a full pen wide
-    let raw0 = max(half_width_px(seg.radius, e0.w), select(0.0, line.thickness, selected));
-    let raw1 = max(half_width_px(seg.radius, e1.w), select(0.0, line.thickness, selected));
     let px = floor_hairline(select(raw0, raw1, at_end1));
     // corner: sideways by the width, outward by the filter reach
     let along = select(-1.0, 1.0, at_end1);
