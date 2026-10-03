@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 154 lesson slots; 86 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 158 lesson slots; 87 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -205,7 +205,15 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32gha · [Cancel reloads when their document context changes](32gha-cancel.md) — Close / replacement / Undo / release → cancel flight → late result is inert.
 
-- [ ] 32gi · Replay the edit that requested a reload — preserve the original ObjectId and Move arguments, hydrate all Save sources, apply exactly once and retain one document Undo transaction.
+- [x] 32gi · [Capture the requested edit before waiting](32gi-capture.md) — Record the original ObjectId and Move arguments; retain no source owner. Native target/release checks and the existing explicit browser reload are verified.
+
+- [ ] 32gia · Request the captured edit’s sources — Move/Delete load only the original target’s cold origin; Save deduplicates every active cold origin; missing targets fail.
+
+- [ ] 32gib · Replay against the current target placement — Apply the original Move/Delete exactly once, preserve a later selection, and make one document history transaction.
+
+- [ ] 32gic · Pair the captured edit with reload authority — Keep intent with the pending ticket; cancel it on context changes and reject obsolete completion.
+
+- [ ] 32gid · Reload automatically for Move, Delete and Save — Connect browser commands to source requests and captured replay; retain original Save doubles and asynchronous command history.
 
 - [ ] 32gj · Prove reload timing in Chrome — combined automatic-replay timing, target selection changes, exact restored Save precision, missing-body/current-network/invalid-length failures, multi-origin partial failures and real URL owner cleanup. Explicit reload already has late/out-of-order/cancellation checks.
 

@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 86 cumulative lessons, about 134–245 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 87 cumulative lessons, about 135–247 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **154 proposed slots: 86 current checkpoints and 68 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **158 proposed slots: 87 current checkpoints and 71 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -102,6 +102,7 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32ggb · Deliver only the current completed reload batch](journey/32ggb-delivery.md) | 1–2 hours | Deliver only the current completed reload batch. |
 | [32gh · Restore editable sources through the command line](journey/32gh-command.md) | 1–2 hours | Restore editable sources through the command line. |
 | [32gha · Cancel reloads when their document context changes](journey/32gha-cancel.md) | 1–2 hours | Cancel reloads when their document context changes. |
+| [32gi · Capture the requested edit before waiting](journey/32gi-capture.md) | 1–2 hours | Retain the original object and arguments before any source request starts. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

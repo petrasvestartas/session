@@ -6414,6 +6414,49 @@
           "why": "Compare original geometry and flags with the real browser download using the typed protobuf reader."
         }
       ]
+    },
+    {
+      "id": "32gi-capture",
+      "title": "Capture the requested edit before waiting",
+      "page": "journey/32gi-capture.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Retain the original object and arguments before any source request starts.",
+      "trace": "Command + original selection → value-only Intent → unchanged target while waiting",
+      "question": "Why store ObjectId and Move offset rather than selection or a precomputed model?",
+      "answer": "Selection can change while I/O waits. The original ObjectId names the requested target; the offset expresses the requested change. A later replay must read that target’s current placement rather than replace it with a stale matrix.",
+      "story": "A delayed edit needs a small record of the user’s request. Intent contains only a stable ObjectId and copied Move arguments, or Save. It owns no geometry, origin or URL. Changing selection cannot redirect that value.\n\nUnselected Delete, zero-offset Move and ordinary view commands do not create an edit intent; invalid Move values are refused. Save is represented explicitly because it will need every active cold origin instead of one selected target. Source selection and replay are added in the following checkpoints.\n\nThis checkpoint introduces and tests the request record. It does not yet intercept browser edits or replay them. Chrome checks the existing explicit reload path and its retained drawing; native tests prove captured target identity and that Close releases sources despite a retained intent.\n\n![Capture identity before waiting](../illustrations/journey-32gi.svg)",
+      "result": "From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending.",
+      "experiment": "Capture Move for one object, change selection, then inspect the captured ObjectId in the native test. Explain which origin the request must load.",
+      "production": "Separate requested intent from current interaction state. Source tickets authorize the completion; the captured target determines which edit may be replayed.",
+      "tests": true,
+      "frame": "journey/checks/32gi-capture.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_caption": "The existing explicit source reload preserves this checkpoint’s placed drawing. Captured-intent identity and release ownership are checked natively; automatic browser replay is introduced next.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/edit-intent.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod reload_job;\n",
+          "snippet": "journey/code/32gi-capture-01.rs",
+          "why": "Register the value-only requested-edit module."
+        },
+        {
+          "path": "src/edit_intent.rs",
+          "before": null,
+          "snippet": "journey/code/32gi-capture-02.rs",
+          "why": "Capture the requested target and arguments without retaining any source owners."
+        }
+      ]
     }
   ]
 }
