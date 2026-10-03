@@ -74,11 +74,21 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
             equations[i] = vec4<f32>(normal, -dot(normal, a), 0.0);
         }
 
-        // Anchor the depth plane inside the viewport, never at a near-clipped corner:
-        // that corner can project millions of pixels away at depth 1.
-        out.edge0 = vec4<f32>(equations[0].xyz, line.vp_w * 0.5);
-        out.edge1 = vec4<f32>(equations[1].xyz, line.vp_h * 0.5);
-        out.edge2 = vec4<f32>(equations[2].xyz, polygon.depth.z);
+        // Small far triangles need a nearby reference; extrapolating their homogeneous
+        // plane to the viewport centre magnifies cancellation. Huge near-clipped faces
+        // still use that centre, keeping their million-pixel corners out of the depth fit.
+        var reference = vec3<f32>(line.vp_w * 0.5, line.vp_h * 0.5, polygon.depth.z);
+        var gradient = polygon.depth.xy;
+        let viewport = vec2<f32>(line.vp_w, line.vp_h);
+        if (polygon.count == 3u && all(lo >= -viewport) && all(hi <= 2.0 * viewport)) {
+            let ab = polygon.points[1] - polygon.points[0];
+            let ac = polygon.points[2] - polygon.points[0];
+            gradient = vec2<f32>(ab.z * ac.y - ac.z * ab.y, ab.x * ac.z - ac.x * ab.z) / area;
+            reference = polygon.points[0];
+        }
+        out.edge0 = vec4<f32>(equations[0].xyz, reference.x);
+        out.edge1 = vec4<f32>(equations[1].xyz, reference.y);
+        out.edge2 = vec4<f32>(equations[2].xyz, reference.z);
         out.edge3 = vec4<f32>(equations[3].xyz, f32(polygon.count));
         // nearest corner depth
         var nearest = polygon.points[0].z;
@@ -88,7 +98,7 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
 
         let row = physical_row(placed.x*3u, placed.y);
-        out.gradient = vec4<f32>(polygon.depth.xy, nearest, instances[row].ao_radius);
+        out.gradient = vec4<f32>(gradient, nearest, instances[row].ao_radius);
         out.bounds = vec4<f32>(lo, hi);
     }
 

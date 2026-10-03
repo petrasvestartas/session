@@ -10,7 +10,7 @@ The close-up plate reproduction failed on viewer commit `1cc94d21`: the CPU ray 
 
 A face crossing the near plane gains a clipped corner. Its clip depth is 1, but dividing by its very small `w` can put its screen coordinates millions of pixels outside the viewport. Fitting a depth plane from those divided points, then subtracting a large offset from depth 1, loses the small reverse-Z depth where the face actually appears. Its crease can consequently fail the hidden-line test against its own face.
 
-`project_triangles.wgsl` now computes the depth plane directly from the original homogeneous corners `(x, y, w)`. The reference is the viewport centre. The existing clipped polygon still determines coverage, bounds and nearest depth, including its fourth edge when clipping produces a quadrilateral. The projected record remains 96 bytes; tile readers keep the same layout.
+`project_triangles.wgsl` now computes the depth plane directly from the original homogeneous corners `(x, y, w)`. Huge near-clipped faces use the viewport centre; bounded far triangles use a nearby screen corner to retain small depth differences. The existing clipped polygon still determines coverage, bounds and nearest depth, including its fourth edge when clipping produces a quadrilateral. The projected record remains 96 bytes; tile readers keep the same layout.
 
 A clipped stroke endpoint can be equally far away. `ribbon.wgsl` now derives the screen line from its **original** clip endpoints and anchors it at the point nearest the viewport centre. Coverage measures short offsets from that anchor. Stroke depth uses endpoint-distance weights, avoiding a subtraction from the near endpoint's depth of 1.
 
@@ -35,3 +35,9 @@ buildslot env REGEN_PROTO=0 CARGO_BUILD_JOBS=4 CARGO_NET_OFFLINE=true cargo test
 With the release viewer served on port 8770, run `NODE_PATH=target/course-tools/node_modules node tests/close-up-lines.cjs` for the Chrome check. Its JSON evidence and screenshot are written under `target/course-checks/close-up-chrome.*`.
 
 [Return to the complete tutorial checklist](roadmap.md).
+
+## Far-view precision regression
+
+Always anchoring at the viewport centre introduced a second precision problem for small distant triangles. Their homogeneous plane coefficients subtract nearly equal products; extending that plane to the centre amplifies the error. The real floor lost 335 of 6,878 visible samples (95.1294% inked) at 1200×800.
+
+The hybrid keeps homogeneous depth and the centre reference for huge near-clipped faces. A three-corner triangle bounded within one viewport beyond the canvas uses divided screen-corner differences and anchors at its first corner. Clipped coverage and the 96-byte GPU layout stay the same. The fixed fitted floor draws 6,878 of 6,878 samples. The permanent actual-floor fixture checks six fitted/farther/orthographic views at desktop and capped phone framebuffer sizes, requiring at least 99.9% visible ink. All eight existing close-up view/MSAA cases pass, retaining their hidden-ink checks.

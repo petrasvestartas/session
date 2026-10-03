@@ -511,3 +511,38 @@ fn close_up_edges_of_a_near_plate_are_continuous() {
         verdict.visible
     );
 }
+
+/// Real timber floor: tiny far triangles must not erase their own visible edges.
+#[test]
+fn far_floor_edges_are_continuous_at_phone_and_desktop_sizes() {
+    if pollster::block_on(Gpu::new_headless(8, 8)).is_err() {
+        eprintln!("no GPU adapter; skipped");
+        return;
+    }
+    let bytes = include_bytes!("../../tests/fixtures/timber-floor.pb");
+    for size in [(1200, 800), (824, 1830)] {
+        for (scale, perspective) in [(1.0, true), (1.6, true), (1.0, false)] {
+            let session = Session::pb_loads(bytes).expect("floor fixture");
+            let (oracle, rgba) = render_configured(session, size, |camera, _| {
+                camera.distance *= scale;
+                camera.perspective = perspective;
+                camera.update_position();
+            }, |gpu| {
+                gpu.view.show_grid = false;
+                gpu.view.show_outlines = false;
+                gpu.view.markers = false;
+                gpu.view.lit = false;
+                gpu.view.opacity = 1.0;
+                gpu.view.msaa_forced = Some(1);
+            });
+            let verdict = oracle.judge(&rgba, (0.0, 0.0, f64::from(size.0), f64::from(size.1)));
+            println!("far floor {size:?} scale {scale} perspective {perspective}: {} / {} visible ({:.4}%), {} / {} hidden leaks",
+                verdict.inked, verdict.visible, 100.0 * verdict.inked_share(), verdict.leaked, verdict.hidden);
+            if let Ok(out) = std::env::var("VIEWER_ORACLE_OUT") {
+                write_marked(&format!("{out}-{}-{scale}-{perspective}.ppm", size.0), &rgba, size, &verdict);
+            }
+            assert!(verdict.visible > 1000, "must expose the floor's edges");
+            assert!(verdict.inked_share() >= 0.999, "{} / {} visible edge samples missing", verdict.misses.len(), verdict.visible);
+        }
+    }
+}
