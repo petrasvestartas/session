@@ -23,15 +23,16 @@
     } catch { /* Private browsing may deny storage; downloads still work. */ }
 
     // A stale heartbeat means an interruption, not proof of a browser crash.
-    const previous = reports.find(item => item.report.outcome === 'failed'
+    const previous = reports.find(item => Date.now() - Date.parse(item.report.lastSeen) < 2 * 60 * 60 * 1000
+        && (item.report.outcome === 'failed'
         || (item.report.outcome === 'running' && (item.report.tab === tab
-            || Date.now() - Date.parse(item.report.lastSeen) > 120000)))?.report;
+            || Date.now() - Date.parse(item.report.lastSeen) > 120000))))?.report;
     const report = {
         version: 1, tab, started: now(), lastSeen: now(), outcome: 'running',
         page: location.origin + location.pathname, browser: navigator.userAgent,
         secureContext: isSecureContext, webgpu: !!navigator.gpu,
         viewport: [innerWidth, innerHeight], devicePixelRatio,
-        storage: true, events: [],
+        storage: true, events: [], phases: [], resources: [], liveReloads: 0,
     };
     let downloaded = false;
 
@@ -45,8 +46,7 @@
         catch { report.storage = false; }
     }
 
-    function download() {
-        const selected = report.outcome === 'failed' ? report : previous || report;
+    function download(selected = report) {
         const blob = new Blob([JSON.stringify(selected, null, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -64,10 +64,16 @@
     }
 
     window.viewerDiagnostic = (kind, message) => {
-        const event = {time: now(), kind, message: String(message).slice(0, 4096)};
+        const event = {time: now(), elapsedMs: performance.now(), kind, message: String(message).slice(0, 4096)};
         report.events.push(event);
         report.events = report.events.slice(-24);
         if (kind === 'adapter') report.adapter = event.message;
+        if (kind === 'phase') {
+            try { report.phases.push({...JSON.parse(message), elapsedMs: event.elapsedMs}); } catch {}
+            report.phases = report.phases.slice(-256);
+        }
+        if (kind === 'live-reload') report.liveReloads++;
+        if (kind === 'milestone' && message === 'geometry on screen') report.outcome = 'ready';
         if (kind === 'fatal') {
             report.failure ||= event;
             report.outcome = 'failed';
@@ -83,7 +89,7 @@
             }
         }
     };
-    window.viewerDiagnostics = {download, read: () => JSON.parse(JSON.stringify(report))};
+    window.viewerDiagnostics = {download, downloadPrevious: () => previous && download(previous), read: () => JSON.parse(JSON.stringify(report))};
     addEventListener('error', event => {
         if (event.message) window.viewerDiagnostic('fatal', event.error?.stack || event.message);
     });
@@ -98,6 +104,36 @@
         if (event.persisted && report.outcome === 'closed') report.outcome = 'running';
         save();
     });
+    document.addEventListener?.('visibilitychange', () => window.viewerDiagnostic('visibility', document.visibilityState));
+    document.addEventListener?.('freeze', () => window.viewerDiagnostic('freeze', 'page frozen'));
+    document.addEventListener?.('resume', () => window.viewerDiagnostic('resume', 'page resumed'));
+    if (typeof PerformanceObserver !== 'undefined') {
+        const observer = new PerformanceObserver(list => {
+            for (const entry of list.getEntries()) {
+                if (entry.initiatorType !== 'fetch' && !/\.wasm$/.test(entry.name)) continue;
+                report.resources.push({url: entry.name.split('?')[0], startMs: entry.startTime,
+                    durationMs: entry.duration, transferBytes: entry.transferSize,
+                    encodedBytes: entry.encodedBodySize, decodedBytes: entry.decodedBodySize});
+            }
+            report.resources = report.resources.slice(-128);
+            save();
+        });
+        observer.observe({type: 'resource', buffered: true});
+    }
+    // Use the viewer's adapter request; wgpu currently drops architecture/vendor on WebGPU.
+    if (navigator.gpu?.requestAdapter) {
+        const request = navigator.gpu.requestAdapter.bind(navigator.gpu);
+        navigator.gpu.requestAdapter = async options => {
+            const adapter = await request(options);
+            if (adapter?.info) {
+                const info = adapter.info;
+                report.gpuAdapterInfo = {vendor: info.vendor, architecture: info.architecture,
+                    device: info.device, description: info.description};
+                save();
+            }
+            return adapter;
+        };
+    }
     setInterval(save, 15000);
     save();
 

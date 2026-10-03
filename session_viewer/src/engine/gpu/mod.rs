@@ -185,6 +185,7 @@ impl Gpu {
             failure,
         } = device::open(window, size).await?;
         crate::engine::performance::mark("device ready");
+        let started = crate::engine::performance::now_ms();
         let ctx = GpuCtx::new(device, queue);
         let size = (config.width, config.height);
         // start without MSAA; retarget flips it later
@@ -219,6 +220,7 @@ impl Gpu {
             config.height,
             config.format
         );
+        crate::app::feedback::phase("pipeline setup", started, 0, "GPU");
         crate::engine::performance::mark("gpu built");
         let mut gpu = Self {
             surface,

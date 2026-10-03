@@ -114,11 +114,17 @@ impl State {
         crate::app::fonts::need_names(&doc.name, &doc.session); // register:loading
         self.scene.add_file(doc);
         let t1 = now_ms();
+        crate::app::feedback::phase("walk", t0, 0, &self.scene.docs[index].name);
         // only the new rows go to the GPU
         self.scene.upload_to(&mut self.gpu);
+        crate::app::feedback::phase("upload", t1, 0, &self.scene.docs[index].name);
         crate::app::feedback::diagnostic(
             "scene",
-            &format!("{} documents; {} display rows", self.scene.docs.len(), self.scene.row_count()),
+            &format!(
+                "{} documents; {} display rows",
+                self.scene.docs.len(),
+                self.scene.row_count()
+            ),
         );
         self.camera.grow_extent(&self.gpu.bounds);
         self.annotate_document(first_row); // register:scene_text

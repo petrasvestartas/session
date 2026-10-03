@@ -93,9 +93,12 @@ pub async fn get_buffer(
         return Ok((reply, None));
     }
 
-    let (controller, pending) = match early(url, opts) {
+    let (controller, pending, started) = match early(url, opts) {
         Some(started) => started,
-        None => start(url, opts)?,
+        None => {
+            let (controller, pending) = start(url, opts)?;
+            (controller, pending, now_ms())
+        }
     };
     let mut deadline = Deadline::new(controller)?;
     let resp: Response = match JsFuture::from(pending).await {
@@ -145,6 +148,7 @@ pub async fn get_buffer(
         return Err("range response exceeds requested bytes".to_string());
     }
 
+    super::feedback::phase("download", started, u64::from(body.length()), url);
     Ok((reply, Some(body)))
 }
 
@@ -188,7 +192,7 @@ fn start(url: &str, opts: &GetOpts) -> Result<(web_sys::AbortController, js_sys:
 }
 
 /// A GET index.html started while the wasm downloaded, taken once: `url` whole or `url#probe`.
-fn early(url: &str, opts: &GetOpts) -> Option<(web_sys::AbortController, js_sys::Promise)> {
+fn early(url: &str, opts: &GetOpts) -> Option<(web_sys::AbortController, js_sys::Promise, f64)> {
     let key = match opts.range {
         Some((0, PROBE_BYTES)) => format!("{url}#probe"),
         None if opts.if_none_match.is_none() => url.to_string(),
@@ -209,7 +213,15 @@ fn early(url: &str, opts: &GetOpts) -> Option<(web_sys::AbortController, js_sys:
     .ok()?;
     let controller = js_sys::Reflect::get(&entry, &"c".into()).ok()?;
     let promise = js_sys::Reflect::get(&entry, &"r".into()).ok()?;
-    Some((controller.dyn_into().ok()?, promise.dyn_into().ok()?))
+    let started = js_sys::Reflect::get(&entry, &"t".into())
+        .ok()?
+        .as_f64()
+        .unwrap_or_else(now_ms);
+    Some((
+        controller.dyn_into().ok()?,
+        promise.dyn_into().ok()?,
+        started,
+    ))
 }
 
 /// The body, read as it arrives, so only a stall trips the deadline.

@@ -67,6 +67,7 @@ impl Gpu {
         geometry |= self.live_points() > 0; // register:clouds
 
         if let Some(done) = self.performance.mark_startup(geometry) {
+            crate::app::feedback::phase("first frame encode", t0, 0, done);
             self.ctx
                 .queue
                 .on_submitted_work_done(move || crate::engine::performance::mark(done));

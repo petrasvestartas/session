@@ -260,6 +260,7 @@ impl LiveSource {
 
         self.last_read_ms = now;
         let url = self.url.clone();
+        let started = crate::engine::performance::now_ms();
         let changed = match self.read(&url).await {
             Read::Failed(e) => {
                 self.warn(format!("manifest {url} unreachable ({e})"));
@@ -276,6 +277,7 @@ impl LiveSource {
             }
             Read::Same => false,
         };
+        super::feedback::phase("manifest", started, 0, &url);
         self.pending |= changed;
         let files = self.file_urls();
         let mut failed = false;
@@ -308,6 +310,7 @@ impl LiveSource {
             "live: source changed{}; reloading the scene",
             if announced { " (announced)" } else { "" }
         );
+        super::feedback::diagnostic("live-reload", "source changed");
         let docs = self.load_all(&files).await;
         // drop files the manifest no longer lists
         let mut removed = Vec::new();
@@ -349,6 +352,7 @@ impl LiveSource {
     /// Decode one file and keep it; an empty file is dropped.
     async fn decode(&mut self, url: &str, bytes: Vec<u8>) {
         let n = bytes.len();
+        let started = crate::engine::performance::now_ms();
         let session = match session_from_bytes(url, bytes).await {
             Ok(session) => session,
             Err(error) => {
@@ -357,6 +361,7 @@ impl LiveSource {
             }
         };
 
+        super::feedback::phase("decode", started, n as u64, url);
         if session.lookup.is_empty() && session.instance_lookup.is_empty() {
             self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
             return;

@@ -472,6 +472,7 @@ pub fn build(ctx: &GpuCtx, target: Target, desc: &PipelineDesc) -> Pipeline {
 
 /// Compile the pipeline `desc` describes.
 fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
+    let started = crate::engine::performance::now_ms();
     let groups: Vec<&wgpu::BindGroupLayout> = desc.groups.iter().collect();
     let layout = pipeline_layout(device, &desc.label, &groups);
     let buffers: Vec<wgpu::VertexBufferLayout> = desc
@@ -537,7 +538,7 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
     }
 
     count_pipeline();
-    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         label: Some(&desc.label),
         layout: Some(&layout),
         vertex: wgpu::VertexState {
@@ -581,7 +582,9 @@ fn compile(device: &wgpu::Device, desc: &PipelineKey) -> wgpu::RenderPipeline {
         },
         multiview_mask: None,
         cache: None,
-    })
+    });
+    crate::app::feedback::phase("pipeline creation", started, 0, &desc.label);
+    pipeline
 }
 
 #[cfg(all(test, not(target_arch = "wasm32")))]

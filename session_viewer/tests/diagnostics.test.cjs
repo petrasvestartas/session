@@ -21,7 +21,7 @@ function open(localStorage = storage(), sessionStorage = storage(), gpu = {}) {
     let blob;
     const window = {};
     const context = {
-        window, localStorage, sessionStorage, crypto: {randomUUID},
+        performance: {now: () => 42}, window, localStorage, sessionStorage, crypto: {randomUUID},
         location: {origin: 'https://viewer.test', pathname: '/', search: '?secret=hidden'},
         navigator: {gpu, userAgent: 'test browser'}, isSecureContext: true,
         innerWidth: 100, innerHeight: 80, devicePixelRatio: 1,
@@ -51,11 +51,11 @@ test('first failure survives later errors, downloads and recovery reloads', asyn
     page.listeners.pagehide();
     const next = open(page.localStorage, page.sessionStorage);
     assert.equal(next.elements['viewer-diagnostics'].hidden, false);
-    next.viewerDiagnostics.download();
+    next.viewerDiagnostics.downloadPrevious();
     assert.equal(JSON.parse(await next.downloads[0].text()).failure.message, 'device lost');
     next.listeners.pagehide();
     const again = open(page.localStorage, page.sessionStorage);
-    again.viewerDiagnostics.download();
+    again.viewerDiagnostics.downloadPrevious();
     assert.equal(JSON.parse(await again.downloads[0].text()).failure.message, 'device lost');
 });
 
@@ -96,4 +96,29 @@ test('corrupt and older saved data cannot prevent viewer startup', () => {
     const page = open(data);
     assert.equal(page.viewerDiagnostics.read().outcome, 'running');
     assert.equal(page.elements['viewer-diagnostics'].hidden, true);
+});
+
+
+test('successful run downloads its own complete phases even after a previous failure', async () => {
+    const failed = open();
+    failed.viewerDiagnostic('fatal', 'earlier failure');
+    const page = open(failed.localStorage, failed.sessionStorage);
+    for (let i = 0; i < 40; i++) page.viewerDiagnostic('phase', JSON.stringify({name: 'download', bytes: 8192, durationMs: 12}));
+    page.viewerDiagnostic('live-reload', 'initial');
+    page.viewerDiagnostic('milestone', 'geometry on screen');
+    const report = page.viewerDiagnostics.read();
+    assert.equal(report.outcome, 'ready');
+    assert.equal(report.phases.length, 40);
+    assert.equal(report.liveReloads, 1);
+    page.viewerDiagnostics.download();
+    assert.equal(JSON.parse(await page.downloads[0].text()).outcome, 'ready');
+});
+
+test('failed and interrupted reports from yesterday do not show a stale warning', () => {
+    for (const outcome of ['failed', 'running']) {
+        const data = storage();
+        data.setItem('session-viewer-report:stale', JSON.stringify({version: 1, outcome,
+            started: '2020-01-01T00:00:00Z', lastSeen: '2020-01-01T00:00:00Z'}));
+        assert.equal(open(data).elements['viewer-diagnostics'].hidden, true);
+    }
 });

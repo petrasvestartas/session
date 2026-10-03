@@ -45,7 +45,7 @@
             init.headers = { Range: "bytes=0-8191" };
           var reply = fetch(url, init);
           reply.catch(function () {});
-          early[key] = { r: reply, c: controller };
+          early[key] = { r: reply, c: controller, t: performance.now() };
           return reply;
         }
 
@@ -217,7 +217,8 @@
     </div>
     <div id="viewer-diagnostics" role="status" hidden>
       <p id="viewer-diagnostics-message"></p>
-      <button type="button" onclick="viewerDiagnostics.download()">Download diagnostic report</button>
+      <button type="button" onclick="viewerDiagnostics.download()">Download latest report</button>
+      <button type="button" onclick="viewerDiagnostics.downloadPrevious()">Download previous report</button>
       <button type="button" onclick="this.parentElement.hidden = true">Dismiss</button>
     </div>
     <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Click selects, Shift-click adds to selection, right drag orbits. Type Layers On in the command line to show layers. Enter executes and Escape cancels."></canvas>

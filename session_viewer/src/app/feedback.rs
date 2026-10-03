@@ -247,3 +247,29 @@ pub fn layers_visible(_open: bool) {}
 pub fn layers_open() -> bool {
     false
 }
+
+/// One measured load phase, retained on successful runs too.
+pub fn phase(name: &str, started: f64, bytes: u64, source: &str) {
+    diagnostic(
+        "phase",
+        &serde_json::json!({
+            "name": name, "durationMs": crate::engine::performance::now_ms() - started,
+            "bytes": bytes, "source": source.split('?').next().unwrap_or(source),
+        })
+        .to_string(),
+    );
+}
+
+/// Download the current run, including a successful load.
+pub fn download_report() {
+    #[cfg(target_arch = "wasm32")]
+    {
+        use wasm_bindgen::{JsCast, JsValue};
+        if let Ok(reports) = js_sys::Reflect::get(&js_sys::global(), &"viewerDiagnostics".into())
+            && let Ok(download) = js_sys::Reflect::get(&reports, &"download".into())
+            && let Some(download) = download.dyn_ref::<js_sys::Function>()
+        {
+            let _ = download.call0(&JsValue::NULL);
+        }
+    }
+}

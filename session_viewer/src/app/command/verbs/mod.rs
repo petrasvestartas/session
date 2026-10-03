@@ -18,6 +18,7 @@ macro_rules! verbs {
 
 verbs! {
     view,
+    diagnostic_report,
     point,                   // register:point
     line,                    // register:line
     arrow,                   // register:arrow

@@ -278,6 +278,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             return;
         }
     };
+    super::feedback::phase("manifest", t0, bytes.len() as u64, &route.manifest);
     crate::engine::performance::mark("manifest received");
 
     if stale_load(generation) {
@@ -407,6 +408,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             }
         };
 
+        super::feedback::phase("decode", f1, n, &url);
         if stale_load(generation) {
             return;
         }
