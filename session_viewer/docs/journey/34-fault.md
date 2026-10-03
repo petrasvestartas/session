@@ -44,11 +44,14 @@ Create the file and type:
 
 Expose the signal and include its native tests.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod background;
 ```
+
+</details>
 
 Replace that block with:
 

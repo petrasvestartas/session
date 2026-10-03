@@ -26,11 +26,14 @@ Continue from [Frame one object without changing its size](26-selected.md). Save
 
 Store one placement beside the shared local mesh.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub mesh: Rc<Mesh>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,12 +45,15 @@ Replace that block with:
 
 Transform position only; return world coordinates without changing the mesh.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[derive(Clone)]
 pub struct Scene {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -59,11 +65,14 @@ Replace that block with:
 
 Identity preserves the behavior of all existing objects.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.objects.push(Object { id, mesh: Rc::new(mesh), source: None });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -75,11 +84,14 @@ Replace that block with:
 
 Check the placement before mutating the object found by its stable ID.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn remove(&mut self, id: ObjectId) -> bool {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -91,12 +103,15 @@ Replace that block with:
 
 Register the placement checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod selected_fit_tests;
 ```
+
+</details>
 
 Replace that block with:
 

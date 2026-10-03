@@ -10,17 +10,15 @@
 
 **Follow:** Browser → Panel → CommandLine → layout → existing GPU.
 
-Now the field becomes usable. A browser key is not automatically an egui key: Panel translates it and passes it to the context. Enter produces a submitted line. Help writes an answer into history. In lesson 04, the same path will change the scene.
+Translate browser keys into egui events so the real dock accepts `Help` and Enter. A printable key first requests text focus, then supplies its text. Clicking the drawing releases focus. This preserves the first letter and creates no keyboard feature shortcuts.
 
-Follow one letter: KeyboardEvent → egui Text event → CommandLine.command → layout → GPU triangles. Follow Enter separately: the dock returns the line, the vocabulary accepts it, and the answer joins history.
+Follow `KeyboardEvent → egui Text → CommandLine → layout`. Enter returns a submitted line; the vocabulary handles it and appends its answer. A consumed event belongs to the dock, so navigation must ignore it.
 
-The scene and dock share one canvas. consumed means this event belongs to the dock. Mouse navigation must check it before reacting. Clicking outside the dock releases text focus; the next printable key requests focus before its Text event reaches the field. This ordering keeps the first letter. There are no keyboard feature shortcuts.
+The second layout receives no event: it draws the cleared field and new answer. `FullOutput.append` retains earlier texture uploads with the latest shapes.
 
-The second update receives no event. It lays out the cleared field and new answer after submission. Sending the same key twice would type duplicate letters. FullOutput.append keeps texture uploads from the earlier layout while retaining the latest shapes.
+`Result<Option<String>, JsValue>` means an error, no submission, or one submitted line. `dyn_ref` borrows a matching event type. The `move` callback keeps its owners alive; canvas `tabindex` enables browser focus.
 
 ![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)
-
-`Result<Option<String>, JsValue>` distinguishes three outcomes: an error, an ordinary event with no submitted line, or one submitted line. `dyn_ref` checks which browser event we received and borrows it as that type. The callback uses `move` to keep its owners alive after setup returns. `tabindex="0"` makes the canvas focusable; drawing an input field alone does not make the browser deliver keyboard events to it.
 
 ## Type the change
 
@@ -30,7 +28,8 @@ Continue from [Draw completion and history](03c-layout.md). Save your own work f
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             top: f32::INFINITY,
@@ -43,6 +42,8 @@ Find this exact block:
             painter: egui_wgpu::Renderer::new(&renderer.device, format, Default::default()),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -53,7 +54,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 
@@ -65,6 +67,8 @@ Find this exact block:
         let rect = canvas.get_bounding_client_rect();
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -75,7 +79,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             focused: true,
@@ -85,6 +90,8 @@ Find this exact block:
         self.screen.pixels_per_point = canvas.width() as f32 / size.x;
         input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point =
 ```
+
+</details>
 
 Replace that block with:
 
@@ -96,7 +103,8 @@ Replace that block with:
 
 Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::renderer::Renderer;
@@ -105,6 +113,8 @@ use wasm_bindgen::{JsCast, JsValue};
 pub fn report(message: &str) {
     if let Some(document) = web_sys::window().and_then(|window| window.document()) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -116,7 +126,8 @@ Replace that block with:
 
 Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
@@ -126,6 +137,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

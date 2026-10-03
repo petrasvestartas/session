@@ -24,11 +24,14 @@ Continue from [Unload sources across active and history roots](32fi-history.md).
 
 Verify actual source release independently of GPU drawing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod origin_tests;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -22,11 +22,14 @@ Continue from [Dispose the viewer without leaving pending work alive](33a-runtim
 
 Enable the browser event type that tells us whether the page may return from its cache.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 "AddEventListenerOptions", "Event",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,12 +41,15 @@ Replace that block with:
 
 Cancel an unfinished drag, retain the cached page’s live owner, and dispose only a final page exit.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if event.type_() == "pagehide" {
             wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
 ```
+
+</details>
 
 Replace that block with:
 

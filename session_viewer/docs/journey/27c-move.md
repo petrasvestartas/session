@@ -26,11 +26,14 @@ Continue from [Apply object placement on the GPU](27b-model.md). Save your own w
 
 Register the small numeric parser.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod editor;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -52,11 +55,14 @@ Create the file and type:
 
 Carry the offset as data in the existing Action enum.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     AddBox,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -68,11 +74,14 @@ Replace that block with:
 
 Move along world axes and commit one placement change through document history.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -84,11 +93,14 @@ Replace that block with:
 
 Offer the named command in the dock vocabulary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Fit Selected",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -100,11 +112,14 @@ Replace that block with:
 
 Recognize Move followed by arguments; the parser validates those arguments.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             .any(|name| name.eq_ignore_ascii_case(&line))
 ```
+
+</details>
 
 Replace that block with:
 
@@ -116,11 +131,14 @@ Replace that block with:
 
 Replace the latest command’s answer without recording the line twice.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn update(
 ```
+
+</details>
 
 Replace that block with:
 
@@ -132,12 +150,15 @@ Replace that block with:
 
 A valid offset becomes an Action; a parse error becomes a dock answer and still redraws.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             } else {
                 let action = match line.as_str() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -149,7 +170,8 @@ Replace that block with:
 
 Display editing failures in the command dock and continue to its normal redraw.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 Err(error) => {
@@ -157,6 +179,8 @@ Find this exact block:
                     return;
                 }
 ```
+
+</details>
 
 Replace that block with:
 

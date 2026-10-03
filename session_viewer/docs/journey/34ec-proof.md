@@ -24,7 +24,8 @@ Continue from [Choose a recent failure without blaming active tabs](34eb-recency
 
 Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::{diagnostic::Outcome, diagnostic_shape_tests::report, report_recency::eligible};
@@ -55,6 +56,8 @@ fn previous_run_selection_respects_actual_failure_time() {
     }
 }
 ```
+
+</details>
 
 Replace that block with:
 

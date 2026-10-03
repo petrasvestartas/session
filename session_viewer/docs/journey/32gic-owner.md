@@ -26,7 +26,8 @@ Continue from [Route captured Move, Delete and Save results](32gibb-reply.md). S
 
 Keep the intent and source keys inside the same ticket-owned value.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 struct Pending {
@@ -34,6 +35,8 @@ struct Pending {
     keys: Vec<ReloadKey>,
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -45,7 +48,8 @@ Replace that block with:
 
 Allow any payload without requiring that payload to have a default value.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[derive(Default)]
@@ -57,6 +61,8 @@ pub struct ReloadJob {
 impl ReloadJob {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -67,11 +73,14 @@ Replace that block with:
 
 Capture the requested operation when beginning its scoped source request.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -83,11 +92,14 @@ Replace that block with:
 
 Install keys and payload together after request validation succeeds.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.pending = Some(Pending { ticket, keys });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -99,7 +111,8 @@ Replace that block with:
 
 Take the current payload once; stale replies leave newer work untouched.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {
@@ -107,6 +120,8 @@ Find this exact block:
         self.pending.take().map(|pending| pending.keys)
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -118,12 +133,15 @@ Replace that block with:
 
 Keep explicit Reload Sources using a unit payload and its existing interface.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -135,11 +153,14 @@ Replace that block with:
 
 Register native ownership checks without exposing test code to the browser.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod edit_replay;
 ```
+
+</details>
 
 Replace that block with:
 

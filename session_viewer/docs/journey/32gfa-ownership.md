@@ -24,12 +24,15 @@ Continue from [Give each source request its own owner](32gf-request.md). Save yo
 
 Check ordering, exhaustion and actual owner expiration while abandoned work remains alive.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }
 }
 ```
+
+</details>
 
 Replace that block with:
 

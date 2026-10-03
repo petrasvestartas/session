@@ -26,11 +26,14 @@ Continue from [Retain the imported mesh behind each row](28a-imported.md). Save 
 
 Create demo source geometry before deriving the drawing representation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 impl PreparedMesh {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 All insertion callers now supply prepared source geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::mesh::Mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +64,14 @@ Replace that block with:
 
 Every current object has source geometry; only imported-file provenance stays optional.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub geometry: Option<Rc<session_rust::Mesh>>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -74,7 +83,8 @@ Replace that block with:
 
 Describe the same two triangles as source points and an object colour.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let pink = Mesh::new(vec![
@@ -89,6 +99,8 @@ Find this exact block:
         ], vec![0, 1, 2]).expect("Valid turquoise triangle");
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -99,7 +111,8 @@ Replace that block with:
 
 Consume one prepared value into one source-owning document record.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {
@@ -111,6 +124,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -121,7 +136,8 @@ Replace that block with:
 
 Import uses the same complete record insertion as generated geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         for prepared in loaded.meshes {
@@ -131,6 +147,8 @@ Find this exact block:
             object.source = prepared.source;
         }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -142,11 +160,14 @@ Replace that block with:
 
 Retain the kernel box instead of keeping only its display.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let id = self.insert(Mesh::from_kernel(&source)?)?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -158,7 +179,8 @@ Replace that block with:
 
 Keep source geometry for the optional triangle too.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             let extra = Mesh::new(vec![
@@ -167,6 +189,8 @@ Find this exact block:
                 [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],
             ], vec![0, 1, 2]).expect("Valid extra triangle");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -178,11 +202,14 @@ Replace that block with:
 
 The source is now required, so remove the temporary Option unwrap in the check.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let geometry = Rc::clone(imported.geometry.as_ref().unwrap());
 ```
+
+</details>
 
 Replace that block with:
 
@@ -194,11 +221,14 @@ Replace that block with:
 
 Compare the required shared owner after its display row changes.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     assert!(Rc::ptr_eq(moved_row.geometry.as_ref().unwrap(), &geometry));
 ```
+
+</details>
 
 Replace that block with:
 

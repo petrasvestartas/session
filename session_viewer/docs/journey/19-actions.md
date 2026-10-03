@@ -10,19 +10,15 @@
 
 **Follow:** HTML event → Action → Editor → Change → GPU upload when needed → draw.
 
-Our browser callback now knows too much. It translates HTML events, edits geometry, maintains history and repairs selection. Adding more commands there would tempt us to copy the same editing rules a second time.
+Move editing decisions from the browser callback into `Editor`. It owns scene, selection, camera, background and history, with no browser handles or GPU buffers.
 
-Give those rules one home: `Editor`. It owns the current scene, selection, camera, background and history. It has no browser handles and no GPU buffers. We can use it in Rust tests now and in a native window later.
+An `Action` enum describes requests. `Delete` carries no value; `Pan(dx, dy)` carries two numbers. Typed commands and mouse navigation translate to actions; `Editor::apply` matches and executes them.
 
-![commands and future keyboard input both become an Action; the editor returns whether the renderer needs new scene data or just a new view.](../illustrations/journey-19.svg)
+Return a `Change` enum: a view change needs a redraw; a scene change also needs an upload. After a scene action, clear selection if its ID no longer exists.
 
-An **enum** lists the alternatives a value may hold. `Action::Delete` carries no extra information; `Action::Pan(dx, dy)` carries two numbers. The browser chooses an action, then `apply` matches that action to its behavior.
+Keep this path: browser translates → editor decides → history remembers → renderer draws. Moving these rules keeps the behavior while making it testable without a browser.
 
-The editor returns another enum, `Change`. A view change needs a redraw. A scene change also needs an upload because geometry or its selection colour may have changed. We can improve upload efficiency later without changing how a command requests deletion.
-
-After any scene action, one line checks whether the selected ID still exists. That covers deletion and both directions of history travel. View actions return earlier because moving a camera cannot delete an object.
-
-We are moving responsibilities you already understand, not inventing new editing behavior. Keep this map beside the code: **browser translates; editor decides; history remembers; renderer draws**.
+![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)
 
 ## Type the change
 
@@ -42,7 +38,8 @@ Create the file and type:
 
 Make the editor available to both the browser and native checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod scene;
@@ -52,6 +49,8 @@ pub mod gpu_mesh;
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -63,7 +62,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::background::Background;
@@ -76,6 +76,8 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 pub fn report(message: &str) {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -86,7 +88,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         .ok_or("No compatible surface format")?;
@@ -99,6 +102,8 @@ Find this exact block:
         &renderer,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -109,7 +114,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         ],
@@ -129,6 +135,8 @@ Find this exact block:
     let input_canvas = canvas.clone();
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -139,7 +147,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             .then(|| "canvas".into())
@@ -151,6 +160,8 @@ Find this exact block:
                         return;
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -161,7 +172,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     if rect.width() <= 0.0 || rect.height() <= 0.0 {
@@ -226,6 +238,8 @@ Find this exact block:
         if let Err(error) = panel.update(None, &input_canvas) {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -236,7 +250,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if let Err(error) = present(
@@ -249,6 +264,8 @@ Find this exact block:
             report(&format!("Cannot redraw: {error:?}"));
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -259,7 +276,8 @@ Replace that block with:
 
 Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -269,6 +287,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

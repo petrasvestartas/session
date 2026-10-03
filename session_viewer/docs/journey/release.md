@@ -1,14 +1,16 @@
 # Course release: command-line checkpoints
 
-**All 120 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 121 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
 ## Lesson clarity revision
 
-All 120 current lessons now have a focused exercise instead of an accumulated command tour. Chapter 34’s 18 explanations have been rewritten around their own change and the Rust needed for it. Experiments, implementation context and extended acceptance evidence are expandable supporting notes. The to-do link is visible on every lesson.
+Each current lesson has one focused exercise. All main explanations were reviewed; this batch shortens 49 further explanations after the earlier chapter-34 revision. Main explanations stay under 200 words. Experiments, implementation context and extended acceptance evidence remain expandable supporting notes. Every lesson links to the detailed to-do list.
 
-This revision changes teaching text and layout, preserving the verified code and browser checks. Seventeen typing splits and the review of the remaining explanations are still listed in the roadmap; build evidence alone does not establish teaching quality.
+The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). All 120 previously published code endpoints remain byte-identical. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
+
+Sixteen other checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
 
 ## What was checked
 
@@ -130,6 +132,6 @@ npm --prefix ../session_tests run course -- capture
 npm --prefix ../session_tests run course -- generate
 ```
 
-Capture checks the build fingerprints and runs each uploaded specimen’s handwritten Rust example before launching Chrome. These commands use `target` and leave `workspace/journey` untouched. The separate `structure` audit includes the unfinished production destination comparison; its remaining differences must be resolved before declaring the entire course complete.
+Capture checks the build fingerprints and runs each uploaded specimen’s handwritten Rust example before launching Chrome. Each checkpoint gets a fresh browser context; reload and Back checks within that checkpoint keep the same page. These commands use `target` and leave `workspace/journey` untouched. The separate `structure` audit includes the unfinished production destination comparison; its remaining differences must be resolved before declaring the entire course complete.
 
 [Return to the course](../journey.md)

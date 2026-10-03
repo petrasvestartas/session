@@ -46,11 +46,14 @@ Create the file and type:
 
 Expose the report model and include its native tests.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod gpu_fault;
 ```
+
+</details>
 
 Replace that block with:
 

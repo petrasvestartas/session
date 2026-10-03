@@ -26,11 +26,14 @@ Continue from [Prepare original kernel data without rebuilding its display](32ga
 
 Restore editable owners without replacing display, metadata, identity or placement.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 Check current release ownership and all source rows before any candidate is adopted.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn unload_sources(&mut self) -> Result<(), &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 

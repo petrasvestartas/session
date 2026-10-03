@@ -8,17 +8,13 @@
 
 **Follow:** Rust positions → bytes → vertex buffer → vertex layout → shader location 0 → two triangles.
 
-Our triangle kept its corners inside the shader. That made the first draw easy to follow. A viewer needs to draw geometry supplied by a document, so let us move those corners into data that Rust supplies.
+Move the corner positions out of WGSL and into a Rust vertex buffer. Six coordinate pairs draw two triangles forming a rectangle. Shared corners are duplicated here; the next lesson removes that duplication.
 
-Today we make two triangles that meet along a diagonal. Together they form a rectangle. For the moment, we deliberately write the shared corners twice; the next lesson will give those corners reusable numbers.
+Describe the buffer layout explicitly: two `f32` values, eight bytes per vertex, matching shader `@location(0)`. Buffer slot and shader location are separate settings even though both are zero here.
+
+`iter().flatten()` visits each coordinate, `flat_map` converts it to bytes, and `collect` owns the resulting byte vector. Importing the `DeviceExt` trait enables `create_buffer_init`. It creates and fills GPU storage; the temporary CPU byte vector can then be dropped.
 
 ![Rust supplies six coordinate pairs; a vertex buffer and its layout deliver them to the shader.](../illustrations/journey-05.svg)
-
-A **vertex buffer** holds the bytes read for each corner. The buffer does not remember that we meant “x, then y”. Our pipeline must describe that arrangement: two 32-bit floats, eight bytes per corner. The shader's `@location(0)` must match the layout's location zero. Buffer slot zero and shader location zero are different settings; they happen to both be zero here.
-
-Read `POSITIONS.iter().flatten()` as “visit each number in each pair”. `flat_map` turns every number into its four bytes, and `collect` gathers those bytes into a vector. This deliberately shows the byte conversion. Later we can use a checked byte-casting library once we understand the layout it must preserve.
-
-`DeviceExt` is a trait provided by wgpu. Bringing it into scope makes `create_buffer_init` available on the device. That method creates GPU storage and fills it with our bytes. The local byte vector can then be dropped: the GPU buffer retains the uploaded data.
 
 ## Type the change
 
@@ -28,7 +24,8 @@ Continue from [Make a choice change the picture](04-input.md). Save your own wor
 
 Replace the shader. It now receives one position per invocation instead of looking up a hard-coded corner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 @vertex
@@ -47,6 +44,8 @@ fn fragment() -> @location(0) vec4<f32> {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```wgsl
@@ -57,7 +56,8 @@ Replace that block with:
 
 Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Renderer {
@@ -73,6 +73,8 @@ impl Renderer {
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -83,7 +85,8 @@ Replace that block with:
 
 Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 module: &shader,
@@ -95,6 +98,8 @@ Find this exact block:
                 module: &shader,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -105,7 +110,8 @@ Replace that block with:
 
 Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             multiview_mask: None,
@@ -117,6 +123,8 @@ Find this exact block:
     pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -127,7 +135,8 @@ Replace that block with:
 
 Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 ..Default::default()
@@ -139,6 +148,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -149,7 +160,8 @@ Replace that block with:
 
 Connect let rust supply the corners to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -159,6 +171,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

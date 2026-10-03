@@ -8,15 +8,13 @@
 
 **Follow:** Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check.
 
-A successful replacement and a malformed-file refusal are useful checks, but they exercise different boundaries. We also need an error after replacement has begun changing rows.
+Test a replacement failure after insertion starts, not only malformed bytes before mutation. Put the object-ID counter one below its limit: one insertion succeeds and the next fails.
 
-The scene-module check puts next_id one below its limit. The first replacement insertion succeeds; the next cannot allocate another ID. History must restore every old row and allocation. Its restore rule keeps the highest issued counter, so IDs from failed work are not reused.
+History must restore every old row and allocation while retaining the highest issued counter. IDs from failed work must not be reused. A separate malformed-replacement test preserves selection and Redo.
+
+Also reject placement coefficients that are finite as doubles but become infinity in the current float upload. `f64::MAX` demonstrates this boundary for direct placement and encoded files. Keep the previous placement untouched. This limits the display adapter without reducing retained source precision.
 
 ![Decode errors occur before mutation; insertion errors trigger rollback; upload range errors are rejected before drawing.](../illustrations/journey-30e.svg)
-
-A separate editor check refuses malformed replacement while selection and Redo are live. It proves failure does not erase either. The earlier successful-replacement check proves the camera stays outside document history.
-
-There is also a display boundary in placement::valid. A matrix value can be finite as a double yet become infinity when our current GPU adapter casts it to float. Check that cast before accepting the matrix. The native test uses f64::MAX to demonstrate the difference and requires the original placement to remain unchanged. The same coefficient in an encoded file must also be refused before construction. This is a limit of the current float upload path, not a change to the retained source precision; later rendering lessons improve coordinate handling.
 
 ## Type the change
 
@@ -26,11 +24,14 @@ Continue from [Choose append or replace before opening the picker](30d-bridge.md
 
 Reject a finite double coefficient that cannot enter the current float uniform.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 matrix.iter().all(|value| value.is_finite())
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +43,14 @@ Replace that block with:
 
 State the full placement boundary in its error.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 return Err("Placement must be finite and affine");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +62,14 @@ Replace that block with:
 
 Fail during the second insertion, then prove rollback restores the old allocations without recycling issued IDs.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn removal_moves_a_row_without_changing_its_identity() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -74,12 +81,15 @@ Replace that block with:
 
 Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     assert_eq!((editor.camera.distance, editor.camera.aspect), (7.0, 2.0));
 }
 ```
+
+</details>
 
 Replace that block with:
 

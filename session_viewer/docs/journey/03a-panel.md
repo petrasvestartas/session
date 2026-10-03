@@ -10,27 +10,15 @@
 
 **Follow:** Panel layout → shapes and font atlas → egui triangles → second GPU pass → one presented image.
 
-We already know that a GPU draws triangles. A command line may look different, but its letters and rectangles eventually become triangles too. egui measures and arranges the interface for us; egui-wgpu paints the result with the device we already own.
+Paint the command dock over the triangle using the same GPU. This step draws the field and history toggle; keyboard input is connected in 03d.
 
-Today we draw the real viewer’s panel, fonts and field. Keyboard input comes in the following command-line lesson. This checkpoint is deliberately about the picture: the field and + sign are visible, but their actions are not connected yet.
+`theme.rs` supplies the production fonts and colours; `view.rs` supplies panel and field layout. `Panel` owns egui's context and GPU painter. Its context remembers interface state, and its font atlas stores letter shapes in a texture.
+
+Each draw lays out widgets, uploads changed font pixels, tessellates shapes into triangles, then paints them. Use **Load** in the interface pass to preserve the scene underneath. Present only after both passes.
+
+`String` owns the field text. `&mut self` permits updates; `|ui| ...` borrows it for layout. `Arc` shares embedded font bytes, and `zip` pairs names with their bytes. The dependency command supplies the binary fonts. One layout pass prevents later input events from being replayed.
 
 ![One GPU receives the scene pass followed by the egui interface pass.](../illustrations/journey-03a.svg)
-
-There are three small owners. `command_dock/theme.rs` chooses fonts and colours. `command_dock/view.rs` lays out the real viewer’s panel and text field. `Panel` keeps egui’s context and GPU painter alive between frames. The browser owns one Panel beside its scene Renderer.
-
-A **context** remembers egui’s fonts and interface state. A **font atlas** is a texture containing letter shapes. **Tessellation** turns interface shapes into triangles. We upload changed atlas pixels, upload the triangles, then draw them over the scene.
-
-The theme and field functions below are the same implementation used by the production viewer. Type them here; there is no hidden dependency on its application. The three .ttf files are binary font assets, supplied by the dependency command below. You do not need to type a font file.
-
-The panel currently covers the bottom 30 pixels of the picture. Later, when input and resizable panels are connected, we will also distinguish the scene rectangle from the full canvas. Do not confuse interface layout coordinates with camera coordinates.
-
-`String` owns editable text. `&mut self` lets Panel update that text and its painter. `Arc` lets egui share the embedded font bytes without copying them for each label. In the font loop, `zip` pairs each name with its matching byte slice.
-
-Read the two paint operations carefully: the scene uses **Clear**, while the panel uses **Load**. Both store their result, and only the browser presents it. There is one picture, built in order by two painters.
-
-`|ui| { ... }` is a short function egui calls with an area to draw in. Here it borrows Panel’s text for one layout call; it does not outlive draw. An `egui::Frame` describes a widget’s decoration and margins. It is different from the surface image we present to the browser.
-
-We use one egui layout pass, as the production viewer does. A widget can request another pass while laying itself out. Replaying an input event in that pass could type or submit twice, so the bridge limits each update to one pass.
 
 ## Type the change
 
@@ -40,7 +28,8 @@ Continue from [Give the GPU three corners](03-triangle.md). Save your own work f
 
 Add egui for layout and egui-wgpu for painting. Both use the same wgpu 29.0.4 device as our scene; no second GPU connection is created. After this edit, run `npm --prefix ../session_tests run course -- dependencies 03a-panel` from `session_viewer`. It supplies the locked libraries and three binary fonts, without writing Rust code.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 wasm-bindgen-futures = "=0.4.78"
@@ -50,6 +39,8 @@ wgpu = "=29.0.4"
 pollster = "=0.4.0"
 log = "=0.4.34"
 ```
+
+</details>
 
 Replace that block with:
 
@@ -101,13 +92,16 @@ Create the file and type:
 
 Register the interface modules only for browser builds. Native scene checks continue to use the existing Renderer.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         }
     });
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -119,7 +113,8 @@ Replace that block with:
 
 Create the interface once beside the scene renderer. Pass that same mutable Panel to present, then paint the interface after the scene and before presenting the frame.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -136,6 +131,8 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsVal
         | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -146,7 +143,8 @@ Replace that block with:
 
 Create the interface once beside the scene renderer. Pass that same mutable Panel to present, then paint the interface after the scene and before presenting the frame.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         ..Default::default()
@@ -156,6 +154,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

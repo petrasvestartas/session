@@ -8,19 +8,15 @@
 
 **Follow:** World position → neighbouring surface directions → normal → light alignment → fragment colour.
 
-Place a plain cardboard box near a lamp. Its faces have the same material, yet some look brighter. That difference tells your eye where the surface turns. We will give our grey box the same simple clue.
+Shade the grey box according to surface direction. Pass world positions from the vertex shader to the fragment shader.
 
-A **normal** is a direction perpendicular to a surface. Imagine a pencil standing straight out of a face. A face aimed towards the light gets more light; a face turned sideways gets less.
+`dpdx` and `dpdy` estimate horizontal and vertical position changes. Their cross product gives the triangle normal; normalisation makes it unit length. Dot it with the unit world-space light direction to measure alignment.
+
+Use `abs` for this display's two-sided lighting and retain a minimum brightness of 0.3. Multiply RGB before the existing sRGB output conversion.
+
+Only shader logic changes. Mesh still supplies positions and colours, Camera positions the view, and Renderer submits the triangles. Adjoining box faces now have visibly different brightness.
 
 ![Two directions along a face give its normal; comparing that normal with the light controls brightness.](../illustrations/journey-18.svg)
-
-The vertex shader already receives world positions. Pass them to the fragment shader too. The GPU interpolates these positions across each triangle. `dpdx` and `dpdy` estimate how that position changes between neighbouring fragments horizontally and vertically. Their cross product points perpendicular to the triangle. `normalize` gives that direction a length of one.
-
-The **dot product** measures alignment. For two unit directions, it is 1 when they agree, 0 at a right angle and −1 when they oppose each other. We use `abs` to give both sides of an open triangle the same lighting. This is a deliberate two-sided display rule; it is not a physically accurate material.
-
-Our light direction, `(0.4, −0.6, 1.0)`, points mostly upwards. Both vectors must use world coordinates. Brightness ranges from 0.3 to 1: the constant part keeps side-facing surfaces readable. Multiplying RGB by brightness happens before the sRGB output conversion already configured in our renderer.
-
-Only the shader needs new drawing logic. Mesh still owns positions and colours; Camera still positions the view; Renderer still submits triangles. This small change works because those responsibilities are separate.
 
 ## Type the change
 
@@ -30,7 +26,8 @@ Continue from [Bring a solid into the scene](17-solid.md). Save your own work fi
 
 Pass world positions through the pipeline and turn face direction into brightness.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
@@ -54,6 +51,8 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```wgsl
@@ -64,7 +63,8 @@ Replace that block with:
 
 Connect read the shape through light to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -74,6 +74,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

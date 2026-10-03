@@ -13,7 +13,8 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Typing limit |
 | --- | ---: | ---: | --- | --- | --- |
 | [01-canvas](01-canvas.md) | 49 | 1585 | 16–32 min | 1–2 h | Within planning limit |
-| [02-clear](02-clear.md) | 106 | 4343 | 44–87 min | 2–3 h | Split required |
+| [01a-gpu](01a-gpu.md) | 69 | 2944 | 30–59 min | 1–2 h | Within planning limit |
+| [02-clear](02-clear.md) | 55 | 2774 | 28–56 min | 1–2 h | Within planning limit |
 | [03-triangle](03-triangle.md) | 47 | 1866 | 19–38 min | 1–2 h | Within planning limit |
 | [03a-panel](03a-panel.md) | 196 | 8087 | 81–162 min | 4–6 h | Split required |
 | [03b-state](03b-state.md) | 195 | 7353 | 74–148 min | 3–5 h | Split required |
@@ -135,12 +136,12 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 
 ## Work still required
 
-- [x] Count the exact source edits for all 120 current checkpoints.
+- [x] Count the exact source edits for all 121 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 189 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 190 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

@@ -44,11 +44,14 @@ Create the file and type:
 
 Expose the decoder and its native acceptance checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod diagnostic;
 ```
+
+</details>
 
 Replace that block with:
 

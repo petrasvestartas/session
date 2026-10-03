@@ -10,17 +10,13 @@
 
 **Follow:** Browser → Panel → CommandLine → layout → existing GPU.
 
-We now replace the small field layout with the viewer’s complete dock. Read it in three parts: history above, the command field below, and the completion list beside the field. Each part reads or updates CommandLine. Commands supplies the words this application understands; it does not own the document.
+Draw the dock's history, command field and completion list from `CommandLine`. A preloaded history sentence makes the expanded layout visible. Browser keyboard events arrive in the next lesson.
 
-This is the longest early typing lesson. Work in several sittings and save your file between them. The complete function must be present before this checkpoint builds. Its size is stated honestly above; do not try to memorise it. Follow one path first: Enter takes a line from the model and returns it to the caller. Then follow Escape and completion.
+Follow one path first: Enter takes the line from the model and returns it to the caller. Then read completion: `browse` moves through suggestions, and `inline_suffix` selects the suggested ending so the next letter can replace it.
 
-We preload one history sentence so you can see the expanded dock before wiring browser events. This checkpoint draws the real layout, but does not yet react to keys. The next lesson supplies those events.
+`Commands` is a trait listing the vocabulary operations the dock needs. The application implements it; layout can request suggestions without owning a document or camera. `&mut` lends the existing model to layout for updates. The return value requests canvas focus when editing ends.
 
 ![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03c.svg)
-
-Use these landmarks while typing: `command_expanded` controls the history area; `has_focus` decides whether keys belong to the field; `browse` moves through suggestions; `enter` submits; `inline_suffix` selects the suggested ending so your next letter can replace it. The final return requests canvas focus when editing finishes. Our browser adapter also releases text focus when the drawing is pressed. Full production focus and mobile handoff come later.
-
-A trait is a list of operations another type promises to supply. Here `Commands` is that list, and the small vocabulary implements it. The dock can ask for suggestions without knowing whether the application has a camera, a box or an open file. `&mut` gives the layout temporary permission to edit the existing model; it does not make a copy.
 
 ## Type the change
 
@@ -30,7 +26,8 @@ Continue from [Give the command line its memory](03b-state.md). Save your own wo
 
 Keep command text, history and completion state together. The application supplies vocabulary through Commands; this component owns editing and drawing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     });
@@ -40,6 +37,8 @@ Find this exact block:
 pub(crate) fn command_cursor_end(context: &egui::Context, id: egui::Id, command: &str) {
     let end = command.chars().count();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -51,7 +50,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::command_dock::{CommandLine, placeholder, theme, view};
@@ -124,6 +124,8 @@ impl Panel {
                 .update_texture(&renderer.device, &renderer.queue, *id, delta);
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -134,7 +136,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             &renderer.queue,
@@ -151,6 +154,8 @@ Find this exact block:
                 ops: wgpu::Operations {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -161,7 +166,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             ..Default::default()
@@ -173,6 +179,8 @@ Find this exact block:
         for id in output.textures_delta.free {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -183,7 +191,8 @@ Replace that block with:
 
 Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -195,6 +204,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

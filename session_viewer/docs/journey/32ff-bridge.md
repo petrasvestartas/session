@@ -24,11 +24,14 @@ Continue from [Give a reload URL an explicit owner](32fe-location.md). Save your
 
 Hold an accepted File only across one synchronous editor delivery.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub enum Mode { Append, Replace }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,11 +43,14 @@ Replace that block with:
 
 Give the accepted read access to its scoped handoff slot.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>, mode: Mode) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -56,11 +62,14 @@ Replace that block with:
 
 Transfer the File only after request ownership has been accepted.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let result = result.and_then(|buffer| deliver(buffer, mode));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -72,11 +81,14 @@ Replace that block with:
 
 Pair bytes with their retained immutable File during dispatch.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn deliver(buffer: JsValue, mode: Mode) -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -88,12 +100,15 @@ Replace that block with:
 
 Always drop an unclaimed File after synchronous delivery, including dispatch failure.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     web_sys::window().ok_or("No browser window")?.dispatch_event(&event)?;
     Ok(())
 ```
+
+</details>
 
 Replace that block with:
 
@@ -105,7 +120,8 @@ Replace that block with:
 
 Adopt URL ownership only for a validated event with an accepted File.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {
@@ -120,6 +136,8 @@ pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -130,11 +148,14 @@ Replace that block with:
 
 Share one scoped delivery slot between reader and editor callback.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -146,11 +167,14 @@ Replace that block with:
 
 Keep request tickets and File adoption in the same delivery path.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get());
 ```
+
+</details>
 
 Replace that block with:
 
@@ -162,11 +186,14 @@ Replace that block with:
 
 Report adoption failure without claiming an import committed.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             crate::file_input::action(&event)
 ```
+
+</details>
 
 Replace that block with:
 
@@ -178,11 +205,14 @@ Replace that block with:
 
 Keep Replace success reporting accurate for the located action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             let replacement = matches!(&action, Action::Replace(_));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -194,11 +224,14 @@ Replace that block with:
 
 Expose only hidden origin URL inspection for actual lifetime checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         (&row.guid, source.origin.id.to_string(), source.origin.version.hex()))).collect();
 ```
+
+</details>
 
 Replace that block with:
 

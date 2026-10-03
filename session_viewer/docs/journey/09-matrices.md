@@ -8,19 +8,15 @@
 
 **Follow:** Camera centre, angle and scale → four matrix columns → uniform buffer → matrix × world position.
 
-Scale and offset described our flat view, but they cannot turn it. A matrix gives us one consistent way to combine those operations. We will use the same kind of matrix for a 3D camera later.
+Replace separate scale and offset uniforms with one matrix so the view can also rotate. The geometry and draw pipeline remain the same.
 
-Do not try to memorise sixteen numbers. Read the four columns as four answers: where does one step along x go, where does one step along y go, where does one step along z go, and where does the origin go? A point combines those answers with its x, y, z and final 1.
+Read the four columns as transformed x, y and z steps, followed by the transformed origin. A position combines them using x, y, z and a final 1.
+
+For camera angle θ, use `a = scale × cos(θ)` and `b = scale × sin(θ)`. Screen coordinates become `(a×x + b×y, −b×x + a×y)` plus translation. Subtract the rotated, scaled camera centre so that centre still lands at zero.
+
+WGSL reads four consecutive `vec4<f32>` columns: 64 bytes. Rust supplies floats in that column order. The rotation test catches an incorrect translation column.
 
 ![The matrix columns describe transformed x, y and z steps and the translated origin; their weighted sum gives a screen position.](../illustrations/journey-09.svg)
-
-Our scene is still flat, so z stays unchanged. Turning the camera by angle θ turns the scene by −θ. Write `a = scale × cos(θ)` and `b = scale × sin(θ)`. A world point then appears at `(a×x + b×y, −b×x + a×y)`, before accounting for the camera centre.
-
-The centre must still land at the middle of the picture. That gives the fourth column: subtract the rotated, scaled centre. This is why translation uses both a and b. Merely appending the old offset would be wrong after rotation.
-
-WGSL stores these columns consecutively. Four `vec4<f32>` columns take 64 bytes. Rust supplies those same sixteen floats, column by column. The shader now multiplies the matrix by a four-component position; it no longer knows the separate pan, rotation and scale formula.
-
-A full turn is 2π radians. `FRAC_PI_4` means π/4, or 45 degrees. The camera test now includes a rotation, so a mistaken translation column cannot hide behind an angle of zero.
 
 ## Type the change
 
@@ -30,11 +26,14 @@ Continue from [Move the view, keep the geometry](08-camera.md). Save your own wo
 
 Keep the viewing angle in radians beside the centre and scale.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub scale: f32,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,11 +45,14 @@ Replace that block with:
 
 Start without rotation and make Reset view restore that angle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { center: [0.0, 0.0], scale: 1.0 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,7 +64,8 @@ Replace that block with:
 
 Replace the four-number uniform with a column-major matrix and add rotation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn uniform(&self) -> [f32; 4] {
@@ -70,6 +73,8 @@ Find this exact block:
         [self.scale, self.scale, -self.center[0] * self.scale, -self.center[1] * self.scale]
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -81,13 +86,16 @@ Replace that block with:
 
 Strengthen the camera test: its target must stay centred after both zooming and rotation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let [sx, sy, ox, oy] = camera.uniform();
         assert_eq!(camera.center[0] * sx + ox, 0.0);
         assert_eq!(camera.center[1] * sy + oy, 0.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -99,11 +107,14 @@ Replace that block with:
 
 Change the resource type to four columns of four floats.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 var<uniform> transform: vec4<f32>;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -115,11 +126,14 @@ Replace that block with:
 
 Multiply a world position by the matrix. Its final component 1 lets the translation column contribute.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
     return vec4<f32>(position * transform.xy + transform.zw, 0.0, 1.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -131,7 +145,8 @@ Replace that block with:
 
 Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         });
@@ -143,6 +158,8 @@ Find this exact block:
         });
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -153,7 +170,8 @@ Replace that block with:
 
 Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         &self,
@@ -165,6 +183,8 @@ Find this exact block:
         self.queue.write_buffer(&self.uniform, 0, &bytes);
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -175,7 +195,8 @@ Replace that block with:
 
 Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Zoom Out",
@@ -185,6 +206,8 @@ Find this exact block:
         ],
     );
 ```
+
+</details>
 
 Replace that block with:
 
@@ -196,7 +219,8 @@ Replace that block with:
 
 Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 "zoom out" => camera.zoom(0.5),
@@ -206,6 +230,8 @@ Find this exact block:
                 _ => return,
             }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -217,7 +243,8 @@ Replace that block with:
 
 Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -227,6 +254,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -238,7 +267,8 @@ Replace that block with:
 
 Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     surface: &wgpu::Surface<'_>,
@@ -249,6 +279,8 @@ Find this exact block:
 ) -> Result<(), JsValue> {
     let frame = match surface.get_current_texture() {
 ```
+
+</details>
 
 Replace that block with:
 

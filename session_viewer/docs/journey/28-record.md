@@ -8,19 +8,15 @@
 
 **Follow:** Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays.
 
-The imported file has a retained source, but Example Box currently keeps only the arrays made for drawing. That would be a poor starting point for Save: a drawing buffer cannot recover all the source information.
+Introduce `PreparedMesh` between source construction and scene insertion. It retains the kernel mesh and a validated derived display. The live scene still uses its earlier insertion path; the next lessons connect this boundary.
 
-Introduce PreparedMesh. It is a transit value between source construction and scene insertion. The kernel mesh is the source; display is a derived, validated adapter result. This checkpoint builds and tests that boundary. The next two lessons connect it to import and generated objects. The live scene still uses the previous insertion path today.
+`Rc` shares immutable kernel geometry. Optional `Source` records imported-session provenance; generated geometry still has a source mesh without an imported file.
+
+Initialise the kernel mesh's lazy GUID before sharing it, then run the display adapter. `?` rejects invalid display data before consuming an object ID or history entry.
+
+Tests preserve a double coordinate that rounds in the float display, along with name and visibility/locking flags. A finite double too large for a float must fail preparation. Retaining flags does not yet implement their interaction policies.
 
 ![An owned kernel mesh is prepared into source ownership and a derived display before insertion.](../illustrations/journey-28.svg)
-
-Rc shares one immutable kernel mesh between records and later history snapshots. Source remains optional provenance: generated geometry has no imported file, while an imported object can still refer to its original session and GUID. A missing file is not the same as missing geometry.
-
-The constructor initializes the kernel mesh’s lazy GUID before handing it to shared owners. Then it calls the adapter we already wrote. The ? returns an adapter error before a PreparedMesh exists. No object ID or undo record is consumed by this preparation.
-
-The precision check chooses a coordinate that is distinguishable as a double but rounds when cast to a float. This is intentional evidence that the two representations serve different purposes. It also checks that the source name and visibility/locking attributes survived preparation. Those attributes are retained here; their display and selection policies come in later small lessons.
-
-The second check uses a finite double too large for a float. Preparation must return an error. Finite source coordinates alone do not prove the display can represent them.
 
 ## Type the change
 
@@ -40,11 +36,14 @@ Create the file and type:
 
 Expose the preparation boundary without changing the running browser adapter.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -66,12 +65,15 @@ Create the file and type:
 
 Compile the source checks in the native test build.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod move_tests;
 ```
+
+</details>
 
 Replace that block with:
 

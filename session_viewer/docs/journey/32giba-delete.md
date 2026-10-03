@@ -14,7 +14,7 @@ History::edit records one removal. Clear selection only if it still names the de
 
 The immutable borrow of row is last used in the geometry guard. Rust ends that borrow before History mutably borrows scene. Do not take selection to choose the replay target: taking it would clear a later selection before the command succeeds.
 
-This lesson adds the native Delete operation. automatic asynchronous replay remains a later lesson.
+This lesson adds the native Delete operation. Automatic asynchronous replay remains a later lesson.
 
 ![Delete the captured target](../illustrations/journey-32giba.svg)
 
@@ -26,11 +26,14 @@ Continue from [Move the original target from its current placement](32gib-move.m
 
 Remove the original target once and clear only its own selection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,7 +45,8 @@ Replace that block with:
 
 Use the same helper for ordinary Delete and preserve history when nothing is selected.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::Delete => {
@@ -56,6 +60,8 @@ Find this exact block:
             }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -66,11 +72,14 @@ Replace that block with:
 
 Register the captured-target Delete checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod edit_move_tests;
 ```
+
+</details>
 
 Replace that block with:
 

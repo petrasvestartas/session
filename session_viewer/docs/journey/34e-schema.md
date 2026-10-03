@@ -24,11 +24,14 @@ Continue from [Download diagnostics through the real command line](34d-download.
 
 Validate shape, limits and failure/outcome consistency before trusting a decoded stored value.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,11 +43,14 @@ Replace that block with:
 
 Keep recording bounded even if a caller bypasses admission and directly deserializes an oversized queue.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if self.events.len() == 24 { self.events.pop_front(); }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -66,11 +72,14 @@ Create the file and type:
 
 Include the native shape-invariant checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod diagnostic;
 ```
+
+</details>
 
 Replace that block with:
 

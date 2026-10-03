@@ -34,11 +34,14 @@ Create the file and type:
 
 Register the completion value for native checks and browser delivery.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod edit_replay;
 ```
+
+</details>
 
 Replace that block with:
 

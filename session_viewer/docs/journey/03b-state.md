@@ -10,15 +10,15 @@
 
 **Follow:** Browser → Panel → CommandLine → layout → existing GPU.
 
-A text field needs somewhere to keep its text. Our old String was enough to draw a blank field, but completion and history need more memory. We group that memory in CommandLine, the same type used by the viewer. Panel owns one CommandLine; the browser still owns one Panel. No second copy of the text is introduced.
+Replace the field's single `String` with `CommandLine`, the production dock's state. `Panel` owns this one model; layout reads and updates it.
+
+Group its fields by purpose: text and history, focus, completion, and widget rectangles. Drawing and snap prompts start hidden and are used later.
+
+`VecDeque<String>` retains answers and can discard the oldest from the front. `Option<Rect>` allows an undrawn widget to have no rectangle. `Default` creates the empty state; `pub(crate)` exposes it within this project.
+
+Caret helpers use character positions rather than UTF-8 byte offsets. That keeps symbols editable. `record` stores widget rectangles for inspection; it does not generate input.
 
 ![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03b.svg)
-
-Read the model in groups. `command`, `status` and `history` hold words. The focus flags decide where typing goes. The completion fields remember the suggested word and selected suffix. Rectangles remember where the field and popup were drawn, so pointer input can find them. Drawing prompts and snap fields are reserved for later tools; their default values keep those extra rows hidden.
-
-`String` owns editable text. `VecDeque<String>` keeps a sequence of answers and can discard the oldest from the front. `Option<Rect>` means a widget may have no rectangle yet. `Default` gives the empty starting values. `pub(crate)` lets our application read these fields while keeping them out of an external library API.
-
-The small caret helpers work in character positions, not UTF-8 byte offsets. That distinction matters when a command contains a symbol. `record` collects widget rectangles for inspection; it does not handle input. Browser tests will still type real keys.
 
 ## Type the change
 
@@ -28,7 +28,8 @@ Continue from [Draw our command line](03a-panel.md). Save your own work first: `
 
 Enable the browser bindings for the dock and serde for its inspection record. The GPU dependency stays pinned.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 
@@ -40,6 +41,8 @@ wasm-bindgen-futures = "=0.4.78"
 wgpu = "=29.0.4"
 ```
 
+</details>
+
 Replace that block with:
 
 ```toml
@@ -50,7 +53,8 @@ Replace that block with:
 
 Enable the browser bindings for the dock and serde for its inspection record. The GPU dependency stays pinned.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 egui = { version = "=0.34.3", default-features = false }
@@ -60,6 +64,8 @@ egui-wgpu = { version = "=0.34.3", default-features = false }
 pollster = "=0.4.0"
 log = "=0.4.34"
 ```
+
+</details>
 
 Replace that block with:
 
@@ -71,12 +77,15 @@ Replace that block with:
 
 Keep command text, history and completion state together. The application supplies vocabulary through Commands; this component owns editing and drawing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub(crate) mod theme;
 pub(crate) mod view;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -88,7 +97,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::command_dock::{theme, view};
@@ -103,6 +113,8 @@ pub struct Panel {
 impl Panel {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -113,7 +125,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         // One layout pass prevents a future text event from being replayed.
@@ -133,6 +146,8 @@ Find this exact block:
         };
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -143,7 +158,8 @@ Replace that block with:
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 ui.horizontal(|ui| {
@@ -179,6 +195,8 @@ Find this exact block:
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -189,7 +207,8 @@ Replace that block with:
 
 Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let window = web_sys::window().ok_or("No browser window")?;
@@ -201,6 +220,8 @@ Find this exact block:
         flags: Default::default(),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -211,7 +232,8 @@ Replace that block with:
 
 Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         backend_options: Default::default(),
@@ -252,6 +274,8 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
         format: Some(frame.texture.format().add_srgb_suffix()),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -276,7 +300,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the Rust checks below. Submitting a line should clear the field and add one history entry. The browser still shows the same dock; keyboard events are connected in lesson 03d.
+The folded field shows “The field now belongs to CommandLine.” Change its initial `status` to a short message, save, and confirm that the hint changes. Restore the message. Keyboard input arrives in 03d.
 
 **Verified checkpoint in Chrome.**
 

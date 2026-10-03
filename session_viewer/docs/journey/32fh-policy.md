@@ -26,11 +26,14 @@ Continue from [Separate loaded and released editable ownership](32fg-state.md). 
 
 Only original, located imported sources can be restored by their original file.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 Apply a validated origin set without touching retained display/model/metadata owners.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,12 +64,15 @@ Replace that block with:
 
 Prove the conditions that protect data not faithfully reloadable from the original file.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn partial_replacement_failure_restores_owners_without_reusing_ids() {
 ```
+
+</details>
 
 Replace that block with:
 

@@ -119,7 +119,8 @@ export function verify(ids: string[], stored = false) {
 
 export function structure() {
     const images = new Map<string, string>();
-    for (const step of course().steps) {
+    const steps = course().steps;
+    for (const step of steps) {
         const files = expected(step.id);
         const page = read(path.join(docs, step.page));
         assert(page.includes(step.question) && page.includes(step.answer), step.id);
@@ -130,10 +131,14 @@ export function structure() {
             const file = path.resolve(path.dirname(path.join(docs, step.page)), match[1]);
             const digest = hash(fs.readFileSync(file));
             const previous = images.get(digest);
-            // The first GPU clear deliberately preserves lesson 01's empty white window.
+            // Some changes (GPU initialization or ownership) deliberately keep the picture.
             const firstClear = path.basename(file) === '02-clear-browser.png'
                 && previous && path.basename(previous) === '01-canvas-browser.png';
-            assert(!previous || firstClear, `Repeated lesson image: ${file}`);
+            const sameAs = step.image_same_as;
+            const parent = sameAs ? steps.findIndex(candidate => candidate.id === sameAs) : -1;
+            if (sameAs) assert(parent >= 0 && parent < steps.indexOf(step), `${step.id}: repeated-image parent must precede this step`);
+            const declaredSame = sameAs && previous && [`${sameAs}.png`, `${sameAs}-browser.png`].includes(path.basename(previous));
+            assert(!previous || firstClear || declaredSame, `Undeclared repeated lesson image: ${file}`);
             images.set(digest, file);
         }
     }

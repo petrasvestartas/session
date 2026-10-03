@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 189 lesson slots; 120 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 190 lesson slots; 121 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,25 +10,46 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 ## Main task: finish a direct, step-by-step viewer course
 
-- [x] Replace accumulated command tours with one focused check in all 120 current lessons.
+- [x] Replace accumulated command tours with one focused check in all current lessons.
 - [x] Rewrite all 18 chapter-34 explanations around the current change and its Rust concepts.
+- [x] Shorten 49 further explanations; remove stale HTML-control instructions and misplaced proof tours.
+- [x] Split the first GPU lesson into a working clear and a separate presentation step.
 - [x] Move detailed validation into expandable notes; make experiments optional.
 - [x] Put the to-do link on every lesson and in the course navigation.
 - [x] Check the revised page layout and visible progress links in the same Chrome tab.
-- [ ] Review the remaining explanations against the same direct teaching style.
-- [ ] Split the 17 checkpoints that exceed one hour of typing into runnable steps.
+- [x] Review every current main explanation against the same direct teaching style.
+- [ ] Split the 16 checkpoints that exceed one hour of typing into runnable steps.
 - [ ] Write and verify the 69 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Keep the small concepts that explain the code; put extended test evidence in supporting notes.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 16 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 120 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 121 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
 - [ ] Publish each completed lesson and refresh the same existing Chrome tutorial tab, preserving the reader’s current lesson.
+
+## Typing splits still required
+
+- [ ] [Draw our command line](03a-panel.md): current typing 81–162 minutes; split at complete functions and verify each new step.
+- [ ] [Give the command line its memory](03b-state.md): current typing 74–148 minutes; split at complete functions and verify each new step.
+- [ ] [Draw completion and history](03c-layout.md): current typing 251–501 minutes; split at complete functions and verify each new step.
+- [ ] [Type into the real command dock](03d-input.md): current typing 68–136 minutes; split at complete functions and verify each new step.
+- [ ] [Give the scene an owner](11-scene.md): current typing 47–93 minutes; split at complete functions and verify each new step.
+- [ ] [Name objects without depending on their row](12-identity.md): current typing 42–83 minutes; split at complete functions and verify each new step.
+- [ ] [Ask which object is under the pointer](13-picking.md): current typing 47–93 minutes; split at complete functions and verify each new step.
+- [ ] [Make document changes reversible](14-history.md): current typing 35–70 minutes; split at complete functions and verify each new step.
+- [ ] [Look through a perspective camera](15-perspective.md): current typing 55–109 minutes; split at complete functions and verify each new step.
+- [ ] [Give every action the same route](19-actions.md): current typing 60–120 minutes; split at complete functions and verify each new step.
+- [ ] [Keep a changing window in proportion](20-resize.md): current typing 53–105 minutes; split at complete functions and verify each new step.
+- [ ] [Remember a press until it ends](21-gestures.md): current typing 77–153 minutes; split at complete functions and verify each new step.
+- [ ] [Keep navigation on the mouse and commands in the dock](22-shortcuts.md): current typing 42–84 minutes; split at complete functions and verify each new step.
+- [ ] [Keep the document behind the picture](23-import.md): current typing 126–252 minutes; split at complete functions and verify each new step.
+- [ ] [Find the whole scene](24-fit.md): current typing 53–105 minutes; split at complete functions and verify each new step.
+- [ ] [Choose how depth changes size](25-projection.md): current typing 58–116 minutes; split at complete functions and verify each new step.
 
 ## Published checkpoints and current work
 
@@ -48,7 +69,9 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] 01 · [A page that Rust can reach](01-canvas.md).
 
-- [x] 02 · [Ask the GPU to paint](02-clear.md).
+- [x] 01a · [Paint the first GPU frame](01a-gpu.md): first half of the former 87-minute typing step.
+
+- [x] 02 · [Give browser presentation its own function](02-clear.md): bounded sizing, colour view and error feedback.
 
 - [x] 03 · [Give the GPU three corners](03-triangle.md).
 

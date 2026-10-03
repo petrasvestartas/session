@@ -34,11 +34,14 @@ Create the file and type:
 
 Build the storage owner only for the browser target and expose its debug acceptance probe.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod browser_report;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Replace that block with:
 
 Enable the pinned browser Storage bindings without changing package versions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 "Location", "Navigator",
 ```
+
+</details>
 
 Replace that block with:
 

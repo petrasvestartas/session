@@ -22,11 +22,14 @@ Continue from [Deliver only the current completed reload batch](32ggb-delivery.m
 
 Make source residency requests typed commands without feature buttons.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Unload Sources",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,11 +41,14 @@ Replace that block with:
 
 Own one current reload flight and one scoped accepted reply.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -54,12 +60,15 @@ Replace that block with:
 
 Adopt only an accepted current result and give asynchronous replies their own history entry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         } else if event.type_() == "viewer-file" {
             match crate::file_input::action(&event, &delivery) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -71,11 +80,14 @@ Replace that block with:
 
 Start or cancel an owned request from the actual command field.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if line == "unload sources" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -87,11 +99,14 @@ Replace that block with:
 
 Wake the viewer for a scoped accepted result.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
 ```
+
+</details>
 
 Replace that block with:
 

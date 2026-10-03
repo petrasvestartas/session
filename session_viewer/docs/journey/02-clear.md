@@ -1,58 +1,52 @@
-# 02 · Ask the GPU to paint
+# 02 · Give browser presentation its own function
 
-**Combined study estimate: 2–3 hours.** Includes reading, typing, reasoning and experiments.
+**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
 
-**Typing estimate: 44–87 minutes.** 106 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing estimate: 28–56 minutes.** 55 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+**Today:** Separate browser presentation from setup and add bounded sizing and error feedback.
 
-**Today:** Paint the whole canvas white with a real GPU command.
+**Follow:** configure within device limits → present(surface, renderer) → independent draw → page feedback.
 
-**Follow:** Browser canvas → surface → renderer records a clear → queue → presented image.
+Keep the white GPU frame and separate its browser presentation into `present`. Setup requests the device and configures the surface; presentation obtains an image, calls `Renderer::draw`, then presents it.
 
-Now let us give the GPU one simple instruction: clear the whole sheet to white. We do not need a triangle yet. Keeping these jobs separate will make a blank picture easier to diagnose.
+Clamp canvas dimensions to the device’s texture limit, with at least one pixel per axis. This prevents a zero-sized or oversized surface. CSS still determines the visible window area; lesson 20 handles later resizes and display density.
 
-There are two new owners. `browser.rs` owns page access and the drawing surface. `renderer.rs` owns the device and queue. The browser hands a texture view to the renderer; the renderer records a clear and submits it. The browser presents that image automatically. We also call wgpu’s present method to express the end of the surface frame; it is an explicit presentation request on native surface backends.
+Allow an sRGB texture view and use it for drawing. It converts linear colour values into display encoding. The triangle pipeline added next must use that same view format.
 
-![The browser supplies a surface image; the renderer records a clear and submits commands before the browser presents it.](../illustrations/journey-02.svg)
+`Arc::new` gives wgpu’s error callback a shared owner. The short `|error| ...` closures convert errors into page feedback. `report` exposes startup failures through the existing status element; it adds no feature control.
 
-An **adapter** is an available GPU connection. A **device** creates resources. A **queue** receives work. A **surface** supplies the images that can appear in the canvas. Follow those four values in `run` before reading individual descriptor options.
-
-`struct` groups the values an owner keeps. `impl` groups its functions. `&self` borrows the renderer for one call. `async` allows a function to wait, and `.await` marks a wait for the browser's GPU request. It does not freeze the page.
-
-The first edit revisits the entry point for a reason: GPU setup must wait asynchronously, while the first lesson only changed a DOM element. Your previous work is still the starting point.
-
-`pub` lets another module use an item. `#[cfg(target_arch = "wasm32")]` includes browser code only in the browser build; our native checker uses the renderer alone. `map_err` converts a GPU error into the browser error type returned by `run`. The short `|error| ...` expressions are callbacks: functions called with that error. `Arc::new` gives wgpu a shared owner for its error callback so it remains valid after setup.
-
-For descriptor fields, `Default::default()` selects the library’s ordinary settings. We will replace defaults when a lesson needs a different behavior. Today the choices that matter are the WebGPU backend, a compatible surface, the image size, and keeping the cleared result with `Store`. The named `_pass` stays alive until the closing brace; the underscore says we intentionally do not call methods on it yet.
-
-We allow an sRGB texture view and use it when drawing. It converts linear colour values into the display encoding, matching our native reference images. The pipeline added next must use that same view format.
-
-CSS controls how much space the canvas occupies. The GPU also needs image dimensions: read the window width and height, cap them at the device limit, and give that same size to the canvas and surface. For now one CSS pixel uses one drawing pixel. Lesson 20 adds display density and updates after a window resize.
+![The browser owns setup and presentation; the renderer owns the submitted clear.](../illustrations/journey-02.svg)
 
 ## Type the change
 
-Continue from [A page that Rust can reach](01-canvas.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-02-clear` (from `session_viewer`).
+Continue from [Paint the first GPU frame](01a-gpu.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-02-clear` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
-Replace start’s file. Opening a GPU is asynchronous: the browser must remain free while we wait. The browser module owns page access; the renderer will also work without a page.
+Report startup failure on the page through the browser owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
+pub mod renderer;
+#[cfg(target_arch = "wasm32")]
+mod browser;
+
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen(start)]
-pub fn start() -> Result<(), JsValue> {
+pub fn start() {
     console_error_panic_hook::set_once();
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let status = document.get_element_by_id("status").ok_or("Missing status")?;
-    status.set_text_content(Some("Rust is running. The canvas is ready."));
-    Ok(())
+    #[cfg(target_arch = "wasm32")]
+    wasm_bindgen_futures::spawn_local(async {
+        browser::run().await.expect("GPU startup failed");
+    });
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,9 +56,47 @@ Replace that block with:
 
 ### 2. `src/renderer.rs`
 
-Create the renderer. A clear is a real render operation, even though it has no triangle and needs no shader yet.
+Name the render pass and spell out the clear colour for later experiments.
 
-Create the file and type:
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
+        Self { device, queue }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView) {
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                ..Default::default()
+            });
+        }
+        self.queue.submit([encoder.finish()]);
+    }
+}
+```
+
+</details>
+
+Replace that block with:
 
 ```rust
 --8<-- "journey/code/02-clear-fullscreen-4.rs"
@@ -72,9 +104,47 @@ Create the file and type:
 
 ### 3. `src/browser.rs`
 
-Create the browser adapter. It owns the surface, asks for a compatible GPU and gives one texture to the renderer. The renderer does not look up HTML elements.
+Separate presentation, bound the canvas size and choose the colour view explicitly.
 
-Create the file and type:
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue};
+
+fn error(value: impl ToString) -> JsValue { JsValue::from_str(&value.to_string()) }
+
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document.get_element_by_id("canvas").ok_or("No canvas")?.dyn_into()?;
+    let instance = wgpu::Instance::default();
+    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone())).map_err(error)?;
+    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
+        compatible_surface: Some(&surface), ..Default::default()
+    }).await.map_err(error)?;
+    let (device, queue) = adapter.request_device(&Default::default()).await.map_err(error)?;
+    let width = window.inner_width()?.as_f64().ok_or("No width")? as u32;
+    let height = window.inner_height()?.as_f64().ok_or("No height")? as u32;
+    canvas.set_width(width); canvas.set_height(height);
+    let config = surface.get_default_config(&adapter, width, height).ok_or("No surface format")?;
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue);
+    let frame = match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(frame) | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        _ => return Err("No surface image".into()),
+    };
+    renderer.draw(&frame.texture.create_view(&Default::default()));
+    frame.present();
+    document.get_element_by_id("status").ok_or("No status")?.set_text_content(Some("The GPU painted the canvas."));
+    Ok(())
+}
+```
+
+</details>
+
+Replace that block with:
 
 ```rust
 --8<-- "journey/code/02-clear-window-1.rs"
@@ -92,18 +162,18 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The canvas stays white. Temporarily set the clear colour to `r: 0.9, g: 0.9, b: 0.9`: the GPU should paint it grey. Restore all three values to `1.0`.
+The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: it becomes light grey through the sRGB view. Restore all three values to `1.0`.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Ask the GPU to paint.](../screenshots/journey/02-clear-browser.png)
+![Actual browser result: Give browser presentation its own function.](../screenshots/journey/02-clear-browser.png)
 
 [What this screenshot checks](release.md).
 
 <details>
 <summary>Optional experiment</summary>
 
-Temporarily change the renderer’s clear colour to `r: 0.9, g: 0.9, b: 0.9`. The canvas should become light grey: that confirms the GPU owns these pixels. Restore all three values to 1.0 for the white background.
+Compare width and height with the device limit in run. Explain why a drawing buffer needs pixel dimensions even though CSS already fills the window.
 
 </details>
 
@@ -139,7 +209,7 @@ These owners become the production GPU device setup and presentation modules. Th
 <details>
 <summary>Verification notes and browser acceptance</summary>
 
-This freshly captured white image deliberately looks like lesson 01. The change is who paints it: the GPU now clears and presents the image. The native check verifies every background pixel.
+The actual opaque white GPU frame is deliberately identical to lesson 01a. This step changes presentation ownership, bounded configuration and error feedback.
 
 [Full validation scope](release.md).
 

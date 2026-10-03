@@ -22,11 +22,14 @@ Continue from [Validate restoration before replaying the command](32gid-complete
 
 Name the captured operation independently of the current input field or selection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 impl Intent {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,7 +41,8 @@ Replace that block with:
 
 Consume validated edit or Save results and associate success or failure with the original command.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if let Some(reply) = reload_delivery.borrow_mut().take() {
@@ -54,6 +58,8 @@ Find this exact block:
             }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -64,11 +70,14 @@ Replace that block with:
 
 Keep download handling shared by immediate and restored Save results.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub async fn run() -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 

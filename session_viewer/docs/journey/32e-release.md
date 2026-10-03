@@ -22,12 +22,15 @@ Continue from [Close through the command line and revoke reads](32d-command.md).
 
 Verify imported source/document release across history and fresh identities after reopening.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn resetting_the_view_preserves_its_current_aspect() {
 ```
+
+</details>
 
 Replace that block with:
 

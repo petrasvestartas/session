@@ -26,11 +26,14 @@ Continue from [Ask geometry questions in world coordinates](27a-world.md). Save 
 
 Keep camera and object placement in separate uniform groups.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,13 +45,16 @@ Replace that block with:
 
 Place the vertex before projecting it; use world position for lighting.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
     output.position = transform * vec4<f32>(position, 1.0);
     output.colour = colour;
     output.world = position;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,11 +66,14 @@ Replace that block with:
 
 Upload an object’s mesh and placement together.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::mesh::Mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -76,11 +85,14 @@ Replace that block with:
 
 Retain the object bind group alongside its vertex/index buffers.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     index_count: u32,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -92,11 +104,14 @@ Replace that block with:
 
 Borrow local mesh coordinates and the model from the same Object.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn upload(device: &wgpu::Device, mesh: &Mesh, selected: bool) -> Self {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -108,11 +123,14 @@ Replace that block with:
 
 Encode the model’s column-major values and bind the uniform buffer.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { vertices, indices, index_count: mesh.indices().len() as u32 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -124,11 +142,14 @@ Replace that block with:
 
 Choose this object’s placement before its indexed draw.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -152,11 +173,14 @@ Delete this block.
 
 Upload objects using the model layout inferred from the shader.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let uniform = device.create_buffer(&wgpu::BufferDescriptor {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -168,13 +192,16 @@ Replace that block with:
 
 Include each placement when a scene update rebuilds the current uploads.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         self.meshes = scene.objects().iter().map(|object| {
             GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))
 ```
+
+</details>
 
 Replace that block with:
 
@@ -198,11 +225,14 @@ Delete this block.
 
 Assign its world placement after inserting the local mesh.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.insert(Mesh::from_kernel(&source)?)
 ```
+
+</details>
 
 Replace that block with:
 

@@ -8,17 +8,15 @@
 
 **Follow:** Live source and placement → snapshot bytes → load → identical source values and object matrices.
 
-Before adding the download, verify the document bytes independently of browser APIs. The same public snapshot and load functions serve the tests and the coming Save command.
+Prove snapshot and load preserve the editable document before adding browser downloading.
+
+Save and reopen a triangle with a double coordinate that rounds in its display, a name, hide/lock flags and translation. Compare original source values exactly; derive display again and keep placement separate.
+
+Then save duplicate imports. Reopened GUIDs must match their stored object GUIDs, including the duplicate's new identity; matrices must match too. Imported sources stay untouched.
+
+Compare decoded structure rather than protobuf byte order. Pixels cannot establish source precision or identity. Flags are retained here; drawing and editing policies for hidden/locked objects come later.
 
 ![Native round-trip checks compare source values and identity; browser drawing is a separate check.](../illustrations/journey-29c.svg)
-
-The first check clears the demos and inserts a triangle at a coordinate distinguishable in double precision but rounded by its display. Give it a name, hide and lock attributes, and a translation. Saving and reopening must retain all of those source values exactly. The drawing is derived again, while placement remains separate.
-
-The second check imports the same file twice and saves the live objects. The reopened mesh GUIDs must match each inserted object’s stored GUID, including the fork assigned to a duplicate import. Each prepared placement must match its original object matrix. The retained imported source remains untouched.
-
-These checks use structural equality after decoding. A protobuf map need not emit bytes in the same order every time, so comparing file bytes would test an unrelated ordering rule. They also avoid treating pixels as evidence of double precision or identity.
-
-Flags are retained here. A hidden source is not yet filtered from our tutorial drawing; a locked source is not yet excluded from editing. Later lessons connect those policies across the tree, selection and saving.
 
 ## Type the change
 
@@ -38,12 +36,15 @@ Create the file and type:
 
 Compile exact document round-trip checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod placement_load_tests;
 ```
+
+</details>
 
 Replace that block with:
 

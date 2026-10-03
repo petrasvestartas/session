@@ -26,11 +26,14 @@ Continue from [Reject stale or inconsistent source batches atomically](32gd-reje
 
 Show that obsolete identities are rejected before version checks, decoding or mutation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::editor::{Action, Editor};
 ```
+
+</details>
 
 Replace that block with:
 

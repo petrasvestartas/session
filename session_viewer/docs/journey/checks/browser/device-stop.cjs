@@ -10,6 +10,8 @@ module.exports = async (page, helpers) => {
         await page.waitForFunction(() => document.getElementById('status')?.textContent === 'Document replaced. Undo restores the previous document.');
     };
     await page.addInitScript(() => {
+        // Back-navigation checks also visit about:blank, which has no WebGPU interfaces.
+        if (typeof GPUAdapter === 'undefined') return;
         const lost = new WeakSet(), owners = new WeakMap();
         window.__lossProbe = {devices: [], calls: []};
         const request = GPUAdapter.prototype.requestDevice;

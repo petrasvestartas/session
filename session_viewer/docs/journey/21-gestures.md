@@ -36,13 +36,16 @@ Create the file and type:
 
 A drag remembers its pointer ID and previous position. Option lets an event produce no action without pretending it was a click.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Gesture {
     active: Option<Drag>,
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -64,7 +67,8 @@ Create the file and type:
 
 Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 
@@ -76,6 +80,8 @@ wasm-bindgen-futures = "=0.4.78"
 wgpu = "=29.0.4"
 ```
 
+</details>
+
 Replace that block with:
 
 ```toml
@@ -86,7 +92,8 @@ Replace that block with:
 
 Expose the gesture module to the browser and compile its tests only in the test build.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod history;
@@ -96,6 +103,8 @@ pub mod gpu_mesh;
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -107,7 +116,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::background::Background;
@@ -116,6 +126,8 @@ use crate::renderer::Renderer;
 use crate::viewport::Viewport;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -127,7 +139,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     }
@@ -137,6 +150,8 @@ Find this exact block:
         let line = match panel.update(Some(&event), &input_canvas) {
             Ok(line) => line,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -148,7 +163,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 return;
@@ -184,6 +200,8 @@ Find this exact block:
                 "select next" => Action::SelectNext,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -194,7 +212,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 "view reset" => Action::ResetView,
@@ -204,6 +223,8 @@ Find this exact block:
                 Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),
                 Ok(Change::View) => {}
 ```
+
+</details>
 
 Replace that block with:
 
@@ -215,7 +236,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         }
@@ -227,6 +249,8 @@ Find this exact block:
             &mut renderer,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -237,7 +261,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         "keydown",
@@ -249,6 +274,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -259,7 +286,8 @@ Replace that block with:
 
 Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         &options,
@@ -275,6 +303,8 @@ fn resize(
     window: &web_sys::Window,
     canvas: &web_sys::HtmlCanvasElement,
 ```
+
+</details>
 
 Replace that block with:
 

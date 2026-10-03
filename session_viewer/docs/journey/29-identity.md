@@ -8,15 +8,15 @@
 
 **Follow:** Source GUID → inserted object GUID → cloned history → stable file identity.
 
-Save needs an identifier that can connect a stored mesh, its tree row and its placement. ObjectId already names objects within this running editor, but it is a small counter belonging to this scene. The source GUID belongs to the imported geometry. Neither distinction should disappear when we write a file.
+Give each inserted object a stored GUID for saving. Local `ObjectId` still identifies the editor object; imported source GUID still identifies its original geometry.
 
-Add a GUID to Object. Prefer the original geometry GUID when it is unused. When the same file is imported again, assign a fresh UUID to the new object. Keep the original kernel mesh and Source provenance untouched. The new identity belongs to this inserted object.
+Prefer the geometry GUID when unused. Duplicate imports receive a new UUID without changing their original source mesh or provenance. Check even generated candidates against live objects.
+
+Assign identity once at insertion. History clones the stored `String`; Move and Save must not regenerate it.
+
+The duplicate-import test checks distinct object GUIDs and unchanged source GUIDs, then removes an earlier row and travels through Undo/Redo. Download is connected later.
 
 ![The original source GUID can be shared, but each inserted object keeps one distinct GUID through history.](../illustrations/journey-29.svg)
-
-The while loop checks the candidate against live objects. Even a generated UUID is checked, so insertion’s uniqueness rule is explicit. Assignment happens once during insertion. Cloning a scene for history clones the stored String; Move and saving must never regenerate it.
-
-The check imports the same bytes twice. Corresponding sources have the same GUID, while all inserted objects have distinct GUIDs. It removes an earlier object and travels through Undo/Redo to prove identity is independent of display row and history position. Save is not connected yet; this prepares its identifiers.
 
 ## Type the change
 
@@ -26,11 +26,14 @@ Continue from [Prove source ownership survives editing](28c-ownership.md). Save 
 
 Declare the UUID generator explicitly; browser randomness uses its js feature.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 prost = "=0.14.4"
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 Store the inserted object identity separately from kernel source identity and the local counter.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub id: ObjectId,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +64,14 @@ Replace that block with:
 
 Keep the source GUID when available; assign and check a fresh stored GUID for a duplicate import.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.objects.push(Object { id, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -84,12 +93,15 @@ Create the file and type:
 
 Compile the file-identity regression check.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod source_tests;
 ```
+
+</details>
 
 Replace that block with:
 

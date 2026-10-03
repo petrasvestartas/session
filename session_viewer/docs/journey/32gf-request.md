@@ -24,11 +24,14 @@ Continue from [Ignore old reload results before decoding them](32ge-stale.md). S
 
 Expose the native request owner without adding browser APIs to it.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod rehydrate;
 ```
+
+</details>
 
 Replace that block with:
 

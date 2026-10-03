@@ -8,17 +8,15 @@
 
 **Follow:** File read result → browser event → validated editor action → success or error in the command dock.
 
-Our native import tests already prove malformed bytes leave the document intact. The browser feedback has a separate bug: after Editor::apply returns an error, the event handler still reports File imported. The final status therefore contradicts what happened.
+Report import success only after `Editor::apply` commits successfully. A failed decode retains the scene and records an error instead of saying “File imported.”
 
-Move success reporting into the successful Scene branch. Failed decoding keeps the old scene and records its error beside the command. There is no new history path.
+An asynchronous file adapter cannot borrow the callback's Panel. Dispatch `viewer-file-error` with text, then let the owning callback update history.
+
+Queue oversized-file errors before reading. Immediate nested dispatch would re-enter the borrowed `FnMut` callback. After an awaited read, retain the latest-request check so stale work cannot publish an error.
+
+Command history carries file feedback; the hidden status stays out of the drawing. Startup failure can still expose status when the GPU dock never became available.
 
 ![A read delivers bytes or an error; only a successful editor transaction reports that the file entered the scene.](../illustrations/journey-30.svg)
-
-Asynchronous read errors need the same command-history route. The file adapter cannot borrow the panel held by the main event closure. Instead it dispatches viewer-file-error with a String detail. The main closure receives that event, reports the status and calls panel.result.
-
-Oversized files take that route in the queued task, before reading. Dispatching another event from inside the currently borrowed input callback would re-enter the same FnMut closure and fail. Waiting until the task runs releases that borrow first. A rejected read promise takes it after the existing latest-read check, so an old read still cannot publish a late error over a newer choice. The next lessons replace the loose counter with explicit tickets and cancellation.
-
-File status stays hidden while the command dock carries user feedback. A startup failure still exposes the HTML status because the GPU dock could not be created. A temporary read failure must not add a banner over the full-window drawing.
 
 ## Type the change
 
@@ -28,11 +26,14 @@ Continue from [Download the editable document from the command line](29d-save.md
 
 Keep a startup failure visible when the GPU dock could not be created; file errors stay in command history.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,11 +45,14 @@ Replace that block with:
 
 Route the size refusal through the panel’s main event closure.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         super::browser::report("This checkpoint accepts files up to 4 MiB");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,11 +64,14 @@ Replace that block with:
 
 Deliver a read error only after the existing latest-read check.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             super::browser::report(&format!("Cannot read file: {error:?}"));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -76,11 +83,14 @@ Replace that block with:
 
 Pass asynchronous errors through a small custom event rather than borrowing the panel.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn deliver(buffer: JsValue) -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -92,11 +102,14 @@ Replace that block with:
 
 Receive read failures in the same closure that owns command history.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         } else if event.type_() == "viewer-file" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -108,11 +121,14 @@ Replace that block with:
 
 A successful transaction is the only branch that may announce an imported file.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -138,11 +154,14 @@ Delete this block.
 
 Keep the error event connected for the viewer lifetime.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -169,11 +188,14 @@ Delete this block.
 
 Check size in the queued task before reading; error delivery can now enter the main callback safely.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     wasm_bindgen_futures::spawn_local(async move {
 ```
+
+</details>
 
 Replace that block with:
 

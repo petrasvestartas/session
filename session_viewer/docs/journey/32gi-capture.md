@@ -22,11 +22,14 @@ Continue from [Cancel reloads when their document context changes](32gha-cancel.
 
 Register the value-only requested-edit module.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod reload_job;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -8,19 +8,13 @@
 
 **Follow:** command → camera centre or scale → four uniform values → existing renderer → unchanged mesh in a different view.
 
-Place a drawing under a small window cut in a sheet of paper. Slide the window right. The drawing appears to move left inside it, although the drawing stayed on the table. A camera changes the place from which we see the scene.
+Give view state its own `Camera`: a centre and scale. Typed pan and zoom commands update it, then redraw with the existing geometry.
 
-We begin with a flat view so that one subtraction explains pan. `Camera.center` says which world point appears at the middle of the picture. `scale` says how large distances appear. The camera converts those choices into the four uniform values we already know how to upload.
+The camera formula is `(position - center) * scale`. Our shader already accepts scale and offset, so supply `offset = -center * scale`. With centre 0.25 and scale 2, offset −0.5 puts world x = 0.25 at screen x = 0.
+
+The browser translates a submitted command into camera changes. The renderer receives four numbers and does not know how the user chose them. Camera tests verify the centre stays fixed during zoom and reject invalid or out-of-range scale.
 
 ![commands change camera state; the camera calculates uniforms while the vertex and index buffers remain unchanged.](../illustrations/journey-08.svg)
-
-Follow the formula: `(position - center) * scale`. Our shader already accepts `position * scale + offset`, so the camera supplies `offset = -center * scale`. A centre of 0.25 and scale of 2 produce an offset of -0.5. The world point 0.25 then appears at screen x = 0, exactly where it should.
-
-The first edit adds several commands inside one disabled `fieldset`. Once setup succeeds, enabling that fieldset enables all its controls. Their click events bubble to a single listener. That listener owns the background, camera, renderer and surface; we do not need several callbacks sharing mutable camera data.
-
-The listener inspects the clicked element's id, changes the appropriate state, and requests a frame. An unrecognised target does nothing. The renderer still accepts four numbers rather than a browser element or a Camera: it has no reason to know how the user chose this view.
-
-Two tests protect the meaning of that state. One proves that the point we look at remains at the centre after zooming. The other keeps zoom positive and bounded, including invalid input. These checks exercise the camera without creating a window or opening a GPU.
 
 ## Type the change
 
@@ -40,7 +34,8 @@ Create the file and type:
 
 Register the camera module so the browser and native tests can use it.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod background;
@@ -48,6 +43,8 @@ pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -59,13 +56,16 @@ Replace that block with:
 
 Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::background::Background;
 use crate::renderer::Renderer;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -77,7 +77,8 @@ Replace that block with:
 
 Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let mut panel = crate::panel::Panel::new(
@@ -94,6 +95,8 @@ Find this exact block:
         let line = match panel.update(Some(&event), &input_canvas) {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -104,7 +107,8 @@ Replace that block with:
 
 Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 return;
@@ -123,6 +127,8 @@ Find this exact block:
     });
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -133,7 +139,8 @@ Replace that block with:
 
 Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -143,6 +150,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

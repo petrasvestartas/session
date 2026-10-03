@@ -26,11 +26,14 @@ Continue from [Adopt restored source owners as one residency change](32gb-adopt.
 
 Keep source restoration proofs in typed native state checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod unload_tests;
 ```
+
+</details>
 
 Replace that block with:
 

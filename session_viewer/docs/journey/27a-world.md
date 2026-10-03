@@ -26,11 +26,14 @@ Continue from [Give each object a placement](27-placement.md). Save your own wor
 
 Whole-scene bounds include placed points.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 let point = [vertex[0] as f64, vertex[1] as f64, vertex[2] as f64];
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,7 +45,8 @@ Replace that block with:
 
 Use the same placed coordinates for fitting the selected object.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let mut bounds = crate::bounds::Bounds::point([
@@ -51,6 +55,8 @@ Find this exact block:
         for vertex in vertices {
             bounds.include([vertex[0] as f64, vertex[1] as f64, vertex[2] as f64]);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,13 +68,16 @@ Replace that block with:
 
 Ask whether the world ray hits the placed triangle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             let a = vertices[triangle[0] as usize];
             let b = vertices[triangle[1] as usize];
             let c = vertices[triangle[2] as usize];
 ```
+
+</details>
 
 Replace that block with:
 
@@ -80,13 +89,16 @@ Replace that block with:
 
 Compute differences in the double-precision coordinates supplied by placement.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn triangle_distance(ray: &Ray, a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f64> {
     let edge1 = Vector::new((b[0] - a[0]) as f64, (b[1] - a[1]) as f64, (b[2] - a[2]) as f64);
     let edge2 = Vector::new((c[0] - a[0]) as f64, (c[1] - a[1]) as f64, (c[2] - a[2]) as f64);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -98,11 +110,14 @@ Replace that block with:
 
 Build the triangle origin from the same world point.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let origin = &ray.origin - &Point::new(a[0] as f64, a[1] as f64, a[2] as f64);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -114,11 +129,14 @@ Replace that block with:
 
 Connect placement, both bounds and camera-ray picking in one state check.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use session_rust::Xform;
 ```
+
+</details>
 
 Replace that block with:
 

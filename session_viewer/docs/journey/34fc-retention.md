@@ -24,11 +24,14 @@ Continue from [Retrieve saved failure evidence through the command line](34fb-st
 
 Read a bounded date/version header for retention without adopting, converting or rewriting unsupported telemetry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub const MAX_BYTES: usize = 1024 * 1024;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,7 +43,8 @@ Replace that block with:
 
 Retain raw supported or unsupported bounded JSON by header time; a failed read aborts before writing or pruning.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let mut old = self.reports(); old.retain(|(key, _)| key != &self.key);
@@ -48,6 +52,8 @@ Find this exact block:
         old.sort_by(|a, b| js_sys::Date::parse(&b.1.last_seen).total_cmp(&js_sys::Date::parse(&a.1.last_seen)));
         let keep: Vec<_> = old.iter().take(2).map(|(key, _)| key).collect();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -59,7 +65,8 @@ Replace that block with:
 
 Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::{diagnostic::Report, diagnostic_shape_tests::report, report_store::{decode, MAX_BYTES}};
@@ -94,6 +101,8 @@ fn stored_json_bounds_bytes_events_and_text() {
     value["failure"]["message"] = serde_json::json!("😀".repeat(4097)); assert!(decode(&value.to_string()).is_none());
 }
 ```
+
+</details>
 
 Replace that block with:
 

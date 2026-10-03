@@ -8,19 +8,15 @@
 
 **Follow:** Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid.
 
-The viewer can draw and select triangles. A solid adds topology: its faces meet to enclose a volume. We will create a box with the geometry kernel, then adapt that mesh to the display layout we already understand.
+Create a grey box with the geometry kernel and adapt it to our validated display mesh. `to_render` supplies float vertices and triangle indices; the adapter selects position and colour for our six-float vertex layout.
 
-The kernel keeps geometric points in double precision and has its own face representation. `to_render` extracts float vertices and triangle indices. Our adapter selects position and colour from each vertex, then passes the result through Mesh's existing validation. Rendering still reads six floats per vertex; adding a box does not require a second renderer.
+The box has eight geometric corners, six quad faces and twelve triangles. This example handles its convex faces; imported concave faces need later topology work.
+
+Convert kernel `u32` indices with `u16::try_from`. Return an error for an index that cannot fit rather than connecting the wrong corners.
+
+Add `History::try_edit`: commit and clear redo only on success; restore the previous scene on error. A test deliberately mutates then fails. The box is unlit here; the next shader change reveals its face directions.
 
 ![A kernel box becomes a validated display mesh; a successful document transaction inserts it before the renderer uploads its triangles.](../illustrations/journey-17.svg)
-
-A box has eight geometric corners, six quadrilateral faces and twelve triangles. The kernel's triangle extraction handles those convex box faces. This example does not establish correctness for every imported concave polygon; the CAD and topology lessons will address the additional contracts those sources need.
-
-Our present index buffer uses 16-bit numbers. The kernel uses 32-bit indices, so conversion must be checked. `u16::try_from` returns an error if an index does not fit. The adapter reports that limitation rather than silently truncating a number and connecting the wrong vertices. We will widen the storage before large-scene work.
-
-Creation also gives us a reason to strengthen history. `try_edit` records a successful change, but restores the previous scene if the action returns an error. Only a successful action clears redo. The test deliberately removes an object and then fails, proving that a partially changed scene does not escape the transaction.
-
-The box is grey and has no lighting yet. In an isometric view you can recognise its silhouette, but adjoining faces share the same colour. Keep that observation: the next lesson will make the surface directions visible through light.
 
 ## Type the change
 
@@ -30,11 +26,14 @@ Continue from [Walk around the model](16-orbit.md). Save your own work first: `n
 
 Adapt kernel triangle data to the current vertex and index layout with a checked narrowing conversion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,12 +45,15 @@ Replace that block with:
 
 Check the adapter using a solid with known topology.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn invalid_connections_and_nonfinite_vertices_are_rejected() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -63,11 +65,14 @@ Replace that block with:
 
 Construct and place a box, then insert it only after its display mesh is valid.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn toggle_extra(&mut self) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -79,7 +84,8 @@ Replace that block with:
 
 Make transaction recording depend on success. The existing edit wrapper remains convenient for actions that cannot return an error.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
@@ -93,6 +99,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -103,12 +111,15 @@ Replace that block with:
 
 Prove that a partial failed change cannot destroy either document contents or the redo branch.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn retained_history_has_a_fixed_count_limit() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -120,7 +131,8 @@ Replace that block with:
 
 Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         config.format.add_srgb_suffix(),
@@ -130,6 +142,8 @@ Find this exact block:
             "Select Next",
             "Delete",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -141,7 +155,8 @@ Replace that block with:
 
 Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                         .and_then(|ray| crate::picking::pick(&scene, &ray));
@@ -151,6 +166,8 @@ Find this exact block:
                     history.edit(&mut scene, Scene::toggle_extra);
                     selected = selected.filter(|id| scene.contains(*id));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -162,7 +179,8 @@ Replace that block with:
 
 Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -172,6 +190,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

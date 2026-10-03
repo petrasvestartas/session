@@ -10,23 +10,15 @@
 
 **Follow:** World point → view matrix → projection → divide by w → canvas; click → inverse projection → clipped ray → object ID.
 
-Our earlier view treated distance like a flat drawing. Perspective makes the same object appear larger when it is closer to the eye. Today the camera looks from z = 3 toward z = 0, with a 60-degree vertical field of view.
+Use a perspective camera looking from z = 3 towards z = 0, with a 60-degree vertical field of view. Farther objects appear smaller.
 
-The matrix now has two jobs. The **view matrix** describes positions relative to the eye and its right, up and forward directions. The **projection matrix** produces clip coordinates. The GPU divides x, y and z by w before mapping them into the image. Farther points have a larger divisor, so they appear smaller.
+The view matrix puts positions relative to the eye; projection produces clip coordinates. The GPU divides by w. The existing shader matrix multiplication and `Less` depth test still work. Turquoise is now nearer from this viewpoint and wins the overlap.
+
+Use the kernel's `Point`, `Vector` and `Xform` for double-precision calculations, then `to_f32` for the existing GPU uniform. Keep camera aspect equal to window width divided by height, including after reset.
+
+Picking needs a ray: inverse-transform screen depth 0 and 1 to near and far points. Intersect that bounded segment with triangles and choose the nearest valid hit. Reject a near-zero determinant and hits outside the segment.
 
 ![The eye sees a widening region between near and far planes; reversing the projection turns a clicked pixel into a segment through that region.](../illustrations/journey-15.svg)
-
-The shader already multiplies a four-component position by a matrix. It does not need to change. The depth attachment also keeps its existing Less rule. The matrix now calculates depth from the camera rather than using world z directly. Notice the result: the turquoise triangle is nearer from this camera position, so it wins the overlap.
-
-We now use `Point`, `Vector` and `Xform` from the repository's Rust geometry kernel, the same library used by the finished viewer. These are geometry-library operations, not a hidden viewer implementation. `to_f32` supplies the column-major bytes our uniform already expects. The kernel uses double precision for calculations; the GPU still receives floats. The path in Cargo.toml points from your handwritten project to the existing `session_rust` crate.
-
-A click is no longer one world point. It describes a line of sight. Transform that screen location at depth 0 and depth 1 through the inverse view-projection matrix: these are its near and far points. Their difference gives a direction, and their separation limits the ray to the visible depth interval. We therefore reject hits behind the near point or beyond the far point.
-
-The triangle query solves `origin + t×direction = a + u×edge1 + v×edge2`. u and v retain the coverage meaning from the last lesson; t is now distance along the ray. The cross products let each dot product isolate one unknown. A determinant close to zero means the ray and triangle cannot provide a reliable intersection. After finding coverage, compare t across objects and keep the nearest valid hit.
-
-The fixed field of view and clipping planes are enough for this small specimen. Later lessons add orbit, fit-to-scene, dynamic viewport size and the precision policy of the full viewer.
-
-Set the camera’s aspect to the initial window width divided by its height. The projection then agrees with the full-window image. Resetting the camera keeps this aspect: changing the view must not change the window’s proportions.
 
 ## Type the change
 
@@ -36,7 +28,8 @@ Continue from [Make document changes reversible](14-history.md). Save your own w
 
 Replace the flat camera conversion with a perspective view and a clipped world-space ray. Retain the same pan, zoom, rotate and uniform entry points.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Camera {
@@ -118,6 +111,8 @@ mod tests {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -128,7 +123,8 @@ Replace that block with:
 
 Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::scene::{ObjectId, Scene};
@@ -213,6 +209,8 @@ mod tests {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -223,11 +221,14 @@ Replace that block with:
 
 Name the mesh by colour; which surface is nearer now depends on the camera.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let near = Mesh::new(vec![
 ```
+
+</details>
 
 Replace that block with:
 
@@ -239,11 +240,14 @@ Replace that block with:
 
 Give the other mesh a camera-independent name.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let far = Mesh::new(vec![
 ```
+
+</details>
 
 Replace that block with:
 
@@ -255,11 +259,14 @@ Replace that block with:
 
 Keep the diagnostic name consistent.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 expect("Valid near triangle")
 ```
+
+</details>
 
 Replace that block with:
 
@@ -271,11 +278,14 @@ Replace that block with:
 
 Keep the diagnostic name consistent.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 expect("Valid far triangle")
 ```
+
+</details>
 
 Replace that block with:
 
@@ -287,12 +297,15 @@ Replace that block with:
 
 Insert the same two mesh data sets in the same order. Their identities are unchanged.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         scene.insert(near).expect("ID available");
         scene.insert(far).expect("ID available");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -304,7 +317,8 @@ Replace that block with:
 
 Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 console_error_panic_hook = "=0.1.7"
@@ -314,6 +328,8 @@ wgpu = "=29.0.4"
 egui = { version = "=0.34.3", default-features = false }
 egui-wgpu = { version = "=0.34.3", default-features = false }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -325,7 +341,8 @@ Replace that block with:
 
 Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let mut history = History::default();
@@ -337,6 +354,8 @@ Find this exact block:
         &renderer,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -347,7 +366,8 @@ Replace that block with:
 
 Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                         (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
@@ -359,6 +379,8 @@ Find this exact block:
                 "example triangle" => {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -369,7 +391,8 @@ Replace that block with:
 
 Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 "pan left" => camera.pan(-0.25, 0.0),
@@ -381,6 +404,8 @@ Find this exact block:
         }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -391,7 +416,8 @@ Replace that block with:
 
 Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -401,6 +427,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

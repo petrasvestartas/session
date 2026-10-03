@@ -34,11 +34,14 @@ Create the file and type:
 
 Register the captured-intent result module.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod edit_intent;
 ```
+
+</details>
 
 Replace that block with:
 

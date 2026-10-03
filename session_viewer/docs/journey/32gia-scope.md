@@ -24,11 +24,14 @@ Continue from [Capture the requested edit before waiting](32gi-capture.md). Save
 
 Bring the editor and existing release-key type into this module.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::{editor::Action, scene::ObjectId};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,11 +43,14 @@ Replace that block with:
 
 Resolve dependencies from the captured target or active Save scene.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 impl Intent {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -56,11 +62,14 @@ Replace that block with:
 
 Register the independent source-scope tests.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod edit_intent;
 ```
+
+</details>
 
 Replace that block with:
 

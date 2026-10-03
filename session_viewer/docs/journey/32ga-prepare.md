@@ -26,13 +26,16 @@ Continue from [Identify the source release a reload belongs to](32g-keys.md). Sa
 
 Share bounded decoding without sharing display preparation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
     let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
     validate(&message)?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,11 +47,14 @@ Replace that block with:
 
 Restore only original kernel data after validating the immutable source version.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,12 +66,15 @@ Replace that block with:
 
 Keep candidate kernel ownership private until every matched row has a valid original source.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod tests {
 ```
+
+</details>
 
 Replace that block with:
 

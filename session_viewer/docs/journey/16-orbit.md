@@ -8,19 +8,15 @@
 
 **Follow:** View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray.
 
-Imagine walking around a small sculpture while keeping your eyes on one point. Your position changes, but the point you are watching stays put. That point is the camera target.
+Orbit around a fixed target. Camera orientation determines its right, up and forward directions; viewing distance places the eye behind the target.
 
-We extend the camera from a flat centre and one angle to a 3D target and an orientation. The orientation tells us where the camera's right, forward and up axes point. The eye lies one viewing distance behind the target along the forward axis.
+Use the kernel's quaternion to represent orientation. Rotate sideways around world z and tilt around the camera's current right axis. In `yaw × (pitch × orientation)`, the existing orientation is followed by tilt, then yaw. Order matters.
+
+Normalise after updates to keep a pure rotation. The repeated-turn test checks that the resulting axes remain unit length and perpendicular.
+
+Isometric changes orientation while retaining target and distance. Drawing and picking consume the same updated camera matrix. The scene, history and selection keep their existing owners.
 
 ![A fixed target and viewing distance define the orbit; orientation determines the camera’s right, forward and up directions.](../illustrations/journey-16.svg)
-
-A **quaternion** is the geometry kernel's compact representation of a rotation. For this lesson, read its operations as actions: create a rotation around an axis, combine rotations, rotate a vector, and normalise the result. Normalisation keeps the orientation a pure rotation after many updates; it does not change the viewing distance.
-
-Orbit uses two axes. Turning sideways rotates around world z, the scene's vertical direction. Tilting rotates around the camera's current right direction. That right direction changes as we move, so we calculate it from the current orientation before making the tilt rotation.
-
-Order matters. In `yaw × (pitch × orientation)`, apply the existing orientation, then the tilt, then the turn around world up. The multiplication does not mean “add three angles”. Our test repeats many small turns and checks that the three resulting axes remain perpendicular and unit length.
-
-The default orientation preserves the previous lesson's straight-down view: forward points down −z, up points along +y. Isometric changes only orientation. The target, distance, scene, history and selection stay in their existing owners. Drawing and picking both use the same updated matrix, so neither needs a special orbit path.
 
 ## Type the change
 
@@ -30,11 +26,14 @@ Continue from [Look through a perspective camera](15-perspective.md). Save your 
 
 Use the kernel’s rotation representation alongside its points, vectors and matrices.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use session_rust::{Point, Vector, Xform};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,7 +45,8 @@ Replace that block with:
 
 Store a 3D target and orientation instead of a flat centre and one angle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub center: [f64; 2],
@@ -54,6 +54,8 @@ Find this exact block:
     pub angle: f64,
     pub aspect: f64,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -65,11 +67,14 @@ Replace that block with:
 
 Keep the same initial eye and up directions as the perspective lesson.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { center: [0.0, 0.0], distance: 3.0, angle: 0.0, aspect: 640.0 / 480.0 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -81,7 +86,8 @@ Replace that block with:
 
 Move the target in the camera’s current right/up plane, including its world-z component.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn pan(&mut self, dx: f32, dy: f32) {
@@ -90,6 +96,8 @@ Find this exact block:
         self.center[1] += dx as f64 * sin + dy as f64 * cos;
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -101,13 +109,16 @@ Replace that block with:
 
 Add world-up orbit and a named pose. Keep rotate as the existing Turn view action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn rotate(&mut self, radians: f32) {
         self.angle += radians as f64;
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -119,7 +130,8 @@ Replace that block with:
 
 Calculate eye and up from the orientation, then reuse the existing view and projection construction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let eye = Point::new(self.center[0], self.center[1], self.distance);
@@ -127,6 +139,8 @@ Find this exact block:
         let (sin, cos) = self.angle.sin_cos();
         let up = Vector::new(-sin, cos, 0.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -138,11 +152,14 @@ Replace that block with:
 
 Extend the target-centering test to include a 3D orbit.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let target = Point::new(camera.center[0], camera.center[1], 0.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -154,12 +171,15 @@ Replace that block with:
 
 Check the rotation invariant after many small updates, not just one convenient angle.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn a_projected_point_lies_on_its_unprojected_ray() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -171,7 +191,8 @@ Replace that block with:
 
 Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Pan Left",
@@ -181,6 +202,8 @@ Find this exact block:
         ],
     );
 ```
+
+</details>
 
 Replace that block with:
 
@@ -192,7 +215,8 @@ Replace that block with:
 
 Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 "pan left" => camera.pan(-0.25, 0.0),
@@ -202,6 +226,8 @@ Find this exact block:
                 _ => return,
             }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -213,7 +239,8 @@ Replace that block with:
 
 Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -223,6 +250,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

@@ -10,19 +10,15 @@
 
 **Follow:** Document edit → prior scene snapshot → undo or redo → restored scene → selection repair → GPU synchronization.
 
-You should be able to try an edit without fearing that one mistake will ruin your work. Today an edit remembers the scene as it was just before the change. Undo brings that scene back; redo restores the scene we just left.
+Make edits reversible with scene snapshots. Undo moves the current scene to the redo stack and restores the previous one. Redo reverses that move; a new edit clears redo.
 
-Think of two small stacks of bookmarks. Undo takes one bookmark from the past and places the current scene on the future stack. Redo does the same journey in the opposite direction. A new edit starts a different future, so it clears the redo stack.
+Objects hold `Rc<Mesh>`, sharing immutable vertex data. Cloning a scene copies its object list and shared handles, not every vertex array. The pointer-equality test checks that sharing.
+
+`History::edit` accepts `FnOnce`: an action called once with the scene. It records the prior snapshot before applying the action. Keep the latest 64 edits.
+
+History restores document contents, leaving camera and background alone. Retain selection only if its ID exists in the restored scene, then upload through the normal scene-change path. Error rollback is added in lesson 17.
 
 ![An edit saves the previous scene; undo and redo move snapshots between two stacks while the camera stays outside the history.](../illustrations/journey-14.svg)
-
-A snapshot must not copy every vertex array. Each Object will hold an `Rc<Mesh>`: a shared owner of immutable mesh data. Cloning a scene copies its small object list and clones these shared handles. The mesh allocation stays the same, as the pointer-equality test demonstrates. `Rc` is suitable for our single-threaded application state; the GPU continues to manage its own resource lifetimes.
-
-`History::edit` accepts an action that receives the scene once. `FnOnce` describes that promise. It records the previous scene, executes the action and clears redo. Our two actions here are already valid operations: toggle the demonstration object, or remove a selected object that exists. Validation of a new mesh still happens before insertion.
-
-Undo restores document contents, not camera or background. Selection is interaction state too: it remains selected if its ID still exists, otherwise it becomes None. Restoring a deleted object does not automatically select it. After restoration, the renderer uploads the restored scene through the same synchronization method used by an ordinary edit.
-
-We retain the most recent 64 edits. Sharing mesh data makes these snapshots useful for a small document, but object lists still take memory. The later resource-accounting and transaction lessons will address larger documents, grouping a gesture into one edit and handling cancelled previews.
 
 ## Type the change
 
@@ -32,11 +28,14 @@ Continue from [Ask which object is under the pointer](13-picking.md). Save your 
 
 Use shared ownership for immutable mesh data.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::mesh::Mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -48,11 +47,14 @@ Replace that block with:
 
 Allow scene snapshots to clone the object record.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Object {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -64,11 +66,14 @@ Replace that block with:
 
 Share the mesh allocation between object snapshots.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub mesh: Mesh,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -80,11 +85,14 @@ Replace that block with:
 
 Clone the small scene records for a snapshot. Rc prevents a deep copy of each mesh.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Scene {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -96,11 +104,14 @@ Replace that block with:
 
 Give a newly inserted mesh its first shared owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.objects.push(Object { id, mesh });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -112,11 +123,14 @@ Replace that block with:
 
 Restore document contents while preserving the highest ID counter reached.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn objects(&self) -> &[Object] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -138,7 +152,8 @@ Create the file and type:
 
 Register history as a document operation, independent of the browser and GPU.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod mesh;
@@ -148,6 +163,8 @@ pub mod gpu_mesh;
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -159,7 +176,8 @@ Replace that block with:
 
 Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::background::Background;
@@ -168,6 +186,8 @@ use crate::renderer::Renderer;
 use crate::scene::Scene;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -179,7 +199,8 @@ Replace that block with:
 
 Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Example Triangle",
@@ -189,6 +210,8 @@ Find this exact block:
             "Zoom In",
             "Zoom Out",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -200,7 +223,8 @@ Replace that block with:
 
 Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         ],
@@ -210,6 +234,8 @@ Find this exact block:
     let mut background = Background::default();
     let mut camera = Camera::default();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -221,7 +247,8 @@ Replace that block with:
 
 Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     renderer.set_scene(&scene, selected);
@@ -233,6 +260,8 @@ Find this exact block:
                 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -243,7 +272,8 @@ Replace that block with:
 
 Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 }
@@ -258,6 +288,8 @@ Find this exact block:
                 "zoom out" => camera.zoom(0.5),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -268,7 +300,8 @@ Replace that block with:
 
 Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -278,6 +311,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

@@ -24,11 +24,14 @@ Continue from [Pair captured intent with complete source bodies](32gica-reply.md
 
 Use the same completion value in the browser mailbox.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub type Reply = Result<Vec<(ReloadKey, Vec<u8>)>, String>;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,12 +43,15 @@ Replace that block with:
 
 Preserve explicit Reload Sources while allowing a captured operation to accompany its keys.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
     let (request, signal) = shared.borrow_mut().begin(keys)?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -57,13 +63,16 @@ Replace that block with:
 
 Only a current ticket may collect its captured operation and deliver the complete reply.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let Some(keys) = shared.borrow_mut().finish(request.ticket, result.is_err()) else { return; };
         let result = result.map(|values| keys.into_iter().zip(values).collect());
         if let Err(error) = deliver(result, &delivery) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -75,11 +84,14 @@ Replace that block with:
 
 Let the existing abortable flight own an optional operation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     job: ReloadJob,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -91,11 +103,14 @@ Replace that block with:
 
 Capture the operation when starting the abortable source flight.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<(Request, web_sys::AbortSignal), String> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -107,11 +122,14 @@ Replace that block with:
 
 Install the optional operation and keys into one ticket owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let request = self.job.begin(keys)?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -123,12 +141,15 @@ Replace that block with:
 
 Return both keys and operation only after checking completion ownership.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn finish(&mut self, ticket: u64, failed: bool) -> Option<Vec<ReloadKey>> {
         let keys = self.job.finish(ticket)?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -140,12 +161,15 @@ Replace that block with:
 
 Keep the existing explicit source-restoration receiver reading the reply body.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if let Some(result) = reload_delivery.borrow_mut().take() {
                 match result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
 ```
+
+</details>
 
 Replace that block with:
 

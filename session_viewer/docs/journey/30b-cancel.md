@@ -8,17 +8,15 @@
 
 **Follow:** Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership.
 
-Replace Rc<Cell<u64>> with Rc<RefCell<ReadGate>>. Sharing the Rc lets the command callback and asynchronous tasks reach one gate. RefCell permits a short mutable borrow for begin, finish or cancel; release that borrow before dispatching an event.
+Use `Rc<RefCell<ReadGate>>` to share a ticket gate between the command callback and read tasks. Keep mutable borrows short and release them before dispatching events.
 
-Each selected file begins a ticket. A queued task first checks it is still pending, then checks the file size. After the read resolves, finish consumes the current ticket once. A stale or cancelled task returns without delivering bytes or an error.
+A chosen file begins a ticket. Check it before reading; consume it once with `finish` after completion. Stale or cancelled tasks deliver neither bytes nor errors.
+
+Typed `Cancel Open` revokes ownership without editing the document. It does not physically abort `File.arrayBuffer`; its eventual result is ignored.
+
+Append asynchronous feedback as an Open history entry so it cannot overwrite a newer command's result. A hidden object-count attribute lets Chrome detect duplicate insertion even when its pixels overlap perfectly.
 
 ![The task keeps its ticket; Cancel Open revokes it; only a matching one-shot completion can deliver a result.](../illustrations/journey-30b.svg)
-
-Cancel Open is a typed command. It revokes pending ownership and reports cancellation; it does not edit the document. This does not physically abort File.arrayBuffer. Its eventual value is ignored. The next lesson also invalidates work when a newer picker opens, before a file has been chosen.
-
-Asynchronous outcomes append an Open entry to history. They must not call result on whichever command happens to be last: the user may have typed View Isometric while a read was pending. Synchronous command errors still use result for their own entry.
-
-Add a hidden data-object-count diagnostic to the canvas. It reports editable row count without changing the interface. A second copy of the same geometry can overlap every original pixel, so count gives Chrome independent evidence that a stale read did not silently append rows.
 
 ## Type the change
 
@@ -28,11 +26,14 @@ Continue from [Give a pending read an explicit ticket](30a-tickets.md). Save you
 
 Share the native gate through short interior mutable borrows.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use std::{cell::Cell, rc::Rc};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,11 +45,14 @@ Replace that block with:
 
 Receive the same pending-read owner as the command callback.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,12 +64,15 @@ Replace that block with:
 
 Issue a bounded ticket; even an exhaustion error must be delivered after the input callback returns.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let id = request.get() + 1;
     request.set(id);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -77,12 +84,15 @@ Replace that block with:
 
 Avoid work for a ticket already superseded or cancelled before its queued task starts.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if request.get() != id { return; }
         if file.size()
 ```
+
+</details>
 
 Replace that block with:
 
@@ -94,11 +104,14 @@ Replace that block with:
 
 Consume the current ticket before reporting a size refusal, releasing the RefCell borrow before dispatch.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             failure("This checkpoint accepts files up to 4 MiB");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -110,12 +123,15 @@ Replace that block with:
 
 Only a current one-shot completion may deliver bytes or a read error.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if request.get() != id { return; }
         let result = result.and_then(deliver);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -127,11 +143,14 @@ Replace that block with:
 
 Expose the initial row count through hidden diagnostics.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let mut editor = Editor::default();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -143,11 +162,14 @@ Replace that block with:
 
 Offer read cancellation as a command rather than a keyboard feature shortcut.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Open",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -159,11 +181,14 @@ Replace that block with:
 
 Let the input callback and queued tasks share one native gate.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let request = std::rc::Rc::new(std::cell::Cell::new(0));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -175,11 +200,14 @@ Replace that block with:
 
 An asynchronous read error gets its own history entry instead of rewriting a later command.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 panel.result(&message);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -191,11 +219,14 @@ Replace that block with:
 
 Revoke pending delivery without touching the scene or edit history.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if line == "open" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -207,11 +238,14 @@ Replace that block with:
 
 Record asynchronous success separately from subsequent typed commands.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                         report("File imported. Undo removes the entire import.");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -223,12 +257,15 @@ Replace that block with:
 
 Distinguish a file result from a synchronous error on the current command.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     report(error);
                     panel.result(error);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -240,11 +277,14 @@ Replace that block with:
 
 Update hidden diagnostics after every handled event.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 show_projection(&editor.camera)
 ```
+
+</details>
 
 Replace that block with:
 
@@ -256,11 +296,14 @@ Replace that block with:
 
 Keep scene count and projection in one diagnostic boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn show_projection(camera: &crate::camera::Camera) -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -272,11 +315,14 @@ Replace that block with:
 
 Report rows independently of overlapping drawing pixels.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-projection", &format!("{:?}", camera.projection))
 ```
+
+</details>
 
 Replace that block with:
 

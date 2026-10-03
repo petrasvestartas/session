@@ -44,11 +44,14 @@ Create the file and type:
 
 Expose native selection policy before binding it to browser storage.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod report_store;
 ```
+
+</details>
 
 Replace that block with:
 

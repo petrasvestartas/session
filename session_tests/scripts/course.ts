@@ -83,9 +83,13 @@ function main() {
             runCommand(`${step.id}-sample`, ['cargo', 'run', '--example', 'sample', '--locked',
                 '--target', 'x86_64-unknown-linux-gnu', '-j4'], path.join(viewer, 'target', `course-${step.id}`));
         }
-        const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), ...ids], {cwd: viewer, stdio: 'inherit',
-            env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
-        if (result.status !== 0) throw Error('Browser capture failed; see the error above.');
+        // Each checkpoint owns its browser context. Init probes and storage-denial
+        // fixtures must not leak into the next checkpoint's Back-navigation test.
+        for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
+            const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), step.id], {cwd: viewer, stdio: 'inherit',
+                env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
+            if (result.status !== 0) throw Error(`Browser capture failed for ${step.id}; see the error above.`);
+        }
         generate();
     } else if (action === 'serve') {
         serve(name ? Number(name) : 8781);

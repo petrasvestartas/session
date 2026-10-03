@@ -22,11 +22,14 @@ Continue from [Load only the sources the requested edit needs](32gia-scope.md). 
 
 Resolve an explicit target from current state and commit its world-space delta once.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,7 +41,8 @@ Replace that block with:
 
 Keep ordinary Move on the same implementation used by captured edits.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::Translate(offset) => {
@@ -51,6 +55,8 @@ Find this exact block:
             }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -61,11 +67,14 @@ Replace that block with:
 
 Register the original-target Move checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod edit_scope_tests;
 ```
+
+</details>
 
 Replace that block with:
 

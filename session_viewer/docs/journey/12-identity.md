@@ -10,19 +10,15 @@
 
 **Follow:** ObjectId → scene lookup → selected display colour → uploaded mesh → yellow highlight.
 
-A seat number tells you where someone sits today. Their name still belongs to them after they change seats. Our vector rows are seats; object IDs are names.
+Give each object an ID that survives changes in vector order. Remember the extra triangle's ID, so removing an earlier object cannot make its row point at the wrong mesh.
 
-The third-triangle helper previously relied on there being exactly two or three meshes. Deleting an earlier mesh would break that assumption. We will give each object an ID and remember the extra object's ID explicitly. Removing it then works even when other rows have moved.
+`ObjectId` wraps a number in a distinct type. Its private value and `Scene`'s private vector protect identity. `checked_add` rejects counter exhaustion; IDs never wrap or get reused.
+
+Selection is `Option<ObjectId>` in interaction state. When deletion removes that ID, clear selection. Camera changes preserve it.
+
+For now, uploading a selected object uses yellow display vertices while retaining its original mesh colours. A later object-data buffer will avoid that whole-mesh upload.
 
 ![Deleting row zero shifts the second object into its seat while that object keeps ID 2; selection follows the ID.](../illustrations/journey-12.svg)
-
-`ObjectId` is a small wrapper around a number. It is a distinct Rust type, so a function expecting an ID cannot accidentally accept an ordinary row index. Its inner number is private. Only Scene creates IDs, and the counter advances even when objects are deleted.
-
-The scene keeps its vector private too. A read-only slice lets the renderer inspect objects; insert and remove methods protect the identity rules. `checked_add` returns no value if the counter would overflow, and `ok_or` turns that absence into a clear error. Exhaustion must not wrap around and reuse an existing name.
-
-Selection belongs to the view's interaction state, so the browser callback retains an `Option<ObjectId>` beside the camera. The scene answers whether an ID exists. When its selected object is deleted, the callback clears selection. Camera actions keep the same selected ID.
-
-For now, the GPU upload gives selected vertices a yellow display colour. The Mesh's original colours stay unchanged. This is intentionally a small-scene implementation: later an object-data buffer will change selection without uploading all vertex data again.
 
 ## Type the change
 
@@ -32,7 +28,8 @@ Continue from [Give the scene an owner](11-scene.md). Save your own work first: 
 
 Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::mesh::Mesh;
@@ -71,6 +68,8 @@ impl Scene {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -81,11 +80,14 @@ Replace that block with:
 
 Let the uploaded representation know whether to show selection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -97,12 +99,15 @@ Replace that block with:
 
 Apply the yellow tint to an upload copy. Never overwrite the CPU mesh’s original colour.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let bytes: Vec<u8> = mesh.vertices().iter().flatten()
             .flat_map(|value| value.to_ne_bytes()).collect();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -114,7 +119,8 @@ Replace that block with:
 
 Use the identity type at the renderer’s scene synchronization boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::Scene};
@@ -122,6 +128,8 @@ use crate::{gpu_mesh::GpuMesh, scene::Scene};
 pub struct Renderer {
     pub device: wgpu::Device,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -133,7 +141,8 @@ Replace that block with:
 
 Use the identity type at the renderer’s scene synchronization boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         format: wgpu::TextureFormat,
@@ -145,6 +154,8 @@ Find this exact block:
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -155,7 +166,8 @@ Replace that block with:
 
 Use the identity type at the renderer’s scene synchronization boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { device, queue, pipeline, meshes, uniform, view_group, depth }
@@ -168,6 +180,8 @@ Find this exact block:
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -178,7 +192,8 @@ Replace that block with:
 
 Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         &[
@@ -188,6 +203,8 @@ Find this exact block:
             "Zoom In",
             "Zoom Out",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -199,7 +216,8 @@ Replace that block with:
 
 Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         ],
@@ -209,6 +227,8 @@ Find this exact block:
     let mut camera = Camera::default();
     present(
 ```
+
+</details>
 
 Replace that block with:
 
@@ -220,7 +240,8 @@ Replace that block with:
 
 Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             match line.as_str() {
@@ -232,6 +253,8 @@ Find this exact block:
                 "zoom in" => camera.zoom(2.0),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -242,7 +265,8 @@ Replace that block with:
 
 Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -252,6 +276,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

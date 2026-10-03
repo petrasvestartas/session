@@ -24,13 +24,16 @@ Continue from [Describe a viewer run without keeping its document](34b-report.md
 
 Describe an observation separately from its bounded owner and preserve its relative timing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Report {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,12 +45,15 @@ Replace that block with:
 
 Retain the recent event window separately from the first failure, so rotation cannot erase it.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub context: Context,
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -59,13 +65,16 @@ Replace that block with:
 
 Validate relative time, bound observation text/history, and make failure survive later milestones and event rotation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { version: 1, tab, last_seen: started.clone(), started, outcome: Outcome::Running, context }
     }
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -77,7 +86,8 @@ Replace that block with:
 
 Prove bounded history/text, retained first failure, ready-state semantics and atomic rejection of invalid timing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::diagnostic::{Context, Outcome, Report};
@@ -108,6 +118,8 @@ fn report_snapshot_keeps_its_own_context() {
     assert_eq!(serde_json::from_str::<Report>(&serde_json::to_string(&live).unwrap()).unwrap(), live);
 }
 ```
+
+</details>
 
 Replace that block with:
 

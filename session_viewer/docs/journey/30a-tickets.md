@@ -38,11 +38,14 @@ Create the file and type:
 
 Expose the native request model without changing the browser adapter yet.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod document;
 ```
+
+</details>
 
 Replace that block with:
 

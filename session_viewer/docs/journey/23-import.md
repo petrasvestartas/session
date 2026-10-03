@@ -10,19 +10,15 @@
 
 **Follow:** File picker → bytes → validated session → prepared display meshes → one history transaction → GPU upload.
 
-So far every object was born inside our example. Now let a real file enter. Think of the source session as the labelled drawing in a folder, and the GPU mesh as the picture projected on a screen. We need both: the screen is quick to draw, while the folder remembers what the object means.
+Import a real protobuf file while retaining its source document behind the display mesh. Type and run the small specimen builder to create the file.
 
-A .pb file contains protobuf bytes, not Rust source. The geometry kernel already supplies the encoder and decoder. You will type a tiny specimen builder and run it to create a real file; there is no binary content to copy by hand.
+Read bytes, prepare the whole import, then commit it as one history edit. A malformed later mesh must leave no earlier mesh inserted. This stage supports flat triangle/quad meshes with object colours; unsupported geometry and placements return errors.
 
-The new boundary has three steps: read bytes, prepare a complete import, then commit it. Nothing enters the scene during decoding. If the third mesh is broken, the first two do not sneak into the document. Our existing History already knows how to undo one committed change.
+`Rc<Session>` shares one decoded source among rows. `Source` pairs it with a source GUID. Local `ObjectId` identifies the viewer object; GUID identifies its source mesh.
 
-This checkpoint accepts small, flat sessions containing triangle or quad meshes with object colours. Other geometry, placements, instances and face holes receive an explicit error; we will add them as their rendering lessons arrive. This is a stage in the full viewer course, not its final file support.
+Reading pauses at `await`. A completion event returns the result to the callback that owns Editor. Shared `Cell<u64>` request numbers reject stale reads without retaining a mutable editor borrow while waiting.
 
 ![A source session stays alongside its display meshes; validation happens before the history transaction.](../illustrations/journey-23.svg)
-
-`Rc<Session>` means several displayed objects can share one session without making copies. `Source` pairs that shared session with a source GUID. The local ObjectId answers “which row in this viewer?”; the GUID answers “which mesh in this source document?”
-
-`Cell<u64>` holds one changeable request number; `Rc` lets the callback and the waiting read share that number. File reading pauses at `await`, so the file adapter sends a completion event instead of holding a mutable editor borrow while waiting. A request number rejects an old completion after a newer file was chosen. The editor remains owned by the same callback you already understand.
 
 ## Type the change
 
@@ -72,11 +68,14 @@ Create the file and type:
 
 An imported display object remembers the document and source GUID it came from. Demo objects have no source document.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub mesh: Rc<Mesh>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -88,11 +87,14 @@ Replace that block with:
 
 Keep the existing insertion path for demo objects.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 self.objects.push(Object { id, mesh: Rc::new(mesh) });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -104,11 +106,14 @@ Replace that block with:
 
 All imported rows share one retained source session. History will wrap this entire insertion in one transaction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn remove(&mut self, id: ObjectId) -> bool {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -120,11 +125,14 @@ Replace that block with:
 
 Make file import an ordinary document action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Pick([f32; 2]),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -136,11 +144,14 @@ Replace that block with:
 
 Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::AddBox => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -162,7 +173,8 @@ Create the file and type:
 
 Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 
@@ -175,6 +187,8 @@ wgpu = "=29.0.4"
 session_rust = { path = "../../../session_rust", default-features = false }
 ```
 
+</details>
+
 Replace that block with:
 
 ```toml
@@ -185,7 +199,8 @@ Replace that block with:
 
 Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```html
 <body>
@@ -194,6 +209,8 @@ Find this exact block:
 </body>
 </html>
 ```
+
+</details>
 
 Replace that block with:
 
@@ -205,7 +222,8 @@ Replace that block with:
 
 Register the reader, specimen and native checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod viewport;
@@ -215,6 +233,8 @@ pub mod navigation;
 mod navigation_tests;
 #[cfg(test)]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -226,7 +246,8 @@ Replace that block with:
 
 Register the reader, specimen and native checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod renderer;
@@ -235,6 +256,8 @@ mod browser;
 
 use wasm_bindgen::prelude::*;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -246,7 +269,8 @@ Replace that block with:
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         config.format.add_srgb_suffix(),
@@ -256,6 +280,8 @@ Find this exact block:
             "Example Triangle",
             "Select Next",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -267,7 +293,8 @@ Replace that block with:
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let browser_window = window.clone();
@@ -277,6 +304,8 @@ Find this exact block:
         let line = match panel.update(Some(&event), &input_canvas) {
             Ok(line) => line,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -288,7 +317,8 @@ Replace that block with:
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 return;
@@ -319,6 +349,8 @@ Find this exact block:
         } else {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -329,7 +361,8 @@ Replace that block with:
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 }
@@ -339,6 +372,8 @@ Find this exact block:
             &browser_window,
             &pointer_canvas,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -350,7 +385,8 @@ Replace that block with:
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -360,6 +396,8 @@ Find this exact block:
     update.forget();
     report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
 ```
+
+</details>
 
 Replace that block with:
 

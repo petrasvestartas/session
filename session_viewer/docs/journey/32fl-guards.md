@@ -22,12 +22,15 @@ Continue from [Unload editable sources through the command line](32fk-command.md
 
 Check modified history, independent imports and exhausted/reopened release issuance.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
 ```
+
+</details>
 
 Replace that block with:
 

@@ -24,12 +24,15 @@ Continue from [Keep the first GPU failure with its device](34-fault.md). Save yo
 
 Retain the device failure identity beside the callbacks that use that device.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     reload: Shared,
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -41,13 +44,16 @@ Replace that block with:
 
 Only the matching device may dispose the active runtime; drop its owner after the slot borrow ends.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared) {
     ACTIVE.with(|slot| slot.replace(Some(Runtime { _listeners: listeners, request, reload })));
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -59,11 +65,14 @@ Replace that block with:
 
 Mark failure immediately, then defer identity-checked disposal and visible feedback until callbacks return.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn save_result(bytes: &[u8]) -> Result<String, String> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -75,11 +84,14 @@ Replace that block with:
 
 Connect the real error and device-loss callbacks to this device’s shared signal.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -91,12 +103,15 @@ Replace that block with:
 
 Refuse new input, UI updates and GPU work as soon as the callback marks a failure.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let owned_reload = std::rc::Rc::clone(&reload);
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -108,11 +123,14 @@ Replace that block with:
 
 Install the runtime with the same device identity used by its failure callbacks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     crate::browser_runtime::install(listeners, owned_request, owned_reload);
 ```
+
+</details>
 
 Replace that block with:
 

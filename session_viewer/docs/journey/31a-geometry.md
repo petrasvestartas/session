@@ -8,7 +8,7 @@
 
 **Follow:** CPU display Rc → GPU geometry Rc → object row with its own uniform → draw.
 
-A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact Rc<Mesh> that produced its buffers; that source owner will also make identity safe when we introduce the cache.
+A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact CPU-display Rc<Mesh> that produced its buffers; that owner will also make identity safe when we introduce the cache.
 
 ![Several object rows can own one geometry allocation while retaining separate uniforms.](../illustrations/journey-31a.svg)
 
@@ -36,11 +36,14 @@ Create the file and type:
 
 Make geometry storage available to the draw row.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod gpu_mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -52,11 +55,14 @@ Replace that block with:
 
 Use a shared geometry owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::scene::Object;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -68,13 +74,16 @@ Replace that block with:
 
 Keep only the geometry owner beside the object bind group.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
     index_count: u32,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -86,7 +95,8 @@ Replace that block with:
 
 Accept an existing geometry owner while keeping object settings independent.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let mesh = &object.mesh;
@@ -109,6 +119,8 @@ Find this exact block:
         });
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -119,11 +131,14 @@ Replace that block with:
 
 Return one draw row without copying its shared geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { vertices, indices, model_group, index_count: mesh.indices().len() as u32 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -135,13 +150,16 @@ Replace that block with:
 
 Delegate immutable bindings and indexed drawing to the geometry owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
         pass.draw_indexed(0..self.index_count, 0, 0..1);
 ```
+
+</details>
 
 Replace that block with:
 

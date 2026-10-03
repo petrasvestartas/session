@@ -8,17 +8,15 @@
 
 **Follow:** Typed Save → source snapshot → Blob URL → download → Open → restored source and placement.
 
-Type Save in the same command dock. The command calls snapshot on the current editor scene and passes its bytes to a small browser-only file adapter. Snapshot failures appear in command history and do not start a download.
+Connect typed `Save` to `snapshot` and a browser download. Snapshot errors go to command history and start no download.
+
+Copy bytes into `Uint8Array`, wrap them in `Blob`, and create an object URL. A temporary hidden anchor downloads `viewer.session` and is removed; it is not a viewer feature control.
+
+Keep the URL alive for ten seconds, then revoke it with a one-shot callback owning its `String`. If timer scheduling fails, clean up immediately and report the error.
+
+Save reads the document without creating a history edit. The Chrome check downloads and reopens that file, preserving the prior Move's Undo/Redo and the reconstructed scene picture.
 
 ![Save reads the editor, creates a temporary browser Blob URL and downloads a file; Open reuses the validated loader.](../illustrations/journey-29d.svg)
-
-Uint8Array copies the Rust bytes into the browser. Blob gives those bytes a file-like owner. An object URL lets a temporary anchor download that Blob as viewer.session. The anchor stays hidden, is appended only for the click, then is removed. It is not a viewer control; the only user command remains Save.
-
-The object URL must outlive the click. A one-shot timer revokes it after ten seconds, leaving the browser time to start the download. The callback owns its URL String until then. If the timer cannot be scheduled, call the cleanup immediately and return an error. A later resource-lifetime lesson builds a wider policy for outstanding work.
-
-Browser errors and document errors go to panel.result, so a failed Save appears beside the typed command. A successful Save records the byte count. There is no new Action and no document history transaction: Save reads the scene while Undo still refers to the last edit.
-
-The browser experiment downloads the actual file, confirms Save leaves the drawing unchanged, and proves Undo/Redo still reaches the preceding Move. It deletes the current rows, checks that saving an empty scene reports an error without downloading, then opens the downloaded file. After selecting the same object, every scene pixel must return.
 
 ## Type the change
 
@@ -28,11 +26,14 @@ Continue from [Prove the saved document reopens faithfully](29c-roundtrip.md). S
 
 Enable the browser object URL and download anchor APIs. These features do not change dependency versions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions"] }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -54,11 +55,14 @@ Create the file and type:
 
 Expose the browser file-output adapter.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod file_input;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -70,11 +74,14 @@ Replace that block with:
 
 Offer Save through command completion in the actual dock.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Open",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -86,11 +93,14 @@ Replace that block with:
 
 Read the scene for Save without creating a document action or consuming history.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             } else if line == "move" || line.starts_with("move ") {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -102,11 +112,14 @@ Replace that block with:
 
 Let the native file picker offer both original specimens and downloaded session files.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```html
   <input id="open" type="file" accept=".pb" hidden>
 ```
+
+</details>
 
 Replace that block with:
 

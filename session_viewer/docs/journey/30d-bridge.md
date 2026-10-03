@@ -8,17 +8,15 @@
 
 **Follow:** Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action.
 
-The native editor can replace a document, but the browser still appends every delivered file. Add Open Replace as a complete command name. Keep Open as our existing append operation so earlier experiments remain meaningful.
+Add typed `Open Replace`, retaining `Open` for append. Opening either picker begins a ticket and stores its operation as a `Mode` enum.
 
-Issue a read ticket when either command opens the picker. The chosen operation is stored as a small Mode enum, then copied into the selected file’s task. choose uses the current pending ticket instead of starting another one. A newer picker therefore revokes old delivery even before a file is chosen.
+The selected-file task captures that ticket and mode. `choose` reuses the pending ticket; a newer picker revokes earlier delivery before a file is chosen.
+
+The completion event carries a replace flag and `Uint8Array`. Validate shape and size, then translate to `Action::Import` or `Action::Replace`. Editor never receives browser values.
+
+Picker cancellation revokes its ticket and appends an Open notice. Report append or replacement only after successful commit. A failed replacement retains the document; successful replacement is one Undo change.
 
 ![The command starts a ticket and operation mode; the queued task captures both; its accepted bytes choose Import or Replace.](../illustrations/journey-30d.svg)
-
-The byte event carries a two-item array: replace flag and Uint8Array. The adapter checks that shape and its byte cap before translating it into Action::Import or Action::Replace. The rest of the editor never needs browser values.
-
-The native file input’s cancel event revokes the pending ticket and appends an Open cancellation notice. It must be distinguished from cancellation on another element. The typed Cancel Open command remains available for a read already in progress.
-
-After a successful transaction, report whether a file was appended or the document was replaced. A failed replacement keeps the old scene; Undo after a successful replacement restores it as one change. Camera and projection stay where the user put them.
 
 ## Type the change
 
@@ -28,11 +26,14 @@ Continue from [Replace a document as one reversible change](30c-replace.md). Sav
 
 Capture a typed operation value with the selected file instead of consulting mutable state after reading.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,11 +45,14 @@ Replace that block with:
 
 A choice with no file revokes pending ownership without editing the scene.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let Some(file) = input.files().and_then(|files| files.get(0)) else { return; };
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,7 +64,8 @@ Replace that block with:
 
 Use the ticket already issued by the Open command.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let id = match request.borrow_mut().begin() {
@@ -72,6 +77,8 @@ Find this exact block:
     };
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -82,11 +89,14 @@ Replace that block with:
 
 Keep the captured mode beside the accepted bytes.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let result = result.and_then(deliver);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -98,11 +108,14 @@ Replace that block with:
 
 Include the selected operation in the private byte event.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn deliver(buffer: JsValue) -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -114,11 +127,14 @@ Replace that block with:
 
 Use an explicit replace flag and byte array at the browser bridge.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     detail.set_detail(&js_sys::Uint8Array::new(&buffer));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -130,7 +146,8 @@ Replace that block with:
 
 Translate checked browser payloads into ordinary editor actions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
@@ -140,6 +157,8 @@ pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
     Some(array.to_vec())
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -151,11 +170,14 @@ Replace that block with:
 
 Offer replacement as a typed command.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Open",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -167,11 +189,14 @@ Replace that block with:
 
 Hold the picker operation in the event closure; each task copies it at selection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -183,12 +208,15 @@ Replace that block with:
 
 Revoke native picker cancellation and capture the operation when a file is selected.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let action = if event.type_() == "change" {
             crate::file_input::choose(&event, std::rc::Rc::clone(&request));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -200,11 +228,14 @@ Replace that block with:
 
 Keep browser values outside the editor transaction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             crate::file_input::bytes(&event).map(Action::Import)
 ```
+
+</details>
 
 Replace that block with:
 
@@ -216,11 +247,14 @@ Replace that block with:
 
 A newer request revokes older work at picker opening, not only after file selection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             } else if line == "open" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -232,11 +266,14 @@ Replace that block with:
 
 Remember which successful file action was committed before consuming it.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if let Some(action) = action {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -248,12 +285,15 @@ Replace that block with:
 
 Report the committed operation without overwriting another command.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                         report("File imported. Undo removes the entire import.");
                         panel.answer("Open", "File imported. Undo removes the entire import.");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -265,11 +305,14 @@ Replace that block with:
 
 Receive the native file-input cancellation event for the viewer lifetime.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
 ```
+
+</details>
 
 Replace that block with:
 

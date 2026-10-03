@@ -24,11 +24,14 @@ Continue from [Adopt the selected file as a reloadable source](32ff-bridge.md). 
 
 Confine source residency representation to the viewer implementation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod reload_url;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,13 +53,16 @@ Create the file and type:
 
 Retain public display fields while replacing only editable ownership.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     geometry: Rc<session_rust::Mesh>,
     pub model: session_rust::Xform,
     source: Option<crate::document::Source>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -68,13 +74,16 @@ Replace that block with:
 
 Borrow loaded owners safely while retaining origin and epoch in the released state.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> { Some(&self.geometry) }
 
     pub fn source(&self) -> Option<&crate::document::Source> { self.source.as_ref() }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -86,12 +95,15 @@ Replace that block with:
 
 Preserve the validated insertion contract and display owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
             model: prepared.model, source: prepared.source });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -103,11 +115,14 @@ Replace that block with:
 
 Keep partial-replacement ownership assertions through the existing accessor boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             assert!(Rc::ptr_eq(&object.geometry, &old.geometry));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -119,13 +134,16 @@ Replace that block with:
 
 Retain origin inspection even when editable kernel ownership is absent.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.source().map(|source|
         (&row.guid, source.origin.id.to_string(), source.origin.version.hex(),
             source.origin.location.as_ref().map(|location| location.value())))).collect();
 ```
+
+</details>
 
 Replace that block with:
 

@@ -24,11 +24,14 @@ Continue from [Pair reload ownership with a browser abort controller](32gga-flig
 
 Spawn bounded source reads and deliver only one current owned completion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub type Shared = Rc<RefCell<Flight>>;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -24,12 +24,15 @@ Continue from [Read a source response within its byte limit](32gg-fetch.md). Sav
 
 Keep the browser flight beside the fetch adapter.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod source_fetch;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -26,12 +26,15 @@ Continue from [Move a placed object with a typed offset](27c-move.md). Save your
 
 Register the direct Move and history checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod placement_tests;
 ```
+
+</details>
 
 Replace that block with:
 

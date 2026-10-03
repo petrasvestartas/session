@@ -22,11 +22,14 @@ Continue from [Carry captured intent through browser completion](32gicb-bridge.m
 
 Validate every current source key and body before replay; a stale context produces no reply.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 impl Reply {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,11 +41,14 @@ Replace that block with:
 
 Register native completion checks separately from the body-pairing checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod reload_reply_tests;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -22,11 +22,14 @@ Continue from [Record a reload version without retaining geometry](32fc-version.
 
 Retain reload metadata separately from the kernel Session.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub guid: String,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,11 +41,14 @@ Replace that block with:
 
 Record accepted original bytes and a geometry-free header before kernel construction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -54,11 +60,14 @@ Replace that block with:
 
 Share one import origin among all its source rows.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             document: Rc::clone(&document), guid: mesh.guid().to_owned(),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -70,11 +79,14 @@ Replace that block with:
 
 Check source ownership independently of drawing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod origin;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -96,11 +108,14 @@ Create the file and type:
 
 Inspect shared import identity and exact versions without adding controls.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
 ```
+
+</details>
 
 Replace that block with:
 

@@ -10,17 +10,15 @@
 
 **Follow:** projection command → Editor → Camera matrix → drawing and inverse-matrix picking.
 
-Look down a corridor: the far end appears smaller. That is perspective. Now imagine a technical drawing of the same corridor: equal lengths can keep the same size even at different depths. That is orthographic projection.
+Add orthographic projection beside perspective. Perspective makes distant objects smaller; orthographic keeps equal lengths equally sized at different depths. Orbit direction remains independent of this choice.
+
+Preserve screen size at the plane through the camera target. Perspective half-height there is `distance × tan(30°)`; give the orthographic rectangle that half-height. Geometry away from that plane changes apparent size when switching.
+
+The depth buffer still chooses the nearest surface. Orthographic clipping may extend behind the notional eye, avoiding an eye-shaped cut when zoomed into geometry.
+
+Camera owns projection and bounds. Editor changes the choice; drawing and picking consume the resulting matrix.
 
 ![Perspective rays spread from an eye; orthographic rays remain parallel.](../illustrations/journey-25.svg)
-
-We are changing one rule: **does depth change apparent size?** We are not flattening the mesh or rotating the model. Orbit still controls the direction from which you look. Isometric describes a direction; orthographic describes the projection. They are separate choices.
-
-Keep one useful anchor when switching. A flat shape on the plane through the camera target should keep its screen size. At that plane, the perspective view has half-height `distance × tan(30°)`. Give the orthographic rectangle that same half-height. Objects in front of or behind that plane will change apparent size; that is the difference we want to see.
-
-The depth buffer still decides which surface is nearest. In orthographic mode, we let its depth interval reach behind the eye as well as ahead. Zoom can move the notional eye inside the model, but parallel projection does not need an eye-shaped cut through the geometry.
-
-**Where this belongs:** Camera owns the projection and its bounds. Editor changes the choice. Browser shows which choice is active. Renderer and picking consume the camera matrix they already understand.
 
 ## Type the change
 
@@ -30,11 +28,14 @@ Continue from [Find the whole scene](24-fit.md). Save your own work first: `npm 
 
 Name the two choices instead of passing an unexplained true or false. Copy lets us pass this small enum by value; PartialEq and Eq let us compare it. HALF_FOV is the same 30-degree half-angle used by the existing camera.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Ray {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,11 +47,14 @@ Replace that block with:
 
 Projection belongs to the view, alongside its orientation and size. It is not a property of an object.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub aspect: f64,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,11 +66,14 @@ Replace that block with:
 
 Start with the perspective view you already know. Reset view will restore this default too.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             aspect: 640.0 / 480.0,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -78,11 +85,14 @@ Replace that block with:
 
 Use the shared angle so fitting and drawing cannot quietly use different fields of view.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let half_y = 30.0_f64.to_radians();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -94,11 +104,14 @@ Replace that block with:
 
 Perspective keeps the enclosing-sphere calculation from lesson 24. Orthographic fits that sphere inside a rectangle: half-height is distance × tan(30°), and half-width is half-height × aspect. The smaller side must hold the radius and margin.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.distance = self.radius * 1.1 / half_x.min(half_y).sin();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -110,11 +123,14 @@ Replace that block with:
 
 The orthographic rectangle matches the perspective view at the target plane. Its depth interval extends behind and ahead of the eye; this lets parallel rays reach the scene even when a close zoom puts the eye inside it. Both matrices still map visible depth to 0–1.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -126,11 +142,14 @@ Replace that block with:
 
 An action carries the requested projection. One route serves both commands and any future keyboard shortcut.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Fit,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -142,11 +161,14 @@ Replace that block with:
 
 Changing projection preserves target, distance and orientation. It returns Change::View and leaves document history alone. Isometric remains an orientation choice; it does not silently choose a projection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     Action::Isometric => self.camera.isometric(),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -168,7 +190,8 @@ Create the file and type:
 
 Register the new checks without changing the production browser entry point.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
@@ -178,6 +201,8 @@ mod navigation_tests;
 #[cfg(test)]
 mod gesture_tests;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -189,7 +214,8 @@ Replace that block with:
 
 Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Orbit Right",
@@ -199,6 +225,8 @@ Find this exact block:
             "View Reset",
         ],
 ```
+
+</details>
 
 Replace that block with:
 
@@ -210,7 +238,8 @@ Replace that block with:
 
 Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
@@ -220,6 +249,8 @@ Find this exact block:
                     "view reset" => Action::ResetView,
                     _ => return,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -231,7 +262,8 @@ Replace that block with:
 
 Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 }
@@ -241,6 +273,8 @@ Find this exact block:
             report("File imported. Undo removes the entire import.");
         }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -252,7 +286,8 @@ Replace that block with:
 
 Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Ok(())
@@ -262,6 +297,8 @@ fn navigation_action(
     event: &web_sys::Event,
     canvas: &web_sys::HtmlCanvasElement,
 ```
+
+</details>
 
 Replace that block with:
 

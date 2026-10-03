@@ -8,13 +8,13 @@
 
 **Follow:** Release a validated whole-origin set without clearing Undo/Redo or changing placements..
 
-Plan before mutating. Collect distinct eligible origins from all retained scene roots, then inspect every row of those origins across active, Undo and Redo roots. Remove an origin from the plan if any retained row is protected. An empty plan returns an error rather than pretending that anything was unloaded.
+Plan source unloading before mutating. Collect eligible origins across active, Undo and Redo roots; exclude any origin with a protected row. An empty plan returns an error.
 
-Only then issue a checked release epoch and convert every matching row through Scene::unload. This residency pass is not an undoable document change: it must preserve all existing history roots and their placements. Close keeps the issued epoch counter, so a later reopened document cannot reuse an old completion token.
+Issue a checked release epoch, then unload matching rows in every retained root. This changes residency, not document history, and preserves placements. Close keeps the epoch counter so reopened documents cannot reuse completion tokens.
 
-Move and Delete currently return an explicit reload-required error for cold rows. Camera, bounds, picking and history still use retained display/model state. The reload lessons will restore sources and replay the requested edit; these interim errors are not the completed production edit flow. Save already refuses unavailable editable geometry.
+Cold Move and Delete currently return reload-required errors; Save refuses missing geometry. Drawing, picking and camera use retained display state. Automatic restoration comes later.
 
-The next endpoint adds the typed ownership/history check for a moved imported post. Existing loaded-source and policy checks remain current here, and the native GPU fixture exercises unloading, Weak source/document expiration and retained display/GPU owners. No Unload Sources dock command is exposed until the next endpoint.
+The native frame checks unloaded source/document expiration and retained display/GPU owners. The next endpoint adds the dock command and moved-object history checks.
 
 ![Release a validated whole-origin set without clearing Undo/Redo or changing placements.](../illustrations/journey-32fi.svg)
 
@@ -26,11 +26,14 @@ Continue from [Protect sources that cannot be unloaded faithfully](32fh-policy.m
 
 Visit both history branches without cloning or dropping their rows.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn clear(&mut self) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 Add a residency operation distinct from document close.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Close,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +64,14 @@ Replace that block with:
 
 Issue epochs independently of document history and Close.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     history: History,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -74,11 +83,14 @@ Replace that block with:
 
 Start the first viewer-owned release sequence without wraparound.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             history: History::default(),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -90,11 +102,14 @@ Replace that block with:
 
 Validate every retained origin row before issuing an epoch or changing any owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -106,11 +121,14 @@ Replace that block with:
 
 Keep source unloading out of document Undo transactions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::Close => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -122,11 +140,14 @@ Replace that block with:
 
 Refuse an edit until its original editable source has been restored.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         object.model = model;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -138,12 +159,15 @@ Replace that block with:
 
 Keep selection/history unchanged when a cold edit requires hydration.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::Delete => {
                 if let Some(id) = self.selected.take() {
 ```
+
+</details>
 
 Replace that block with:
 

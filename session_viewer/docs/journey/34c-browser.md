@@ -36,11 +36,14 @@ Create the file and type:
 
 Enable typed browser address, identity and monotonic-clock access.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 "PageTransitionEvent", "Event",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -52,12 +55,15 @@ Replace that block with:
 
 Compile the browser report bridge only for WebAssembly.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod browser_runtime;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -69,11 +75,14 @@ Replace that block with:
 
 Start diagnostic context before awaiting the GPU connection; failure observation and downloads are connected next.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
 ```
+
+</details>
 
 Replace that block with:
 

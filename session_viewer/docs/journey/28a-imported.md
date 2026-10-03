@@ -8,17 +8,15 @@
 
 **Follow:** Decoded session → prepared source/display pair → Object source geometry → history snapshot.
 
-Now use the preparation boundary when loading. Loaded carries PreparedMesh values instead of a GUID/display tuple. Each prepared value retains the complete kernel mesh and its provenance before any scene insertion occurs.
+Make `Loaded` carry `PreparedMesh` values and retain the source geometry behind each imported row. Preparation still finishes before the scene changes.
 
-The scene is in a short migration: imported objects get Some shared source geometry; our older hand-written demos and generated box still get None. The next lesson removes that temporary gap. The Option makes the current state explicit rather than pretending every existing object already has a source.
+The kernel session already owns meshes through `Rc`; clone those handles rather than copying geometry. Keep the session too, because it owns file context such as tree and document name.
+
+During insertion, moving `prepared.display` transfers that field while leaving the other fields available for transfer. History wraps the whole import in one transaction.
+
+Imported rows now have `Some` source geometry. Older demos and generated boxes temporarily have `None`; the next lesson closes that migration gap.
 
 ![A retained source session supplies prepared meshes; each imported row keeps its source geometry and GUID.](../illustrations/journey-28a.svg)
-
-The kernel session already stores each mesh in an Rc. Rc::clone shares that same source allocation with the prepared value and later scene snapshots. No deep geometry copy is needed. The imported session remains intact: it holds file context such as the tree and document name. These are two related owners with different jobs.
-
-Preparation may fail while decoding the supported subset. No scene has been touched then. Scene::import inserts each display and moves the corresponding source owners into that same object. History still wraps the entire import as one transaction.
-
-Moving prepared.display transfers that field into the insertion function. Rust still lets this transit value transfer its other fields individually: geometry and source have not moved yet. The later complete insertion groups these transfers in one place.
 
 ## Type the change
 
@@ -28,11 +26,14 @@ Continue from [Prepare a display from an owned source mesh](28-record.md). Save 
 
 Load source/display pairs rather than display arrays alone.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::mesh::Mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,11 +45,14 @@ Replace that block with:
 
 Retain the prepared geometry alongside its display.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub meshes: Vec<(String, Mesh)>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,11 +64,14 @@ Replace that block with:
 
 Share the session’s existing kernel mesh owner, then attach retained file provenance.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         meshes.push((mesh.guid().to_owned(), Mesh::from_kernel(mesh)?));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -76,11 +83,14 @@ Replace that block with:
 
 During migration, distinguish rows with source geometry from older demo rows.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub mesh: Rc<Mesh>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -92,11 +102,14 @@ Replace that block with:
 
 Keep the existing insertion path while imported rows begin retaining source geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.objects.push(Object { id, mesh: Rc::new(mesh), model: session_rust::Xform::identity(), source: None });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -108,7 +121,8 @@ Replace that block with:
 
 Keep each prepared display and source on the same stable object record.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         for (guid, mesh) in loaded.meshes {
@@ -118,6 +132,8 @@ Find this exact block:
             });
         }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -139,12 +155,15 @@ Create the file and type:
 
 Run the source allocation check at this intermediate checkpoint.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod prepared_tests;
 ```
+
+</details>
 
 Replace that block with:
 

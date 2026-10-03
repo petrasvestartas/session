@@ -8,19 +8,15 @@
 
 **Follow:** HTML canvas → WebAssembly entry point → hidden startup status.
 
-Think of the canvas as an empty sheet of paper. Today that sheet fills the browser window. Rust records a startup message in a hidden page element. We are checking the connection before asking the GPU to draw.
+Create a white canvas that fills the window and let Rust write a startup message to the hidden status element. This checks browser startup before we use the GPU.
 
-You will make three files. `index.html` owns the page. `Cargo.toml` tells Rust which libraries the project uses. `src/lib.rs` contains the function the browser will call. There is no application state or renderer yet.
+From `session_viewer`, run `npm --prefix ../session_tests run course -- init`. It supplies the dependency lock. Create `workspace/journey/src`, then type the three files below. Keep using this project throughout the course.
+
+`index.html` owns the page; `Cargo.toml` declares libraries; `src/lib.rs` supplies the browser entry point. `Result<(), JsValue>` returns either success with no value or a browser error. `?` stops at a failed window, document or element lookup.
+
+The canvas has no margin or scrolling. The hidden status keeps startup feedback out of the drawing. For unfamiliar syntax, see [values](../foundations/01-values.md) and [errors](../foundations/05-errors.md).
 
 ![HTML fills the window with a white canvas; Rust records its startup result.](../illustrations/journey-01.svg)
-
-From `session_viewer`, create your project with `npm --prefix ../session_tests run course -- init`. This supplies only the fixed dependency lock. Create a `src` folder inside `workspace/journey`, then type the files below. All lessons use this same project.
-
-`let` gives a value a name. `fn` defines a function. `Result<(), JsValue>` means “success with no returned value, or a browser error”. The `?` after a lookup stops the function if that lookup failed. Read each lookup as a question: do we have a window, then a document, then our status element?
-
-The dependencies for the next lessons are listed now so this release can use one unchanged lock file. They are libraries, not hidden viewer code. `dev-dependencies` are used by the course's verification tools. You can explore [Rust values](../foundations/01-values.md) and [errors](../foundations/05-errors.md) before typing if these expressions are unfamiliar.
-
-The page has no margin or scrolling: the canvas owns the whole window from this first lesson. The hidden status element lets our browser check read the startup result without putting teaching text over your drawing.
 
 ## Type the change
 

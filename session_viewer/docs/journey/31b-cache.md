@@ -34,11 +34,14 @@ Create the file and type:
 
 Expose the geometry cache to the renderer.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod gpu_geometry;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Replace that block with:
 
 Keep geometry reuse and object allocation counts with the renderer.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     meshes: Vec<GpuMesh>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -80,11 +86,14 @@ Delete this block.
 
 Initialize startup through the same ownership path as later edits.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { device, queue, pipeline, meshes, uniform, view_group, depth }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -96,13 +105,16 @@ Replace that block with:
 
 Reuse live geometry before replacing the old GPU rows, then prune dead weak entries.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.meshes = scene.objects().iter().map(|object| {
             GpuMesh::upload(&self.device, &layout, object, selected == Some(object.id))
         }).collect();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -114,11 +126,14 @@ Replace that block with:
 
 Report cumulative geometry uploads, settings allocations and the reserved write counters.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn draw(
 ```
+
+</details>
 
 Replace that block with:
 
@@ -142,11 +157,14 @@ Delete this block.
 
 Inspect CPU and GPU state after startup synchronization.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     renderer.resize(Viewport { width, height });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -158,11 +176,14 @@ Replace that block with:
 
 Update diagnostics after the actual committed action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if let Err(error) = inspect(&editor) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -174,11 +195,14 @@ Replace that block with:
 
 Pass renderer accounting into the private diagnostics function.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn inspect(editor: &Editor) -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -190,11 +214,14 @@ Replace that block with:
 
 Expose counters through a hidden canvas attribute rather than feature controls.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -8,15 +8,15 @@
 
 **Follow:** Typed command → capture original intent → required cold keys → fetch → validated completion → one edit or download.
 
-restore_for finds only the captured operation’s required cold source keys. Move and Delete need the original target’s source; Save needs all active cold sources. It cancels older pending work, returns false for a warm operation, and otherwise starts the existing abortable flight with Some(intent).
+Restore only the sources required by a captured command: Move/Delete need the target; Save needs all active cold sources. Cancel older pending work, return immediately for warm work, or start the abortable flight with its intent.
 
-The shared action path captures Move/Delete before applying them. Its Result<Option<Change>, String> distinguishes an immediate change (Some), a waiting operation (None), and a failure (Err). map(Some) wraps an immediate editor result; and_then carries an earlier error forward without applying the action. A pending restoration leaves drawing, placement and edit history untouched. Camera and selection commands still run immediately; completed replay uses the captured target and the current placement, while preserving the later view and selection. Save uses the same decision and downloads only after completion has restored every required source.
+`Result<Option<Change>, String>` distinguishes an immediate change, waiting, and failure. `map(Some)` wraps an immediate result; `and_then` preserves earlier errors. Waiting leaves placement, drawing and history untouched.
 
-Zero Move and Delete with no selection request no fetch. Warm commands retain their normal behavior. Close, Undo, Redo, source unload and document replacement keep the cancellation taught earlier. A newer real edit or Save supersedes an older pending intent even when the newer operation is warm.
+On completion, replay against the captured target and current placement, preserving later camera and selection changes. Save downloads only after required sources return. Zero Move or Delete without selection fetches nothing.
+
+Close, Undo, Redo, unloading and replacement cancel work. A newer real edit or Save supersedes an earlier intent, even when the newer operation is warm.
 
 ![Automatic cold-source commands](../illustrations/journey-32gif.svg)
-
-The final proof placement moves the post clear of the beam. Keeping two front faces in exactly the same plane can produce depth competition; this demonstration separates the solids instead of claiming the later rendering-quality lessons are already implemented.
 
 ## Type the change
 
@@ -26,11 +26,14 @@ Continue from [Deliver restored edit and Save results to the dock](32gie-respons
 
 A new edit supersedes older pending work. Warm edits need no fetch; cold edits capture their required keys and operation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,7 +45,8 @@ Replace that block with:
 
 Save reloads every active cold source before producing its original-precision download; warm Save remains immediate.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 match crate::document::snapshot(&editor.scene) {
@@ -54,6 +58,8 @@ Find this exact block:
                 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -64,12 +70,15 @@ Replace that block with:
 
 Capture Move/Delete before fetching; camera and selection commands remain immediate while pending work keeps its original target.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             match editor.apply(action) {
                 Ok(Change::Scene) => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -81,7 +90,8 @@ Replace that block with:
 
 A deferred command has no scene change yet; failures retain normal dock reporting.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 Ok(Change::View) => {}
@@ -91,6 +101,8 @@ Find this exact block:
                     else { panel.result(error); }
                 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -102,11 +114,14 @@ Replace that block with:
 
 Expose read-only placement, selection and camera values so Chrome checks the original target and later view exactly. These values add no controls.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -180,6 +195,8 @@ Automatic editable-source restoration obeys command ownership, document-context 
 <summary>Verification notes and browser acceptance</summary>
 
 Chrome uses held real source responses to check original-target Move and Delete, later selection and camera, one-step Undo, automatic Save download and cancellation. These controlled waits test ordering, not phone performance. Exact source-coordinate preservation remains covered by native Save/replay checks; the following acceptance lesson broadens browser failures and precision.
+
+The proof placement separates the post and beam front faces to avoid coplanar depth competition. It does not establish the later rendering-quality policy.
 
 Visible Chrome types real cold-source Move/Delete/Save commands, holds fetch responses, changes selection and camera, then checks replay, download, Undo and cancellation. Controlled waits establish ordering, not device speed.
 

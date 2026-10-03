@@ -8,13 +8,13 @@
 
 **Follow:** Keep the drawing and GPU allocations while the dock unloads eligible imported sources..
 
-Expose Unload Sources through the existing dock vocabulary. It is a typed feature command with no button or keyboard shortcut. Remember the action kind before apply consumes it, then report success only after the editor residency pass and renderer synchronization succeed.
+Add typed `Unload Sources` to the existing dock vocabulary. Remember the action kind before `apply` consumes it and report success only after the residency pass and renderer synchronization.
 
-Hidden residency inspection lists each row’s source availability and release epoch. Origin inspection continues to expose the retained metadata and Blob location. The browser checks exact scene pixels, unchanged GPU counters, decreased resident-source accounting, preserved metadata and model-history behavior.
+The command drops eligible editable sources while retaining display meshes and GPU allocations. Hidden inspection attributes expose source availability and epoch without adding a control.
 
-A failed cold Move, Delete or Save must explain that reload is required without downloading float approximations or consuming history. Camera/picking still work, and Undo restores earlier placement while keeping that source cold. Close clears the retained roots and revokes their owned URLs.
+Cold Move, Delete and Save currently report that reload is required. They must preserve history and never save float display approximations. Camera and picking still work; Undo/Redo retain the source's cold state. Close clears roots and releases owned URLs.
 
-This finishes display-preserving unloading for the current mesh subset. It does not finish rehydration or automatic edit replay. Those are the next required lessons, followed by the other production geometry and resource families.
+Explicit reload and automatic edit replay are the next topics.
 
 ![Keep the drawing and GPU allocations while the dock unloads eligible imported sources.](../illustrations/journey-32fk.svg)
 
@@ -26,11 +26,14 @@ Continue from [Prove unloading preserves placed history](32fj-proof.md). Save yo
 
 Offer residency changes through the real command dock.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Close",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 Keep unload separate from Close and from keyboard shortcuts.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if line == "close" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +64,14 @@ Replace that block with:
 
 Retain the submitted action kind across consumption.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             let closing = matches!(&action, Action::Close);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -74,11 +83,14 @@ Replace that block with:
 
 Report success only after validated residency and renderer synchronization complete.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     if closing {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -90,11 +102,14 @@ Replace that block with:
 
 Inspect loaded/released state without adding runtime teaching controls.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
 ```
+
+</details>
 
 Replace that block with:
 
@@ -167,7 +182,7 @@ Production distinguishes display-only files from resident editable Sessions. Thi
 <details>
 <summary>Verification notes and browser acceptance</summary>
 
-
+Chrome compares pixels, GPU counters, resident-source accounting, retained metadata and placement history. The full rehydration flow is established in later checkpoints.
 
 [Full validation scope](release.md).
 

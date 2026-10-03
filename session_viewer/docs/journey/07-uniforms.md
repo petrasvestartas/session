@@ -8,19 +8,15 @@
 
 **Follow:** View values → uniform buffer → bind group 0 → shader binding 0 → transformed position.
 
-Let us move our diamond without rewriting its corners. Keep the original drawing on the desk and imagine sliding a frame over it. We need a second kind of data: a setting shared by every vertex in a draw.
+Move the diamond by uploading one setting shared by all its vertices. Four floats describe horizontal and vertical scale and offset. The shader applies `position * scale + offset`.
 
-A **uniform buffer** supplies that shared setting. Our four numbers are horizontal scale, vertical scale, horizontal offset and vertical offset. The shader calculates `position * scale + offset`. Try one corner on paper: the right corner starts at `(0.6, 0.0)`. Scaling by 0.75 and adding `(0.25, 0.15)` puts it at `(0.70, 0.15)`.
+A uniform buffer stores the values. Its bind group connects that buffer to shader group 0, binding 0. Derive this small pipeline's layout from the shader, then use its group layout when creating the bind group.
+
+A WGSL `vec4<f32>` requires 16 bytes with 16-byte alignment. Four Rust floats starting at byte zero match it. Larger structures will need explicit padding checks.
+
+`UNIFORM` permits shader reads; `COPY_DST` permits uploads. `write_buffer` schedules new values before the next submission. Changing the view therefore keeps both the geometry buffer and pipeline.
 
 ![View values travel through a uniform buffer and bind group; positions still arrive through the vertex buffer.](../illustrations/journey-07.svg)
-
-The vertex buffer changes its input for each corner. The uniform holds the same values throughout this draw. The renderer knows how to upload those numbers, while the browser currently supplies the choice. Later the camera will calculate them.
-
-A **bind group** connects actual resources to the slots expected by a shader. Here group zero contains binding zero, our uniform buffer. The pipeline derives its layout from the shader, and `get_bind_group_layout(0)` lets us use that exact layout when creating the group. This keeps the little example readable; the full renderer uses explicit layouts when several pipelines share resources.
-
-A WGSL `vec4<f32>` occupies 16 bytes and requires 16-byte alignment. Four consecutive Rust floats give us those 16 bytes. We start at byte zero. Do not assume every Rust structure and shader structure will agree automatically: padding becomes important when we introduce matrices and larger records.
-
-The buffer has two usages. `UNIFORM` lets a shader read it as uniform data. `COPY_DST` permits queue uploads to change its contents. `write_buffer` schedules an upload before the following queue submission; we do not need to rebuild the pipeline to change a view setting.
 
 ## Type the change
 
@@ -30,11 +26,14 @@ Continue from [Share a corner between triangles](06-indices.md). Save your own w
 
 Declare the uniform resource before the vertex function. Its group and binding identify a resource slot.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 @vertex
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,11 +45,14 @@ Replace that block with:
 
 Use the first pair as scale and the second pair as offset. The swizzles xy and zw select those pairs.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
     return vec4<f32>(position, 0.0, 1.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,7 +64,8 @@ Replace that block with:
 
 Retain the uniform for uploads and the bind group for draws.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pipeline: wgpu::RenderPipeline,
@@ -72,6 +75,8 @@ Find this exact block:
 
 impl Renderer {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -83,7 +88,8 @@ Replace that block with:
 
 Retain the uniform for uploads and the bind group for draws.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             multiview_mask: None,
@@ -98,6 +104,8 @@ Find this exact block:
         {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -108,7 +116,8 @@ Replace that block with:
 
 Retain the uniform for uploads and the bind group for draws.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 ..Default::default()
@@ -118,6 +127,8 @@ Find this exact block:
             pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
             pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -129,7 +140,8 @@ Replace that block with:
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     );
@@ -141,6 +153,8 @@ Find this exact block:
         let line = match panel.update(Some(&event), &input_canvas) {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -151,7 +165,8 @@ Replace that block with:
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             report(&format!("Cannot lay out commands: {error:?}"));
@@ -163,6 +178,8 @@ Find this exact block:
     });
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -173,7 +190,8 @@ Replace that block with:
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -183,6 +201,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -194,7 +214,8 @@ Replace that block with:
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     surface: &wgpu::Surface<'_>,
@@ -204,6 +225,8 @@ Find this exact block:
 ) -> Result<(), JsValue> {
     let frame = match surface.get_current_texture() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -215,7 +238,8 @@ Replace that block with:
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         format: Some(frame.texture.format().add_srgb_suffix()),
@@ -226,6 +250,8 @@ Find this exact block:
     frame.present();
     Ok(())
 ```
+
+</details>
 
 Replace that block with:
 

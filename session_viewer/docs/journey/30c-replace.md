@@ -8,19 +8,15 @@
 
 **Follow:** Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs.
 
-Append and replace are different document operations. Import adds prepared objects to the current rows. Replace removes the current rows and inserts the new prepared document. Both must use the same validation and history boundary.
+Add `Action::Replace` for one reversible document replacement. First prepare the entire file with `document::load`; only then enter `History::try_edit` and replace the rows.
 
-Add Action::Replace. First call document::load, which prepares every supported source/display pair. Only after that succeeds does History::try_edit enter Scene::replace. A malformed file therefore cannot clear the old drawing.
+`Scene::replace` clears objects and the demo marker, then inserts prepared objects. Keep the ID counter advancing. The transaction restores the old scene if insertion fails partway through.
+
+Repair selection after success. Camera, projection and background remain outside document history. Undo restores the old shared owners; Redo restores the replacement objects.
+
+This step tests the editor operation; browser Open is still append-only until the next lesson. Old objects retained by Undo remain alive and are accounted for later.
 
 ![Prepare the full replacement before the transaction; replace rows with fresh IDs; Undo restores the old shared owners.](../illustrations/journey-30c.svg)
-
-Scene::replace clears objects and the extra-demo marker, then imports the already prepared document. It deliberately leaves next_id alone. A transaction restores the old scene if insertion fails halfway through; direct callers must use that transaction boundary too.
-
-The editor’s existing selection repair removes a selected old ID after successful replacement. Camera, projection and background are outside document history and remain unchanged. Undo returns the old rows and source allocations; Redo returns the replacement IDs.
-
-This checkpoint connects replacement to the native editor and tests it. The browser still uses append-only Open today. The next lesson exposes Open Replace and gives the file-read bridge an explicit operation mode.
-
-Old objects retained by Undo are still alive. Replacement alone is not a promise that all old CPU or GPU resources have been released; the resource lessons account for those owners.
 
 ## Type the change
 
@@ -30,11 +26,14 @@ Continue from [Cancel reads without accepting their late result](30b-cancel.md).
 
 Replace rows while preserving the issued local-ID counter; the caller supplies the transaction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,11 +45,14 @@ Replace that block with:
 
 Name replacement explicitly instead of giving Import a hidden destructive mode.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Import(Vec<u8>),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,11 +64,14 @@ Replace that block with:
 
 Validate every source first, then replace as one undoable transaction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::Import(bytes) => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -88,12 +93,15 @@ Create the file and type:
 
 Compile the replacement contract.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod save_roundtrip_tests;
 ```
+
+</details>
 
 Replace that block with:
 

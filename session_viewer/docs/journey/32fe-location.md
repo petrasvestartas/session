@@ -24,11 +24,14 @@ Continue from [Attach one origin to an imported document](32fd-origin.md). Save 
 
 Keep browser URL lifetime explicit and independent of kernel ownership.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod origin;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Create the file and type:
 
 Retain an optional reload location without retaining geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub version: FileVersion,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -66,11 +72,14 @@ Replace that block with:
 
 Ordinary native loads start without an owned browser location.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { id: uuid::Uuid::new_v4(), header, version: FileVersion::of(bytes) }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -82,11 +91,14 @@ Replace that block with:
 
 Accept location ownership before a read/validation error can occur.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -98,11 +110,14 @@ Replace that block with:
 
 Adopt the already owned URL only into validated source metadata.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let origin = Rc::new(crate::origin::Origin::new(&message, bytes));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -114,11 +129,14 @@ Replace that block with:
 
 Keep a URL owner alive until an import commits or fails.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Replace(Vec<u8>),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -130,11 +148,14 @@ Replace that block with:
 
 Preserve the same atomic insertion and replacement policy for located files.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::AddBox => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -146,7 +167,8 @@ Replace that block with:
 
 Prove successful/history and failed-import URL lifetimes with Weak observers.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::editor::{Action, Editor};
@@ -177,6 +199,8 @@ fn duplicate_imports_and_history_keep_their_own_origins() {
     assert!(Rc::ptr_eq(&second, &editor.scene.objects()[3].source().unwrap().origin));
 }
 ```
+
+</details>
 
 Replace that block with:
 

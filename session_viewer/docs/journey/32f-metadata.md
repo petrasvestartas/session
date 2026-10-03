@@ -14,7 +14,7 @@ Source unloading keeps the picture while dropping eligible editable kernel data.
 
 RowMetadata copies the original source GUID, name, is_visible and is_locked when Scene inserts a prepared mesh. These are owned strings and booleans, with no Rc to the kernel mesh or imported Session. The row shares an Rc<RowMetadata> across history snapshots: Move changes placement, so it does not need to copy or alter metadata. Later attribute edits will replace or copy this metadata deliberately.
 
-Keep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson29; it now remains available without borrowing a kernel mesh.
+Keep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson 29; it now remains available without borrowing a kernel mesh.
 
 This endpoint does not unload a source yet. Both source and display still exist. Visibility and locking are preserved as values; their full drawing/editing policy is taught later in the course.
 
@@ -26,11 +26,14 @@ Continue from [Prove release does not retain the old document](32e-release.md). 
 
 Give independently retained row metadata its own small module.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod prepared;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -52,11 +55,14 @@ Create the file and type:
 
 Retain descriptive values independently of the editable source.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub guid: String,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -68,11 +74,14 @@ Replace that block with:
 
 Capture metadata before transferring prepared source owners into the row.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         self.objects.push(Object { id, guid, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -84,11 +93,14 @@ Replace that block with:
 
 Expose row values through hidden inspection for actual Chrome import/history checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
 ```
+
+</details>
 
 Replace that block with:
 

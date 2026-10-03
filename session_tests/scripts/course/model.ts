@@ -14,6 +14,7 @@ export interface Step {
     trace: string; question: string; answer: string; edits: Edit[]; story: string;
     result: string; experiment: string; production: string; browser_status?: string;
     checks?: string;
+    image_same_as?: string;
     browser_result_status?: string;
     browser_caption?: string;
     browser_check?: string;

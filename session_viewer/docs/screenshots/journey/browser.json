@@ -10,12 +10,12 @@
   "captured": "2026-10-03T11:33:45.639Z",
   "steps": {
     "01-canvas": {
-      "source": "20406d09bd653d8358faf716eb900a396edf9909ec4201dd92a01dc97efe640e",
+      "source": "7569d280f7bd89a817cb143ecc0210893bd20dbf350a34d1f3bcada26055eda9",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:46.042Z",
+      "captured": "2026-10-03T21:14:01.217Z",
       "status": "Rust is running. The canvas is ready.",
       "canvas": "3630e065eb7b4540fbab11dbfd2619e8500f211b9c404380a1867fdc44b77c0c",
       "file": "01-canvas-browser.png",
@@ -38,12 +38,12 @@
       "keyboardRoundtrip": false
     },
     "02-clear": {
-      "source": "9811222423ac558952c074d45972bd6d6029448a8f24f162eb5e4fee1ed7d7ad",
+      "source": "2875886cba86a95d9b74e5f4d784372cf0b61a87133a100a4af6659a17497235",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:46.324Z",
+      "captured": "2026-10-03T20:58:18.019Z",
       "status": "The GPU painted the canvas.",
       "canvas": "de7b8ad40c47df704867884ac8403f9d4f1df3a89bd1dd44a55c5646ac4a61d9",
       "file": "02-clear-browser.png",
@@ -66,12 +66,12 @@
       "keyboardRoundtrip": false
     },
     "03-triangle": {
-      "source": "1cebc831dbc7ee1eb3fad6974c0de201072d7ca671a433eb0525f55df2e93550",
+      "source": "3ec6d3114117b1bfcdc3ca48e6a3e3e22ffa25cc5a2fe44259911686b1493cdd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:46.596Z",
+      "captured": "2026-10-03T21:14:01.500Z",
       "status": "Three corners became a triangle.",
       "canvas": "25b91dcf0ffac52f0410abaca710fc4f8691924b156655d123c2aa536ef3d901",
       "file": "03-triangle-browser.png",
@@ -94,12 +94,12 @@
       "keyboardRoundtrip": false
     },
     "03a-panel": {
-      "source": "5f560fd53bf8726a81fcc97b766f9c56f280502251dda8e754db01205d7c64c5",
+      "source": "219e1ecf5f960852405122dc4dee29b5b40a719217bb47be6e8cb3b31733b9da",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:47.044Z",
+      "captured": "2026-10-03T21:14:01.966Z",
       "status": "Our command line is drawn. Input comes next.",
       "canvas": "895fd5aca582ee4cc35712ec0ae706fa3a1bed7aa229894a4941acc82bc05f68",
       "file": "03a-panel-browser.png",
@@ -122,12 +122,12 @@
       "keyboardRoundtrip": false
     },
     "03b-state": {
-      "source": "80e57fd4873ab161122e5be04d70b037e27f9769b7c6132ebeba5c270391655a",
+      "source": "2fe11f1a728551ce5b3f0ee1ccaf4e4e3a54b76e5d58297bec8d322a438877b3",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:47.459Z",
+      "captured": "2026-10-03T21:14:02.382Z",
       "status": "The command model owns the text and history.",
       "canvas": "0164e13f7d651e846d59a7cb2f4fc45aabadc1bf8e166900d817c5902da84cbb",
       "file": "03b-state-browser.png",
@@ -150,12 +150,12 @@
       "keyboardRoundtrip": false
     },
     "03c-layout": {
-      "source": "4f0a58384d36346b90f4273ba834494c25949631481b9179f7b610419084bf16",
+      "source": "a8bcc6324e1e90b8f7fd704735f763da1fed04007bc341be73104d600b2b2953",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:47.893Z",
+      "captured": "2026-10-03T21:14:02.834Z",
       "status": "The real dock lays out history and the command field.",
       "canvas": "36eb1eebd5adc72dcf6c45f70a14d7730c748e8feec8c08300e0530165ca5f5d",
       "file": "03c-layout-browser.png",
@@ -178,12 +178,12 @@
       "keyboardRoundtrip": false
     },
     "03d-input": {
-      "source": "a557cd32f06a3fae7aeb8b51179234e2ae1a2a08e8da8be2d4fb98450508c26b",
+      "source": "5d0a0864511f5713abcea408e85ab8f9c473b633dec7eb8a532eaa6f36112201",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:48.593Z",
+      "captured": "2026-10-03T21:14:03.534Z",
       "status": "Type Help in the command field and press Enter.",
       "canvas": "aa62b924178e09a38ab1dc591eb4df4d391e8e3bd24e3967697390553127f4a0",
       "file": "03d-input-browser.png",
@@ -206,12 +206,12 @@
       "keyboardRoundtrip": false
     },
     "04-input": {
-      "source": "8c72c296d84f1a0c8a9a241b4cea45ed0fc0baccee6ec39e35091473bb222895",
+      "source": "b022979841ce82f910a2532cab9e2ef2486f7c5eeac7ed27905f7913b7413387",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:49.944Z",
+      "captured": "2026-10-03T21:14:08.635Z",
       "status": "Change the background. The triangle keeps its shape and colour.",
       "canvas": "aa62b924178e09a38ab1dc591eb4df4d391e8e3bd24e3967697390553127f4a0",
       "file": "04-input-browser.png",
@@ -234,12 +234,12 @@
       "keyboardRoundtrip": true
     },
     "05-vertices": {
-      "source": "6b7d1bc9c01bf52642c3c58a47aea144615c2cd5702eb205318a69076669eda2",
+      "source": "59928f3bdbdaa0a84437e5d2cad8c6a46294efdd8a5076aacece5ccf3d2dbdd7",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:50.813Z",
+      "captured": "2026-10-03T21:14:09.484Z",
       "status": "Six uploaded corners make one rectangle.",
       "canvas": "6cff64639b065ae5162c12042b694251eb6284a5b20028115163843ad5a66d7e",
       "file": "05-vertices-browser.png",
@@ -262,12 +262,12 @@
       "keyboardRoundtrip": false
     },
     "06-indices": {
-      "source": "a3036f6535968f9af9d4cd29ae2640baaf45b53bb356a4a364e0fe30668cbeb8",
+      "source": "c87a31a2d353ce8173662d5b890c44ebddccaed6dc70722408c18bfd964a710d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:51.713Z",
+      "captured": "2026-10-03T21:14:10.348Z",
       "status": "Four shared corners make two triangles.",
       "canvas": "f70d9cd58a2d9a73538e5b99bf090df2c6b3217210245977700a4c47acc1f696",
       "file": "06-indices-browser.png",
@@ -290,12 +290,12 @@
       "keyboardRoundtrip": false
     },
     "07-uniforms": {
-      "source": "eb38b1e9329750c0cead15b0e14faa7bf02f8713d0ade8dfe41d8ceebb98318a",
+      "source": "7b85e93eebce5457ef2b80e87b4801d8db0989c36b3cb6716108fe160741a6b4",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:52.558Z",
+      "captured": "2026-10-03T21:14:11.216Z",
       "status": "One view setting moves all four corners.",
       "canvas": "b3d400d44a07fbfd474464f9de2c020eb67b98433cdf41b410a5dc72a0e77ed7",
       "file": "07-uniforms-browser.png",
@@ -318,12 +318,12 @@
       "keyboardRoundtrip": false
     },
     "08-camera": {
-      "source": "b8a2c0401c5e1fc14f88082bc15fa7edec63a81a409ed285ab8ea7ee797b538a",
+      "source": "d6e66dc19a9341fe36fb3ce5664e4eb089f1a59c3676cf52c07a01d44795cc58",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:53.860Z",
+      "captured": "2026-10-03T21:14:12.496Z",
       "status": "Pan and zoom change the view, not the mesh.",
       "canvas": "09c8242a7a92edc0e909f80cab99589ea5dd1589e85c90bddb861e81e4ddcf9d",
       "file": "08-camera-browser.png",
@@ -348,12 +348,12 @@
       "keyboardRoundtrip": false
     },
     "09-matrices": {
-      "source": "5fc8e702cd8b6b78f0e36b0072f8c0ef87ea62aa1fd5fe6f5c07c7c768a69118",
+      "source": "6de010871297f285fe2542bb794d2d91b2c6413cae4cdfef90bc26302fe1ea00",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:55.140Z",
+      "captured": "2026-10-03T21:14:13.799Z",
       "status": "A matrix carries pan, scale and rotation.",
       "canvas": "53e411da0ada47417821ce18a1d1f9f48ae82d6cb6ebeaa5215321a33b1e426c",
       "file": "09-matrices-browser.png",
@@ -378,12 +378,12 @@
       "keyboardRoundtrip": false
     },
     "10-depth": {
-      "source": "63ce642ac31372b93d62d37cb88f478f78611dcac60c8adb5531c9007f019ea1",
+      "source": "46a167320cce536dcccc272e0180d82ff673f06fc89b8bd70c53f8448f97438c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:56.012Z",
+      "captured": "2026-10-03T21:14:18.317Z",
       "status": "The nearer pink triangle wins the overlap.",
       "canvas": "85afb154b55e35e36db655f07eb8cae39ec56ada7d753bc046771ea59cc53e31",
       "file": "10-depth-browser.png",
@@ -406,12 +406,12 @@
       "keyboardRoundtrip": false
     },
     "11-scene": {
-      "source": "980ee537b3eb01dab9a9acabe8f85aed23e94742ab2ca5c048f9749b5f28e3bd",
+      "source": "6479c3441b88199aa006c8bc0c355ac10d2251a887aa178c8ce38211a56045e7",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:57.329Z",
+      "captured": "2026-10-03T21:14:19.685Z",
       "status": "Scene data owns the meshes; the renderer displays them.",
       "canvas": "f54074e4d898c23273fb4035d25007ec90524b2fecac72db2c7fc2c80a8b75f7",
       "file": "11-scene-browser.png",
@@ -436,12 +436,12 @@
       "keyboardRoundtrip": false
     },
     "12-identity": {
-      "source": "9317b4f5e1b7ea8c60ea0ce72e9b29e0f33e1dc6e2d6b0991ed4ccd0325995fa",
+      "source": "3db79cf5e7f4fdce3f89f2ca334d6c52d1f9650b74f72172e053dcf7eb03f86d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:58.626Z",
+      "captured": "2026-10-03T21:14:21.032Z",
       "status": "Selection follows object identity, even when rows move.",
       "canvas": "964c3b79a80b5ebdfb77e29e6da1af4b471239a7d4bbaba8bb522560e3070439",
       "file": "12-identity-browser.png",
@@ -466,12 +466,12 @@
       "keyboardRoundtrip": false
     },
     "13-picking": {
-      "source": "7697002a9e7691c442c97db8bc81b4872ed3d5dac23d4446fc1f97cee714cd06",
+      "source": "91f91004ffa0a7c33fa36a91c9acb8236b821287176118df412cef018e8bea48",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:33:59.760Z",
+      "captured": "2026-10-03T21:14:22.133Z",
       "status": "Click a triangle; the visible object is selected.",
       "canvas": "8953c2738ce191ac9318a67b218685e95f39f7d3d13c7afcc8276fac469d9cf4",
       "file": "13-picking-browser.png",
@@ -494,12 +494,12 @@
       "keyboardRoundtrip": false
     },
     "14-history": {
-      "source": "cd0d9187089027eb88430e9c888fb879e9c81786a6ffa728ef12f716c0452c8a",
+      "source": "81c5c2bfe08ddc439c4b94116840bec13e71c1c6dff187aede0c37afb1e178ee",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:03.510Z",
+      "captured": "2026-10-03T21:14:25.898Z",
       "status": "Undo restores the document while the view stays put.",
       "canvas": "617ba8747e80de2be7369b0ee4632906369dac8aff4a0d5de44a3b9b3323cca2",
       "file": "14-history-browser.png",
@@ -530,12 +530,12 @@
       "keyboardRoundtrip": false
     },
     "15-perspective": {
-      "source": "1fbaf5e96c193b3f2eeb7ce74896e41ba6d80a4eefbc95c36f027fdefe7f6473",
+      "source": "1d40e314897d3a8c48db8f5dfdd0228a74ddb1263eabd56ac69627552aba98ad",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:04.458Z",
+      "captured": "2026-10-03T21:14:26.832Z",
       "status": "Perspective and picking use the same camera.",
       "canvas": "6738c493e747476091e2409f96f14c327c0127a3592c1fb09b70e9c2ec98b280",
       "file": "15-perspective-browser.png",
@@ -558,12 +558,12 @@
       "keyboardRoundtrip": false
     },
     "16-orbit": {
-      "source": "fd4d952342865ee51d074decdff9bc7d3dc9436bc82cdcc90a5027d11ebc805d",
+      "source": "bd5e180801249ad734f850731ba8c4aae6930eb8ed3e030058fce000513e5f21",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:05.774Z",
+      "captured": "2026-10-03T21:14:31.669Z",
       "status": "Orbit moves the eye around a fixed target.",
       "canvas": "ca983db0cd3907c9ca8005dc83bfc0615383aa4ff7940be6e5a7e8154867099f",
       "file": "16-orbit-browser.png",
@@ -588,12 +588,12 @@
       "keyboardRoundtrip": false
     },
     "17-solid": {
-      "source": "b9b3c7c0a57ad9397dfccbca2d7eb9a5f0648471658b54e5e085ca1bbf6b8d1e",
+      "source": "5a4ef8fd7e1e3e95fb7f651d236fcb31e0ac46ec468e0acd89a26fa9622b4987",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:07.491Z",
+      "captured": "2026-10-03T21:14:33.435Z",
       "status": "Kernel geometry becomes an undoable scene object.",
       "canvas": "0ee2fc3604ff0a19c74d31d09735848b171a757541fd32a269d4dab08efba580",
       "file": "17-solid-browser.png",
@@ -619,12 +619,12 @@
       "keyboardRoundtrip": false
     },
     "18-light": {
-      "source": "70f376b8341949be2fb50db975b546be7481ad9fffd87bb584a671aae66c601d",
+      "source": "751d4f109219a62f1313dea8e7204d9cca58a8117b617042c6ec95efdf5ed859",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:09.241Z",
+      "captured": "2026-10-03T21:14:35.152Z",
       "status": "Surface direction changes brightness, not geometry.",
       "canvas": "17c39f89dd1afa2d050e5a7e289c899d08925f400648aa265dae9de6f85a23f2",
       "file": "18-light-browser.png",
@@ -650,12 +650,12 @@
       "keyboardRoundtrip": false
     },
     "19-actions": {
-      "source": "b6aac3f8e9cee963f3e5f412e87b59b753031e69ce5a26f443517504b60a77da",
+      "source": "299b493935ab93b5c14d88dd0ab9dd585a8bacf797dafc4de7def82c2500cf08",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:12.177Z",
+      "captured": "2026-10-03T21:14:38.100Z",
       "status": "Every document action follows the same editor path.",
       "canvas": "5abd3092f46f2189217e764c3a84eaf371f9a2841c9cc6f34a9e0259d40f2ae1",
       "file": "19-actions-browser.png",
@@ -684,12 +684,12 @@
       "keyboardRoundtrip": false
     },
     "20-resize": {
-      "source": "919b53df2aec76600e3956a02f2228a301fede62924999b26bd317b4ae95046a",
+      "source": "7bd4ecfd0279fd96fdb2ee58814bbb7f3d9461530151a1039daadbfe14487d32",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:14.110Z",
+      "captured": "2026-10-03T21:14:40.017Z",
       "status": "Canvas pixels, depth and camera resize together.",
       "canvas": "d6fdb9aa7b095dfbede64e0d7a6a474b524a1838be44022ce04559d0024dbcf2",
       "file": "20-resize-browser.png",
@@ -715,12 +715,12 @@
       "keyboardRoundtrip": false
     },
     "21-gestures": {
-      "source": "713a5a8ca1161e2638de231f1c9ea3f8f24d87da567ec93c148d3049e02dda76",
+      "source": "98070cc2d76d070ad78e00b2052e3c2f98dd71156e78ef861b8c12a11e10d60f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:16.628Z",
+      "captured": "2026-10-03T21:14:42.545Z",
       "status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
       "canvas": "b33b8946c2d5ef728217886207ffe752bb066f4e315efa431e1b289f01dae26e",
       "file": "21-gestures-browser.png",
@@ -746,12 +746,12 @@
       "keyboardRoundtrip": false
     },
     "22-shortcuts": {
-      "source": "22ca1f034c2ce9764992f6896cc53ef7b7f1dbca462598143c449a9c371550bf",
+      "source": "ac9f5edaa9ab9e8274daae508a5dd19ac9de7056a610e62906279853f540102c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:19.741Z",
+      "captured": "2026-10-03T21:14:50.952Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
       "file": "22-shortcuts-browser.png",
@@ -778,12 +778,12 @@
       "keyboardRoundtrip": false
     },
     "23-import": {
-      "source": "8ea6e37041b8aaae30c2e46f839eb357aab8680830fe5a5d4da30db4f8eb02c8",
+      "source": "c949a26212c128ad2c159235276fb87e3d09602997cf5801679c76d80449f4e8",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:22.559Z",
+      "captured": "2026-10-03T21:14:53.766Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "688869a16b77efe485fbf4a1c3934870450c69d5f62bcb80ae66d51d398cda86",
       "file": "23-import-browser.png",
@@ -808,12 +808,12 @@
       "keyboardRoundtrip": false
     },
     "24-fit": {
-      "source": "c1755ef78b92ee74fdf4f8be69e84cb41ea49922bd02a5c507d1890286636d9d",
+      "source": "023a5f0519d99d1a08fb5e92f64c46d4684c94b362f60caad7386e7a281d9637",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:32.575Z",
+      "captured": "2026-10-03T21:15:03.987Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "0e77f3ed30666a301b1419d87a613923ada7cb165246208b05fb71ac75d70978",
       "file": "24-fit-browser.png",
@@ -842,12 +842,12 @@
       "keyboardRoundtrip": false
     },
     "25-projection": {
-      "source": "be6e6def588bc1de80c6e92a2cdd10f6c7b022747c29492cefe5fbec52948b5d",
+      "source": "dac39edd9dcfcad5878af3e5d65c2b32d9d99e6dafdaffa1401f90184f9a1461",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:43.494Z",
+      "captured": "2026-10-03T21:15:14.767Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "607bce12db1789f496826a6be850741df93d39353cbd075987800a87085d6bc4",
       "file": "25-projection-browser.png",
@@ -874,12 +874,12 @@
       "keyboardRoundtrip": false
     },
     "26-selected": {
-      "source": "6302d6f53d5347fea56332fe235ec04c15898c33fd43e3af125897b42e666c36",
+      "source": "7a071aabf0bc752dbff9df8c311b4bfda33b53eccfc67207c3909d3028c73624",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:46.140Z",
+      "captured": "2026-10-03T21:15:17.446Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "7c751bf6d43c86001421ae22217feb8954d2899d778f3075c7ad7a1df9ed7a57",
       "file": "26-selected-browser.png",
@@ -907,12 +907,12 @@
       "keyboardRoundtrip": false
     },
     "27-placement": {
-      "source": "69c366af62b5a0ad370a1919bb367509bef841af1e94f524c51f6d869015643a",
+      "source": "c1bdc5ce21348dbe0bdceb12b69271eb55f76dfdc40726e1ba05c01b8a46fa0a",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:48.694Z",
+      "captured": "2026-10-03T21:15:19.982Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "617fd5eb3aaeb941b76b608ead47b2700a8c6b7923719ebddc4aebfec034455c",
       "file": "27-placement-browser.png",
@@ -940,12 +940,12 @@
       "keyboardRoundtrip": false
     },
     "27a-world": {
-      "source": "7cc66b7315f0d7679f69c05eac326e8e13b9a8b98869b760aea95dba9a9984c8",
+      "source": "a124ce2a27f81e6b8a02ea10596b35cac90608157d28a3928194ed73d5c42b00",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:52.127Z",
+      "captured": "2026-10-03T21:15:27.401Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "907fb23ed201920b54f91ec0a0c24a66741214da644d90e7f4d2782693578385",
       "file": "27a-world-browser.png",
@@ -975,12 +975,12 @@
       "keyboardRoundtrip": false
     },
     "27b-model": {
-      "source": "e27af2a23003d9314f4ea259c3fc3d5f81bc67b68ac4b8a88594e4b0362fb358",
+      "source": "55fb237934af411932230e0b6198391b1f847773fe5e92d7f8653206e5d1e443",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:34:55.898Z",
+      "captured": "2026-10-03T21:15:31.305Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "853a4d59caf7d4c1302a8f73fbbef799d819beb8ce0d72221fe7d358eed3a8bb",
       "file": "27b-model-browser.png",
@@ -1010,12 +1010,12 @@
       "keyboardRoundtrip": false
     },
     "27c-move": {
-      "source": "e54712ce123972f55251a85061c1d4ef8313fdc869554cb57551a36fe9f34e82",
+      "source": "10edf41373f8f00c231acd47009664ef464f60b0853db17a3fdd0700d68de99e",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:08.058Z",
+      "captured": "2026-10-03T21:15:43.438Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "5ccd51a4347e7e5e43bfd1d51c6d45686a371436b03ae50547a45bbe8a9783f8",
       "file": "27c-move-browser.png",
@@ -1046,12 +1046,12 @@
       "keyboardRoundtrip": false
     },
     "27d-history": {
-      "source": "a1253b9f19acdb7e04b075bc5f9fa3cdac574db7f9907b14e4335e4068d04c67",
+      "source": "4542a76ffb051dc865c100bc856f4bf7c682ab812cb33532d93fba37a79a912f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:20.656Z",
+      "captured": "2026-10-03T21:15:56.037Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "1282596a5016b8c8dabbb245c0ec65a1fb2372c7498f24ca5678599a2ba08c50",
       "file": "27d-history-browser.png",
@@ -1082,12 +1082,12 @@
       "keyboardRoundtrip": false
     },
     "28-record": {
-      "source": "b75ebfb4d1d0099006d5f48546096c7ffcabd5359095f6e394cbfc0ab13e57b0",
+      "source": "2935f684350b4d85f5e36c4640964565f0df6c5a120fb840568c90340933157f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:25.561Z",
+      "captured": "2026-10-03T21:16:00.998Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "72d5a1c8c3f9955f0ec2135e00f7b4fd925c97cafe4a3709f8950caa331da410",
       "file": "28-record-browser.png",
@@ -1117,12 +1117,12 @@
       "keyboardRoundtrip": false
     },
     "28a-imported": {
-      "source": "2ae7285bd415c9d1e562371e9d6138aa52dcf6e29879622b3a95c78136a30351",
+      "source": "60a48480bd527694d131aca5a8af93e3988142cee684e9286133ac663566f26c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:30.854Z",
+      "captured": "2026-10-03T21:16:06.349Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "4386301f18c363832395b53d8087f3997467c74e1c6fbde8150431fcf1218ede",
       "file": "28a-imported-browser.png",
@@ -1153,12 +1153,12 @@
       "keyboardRoundtrip": false
     },
     "28b-generated": {
-      "source": "1af50895562fad1e31b76c3048436412c4217f7fa33275ceac5816db0baa81b4",
+      "source": "98158dc9880d970a389c29fddcd2f247c41bfbf714dbfddf4aa6337dd0a19dfd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:36.872Z",
+      "captured": "2026-10-03T21:16:17.970Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "aeaaea6cac24311dc6252f5774e1c226be85e7b01c258d6f67703c1aed1c129d",
       "file": "28b-generated-browser.png",
@@ -1188,12 +1188,12 @@
       "keyboardRoundtrip": false
     },
     "28c-ownership": {
-      "source": "fa434c404ca48831918d210556f4ad44473c7c439ab276463a2092f167baa5ae",
+      "source": "58416b0410f4e0c9828498e3a018682480cd5720098e1cbd82ab67fe71b3fcdb",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:46.656Z",
+      "captured": "2026-10-03T21:16:27.799Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "88b29e2e7f1505f6d87832eb60ef524368f32be84de6970be71b042f1c65e498",
       "file": "28c-ownership-browser.png",
@@ -1229,12 +1229,12 @@
       "keyboardRoundtrip": false
     },
     "29-identity": {
-      "source": "8ac13bc9eedc302c872df28fe30c676fc22236e4ecfc13e1b238e0aa466d78f9",
+      "source": "59a5f9e8919071c3738a9d7cdeec70045bdb2341d183a230c068db8d05fef589",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:35:58.773Z",
+      "captured": "2026-10-03T21:16:39.892Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "3146c2625c6053933c631c1ddc52a931e76fc1a56de5e5f75a947dcc570b3a2e",
       "file": "29-identity-browser.png",
@@ -1265,12 +1265,12 @@
       "keyboardRoundtrip": false
     },
     "29a-snapshot": {
-      "source": "fcb911c1f6291f90d003bbbf1cbd80ae8366386ae49132fc0a88a29586c26aae",
+      "source": "b23c215e2631ed561a2d8c78f25c5761b4da9c999b7b37a0cdbc7c3267cdd6ba",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:36:05.205Z",
+      "captured": "2026-10-03T21:16:46.328Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "c143062880e92ff32cdb91727b88da071c6f693ecc00bfcbe64d1d85e87b7823",
       "file": "29a-snapshot-browser.png",
@@ -1301,12 +1301,12 @@
       "keyboardRoundtrip": false
     },
     "29b-placements": {
-      "source": "8ddc36d2ad96726564e5a4cd0686d267dfab34c3617b7d1f7f0181c7865ad967",
+      "source": "5c3466849cd3d41688aad6b39d9356698399bd6661f16008861e04a6e642ff0d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:36:19.926Z",
+      "captured": "2026-10-03T21:17:00.997Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "a3280b177ade55f74abdc22ef1f386ae50b724721741e1d17108ca42cf22adfc",
       "file": "29b-placements-browser.png",
@@ -1340,12 +1340,12 @@
       "keyboardRoundtrip": false
     },
     "29c-roundtrip": {
-      "source": "3710a08503bff1840dd205bea6207fb8006ca5a8d7bb6ec3e16b4144709e30a3",
+      "source": "e3c4d3cd18875cef401a649805eceaa4a7f10f64f509974dcfd2793de7c5b370",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "6ddd0ac90b483ae8e39eece5a15155f1b0248f0b7e6876e3579d2ba21991c200",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:36:37.006Z",
+      "captured": "2026-10-03T21:17:17.980Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "034f116fd1474906a8d626df555217567647f7d0c47c962fb1df2bacd69bb09e",
       "file": "29c-roundtrip-browser.png",
@@ -1381,12 +1381,12 @@
       "keyboardRoundtrip": false
     },
     "29d-save": {
-      "source": "9f91fe3178ecd63f3d221c59106d920df12b381e3d4c4ab3c0c409a95aa30c47",
+      "source": "5b8adc4120285765575fd35d22379d2cd015d991bd87aed26802f8e4d9ce8f5a",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "64a1ff2b576ef6819b0d44de10d303c33e7cdf9a923e00b077a46cdddab3a615",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:36:59.321Z",
+      "captured": "2026-10-03T21:18:36.935Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "ae0ccabfe84072f5db3d9f0327062ac159f9c1efeec0d1bc0ca6d6a7a2db9b83",
       "file": "29d-save-browser.png",
@@ -1420,12 +1420,12 @@
       "keyboardRoundtrip": false
     },
     "30-feedback": {
-      "source": "d5f6d6b27aeaed70c138aed3bffcdbbe89d3c449bf56ae938467c6672d7dbdc0",
+      "source": "eb2b57e733e56ca2af54021142cdf9628c39748c65094cf775a5a51ea1a0ec66",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "062ad07c63e9674d0a867a24061232f5f74c052b16d96ea6328cd8c4b8f84c78",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:45:59.987Z",
+      "captured": "2026-10-03T21:18:51.223Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "ebcc46a5cb6f8cc02951f5e6936ea6485f93ea455e6ab98ee6e73dc193579ae2",
       "file": "30-feedback-browser.png",
@@ -1459,12 +1459,12 @@
       "keyboardRoundtrip": false
     },
     "30a-tickets": {
-      "source": "fc81bbeec073ae1b3080c100ff2bbe779629b8c4972a57b7758359904929f224",
+      "source": "3087a93ce1b1824f54d8f625b773b4854e7df86ed0a3d98bdacf16e80fc6f785",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "062ad07c63e9674d0a867a24061232f5f74c052b16d96ea6328cd8c4b8f84c78",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:46:14.187Z",
+      "captured": "2026-10-03T21:19:05.458Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "b8a60368eb94eebe3390053c1e484afad0ab63d615c8b33e63b63ed1ecdf7191",
       "file": "30a-tickets-browser.png",
@@ -1498,12 +1498,12 @@
       "keyboardRoundtrip": false
     },
     "30b-cancel": {
-      "source": "433fa621a74c55a496b0f36e5c1b9d8dfc3e74d8ac3dcd3aa7f16070dbe3b932",
+      "source": "e3595e7f63cb2d8f58f53631e4678a1936ed858f88905b1afae0eae623c31cff",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "15140907539fe2269b76c1758317580021ffc9652576434f3acd2094d44224a6",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:46:29.467Z",
+      "captured": "2026-10-03T21:19:20.869Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "bce2d3eae3d5debd1330f3d430a93b66ac50d5df0c7e69f0ef56af155e14d089",
       "file": "30b-cancel-browser.png",
@@ -1537,12 +1537,12 @@
       "keyboardRoundtrip": false
     },
     "30c-replace": {
-      "source": "bb05cbd2ccc7df11963e9b62825bab501f22e273bda268cda9255f97b13aea0b",
+      "source": "2a4974aaf94ef6b6ed03921b1f49e8d34fb2a713ab16c4458299c509943cf63f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "15140907539fe2269b76c1758317580021ffc9652576434f3acd2094d44224a6",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:46:44.882Z",
+      "captured": "2026-10-03T21:19:36.207Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "6bac0ecd149c4ae4ec960cbc6f515174a798d4a1c3ccb58b41a7102017f529fb",
       "file": "30c-replace-browser.png",
@@ -1576,12 +1576,12 @@
       "keyboardRoundtrip": false
     },
     "30d-bridge": {
-      "source": "76c459dcc2157444c3aa1b2863480e2b72f43d2f0ff893a72cf0c922d04b2c76",
+      "source": "35eb222f0877d549bb36ecbabc60b51aa8ee581775905186587626220bc1866e",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "bec7b03105a415335c3475a0d93242e491b064d5b0ae126db0a0346d251b702c",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:46:52.117Z",
+      "captured": "2026-10-03T21:19:43.676Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "65c95dcd19786f417d35a934fe112370b75afab5a1b2985ec29094772be98671",
       "file": "30d-bridge-browser.png",
@@ -1604,12 +1604,12 @@
       "keyboardRoundtrip": false
     },
     "30e-recovery": {
-      "source": "f1a0e21477644d5374f3bcda05f1a35cd4f1fc2011945fcdc685456d4b3fadc7",
+      "source": "2caac520cc8524e0d45f043278335acd6a7b0fb7bbb249331568992c24d4cfd1",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "8009ae0e7843830e8e5961002552b6f53602a6fc8b20474ff8b58412bb6124f6",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T11:50:56.462Z",
+      "captured": "2026-10-03T21:20:02.008Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "84de1781216d7b33a84e260f552eafdaf9e81900cf381cf5affff69ee0c1bb48",
       "file": "30e-recovery-browser.png",
@@ -1632,12 +1632,12 @@
       "keyboardRoundtrip": false
     },
     "31-settings": {
-      "source": "baab89e26dde637dbe2daf932b2c66e55b3745e4711c4a2017f77679bb50de7c",
+      "source": "0ffe24d99b5b8221aeb5517ba64cb2abe8c2cff6932097f7e74b8bc547c6b367",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "9b2e6b38184f128a86b48055318fab02266f5d6466c8af8c7d188f3e4597f4d4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:00:26.588Z",
+      "captured": "2026-10-03T21:20:11.054Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "42ebeb4f88612a619959f6d2b99272c4f844e4426fa56248e36ce0741fccafbb",
       "file": "31-settings-browser.png",
@@ -1660,12 +1660,12 @@
       "keyboardRoundtrip": false
     },
     "31a-geometry": {
-      "source": "7b58caecc9e25e87909cb156ebceb9039900b9c4d47e9a44b1ad2ea6ba4025fd",
+      "source": "a7486a11e35d25c5a09bc8b624381d15d78f9f75e842479096f3264bb74daaec",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "9b2e6b38184f128a86b48055318fab02266f5d6466c8af8c7d188f3e4597f4d4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:03:56.445Z",
+      "captured": "2026-10-03T21:20:20.040Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "c90137078800ec8ab7c782c34006b531d044e6931f26859b0e7652b97250600a",
       "file": "31a-geometry-browser.png",
@@ -1688,12 +1688,12 @@
       "keyboardRoundtrip": false
     },
     "31b-cache": {
-      "source": "443a7d7b4c77aff05e1644e71daed36528063c2731ccf7a759f01c67a042abbf",
+      "source": "e673b1d9c0666b12ac76dff615753bc5c5f4d4d174336e3cfa2db12effb42809",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "9b2e6b38184f128a86b48055318fab02266f5d6466c8af8c7d188f3e4597f4d4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:04:05.941Z",
+      "captured": "2026-10-03T21:20:29.336Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "695f7f9912b664fbaf3e88ab088b9ad25238fab9458e0f259dfc3d2902ade3eb",
       "file": "31b-cache-browser.png",
@@ -1716,12 +1716,12 @@
       "keyboardRoundtrip": false
     },
     "31c-incremental": {
-      "source": "3b68d080d487b12af92f0a1cc8b2b56ec5bbe781d642c27b030987e09bf9327e",
+      "source": "4fafaa466e1883d212c7ab2d5210c60a51c9dc50024da355218e05101872b7c0",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "9b2e6b38184f128a86b48055318fab02266f5d6466c8af8c7d188f3e4597f4d4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:00:56.395Z",
+      "captured": "2026-10-03T21:20:40.373Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "9a63194f95724502042b51eca4b4e7c82c7ff40db6245135f34ff1c8bd542c97",
       "file": "31c-incremental-browser.png",
@@ -1744,12 +1744,12 @@
       "keyboardRoundtrip": false
     },
     "32-history": {
-      "source": "7a59ad0a58f750b9268c2e4be21e2890c36386052bf06a1b73680ac1978dbe3f",
+      "source": "8d5a299a33d623bbd002f166bb4f09d2103fa5ecf7c19eba311a6bf6047ef4b9",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "981961e530fc449119c11156c87d55c764b5b6ca15e2ca8c1803a5d0286aba30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:20:16.162Z",
+      "captured": "2026-10-03T21:20:49.032Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "b9e3b05f389fbe618c674731c4ba73a3022b4fe7800f9ef4f7135adf5337b2b2",
       "file": "32-history-browser.png",
@@ -1772,12 +1772,12 @@
       "keyboardRoundtrip": false
     },
     "32a-cpu": {
-      "source": "23fd8ffccdf8be1af32a09e4afb8d81c02cd64e89e1dbdcb6ff726cda5033c22",
+      "source": "be0b96769d5c4666d345a0ccc45d1dca5cceae21ad8cf68941167fb7596392e0",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "981961e530fc449119c11156c87d55c764b5b6ca15e2ca8c1803a5d0286aba30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:20:24.702Z",
+      "captured": "2026-10-03T21:21:02.959Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "b0389aaf5e29123c9f94bd0c7b1dc93c9bfd5344375473bfc23cbde79ca2108e",
       "file": "32a-cpu-browser.png",
@@ -1800,12 +1800,12 @@
       "keyboardRoundtrip": false
     },
     "32b-gpu": {
-      "source": "3aeb3bce85f10c383c1fd59bb30b9d29e5fd87407c8b9310b69877ec7598c50e",
+      "source": "50413718e7f39d506257aa4da8b01ef7152a83bb0b624ad8dd23dbc5e2699cdf",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "981961e530fc449119c11156c87d55c764b5b6ca15e2ca8c1803a5d0286aba30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:20:33.370Z",
+      "captured": "2026-10-03T21:21:11.685Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "6b11dbab85421af33029513808271c93af89e77cea8af5da0c62d717f43d3fbe",
       "file": "32b-gpu-browser.png",
@@ -1828,12 +1828,12 @@
       "keyboardRoundtrip": false
     },
     "32c-close": {
-      "source": "09998c0f9483ca0537b168b0e776f2b316ea4fd5134fa8810014d20a794274d6",
+      "source": "5afd7f619b03c44d7cd3ac8de68421a5d9100204db63a1b0a20bf913c606688d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "981961e530fc449119c11156c87d55c764b5b6ca15e2ca8c1803a5d0286aba30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:20:42.038Z",
+      "captured": "2026-10-03T21:21:20.235Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "34b2c8038b3bd6238c8e77d7232a5a770a51fba6e37f5568ce2914621891b09e",
       "file": "32c-close-browser.png",
@@ -1856,12 +1856,12 @@
       "keyboardRoundtrip": false
     },
     "32d-command": {
-      "source": "40d7f711c156afc664cdf0bef22517893e340d7cdec9102be807ffbce757fc74",
+      "source": "7fd3c384e16ffa0efd5e31ec8d7a302ffc4ff27d49c440faeadb64dee3e62962",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "981961e530fc449119c11156c87d55c764b5b6ca15e2ca8c1803a5d0286aba30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:20:52.851Z",
+      "captured": "2026-10-03T21:21:31.006Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "5f336328d14824945aac3aa64300da5851344a9d33af0b886f909d5a20b571cf",
       "file": "32d-command-browser.png",
@@ -1884,12 +1884,12 @@
       "keyboardRoundtrip": false
     },
     "32e-release": {
-      "source": "3028ad379b22220c6a9fa74934b3a15a1e418718f8c25108e2e3c61a95dbd091",
+      "source": "c828177682cb04cd06c47b5678e1547ff8d1107350ea8be9c1f19e72d363f844",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "981961e530fc449119c11156c87d55c764b5b6ca15e2ca8c1803a5d0286aba30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:21:04.002Z",
+      "captured": "2026-10-03T21:21:42.198Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "aa87f949aef2e774192aa2244fb937f70e2075b4603b734aed6e12043691619a",
       "file": "32e-release-browser.png",
@@ -1912,12 +1912,12 @@
       "keyboardRoundtrip": false
     },
     "32f-metadata": {
-      "source": "69ba0f195104df03b0e5325e12a145032deb00b802b417fdb086f38167d418ea",
+      "source": "c651d630f0755967bc805fcc3d411084f2cc603881358146d417612908fcbc7b",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "d24761f0d70a1b9c70097dea947ef928b6ad71cafbfd2cbf4f9e174011fbfdb7",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:38:10.113Z",
+      "captured": "2026-10-03T21:21:51.600Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "a57854d54ef2729c5c0b57b6e5ac14922d8554d304f0bd1dbc1c93cb7fc369be",
       "file": "32f-metadata-browser.png",
@@ -1940,12 +1940,12 @@
       "keyboardRoundtrip": false
     },
     "32fa-access": {
-      "source": "7e170b3f0f8eb4349d7824a9fcc5ae9d4749ce3ff12a64bb20bdcf847954ecdd",
+      "source": "c461718740acd72bcc3fd49f36dd2f650d80b4d4e212dddab393c7465b8be47b",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "d24761f0d70a1b9c70097dea947ef928b6ad71cafbfd2cbf4f9e174011fbfdb7",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:38:19.555Z",
+      "captured": "2026-10-03T21:22:07.658Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "c5230022a7f3207865c78010a8a8e88395739145883be25be905729b394d0495",
       "file": "32fa-access-browser.png",
@@ -1968,12 +1968,12 @@
       "keyboardRoundtrip": false
     },
     "32fb-boundary": {
-      "source": "a177fad85562d408bd040adea2d363b711fcccfa7ea3b4c50cadd40945f4ac41",
+      "source": "b52488419b8f4c3e257ffb9a071f547d5ad42dcb5634600598c050878c4e4530",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "d24761f0d70a1b9c70097dea947ef928b6ad71cafbfd2cbf4f9e174011fbfdb7",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T12:38:28.606Z",
+      "captured": "2026-10-03T21:22:16.867Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "ba681de161bc3603923f54322f3b97b5a5def33aaef04a7b6d53ba854248d859",
       "file": "32fb-boundary-browser.png",
@@ -1996,12 +1996,12 @@
       "keyboardRoundtrip": false
     },
     "32fc-version": {
-      "source": "e4596d2bc67f78391558054002259ff1ac46c404bba24adcda34dc5f4ee78d7f",
+      "source": "bb97b396396e984c7a29ce0b434d72181bc1d7caf8ce1a9573aa26df6ea36427",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:18:24.899Z",
+      "captured": "2026-10-03T21:22:26.318Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "5e21f5cb794962de58348db8731f6d3a8bccb3b915cc204b02779e2c42ca2ffe",
       "file": "32fc-version-browser.png",
@@ -2024,12 +2024,12 @@
       "keyboardRoundtrip": false
     },
     "32fd-origin": {
-      "source": "06433d77ebd93b85fc89a01c3171eea69381167f2f5f3489ee5af96e3a25b609",
+      "source": "65f5a3dd153f63b2ccc0563d701bfe65d6eb54d08601907566713c42a0bddcc5",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:18:34.412Z",
+      "captured": "2026-10-03T21:22:35.821Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "0139f8d699c61c704b257a366d71108cc63b85ad5d53880d8cc0bf45a2703333",
       "file": "32fd-origin-browser.png",
@@ -2052,12 +2052,12 @@
       "keyboardRoundtrip": false
     },
     "32fe-location": {
-      "source": "630ce6cc487302be7efab5d7db09f3dea72e440adeceafab47e5591744e6c156",
+      "source": "400a66631df427530e25ac7bc6857baf64ec67630b9df2edd6f87556c020a5bd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:18:43.928Z",
+      "captured": "2026-10-03T21:22:45.283Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "0b4060c00b9a690ebba3e8ee9a1eea315466caec59dac1e049320141c61a81a0",
       "file": "32fe-location-browser.png",
@@ -2080,12 +2080,12 @@
       "keyboardRoundtrip": false
     },
     "32ff-bridge": {
-      "source": "5b9146ec5189ca2bfe4e449bc460eec6efd06e63c270c6c92d4ce3a4097f7a2e",
+      "source": "9d86ee671412a5af914c0985bee42721f9f3cf6c3cf0f5476e41b3022754a7ec",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:18:55.358Z",
+      "captured": "2026-10-03T21:22:56.915Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "48cba65efc1575d537e6d46adc217b12062696d71d49a3b0e1bd156a2138f2b3",
       "file": "32ff-bridge-browser.png",
@@ -2108,12 +2108,12 @@
       "keyboardRoundtrip": false
     },
     "32fg-state": {
-      "source": "714f49c60ee2f6f3ed64ccfd1f536a162f68b24fe895dbf6707db8398ea27e67",
+      "source": "d9efd0341d9828fc0c5dbed2d50e760fcedabb013978d3a682d3f1057937273d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:19:06.861Z",
+      "captured": "2026-10-03T21:23:13.655Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "f9409f180d3963c1707f3849ce05bf3f53cf35c69ff5ecb67b912a72ee6503cf",
       "file": "32fg-state-browser.png",
@@ -2136,12 +2136,12 @@
       "keyboardRoundtrip": false
     },
     "32fh-policy": {
-      "source": "df8e87db1b0c15516ead879517627f0f94fff0459ce24e8594b0e89282f780cb",
+      "source": "85589605ee6c247524d9a4d3d706f872dc97d1c06e9de75908daea9acff5db51",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:19:18.343Z",
+      "captured": "2026-10-03T21:23:25.128Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "5dba4a6ab14501a66d36e0f5a1a5463b2d7b4b7704b6a205f4c19f1eed6e49d5",
       "file": "32fh-policy-browser.png",
@@ -2164,12 +2164,12 @@
       "keyboardRoundtrip": false
     },
     "32fi-history": {
-      "source": "5c8aa7242d655e97324c68e7d862dfe3c515e4aeaa5188d3062dccc2caec1e8a",
+      "source": "52349ba5592414ba5c0a350089266299ba703a812010a74f6fbe46e0606b0436",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:19:29.825Z",
+      "captured": "2026-10-03T21:23:36.645Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "2a20cc0718e0072c3f1212f2baace4ce12417b8b775ff3f26ec7dc59530ff0d2",
       "file": "32fi-history-browser.png",
@@ -2192,12 +2192,12 @@
       "keyboardRoundtrip": false
     },
     "32fj-proof": {
-      "source": "f7d4c3a89596b5ee173f46df66df442dfacb4b6d4068b6412521161adf4e4a91",
+      "source": "421b29b1a064947443e51ac9a25a63f486ad5db84c488af83e285c5e2cfb1b52",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:19:41.325Z",
+      "captured": "2026-10-03T21:23:48.097Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "3efcb0534cd42c77aebf18bfe523b369e29c1666308448f9fd7eeacb35427f95",
       "file": "32fj-proof-browser.png",
@@ -2220,12 +2220,12 @@
       "keyboardRoundtrip": false
     },
     "32fk-command": {
-      "source": "9d52d1924efe166ce7fe119deb6d5dd305bc800b5c30fa857f0470a2ac5da9cd",
+      "source": "41dabe1c436d215bb686e8a61d992090e735b088ec037587926964b825e9322f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:21:02.474Z",
+      "captured": "2026-10-03T21:24:01.661Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "80ef133ae99e44a43f54ca5a0ebadd804f8fd0a52b5651c7c63490de7fa7d3a0",
       "file": "32fk-command-browser.png",
@@ -2248,12 +2248,12 @@
       "keyboardRoundtrip": false
     },
     "32fl-guards": {
-      "source": "3583d9de12f329ff01e9e17d73902a990e46e6cedad822b81d1536265d9d6635",
+      "source": "1819d7a262540ed753ded11a7b90328663bcd7fa092b65f0b204b1af01262dc2",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3f739e4e8e8426bd96a7519f77768367cd692ba1aebdd850aa0ca240b087a1ec",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:21:15.536Z",
+      "captured": "2026-10-03T21:24:14.395Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "48b37fe492bf6d22ec4645c975e40f69bd6ddb6aad1507a13aeca5ce3e6c4b96",
       "file": "32fl-guards-browser.png",
@@ -2276,12 +2276,12 @@
       "keyboardRoundtrip": false
     },
     "32g-keys": {
-      "source": "605897195651a453b8b3bd1de9ac83bf980cc326d6972f4351beca3780bbeda2",
+      "source": "f27ee78ed330406b9a2b3f08d80fe54608299dd2ad51540cda3239b10334732d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "32e3fd4b4f50237141bb7bbc5886a044921b90b488a7da3211a466d72d4823fb",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:35:10.313Z",
+      "captured": "2026-10-03T21:24:33.215Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "ca51822a85e6fc90b81a0334be64c094a56409a708cf4668ce6851eeaa189a62",
       "file": "32g-keys-browser.png",
@@ -2304,12 +2304,12 @@
       "keyboardRoundtrip": false
     },
     "32ga-prepare": {
-      "source": "2083d20056a183a41b042b1194aa25de93f8822a7fe9901155b16034fcd2dc5d",
+      "source": "9569c3eeba0e201032bb35a6ae22d5b3d6805a1635def9482c7072c675300612",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "32e3fd4b4f50237141bb7bbc5886a044921b90b488a7da3211a466d72d4823fb",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:35:23.638Z",
+      "captured": "2026-10-03T21:24:46.795Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "cda9be9e8c5faa65630b4209b8dc5bd858c4679bf692c6110e1e7da41535d574",
       "file": "32ga-prepare-browser.png",
@@ -2332,12 +2332,12 @@
       "keyboardRoundtrip": false
     },
     "32gb-adopt": {
-      "source": "9ea488330c9e718f3a17d064209a019f0becddcef93a99ee5489deffbee8bd96",
+      "source": "7509d7a830265edf132a1592ad5e602903913a5f41f7c47dc26c98f789f89d7c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "32e3fd4b4f50237141bb7bbc5886a044921b90b488a7da3211a466d72d4823fb",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:35:37.203Z",
+      "captured": "2026-10-03T21:25:00.326Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "f92a286ada66b4b97be1b0837bc86963c6b7c33a06e27842842f712fe269c23d",
       "file": "32gb-adopt-browser.png",
@@ -2360,12 +2360,12 @@
       "keyboardRoundtrip": false
     },
     "32gc-roundtrip": {
-      "source": "81adc4fef403a29720eb77dc3cca6c9351f40d7c6491cc74cf052f858c3aea29",
+      "source": "877b2a094f5205359224707d5d471edbcbc618b10fd8c7be697a87c490653850",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "32e3fd4b4f50237141bb7bbc5886a044921b90b488a7da3211a466d72d4823fb",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:35:50.788Z",
+      "captured": "2026-10-03T21:25:13.989Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "35c88ae6ffc617c38f085ff011e019fc426846bc338d43cb01d9644acc101b9e",
       "file": "32gc-roundtrip-browser.png",
@@ -2388,12 +2388,12 @@
       "keyboardRoundtrip": false
     },
     "32gd-rejections": {
-      "source": "bedafeef5e0527a1c6285a90a75fe020d1e9e32519105d6015dc2e23722a8e64",
+      "source": "15fe5ee6d28d8db1cd536a991bfd8d13e21a9c5b5a63e2c9a06017cd86ed7baa",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "32e3fd4b4f50237141bb7bbc5886a044921b90b488a7da3211a466d72d4823fb",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:36:03.791Z",
+      "captured": "2026-10-03T21:25:27.011Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "20080a75b06c777dd3eeb5ba346663417d4ee1f64a4b2db45908dfe6ee189022",
       "file": "32gd-rejections-browser.png",
@@ -2416,12 +2416,12 @@
       "keyboardRoundtrip": false
     },
     "32ge-stale": {
-      "source": "b952242c2cba95e69d6b836eb6837d03af5046d290836b35a623fbc31e804c8f",
+      "source": "a111ee346645a9ff29ff412ce591d92fb45ae3b975422cb96d15c0cee97635bd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "32e3fd4b4f50237141bb7bbc5886a044921b90b488a7da3211a466d72d4823fb",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:36:16.637Z",
+      "captured": "2026-10-03T21:25:39.876Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "833251049c020692834b03807d1d21c17d0507b61c4cd8e74cf3d4364664a3a3",
       "file": "32ge-stale-browser.png",
@@ -2444,12 +2444,12 @@
       "keyboardRoundtrip": false
     },
     "32gh-command": {
-      "source": "5aacc0b99a30a55a827aa58cbb038bf7e560fa41e1fa5b5b329401866df9a60a",
+      "source": "e23903b6d50c66e3de57aa31e2cccb1f323921fc7c822df47076ecd9ceb6d1d6",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:52:44.751Z",
+      "captured": "2026-10-03T21:27:07.804Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "40006b3cfd189c2a370e79e3560c1437fc17881b633474e085a42cc8edff0f96",
       "file": "32gh-command-browser.png",
@@ -2472,12 +2472,12 @@
       "keyboardRoundtrip": false
     },
     "32gha-cancel": {
-      "source": "ebd68593b058ae2accbd72f362ce90b1f4beae8f399995203256b80d00572b67",
+      "source": "08eb22be786a048b9ff1699f28474f7232d10f074ad40fab547e270aaf89fc37",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:53:07.713Z",
+      "captured": "2026-10-03T21:27:36.362Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "f25647d215c7c06a3916d2323d33bf7a9ebb2b59859ab17e9bd4020f7ff56048",
       "file": "32gha-cancel-browser.png",
@@ -2500,12 +2500,12 @@
       "keyboardRoundtrip": false
     },
     "32gf-request": {
-      "source": "dd85c68f7a555386ce1f1b5a93809a20c2392b3ef9d07b0071c69c38f9efabce",
+      "source": "ac46b662251166c58ff67cebc3db2bd2314ed12ee5c23fe5f142e551635a696c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:54:19.047Z",
+      "captured": "2026-10-03T21:25:59.980Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "1f9c52bc61dc85ae63cefe0cab305dd414641acfd1d0242546b5163501dabf6c",
       "file": "32gf-request-browser.png",
@@ -2528,12 +2528,12 @@
       "keyboardRoundtrip": false
     },
     "32gfa-ownership": {
-      "source": "7f7785c3cb8b52072bf6214df2cfdc955fafeb1615855f7a2cccc09906d4fa85",
+      "source": "79cc13b9a6f944fd974e916d4b4f9ea65b527d0035c67ebc6d52dbc5f8d4f6f5",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:54:32.180Z",
+      "captured": "2026-10-03T21:26:12.806Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "d1b0645cbe5e875e09379d8573b30b33b0f8edb10cd04df1d2769bab08ae6161",
       "file": "32gfa-ownership-browser.png",
@@ -2556,12 +2556,12 @@
       "keyboardRoundtrip": false
     },
     "32gg-fetch": {
-      "source": "966a2212c7409886bb79ea0832f30fba235f1d310ec5327cc1f3d5005ed37388",
+      "source": "53d91224c81807e4e4157e43b0b5e7e09959124caa65686763d1546aa0860aba",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:54:45.779Z",
+      "captured": "2026-10-03T21:26:26.289Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "cd19802b17ab800d83cc92d3cbed56704f7764382d69bfc86d4190ff4ec79c7c",
       "file": "32gg-fetch-browser.png",
@@ -2584,12 +2584,12 @@
       "keyboardRoundtrip": false
     },
     "32gga-flight": {
-      "source": "517b2c6cc7a8e6e1f2356950178916a40050bd5d12b9bda34c9cb59945994924",
+      "source": "6c2fad1c3c2357d4a5c1311d05aeeed17a6b926f2d2e5b19e99eebdf667ca0dd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:54:59.408Z",
+      "captured": "2026-10-03T21:26:39.788Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "7e6ef11d4d3e7ff2328feca06f1a917a65fb226555fa9db0bcfe14c2f6666634",
       "file": "32gga-flight-browser.png",
@@ -2612,12 +2612,12 @@
       "keyboardRoundtrip": false
     },
     "32ggb-delivery": {
-      "source": "b909cbc2402df1d9ea84c3e53c1b0456b758212a0da20e122b4f961265e74cc5",
+      "source": "122033188a4354c8a6bacfb712331a42b1003047a94168a46bafebeb7a3462b8",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "893ef6f35b267d44780d9638901ef08e7c43e8a058b805883dc3d8040bc0b528",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T13:55:12.338Z",
+      "captured": "2026-10-03T21:26:52.837Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "896518ea66500d3524466d83ce13dd63dbd9b32d0ad2e180d15747955670fe47",
       "file": "32ggb-delivery-browser.png",
@@ -2640,12 +2640,12 @@
       "keyboardRoundtrip": false
     },
     "32gi-capture": {
-      "source": "36c6138129c553c99462ea6ff2335ed9b0577c34558e2385a9ec4dd802725b18",
+      "source": "61c56281691b9dc75097e617c1aebeaadb3705aa7831f225d772f017566d6528",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "0c9de37fb7767b359a99d40fb53b3719c8575e8811be450e3f37d14541c24288",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T14:51:34.064Z",
+      "captured": "2026-10-03T21:27:45.387Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "a97e3f2914151d9d9c8d8de39a369f8d0eab731bb0d1f07691af8c96736cbae5",
       "file": "32gi-capture-browser.png",
@@ -2668,12 +2668,12 @@
       "keyboardRoundtrip": false
     },
     "32gia-scope": {
-      "source": "66b25b4fc3a54e3412a41c9e23c17e273ee9ea7441faf4cd19ae51a214bc20eb",
+      "source": "cebf5272a9516522b067408e069d33f73262ed3373bf8ae5caf68c569f182f9c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "ce79926253d9eb4485e4949dff4904933ad81ade1dc98d6e1c67b59728582037",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T14:59:40.425Z",
+      "captured": "2026-10-03T21:27:54.820Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "798fa6ad6170e777f64a2d1157a7822bc09197f06c4268a6780df3b39629c025",
       "file": "32gia-scope-browser.png",
@@ -2696,12 +2696,12 @@
       "keyboardRoundtrip": false
     },
     "32gib-move": {
-      "source": "9ebbb8c96953148999cc6cf8d8121cdd28ab0e6ea34fb84c2c33f22c441490ce",
+      "source": "24c0e845d3d4ee5fff357afc14bec16e37dffcb6918c3531384bf2b846da33cd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "081c5f487e8fd23b78225543964e86799d6b41f7f7fbae9e289e5f8de55430c5",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T15:07:20.389Z",
+      "captured": "2026-10-03T21:28:04.921Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "a95a8c2552d5cf74f045c207e5ce082b10668aa3b6b6255d30833c7a00d5daab",
       "file": "32gib-move-browser.png",
@@ -2724,12 +2724,12 @@
       "keyboardRoundtrip": false
     },
     "32giba-delete": {
-      "source": "03f3467462cdc83cd5ecefd5afca851682a87067c2a134a13d0dbbd364d1eecb",
+      "source": "79efc088217914a65ed669c471e318ef55c4718a25bf7a4a4a10bdd33c3cd4e1",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "403981209d5448aafa8978df733b5c31c32f71136fb62a08d531d75f5687de0b",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T15:51:05.727Z",
+      "captured": "2026-10-03T21:28:16.432Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "9da8fe1de8ca2ac044230130e22c76fde5262abcef9d77b250382c8c9855b00d",
       "file": "32giba-delete-browser.png",
@@ -2752,12 +2752,12 @@
       "keyboardRoundtrip": false
     },
     "32gibb-reply": {
-      "source": "9055647ce869afabf524c547abf26a627464117ec4b6a70c38e393e3d66509d3",
+      "source": "9693e7994640204c57593504fb559b08e6c862a7672bcc93a72cdf6cdbfdb923",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "aa9f75a033648340957482677fa087de6a995da442cc3b95a7f48a444d0423d9",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T15:55:17.573Z",
+      "captured": "2026-10-03T21:28:29.053Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "f8068e276add6d46548c8c6bb5b6f6a634a1cc20556a4cb94abce18bee0178ea",
       "file": "32gibb-reply-browser.png",
@@ -2780,12 +2780,12 @@
       "keyboardRoundtrip": false
     },
     "32gic-owner": {
-      "source": "e3db8b696f9535e288c2dbcd73459f7d47bed2b2e971e587748a2ab96296b155",
+      "source": "d0954bf123ee0b611dfbdb5344eee0da4c2c8bde969ee93f403e9f28f5a462c4",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "161daec683108580e1262497b610a21f8bdd6ed3cef654604782a20574d1ed42",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T16:01:58.669Z",
+      "captured": "2026-10-03T21:28:47.057Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "b2f616817aae91b2e8df9c94452e836dc273882dd1b2d45bfa2ec872f31088d6",
       "file": "32gic-owner-browser.png",
@@ -2808,12 +2808,12 @@
       "keyboardRoundtrip": false
     },
     "32gica-reply": {
-      "source": "2261e5a9890699dcc152434f68ef16cbff5b60d7e0889ed8493dd58f700f08da",
+      "source": "8f2fec06a91435a72bf865aa8a3ed0fde221ae372947c950ff01cf4402faa2d5",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "f7cb1ddd9d8c4027af7fce7659556e90a640b20b6e7af22eb840c2a29396bbb0",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T16:37:28.040Z",
+      "captured": "2026-10-03T21:29:00.168Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "7d8c65a7c29929fd049984ba245178174981bbd813a146c89a0224e4096084da",
       "file": "32gica-reply-browser.png",
@@ -2836,12 +2836,12 @@
       "keyboardRoundtrip": false
     },
     "32gicb-bridge": {
-      "source": "cd8b0a7861b71fd5e0721d2e12b3eeb2fb62cbad973a451abf90ad352dc82255",
+      "source": "318272747e72a568f3fce1c171016b33104681d8638cb867326ff08a1d4f1161",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "2a8f6693a6aac1a37d0633c8c7b88507bebf7bafec97f1a6de558c9d96dd144c",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T16:38:24.841Z",
+      "captured": "2026-10-03T21:29:13.716Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "84c970add35720dabf129ca9ecf77fc63c119e9f9c88087b0f7abed5a65055ff",
       "file": "32gicb-bridge-browser.png",
@@ -2864,12 +2864,12 @@
       "keyboardRoundtrip": false
     },
     "32gid-complete": {
-      "source": "97e38f42fff7ad280e6f7d6b5034429857961ccca82357aa7c073e1ded70bf74",
+      "source": "b558bb33d8b8005febc297887a3c0fe30751aa55bf344160b2508579af8807b6",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3ef2d410a27df5fd87745b3c04cba9de7fe13ec0582cda68fc08602936457741",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T16:53:48.172Z",
+      "captured": "2026-10-03T21:29:27.780Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "66078703b1560ea6e2a650cafff182d5bb73262ecef1f8a872a4898b4c8fce49",
       "file": "32gid-complete-browser.png",
@@ -2892,12 +2892,12 @@
       "keyboardRoundtrip": false
     },
     "32gie-response": {
-      "source": "9e41726caf80d205882ee3a3135450a8c2e51c2b8648600f80914529e065bfb0",
+      "source": "fca27d982af639c2c829d161201fcd5499a9aaaea8e3e3f3437ccfec53af2268",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "2f7876c842a63dd8c1e651224364a557103bd2c01f099f83ea540ab68ac85a90",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T16:56:33.125Z",
+      "captured": "2026-10-03T21:29:42.165Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "58fce3406c5c3a7ba52c8e9c07c3c2a908ac5646d8fcc697caa7db8d35daefa6",
       "file": "32gie-response-browser.png",
@@ -2920,12 +2920,12 @@
       "keyboardRoundtrip": false
     },
     "32gif-auto": {
-      "source": "dd6385bf9eed79f7bb5225dc198aacfdd4d995e3f7e4073bb014f8c985a8ad00",
+      "source": "54cff311524625ad634af81a10b2f343fc37c3353dad342b08398000d1fec296",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "3fd29b45d41f62a942462f4e1f134c127ebcfcbbe9b6e1943aaea79c1555fda0",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:11:55.353Z",
+      "captured": "2026-10-03T21:29:59.163Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "073186b070a04b78112ed8da13856ea925fbccc5a3df45821714e94ce7cce6fd",
       "file": "32gif-auto-browser.png",
@@ -2948,12 +2948,12 @@
       "keyboardRoundtrip": false
     },
     "32gj-precision": {
-      "source": "35f265b6aec03bdbc28091bf4377764eb41e02d13ebbf371080047a643862aa4",
+      "source": "cccd8cd82f990ffb3490168151b40e662d4d6fa25add74381a3cc79e0cb3b31d",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "da732bc0bf0d9c3999a48e1e4916f6e711ed142788239b7549ed0e79397e5f49",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:12:24.912Z",
+      "captured": "2026-10-03T21:30:35.466Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "25bb5a851f86a65ed441b4bc5e265a1e1568e05ab36a125393c56c5282f32429",
       "file": "32gj-precision-browser.png",
@@ -2976,12 +2976,12 @@
       "keyboardRoundtrip": false
     },
     "32gja-failures": {
-      "source": "2d5f201d0d48c03c67b6c966fa204cd6a4160a4afba4baa6935b2b71336fe64d",
+      "source": "8d42b06e376f5c64cecf8138d868e4e1b6e225b730e792c996cdb8315ae1c126",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "521128cf2934e933faf185625d428e9259ff49fb4a8d86d90d78fb2a1bf49ac3",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:13:01.386Z",
+      "captured": "2026-10-03T21:31:11.943Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "2a77438807742541d19ed53cc5db4d57ddf7fb598106341f19e4ad2fceda5a22",
       "file": "32gja-failures-browser.png",
@@ -3004,12 +3004,12 @@
       "keyboardRoundtrip": false
     },
     "33-owner": {
-      "source": "159ca6766816a23e27a7bc5594ee5ec3400c719e8daef3d5a7ac6a1b9a9247fb",
+      "source": "998b7d4d86388c06d0eea315123835299f54a41ddb9dffcdd6bf1ef7785df361",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "9b20f33b144a3433f04e510b34c2b01d9572e4a9f8a1b6cc588f701a7494e9f4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:19:29.080Z",
+      "captured": "2026-10-03T21:31:48.627Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "f8c1eccfd66a5de5cfeb71bc90aeb33dd6a1576abc476f30a5bd0b1290c76eb8",
       "file": "33-owner-browser.png",
@@ -3032,12 +3032,12 @@
       "keyboardRoundtrip": false
     },
     "33a-runtime": {
-      "source": "0043277e0fce6adab47d16abcc11c4d80d1cd4723009786f658577465054dbbc",
+      "source": "ecf9770b4f19a664cfda393a082a7921c848a9b47c6e1224d2d4e12be2638d50",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "355fbda4bcbc07e146c4b6a990968aeb415c13885cc14a311d2fa88c5d64da30",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:29:23.105Z",
+      "captured": "2026-10-03T21:32:29.743Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "fcfb9638f8e6d87ba0ad1fcd6f9abec53ab8031591e4047985a127aa10f4f8b3",
       "file": "33a-runtime-browser.png",
@@ -3060,12 +3060,12 @@
       "keyboardRoundtrip": false
     },
     "33b-cache": {
-      "source": "75ad2d47b608ec0f7e416f97170f9ba2b5a6f8479d2b7ae2872fed6c20779c98",
+      "source": "5d3e2679f9e48fe871fac554301fd26f25132fdf6cd8bcac03418198492a600a",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "0690a52a033f5792606bd490e386164230e4c460bf13afb387b4f0d63be36cd9",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:50:06.912Z",
+      "captured": "2026-10-03T21:33:13.704Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "a0dd51cf5de3318f875ab911f282a7e447dfea2d154d6699e7eadf2efda5e015",
       "file": "33b-cache-browser.png",
@@ -3088,12 +3088,12 @@
       "keyboardRoundtrip": false
     },
     "34-fault": {
-      "source": "2116ff34d81e8b8f9cfd8d1c171791c66cf9ef624a568a233f5e4d3e461f5633",
+      "source": "89e039260d98bd8636add906a974db64086586fda1a9c88846239edc549ab99b",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "b40b4213285df95c3eefb7a0c3b261983faad605b59a954e85007b068a836077",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T17:55:40.314Z",
+      "captured": "2026-10-03T21:33:58.219Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "9b46f64196c41f8b6a724430dcf1ed0962e38270000273201050f6ad2b2a5fec",
       "file": "34-fault-browser.png",
@@ -3116,12 +3116,12 @@
       "keyboardRoundtrip": false
     },
     "34a-stop": {
-      "source": "65fbdaf169f0b8781e84ed4ac09a906661b5af900a2e70792e8da16be4d98a91",
+      "source": "7f3c6b1f7189c579be95ac882296ac9ae76440fc6a463e81eed93e2159461bc8",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "feea8198c4a30ced766c700e8d8d6b75457424997563fa71450ba8d7ed57b067",
+      "extraChecker": "ab02b8c61e05fcf723b377aa8149e9cc977291288ca0eff0050a2f13175d0c5b",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:00:54.432Z",
+      "captured": "2026-10-03T21:40:23.776Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "c2dffe95024e2e2fd7935ff5628499cdcee372b7c6fd20b98a959ff468c2cc9b",
       "file": "34a-stop-browser.png",
@@ -3144,12 +3144,12 @@
       "keyboardRoundtrip": false
     },
     "34b-report": {
-      "source": "db31e103bc290a25ed615b88640d9948a2412c7f5a9e65434a80b1ef24f707f6",
+      "source": "e0f6aa12cffe65263b547d973a7484077e23f8c19d36c66172c9ab0d59c66730",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "e67f38db41c8206e969de4b168ae1373df8577147af16aa84f7901b5fceadc33",
+      "extraChecker": "9c41c7c4dc480036aee09656ca82d4b1da31853a50408c0e50720f9552798605",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:07:24.134Z",
+      "captured": "2026-10-03T21:41:12.138Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "effbbdf8faba868da1943c692a0c4ca416effe36234a26987f5ee3ecfba369aa",
       "file": "34b-report-browser.png",
@@ -3172,12 +3172,12 @@
       "keyboardRoundtrip": false
     },
     "34ba-events": {
-      "source": "fa06f614f1e16e89d89a144cc19e02e24436ca24f5eae81b57755ad5be9d8579",
+      "source": "46fb291a922778d53d4d6984a8fcbd5b076e64202528d72b2540acad817d99e6",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "c52a3b68b4595b483fe0a0407bff1d41f4e9d4ab0c7bfd612cf0860b4534c959",
+      "extraChecker": "afde12acf00200d0fc3c6bbf23918cc7a4d9461ad6771079c6a9a00115aaaf19",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:09:46.541Z",
+      "captured": "2026-10-03T21:43:30.231Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "cda6b20c901e340ea89c830e25e977c8a73a9fa039cd45fdce01dc46df6b9120",
       "file": "34ba-events-browser.png",
@@ -3200,12 +3200,12 @@
       "keyboardRoundtrip": false
     },
     "34c-browser": {
-      "source": "3f9af0e809b6b84629ec81aeaf4b6850bc73d8d1bff8112ee9259a7fe3e696b5",
+      "source": "613dd37b0a4ee27074c6333c7016c24abc6d29a4546a759409427488044f3335",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "0873a6b53a5d22137f2c73d7839ed938c2e6811b2e07d17b3c89f16ac7f438cf",
+      "extraChecker": "06fbc28dd63ca982a3455e14975b491bcaf2c62b5b2a9fbafd9cf9981ee5a80e",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:14:21.067Z",
+      "captured": "2026-10-03T21:44:21.778Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "60451ac94b00b0c0ba59bd17eb38750362180e93f37d5c9370f8bca8f6b26293",
       "file": "34c-browser-browser.png",
@@ -3228,12 +3228,12 @@
       "keyboardRoundtrip": false
     },
     "34d-download": {
-      "source": "d1146dea322527abbdcc2f421de2bd5b0aea3144f9ad7e2aa216e904cb7e0b72",
+      "source": "75519dac5125bd91967e18f6759a4bb997de9564b62ceaa2b080d789f4bcf8ad",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "2a4aa2564dadb9c85a5025fdbf439fac3396b1d881bfbf5a371e3d8319b18032",
+      "extraChecker": "326a055fff523bf81c6b893a56a06de4fdeff500b300af67b33f41cf511e9b3d",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:17:51.893Z",
+      "captured": "2026-10-03T21:50:00.816Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "7bbeb8b95fad70b6bd261e7c1bae52d41d670726d50013eb263e2b9b07757440",
       "file": "34d-download-browser.png",
@@ -3256,12 +3256,12 @@
       "keyboardRoundtrip": false
     },
     "34e-schema": {
-      "source": "b80d14823761972fd30b93459f1b9e1a6cf745c8eb54ba923b09327db0f0065c",
+      "source": "0a1419a1626e2854ea4971dcb2621f81dea001f0c6252e1e4e49ada2a1f0d6c4",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "33bd246cd0689bf8728feecf0e18f044bdacce3a8623541b4b8fc5f9fbfc8b77",
+      "extraChecker": "4f3e89705f8390e5669645811408367e1f91175289f3221df22bf80fcd64747a",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:46:31.253Z",
+      "captured": "2026-10-03T21:51:08.034Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "07ba8fd8a65476adf6baa192acc3d445cddc85b92837a69f0b9a1c5257b40fab",
       "file": "34e-schema-browser.png",
@@ -3284,12 +3284,12 @@
       "keyboardRoundtrip": false
     },
     "34ea-decode": {
-      "source": "9ffe2e332b5f7e6d8215951a00016a51ff56e8ba8a0fbcb07d126c5b4b223641",
+      "source": "eb3ac789811b1a54befffb79c6fb28d44c7c5e6f85e23548dfdeefb27b0e14f2",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "619cb5caa71c5466174cc490b3faec814882aa17d4f65bd53bc72eae0be64dce",
+      "extraChecker": "0dd7b8481dcf424f5c00a9d1fbcaab3232fb0f033764abdcd8d8a43948b98142",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:47:52.403Z",
+      "captured": "2026-10-03T21:52:18.210Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "fbb08f3eaa83b9469602694b8278107328350d6ae7d939e6d8c34218429e2ca8",
       "file": "34ea-decode-browser.png",
@@ -3312,12 +3312,12 @@
       "keyboardRoundtrip": false
     },
     "34eb-recency": {
-      "source": "e56709ec4d9ddb6f82e9d26fb92f5ff340c159207ed086ad08a8025c371f2e96",
+      "source": "72b5f2534efdc316ee87cdee5f5a69186e718ea5feaf3edba7643c793f616014",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "ea51df03e5235fd5d213e64d60bd7590f112f53ee5cccd75f1c1595e55d899b6",
+      "extraChecker": "bcdd8578c9ca3280f1a48f5999b85e2d25dc96659df84cae562f5991cb183926",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:49:14.116Z",
+      "captured": "2026-10-03T21:53:25.473Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "93e8e0b1e158e5fd708feb44b45b1021082ab6d58c1134aa933969d7149d290c",
       "file": "34eb-recency-browser.png",
@@ -3340,12 +3340,12 @@
       "keyboardRoundtrip": false
     },
     "34ec-proof": {
-      "source": "fd2044ae669236a4affb16ff9d2c231a02bc3e44df9be1a668992eb08f8875a6",
+      "source": "f84d33f04d639a23532d80ff20ae36da60237b5aa3d76e6605e5abfc41610c0f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "4304752ad046fd2ce9cbef4e46699de89b1f051a6f18f32841f0f544bda9bc4c",
+      "extraChecker": "d8a8ee4ce3717337bcde3dc7848046c82480ed5d8c50b06ec80d17d1c2641237",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T18:50:57.645Z",
+      "captured": "2026-10-03T21:54:38.155Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "454a385a395845e4aefb16421ab20dcbe146e9a163e573b9efb273095f23799c",
       "file": "34ec-proof-browser.png",
@@ -3368,12 +3368,12 @@
       "keyboardRoundtrip": false
     },
     "34f-storage": {
-      "source": "3aad1864f31574b81df6f03ab100d0256dd8331c1308255ed8104c6004fbe966",
+      "source": "6e2835c3aa4b6d1c29c06cc7e3498382b3c390b98ba47fe93f3cd84df2cad892",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "478151d15a3aa77bfc4a1e1d6bd969c4ce57615968ea5fd3539e2d8398f4593a",
+      "extraChecker": "fb28a71ac731037e1151e1679562ab52dafdba0e0665a2362c294fdb66cd0a26",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T19:05:03.946Z",
+      "captured": "2026-10-03T21:55:46.258Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "a60006f41260118ac73d6f83b9029c1fc6b257f9b48eab5236460e7693092d2d",
       "file": "34f-storage-browser.png",
@@ -3396,12 +3396,12 @@
       "keyboardRoundtrip": false
     },
     "34fa-retain": {
-      "source": "3d50e4a009282ee90cbb34e257a2c21546cd1b6b15c0dd414c9442dca3605db5",
+      "source": "4b3d6e276b84fee908430e5050e129ed6eb9b96b1ad3e46d12019e3f63b52aaa",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "f506c03a856f5e0a839223e86a3f5eb3cb51a90b4590230bcd0103b5ef678831",
+      "extraChecker": "bda6f0e3f9483d62e593d4325f64aa1c441f917f2ec1f19a2bea79657ef65696",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T19:08:40.484Z",
+      "captured": "2026-10-03T21:56:58.086Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "da132a61dd31081851c6227b08a472fc12d0533dfdd059188e2daff5e22b482a",
       "file": "34fa-retain-browser.png",
@@ -3424,12 +3424,12 @@
       "keyboardRoundtrip": false
     },
     "34fb-store": {
-      "source": "0adb91861625dd6ec22a62d1fdebc6f75b6e90892c5a3ff8dd06dbf9a0082864",
+      "source": "0d1c37716979c0bd9e0322def2de5ef5a47627fbc91c332ba96258c10b92027f",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "aff9fc4bd3c96a667305a3f4fbebf9d8c4a4a4f979a766dcf4f25d7f272aa348",
+      "extraChecker": "ea379081fdf6e5026e32a43ef2d031e931269804280ef359395e939a612b21d4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T19:10:20.585Z",
+      "captured": "2026-10-03T21:58:23.179Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "858b9c02b7bb56af87d50c5e707c6cd044404e9f0d3b14b2f38154192063e8c8",
       "file": "34fb-store-browser.png",
@@ -3452,12 +3452,12 @@
       "keyboardRoundtrip": false
     },
     "34fc-retention": {
-      "source": "c35bab75004a6ea796ff675ff536368cbcfff8747b1c0046c1463b9c3881cb77",
+      "source": "bf92c73ff1c0b1e4d3d0f66896ad317112c04371c51c23889456b55af4e09a02",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "1ab20de0f445751a737b6eb14faabc574e3fd8adbc67b36b0bade617c06b0deb",
+      "extraChecker": "916845236eecb31283d3580f6f34f8f344c345cff2bb0f91428ceb0eb6e94e50",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T19:26:04.046Z",
+      "captured": "2026-10-03T21:59:52.009Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "84a2a4f8d3b2a07e59928b9adc3af899bf9afe3892f9e6e7904b07da9e22ba40",
       "file": "34fc-retention-browser.png",
@@ -3480,12 +3480,12 @@
       "keyboardRoundtrip": false
     },
     "34g-heartbeat": {
-      "source": "486d3ebe227114efa7caed8f72a57612eecfc960561993e57a6acf99384fca15",
+      "source": "0d141795dd3c1c6e4a3de9732d662323efd4f80f224b1ddfe4c9c572a7b1eab3",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "2e064547db7118c8a97bea7feb62a15e4d52e9ce3785976ce3510916b159a074",
+      "extraChecker": "cd40300c7dcc72cd065575781367bd479eef5d35370093cba9699d262e085636",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T19:40:22.373Z",
+      "captured": "2026-10-03T22:01:22.472Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "9ff5c3c63df99490cc2a051121d11364fe6c8936d7176966dd93adbc26960979",
       "file": "34g-heartbeat-browser.png",
@@ -3508,12 +3508,12 @@
       "keyboardRoundtrip": false
     },
     "34ga-timer": {
-      "source": "f32036f5f2c1a43f6231a3b981b0d346fb337d55d2ba4f5ee4957f737b6848ba",
+      "source": "1c076a72ced2304ebb8b1afaa3a33a1b99bb1c92997590abd8123f4e64204ecd",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "b54d7d2e7bfd80b4324949dce8a59acb0f73b2582f249625104a90daa62ab6ee",
+      "extraChecker": "e249d405cde550ec9c17df1cc4c50cb0a1714c78daf14bcfe13e24ff89cf233c",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T19:46:26.178Z",
+      "captured": "2026-10-03T22:03:00.783Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "e7ca18efe1a1da4b070b76a0892f34cef0b8c1003d2be5181d2cb085bfe66903",
       "file": "34ga-timer-browser.png",
@@ -3536,12 +3536,12 @@
       "keyboardRoundtrip": false
     },
     "34gb-close": {
-      "source": "6a765a5dc69f1bbb4ce41509e9a6bceee2147e090ab0880e286699fe58bc8f0e",
+      "source": "c41ba452be0432770f367552c80a5eb9cfee633678a5800f245855d30278c731",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": "3414eb23505f2d361dcea0669a874f31934b8730d638b233a83340bb9579a61f",
+      "extraChecker": "f88cb13e21f36d0d9106761981a307bce3e0116738695d1c703bee0fd96120cd",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T20:00:19.814Z",
+      "captured": "2026-10-03T22:04:41.866Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "5ec4f6de6a74225e04788fd43bee906e7b3501ec5e91f12032de545c7ab82a02",
       "file": "34gb-close-browser.png",
@@ -3564,12 +3564,12 @@
       "keyboardRoundtrip": false
     },
     "34gba-lifecycle": {
-      "source": "b6f458958d1e38a644d52fea1973dd73ee2e75897f80b9068446a9959dd6310c",
+      "source": "4d54d29497cba5a0ed49714d0036db3846ba74e381831715f71fe24434551ee3",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": "bf2dd7133ec492b63197b5eb60223e321b0b401e283b7453f5c4038eb172d6c8",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T20:00:34.911Z",
+      "captured": "2026-10-03T22:05:00.654Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "bc7ab457ac91a98e97c1b567921e5ec4608083c6b4497b929b6905c6d9e8c58c",
       "file": "34gba-lifecycle-browser.png",
@@ -3588,6 +3588,34 @@
         "height": 760
       },
       "bundle": "7fb617fa5f3f85fb800929463805cefff03369e5faca86427e3f86c0c4a8afbd",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "01a-gpu": {
+      "source": "64bd1ac98c79b12cf7a2eb464e0ff52e3962d87198420565e63181e00585b343",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T20:58:17.707Z",
+      "status": "The GPU painted the canvas.",
+      "canvas": "de7b8ad40c47df704867884ac8403f9d4f1df3a89bd1dd44a55c5646ac4a61d9",
+      "file": "01a-gpu-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "c8a3dc5027b4dd95b7655c888917cd0adb43906eadedccc0d0f239497ba5bf85",
       "commands": [],
       "keyboardRoundtrip": false
     }

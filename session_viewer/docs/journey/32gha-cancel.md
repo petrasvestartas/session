@@ -22,11 +22,14 @@ Continue from [Restore editable sources through the command line](32gh-command.m
 
 Invalidate the old reload as soon as replacement intent begins.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 read_mode.set(if line == "open replace" { crate::file_input::Mode::Replace }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -38,11 +41,14 @@ Replace that block with:
 
 Remove reload keys and abort I/O before changing the current document context.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if let Some(action) = action {
 ```
+
+</details>
 
 Replace that block with:
 

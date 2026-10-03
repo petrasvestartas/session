@@ -34,11 +34,14 @@ Create the file and type:
 
 Keep browser interval ownership out of the native editor model.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod report_storage;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Replace that block with:
 
 Retain metadata scheduling independently of the GPU runtime lifetime.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     static PREVIOUS: RefCell<Option<Report>> = const { RefCell::new(None) };
 ```
+
+</details>
 
 Replace that block with:
 
@@ -66,7 +72,8 @@ Replace that block with:
 
 Install periodic metadata refresh at run startup; report scheduler unavailability without rejecting drawing or current downloads.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let _ = persist(); Ok(())
@@ -74,6 +81,8 @@ Find this exact block:
 
 pub fn observe
 ```
+
+</details>
 
 Replace that block with:
 
@@ -85,11 +94,14 @@ Replace that block with:
 
 Replace one owned interval at a time, cancel outside the slot borrow, and keep the callback metadata-only.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn persist() -> bool {
 ```
+
+</details>
 
 Replace that block with:
 

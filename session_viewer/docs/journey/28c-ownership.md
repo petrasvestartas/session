@@ -36,12 +36,15 @@ Create the file and type:
 
 Compile the connected ownership checks with the current scene.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod prepared_tests;
 ```
+
+</details>
 
 Replace that block with:
 

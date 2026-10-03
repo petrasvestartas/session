@@ -24,12 +24,15 @@ Continue from [Read live diagnostic context outside the GPU runtime](34c-browser
 
 Reuse the existing owned Blob/anchor cleanup for a named report while keeping Save’s filename unchanged.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn download(bytes: &[u8]) -> Result<(), JsValue> {
     let window
 ```
+
+</details>
 
 Replace that block with:
 
@@ -41,11 +44,14 @@ Replace that block with:
 
 Choose the diagnostic JSON filename without changing the document download contract.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     anchor.set_download("viewer.session");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -57,11 +63,14 @@ Replace that block with:
 
 Download a current metadata snapshot and attempt one automatic download for the first fatal observation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen)]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -73,11 +82,14 @@ Replace that block with:
 
 Keep the matching device’s failure evidence after its GPU runtime is disposed.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if crate::browser_runtime::stop_if(&fault) { report(&format!("Cannot draw: {message}")); }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -89,12 +101,15 @@ Replace that block with:
 
 Expose diagnostics through the actual command dock without an HTML feature button.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Save",
             "Example Box",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -106,13 +121,16 @@ Replace that block with:
 
 Mark the report ready only after the initial scene frame is presented.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         )?;
     }
     let input_canvas = canvas.clone();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -124,11 +142,14 @@ Replace that block with:
 
 Handle the typed report command separately from document Save and edit history.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             } else if line == "save" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -140,11 +161,14 @@ Replace that block with:
 
 Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             browser::report(&format!("Cannot draw: {error:?}"));
 ```
+
+</details>
 
 Replace that block with:
 

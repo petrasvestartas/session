@@ -22,11 +22,14 @@ Continue from [Prove restored Save keeps the source doubles](32gj-precision.md).
 
 Register multiple-source completion acceptance checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod reload_precision_tests;
 ```
+
+</details>
 
 Replace that block with:
 

@@ -8,17 +8,13 @@
 
 **Follow:** Six indices → four shared positions → vertex shader → two joined triangles.
 
-Imagine numbering the corners of a paper diamond. To name its bottom triangle, say “0, 1, 2”. To name its top triangle, say “0, 2, 3”. The numbers tell us how to connect corners; they do not contain coordinates themselves.
+Store four corner positions and connect them with indices: `0, 1, 2` and `0, 2, 3`. The two triangles now share corners 0 and 2.
 
-That is an **index buffer**. The position buffer answers “where is corner 2?” The index buffer answers “which corners make this triangle?” Changing one shared position now changes both triangles consistently.
+The vertex buffer answers where a corner is; the index buffer answers which corners form a triangle. Changing a shared position changes both triangles.
+
+These indices are `u16`, so bind the index buffer as `Uint16`. Each index occupies two bytes; each position still occupies eight. `draw_indexed` chooses index entries, adds its base-vertex value, then draws the requested instances. The shader keeps its previous input layout.
 
 ![Two triangles refer to four numbered positions, sharing positions zero and two along their common edge.](../illustrations/journey-06.svg)
-
-We use `u16`, an unsigned 16-bit integer, for these four indices. The draw call must read the buffer as `Uint16`. Each index takes two bytes; each position still takes eight. Larger meshes may need `u32` indices, but the idea is unchanged.
-
-In `draw_indexed`, the first range chooses index entries. The middle argument, zero, is added to each index before looking up a vertex; later a shared buffer can use that base to locate another mesh. The last range still draws one instance.
-
-The shader does not need an “indexed” version. It receives a position in exactly the same layout as before. We change the Rust resources and draw command that supply those positions.
 
 ## Type the change
 
@@ -28,7 +24,8 @@ Continue from [Let Rust supply the corners](05-vertices.md). Save your own work 
 
 Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -48,6 +45,8 @@ pub struct Renderer {
 impl Renderer {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -58,7 +57,8 @@ Replace that block with:
 
 Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             contents: &bytes,
@@ -68,6 +68,8 @@ Find this exact block:
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -79,7 +81,8 @@ Replace that block with:
 
 Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             multiview_mask: None,
@@ -91,6 +94,8 @@ Find this exact block:
     pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -101,7 +106,8 @@ Replace that block with:
 
 Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             });
@@ -113,6 +119,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -123,7 +131,8 @@ Replace that block with:
 
 Connect share a corner between triangles to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -133,6 +142,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

@@ -28,7 +28,8 @@ Continue from [Prove recovery at the transaction and display boundaries](30e-rec
 
 Upload original vertex colours regardless of which object is selected.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             let mut display = *vertex;
@@ -37,6 +38,8 @@ Find this exact block:
             }
             for value in display {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -48,12 +51,15 @@ Replace that block with:
 
 Use one encoder for the complete object uniform.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let bytes: Vec<u8> = object.model.m.iter()
             .flat_map(|value| (*value as f32).to_ne_bytes()).collect();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -65,13 +71,16 @@ Replace that block with:
 
 Encode the matrix, selection and padding at their shader offsets.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 }
 
 impl GpuMesh {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -83,11 +92,14 @@ Replace that block with:
 
 Describe the same eighty-byte object layout in WGSL.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 @group(1) @binding(0) var<uniform> model: mat4x4<f32>;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -99,11 +111,14 @@ Replace that block with:
 
 Read placement from the object settings structure.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
     let world = model * vec4<f32>(position, 1.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -115,11 +130,14 @@ Replace that block with:
 
 Choose the displayed colour per object without rewriting vertices.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
     output.colour = colour;
 ```
+
+</details>
 
 Replace that block with:
 

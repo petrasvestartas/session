@@ -24,11 +24,14 @@ Continue from [Prove cancelled work releases its source owners](32gfa-ownership.
 
 Enable only the browser types used by streaming and cancellation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 "Url", "HtmlAnchorElement"]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,12 +43,15 @@ Replace that block with:
 
 Keep browser promises and streams out of the native editor.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod browser;
 ```
+
+</details>
 
 Replace that block with:
 

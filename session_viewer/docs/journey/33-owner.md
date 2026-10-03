@@ -32,12 +32,15 @@ Create the file and type:
 
 Register browser-only lifetime ownership without changing native rendering.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod panel;
 ```
+
+</details>
 
 Replace that block with:
 

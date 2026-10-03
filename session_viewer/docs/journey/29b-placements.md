@@ -8,19 +8,15 @@
 
 **Follow:** Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects.
 
-The snapshot contains local geometry and separate placement records. Extend the loader to accept exactly that contract. A transform is trusted only after its GUID belongs to a mesh, it occurs once, and its message contains sixteen finite values with an affine final row.
+Accept the saved file's separate placement records. Each must identify an existing mesh, occur once, and contain sixteen finite values with an affine final row.
 
-Put the matrix rule in placement::valid so file loading and Scene::place enforce the same boundary. The kernel Xform constructor can accept a short message by leaving other entries at defaults; the file validator must reject that ambiguity before construction.
+Share this rule through `placement::valid` for loading and scene placement. Validate before constructing `Xform`: its defaults must not silently fill a short file matrix.
+
+`PreparedMesh` now carries a model matrix. Generated geometry starts at identity; loading copies the validated source placement; insertion retains it.
+
+Snapshot and load now use the same complete validator. Tests reject short, non-finite or projective matrices and orphan or duplicate placement entries before scene mutation. Exact round-trip checks come next; the browser download follows those.
 
 ![The loader validates mesh identities and affine placements, then prepares local source/display pairs with one object matrix.](../illustrations/journey-29b.svg)
-
-PreparedMesh now carries a model matrix, initially identity for generated geometry. During load, copy the validated placement for that mesh GUID from the retained session. Scene insertion takes the prepared matrix instead of replacing it with identity.
-
-The snapshot can now call the same full validator as load. No temporary copy with placements removed is necessary. Both directions accept the same bounded flat-mesh subset.
-
-The snapshot checks still compare unchanged local source data and separate placement. The next lesson checks exact save/reopen round trips. The malformed-message checks reject short, non-finite and projective matrices, orphan GUIDs and duplicate placement entries before any scene changes.
-
-Save is still a Rust function today. The next lesson connects its bytes to the command dock and a browser download.
 
 ## Type the change
 
@@ -40,11 +36,14 @@ Create the file and type:
 
 Expose the shared matrix validator.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod prepared;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -56,12 +55,15 @@ Replace that block with:
 
 Make direct placement edits use the same rule as imported files.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         if !model.m.iter().all(|v| v.is_finite())
             || [model.m[3], model.m[7], model.m[11], model.m[15]] != [0.0, 0.0, 0.0, 1.0]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -73,11 +75,14 @@ Replace that block with:
 
 Carry the validated object placement beside local source geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub source: Option<Source>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -89,11 +94,14 @@ Replace that block with:
 
 Generated geometry begins with identity placement.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Ok(Self { geometry, display, source: None })
 ```
+
+</details>
 
 Replace that block with:
 
@@ -105,11 +113,14 @@ Replace that block with:
 
 Retain the validated stored placement without baking it into source vertices.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -121,11 +132,14 @@ Replace that block with:
 
 Insert each prepared model exactly once.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             model: session_rust::Xform::identity(), source: prepared.source });
 ```
+
+</details>
 
 Replace that block with:
 
@@ -149,12 +163,15 @@ Delete this block.
 
 Validate the complete saved message now that the loader accepts placements.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let mut geometry = message.clone(); geometry.xforms.clear();
     validate(&geometry)?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -166,12 +183,15 @@ Replace that block with:
 
 Accept placements while keeping the other unsupported source families explicit.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
         return Err("Placements, definitions and interactions arrive in later checkpoints");
 ```
+
+</details>
 
 Replace that block with:
 
@@ -183,11 +203,14 @@ Replace that block with:
 
 Reject unknown, duplicate, incomplete, non-finite or projective placement records before kernel construction.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -209,12 +232,15 @@ Create the file and type:
 
 Compile the malformed-input checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod snapshot_tests;
 ```
+
+</details>
 
 Replace that block with:
 

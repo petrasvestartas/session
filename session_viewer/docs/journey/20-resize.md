@@ -10,19 +10,15 @@
 
 **Follow:** CSS rectangle × display density → bounded pixel size → canvas and surface + depth image + camera aspect → draw.
 
-Our canvas has filled the window since lesson 01, and the GPU has used the startup window size since lesson 02. Now narrow the window after opening it: we need to update the image dimensions as well as the CSS layout. Today we add that response and support sharper drawing on dense displays.
+Keep the GPU image and camera proportional when the window changes. CSS pixels describe layout; drawing pixels equal layout size multiplied by display density.
 
-There are two measurements. **CSS pixels** describe page layout. **Drawing pixels** describe the GPU image. A canvas 768 CSS pixels wide on a display with a density of 2 needs 1536 drawing pixels across. Geometry should look the same size on the page, just sharper.
+The viewport helper caps both dimensions together at the device texture limit. `Some(size)` permits drawing; `None` means hidden or invalid measurements. Do not configure zero-sized textures.
+
+Before redraw, update canvas and surface dimensions, depth texture, and camera aspect together. Recreate textures only when size changes. The existing browser callback owns the editor and renderer and also handles resize events.
+
+Camera reset must preserve the current aspect. Its test catches a reset that would stretch the scene after resizing. Dense displays use more drawing pixels while retaining the same visible geometry size.
 
 ![One measured pixel size feeds the surface, depth attachment and camera; all three must agree before the next draw.](../illustrations/journey-20.svg)
-
-The viewport helper multiplies layout size by display density, then caps both dimensions together if the image would exceed the GPU's limit. Its result is an `Option`: `Some(size)` means we can draw; `None` means the canvas is hidden or the measurements are invalid. A zero-sized GPU texture is not a useful placeholder.
-
-The browser will update three things together: the canvas and surface, the depth image, and the camera's aspect ratio. Here **aspect** means width divided by height. A wide canvas needs a wide view, not a stretched box.
-
-Clicks and window resize events can share one callback. Browser events arrive one at a time; the callback already owns our mutable editor and renderer. The window clone is another handle to the same browser window, not another window. We check size before every redraw, but recreate textures only when the dimensions change.
-
-Keep the aspect while resetting the camera pose, just as we did when introducing perspective. This rule now belongs in Editor, where all actions meet. The new test catches this, so resizing cannot quietly stop working after a reset.
 
 ## Type the change
 
@@ -42,11 +38,14 @@ Create the file and type:
 
 Reset the camera pose while retaining the current viewport proportions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     Action::ResetView => self.camera = Camera::default(),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,12 +57,15 @@ Replace that block with:
 
 Catch a resize bug that would otherwise return whenever the learner presses Reset view.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn undo_changes_the_document_without_rewinding_the_view() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -75,7 +77,8 @@ Replace that block with:
 
 Make the size calculation usable by browser code and Rust tests.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod picking;
@@ -85,6 +88,8 @@ pub mod gpu_mesh;
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -96,7 +101,8 @@ Replace that block with:
 
 Reuse the depth helper from lesson 10 with the measured Viewport dimensions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { device, queue, pipeline, meshes, uniform, view_group, depth }
@@ -113,6 +119,8 @@ Find this exact block:
             label: Some("opaque depth"),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -123,7 +131,8 @@ Replace that block with:
 
 Reuse the depth helper from lesson 10 with the measured Viewport dimensions.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         depth_texture.create_view(&Default::default())
@@ -136,6 +145,8 @@ Find this exact block:
     pub fn draw(
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -146,7 +157,8 @@ Replace that block with:
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::background::Background;
@@ -156,6 +168,8 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 pub fn report(message: &str) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -167,7 +181,8 @@ Replace that block with:
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -186,6 +201,8 @@ Find this exact block:
         config.format.add_srgb_suffix(),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -196,7 +213,8 @@ Replace that block with:
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         ],
@@ -216,6 +234,8 @@ Find this exact block:
             Err(error) => {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -226,7 +246,8 @@ Replace that block with:
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 return;
@@ -238,6 +259,8 @@ Find this exact block:
             (event.type_() == "click"
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -248,7 +271,8 @@ Replace that block with:
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 }
@@ -271,6 +295,8 @@ Find this exact block:
     for name in [
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -281,7 +307,8 @@ Replace that block with:
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         "blur",
@@ -306,6 +333,8 @@ fn present(
     surface: &wgpu::Surface<'_>,
     renderer: &Renderer,
 ```
+
+</details>
 
 Replace that block with:
 

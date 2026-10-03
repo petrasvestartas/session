@@ -10,19 +10,15 @@
 
 **Follow:** command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
 
-Our renderer still contains the coordinates of the demonstration triangles. That makes it both the drawing machine and the drawing itself. We now have enough moving parts to give the scene its own home.
+Move geometry out of the renderer. `Mesh` owns validated CPU vertices and indices; `Scene` owns meshes. `GpuMesh` owns an uploaded representation; `Renderer` draws those representations.
 
-`Mesh` owns ordinary Rust vertex and index vectors. It checks their basic contract before accepting them. `Scene` owns a list of meshes. Neither type knows about a browser or GPU. `GpuMesh` owns the uploaded representation of one mesh. `Renderer` owns the drawing recipe and the current list of those GPU representations.
+An add command changes `Scene`, uploads it, then redraws. Camera commands only upload a view uniform. Neither path creates a new renderer or resets the camera.
+
+`Mesh::new` returns `Result` because invalid indices must be rejected before drawing. Private fields and read-only slice accessors preserve that contract. Fixed example coordinates use `expect`; file data will need recoverable errors.
+
+For this small scene, a document change replaces all mesh buffers. Later lessons update only changed objects. The extra green triangle makes add → upload → draw visible.
 
 ![The browser owns Scene; each Mesh supplies CPU data to a derived GpuMesh, and the renderer draws those uploaded resources.](../illustrations/journey-11.svg)
-
-Follow an addition all the way through. The command changes the scene list. The renderer uploads that list. Its next frame loops over the uploaded meshes, with one shared pipeline and one camera uniform. Nothing creates a second renderer or resets the camera.
-
-The small `Mesh::new` constructor returns a `Result` because bad indices must be caught before a draw. Its fields are private, and its accessors lend read-only slices. A caller can inspect the data without changing it behind the constructor's checks. Our fixed demonstration coordinates use `expect`: a failure there is a mistake in our own listing. A later file loader must show invalid user data as a recoverable error instead.
-
-For this small scene we replace all mesh buffers after a scene change. That is a clear first synchronization rule, and it releases the renderer's old handles. It would upload too much in a large scene. Later we will identify changed objects and replace only their display data. Camera actions already avoid this upload: they only redraw with a new uniform.
-
-You will move code you understand into three focused files. This is a change of ownership, not a new rendering technique. The extra green triangle makes the complete add → upload → draw path visible.
 
 ## Type the change
 
@@ -62,7 +58,8 @@ Create the file and type:
 
 Register the three new owners.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod background;
@@ -71,6 +68,8 @@ pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -82,7 +81,8 @@ Replace that block with:
 
 The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -129,6 +129,8 @@ impl Renderer {
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -139,7 +141,8 @@ Replace that block with:
 
 The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             }],
@@ -151,6 +154,8 @@ Find this exact block:
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -161,7 +166,8 @@ Replace that block with:
 
 The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             });
@@ -175,6 +181,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -185,7 +193,8 @@ Replace that block with:
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::background::Background;
@@ -195,6 +204,8 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 pub fn report(message: &str) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -206,7 +217,8 @@ Replace that block with:
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         .ok_or("No compatible surface format")?;
@@ -224,6 +236,8 @@ Find this exact block:
             "Zoom Out",
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -234,7 +248,8 @@ Replace that block with:
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 
@@ -244,6 +259,8 @@ Find this exact block:
                 "zoom in" => camera.zoom(2.0),
                 "zoom out" => camera.zoom(0.5),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -255,7 +272,8 @@ Replace that block with:
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -265,6 +283,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

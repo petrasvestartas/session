@@ -26,11 +26,14 @@ Continue from [Count shared CPU displays once](32a-cpu.md). Save your own work f
 
 Read actual buffer sizes, including initialization alignment.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +45,14 @@ Replace that block with:
 
 Report the independent settings buffer owned by one GPU row.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,12 +64,15 @@ Replace that block with:
 
 Count shared geometry once while retaining each row’s separate settings cost.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod tests {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -75,11 +84,14 @@ Replace that block with:
 
 Distinguish live document resources from cumulative upload/write counters.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn stats(&self) -> [usize; 4] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -91,11 +103,14 @@ Replace that block with:
 
 Expose live document buffer sizes without adding runtime controls.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
 ```
+
+</details>
 
 Replace that block with:
 

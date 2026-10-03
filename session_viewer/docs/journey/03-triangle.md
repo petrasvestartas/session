@@ -8,21 +8,17 @@
 
 **Follow:** Three shader positions → triangle coverage → fragment colour → canvas.
 
-The GPU can already paint an image. Today we ask it to paint a shape inside that image. We give it three corners and a colour, then connect them with a pipeline.
+Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.
 
-`triangle.wgsl` contains two small GPU programs. The vertex function places each corner. The fragment function chooses the colour of covered samples. `renderer.rs` connects them and records one draw. `browser.rs` only needs to tell the renderer the surface format.
+The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
+
+A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
 
 ![Three corner positions form a triangle; a fragment shader colours its covered pixels.](../illustrations/journey-03.svg)
 
-For now, positions go directly into clip space: x and y near −1 and +1 reach the sides of the image. Our top corner is `(0.0, 0.6)`. The triangle stays away from the edges so its silhouette is easy to inspect. Perspective, world units and the camera come later.
-
-A **pipeline** is a reusable drawing recipe. Compiling one per click would repeat setup unnecessarily, so we keep it in the renderer. `0..3` means 0, 1 and 2. The GPU calls the vertex function for those three indices. `0..1` asks for one instance.
-
-`include_str!` puts the shader file’s text into the program at compile time; there is no second browser download. `Some` supplies an optional value and `None` leaves it absent. The empty `buffers` list means no vertex buffer supplies data yet. The pipeline still needs its two shader stages and a colour target, even for three hard-coded corners.
-
 ## Type the change
 
-Continue from [Ask the GPU to paint](02-clear.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03-triangle` (from `session_viewer`).
+Continue from [Give browser presentation its own function](02-clear.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03-triangle` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -38,7 +34,8 @@ Create the file and type:
 
 Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub struct Renderer {
@@ -61,6 +58,8 @@ impl Renderer {
                     view,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -71,7 +70,8 @@ Replace that block with:
 
 Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 })],
@@ -81,6 +81,8 @@ Find this exact block:
         self.queue.submit([encoder.finish()]);
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -92,7 +94,8 @@ Replace that block with:
 
 Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         .ok_or("No compatible surface format")?;
@@ -104,6 +107,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

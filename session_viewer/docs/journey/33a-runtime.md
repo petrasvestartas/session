@@ -34,11 +34,14 @@ Create the file and type:
 
 Register browser runtime ownership beside the listener owner.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod listeners;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,12 +53,15 @@ Replace that block with:
 
 Retain cancellation handles outside the moving callback. Defer page-exit disposal until the active callback has returned.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
         let line
 ```
+
+</details>
 
 Replace that block with:
 
@@ -67,12 +73,15 @@ Replace that block with:
 
 Transfer the event callback into the owner before attaching its targets.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     for name in [
         "pointerdown",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -84,7 +93,8 @@ Replace that block with:
 
 Register all eighteen live bindings through the owner; retain it in the runtime instead of forgetting the Rust callback.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
@@ -106,6 +116,8 @@ Find this exact block:
     // Both event sources retain this one callback for the lifetime of the page.
     update.forget();
 ```
+
+</details>
 
 Replace that block with:
 

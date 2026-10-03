@@ -26,7 +26,8 @@ Continue from [Count each shared GPU buffer once](32b-gpu.md). Save your own wor
 
 Release row storage while preserving issued identities; reuse this inside atomic replacement.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
@@ -35,6 +36,8 @@ Find this exact block:
         self.import(loaded)
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -46,11 +49,14 @@ Replace that block with:
 
 Give closing a typed editor action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Replace(Vec<u8>),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -62,11 +68,14 @@ Replace that block with:
 
 Close outside undoable document edits and preserve application view settings.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             Action::Replace(bytes) => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -78,12 +87,15 @@ Replace that block with:
 
 Check source release, both history branches, identity reuse and view preservation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn resetting_the_view_preserves_its_current_aspect() {
 ```
+
+</details>
 
 Replace that block with:
 

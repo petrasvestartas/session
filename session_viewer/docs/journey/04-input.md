@@ -34,13 +34,16 @@ Create the file and type:
 
 Register the state module so both the browser and the renderer can use it.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -52,7 +55,8 @@ Replace that block with:
 
 The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { device, queue, pipeline }
@@ -64,6 +68,8 @@ Find this exact block:
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -74,7 +80,8 @@ Replace that block with:
 
 The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     resolve_target: None,
@@ -86,6 +93,8 @@ Find this exact block:
                     },
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -96,12 +105,15 @@ Replace that block with:
 
 Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::renderer::Renderer;
 use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 ```
+
+</details>
 
 Replace that block with:
 
@@ -113,7 +125,8 @@ Replace that block with:
 
 Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     config.view_formats = vec![config.format.add_srgb_suffix()];
@@ -141,6 +154,8 @@ Find this exact block:
     });
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -151,7 +166,8 @@ Replace that block with:
 
 Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -169,6 +185,8 @@ fn present(
     let frame = match surface.get_current_texture() {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -179,7 +197,8 @@ Replace that block with:
 
 Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         format: Some(frame.texture.format().add_srgb_suffix()),
@@ -190,6 +209,8 @@ Find this exact block:
     frame.present();
     Ok(())
 ```
+
+</details>
 
 Replace that block with:
 

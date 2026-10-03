@@ -8,19 +8,15 @@
 
 **Follow:** Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes.
 
-Now prepare the bytes Save will download. Read Scene::objects, not the old imported Session: the live scene includes generated objects and edits, while deleted rows must stay deleted.
+Build Save bytes from live scene objects, including generated and edited objects and excluding deleted rows.
 
-Each kernel mesh can make its own protobuf message. That preserves double coordinates, topology, colours, names and attributes. Replace only that message copy’s GUID with the object’s stored identity. The original shared mesh is untouched.
+Copy each source mesh's protobuf message, preserving doubles, topology, colours, names and flags. Replace only the copy's GUID with the stored object identity. Keep geometry local and write placement separately, keyed by that same GUID; baking both would move it twice.
+
+This snapshot writes a flat tree. Camera, selection, display arrays and history are application state and stay outside the file.
+
+Match the current loader's bounds: 1–64 meshes and at most 4 MiB encoded. Reject unsupported source data. Today Rust checks inspect the snapshot; placement loading and browser downloading follow.
 
 ![Current objects supply copied mesh messages; stored object GUIDs connect those messages to a flat tree and placement records.](../illustrations/journey-29a.svg)
-
-Write placements as XformEntry records, keyed by the same stored object GUID. The geometry remains local. Baking a transform into mesh vertices and also writing that transform would move an object twice.
-
-For this flat mesh course, the new file has one tree child per live object and no hierarchy, definitions or interactions. A later lesson expands this contract. Scene camera, selection, display arrays and Undo/Redo stacks are application state, so they do not enter this document snapshot.
-
-The existing loader accepts only 1–64 meshes. Save therefore refuses an empty or larger scene and rejects an encoded file over 4 MiB. It also validates the source subset before returning bytes. Unsupported data is reported instead of silently writing a file our course cannot reopen.
-
-Today we inspect the protobuf snapshot in Rust. The loader still rejects placement records until the next lesson, and the browser Save command is not connected yet.
 
 ## Type the change
 
@@ -30,11 +26,14 @@ Continue from [Give each saved object a stable identity](29-identity.md). Save y
 
 Copy live sources into one bounded flat document, write placements separately and return bytes without editor mutation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn validate(message: &proto::Session) -> Result<(), &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -56,12 +55,15 @@ Create the file and type:
 
 Compile the read-only snapshot checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod file_identity_tests;
 ```
+
+</details>
 
 Replace that block with:
 

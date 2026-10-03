@@ -24,11 +24,14 @@ Continue from [Retain only three diagnostic runs](34fa-retain.md). Save your own
 
 Keep current and previous diagnostic metadata independent of the GPU runtime and source documents.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) }; }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,13 +43,16 @@ Replace that block with:
 
 Select earlier evidence before writing this new run, retain stable tab identity and let denied storage leave startup usable.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let report = Report::new(uuid::Uuid::new_v4().to_string(), js_sys::Date::new_0().to_iso_string().into(), context()?);
     REPORT.with(|slot| slot.replace(Some(report)));
     Ok(())
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,7 +64,8 @@ Replace that block with:
 
 Save successful observations after releasing the current-report borrow; storage failure cannot replace a diagnostic error or interrupt drawing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     REPORT.with(|slot| {
@@ -67,6 +74,8 @@ Find this exact block:
         report.record(js_sys::Date::new_0().to_iso_string().into(), elapsed, kind, message).map_err(JsValue::from_str)
     })
 ```
+
+</details>
 
 Replace that block with:
 
@@ -78,11 +87,14 @@ Replace that block with:
 
 Persist refreshed current context while retaining manual downloads when storage is unavailable.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     let json = diagnostic_snapshot()?;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -94,11 +106,14 @@ Replace that block with:
 
 Serialize independent previous metadata before the download callback; report interruption separately from proof of a crash.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn fatal(message: &str) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -110,11 +125,14 @@ Replace that block with:
 
 Expose previous-report retrieval as a named command in the actual dock.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Diagnostic Report",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -126,12 +144,15 @@ Replace that block with:
 
 Show an eligible previous-run notice in the existing command dock, keeping HTML free of feature buttons.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     panel.update(None, &canvas)?;
     if resize(
 ```
+
+</details>
 
 Replace that block with:
 
@@ -143,12 +164,15 @@ Replace that block with:
 
 Dispatch current and previous JSON downloads without changing document history or the stopped-runtime failure guard.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             } else if line == "diagnostic report" {
                 let result = crate::browser_report::download().map(|()| "Diagnostic report downloaded.".to_owned())
 ```
+
+</details>
 
 Replace that block with:
 
@@ -160,11 +184,14 @@ Replace that block with:
 
 Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "controls": controls, "command": self.model.command, "history": self.model.history,
 ```
+
+</details>
 
 Replace that block with:
 

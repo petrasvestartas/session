@@ -8,15 +8,13 @@
 
 **Follow:** Typed Close → read-ticket cancellation → editor close → empty GPU rows → dock result.
 
-Now expose the ordinary editor operation as Close in the real command dock. There is no feature button or keyboard shortcut. The command cancels ReadGate before returning Action::Close.
+Expose typed `Close` through the existing dock. Cancel `ReadGate` before returning `Action::Close`, so a pending read cannot refill the closed document.
+
+Remember the action kind before `apply` consumes it. Report “Document closed” only after the scene change and renderer synchronization succeed.
+
+Close drops document and history owners while preserving camera, background and the GPU device. Page-exit disposal later ends the viewer itself; Close leaves it ready for another Open.
 
 ![Close cancels delivery ownership before clearing editor and GPU document roots.](../illustrations/journey-32d.svg)
-
-Remember which action was submitted before apply consumes it. After a successful scene change, report Document closed. through the dock. This describes an operation whose rows and renderer synchronization actually completed; it does not invent a success on failure.
-
-The final screenshot shows the reopened specimen rather than pretending that a blank page alone proves resource release. The check verifies the empty drawing before reopening, and the native proof observes old source and GPU geometry values through Weak references.
-
-Close preserves camera/background state and the viewer’s GPU device. The next listener-lifetime chapter addresses ending the whole viewer, which is a different lifetime.
 
 ## Type the change
 
@@ -26,11 +24,14 @@ Continue from [Close the document without resetting the view](32c-close.md). Sav
 
 Offer closing only through the actual dock vocabulary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Cancel Open",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +43,14 @@ Replace that block with:
 
 Revoke pending file ownership before the editor closes.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if line == "cancel open" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +62,14 @@ Replace that block with:
 
 Retain the submitted operation kind across action consumption.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             let replacement = matches!(&action, Action::Replace(_));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -74,11 +81,14 @@ Replace that block with:
 
 Report close only after its scene operation and renderer synchronization succeed.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     if event.type_() == "viewer-file" {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -152,6 +162,8 @@ The browser owns asynchronous delivery while the editor owns document close. Kee
 <summary>Verification notes and browser acceptance</summary>
 
 Chrome holds a real File.arrayBuffer result, types Close, and releases the old promise afterwards. The scene must stay empty and command history must not acquire a late result. It also tries Undo and Redo after close, checks live CPU/GPU document ledgers, and imports a new specimen without reloading the page.
+
+The Chrome check verifies an empty drawing before reopening. Weak observers check source and GPU ownership release; the final screenshot shows the reopened specimen, not release itself.
 
 [Full validation scope](release.md).
 

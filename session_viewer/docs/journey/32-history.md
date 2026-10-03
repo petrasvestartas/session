@@ -28,11 +28,14 @@ Continue from [Update only changed object settings](31c-incremental.md). Save yo
 
 Expose borrowed snapshot roots and an explicit reset of both branches.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,12 +47,15 @@ Replace that block with:
 
 Prove deletion differs from dropping the owners retained by Undo and Redo.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     #[test]
     fn undo_restores_identity_and_shares_the_original_mesh() {
 ```
+
+</details>
 
 Replace that block with:
 

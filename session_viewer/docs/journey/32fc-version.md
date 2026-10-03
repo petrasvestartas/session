@@ -24,11 +24,14 @@ Continue from [Make editable ownership a private row boundary](32fb-boundary.md)
 
 Pin SHA-256 for immutable file-version checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 prost = "=0.14.4"
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,11 +43,14 @@ Replace that block with:
 
 Introduce geometry-free reload metadata.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod row_metadata;
 ```
+
+</details>
 
 Replace that block with:
 

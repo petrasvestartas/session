@@ -24,11 +24,14 @@ Continue from [Read previous reports from real browser storage](34f-storage.md).
 
 Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn previous(&self) -> Option<Report> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -40,12 +43,15 @@ Replace that block with:
 
 Verify repeated writes use the same key and reach actual Web Storage; this debug export is not a runtime feature control.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     serde_json::json!({"tab": store.tab, "key": store.key, "previous": store.previous()}).to_string()
 }
 ```
+
+</details>
 
 Replace that block with:
 

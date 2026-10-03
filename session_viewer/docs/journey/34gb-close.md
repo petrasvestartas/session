@@ -24,11 +24,14 @@ Continue from [Own the periodic diagnostic heartbeat](34ga-timer.md). Save your 
 
 Mark a healthy final exit closed without erasing a failure or appending synthetic observations.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Create the file and type:
 
 Include native final-close policy proofs.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod diagnostic;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -66,11 +72,14 @@ Replace that block with:
 
 Refresh real context/time, release the report borrow and persist the final outcome without accessing GPU state.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn download() -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -82,11 +91,14 @@ Replace that block with:
 
 A delayed ready milestone must not reopen a final closed run; cache suspension retains Ready without closing.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -98,11 +110,14 @@ Replace that block with:
 
 Let Chrome submit a real late milestone through the same metadata path; release builds gain no user control.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 

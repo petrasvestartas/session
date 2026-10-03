@@ -8,11 +8,13 @@
 
 **Follow:** Original f64 sentinel → derived f32 display → unload kernel → reload original bytes → Save → exact source doubles.
 
-The display arrays are deliberately derived and may round source doubles to floats. precise_bytes adds one non-f32-representable coordinate to the uploaded specimen while retaining the ordinary specimen function. The browser and native checks must read this actual source rather than inventing an expected drawing.
+Add `precise_bytes` to the specimen builder with one coordinate that cannot survive an `f32` round trip. Keep the ordinary specimen function for existing checks.
+
+Save while sources are warm, then unload and trigger restoration through Save. Decode both actual downloads and compare the source coordinate exactly. The derived display is unsuitable evidence because it intentionally rounds to floats.
+
+The native and browser checks use the same uploaded specimen. They compare original coordinates and preserve the moved placement; the native test also checks Undo/Redo.
 
 ![Prove original-coordinate Save](../illustrations/journey-32gj.svg)
-
-The final proof placement moves the post clear of the beam. Keeping two front faces in exactly the same plane can produce depth competition; this demonstration separates the solids instead of claiming the later rendering-quality lessons are already implemented.
 
 ## Type the change
 
@@ -22,7 +24,8 @@ Continue from [Automatically restore sources for Move, Delete and Save](32gif-au
 
 Add a source coordinate that cannot survive an f64-to-f32 round trip; keep the original specimen available.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn bytes() -> Vec<u8> {
@@ -43,6 +46,8 @@ pub fn bytes() -> Vec<u8> {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -53,11 +58,14 @@ Replace that block with:
 
 The browser’s actual uploaded sample now contains the precision sentinel.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 viewer_journey::specimen::bytes()
 ```
+
+</details>
 
 Replace that block with:
 
@@ -69,11 +77,14 @@ Replace that block with:
 
 Register the exact-coordinate restoration acceptance check.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod reload_complete_tests;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -161,6 +172,8 @@ The native acceptance test moves the object, unloads its editable source, comple
 Visible Chrome downloads a warm reference, unloads sources and downloads the automatic restored Save. A small test-only protobuf reader follows the documented Session → Objects → Mesh → vertex map fields, orders vertex keys and compares all double values with the actual uploaded file. It rejects a float-rounded substitute and checks both actual downloads, separate placement matrices, delayed download URL cleanup and Close releasing source URLs. This reader is verification tooling, not a second viewer loader.
 
 The inherited automatic-command checks remain active. Broader network, body and multiple-origin failure acceptance follows next.
+
+The proof placement separates the post and beam front faces to avoid coplanar depth competition. It does not establish the later rendering-quality policy.
 
 Chrome checks actual warm and cold-source Save downloads against the precision specimen, exact double coordinates, placement preservation, delayed download URL cleanup and source URL release on Close.
 

@@ -8,15 +8,13 @@
 
 **Follow:** Remaining native ownership proofs → borrowed accessors → private source fields.
 
-Complete the access migration before introducing source unloading. Move the remaining document, duplicate-import, replacement and close checks to geometry() and source(), then make Object’s two editable-owner fields private. Rust now rejects external direct field access.
+Finish migrating consumers to `geometry()` and `source()`, then make Object's editable-owner fields private. Direct field access outside the row now fails to compile.
+
+Keep `PreparedMesh.geometry` mandatory: a prepared insertion requires valid geometry. Keep `GpuMesh.geometry` unchanged: it owns display buffers, not editable kernel data.
+
+Rows retain public identity, saved GUID, metadata, model and derived mesh. Source storage can next become Loaded or Released behind its borrowed accessors without changing drawing or history placements. No source unload happens in this step.
 
 ![Preparation requires geometry; a committed row exposes source residency through private ownership and borrowed access.](../illustrations/journey-32fb.svg)
-
-Keep PreparedMesh.geometry mandatory. It describes a validated candidate about to enter the scene. Keep GpuMesh.geometry unchanged too: that is immutable GPU display geometry, not the editable kernel source. Similar field names do not imply the same lifetime.
-
-Owner tests still compare Rc allocations, inspect exact original vertices, observe Weak expiration after Close, and verify both history branches. This is a change in access, not a reason to reduce their assertions. The native GPU fixture is also moved to the borrowed interface.
-
-Public id, saved guid, metadata, model and derived mesh remain the retained row data. In the next endpoint, private source storage can become Loaded or Released without requiring callers to know its representation. Those changes must retain the existing display/GPU owners and history placements; source unloading is still not implemented here.
 
 ## Type the change
 
@@ -26,7 +24,8 @@ Continue from [Ask whether an editable source is available](32fa-access.md). Sav
 
 Update repeated_close_is_empty_and_drops_sources_without_gpu_owners through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
@@ -39,6 +38,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -49,7 +50,8 @@ Replace that block with:
 
 Update close_releases_imported_history_documents_and_reopening_uses_fresh_ids through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
@@ -75,6 +77,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -85,7 +89,8 @@ Replace that block with:
 
 Update cleared_history_releases_a_deleted_source_and_display through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn cleared_history_releases_a_deleted_source_and_display() {
@@ -104,6 +109,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -114,7 +121,8 @@ Replace that block with:
 
 Update duplicate_imports_keep_distinct_stored_identity_through_history through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn duplicate_imports_keep_distinct_stored_identity_through_history() {
@@ -144,6 +152,8 @@ fn duplicate_imports_keep_distinct_stored_identity_through_history() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -154,7 +164,8 @@ Replace that block with:
 
 Update import_retains_source_and_undo_removes_the_whole_file through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn import_retains_source_and_undo_removes_the_whole_file() {
@@ -176,6 +187,8 @@ fn import_retains_source_and_undo_removes_the_whole_file() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -186,7 +199,8 @@ Replace that block with:
 
 Update repeated_imports_keep_distinct_viewer_ids_and_original_source_guids through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn repeated_imports_keep_distinct_viewer_ids_and_original_source_guids() {
@@ -201,6 +215,8 @@ fn repeated_imports_keep_distinct_viewer_ids_and_original_source_guids() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -211,7 +227,8 @@ Replace that block with:
 
 Update replacement_history_retains_camera_and_distinct_local_identity through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn replacement_history_retains_camera_and_distinct_local_identity() {
@@ -235,6 +252,8 @@ fn replacement_history_retains_camera_and_distinct_local_identity() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -245,7 +264,8 @@ Replace that block with:
 
 Update refused_replacement_preserves_selection_source_owners_and_redo through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn refused_replacement_preserves_selection_source_owners_and_redo() {
@@ -263,6 +283,8 @@ fn refused_replacement_preserves_selection_source_owners_and_redo() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -273,7 +295,8 @@ Replace that block with:
 
 Update both_imported_copies_reopen_with_their_stored_identity through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn both_imported_copies_reopen_with_their_stored_identity() {
@@ -294,6 +317,8 @@ fn both_imported_copies_reopen_with_their_stored_identity() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -304,7 +329,8 @@ Replace that block with:
 
 Update metadata_does_not_keep_a_closed_kernel_source_alive through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn metadata_does_not_keep_a_closed_kernel_source_alive() {
@@ -323,6 +349,8 @@ Find this exact block:
     }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -333,11 +361,14 @@ Replace that block with:
 
 Confine editable kernel storage to the scene row implementation.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub geometry: Rc<session_rust::Mesh>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -349,11 +380,14 @@ Replace that block with:
 
 Prevent other modules from bypassing imported-source availability.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub source: Option<crate::document::Source>,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -426,7 +460,7 @@ Next add reload origin/version information, release eligible imported owners acr
 <details>
 <summary>Verification notes and browser acceptance</summary>
 
-
+Existing allocation identity, exact source coordinates, history and Weak-expiration checks retain their assertions while adopting the borrowed interface.
 
 [Full validation scope](release.md).
 

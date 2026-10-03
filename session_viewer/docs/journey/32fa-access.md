@@ -8,17 +8,15 @@
 
 **Follow:** Scene row → Option of borrowed editable geometry/provenance → checked source consumers.
 
-A public mandatory kernel field cannot express a display-only row. Introduce geometry() and source() as the boundary used by consumers before changing storage. geometry returns an Option of a borrowed Rc; source returns optional imported provenance. At this checkpoint every row still has geometry, and generated rows still have no imported provenance.
+Introduce `geometry()` and `source()` before making source storage optional. Both return borrowed optional owners. At this stage every row still has geometry; generated rows have no imported-session provenance.
+
+Save uses `geometry().ok_or(...)` and `?` to return a clear error if geometry is missing. It never substitutes derived float display vertices for the editable source.
+
+Accounting visits only available kernel and session owners while counting rows and displays independently. Migrate ownership checks to the same accessors; fixture `unwrap` asserts a known loaded source, while application Save returns `Result`.
+
+Fields remain public during this migration. The next lesson completes it and prevents bypassing the access boundary.
 
 ![Save and source accounting borrow available owners; drawing continues to use its display mesh.](../illustrations/journey-32fa.svg)
-
-Snapshot converts geometry().ok_or(...) into a Result. The question mark returns a clear error if source geometry is unavailable; it never substitutes derived float vertices for the editable original. The missing-source branch becomes reachable in the release lesson.
-
-The CPU ledger inserts only available kernel owners and visits an imported Session only when provenance exists. Row records and derived displays remain counted independently. This will make a display-only document measurable without claiming its kernel is still resident.
-
-Update existing source ownership checks to borrow through the same boundary. Their unwrap calls assert fixtures with loaded sources; application Save uses a Result instead. Existing precision and history checks continue to prove original doubles and shared allocations.
-
-The fields remain temporarily public so the remaining tests can be migrated in a separate runnable endpoint. The next lesson completes that migration and makes bypassing this access boundary a compile error.
 
 ## Type the change
 
@@ -28,12 +26,15 @@ Continue from [Keep row metadata separate from editable geometry](32f-metadata.m
 
 Borrow source owners through an API that can express later source absence.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 impl Object {
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -45,11 +46,14 @@ Replace that block with:
 
 Require original editable geometry instead of silently exporting display floats.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let mut mesh = object.geometry.to_proto();
 ```
+
+</details>
 
 Replace that block with:
 
@@ -61,11 +65,14 @@ Replace that block with:
 
 Count kernel owners only when they are available.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             sources.insert(Rc::as_ptr(&object.geometry));
 ```
+
+</details>
 
 Replace that block with:
 
@@ -77,11 +84,14 @@ Replace that block with:
 
 Keep provenance absence independent of row/display accounting.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             if let Some(source) = &object.source {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -93,7 +103,8 @@ Replace that block with:
 
 Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn generated_source_and_display_survive_move_and_history() {
@@ -121,6 +132,8 @@ fn generated_source_and_display_survive_move_and_history() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -131,7 +144,8 @@ Replace that block with:
 
 Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn imported_source_survives_a_change_of_display_row() {
@@ -151,6 +165,8 @@ fn imported_source_survives_a_change_of_display_row() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -161,7 +177,8 @@ Replace that block with:
 
 Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn import_shares_the_retained_sessions_source_allocation() {
@@ -180,6 +197,8 @@ fn import_shares_the_retained_sessions_source_allocation() {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -190,7 +209,8 @@ Replace that block with:
 
 Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 fn snapshot_uses_live_local_sources_and_separate_placements() {
@@ -216,6 +236,8 @@ fn snapshot_uses_live_local_sources_and_separate_placements() {
     assert_eq!(editor.scene.objects().len(), 1, "Saving must not create a history entry");
 }
 ```
+
+</details>
 
 Replace that block with:
 

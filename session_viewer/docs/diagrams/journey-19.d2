@@ -5,14 +5,14 @@ classes: {
   focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 16; font-color: "#111111" } }
 }
 direction: down
-button: "Typed command or canvas pick" {class: box}
-keyboard: "Future keyboard shortcut" {class: box}
+command: "Typed command" {class: box}
+pointer: "Canvas picking" {class: box}
 action: "Action\nWhat the user requested" {class: focus}
 editor: "Editor\nScene · selection · history · view" {class: focus}
 scene: "Change::Scene\nUpload, then redraw" {class: box}
 view: "Change::View\nRedraw" {class: box}
-button -> action
-keyboard -> action: "same request"
+command -> action
+pointer -> action: "same request"
 action -> editor
 editor -> scene
 editor -> view

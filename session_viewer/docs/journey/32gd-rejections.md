@@ -8,11 +8,11 @@
 
 **Follow:** Prepare two origins → reject changed second source → no adoption → successful retry.
 
-A successful round trip is not enough. Use duplicate imports with independent origins and validate all candidates before adoption. Change the second source version and confirm neither origin becomes loaded. A wrong original source GUID in a retained row must also reject the candidate.
+Test atomic source restoration across independent imported origins. Change the second source version and require both origins to remain cold. Then give a retained row the wrong original source GUID and require refusal.
 
-Close and reimport the same bytes, then deliver an old key with malformed bytes: the stale result must be ignored without even trying to decode it. Restore one origin, release again and verify the old epoch no longer matches; a duplicate completion of an already adopted key is also ignored.
+`Rc::make_mut` gives the test row its own metadata when history shares the original. This simulates row inconsistency without modifying the imported file.
 
-`Rc::make_mut` gives this row its own metadata value when another history row shares the original. That lets the check simulate an inconsistent retained row without changing the imported file. The changed byte version and the changed row metadata exercise separate rejection boundaries.
+Version mismatch and row-metadata mismatch are separate rejection boundaries. Validate all candidates and rows before adopting any source. The next lesson tests stale and duplicate delivery.
 
 ![Keep rows cold on changed versions, missing source identity and obsolete release keys.](../illustrations/journey-32gd.svg)
 
@@ -24,11 +24,14 @@ Continue from [Prove source restoration preserves display and history](32gc-roun
 
 Reject the entire candidate batch before adopting any source and preserve displayed owners.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use crate::editor::{Action, Editor};
 ```
+
+</details>
 
 Replace that block with:
 

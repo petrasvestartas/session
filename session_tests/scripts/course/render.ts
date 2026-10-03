@@ -32,7 +32,8 @@ export function generate() {
             const fence = '`'.repeat(Math.max(3, ...[...(code + (edit.before || '')).matchAll(/^\s*(`{3,})/gm)].map(match => match[1].length + 1)));
             page.push(`### ${number + 1}. \`${edit.path}\``, edit.why);
             if (edit.before === null) page.push('Create the file and type:');
-            else page.push('Find this exact block:', `${fence}${lang}\n${edit.before.trimEnd()}\n${fence}`, code ? 'Replace that block with:' : 'Delete this block.');
+            else if (code) page.push(`<details>\n<summary>Locate the existing block</summary>\n\n${fence}${lang}\n${edit.before.trimEnd()}\n${fence}\n\n</details>`, 'Replace that block with:');
+            else page.push('Find this exact block:', `${fence}${lang}\n${edit.before.trimEnd()}\n${fence}`, 'Delete this block.');
             if (code) page.push(`${fence}${lang}\n--8<-- "${edit.snippet}"\n${fence}`);
         }
         page.push('## Run and look');

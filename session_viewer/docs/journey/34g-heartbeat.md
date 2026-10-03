@@ -24,11 +24,14 @@ Continue from [Preserve unsupported telemetry while pruning](34fc-retention.md).
 
 Advance heartbeat independently of observations, outcome and the first fatal timestamp; invalid timestamp text leaves the report unchanged.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Create the file and type:
 
 Include native heartbeat state proofs.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod diagnostic;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -66,11 +72,14 @@ Replace that block with:
 
 Refresh actual browser context and UTC heartbeat, release its borrow, then persist metadata without invoking renderer or recording synthetic observations.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub fn download() -> Result<(), JsValue> {
 ```
+
+</details>
 
 Replace that block with:
 

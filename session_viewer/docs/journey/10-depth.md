@@ -8,19 +8,15 @@
 
 **Follow:** Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment.
 
-Place two coloured cards so they overlap. The card closer to your eye hides part of the other one. Until now our renderer only knew which draw happened last. Today we give each corner a depth and let the GPU keep the nearer surface.
+Keep the nearer triangle even when the farther triangle is drawn last. Give pink depth 0.25 and turquoise depth 0.75; draw pink first.
 
-The pink triangle is nearer, at z = 0.25. The turquoise one is farther, at z = 0.75. We deliberately draw pink first. If the later turquoise triangle covers their shared centre, the depth test is missing or wrong.
+Attach a depth texture alongside colour. Clear depth to 1 and use `Less` with depth writes: a fragment passes only when it is nearer than the stored depth. Its dimensions and sample count must match the colour image.
+
+A vertex now contains position and colour: six `f32` values, 24 bytes. Shader locations 0 and 1 read those two groups. The vertex shader passes colour to the fragment shader.
+
+The browser supplies the startup dimensions to `renderer.resize`. Later resize handling updates both attachments. This depth rule handles opaque visibility; transparency comes later.
 
 ![Two fragments compete at one pixel; the depth test keeps 0.25 and rejects the later fragment at 0.75.](../illustrations/journey-10.svg)
-
-For this lesson our matrix leaves z unchanged. WebGPU's visible depth interval is 0 through 1 after dividing by w. Smaller values are nearer. The depth texture starts at 1, the far end. `Less` accepts a fragment only when its depth is smaller than the stored value. Writing depth updates that stored value for later triangles.
-
-A depth texture is an attachment alongside the colour texture. It is not a picture we show on the page. Its size and sample count must agree with the colour attachment. Both use the initial window size with one sample. `browser.rs` passes that size to `renderer.resize` before drawing the first frame; the renderer creates a matching depth texture. Lesson 20 will update both when the window changes size.
-
-We also give each vertex a colour, so that you can see which triangle won. A vertex now occupies 24 bytes: three floats for position followed by three for colour. Location zero reads position; location one reads colour. The vertex shader passes colour to the fragment shader through a small output structure. All three corners of each triangle have the same colour here, so interpolation leaves it constant.
-
-Opaque visibility is the purpose of this depth test. Transparent surfaces will need another treatment later. Keeping the two problems separate makes the first visibility rule clear.
 
 ## Type the change
 
@@ -30,7 +26,8 @@ Continue from [Let one matrix describe the view](09-matrices.md). Save your own 
 
 Pass transformed 3D positions and vertex colours to the rasterizer. The fragment function uses the interpolated colour.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
@@ -46,6 +43,8 @@ fn fragment() -> @location(0) vec4<f32> {
 }
 ```
 
+</details>
+
 Replace that block with:
 
 ```wgsl
@@ -56,7 +55,8 @@ Replace that block with:
 
 Replace the flat diamond with two coloured triangles at different depths.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -70,6 +70,8 @@ pub struct Renderer {
     pub device: wgpu::Device,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -80,7 +82,8 @@ Replace that block with:
 
 Replace the flat diamond with two coloured triangles at different depths.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     indices: wgpu::Buffer,
@@ -96,6 +99,8 @@ impl Renderer {
             label: Some("rectangle positions"),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -106,7 +111,8 @@ Replace that block with:
 
 Replace the flat diamond with two coloured triangles at different depths.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 entry_point: Some("vertex"),
@@ -120,6 +126,8 @@ Find this exact block:
             fragment: Some(wgpu::FragmentState {
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -130,7 +138,8 @@ Replace that block with:
 
 Replace the flat diamond with two coloured triangles at different depths.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 targets: &[Some(format.into())],
@@ -142,6 +151,8 @@ Find this exact block:
             cache: None,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -152,7 +163,8 @@ Replace that block with:
 
 Replace the flat diamond with two coloured triangles at different depths.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                 resource: uniform.as_entire_binding(),
@@ -164,6 +176,8 @@ Find this exact block:
     pub fn draw(
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -174,7 +188,8 @@ Replace that block with:
 
 Replace the flat diamond with two coloured triangles at different depths.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
@@ -184,6 +199,8 @@ Find this exact block:
                     view,
                     depth_slice: None,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -195,7 +212,8 @@ Replace that block with:
 
 Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         .ok_or("No compatible surface format")?;
@@ -207,6 +225,8 @@ Find this exact block:
         config.format.add_srgb_suffix(),
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -217,7 +237,8 @@ Replace that block with:
 
 Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -227,6 +248,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

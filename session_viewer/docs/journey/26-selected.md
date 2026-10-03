@@ -8,15 +8,15 @@
 
 **Follow:** Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame.
 
-A small component can be lost inside a large assembly. Fit shows the whole scene; Fit Selected should show just the object you chose. We reuse the fitting policy from lesson 24 and change only the source of its bounds.
+Make `Fit Selected` use one object's bounds with the same fitting policy as `Fit`.
 
-Scene searches by ObjectId, rather than treating a vector index as identity. The question mark after find returns None immediately if that ID is absent. A second question mark handles an empty vertex list. Starting from the first real vertex avoids accidentally including the origin in every box.
+Scene finds the object by `ObjectId`. `?` returns `None` for a missing ID or empty mesh. Start bounds from its first vertex so the origin does not enlarge every box.
 
-Editor holds an Option<ObjectId>. and_then asks Scene for bounds only when that option contains an ID. Camera then receives the same Bounds type it already understands. No duplicated fitting mathematics is needed.
+Editor uses `Option::and_then` to request bounds only when selection exists, then passes them to Camera. No second fitting formula is needed.
+
+Fitting changes pixels occupied by the object, preserving its model coordinates and shared mesh. It changes neither document units nor object size.
 
 ![The selected ID chooses bounds; fitting changes the camera and leaves the shared mesh alone.](../illustrations/journey-26.svg)
-
-A model coordinate and a screen pixel are different quantities. If an object spans ten model units, fitting it does not make it one unit wide. It makes those same ten units occupy more pixels. We have not introduced a unit-conversion command or claimed millimetres: the document coordinate convention still determines the unit. Later placements and source-document lessons will preserve that distinction.
 
 ## Type the change
 
@@ -26,11 +26,14 @@ Continue from [Choose how depth changes size](25-projection.md). Save your own w
 
 Find one stable ID and collect only its displayed vertices. An absent ID or empty mesh returns None.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn objects(&self) -> &[Object] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,12 +45,15 @@ Replace that block with:
 
 Name a separate action for fitting the selection.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     Fit,
     Projection(crate::camera::Projection),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -59,11 +65,14 @@ Replace that block with:
 
 Borrow the selected ID, ask Scene for its bounds, and reuse Camera::fit. Neither the mesh nor document history changes.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     Action::ResetView => {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -75,12 +84,15 @@ Replace that block with:
 
 Expose Fit Selected in the existing command vocabulary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Fit",
             "View Reset",
 ```
+
+</details>
 
 Replace that block with:
 
@@ -92,12 +104,15 @@ Replace that block with:
 
 Translate the named command into the new action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     "fit" => Action::Fit,
                     "view reset" => Action::ResetView,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -109,12 +124,15 @@ Replace that block with:
 
 Register the focused state checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
 mod projection_tests;
 ```
+
+</details>
 
 Replace that block with:
 

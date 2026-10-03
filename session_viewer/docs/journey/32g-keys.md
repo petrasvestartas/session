@@ -24,11 +24,14 @@ Continue from [Protect history and future reload tickets](32fl-guards.md). Save 
 
 Give reload identity and preparation their own Rust boundary.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod reload_url;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -50,11 +53,14 @@ Create the file and type:
 
 Request each active imported release once without duplicating its geometry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
 ```
+
+</details>
 
 Replace that block with:
 

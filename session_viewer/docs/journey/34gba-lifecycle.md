@@ -36,11 +36,14 @@ Create the file and type:
 
 Keep page transition ownership in the browser layer.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 mod timer;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -52,11 +55,14 @@ Replace that block with:
 
 Install metadata lifecycle ownership before scheduling heartbeat; denied listener registration leaves drawing and current downloads available.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     if let Err(error) = start_periodic() { let _ = observe("diagnostic", &format!("Heartbeat unavailable: {error:?}")); }
 ```
+
+</details>
 
 Replace that block with:
 

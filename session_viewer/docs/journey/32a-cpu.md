@@ -8,17 +8,15 @@
 
 **Follow:** Borrowed scene roots and GPU display owners → identity sets → scoped CPU ledger.
 
-Counting a mesh once for every snapshot would exaggerate its memory. Count row records separately, then use allocation identities to count each shared source, document and derived display once.
+Count shared CPU allocations once across the scene, history and GPU-held displays. Count row records separately from distinct mesh, document and display owners.
+
+A retained session can still own geometry after a display row disappears. Visit every mesh in each unique session, then add display owners retained by GPU geometry.
+
+Use `HashSet` pointer identities from borrowed live `Rc` values without dereferencing raw pointers. Counting must not retain those owners.
+
+Display bytes count vector capacity rather than length. This scoped ledger excludes kernel payload, row strings, hash tables and allocator overhead. Tests cover shared snapshots, a removed imported row and reserved spare capacity.
 
 ![Scene and history roots plus GPU-held displays feed identity sets before totals are added.](../illustrations/journey-32a.svg)
-
-The six CPU fields are: owned row records across all scene roots, unique kernel meshes, unique imported documents, unique derived displays, display vector-capacity bytes, and scene roots. These are a scoped ledger, not total heap memory. Display bytes include vertex/index Vec capacities; kernel payload, row strings, hash tables, allocator overhead and other application state are not estimated here. Later source accounting extends the geometry families.
-
-An imported document can retain a kernel mesh after its last display row is removed. Visit every mesh owned by each distinct retained Session, as well as each row’s required geometry. GPU geometry retains only its CPU display, so add those display owners through a second borrowed iterator.
-
-HashSet uses pointer identity without dereferencing a raw pointer. All identities come from borrowed live Rc owners during this count. No stored count keeps a document alive.
-
-The tests compare a scene with its shared snapshot and remove an imported row while other rows keep its source document alive. Another display with deliberately reserved spare capacity checks that the ledger counts capacity rather than length.
 
 ## Type the change
 
@@ -28,11 +26,14 @@ Continue from [Find the owners retained by history](32-history.md). Save your ow
 
 Count allocated display-vector capacity rather than just occupied elements.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -44,11 +45,14 @@ Replace that block with:
 
 Inspect active and retained snapshot roots without creating new owners.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -60,11 +64,14 @@ Replace that block with:
 
 Expose borrowed live geometry owners for accounting and weak lifetime checks.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn stats(&self) -> [usize; 4] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -86,11 +93,14 @@ Create the file and type:
 
 Expose the scoped ownership ledger.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -102,11 +112,14 @@ Replace that block with:
 
 Publish accounting only through private canvas diagnostics.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
 ```
+
+</details>
 
 Replace that block with:
 

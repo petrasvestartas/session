@@ -10,17 +10,15 @@
 
 **Follow:** Wheel units → navigation::wheel → Editor action → camera → frame; typed text → command dock → Editor action.
 
-Click the drawing and type `Pan Right`. The first letter opens the dock and stays in the field. Enter runs the complete command. Arrow and Delete keys edit text when the field owns focus; they never become camera or document shortcuts.
+Keep keyboard features in the command dock and navigation on the mouse. Clicking the drawing then typing `Pan Right` preserves the first letter; Enter runs the command. Text-editing keys never become camera or document shortcuts.
 
-We add `navigation.rs` beside `gesture.rs`. A gesture remembers a press. The wheel translator has no memory: a number, its unit and the canvas height become an optional Action. Neither module owns a camera, history or mesh. Those still belong to Editor. `Option<Action>` expresses that an invalid or zero movement has no navigation action.
+Add a stateless wheel translator beside gesture state. It turns delta, delta mode and canvas height into `Option<Action>`. Invalid or zero movement returns no action.
 
-A wheel reports pixels, lines or pages. We choose sixteen CSS pixels per line and one canvas height per page. These are sensitivity choices, not physical measurements. An exponential turns signed distance into a positive zoom factor: opposite small movements cancel, and ten small movements match one equal total movement. We cap a single event at 600 pixels; Camera keeps its existing distance limits.
+Convert lines to sixteen CSS pixels and pages to one canvas height. An exponential produces a positive zoom factor; cap an event at 600 pixels. Camera retains its distance limits.
+
+A non-passive wheel listener can prevent scrolling for handled zoom. Escape cancels gesture state. See the browser [delta modes](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode) and [listener options](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
 
 ![Wheel navigation and typed commands meet at the existing Editor boundary.](../illustrations/journey-22.svg)
-
-The dock already receives printable keys from lesson 03d. The browser navigation dispatcher handles only the wheel and pointer gestures. Escape cancels an active gesture; it is a lifecycle key, not a feature shortcut. This keeps one route for Undo, Delete and view commands.
-
-The browser rules come from [wheel delta modes](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode) and [listener options](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener). A non-passive wheel listener lets a handled zoom stop page scrolling.
 
 ## Type the change
 
@@ -50,7 +48,8 @@ Create the file and type:
 
 Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 
@@ -62,6 +61,8 @@ wasm-bindgen-futures = "=0.4.78"
 wgpu = "=29.0.4"
 ```
 
+</details>
+
 Replace that block with:
 
 ```toml
@@ -72,7 +73,8 @@ Replace that block with:
 
 Register the small input translator and its tests.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod editor;
@@ -82,6 +84,8 @@ pub mod gesture;
 mod gesture_tests;
 pub mod gpu_mesh;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -93,7 +97,8 @@ Replace that block with:
 
 Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             };
@@ -105,6 +110,8 @@ Find this exact block:
         };
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -115,7 +122,8 @@ Replace that block with:
 
 Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
@@ -130,6 +138,8 @@ fn pointer_action(
     canvas: &web_sys::HtmlCanvasElement,
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -140,7 +150,8 @@ Replace that block with:
 
 Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         "pointerdown" => {
@@ -151,6 +162,8 @@ Find this exact block:
                 }
             }
 ```
+
+</details>
 
 Replace that block with:
 

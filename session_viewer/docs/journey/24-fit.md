@@ -10,15 +10,13 @@
 
 **Follow:** Fit command → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer.
 
-Imagine opening a model drawn far from the origin. The file loaded correctly, but the canvas looks empty. More clicking is not a reliable way to find it. Let us give the viewer a command that asks: “How much space do all these objects occupy?”
+Make `Fit` show a scene even when its geometry is far from the origin. Scene measures vertex bounds; Camera fits them; Editor connects the two. Renderer uses the resulting matrix unchanged.
+
+Enclose the bounds box in a sphere. Fit that sphere through the smaller horizontal or vertical half-angle, so portrait windows work too. The radius and half-angle determine viewing distance.
+
+This first sphere fit is predictable and testable. It leaves extra space around thin geometry. Later a tighter fit can project box corners without changing the command boundary.
 
 ![Scene bounds and a camera fitting the enclosing sphere.](../illustrations/journey-24.svg)
-
-**Keep the ownership clear.** Scene can measure its vertices. Camera can decide where to look. Editor connects those two decisions. Renderer already knows how to draw with a new camera matrix, so we leave its code alone.
-
-A box is easy to measure; a sphere around that box is easy to fit from any direction. The sphere can leave extra empty space around a long, thin object. That is a deliberate first fit: predictable, small, and testable. A later tighter fit can project the eight box corners without changing the command or renderer.
-
-Think of the viewing angle as a pair of scissors opened at the eye. In a tall window, the horizontal opening is narrower. We must fit through that opening too. The diagram shows the right triangle behind the one-line distance calculation.
 
 ![The radius is opposite the half-angle in a right triangle from the eye to the sphere.](../illustrations/journey-24-fit.svg)
 
@@ -40,11 +38,14 @@ Create the file and type:
 
 Walk the displayed positions once. The first vertex starts the box; later vertices enlarge it. None means there was no vertex at all. We use f64 for the calculation even though the GPU mesh stores f32.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn objects(&self) -> &[Object] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -56,11 +57,14 @@ Replace that block with:
 
 Keep the fitted scene scale with the camera. Distance says where the eye is; radius says how large the scene is.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub distance: f64,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -72,11 +76,14 @@ Replace that block with:
 
 The original small demonstration scene starts with a one-unit radius. Fit will measure the real bounds.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             distance: 3.0,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -88,11 +95,14 @@ Replace that block with:
 
 The smaller half-angle limits the view: horizontal in a tall window, vertical in a wide one. A tangent from the eye to the enclosing sphere gives sin(angle) = radius / distance. Multiply by 1.1 for a little breathing room. A single point has no size, so give it a one-unit viewing scale.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn pan(&mut self, dx: f32, dy: f32) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -104,11 +114,14 @@ Replace that block with:
 
 Keep the existing zoom limits proportional to the measured scene. Otherwise the first wheel event after fitting a large model would jump back to a distance of 50 units.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             self.distance = (self.distance / factor as f64).clamp(0.2, 50.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -120,11 +133,14 @@ Replace that block with:
 
 Move the clipping planes with the viewing scale too. The near plane stays in front of the eye; the far plane reaches beyond the fitted sphere. A fixed far plane at 100 would erase a large fitted scene. Zooming inside geometry can still clip it, as it should.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);
 ```
+
+</details>
 
 Replace that block with:
 
@@ -136,11 +152,14 @@ Replace that block with:
 
 Fit is an explicit action, like Isometric. Import still changes the document; Fit only changes how you look at it.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     ResetView,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -152,11 +171,14 @@ Replace that block with:
 
 Read the current scene, including imported meshes. An empty scene leaves the camera alone. This branch returns Change::View, so it neither uploads meshes nor creates a history entry.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     Action::Isometric => self.camera.isometric(),
 ```
+
+</details>
 
 Replace that block with:
 
@@ -178,7 +200,8 @@ Create the file and type:
 
 Register the bounds module beside the camera. It owns numbers, not GPU resources.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod background;
@@ -187,6 +210,8 @@ pub mod mesh;
 pub mod scene;
 pub mod picking;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -198,7 +223,8 @@ Replace that block with:
 
 Register the bounds module beside the camera. It owns numbers, not GPU resources.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 #[cfg(test)]
@@ -208,6 +234,8 @@ mod navigation_tests;
 #[cfg(test)]
 mod gesture_tests;
 ```
+
+</details>
 
 Replace that block with:
 
@@ -219,7 +247,8 @@ Replace that block with:
 
 Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             "Orbit Right",
@@ -229,6 +258,8 @@ Find this exact block:
         ],
     );
 ```
+
+</details>
 
 Replace that block with:
 
@@ -240,7 +271,8 @@ Replace that block with:
 
 Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
                     "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
@@ -250,6 +282,8 @@ Find this exact block:
                     _ => return,
                 };
 ```
+
+</details>
 
 Replace that block with:
 

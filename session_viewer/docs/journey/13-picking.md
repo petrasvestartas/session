@@ -10,19 +10,15 @@
 
 **Follow:** Browser click → canvas-relative coordinates → inverse camera → triangle coverage and depth → ObjectId → highlight.
 
-We can already select an object by its place in a list. Now let us select the object we point at. The first job is to make sure the pointer and geometry are speaking the same coordinate language.
+Resolve a click to the nearest covered object's ID. Convert viewport CSS pixels to canvas coordinates, map them to −1 through +1, and reverse y because browser y points downward.
 
-A mouse event gives a position in the browser viewport, measured in CSS pixels. Subtract the canvas rectangle's left and top to get a position within the canvas. Divide by its displayed width and height, then map to −1 through +1. Browser y increases downward; our drawing y increases upward, so we reverse that axis.
+Undo the camera transform: divide by scale, rotate back, then add the centre. A round-trip test checks the two coordinate conversions agree.
+
+For this flat view, test triangles on the CPU. Write a point as `a + u×(b−a) + v×(c−a)`. Coverage requires nonnegative u and v with sum at most 1. Use those weights to interpolate depth and retain the nearest hit.
+
+Return `ObjectId`, preserving selection through row changes. Empty space returns `None`. Later GPU picking replaces this small-scene query while keeping the same input-to-identity boundary.
 
 ![A browser click becomes a canvas coordinate, then a world point; triangle coverage and nearest depth produce a stable object ID.](../illustrations/journey-13.svg)
-
-The camera must undo its display transformation next. Divide by scale, rotate back, then add the camera centre. This is the inverse of the transformation we wrote in the matrix lesson. The test sends a known point through both directions and checks that it comes back to the same place.
-
-Our current camera leaves depth unchanged and looks straight through a flat arrangement of triangles. For this case we can test coverage on the CPU. A triangle point can be written as `a + u×(b−a) + v×(c−a)`. It is inside when u and v are nonnegative and their sum is at most 1. The little cross-product calculation finds those two weights. The same weights interpolate depth, letting us choose the nearest covered triangle.
-
-We return an ObjectId, not the triangle number or vector row. Selection therefore continues to work after an earlier object is deleted. Clicking empty space returns None and clears the highlight.
-
-This small CPU query teaches coordinate conversion and visibility. It does not reproduce every rasterizer edge rule, and it visits every triangle. The full viewer's GPU picking will provide precise rendered IDs for large scenes and a 3D camera; it will keep this same boundary between an input location and a resolved object identity.
 
 ## Type the change
 
@@ -32,11 +28,14 @@ Continue from [Name objects without depending on their row](12-identity.md). Sav
 
 Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn uniform(&self) -> [f32; 16] {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,7 +57,8 @@ Create the file and type:
 
 Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```toml
 
@@ -70,6 +70,8 @@ wasm-bindgen-futures = "=0.4.78"
 wgpu = "=29.0.4"
 ```
 
+</details>
+
 Replace that block with:
 
 ```toml
@@ -80,7 +82,8 @@ Replace that block with:
 
 Register the query module.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
 pub mod camera;
@@ -90,6 +93,8 @@ pub mod gpu_mesh;
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 ```
+
+</details>
 
 Replace that block with:
 
@@ -101,7 +106,8 @@ Replace that block with:
 
 Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             }
@@ -114,6 +120,8 @@ Find this exact block:
                     selected = selected.filter(|id| scene.contains(*id));
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -124,7 +132,8 @@ Replace that block with:
 
 Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         "keydown",
@@ -134,6 +143,8 @@ Find this exact block:
         canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
     }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -145,7 +156,8 @@ Replace that block with:
 
 Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     )?;
@@ -155,6 +167,8 @@ Find this exact block:
     Ok(())
 }
 ```
+
+</details>
 
 Replace that block with:
 

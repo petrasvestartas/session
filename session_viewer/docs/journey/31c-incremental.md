@@ -8,15 +8,13 @@
 
 **Follow:** Scene row → retained GPU row → matrix or selection byte difference → queued range write → next draw.
 
-The cache removes repeated vertex/index uploads, but every scene synchronization still allocates object settings. Retain each GPU row when its ObjectId and CPU display owner both match. Keep scene order when collecting the new row list; swap_remove only changes the temporary list of old rows.
+Retain a GPU row when both its `ObjectId` and CPU display owner match. Reorder retained rows into scene order; drop unmatched rows before pruning the weak cache.
+
+Store the last eighty encoded uniform bytes. Compare the 64-byte matrix and 16-byte selection ranges separately: Move writes the matrix, selection writes its flag, and unchanged values write nothing. Compare encoded floats so an invisible double change causes no upload.
+
+Add `COPY_DST`. Queue writes execute before the next draw submission; offsets 0 and 64 and lengths 64 and 16 meet four-byte alignment. Hidden counters track actual range writes and bytes. See [wgpu's write contract](https://docs.rs/wgpu/29.0.4/wgpu/struct.Queue.html#method.write_buffer).
 
 ![A retained row writes only its changed matrix or selection range before the next draw.](../illustrations/journey-31c.svg)
-
-GpuMesh now keeps its uniform buffer and a copy of the last eighty encoded bytes. Compare the sixty-four matrix bytes and sixteen selection bytes separately. A selection change writes sixteen bytes; Move writes sixty-four. Unchanged values queue no writes. Comparing the encoded float bytes also avoids writing a double change that produces the same GPU value.
-
-The buffer adds COPY_DST because updates use the queue. [wgpu’s write_buffer contract](https://docs.rs/wgpu/29.0.4/wgpu/struct.Queue.html#method.write_buffer) copies our bytes into staging immediately and executes their transfer before the commands in the next submission. Our normal draw submits after synchronization; no extra submission is required here. Offsets zero and sixty-four, and lengths sixty-four and sixteen, satisfy the [WebGPU four-byte write alignment](https://www.w3.org/TR/webgpu/#dom-gpuqueue-writebuffer).
-
-The renderer takes its old rows temporarily, finds matching identities, updates their settings, and puts them in scene order. Rows left in the old list are dropped before the weak cache is pruned. The hidden counters now record actual range writes and bytes in addition to allocations.
 
 ## Type the change
 
@@ -26,11 +24,14 @@ Continue from [Reuse uploads while their geometry is alive](31b-cache.md). Save 
 
 Retain row identity, its writable settings buffer and the bytes last sent.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     model_group: wgpu::BindGroup,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -42,11 +43,14 @@ Replace that block with:
 
 Allow queued updates to the settings buffer.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             usage: wgpu::BufferUsages::UNIFORM,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -58,11 +62,14 @@ Replace that block with:
 
 Keep settings ownership beside the bind group.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         Self { geometry, model_group }
 ```
+
+</details>
 
 Replace that block with:
 
@@ -74,11 +81,14 @@ Replace that block with:
 
 Queue only changed matrix or selection ranges and count their actual calls and bytes.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
 ```
+
+</details>
 
 Replace that block with:
 
@@ -90,11 +100,14 @@ Replace that block with:
 
 Accumulate settings write evidence.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
     settings_allocations: usize,
 ```
+
+</details>
 
 Replace that block with:
 
@@ -106,11 +119,14 @@ Replace that block with:
 
 Initialize the cumulative write counters.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
             geometry: Default::default(), settings_allocations: 0, uniform, view_group, depth };
 ```
+
+</details>
 
 Replace that block with:
 
@@ -122,7 +138,8 @@ Replace that block with:
 
 Retain matching GPU rows, preserve scene draw order and drop unused rows before cache pruning.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         let mut meshes = Vec::with_capacity(scene.objects().len());
@@ -136,6 +153,8 @@ Find this exact block:
         self.geometry.prune();
 ```
 
+</details>
+
 Replace that block with:
 
 ```rust
@@ -146,11 +165,14 @@ Replace that block with:
 
 Report actual update calls and bytes rather than reserved zeros.
 
-Find this exact block:
+<details>
+<summary>Locate the existing block</summary>
 
 ```rust
         [self.geometry.uploads, self.settings_allocations, 0, 0]
 ```
+
+</details>
 
 Replace that block with:
 
