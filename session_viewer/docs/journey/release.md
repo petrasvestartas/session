@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 116 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 118 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -80,6 +80,14 @@ The three typing estimates are 21–41, 18–36 and 25–49 minutes. An initial 
 The next checkpoint corrects a compatibility gap in the initial writer. Strict admission excluded newer schemas, so using admitted reports as the retention list could delete newer-format evidence. Retention now reads only a bounded positive-version/date header, ranks the two newest older values and leaves their original stored bytes unchanged. Unsupported or typed-invalid values can occupy a retained slot but remain ineligible for notices and typed downloads. Syntax errors, excessive bytes and unusable headers can still be pruned; a failed older-value read aborts before any mutation.
 
 127 native tests, WebAssembly, Trunk, native GPU rendering and real Chrome pass. Chrome preserves exact whitespace-bearing version2 JSON with unknown telemetry, confirms strict selection refuses it, and verifies read denial leaves all values untouched. The inherited real loss/reload/previous-download and scene/history checks also pass. Typing26–51 minutes.
+
+## Heartbeat and callback ownership
+
+Two more checkpoints pass 129 native tests each, WebAssembly, Trunk, native GPU frames and actual headed Chrome. A bounded heartbeat updates lastSeen without appending observations, changing outcome or rewriting the first fatal timestamp. The browser refreshes actual context/UTC and persists only metadata after releasing its report borrow. Chrome checks unchanged scene, selection, camera, history and geometry counters, exact stored JSON, and failure preservation after real GPU destruction.
+
+The next endpoint owns its native interval, Window and Rust Closure together. Startup registers 15000 milliseconds; cancellation clears the native interval before releasing the callback. Explicit stop is idempotent and replacement clears the preceding owner. The timer captures no device, renderer, document or source. Chrome observes the actual requested period and accelerates delivery only in the proof, checking multiple metadata updates, exact handle cancellation/replacement, zero GPU calls inside callbacks, continued diagnostics after GPU loss and ready startup/current download when registration throws. It does not measure real 15-second wall-clock scheduling or phone performance. Automatic lifecycle suspension/final-exit hooks follow next.
+
+Typing estimates are 17–33 and 16–32 minutes. The first timer capture passed its custom assertions but failed the common no-page-error check because its observer accessed GPUQueue on the Back-test navigation target without WebGPU. The helper now guards that interface; a full repeat passes with the original page-error assertion intact. Both final captures retain the white full-window canvas and actual command dock.
 
 ## Reproduce
 

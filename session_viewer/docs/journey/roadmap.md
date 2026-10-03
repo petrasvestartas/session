@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 181 lesson slots; 116 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 186 lesson slots; 118 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 116 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 118 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -267,7 +267,17 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34fc · [Preserve unsupported telemetry while pruning](34fc-retention.md) — Separate raw retention from strict adoption; native, WebAssembly, rendering and actual Chrome checks pass.
 
-- [ ] 34g · Recover from GPU loss — lifecycle/heartbeat/error and detailed load telemetry, then bounded recovery.
+- [x] 34g · [Refresh heartbeat without rewriting failure evidence](34g-heartbeat.md) — Actual stored heartbeat, unchanged scene/history and retained first failure after real GPU loss; native, WebAssembly, GPU and Chrome pass.
+
+- [x] 34ga · [Own the periodic diagnostic heartbeat](34ga-timer.md) — Actual interval registration, independent post-loss metadata, exact cancellation/replacement and denied-scheduler startup/download; native, WebAssembly, GPU and Chrome pass.
+
+- [ ] 34gb · Observe browser lifecycle — Cached hide/show, visibility, freeze/resume and final-exit cleanup.
+
+- [ ] 34gc · Observe browser errors — Bound global error/rejection metadata and preserve first failure.
+
+- [ ] 34gd · Record complete loading diagnostics — Adapter, load phases, resources and live replacements; split into manageable endpoints when authored.
+
+- [ ] 34ge · Recover from GPU loss — Retain diagnostics, bound retries and restore normal quality after conservative recovery.
 
 ## Geometry beyond solid triangles
 

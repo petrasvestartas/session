@@ -1,0 +1,9 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+register: "Register native interval; retain Rust Closure"
+owner: "One metadata Timer independent of GPU"
+tick: "Refresh heartbeat; no render work"
+clear: "Take owner; clear handle before closure release"
+register -> owner -> tick
+owner -> clear

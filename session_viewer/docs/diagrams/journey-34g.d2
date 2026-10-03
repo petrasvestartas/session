@@ -1,0 +1,8 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+clock: "Actual UTC and browser context"
+heartbeat: "Bound timestamp; update lastSeen only"
+keep: "Preserve first failure, outcome and observations"
+persist: "Release report borrow; persist metadata"
+clock -> heartbeat -> keep -> persist
