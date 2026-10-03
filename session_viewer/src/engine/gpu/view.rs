@@ -45,7 +45,8 @@ impl View {
             feather_px: knob_f32("VIEWER_AA", "aa", 1.0).clamp(0.5, 4.0),
             lit: knob("VIEWER_LIT", "lit").is_some(),
             backface: knob("VIEWER_BACKFACE", "backface").is_some(),
-            opacity: knob_f32("VIEWER_OPACITY", "opacity", DEFAULT_OPACITY).clamp(0.0, 1.0),
+            opacity: knob_f32("VIEWER_OPACITY", "opacity", default_opacity(phone()))
+                .clamp(0.0, 1.0),
             msaa_forced: knob_u32("VIEWER_MSAA", "msaa"),
             perf: knob("VIEWER_PERF", "perf").is_some(),
             spin: knob("VIEWER_SPIN", "spin").is_some(),
@@ -61,6 +62,31 @@ pub const DEFAULT_MAX_DPR: f64 = 2.0;
 
 /// Face opacity unless `?opacity=` says otherwise: nearly solid, hidden edges still show faintly.
 pub const DEFAULT_OPACITY: f32 = 0.95;
+
+/// Coarse primary pointers identify touch-first phones without depending on GPU names.
+pub fn phone() -> bool {
+    #[cfg(target_arch = "wasm32")]
+    {
+        web_sys::window()
+            .and_then(|window| window.match_media("(pointer: coarse)").ok().flatten())
+            .is_some_and(|media| media.matches())
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    {
+        false
+    }
+}
+
+fn default_opacity(phone: bool) -> f32 {
+    if phone { 1.0 } else { DEFAULT_OPACITY }
+}
+
+#[cfg(test)]
+#[test]
+fn phones_start_solid_and_desktops_keep_nearly_solid_faces() {
+    assert_eq!(default_opacity(true), 1.0);
+    assert_eq!(default_opacity(false), 0.95);
+}
 
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=` or else at `DEFAULT_MAX_DPR`.
 pub fn device_pixel_ratio() -> f64 {

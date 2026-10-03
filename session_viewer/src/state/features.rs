@@ -29,7 +29,6 @@ pub(crate) struct Features {
     pub(crate) mark: Option<Mark>,    // register:measure
     pub(super) hierarchy: Hierarchy,  // register:hierarchy
     pub(super) pending_split: Option<splitting::Pending>, // register:split
-    pub(super) opacity_chosen: bool,  // register:opacity
 }
 
 /// Feature work on every frame, before the pick answers are applied.

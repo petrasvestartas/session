@@ -20,7 +20,7 @@ Local checks: 500 native tests passed, 53 ignored; wasm check and optimized Trun
 
 ## Remaining work
 
-- Hybrid triangle depth anchors and a permanent far-floor ray oracle.
-- Solid opacity by default on phones; explicit opacity overrides element dimming.
+- Completed: hybrid depth anchors draw 100% in all six far-floor cases; 501 native tests pass, including existing close-up hidden-ink checks. Chrome passes 24 close-up views.
+- Phone opacity defaults to 1; desktop stays 0.95. Remove automatic element dimming so explicit URL opacity is retained; browser acceptance pending.
 - Compressed publishing, polling identity consistency and first-frame pipeline preparation.
 - Retain close-up creases, round bores and tree colours; verify deployment workflows.
