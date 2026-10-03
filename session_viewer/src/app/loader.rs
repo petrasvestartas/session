@@ -139,7 +139,7 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
     // without a live source the manifest downloads while the GPU starts
     let route = scene_route().filter(|_| live.is_none());
     let early = route.as_ref().map(prefetch);
-    let state = match State::new(window, Scene::new()).await {
+    let mut state = match State::new(window, Scene::new()).await {
         Ok(state) => state,
         Err(error) => {
             super::feedback::error(&format!(
@@ -148,6 +148,11 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
             return;
         }
     };
+    if let Some((width, height)) = crate::desired_canvas_size() {
+        state.resize(width, height);
+    }
+    state.gpu.logical_size = state.logical_size();
+    state.gpu.prewarm_initial();
     crate::engine::performance::mark("state ready");
     let _ = proxy.send_event(Msg::Ready(Box::new(state)));
 

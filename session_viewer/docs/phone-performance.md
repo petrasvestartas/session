@@ -21,11 +21,13 @@ Local checks: 500 native tests passed, 53 ignored; wasm check and optimized Trun
 ## Remaining work
 
 - Completed: hybrid depth anchors draw 100% in all six far-floor cases; 501 native tests pass, including existing close-up hidden-ink checks. Chrome passes 24 close-up views.
-- Phone opacity defaults to 1; desktop stays 0.95. Remove automatic element dimming so explicit URL opacity is retained; browser acceptance pending.
+- Completed: phone opacity defaults to 1; desktop stays 0.95. Automatic element dimming is removed. Headed Chrome checks default and explicit opacity 1/0.6 on desktop, phone and throttled phone; all nine cases pass.
 - Completed: publish scenes up to 32 MiB with deterministic gzip, immutable compressed-byte revisions and decoded manifest size. The live floor now transfers 811,523 bytes (83.69% smaller); decoded SHA-256 stays unchanged. Chrome checks HTTP gzip and headerless fallback without any range probe. Cloudflare serves decoded bytes to clients without Accept-Encoding, so publisher verification explicitly requests gzip.
 - Polling now compares actual response bytes while retaining ETags for conditional downloads. A headed regression changes strong/weak/missing validators across four successful polls: the old viewer replaced the same scene four times; the fix replaces it once. Native tests cover changed bytes under an unchanged validator and cache reset.
-- Pending: first-frame pipeline preparation.
-- Retain close-up creases, round bores and tree colours; verify deployment workflows.
+- Completed locally: first-frame pipelines are prepared during the early download, using the capped canvas size and correct sample count. A delayed-download phone test proves preparation precedes decode, the opaque face pipeline compiles once, inactive Arctic stays cold, and explicit Arctic remains usable. Reduced-quality fallback waits for GPU completion of the first geometry frame.
+- Published edge, opacity, diagnostics and compression fixes passed viewer-check, viewer-pages and the broader Session mini tests. Duplicate-reload and startup fixes are awaiting their next deployment.
+- Pending robustness: adjacent face ownership in stroke visibility, idle tap/selection preparation, ribbon variant reduction and overflow redraw.
+- CPU restructuring is conditional on actual phone diagnostics. The phone itself has not yet been measured here.
 
 ## Solid-opacity GPU measurement
 
@@ -37,3 +39,7 @@ Native optimized selftest, 900×700, 20 frames, VIEWER_PROFILE=1 and VIEWER_GPU_
 | Intel RPL-S integrated | 77.695 ms | 48.528 ms | 37.5% |
 
 Profiled native geometry walking is about 248 ms. The selftest's outer walk timing includes its separate profiling walk, so it is not the scene walk measurement. The requested ~200 ms desktop goal is not established yet.
+
+## First-frame preparation
+
+The headed phone startup test reports 1.1 ms of pipeline-constructor preparation before scene decode; this is CPU constructor time, not a claim that all GPU compilation takes 1.1 ms. First geometry submission and GPU completion are recorded separately. Native checks pass 504 tests with 54 ignored; the GPU-only prewarm/cache test passes when run explicitly. WebAssembly and optimized Trunk builds pass. `tests/startup.cjs` exercises the delayed download and subsequent typed `Arctic On` command.

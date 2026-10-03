@@ -236,6 +236,15 @@ pub struct TriangleTiles {
 }
 
 impl TriangleTiles {
+    pub(super) fn prewarm(&self) {
+        let _: &wgpu::ComputePipeline = &self.pipes.project;
+        let _: &wgpu::RenderPipeline = &self.pipes.count;
+        let _: &wgpu::RenderPipeline = &self.pipes.fill;
+        for scan in &self.pipes.scans {
+            let _: &wgpu::ComputePipeline = scan;
+        }
+    }
+
     /// Create with tiny placeholder buffers.
     pub fn new(ctx: &GpuCtx, layouts: &Layouts) -> Self {
         let buffer = zeroed_buffer(&ctx.device, "triangle.tiles", 16, ROWS);
@@ -687,15 +696,18 @@ fn compute_pipeline(
     let layout = layout.clone();
     let shader = shader.clone();
     Lazy::new(move || {
+        let started = crate::engine::performance::now_ms();
         count_pipeline();
-        device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+        let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
             label: Some(entry),
             layout: Some(&layout),
             module: &shader,
             entry_point: Some(entry),
             compilation_options: Default::default(),
             cache: None,
-        })
+        });
+        crate::app::feedback::phase("pipeline creation", started, 0, entry);
+        pipeline
     })
 }
 

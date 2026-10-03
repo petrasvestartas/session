@@ -68,9 +68,14 @@ impl Gpu {
 
         if let Some(done) = self.performance.mark_startup(geometry) {
             crate::app::feedback::phase("first frame encode", t0, 0, done);
-            self.ctx
-                .queue
-                .on_submitted_work_done(move || crate::engine::performance::mark(done));
+            let completion =
+                (done == "geometry on screen").then(|| self.performance.completion_flag());
+            self.ctx.queue.on_submitted_work_done(move || {
+                if let Some(completion) = completion {
+                    completion.store(true, std::sync::atomic::Ordering::Relaxed);
+                }
+                crate::engine::performance::mark(done);
+            });
         }
 
         // compile ahead outside the frame, after the first geometry has been presented

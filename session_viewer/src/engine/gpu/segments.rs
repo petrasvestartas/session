@@ -292,6 +292,13 @@ pub struct SegmentLane {
 }
 
 impl SegmentLane {
+    /// Compile ordinary visible strokes; picking, selection and masks stay lazy.
+    pub(super) fn prewarm(&self, ctx: &GpuCtx, layouts: &Layouts, target: Target) {
+        let pipes = build_pipelines(ctx, layouts, &self.shader, target);
+        let _: &wgpu::RenderPipeline = &pipes.unselected;
+        let _: &wgpu::RenderPipeline = &pipes.ribbon;
+    }
+
     /// Bytes reserved on the GPU by this lane.
     pub fn allocated_bytes(&self) -> u64 {
         self.pipes.buf.buf.size()

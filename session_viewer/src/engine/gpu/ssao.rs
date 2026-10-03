@@ -868,7 +868,7 @@ impl Pass for Ambient {
     }
 
     fn after_present(&mut self, g: &mut Gpu) {
-        if g.live_faces() > 0 {
+        if g.view.ssao && g.performance.geometry_complete() && g.live_faces() > 0 {
             let target = g.target();
             prewarm(&mut self.pipes, &g.ctx, target, !g.performance.interacting);
         }

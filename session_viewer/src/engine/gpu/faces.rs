@@ -79,6 +79,23 @@ impl Faces {
         }
     }
 
+    /// Compile the visible face variant without changing targets or draw state.
+    pub(super) fn prewarm(
+        &self,
+        ctx: &GpuCtx,
+        layouts: &Layouts,
+        shader: &Shader,
+        target: Target,
+        opaque: bool,
+    ) {
+        let pipes = pipelines(ctx, layouts, shader, target, &self.layout);
+        let _: &wgpu::RenderPipeline = if opaque {
+            &pipes.opaque
+        } else {
+            &pipes.physical
+        };
+    }
+
     /// Rebuild the pipelines for a new MSAA sample count.
     pub fn retarget(&mut self, ctx: &GpuCtx, layouts: &Layouts, shader: &Shader, target: Target) {
         self.pipes = pipelines(ctx, layouts, shader, target, &self.layout);

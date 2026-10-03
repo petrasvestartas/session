@@ -135,6 +135,12 @@ pub struct ArenaLane {
 }
 
 impl ArenaLane {
+    pub(super) fn prewarm(&self, ctx: &GpuCtx, layouts: &Layouts, target: Target, opaque: bool) {
+        self.source_faces
+            .prewarm(ctx, layouts, &self.shader, target, opaque);
+        self.tiles.prewarm();
+    }
+
     /// Geometry buffers for read-only GPU passes: vertices, owners, solid indices.
     pub fn geometry_buffers(&self) -> [&wgpu::Buffer; 3] {
         [&self.verts.buf, &self.vids.buf, &self.faces.buf]

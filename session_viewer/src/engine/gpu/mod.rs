@@ -259,6 +259,25 @@ impl Gpu {
         Ok(gpu)
     }
 
+    /// Prepare solid-scene first-frame paths while the prefetched body is still downloading.
+    pub fn prewarm_initial(&self) {
+        let started = crate::engine::performance::now_ms();
+        let target = Target {
+            format: self.config.format,
+            samples: Targets::samples_for(
+                true,
+                self.config.width * self.config.height,
+                self.view.msaa_forced,
+                self.msaa_budget(),
+                self.config.width as f32 / self.logical_size[0].max(1.0) as f32,
+            ),
+        };
+        self.arena
+            .prewarm(&self.ctx, &self.layouts, target, self.view.opacity >= 1.0);
+        self.segments.prewarm(&self.ctx, &self.layouts, target);
+        crate::app::feedback::phase("first frame prewarm", started, 0, "GPU");
+    }
+
     /// Append one upload to every lane.
     pub fn set_scene(&mut self, up: &Upload) {
         self.objects.append(&self.ctx, &self.layouts, &up.obj);
@@ -628,4 +647,19 @@ impl Gpu {
     pub(crate) fn live_points(&self) -> u32 {
         self.cloud.point_count.saturating_sub(self.dead_points)
     }
+}
+
+#[cfg(test)]
+#[test]
+#[ignore = "requires a native GPU adapter"]
+fn initial_prewarm_reuses_pipelines_and_leaves_other_modes_lazy() {
+    let gpu = pollster::block_on(Gpu::new_headless(824, 1830)).unwrap();
+    gpu.prewarm_initial();
+    let warm = crate::engine::pipelines::created().0;
+    gpu.prewarm_initial();
+    assert_eq!(crate::engine::pipelines::created().0, warm);
+    assert_eq!(gpu.live_faces(), 0);
+    assert!(!gpu.performance.geometry_complete());
+    gpu.ctx.cache.compile_all();
+    assert!(crate::engine::pipelines::created().0 > warm, "picking and selection must stay lazy at startup");
 }

@@ -594,6 +594,7 @@ impl State {
 
             // slow even at the top drag tier: drop to device scale 1 and no antialiasing
             if self.gpu.performance.take_slow_interaction()
+                && self.gpu.performance.geometry_complete()
                 && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
                     || self.gpu.targets.samples > 1)
             {

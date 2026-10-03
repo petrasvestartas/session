@@ -12,7 +12,8 @@ pub struct Performance {
     rough: bool,           // the last frame was drawn at a tier
     slow_run: u32,         // slow top-tier drag frames in a row
     slow: bool,            // the run reached SLOW_FRAMES; read once
-    shown: bool,           // a frame with geometry was presented
+    completed: std::sync::Arc<std::sync::atomic::AtomicBool>, // GPU finished the first geometry frame
+    shown: bool,                                              // a frame with geometry was presented
 }
 
 /// Drag frames the tier decision takes the median of.
@@ -56,6 +57,7 @@ impl Performance {
             rough: false,
             slow_run: 0,
             slow: false,
+            completed: std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false)),
             shown: false,
         }
     }
@@ -75,6 +77,14 @@ impl Performance {
         }
 
         first.then_some("first frame on screen")
+    }
+
+    pub fn geometry_complete(&self) -> bool {
+        self.completed.load(std::sync::atomic::Ordering::Relaxed)
+    }
+
+    pub(super) fn completion_flag(&self) -> std::sync::Arc<std::sync::atomic::AtomicBool> {
+        self.completed.clone()
     }
 
     /// True once when a run of slow frames was seen.
@@ -440,4 +450,15 @@ mod tests {
             "normal fallback resumes after Arctic is off"
         );
     }
+}
+
+#[cfg(test)]
+#[test]
+fn geometry_submission_is_not_gpu_completion() {
+    let mut performance = Performance::new();
+    assert_eq!(performance.mark_startup(true), Some("geometry on screen"));
+    assert!(!performance.geometry_complete());
+    let flag = performance.completion_flag();
+    flag.store(true, std::sync::atomic::Ordering::Relaxed);
+    assert!(performance.geometry_complete());
 }
