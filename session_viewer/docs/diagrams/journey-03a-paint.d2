@@ -1,0 +1,14 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+classes: {
+  box: { style: { fill: "#e9e9ec"; stroke: "#e9e9ec"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+  focus: { style: { fill: "#fa9ebc"; stroke: "#fa9ebc"; border-radius: 6; font-size: 16; font-color: "#111111" } }
+}
+direction: down
+n0: "RawInput supplies canvas size" {class: box}
+n1: "egui returns shapes and font pixels" {class: box}
+n2: "Upload atlas and triangle buffers" {class: focus}
+n3: "Load pass adds text over the scene" {class: box}
+n0 -> n1
+n1 -> n2
+n2 -> n3

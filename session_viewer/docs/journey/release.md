@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 121 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 123 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the six early dock steps, from font setup through keyboard input. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -8,9 +8,15 @@ This is the opening of the full viewer course. The [remaining lesson checklist](
 
 Each current lesson has one focused exercise. All main explanations were reviewed; this batch shortens 49 further explanations after the earlier chapter-34 revision. Main explanations stay under 200 words. Experiments, implementation context and extended acceptance evidence remain expandable supporting notes. Every lesson links to the detailed to-do list.
 
-The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). All 120 previously published code endpoints remain byte-identical. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
+The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Sixteen other checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+Fifteen other checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+
+## Command-panel typing split
+
+The former 03a checkpoint required 81–162 minutes of typing. It is now three complete runnable steps: prepare the fonts and GPU painter (30–60 minutes), paint the Command label over the scene (25–49), then lay out the production field (30–60). Their main explanations are short; field input is explicitly deferred to the input lesson.
+
+Four affected endpoints pass fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome. Chrome observes the actual egui shader/pipeline owner, checks Noto label ink and exact preservation of the scene above the white dock, and retains the production field checks. One repeated layout-setting call is removed from the panel/state introduction; the other 119 previous endpoints remain byte-identical. Fifteen oversized checkpoints still need splitting.
 
 ## What was checked
 

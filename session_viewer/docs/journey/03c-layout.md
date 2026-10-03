@@ -2,7 +2,7 @@
 
 **Combined study estimate: 8–12 hours.** Includes reading, typing, reasoning and experiments.
 
-**Typing estimate: 251–501 minutes.** 575 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+**Typing estimate: 252–504 minutes.** 577 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
@@ -66,8 +66,6 @@ pub struct Panel {
 impl Panel {
     pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
         let context = egui::Context::default();
-        // Text input must be handled once, even when a widget requests another layout pass.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_fonts(theme::fonts([
             include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
             include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),

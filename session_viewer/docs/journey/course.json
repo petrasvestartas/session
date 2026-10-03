@@ -167,24 +167,24 @@
       "browser_status": "Three corners became a triangle."
     },
     {
-      "id": "03a-panel",
-      "title": "Draw our command line",
-      "page": "journey/03a-panel.md",
+      "id": "03a-fonts",
+      "title": "Prepare the command fonts and painter",
+      "page": "journey/03a-fonts.md",
       "hours": [
-        4,
-        6
+        1,
+        2
       ],
-      "goal": "Draw the production command panel and its Noto text over the triangle, using the same GPU.",
-      "trace": "Panel layout → shapes and font atlas → egui triangles → second GPU pass → one presented image",
-      "question": "Why does the interface pass load the existing image instead of clearing it?",
-      "answer": "The scene pass has already drawn the triangle. Load keeps those pixels. The interface pass draws its own triangles over them; another Clear would erase the scene.",
-      "story": "Paint the command dock over the triangle using the same GPU. This step draws the field and history toggle; keyboard input is connected in 03d.\n\n`theme.rs` supplies the production fonts and colours; `view.rs` supplies panel and field layout. `Panel` owns egui's context and GPU painter. Its context remembers interface state, and its font atlas stores letter shapes in a texture.\n\nEach draw lays out widgets, uploads changed font pixels, tessellates shapes into triangles, then paints them. Use **Load** in the interface pass to preserve the scene underneath. Present only after both passes.\n\n`String` owns the field text. `&mut self` permits updates; `|ui| ...` borrows it for layout. `Arc` shares embedded font bytes, and `zip` pairs names with their bytes. The dependency command supplies the binary fonts. One layout pass prevents later input events from being replayed.\n\n![One GPU receives the scene pass followed by the egui interface pass.](../illustrations/journey-03a.svg)",
-      "result": "The command dock appears over the triangle, using the supplied Noto fonts. Text input is not connected yet. Check that the drawing still fills the window.",
-      "experiment": "Change only the interface pass from Load to Clear with a white colour. Predict what will happen to the triangle, then try it. Restore Load afterward. Which painter still drew correctly, and whose work did the later pass erase?",
-      "production": "This is the actual production panel and field styling, introduced before command behaviour. The next command-line parts connect input, submission, completion and history. We will keep these theme and layout functions as the application grows.",
-      "browser_status": "Our command line is drawn. Input comes next.",
-      "browser_caption": "Actual Chrome capture of this typed checkpoint: the triangle and real command-panel styling share one canvas. This image proves the drawing step, not keyboard handling.",
-      "image_result": "The native check still draws only the scene renderer. The new egui panel is verified separately in Chrome; a native triangle image cannot prove that interface.",
+      "goal": "Create the font and GPU painter owner while keeping the triangle.",
+      "trace": "Embedded font bytes → shared font definitions → egui context → GPU painter",
+      "question": "Why can the font configuration keep the embedded byte slices?",
+      "answer": "include_bytes! supplies bytes with a static lifetime, so FontData can retain those slices. Arc lets egui share the same font data allocation; both families refer to its registered name.",
+      "story": "Prepare one owner for the command drawing. It keeps an `egui::Context` and a GPU painter. The browser constructs this owner now; the triangle stays unchanged until we connect drawing.\n\n`include_bytes!` embeds the three Noto font files in the program. Their static lifetime lets the font definitions retain them. `Arc` gives egui shared ownership of the font data; both families list the same font names. The `fonts` helper returns that configuration; `new` installs it, chooses the light theme and creates a painter using the existing device.\n\nThe painter records interface work on our GPU. It does not need a second canvas or HTML controls.\n\n![The current command drawing step.](../illustrations/journey-03a-fonts.svg)",
+      "result": "The triangle stays visible in the full window. The font and painter owner is constructed, but no interface drawing is connected yet.",
+      "experiment": "Change visuals.window_fill and rebuild. Predict why the triangle stays unchanged before the painter is called, then restore the colour.",
+      "production": "This is the same Noto font setup and GPU painter used by the finished command dock.",
+      "browser_status": "Three corners became a triangle.",
+      "browser_caption": "Chrome observes creation of the actual egui GPU shader and pipeline while the triangle stays unchanged. No interface is drawn yet.",
+      "image_result": "The native image checks the scene renderer; actual Chrome separately checks the interface drawing.",
       "assets": [
         "assets/text/NotoSans-Regular.subset.ttf",
         "assets/text/NotoSansSymbols2-Regular.subset.ttf",
@@ -194,51 +194,140 @@
       "edits": [
         {
           "path": "Cargo.toml",
-          "snippet": "journey/code/03a-panel-panel-01.toml",
           "before": "wasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
-          "why": "Add egui for layout and egui-wgpu for painting. Both use the same wgpu 29.0.4 device as our scene; no second GPU connection is created. After this edit, run `npm --prefix ../session_tests run course -- dependencies 03a-panel` from `session_viewer`. It supplies the locked libraries and three binary fonts, without writing Rust code."
-        },
-        {
-          "path": "src/command_dock/theme.rs",
-          "snippet": "journey/code/03a-panel-panel-06.rs",
-          "before": null,
-          "why": "Type the viewer’s actual font families and white theme. The main font draws letters; the two fallback fonts supply symbols. A static byte slice borrows bytes embedded in the program for its whole lifetime."
-        },
-        {
-          "path": "src/command_dock/view.rs",
-          "snippet": "journey/code/03a-panel-panel-07.rs",
-          "before": null,
-          "why": "Type the production panel and field layout. Sizes are egui points. panel chooses folded or expanded dimensions; prepare sets text and the top rule; field draws the editable area. Its future input state is passed in, not stored in the style functions."
-        },
-        {
-          "path": "src/command_dock/mod.rs",
-          "snippet": "journey/code/03a-panel-panel-05.rs",
-          "before": null,
-          "why": "Group the appearance code under one owner. pub(crate) lets the rest of this project use these modules without making them a public library API."
+          "snippet": "journey/code/03a-fonts-01.toml",
+          "why": "Add egui and its GPU painter."
         },
         {
           "path": "src/panel.rs",
-          "snippet": "journey/code/03a-panel-scale-1.rs",
           "before": null,
-          "why": "Keep the context and painter alive. Each draw lays out widgets, uploads changed font pixels, tessellates shapes, then paints with Load. forget_lifetime lets egui receive the render pass; finish the pass before finishing its encoder. The temporary pass still ends at the semicolon; forget_lifetime does not keep it alive forever."
+          "snippet": "journey/code/03a-fonts-02.rs",
+          "why": "Keep the context and painter together."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    present(&surface, &renderer)?;\n    report(\"Three corners became a triangle.\");\n    Ok(())\n",
+          "snippet": "journey/code/03a-fonts-03.rs",
+          "why": "Create the painter owner before presenting the scene."
         },
         {
           "path": "src/lib.rs",
-          "snippet": "journey/code/03a-panel-fullscreen-1.rs",
           "before": "        }\n    });\n}\n",
-          "why": "Register the interface modules only for browser builds. Native scene checks continue to use the existing Renderer."
+          "snippet": "journey/code/03a-fonts-04.rs",
+          "why": "Register the browser-only drawing modules."
+        },
+        {
+          "path": "src/command_dock/theme.rs",
+          "before": null,
+          "snippet": "journey/code/03a-fonts-05.rs",
+          "why": "Configure Noto fonts and the light theme."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": null,
+          "snippet": "journey/code/03a-fonts-06.rs",
+          "why": "Register the shared styling module."
+        }
+      ],
+      "image_same_as": "03-triangle",
+      "browser_check": "journey/checks/browser/03a-fonts.cjs"
+    },
+    {
+      "id": "03a-paint",
+      "title": "Paint command text over the scene",
+      "page": "journey/03a-paint.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Draw a Command label over the triangle using the same GPU.",
+      "trace": "RawInput → egui shapes and font atlas → GPU upload → Load pass → present",
+      "question": "Why does the interface pass use Load?",
+      "answer": "The triangle is already in the target image. Load keeps those pixels while the interface draws over them; another Clear would erase the scene.",
+      "story": "Draw the Command label after the triangle and before presenting the image. `RawInput` gives egui the available canvas size. `run_ui` calls our layout closure and returns shapes plus changed font-atlas pixels.\n\nUpload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.\n\n`forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.\n\n![The current command drawing step.](../illustrations/journey-03a-paint.svg)",
+      "result": "Command: appears at the bottom of the full-window canvas. The triangle remains unchanged above it. Keyboard input is not connected yet.",
+      "experiment": "Change only Load to a white Clear, rebuild and see which earlier drawing disappears. Restore Load.",
+      "production": "This introduces the interface upload and second GPU pass that the full command dock keeps.",
+      "browser_status": "Our command line is drawn. Input comes next.",
+      "browser_caption": "Chrome verifies visible Noto label ink, white panel pixels and exact preservation of the scene above the dock. Keyboard input is not connected.",
+      "image_result": "The native image checks the scene renderer; actual Chrome separately checks the interface drawing.",
+      "edits": [
+        {
+          "path": "src/panel.rs",
+          "before": "        Self { context, painter }\n    }\n\n}\n",
+          "snippet": "journey/code/03a-paint-01.rs",
+          "why": "Lay out the label, upload its font atlas and draw over the scene."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/03a-panel-window-1.rs",
-          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    present(&surface, &renderer)?;\n    report(\"Three corners became a triangle.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n",
-          "why": "Create the interface once beside the scene renderer. Pass that same mutable Panel to present, then paint the interface after the scene and before presenting the frame."
+          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let _panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer)?;\n    report(\"Three corners became a triangle.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n",
+          "snippet": "journey/code/03a-paint-02.rs",
+          "why": "Draw the label after the scene and before presentation."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/03a-panel-window-2.rs",
           "before": "        ..Default::default()\n    });\n    renderer.draw(&view);\n    frame.present();\n    Ok(())\n}\n",
-          "why": "Create the interface once beside the scene renderer. Pass that same mutable Panel to present, then paint the interface after the scene and before presenting the frame."
+          "snippet": "journey/code/03a-paint-03.rs",
+          "why": "Draw the label after the scene and before presentation."
+        }
+      ],
+      "browser_check": "journey/checks/browser/03a-paint.cjs"
+    },
+    {
+      "id": "03a-panel",
+      "title": "Lay out the command field",
+      "page": "journey/03a-panel.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Draw the production command field beside its label.",
+      "trace": "Panel rectangle → spacing and text style → local String → field response",
+      "question": "Why does the field receive &mut String?",
+      "answer": "The Panel owns the text. A mutable borrow lets the widget edit that same value during a draw without moving it or keeping a second copy.",
+      "story": "Add the command field beside its label. Keep panel sizing, shared spacing and field styling in the view module so later command behaviour can reuse them.\n\nThe field receives `&mut String`: egui borrows the text for this draw instead of owning a separate copy. It returns a `Response` describing the widget. The current page still supplies no keyboard events, so drawing the field does not connect typing yet.\n\nThe panel keeps its white fill, thin top rule, Noto text and unframed field. The history expansion control arrives with its behaviour in later steps.\n\n![The current command drawing step.](../illustrations/journey-03a-panel.svg)",
+      "result": "The production command field appears beside Command: over the triangle. Input handling comes in the next command-line steps.",
+      "experiment": "Change the hint text, rebuild and check only the empty field hint changes. Restore it.",
+      "production": "The same panel, spacing and field functions are reused by the full viewer.",
+      "browser_status": "Our command line is drawn. Input comes next.",
+      "browser_caption": "Chrome verifies the actual production field drawing over the preserved triangle. Keyboard event handling comes later.",
+      "image_result": "The native image checks the scene renderer; actual Chrome separately checks the interface drawing.",
+      "edits": [
+        {
+          "path": "src/panel.rs",
+          "before": "use crate::command_dock::theme;\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n}\n\nimpl Panel {\n",
+          "snippet": "journey/code/03a-panel-01.rs",
+          "why": "Own the field text and draw it beside the label."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n",
+          "snippet": "journey/code/03a-panel-02.rs",
+          "why": "Own the field text and draw it beside the label."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            egui::Panel::bottom(\"command-line-collapsed\").exact_size(30.0)\n                .frame(egui::Frame::new().fill(egui::Color32::WHITE)\n                    .inner_margin(egui::Margin::symmetric(6, 4)))\n                .show_inside(root, |ui| {\n                ui.label(\"Command:\");\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n",
+          "snippet": "journey/code/03a-panel-03.rs",
+          "why": "Own the field text and draw it beside the label."
+        },
+        {
+          "path": "src/command_dock/theme.rs",
+          "before": "    visuals.panel_fill = egui::Color32::from_gray(245);\n    visuals.window_stroke = egui::Stroke::NONE;\n    visuals.extreme_bg_color = egui::Color32::WHITE;\n    visuals.text_cursor.blink = false; // frames are drawn on demand\n    visuals.indent_has_left_vline = false;\n",
+          "snippet": "journey/code/03a-panel-04.rs",
+          "why": "Style selection and the caret for the command field."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "pub(crate) mod theme;\n",
+          "snippet": "journey/code/03a-panel-05.rs",
+          "why": "Register the shared field layout."
+        },
+        {
+          "path": "src/command_dock/view.rs",
+          "before": null,
+          "snippet": "journey/code/03a-panel-06.rs",
+          "why": "Add reusable panel, spacing and field functions."
         }
       ]
     },
@@ -340,7 +429,7 @@
         {
           "path": "src/panel.rs",
           "snippet": "journey/code/03c-layout-scale-1.rs",
-          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        // Text input must be handled once, even when a widget requests another layout pass.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self {\n            context,\n            painter,\n            model: CommandLine {\n                status: \"The field now belongs to CommandLine.\".into(),\n                ..Default::default()\n            },\n        }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor {\n            size_in_pixels: size,\n            pixels_per_point: 1.0,\n        };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO,\n                egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(\n                        ui,\n                        &mut self.model.command,\n                        placeholder(\"\", &self.model.status, false),\n                        0.0,\n                        false,\n                    );\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter\n                .update_texture(&renderer.device, &renderer.queue, *id, delta);\n",
+          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self {\n            context,\n            painter,\n            model: CommandLine {\n                status: \"The field now belongs to CommandLine.\".into(),\n                ..Default::default()\n            },\n        }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor {\n            size_in_pixels: size,\n            pixels_per_point: 1.0,\n        };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO,\n                egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(\n                        ui,\n                        &mut self.model.command,\n                        placeholder(\"\", &self.model.status, false),\n                        0.0,\n                        false,\n                    );\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter\n                .update_texture(&renderer.device, &renderer.queue, *id, delta);\n",
           "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
         },
         {

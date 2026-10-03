@@ -22,7 +22,7 @@ Caret helpers use character positions rather than UTF-8 byte offsets. That keeps
 
 ## Type the change
 
-Continue from [Draw our command line](03a-panel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03b-state` (from `session_viewer`).
+Continue from [Lay out the command field](03a-panel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03b-state` (from `session_viewer`).
 
 ### 1. `Cargo.toml`
 

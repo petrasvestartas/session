@@ -2,15 +2,15 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 121 cumulative lessons, about 168–314 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 123 cumulative lessons, about 167–314 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **190 proposed slots: 121 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **192 proposed slots: 123 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
 The white canvas fills the browser window from lesson 01. The runtime shows your drawing and the command dock; lesson titles and explanations stay in this documentation.
 
-**One-hour typing target:** the [typing-load audit](journey/typing-load.md) separates actual code changes from reading and experiments. Sixteen existing checkpoints still need splitting; working builds alone do not make those long sections finished lessons.
+**One-hour typing target:** the [typing-load audit](journey/typing-load.md) separates actual code changes from reading and experiments. Fifteen existing checkpoints still need splitting; working builds alone do not make those long sections finished lessons.
 
 Each lesson now follows one change: explain the needed Rust, type the code, then run one focused check. Experiments and detailed verification notes expand when you need them. The [to-do list and progress](journey/roadmap.md) is also linked at the top of every lesson.
 
@@ -31,7 +31,9 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [01a · Paint the first GPU frame](journey/01a-gpu.md) | 1–2 hours | Open a browser GPU and paint the whole canvas white. |
 | [02 · Give browser presentation its own function](journey/02-clear.md) | 1–2 hours | Separate browser presentation from setup and add bounded sizing and error feedback. |
 | [03 · Give the GPU three corners](journey/03-triangle.md) | 1–2 hours | Draw a pink triangle on the white background. |
-| [03a · Draw our command line](journey/03a-panel.md) | 4–6 hours | Draw the production command panel and its Noto text over the triangle, using the same GPU. |
+| [03a · Prepare the command fonts and painter](journey/03a-fonts.md) | 1–2 hours | Create the font and GPU painter owner while keeping the triangle. |
+| [03a · Paint command text over the scene](journey/03a-paint.md) | 1–2 hours | Draw a Command label over the triangle using the same GPU. |
+| [03a · Lay out the command field](journey/03a-panel.md) | 1–2 hours | Draw the production command field beside its label. |
 | [03b · Give the command line its memory](journey/03b-state.md) | 3–5 hours | The text field and history have one owner. |
 | [03c · Draw completion and history](journey/03c-layout.md) | 8–12 hours | Lay out the production command dock from its model. |
 | [03d · Type into the real command dock](journey/03d-input.md) | 5–8 hours | Send browser events to the dock and submit Help. |

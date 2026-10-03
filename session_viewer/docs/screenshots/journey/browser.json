@@ -94,12 +94,12 @@
       "keyboardRoundtrip": false
     },
     "03a-panel": {
-      "source": "219e1ecf5f960852405122dc4dee29b5b40a719217bb47be6e8cb3b31733b9da",
+      "source": "138e13a0fa1d8dc41b64da27832d6ce1c88874dfb985e31f5f2284d8c6a07969",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T21:14:01.966Z",
+      "captured": "2026-10-03T22:41:20.678Z",
       "status": "Our command line is drawn. Input comes next.",
       "canvas": "895fd5aca582ee4cc35712ec0ae706fa3a1bed7aa229894a4941acc82bc05f68",
       "file": "03a-panel-browser.png",
@@ -117,17 +117,17 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "7d75e7ae0de1251fbbf11d2a2464a761d271daf21fee7897502bdc49eee9e99c",
+      "bundle": "c2a6c3803b189c008e6f145c48670fbca4c8fe315bc1e93769c868c544dd5237",
       "commands": [],
       "keyboardRoundtrip": false
     },
     "03b-state": {
-      "source": "2fe11f1a728551ce5b3f0ee1ccaf4e4e3a54b76e5d58297bec8d322a438877b3",
+      "source": "31ddc33a6ecf2b799429ca55631c748e94bc38e1474f60f69db00b82fd3c46de",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T21:14:02.382Z",
+      "captured": "2026-10-03T22:41:21.978Z",
       "status": "The command model owns the text and history.",
       "canvas": "0164e13f7d651e846d59a7cb2f4fc45aabadc1bf8e166900d817c5902da84cbb",
       "file": "03b-state-browser.png",
@@ -145,7 +145,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "32bedb0ceee19c8fa8ca90d19e4b4c6e3f78836b03f861b43611528ad3cc693d",
+      "bundle": "e94be6b7972d7c32165326e0e43abb889d39cdd027f3fb31544b15e62ff9dcee",
       "commands": [],
       "keyboardRoundtrip": false
     },
@@ -3616,6 +3616,62 @@
         "height": 760
       },
       "bundle": "c8a3dc5027b4dd95b7655c888917cd0adb43906eadedccc0d0f239497ba5bf85",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03a-fonts": {
+      "source": "e08169be3800ae3a3b6e3f337b36ff783e2b7ba2065ab1060cc10448646f4f1b",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "80cbbff88bf459136c5e631b3bd30d4bf9f487510cbd7677f6b3e46152c7938c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T22:41:17.849Z",
+      "status": "Three corners became a triangle.",
+      "canvas": "25b91dcf0ffac52f0410abaca710fc4f8691924b156655d123c2aa536ef3d901",
+      "file": "03a-fonts-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "780bbc0819f06eedb5e3fd0102bc27ec0c753fa7a97be64c29e944b45c3a6797",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03a-paint": {
+      "source": "d778378d284f2ffb15686222ab93c4bac99a2375b42ecdbd3b7b4d35e524fd8f",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "011d6dcf7d6245821fb1594e8a2cbe5cb9c522c1d7d87a697cb2623a0fc25cd0",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T22:41:19.299Z",
+      "status": "Our command line is drawn. Input comes next.",
+      "canvas": "d84ea0651414ee5d1d2355ef8ab7105d922bb34b3e9d129dedb53b624971b61c",
+      "file": "03a-paint-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "163300a8ea0833d4ad9f6aaf3ac250e3a6cd1952f6cafebaa37349750e87446d",
       "commands": [],
       "keyboardRoundtrip": false
     }
