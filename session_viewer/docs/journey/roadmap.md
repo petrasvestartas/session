@@ -213,7 +213,7 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32giba · [Delete the original target while keeping later selection](32giba-delete.md) — Resolve the captured ObjectId, require editable geometry, preserve other selected rows and refuse a missing target without changing history.
 
-- [ ] 32gibb · Route captured Move, Delete and Save results — Return the edit change or original-precision snapshot bytes; leave history unchanged for Save and pair the result with the pending owner.
+- [x] 32gibb · [Route captured Move, Delete and Save results](32gibb-reply.md) — Return the edit change or original-precision snapshot bytes; Save leaves history unchanged. Pending-owner integration follows next.
 
 - [ ] 32gic · Pair the captured edit with reload authority — Keep intent with the pending ticket; cancel it on context changes and reject obsolete completion.
 

@@ -6622,6 +6622,49 @@
           "why": "Check delayed selection, one Undo and refusal without losing Redo."
         }
       ]
+    },
+    {
+      "id": "32gibb-reply",
+      "title": "Route captured Move, Delete and Save results",
+      "page": "journey/32gibb-reply.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Return a scene change or original-precision save bytes from a captured intent.",
+      "trace": "Intent → explicit-target edit or original source snapshot → Reply::Changed or Reply::Saved",
+      "question": "Why must Save return bytes without adding a document history entry?",
+      "answer": "Saving observes the current document. Undo must still undo the last modeling operation; returning original-source bytes preserves precision without turning a download into an edit.",
+      "result": "From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward. Type Delete, Undo, Select Next twice and Redo. Undo restores the geometry; selection must be chosen again after deleting the selected row. Finally type Select Next and Fit to inspect a remaining object. Move 0.15,0,0, Save, Undo and Redo; Save must leave the Move available to Undo. Finally type Fit.",
+      "experiment": "Call History::edit during Save, then run the native test and explain why Undo now observes an extra history step.",
+      "production": "The pending owner will consume an intent once, then route changed-state feedback or save bytes. This lesson defines only execution and result values.",
+      "tests": true,
+      "frame": "journey/checks/32gibb-reply.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/edit-reply.cjs",
+      "story": "Add edit_replay as a separate module. A second impl Intent block adds replay without changing capture or scope discovery. Reply carries either a Change or saved bytes, letting the future browser completion handler decide whether to update the renderer or start a download.\n\nMove and Delete call the explicit-target editor methods already proved. Save calls document::snapshot on the current scene; that function reads original kernel doubles and current placements. It neither changes selection/camera nor adds history. Result::map wraps successful values while preserving existing errors. The enum is a Rust tagged choice: matching Saved exposes bytes; Changed exposes a renderer change.\n\nNative checks replay all three intents, compare saved source coordinates exactly and prove Save does not consume Move Undo. Cold Save fails while preserving Redo. Chrome checks the existing normal Save download and Move Undo path; browser completion has not yet been connected to this replay method.\n\nReplay itself does not authorize an asynchronous completion. The next lesson pairs the intent with its pending ticket; only a current completion may take and execute it.\n\n![Route an intent reply](../illustrations/journey-32gibb.svg)",
+      "browser_caption": "Chrome downloads through normal Save and proves Move Undo remains available. Native tests execute all three captured intents and compare saved doubles. Owned asynchronous completion/replay remains pending.",
+      "edits": [
+        {
+          "path": "src/edit_replay.rs",
+          "before": null,
+          "snippet": "journey/code/32gibb-reply-01.rs",
+          "why": "Return changed-state feedback or save bytes without confusing a download with a history edit."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod edit_intent;\n",
+          "snippet": "journey/code/32gibb-reply-02.rs",
+          "why": "Register the captured-intent result module."
+        }
+      ]
     }
   ]
 }

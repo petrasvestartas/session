@@ -552,3 +552,12 @@ Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, 
 - [x] Strict Vue build passed in 14.96 seconds; the same selected Chrome page refreshed, retaining the 32gia route.
 - [ ] Publish the lesson after viewer optimization deployment acceptance.
 - [ ] Next 32gibb reply routing, 32gic ticket ownership, 32gid automatic cold-source editing and 32gj failure/timing/precision tests; 70 proposed future checkpoints and 17 early splits remain.
+
+### 2026-10-03 · Captured reply checkpoint
+
+- [x] 32gibb-reply adds a separate replay module: Move/Delete return Change; Save returns original-precision snapshot bytes with no history entry.
+- [x] Native 102 tests prove all three replay operations, exact saved doubles, Move Undo after Save and cold Save refusal preserving Redo.
+- [x] WebAssembly, optimized browser checkpoint, GPU frame and headed Chrome pass. The browser downloads using normal Save and proves Move Undo remains available; asynchronous completion-to-replay integration remains pending.
+- [x] D2 reproduction, white full-window screenshot, 25–50 minute typing estimate, all 91 stored checkpoints, nine course-tool tests and strict Vue build (15.13 seconds).
+- [ ] Publish both new lesson commits after camera-optimization deployment acceptance. Refresh the same selected Chrome tab after rebuilds; never redirect the reader's selected route.
+- [ ] Next owned intent/ticket (32gic), actual automatic cold-source Move/Delete/Save (32gid), headed timing/failure/precision/cleanup checks (32gj). Full course: 91 verified, 160 proposed, 69 future; 17 oversized early checkpoints still require splits.
