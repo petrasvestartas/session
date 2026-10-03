@@ -5208,6 +5208,637 @@
           "why": "Prevent other modules from bypassing imported-source availability."
         }
       ]
+    },
+    {
+      "id": "32fc-version",
+      "title": "Record a reload version without retaining geometry",
+      "page": "journey/32fc-version.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Own a small document header, a distinct import ID and an exact file fingerprint.",
+      "trace": "Own a small document header, a distinct import ID and an exact file fingerprint.",
+      "question": "Why can two imports share a file fingerprint but still need different origin IDs?",
+      "answer": "A fingerprint identifies the exact bytes. An origin ID identifies one import into this viewer. Repeated imports can share bytes and source GUIDs while having independent rows, history and reload lifetimes.",
+      "story": "An unloaded row will need enough information to find its source again. Define Origin as owned document metadata plus an import ID and FileVersion. Its header retains the source name, GUID, tree, graph, bounds and original placement entries. It deliberately has no objects or definitions.\n\nFileVersion hashes the original bytes with SHA-256. It is a byte-version identifier, not an authentication scheme. An immutable selected File must return that same version when fetched through its later Blob URL. A server that reserializes equivalent protobuf maps may produce different bytes; mutable-server policies belong to the later publication/streaming lessons.\n\nUUID separates two imports of the same file. None of these values owns a kernel Mesh or Session. The native tests include the standard SHA-256 abc vector, changed bytes, independent origin identities and a geometry-free header. Add the pinned dependency and use the supplied lock, while typing this module yourself.\n\n![Own a small document header, a distinct import ID and an exact file fingerprint.](../illustrations/journey-32fc.svg)",
+      "result": "Run the state tests. The viewer picture is unchanged: origins are not attached to rows until the next endpoint.",
+      "experiment": "Change one source byte and predict the version comparison. Then import identical bytes twice and explain why their origin IDs should differ.",
+      "production": "Production released sources retain document/tree metadata. This module prepares that ownership boundary; selected immutable files have an exact byte version, while the later HTTP publication flow needs its own version policy.",
+      "tests": true,
+      "frame": "journey/checks/32fc-version.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "prost = \"=0.14.4\"\n",
+          "snippet": "journey/code/32fc-version-01.toml",
+          "why": "Pin SHA-256 for immutable file-version checks."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod row_metadata;\n",
+          "snippet": "journey/code/32fc-version-02.rs",
+          "why": "Introduce geometry-free reload metadata."
+        },
+        {
+          "path": "src/origin.rs",
+          "before": null,
+          "snippet": "journey/code/32fc-version-03.rs",
+          "why": "Keep descriptive protobuf data and a byte version without retaining kernel objects."
+        }
+      ],
+      "lock": "journey/release/source-residency-Cargo.lock"
+    },
+    {
+      "id": "32fd-origin",
+      "title": "Attach one origin to an imported document",
+      "page": "journey/32fd-origin.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Share one geometry-free origin across imported rows and history.",
+      "trace": "Share one geometry-free origin across imported rows and history.",
+      "question": "Does retaining an Origin after Close keep the imported Session alive?",
+      "answer": "No. It owns copied header values and a version, not the Session Rc or any kernel mesh Rc. Weak checks can prove the Session and its meshes are dropped while the retained origin remains readable.",
+      "story": "Construct an Origin after decoding and validation, before moving the protobuf into the kernel Session. Every prepared row shares the same Rc<Origin> through its Source. A second import gets a different Origin even when its file bytes are identical.\n\nThe native check records Weak observers, retains only the Origin, and closes the editor. The Session and kernel value must disappear while the original header remains readable. Another check follows one shared origin through Move and Undo.\n\nChrome exposes origin identity and the byte fingerprint in a hidden attribute. It checks that three rows of one import share an origin, duplicate imports have different origins but the same version, and history preserves them. No reload location or unload command exists yet.\n\n![Share one geometry-free origin across imported rows and history.](../illustrations/journey-32fd.svg)",
+      "result": "Open the same specimen twice and compare import IDs and fingerprints. Move and Undo without changing either. Run the Weak ownership checks.",
+      "experiment": "Clone Source instead of only Origin in the ownership check and predict which Weak observations remain alive.",
+      "production": "Origin identity is separate from saved row GUID and original source GUID. This prevents a later completion for one duplicate import from being adopted by another.",
+      "tests": true,
+      "frame": "journey/checks/32fd-origin.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "    pub guid: String,\n",
+          "snippet": "journey/code/32fd-origin-01.rs",
+          "why": "Retain reload metadata separately from the kernel Session."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    let document = Rc::new(Session::from_proto(message).map_err(|_| \"Cannot construct session\")?);\n",
+          "snippet": "journey/code/32fd-origin-02.rs",
+          "why": "Record accepted original bytes and a geometry-free header before kernel construction."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "            document: Rc::clone(&document), guid: mesh.guid().to_owned(),\n",
+          "snippet": "journey/code/32fd-origin-03.rs",
+          "why": "Share one import origin among all its source rows."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod origin;\n",
+          "snippet": "journey/code/32fd-origin-04.rs",
+          "why": "Check source ownership independently of drawing."
+        },
+        {
+          "path": "src/origin_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32fd-origin-05.rs",
+          "why": "Observe true kernel expiration while retaining only header/version metadata."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-row-metadata\", &serde_json::to_string(&metadata)\n",
+          "snippet": "journey/code/32fd-origin-06.rs",
+          "why": "Inspect shared import identity and exact versions without adding controls."
+        }
+      ]
+    },
+    {
+      "id": "32fe-location",
+      "title": "Give a reload URL an explicit owner",
+      "page": "journey/32fe-location.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Retain an owned Blob URL through imports and history, then release it with its last owner.",
+      "trace": "Retain an owned Blob URL through imports and history, then release it with its last owner.",
+      "question": "Why must URL ownership exist before validation can fail?",
+      "answer": "Creating a Blob URL allocates a browser resource. If decoding or insertion fails, an action-local owner must still revoke it. A successful import shares that owner through its Origin; Close releases it only after active and history roots are gone.",
+      "story": "A version says which bytes a row expects; it does not provide a way to read them again. Add ReloadUrl, an owner of one URL created by this viewer. Its Drop implementation revokes the browser Blob URL. Native checks observe its Rc lifetime through Weak; actual browser revocation is tested after the next adapter endpoint.\n\nOrigin can retain an optional Rc<ReloadUrl>. Generated data and ordinary native load calls have no reload location and will be protected from unload. load_at accepts an already owned URL; it validates the file and adopts the location into the same Origin shared by all rows.\n\nAdd ImportAt and ReplaceAt to the editor while keeping the existing Import/Replace fixtures. The new actions hold the URL before loading, so failure drops their owner normally. History shares the Origin, keeping the reload location alive until the last relevant snapshot is gone. The browser still uses its old file adapter at this checkpoint.\n\n![Retain an owned Blob URL through imports and history, then release it with its last owner.](../illustrations/journey-32fe.svg)",
+      "result": "Run the URL lifetime tests: successful import/history retain an owned location, Close releases it, and invalid input cannot leave a location alive.",
+      "experiment": "Retain a separate Rc<ReloadUrl> in a caller scope and explain why closing the editor cannot revoke that caller’s resource yet.",
+      "production": "This owner is for viewer-created Blob URLs. The later published HTTP locations have different ownership and caching rules; they must not be treated as owned Blob resources.",
+      "tests": true,
+      "frame": "journey/checks/32fe-location.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod origin;\n",
+          "snippet": "journey/code/32fe-location-01.rs",
+          "why": "Keep browser URL lifetime explicit and independent of kernel ownership."
+        },
+        {
+          "path": "src/reload_url.rs",
+          "before": null,
+          "snippet": "journey/code/32fe-location-02.rs",
+          "why": "Revoke a viewer-created Blob URL when its actual resource owner drops."
+        },
+        {
+          "path": "src/origin.rs",
+          "before": "    pub version: FileVersion,\n",
+          "snippet": "journey/code/32fe-location-03.rs",
+          "why": "Retain an optional reload location without retaining geometry."
+        },
+        {
+          "path": "src/origin.rs",
+          "before": "        Self { id: uuid::Uuid::new_v4(), header, version: FileVersion::of(bytes) }\n",
+          "snippet": "journey/code/32fe-location-04.rs",
+          "why": "Ordinary native loads start without an owned browser location."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {\n",
+          "snippet": "journey/code/32fe-location-05.rs",
+          "why": "Accept location ownership before a read/validation error can occur."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    let origin = Rc::new(crate::origin::Origin::new(&message, bytes));\n",
+          "snippet": "journey/code/32fe-location-06.rs",
+          "why": "Adopt the already owned URL only into validated source metadata."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    Replace(Vec<u8>),\n",
+          "snippet": "journey/code/32fe-location-07.rs",
+          "why": "Keep a URL owner alive until an import commits or fails."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddBox => {\n",
+          "snippet": "journey/code/32fe-location-08.rs",
+          "why": "Preserve the same atomic insertion and replacement policy for located files."
+        },
+        {
+          "path": "src/origin_tests.rs",
+          "before": "use crate::editor::{Action, Editor};\nuse std::rc::Rc;\n\n#[test]\nfn origin_does_not_pin_a_closed_source_document() {\n    let mut editor = Editor::default(); editor.apply(Action::Replace(crate::specimen::bytes())).unwrap();\n    let row = &editor.scene.objects()[0]; let source = row.source().unwrap();\n    let origin = Rc::clone(&source.origin);\n    let document = Rc::downgrade(&source.document); let mesh = Rc::downgrade(row.geometry().unwrap());\n    assert!(editor.scene.objects().iter().all(|row| Rc::ptr_eq(&row.source().unwrap().origin, &origin)));\n    editor.apply(Action::Close).unwrap();\n    assert!(document.upgrade().is_none() && mesh.upgrade().is_none());\n    assert_eq!(origin.header.name, \"Three-piece frame\"); assert!(origin.header.objects.is_none());\n}\n\n#[test]\nfn duplicate_imports_and_history_keep_their_own_origins() {\n    let mut editor = Editor::default(); let bytes = crate::specimen::bytes();\n    editor.apply(Action::Replace(bytes.clone())).unwrap(); editor.apply(Action::Import(bytes)).unwrap();\n    let first = Rc::clone(&editor.scene.objects()[0].source().unwrap().origin);\n    let second = Rc::clone(&editor.scene.objects()[3].source().unwrap().origin);\n    assert_ne!(first.id, second.id); assert_eq!(first.version, second.version);\n    editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();\n    editor.apply(Action::Undo).unwrap();\n    assert!(Rc::ptr_eq(&first, &editor.scene.objects()[0].source().unwrap().origin));\n    assert!(Rc::ptr_eq(&second, &editor.scene.objects()[3].source().unwrap().origin));\n}\n",
+          "snippet": "journey/code/32fe-location-09.rs",
+          "why": "Prove successful/history and failed-import URL lifetimes with Weak observers."
+        }
+      ]
+    },
+    {
+      "id": "32ff-bridge",
+      "title": "Adopt the selected file as a reloadable source",
+      "page": "journey/32ff-bridge.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Transfer the accepted File through synchronous delivery and create its URL at adoption.",
+      "trace": "Transfer the accepted File through synchronous delivery and create its URL at adoption.",
+      "question": "Why not create a Blob URL as soon as the user selects a file?",
+      "answer": "Its read may be cancelled, superseded or rejected before adoption. Keep the File while reading, finish the request ticket first, and create the URL only when the synchronous editor callback accepts delivery. Clear any unclaimed delivery slot afterwards.",
+      "story": "The browser already owns asynchronous file delivery through ReadGate. Add one shared delivery slot holding the accepted File only during the viewer-file dispatch. After the read finishes and its ticket is accepted, the producer places the File in this slot, dispatches, then clears any unclaimed value.\n\nThe listener validates the event payload, takes the File, creates ReloadUrl and builds ImportAt or ReplaceAt. An error creating the URL is reported through the Open history entry. A malformed file creates an owner that is dropped when editor loading fails; a stale read never creates a URL.\n\nThe slot is a Rust handoff, not a persistent cache of file bytes or kernel sources. It also prevents an unrelated external viewer-file event from manufacturing a located import without an accepted File. Later listener teardown cancels work and releases this handoff lifetime.\n\nChrome checks real fetches from adopted URLs, invalid-import revocation, cancelled reads with no new URLs, URL retention through Undo/Redo and revocation after Close. Recordings use the browser’s URL methods, while the resulting drawing remains the same command-only viewer.\n\n![Transfer the accepted File through synchronous delivery and create its URL at adoption.](../illustrations/journey-32ff.svg)",
+      "result": "Open a specimen, inspect the owned origin URL, and fetch its bytes. Duplicate imports get distinct URLs and origin IDs. Close and confirm their URLs are revoked; cancelled reads must never allocate one.",
+      "experiment": "Remove the final delivery-slot cleanup in a scratch copy and predict what happens if no listener adopts its File. Keep the production implementation unchanged after the experiment.",
+      "production": "Accepted immutable Files now have a reload path and exact byte version. Source residency can change next without inventing URLs from kernel geometry or drawing floats.",
+      "tests": true,
+      "frame": "journey/checks/32ff-bridge.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/file_input.rs",
+          "before": "pub enum Mode { Append, Replace }\n",
+          "snippet": "journey/code/32ff-bridge-01.rs",
+          "why": "Hold an accepted File only across one synchronous editor delivery."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>, mode: Mode) {\n",
+          "snippet": "journey/code/32ff-bridge-02.rs",
+          "why": "Give the accepted read access to its scoped handoff slot."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "        let result = result.and_then(|buffer| deliver(buffer, mode));\n",
+          "snippet": "journey/code/32ff-bridge-03.rs",
+          "why": "Transfer the File only after request ownership has been accepted."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "fn deliver(buffer: JsValue, mode: Mode) -> Result<(), JsValue> {\n",
+          "snippet": "journey/code/32ff-bridge-04.rs",
+          "why": "Pair bytes with their retained immutable File during dispatch."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    web_sys::window().ok_or(\"No browser window\")?.dispatch_event(&event)?;\n    Ok(())\n",
+          "snippet": "journey/code/32ff-bridge-05.rs",
+          "why": "Always drop an unclaimed File after synchronous delivery, including dispatch failure."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {\n    let event = event.dyn_ref::<web_sys::CustomEvent>()?;\n    let payload = event.detail().dyn_into::<js_sys::Array>().ok()?;\n    if payload.length() != 2 { return None; }\n    let replace = payload.get(0).as_bool()?;\n    let array = payload.get(1).dyn_into::<js_sys::Uint8Array>().ok()?;\n    if array.length() as usize > crate::document::MAX_BYTES { return None; }\n    Some(if replace { crate::editor::Action::Replace(array.to_vec()) }\n        else { crate::editor::Action::Import(array.to_vec()) })\n}\n",
+          "snippet": "journey/code/32ff-bridge-06.rs",
+          "why": "Adopt URL ownership only for a validated event with an accepted File."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);\n",
+          "snippet": "journey/code/32ff-bridge-07.rs",
+          "why": "Share one scoped delivery slot between reader and editor callback."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get());\n",
+          "snippet": "journey/code/32ff-bridge-08.rs",
+          "why": "Keep request tickets and File adoption in the same delivery path."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            crate::file_input::action(&event)\n",
+          "snippet": "journey/code/32ff-bridge-09.rs",
+          "why": "Report adoption failure without claiming an import committed."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            let replacement = matches!(&action, Action::Replace(_));\n",
+          "snippet": "journey/code/32ff-bridge-10.rs",
+          "why": "Keep Replace success reporting accurate for the located action."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        (&row.guid, source.origin.id.to_string(), source.origin.version.hex()))).collect();\n",
+          "snippet": "journey/code/32ff-bridge-11.rs",
+          "why": "Expose only hidden origin URL inspection for actual lifetime checks."
+        }
+      ]
+    },
+    {
+      "id": "32fg-state",
+      "title": "Separate loaded and released editable ownership",
+      "page": "journey/32fg-state.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Represent source residency without changing retained display, identity or placement.",
+      "trace": "Represent source residency without changing retained display, identity or placement.",
+      "question": "Which owners remain in a Released row?",
+      "answer": "Its retained row data still owns the display mesh, metadata and placement. Editable storage owns only a geometry-free Origin and release epoch. It cannot retain the old kernel Mesh or Session.",
+      "story": "Replace Object’s private geometry/source fields with EditSource. Loaded owns the required kernel geometry and optional imported Source. Released owns an Origin and epoch. Generated Loaded rows have geometry but no imported Origin.\n\nKeep geometry() and source() total: they return None for Released rather than panicking or substituting a display mesh. origin() remains available in either imported state. release_epoch() distinguishes a current release from a later release cycle.\n\nScene insertion still requires PreparedMesh geometry. It captures metadata, creates the display Rc, and adopts Loaded ownership. The renderer still sees exactly the same mesh/model/id fields. At this endpoint no code unloads a row yet; existing precision, history and close tests must pass unchanged through the new representation.\n\n![Represent source residency without changing retained display, identity or placement.](../illustrations/journey-32fg.svg)",
+      "result": "Run the loaded-source ownership checks and compare the Chrome drawing and metadata with the prior endpoint. Save still uses exact kernel coordinates.",
+      "experiment": "Follow the Rc edges in Loaded and Released. Explain why adding a kernel Rc to Released would defeat unloading even if source() returned None.",
+      "production": "The private representation now expresses the production distinction between retained display rows and resident editable source. The next policy prevents releasing generated or modified sources.",
+      "tests": true,
+      "frame": "journey/checks/32fg-state.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod reload_url;\n",
+          "snippet": "journey/code/32fg-state-01.rs",
+          "why": "Confine source residency representation to the viewer implementation."
+        },
+        {
+          "path": "src/edit_source.rs",
+          "before": null,
+          "snippet": "journey/code/32fg-state-02.rs",
+          "why": "Keep Released ownership free of kernel mesh and Session values."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    geometry: Rc<session_rust::Mesh>,\n    pub model: session_rust::Xform,\n    source: Option<crate::document::Source>,\n",
+          "snippet": "journey/code/32fg-state-03.rs",
+          "why": "Retain public display fields while replacing only editable ownership."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> { Some(&self.geometry) }\n\n    pub fn source(&self) -> Option<&crate::document::Source> { self.source.as_ref() }\n",
+          "snippet": "journey/code/32fg-state-04.rs",
+          "why": "Borrow loaded owners safely while retaining origin and epoch in the released state."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), geometry: prepared.geometry,\n            model: prepared.model, source: prepared.source });\n",
+          "snippet": "journey/code/32fg-state-05.rs",
+          "why": "Preserve the validated insertion contract and display owner."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "            assert!(Rc::ptr_eq(&object.geometry, &old.geometry));\n",
+          "snippet": "journey/code/32fg-state-06.rs",
+          "why": "Keep partial-replacement ownership assertions through the existing accessor boundary."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.source().map(|source|\n        (&row.guid, source.origin.id.to_string(), source.origin.version.hex(),\n            source.origin.location.as_ref().map(|location| location.value())))).collect();\n",
+          "snippet": "journey/code/32fg-state-07.rs",
+          "why": "Retain origin inspection even when editable kernel ownership is absent."
+        }
+      ]
+    },
+    {
+      "id": "32fh-policy",
+      "title": "Protect sources that cannot be unloaded faithfully",
+      "page": "journey/32fh-policy.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Require a reload location, original kernel allocation and unchanged row metadata.",
+      "trace": "Require a reload location, original kernel allocation and unchanged row metadata.",
+      "question": "Why does one modified history row protect every row of that origin?",
+      "answer": "They share one reload source. Reloading its original bytes cannot reproduce modified kernel data in that snapshot. Protect the whole origin whenever any retained row no longer matches the original source contract.",
+      "story": "A release policy must preserve data that cannot be restored. Generated rows have no imported source. Imports without a location cannot be read again. A new kernel allocation or edited source metadata must not silently revert to the original file.\n\ncan_unload checks a located Loaded source, its original GUID, name/visibility/locking metadata, and the exact kernel allocation retained by its imported Session. The allocation check distinguishes original data from a modified replacement even when its values happen to compare equal. Model placement is separate row state, so Move does not make an otherwise original source ineligible.\n\nAdd borrowed mutable row access for the forthcoming residency pass, and Scene::unload as the operation on a previously validated set of origins. It changes only editable ownership to Released. The editor-wide origin validation comes next; no dock command exists yet.\n\nNative policy tests protect generated/unlocated sources, changed flags and replacement kernel owners. The whole-origin check in the next lesson will inspect active, Undo and Redo roots before any mutation.\n\n![Require a reload location, original kernel allocation and unchanged row metadata.](../illustrations/journey-32fh.svg)",
+      "result": "Run policy tests, then Move an imported specimen with the old browser behavior. The new policy is not a document edit or a new history entry.",
+      "experiment": "Change only placement in a fixture, then change a source flag. Explain why the first remains reloadable while the second must be protected at this endpoint.",
+      "production": "Production avoids unloading edited source documents. Our scene-snapshot history requires checking every retained origin row before releasing their shared sources.",
+      "tests": true,
+      "frame": "journey/checks/32fh-policy.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {\n",
+          "snippet": "journey/code/32fh-policy-01.rs",
+          "why": "Only original, located imported sources can be restored by their original file."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {\n",
+          "snippet": "journey/code/32fh-policy-02.rs",
+          "why": "Apply a validated origin set without touching retained display/model/metadata owners."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    #[test]\n    fn partial_replacement_failure_restores_owners_without_reusing_ids() {\n",
+          "snippet": "journey/code/32fh-policy-03.rs",
+          "why": "Prove the conditions that protect data not faithfully reloadable from the original file."
+        }
+      ]
+    },
+    {
+      "id": "32fi-history",
+      "title": "Unload sources across active and history roots",
+      "page": "journey/32fi-history.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Release a validated whole-origin set without clearing Undo/Redo or changing placements.",
+      "trace": "Release a validated whole-origin set without clearing Undo/Redo or changing placements.",
+      "question": "Why is unloading only the current Scene insufficient?",
+      "answer": "Its Undo and Redo rows retain the same kernel owners. They would keep the source alive and later restore a different residency. Convert every retained row of a validated origin together while keeping its separate placement and display owner.",
+      "story": "Plan before mutating. Collect distinct eligible origins from all retained scene roots, then inspect every row of those origins across active, Undo and Redo roots. Remove an origin from the plan if any retained row is protected. An empty plan returns an error rather than pretending that anything was unloaded.\n\nOnly then issue a checked release epoch and convert every matching row through Scene::unload. This residency pass is not an undoable document change: it must preserve all existing history roots and their placements. Close keeps the issued epoch counter, so a later reopened document cannot reuse an old completion token.\n\nMove and Delete currently return an explicit reload-required error for cold rows. Camera, bounds, picking and history still use retained display/model state. The reload lessons will restore sources and replay the requested edit; these interim errors are not the completed production edit flow. Save already refuses unavailable editable geometry.\n\nThe next endpoint adds the typed ownership/history check for a moved imported post. Existing loaded-source and policy checks remain current here, and the native GPU fixture exercises unloading, Weak source/document expiration and retained display/GPU owners. No Unload Sources dock command is exposed until the next endpoint.\n\n![Release a validated whole-origin set without clearing Undo/Redo or changing placements.](../illustrations/journey-32fi.svg)",
+      "result": "Run the state checks and native GPU fixture. Generated or unlocated data is protected. Located source data can unload while display, local/saved identities and model history remain intact.",
+      "experiment": "Keep an external clone of Source in a fixture and explain why the editor can release its own roots while that external owner still keeps the kernel alive.",
+      "production": "This models source residency across our shared Scene snapshots without clearing history. Guarded hydration and automatic edit replay remain required before claiming complete source-release parity.",
+      "tests": true,
+      "frame": "journey/checks/32fi-history.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/history.rs",
+          "before": "    pub fn clear(&mut self) {\n",
+          "snippet": "journey/code/32fi-history-01.rs",
+          "why": "Visit both history branches without cloning or dropping their rows."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    Close,\n",
+          "snippet": "journey/code/32fi-history-02.rs",
+          "why": "Add a residency operation distinct from document close."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    history: History,\n",
+          "snippet": "journey/code/32fi-history-03.rs",
+          "why": "Issue epochs independently of document history and Close."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            history: History::default(),\n",
+          "snippet": "journey/code/32fi-history-04.rs",
+          "why": "Start the first viewer-owned release sequence without wraparound."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {\n",
+          "snippet": "journey/code/32fi-history-05.rs",
+          "why": "Validate every retained origin row before issuing an epoch or changing any owner."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::Close => {\n",
+          "snippet": "journey/code/32fi-history-06.rs",
+          "why": "Keep source unloading out of document Undo transactions."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        object.model = model;\n",
+          "snippet": "journey/code/32fi-history-07.rs",
+          "why": "Refuse an edit until its original editable source has been restored."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::Delete => {\n                if let Some(id) = self.selected.take() {\n",
+          "snippet": "journey/code/32fi-history-08.rs",
+          "why": "Keep selection/history unchanged when a cold edit requires hydration."
+        }
+      ]
+    },
+    {
+      "id": "32fj-proof",
+      "title": "Prove unloading preserves placed history",
+      "page": "journey/32fj-proof.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Observe imported kernel expiration while retained displays and placements survive Undo/Redo.",
+      "trace": "Weak kernel/document observers → unload all roots → retained display → cold model-history travel",
+      "question": "What proves source unloading did not secretly clear the document history?",
+      "answer": "Record the number of scene roots and an earlier model matrix, unload, and Undo the prior Move. The roots remain and the earlier placement returns while that row still has no editable source. Weak observers separately prove the old kernel values are gone.",
+      "story": "Use a located imported document and a real placement edit. Retain its derived display Rc, record Weak observers of the kernel mesh and Session, and unload. The old editable values must disappear while the row’s local ID, saved GUID, display owner, placement and camera remain.\n\n![Unloaded source values disappear while display and placement history remain.](../illustrations/journey-32fj.svg)\n\nAn unavailable-source Save or Move must refuse without consuming Undo. Undo then restores the earlier placement and Redo restores the moved placement; both keep the origin’s release epoch. This is residency travel across existing document history, not an undo command for unloading.\n\nThe next endpoint exposes the same operation in Chrome and adds GPU retention proof. Rehydration and automatic edit replay remain separate required work.",
+      "result": "Run the Weak source checks and the placement-history round trip. Compare this with Close, whose old document history cannot return.",
+      "experiment": "Retain only the Origin rather than the display Rc in the fixture. Predict which owners survive and which Weak values expire.",
+      "production": "This proof covers the current immutable imported mesh subset. The full source reload flow and all production geometry/resource families remain required.",
+      "tests": true,
+      "frame": "journey/checks/32fj-proof.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "mod origin_tests;\n",
+          "snippet": "journey/code/32fj-proof-01.rs",
+          "why": "Verify actual source release independently of GPU drawing."
+        },
+        {
+          "path": "src/unload_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32fj-proof-02.rs",
+          "why": "Prove old source values expire while placed drawing data and history remain available."
+        }
+      ]
+    },
+    {
+      "id": "32fk-command",
+      "title": "Unload editable sources through the command line",
+      "page": "journey/32fk-command.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Keep the drawing and GPU allocations while the dock unloads eligible imported sources.",
+      "trace": "Keep the drawing and GPU allocations while the dock unloads eligible imported sources.",
+      "question": "Why should renderer allocation counters stay unchanged during source unloading?",
+      "answer": "The scene rows keep their IDs, display Rc values, selection and model matrices. Renderer synchronization therefore retains the same GPU geometry and settings; only editable CPU ownership changes.",
+      "story": "Expose Unload Sources through the existing dock vocabulary. It is a typed feature command with no button or keyboard shortcut. Remember the action kind before apply consumes it, then report success only after the editor residency pass and renderer synchronization succeed.\n\nHidden residency inspection lists each row’s source availability and release epoch. Origin inspection continues to expose the retained metadata and Blob location. The browser checks exact scene pixels, unchanged GPU counters, decreased resident-source accounting, preserved metadata and model-history behavior.\n\nA failed cold Move, Delete or Save must explain that reload is required without downloading float approximations or consuming history. Camera/picking still work, and Undo restores earlier placement while keeping that source cold. Close clears the retained roots and revokes their owned URLs.\n\nThis finishes display-preserving unloading for the current mesh subset. It does not finish rehydration or automatic edit replay. Those are the next required lessons, followed by the other production geometry and resource families.\n\n![Keep the drawing and GPU allocations while the dock unloads eligible imported sources.](../illustrations/journey-32fk.svg)",
+      "result": "Open the specimen and Move a post. Type Unload Sources: the scene should look identical. Try Move, Delete and Save, then Undo the previous placement. The display stays usable while source edits correctly await reload.",
+      "experiment": "Compare data-gpu-stats before and after unloading. Then Undo a placement and explain why a settings write can occur without a new geometry upload.",
+      "production": "Production distinguishes display-only files from resident editable Sessions. This endpoint demonstrates that distinction with real Chrome pixels and managed owner checks, while the next lessons complete reload-before-edit behavior.",
+      "tests": true,
+      "frame": "journey/checks/32fk-command.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Close\",\n",
+          "snippet": "journey/code/32fk-command-01.rs",
+          "why": "Offer residency changes through the real command dock."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            if line == \"close\" {\n",
+          "snippet": "journey/code/32fk-command-02.rs",
+          "why": "Keep unload separate from Close and from keyboard shortcuts."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            let closing = matches!(&action, Action::Close);\n",
+          "snippet": "journey/code/32fk-command-03.rs",
+          "why": "Retain the submitted action kind across consumption."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    if closing {\n",
+          "snippet": "journey/code/32fk-command-04.rs",
+          "why": "Report success only after validated residency and renderer synchronization complete."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-source-origins\", &serde_json::to_string(&origins)\n",
+          "snippet": "journey/code/32fk-command-05.rs",
+          "why": "Inspect loaded/released state without adding runtime teaching controls."
+        }
+      ]
+    },
+    {
+      "id": "32fl-guards",
+      "title": "Protect history and future reload tickets",
+      "page": "journey/32fl-guards.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Verify whole-origin protection, independent duplicate imports and checked release epochs.",
+      "trace": "Modified history origin → protection; independent origin → release; exhausted epoch → no mutation",
+      "question": "Why is a release epoch kept across Close rather than reset for each document?",
+      "answer": "A fetch can finish after Close. A later document must not reuse the old release token. Keep checked issuance in the viewer lifetime, and later compare the requested origin and its current released epoch before adopting a result.",
+      "story": "Add the cases that a simple active-row check would miss. A modified metadata row exists only in history, while the active original still looks eligible. Protect that entire origin. A second import of identical bytes has its own Origin and can unload independently.\n\n![Protected historical origin and checked epochs prevent wrong source adoption.](../illustrations/journey-32fl.svg)\n\nThe epoch test forces exhaustion and verifies that no row becomes cold. It then releases, closes, reopens and releases again: the new rows receive the next epoch rather than reusing one.\n\nChrome keeps the command-only unloading proof, checks that a second unload refuses without changing pixels, and reopens in the same page before unloading again. The native GPU proof checks old kernel expiration with live display/GPU owners. These checks prepare guarded reload delivery; the fetch, cancellation and automatic edit replay are still next.",
+      "result": "Run the history-protection and epoch checks, then use Unload Sources twice and Close/reopen in Chrome. Failed or repeated unloads must not alter the drawing or current release identity.",
+      "experiment": "Reset the issuance counter inside Close in a scratch copy and predict the reopened epoch. Explain why origin identity alone should not replace per-release ownership.",
+      "production": "Each source release has both an import identity and a viewer-issued epoch. The rehydration flow must verify both and its own read ticket before adopting data.",
+      "tests": true,
+      "frame": "journey/checks/32fl-guards.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/unload.cjs",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    #[test]\n    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {\n",
+          "snippet": "journey/code/32fl-guards-01.rs",
+          "why": "Check modified history, independent imports and exhausted/reopened release issuance."
+        }
+      ]
     }
   ]
 }

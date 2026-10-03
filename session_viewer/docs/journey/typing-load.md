@@ -75,10 +75,20 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [32f-metadata](32f-metadata.md) | 62 | 2785 | 28–56 min | 1–2 h | Within planning limit |
 | [32fa-access](32fa-access.md) | 22 | 1326 | 14–27 min | 1–2 h | Within planning limit |
 | [32fb-boundary](32fb-boundary.md) | 19 | 1547 | 16–31 min | 1–2 h | Within planning limit |
+| [32fc-version](32fc-version.md) | 52 | 2009 | 21–41 min | 1–2 h | Within planning limit |
+| [32fd-origin](32fd-origin.md) | 36 | 2169 | 22–44 min | 1–2 h | Within planning limit |
+| [32fe-location](32fe-location.md) | 49 | 2385 | 24–48 min | 1–2 h | Within planning limit |
+| [32ff-bridge](32ff-bridge.md) | 31 | 2306 | 24–47 min | 1–2 h | Within planning limit |
+| [32fg-state](32fg-state.md) | 32 | 1712 | 18–35 min | 1–2 h | Within planning limit |
+| [32fh-policy](32fh-policy.md) | 35 | 2044 | 21–41 min | 1–2 h | Within planning limit |
+| [32fi-history](32fi-history.md) | 32 | 1590 | 16–32 min | 1–2 h | Within planning limit |
+| [32fj-proof](32fj-proof.md) | 30 | 1857 | 19–38 min | 1–2 h | Within planning limit |
+| [32fk-command](32fk-command.md) | 13 | 767 | 8–16 min | 1–2 h | Within planning limit |
+| [32fl-guards](32fl-guards.md) | 42 | 2498 | 25–50 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 63 current checkpoints.
+- [x] Count the exact source edits for all 73 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.

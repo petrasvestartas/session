@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 63 cumulative lessons, about 111–199 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 73 cumulative lessons, about 121–219 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **128 proposed slots: 63 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **128 proposed slots: 73 current checkpoints and 55 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -79,6 +79,16 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32f · Keep row metadata separate from editable geometry](journey/32f-metadata.md) | 1–2 hours | Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive. |
 | [32fa · Ask whether an editable source is available](journey/32fa-access.md) | 1–2 hours | Route saving, source accounting and owner checks through borrowed source accessors. |
 | [32fb · Make editable ownership a private row boundary](journey/32fb-boundary.md) | 1–2 hours | Finish migrating owner checks and prevent other modules from bypassing source availability. |
+| [32fc · Record a reload version without retaining geometry](journey/32fc-version.md) | 1–2 hours | Own a small document header, a distinct import ID and an exact file fingerprint. |
+| [32fd · Attach one origin to an imported document](journey/32fd-origin.md) | 1–2 hours | Share one geometry-free origin across imported rows and history. |
+| [32fe · Give a reload URL an explicit owner](journey/32fe-location.md) | 1–2 hours | Retain an owned Blob URL through imports and history, then release it with its last owner. |
+| [32ff · Adopt the selected file as a reloadable source](journey/32ff-bridge.md) | 1–2 hours | Transfer the accepted File through synchronous delivery and create its URL at adoption. |
+| [32fg · Separate loaded and released editable ownership](journey/32fg-state.md) | 1–2 hours | Represent source residency without changing retained display, identity or placement. |
+| [32fh · Protect sources that cannot be unloaded faithfully](journey/32fh-policy.md) | 1–2 hours | Require a reload location, original kernel allocation and unchanged row metadata. |
+| [32fi · Unload sources across active and history roots](journey/32fi-history.md) | 1–2 hours | Release a validated whole-origin set without clearing Undo/Redo or changing placements. |
+| [32fj · Prove unloading preserves placed history](journey/32fj-proof.md) | 1–2 hours | Observe imported kernel expiration while retained displays and placements survive Undo/Redo. |
+| [32fk · Unload editable sources through the command line](journey/32fk-command.md) | 1–2 hours | Keep the drawing and GPU allocations while the dock unloads eligible imported sources. |
+| [32fl · Protect history and future reload tickets](journey/32fl-guards.md) | 1–2 hours | Verify whole-origin protection, independent duplicate imports and checked release epochs. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

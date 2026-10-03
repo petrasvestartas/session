@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 131 lesson slots; 63 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 140 lesson slots; 73 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 63 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 73 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -159,9 +159,25 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32fb · [Make editable ownership a private row boundary](32fb-boundary.md) — all external owner checks use accessors; preparation and GPU geometry keep their separate contracts.
 
-- [ ] 32fc · Keep the display after unloading edit sources — retain rows, names, flags, placements and document metadata while dropping eligible imported kernel sources.
+- [x] 32fc · [Record a reload version without retaining geometry](32fc-version.md) — owned geometry-free header, unique import identity and exact immutable-file SHA-256 version.
 
-  Required follow-ups: record distinct reload origins and file versions; keep reload metadata free of kernel owners; preserve generated/modified sources; inspect active and both history branches; release eligible owners across all retained roots without clearing history; retain display/GPU identities, selection, camera and per-snapshot placements; prove weak source expiration and unchanged visible pixels/allocation counters.
+- [x] 32fd · [Attach one origin to an imported document](32fd-origin.md) — share import origin across rows/history without pinning kernel Mesh or Session values.
+
+- [x] 32fe · [Give a reload URL an explicit owner](32fe-location.md) — successful/history and failed-import URL ownership; last-owner revocation.
+
+- [x] 32ff · [Adopt the selected file as a reloadable source](32ff-bridge.md) — accepted File handoff, no URL for cancelled reads, adoption errors and actual browser URL cleanup.
+
+- [x] 32fg · [Separate loaded and released editable ownership](32fg-state.md) — total source accessors; retain display, identity, metadata and placement.
+
+- [x] 32fh · [Protect sources that cannot be unloaded faithfully](32fh-policy.md) — generated/unlocated data, source flags and replacement kernel allocations.
+
+- [x] 32fi · [Unload sources across active and history roots](32fi-history.md) — whole-origin validation across active/Undo/Redo, checked epochs and no cleared history.
+
+- [x] 32fj · [Prove unloading preserves placed history](32fj-proof.md) — Weak kernel/document expiration, retained display/GPU owners and cold placement Undo/Redo.
+
+- [x] 32fk · [Unload editable sources through the command line](32fk-command.md) — actual dock command, identical Chrome scene pixels, unchanged GPU counters and cold edit/save errors.
+
+- [x] 32fl · [Protect history and future reload tickets](32fl-guards.md) — modified Redo-only source protection, independent duplicate origins, exhaustion and epochs retained across Close.
 
 - [ ] 32g · Reload an unloaded source for editing — restore ownership before edits; reject stale/cancelled loads and handle failures without losing the display.
 
