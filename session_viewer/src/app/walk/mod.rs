@@ -21,6 +21,7 @@ pub mod bounds;
 pub mod brep;
 pub mod brep_edges;
 pub mod brep_orient;
+pub mod brep_shapes;
 pub mod cloud;
 pub mod curves;
 pub mod encode;

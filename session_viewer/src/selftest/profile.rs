@@ -82,6 +82,7 @@ pub fn document(session: &Session) {
     let mut kinds: BTreeMap<&'static str, Kind> = BTreeMap::new();
     let mut up = Upload::default();
     let mut slowest: Vec<(f64, String)> = Vec::new();
+    let _shapes = crate::app::walk::brep_shapes::SharedWalks::begin(); // copies replay, as in the scene
 
     for guid in session.order() {
         let Some(geom) = session.lookup.get(&guid) else {

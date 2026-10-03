@@ -11,6 +11,7 @@ mod text; // register:scene_text
 pub use text::SceneText; // register:scene_text
 
 use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
+use crate::app::walk::brep_shapes::SharedWalks;
 use crate::app::walk::mesh::Lap;
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
@@ -468,6 +469,7 @@ impl Scene {
         let tree_colors = node_colors(&session); // a colour panel or saved override stays on top
         let order = session.order();
         let mut placed: HashMap<&str, u32> = HashMap::with_capacity(count); // guid to row, for the node cache
+        let shapes = SharedWalks::begin(); // congruent BReps are walked once
 
         for guid in &order {
             let Some(geom) = session.lookup.get(guid) else {
@@ -523,6 +525,7 @@ impl Scene {
         }
 
         self.add_instances(index, &session, &place, &world, &mut placed); // register:instancing
+        drop(shapes);
         lap.mark("objects");
 
         // each row remembers the tree node it was placed from

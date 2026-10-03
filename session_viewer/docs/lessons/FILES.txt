@@ -60,6 +60,7 @@ src/app/walk/bounds.rs 06
 src/app/walk/brep.rs 06
 src/app/walk/brep_edges.rs 06
 src/app/walk/brep_orient.rs 06
+src/app/walk/brep_shapes.rs 06
 src/app/walk/cloud.rs 06
 src/app/walk/curves.rs 06
 src/app/walk/encode.rs 06

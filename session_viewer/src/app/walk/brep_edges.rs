@@ -399,9 +399,10 @@ fn curved_edge<'a>(b: &'a BRep, chain: &EdgeChain) -> Option<&'a session_rust::N
 }
 
 /// Display chord count of a curved edge: one per `EDGE_DEGREES` of turning, never fewer than
-/// the mesh chain has, at most `EDGE_CHORDS_MAX`.
+/// the mesh chain has, at most `EDGE_CHORDS_MAX`. A full circle gets 90 wherever it lies: the
+/// turning of a moved circle comes out a hair over 360°, which must not round up to 91.
 fn display_chords(curve: &session_rust::NurbsCurve, chain_segments: usize) -> usize {
-    let by_angle = (turning_degrees(curve) / EDGE_DEGREES).ceil() as usize;
+    let by_angle = (turning_degrees(curve) / EDGE_DEGREES - 1e-6).ceil() as usize;
     by_angle
         .max(curve.span_count())
         .max(chain_segments)
@@ -575,12 +576,17 @@ fn face_facets(mesh: &Mesh) -> std::collections::HashMap<FacetEdge, FacetPair> {
     result
 }
 
+/// The outward normals of the two faces beside one pipe, before they are packed into its facing
+/// word; None where the facing is unknown.
+pub type FacingPair = (Option<[f64; 3]>, Option<[f64; 3]>);
+
 /// What every edge pipe of one BRep needs.
 pub struct EdgePen<'a> {
     pub fms: &'a [Mesh],                                          // face meshes
     pub signs: &'a [f64],                                         // +1 or -1 per face
     pub pen: Pen,                                                 // row, width, colour
     facets: Vec<std::collections::HashMap<FacetEdge, FacetPair>>, // per face: triangles at each edge
+    normals: Option<std::cell::RefCell<Vec<FacingPair>>>,         // pipe normals, when recording
 }
 
 impl<'a> EdgePen<'a> {
@@ -597,28 +603,54 @@ impl<'a> EdgePen<'a> {
             signs,
             pen,
             facets,
+            normals: None,
         }
+    }
+
+    /// Also keep the exact normals of every pipe pushed, so a congruent copy can turn them.
+    pub fn recording(mut self) -> Self {
+        self.normals = Some(std::cell::RefCell::new(Vec::new()));
+        self
+    }
+
+    /// The normals kept since `recording`, one pair per pipe pushed.
+    pub fn take_normals(&self) -> Vec<FacingPair> {
+        self.normals
+            .as_ref()
+            .map(|normals| normals.take())
+            .unwrap_or_default()
     }
 
     /// Facing word of one pipe; unknown when ambiguous.
     fn facing(&self, chain: &EdgeChain, a: [f64; 3], b: [f64; 3]) -> u32 {
+        let (first, second) = self.facing_pair(chain, a, b);
+
+        if let Some(normals) = &self.normals {
+            normals.borrow_mut().push((first, second));
+        }
+
+        pack_facing(first.as_ref(), second.as_ref())
+    }
+
+    /// Outward normals of the faces beside one pipe; none when ambiguous.
+    fn facing_pair(&self, chain: &EdgeChain, a: [f64; 3], b: [f64; 3]) -> FacingPair {
         let key = facet_edge(a, b);
         let Some(owner) = self.facets[chain.face].get(&key) else {
-            return pack_facing(None, None);
+            return (None, None);
         };
 
         if owner.count == 0 || owner.count > 2 {
-            return pack_facing(None, None);
+            return (None, None);
         }
 
         let first = scaled_normal(owner.normals[0], self.signs[chain.face]);
         let second = if let Some(other) = chain.other {
             let Some(pair) = self.facets[other].get(&key) else {
-                return pack_facing(None, None);
+                return (None, None);
             };
 
             if pair.count != 1 || owner.count != 1 {
-                return pack_facing(None, None);
+                return (None, None);
             }
 
             scaled_normal(pair.normals[0], self.signs[other])
@@ -627,7 +659,8 @@ impl<'a> EdgePen<'a> {
         } else {
             first
         };
-        pack_facing(first.as_ref(), second.as_ref())
+
+        (first, second)
     }
 }
 

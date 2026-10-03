@@ -1,5 +1,8 @@
-use super::brep_edges::{EdgeChain, EdgePen, display_chain, edge_chains, push_edge_pipes};
+use super::brep_edges::{
+    EdgeChain, EdgePen, FacingPair, display_chain, edge_chains, push_edge_pipes,
+};
 use super::brep_orient::face_signs;
+use super::brep_shapes::{self, Marks, Recording, Share};
 use super::curves::{push_polyline, sample_nurbscurve};
 use super::encode::{Pen, encode_width, pack_rgba};
 use super::mesh::{Lap, mesh_spacing};
@@ -58,8 +61,34 @@ fn push_face(arena: &mut ArenaRows, rm: &RenderMesh, cx: &WalkCx, solid: &mut So
     }
 }
 
-/// A BRep: every face meshed and uploaded, then its edges.
+/// A BRep: every face meshed and uploaded, then its edges; a copy of a BRep walked before in the
+/// same document gets that walk turned into place.
 pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) -> Row {
+    match brep_shapes::replay(b, arena, ink, cx) {
+        Share::Replayed(row) => row,
+        Share::Off => walk_brep_fresh(arena, ink, b, cx, false).0,
+        Share::Record(words, frame) => {
+            let marks = Marks::of(arena, ink);
+            let (row, vertex_total, normals) = walk_brep_fresh(arena, ink, b, cx, true);
+            let walked = (&row, vertex_total, normals);
+            brep_shapes::keep(
+                words,
+                Recording::take(frame, (arena, ink), &marks, cx, walked),
+            );
+            row
+        }
+    }
+}
+
+/// Mesh and upload every face, then the edges; with `record`, also the exact normals of every
+/// edge pipe. Returns the row, the face mesh vertex total and those normals.
+fn walk_brep_fresh(
+    arena: &mut ArenaRows,
+    ink: &mut Ink,
+    b: &BRep,
+    cx: &WalkCx,
+    record: bool,
+) -> (Row, usize, Vec<FacingPair>) {
     let mut lap = Lap::start("walk_brep");
     let mut fms = b.face_meshes_q(Some(QUALITY)); // one mesh per face
     lap.mark("face meshes");
@@ -130,13 +159,20 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
         faces: true,
     };
 
+    let mut normals = Vec::new();
+
     if !knobs::no_edges() {
         let pen = Pen {
             row: cx.row,
             radius: encode_width(b.width),
             color: pack_rgba(Color::black().to_f32()),
         };
-        let ep = EdgePen::new(&fms, &signs, pen);
+        let mut ep = EdgePen::new(&fms, &signs, pen);
+
+        if record {
+            ep = ep.recording();
+        }
+
         walk_brep_edges(
             ink,
             b,
@@ -146,9 +182,10 @@ pub fn walk_brep(arena: &mut ArenaRows, ink: &mut Ink, b: &BRep, cx: &WalkCx) ->
             &boundary_vertices,
         );
         lap.mark("edges");
+        normals = ep.take_normals();
     }
 
-    row
+    (row, verts, normals)
 }
 
 /// Every BRep edge as pipes, or as a ribbon when no mesh owns it.
