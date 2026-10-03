@@ -1,0 +1,1 @@
+            "controls": controls, "command": self.model.command, "history": self.model.history, "status": self.model.status,

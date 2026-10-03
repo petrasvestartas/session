@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 112 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 115 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -66,6 +66,14 @@ The production viewer separately passed a Chrome device-loss check: stop GPU wor
 Four further checkpoints prepare browser storage. They pass 120, 122, 123 and 125 native tests respectively, plus WebAssembly, Trunk, native GPU frames and headed Chrome. Typed validation bounds metadata and observations and requires consistent failure/outcome state. JSON decoding limits input to one MiB before parsing and rejects unsupported top-level fields. Recency uses the first fatal timestamp for failed runs and a separate heartbeat policy for interrupted running tabs; invalid chronology, active other tabs and healthy/closed runs are excluded. Policy evaluation does not mutate a report.
 
 The native tests use a deterministic timestamp parser. Actual browser Date.parse, storage adoption and previous-report notices are not connected at these checkpoints. Chrome retains the actual current-report downloads, GPU-loss disposal, startup failure, restart, source precision and command/history checks. The four typing estimates are 30–60, 27–53, 25–49 and 13–26 minutes. Storage, lifecycle telemetry and bounded GPU recovery follow.
+
+## Browser storage and previous-report retrieval
+
+Three further checkpoints retain the 125 inherited native state tests and pass WebAssembly, Trunk, native GPU frames and actual headed Chrome. The browser-only store uses stable sessionStorage tab identity and a separate key for each run. Reads examine at most 256 keys and 32 owned candidates through the bounded decoder and real Date.parse policy. Successful writes retain the current run and two newest valid older reports, remove malformed owned values and preserve unrelated keys. Larger namespaces refuse writing; quota failures preserve existing evidence and removal failures return false without claiming rollback.
+
+The final endpoint selects previous metadata before writing its own running report, persists ready/fatal observations independently of GPU disposal, shows failed/interrupted notices in the actual dock and accepts Diagnostic Report Previous. Chrome destroys a real device, reads the actual stored failure, reloads the same test page and downloads unchanged previous JSON from a healthy run. Stable tab/new key, three-report bounds, scene/history invariants, download URL release, quiet healthy/active-other-tab cases and denied-storage current downloads pass. There are no new HTML feature controls. Heartbeat/lifecycle/error observations and full load/adapter/resource telemetry remain upcoming; diagnostics do not restore unsaved edits.
+
+The three typing estimates are 21–41, 18–36 and 25–49 minutes. An initial live test incorrectly assumed the inspector exported status; the final lesson exposes the existing drawn status for acceptance, then passes all checks. One recheck also failed an inherited command-clear assertion; an unchanged confirmation run and the final live run passed. Its cause was not established, and the assertion was not weakened.
 
 ## Reproduce
 

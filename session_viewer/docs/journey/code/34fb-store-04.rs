@@ -1,0 +1,1 @@
+    let json = diagnostic_snapshot()?; let _ = persist();

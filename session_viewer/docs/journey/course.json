@@ -7820,6 +7820,183 @@
           "why": "Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence."
         }
       ]
+    },
+    {
+      "id": "34f-storage",
+      "title": "Read previous reports from real browser storage",
+      "page": "journey/34f-storage.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.",
+      "trace": "sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence",
+      "question": "Why keep tab identity separate from the new run’s storage key?",
+      "answer": "The tab identity survives a reload so interruption policy can recognize its old run. A fresh storage key identifies each run independently; reusing the tab as the run key would overwrite the previous evidence.",
+      "result": "Run this lesson’s Rust checks and viewer. Current Diagnostic Report and Save still work as before. Chrome’s debug probe reads real seeded localStorage, ranks actual UTC timestamps and tests denied storage. The viewer’s live report is not persisted yet; bounded writes and command retrieval follow. Finish the healthy proof view with Move 0.05,0,0 and Fit.",
+      "experiment": "Change selection to rank lastSeen, then compare the two saved failures whose heartbeat order disagrees with failure order. Explain which evidence should win and why. Deny browser storage and explain why current diagnostics must remain usable.",
+      "production": "The production reader uses browser storage and stable tab identity. This endpoint connects the native admission/recency policy to actual storage reads. Bounded writes, live report adoption and the previous-report command follow.",
+      "tests": true,
+      "frame": "journey/checks/34f-storage.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/storage-reader.cjs",
+      "story": "Store owns a browser storage handle, a stable tab identifier and a fresh run key. It owns no source document, renderer, listener or timer. Session storage retains tab identity across reloads; unavailable storage falls back to a fresh identifier without rejecting viewer startup.\n\nReading examines at most 256 storage keys and 32 keys in our course namespace. Each value passes the one-MiB decoder and typed shape validator before selection. These limits bound examination when edited storage contains many entries. Values outside that examination window are not adopted. The later writer keeps the normal owned set to three reports. No key is removed by this reader.\n\nThe real browser Date parser now supplies the clock port taught in the preceding lessons. Eligible failures rank by their first fatal time; interrupted running reports rank by heartbeat. A newer heartbeat cannot make an older fatal event outrank a newer failure. Malformed, unsupported, healthy, active-other-tab and invalid-time values do not become previous evidence.\n\nA debug-only WebAssembly probe exercises this owner against real sessionStorage and localStorage in headed Chrome. It proves stable tab identity, distinct run keys, correct ranking and storage denial without changing current report, document drawing or GPU geometry counters. These seeded values belong only to the test page’s course namespace. Live persistence and a visible previous-report command are connected after bounded writes are complete.\n\n![Read validated storage evidence](../illustrations/journey-34f.svg)",
+      "browser_caption": "Headed Chrome uses real Web Storage and UTC timestamp parsing to test candidate selection, stable tab identity, independent run keys and denied storage. Current viewer reports are still not persisted at this checkpoint.",
+      "edits": [
+        {
+          "path": "src/report_storage.rs",
+          "before": null,
+          "snippet": "journey/code/34f-storage-01.rs",
+          "why": "Read bounded validated candidates from actual browser storage and rank with the real Date parser; retain only metadata and storage handles."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod browser_report;",
+          "snippet": "journey/code/34f-storage-02.rs",
+          "why": "Build the storage owner only for the browser target and expose its debug acceptance probe."
+        },
+        {
+          "path": "Cargo.toml",
+          "before": "\"Location\", \"Navigator\",",
+          "snippet": "journey/code/34f-storage-03.rs",
+          "why": "Enable the pinned browser Storage bindings without changing package versions."
+        }
+      ]
+    },
+    {
+      "id": "34fa-retain",
+      "title": "Retain only three diagnostic runs",
+      "page": "journey/34fa-retain.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state.",
+      "trace": "valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys",
+      "question": "Why write the current run before pruning the older keys?",
+      "answer": "A failed write must leave existing evidence intact. Only after current metadata is saved can the owner remove older values while keeping two prior reports. Deletion failures are reported rather than claimed as successful retention.",
+      "result": "Run this lesson’s state checks and viewer. Current Diagnostic Report and Save still work as before. Chrome’s debug probe writes actual report JSON, proves repeated writes share one key, retains three runs and refuses denied or oversized storage. Live persistence and the previous-report command are connected next. Finish the healthy proof view with Move 0,-0.05,0 and Fit.",
+      "experiment": "Make setItem throw and compare all existing values before and after. Then make removal throw after a successful write; explain why returning false cannot mean the current value was rolled back.",
+      "production": "Production diagnostics persist bounded metadata independently of the GPU. The course now has a tested writer; startup/current-event integration and typed previous-report download follow.",
+      "tests": true,
+      "frame": "journey/checks/34fa-retain.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/storage-writer.cjs",
+      "story": "The same Store now owns writes as well as reads. A report must satisfy typed validation and match the store’s tab identity before any mutation. Examination is capped at 256 total keys and 32 keys in the owned namespace; a larger namespace refuses writing without modifying storage. Each serialized report retains the existing one-MiB limit.\n\nThe writer prepares the two newest valid older reports by heartbeat, writes the current run, then removes other examined keys in the course namespace. Repeated writes reuse the current key. Malformed owned values are removed after a successful write. Keys outside the course namespace remain untouched. Retention age uses heartbeat; selecting a failed report still uses fatal time, so those responsibilities remain distinct.\n\nFailed writes preserve the existing evidence. If later deletion fails, the method returns false and makes no claim that retention completed; the current saved value may already exist. Private browsing or denied storage must not stop current diagnostics or drawing. No renderer or source data is serialized.\n\nHeaded Chrome reads the actual saved JSON, tests stable-key repeated writes and a fourth run reducing the set to three, retains the two newest old values, removes malformed owned values and preserves unrelated keys. Storage denial and an excessive namespace return false without mutation. These probes exercise the physical storage boundary before live report persistence is connected.\n\n![Retain a bounded set of reports](../illustrations/journey-34fa.svg)",
+      "browser_caption": "Actual Web Storage contains the saved JSON and only three retained runs after successful pruning. Chrome checks repeated keys, malformed cleanup, unrelated-key preservation and denied/excessive storage; live persistence follows next.",
+      "edits": [
+        {
+          "path": "src/report_storage.rs",
+          "before": "    pub fn previous(&self) -> Option<Report> {",
+          "snippet": "journey/code/34fa-retain-01.rs",
+          "why": "Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage."
+        },
+        {
+          "path": "src/report_storage.rs",
+          "before": "    serde_json::json!({\"tab\": store.tab, \"key\": store.key, \"previous\": store.previous()}).to_string()\n}",
+          "snippet": "journey/code/34fa-retain-02.rs",
+          "why": "Verify repeated writes use the same key and reach actual Web Storage; this debug export is not a runtime feature control."
+        }
+      ]
+    },
+    {
+      "id": "34fb-store",
+      "title": "Retrieve saved failure evidence through the command line",
+      "page": "journey/34fb-store.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.",
+      "trace": "startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous",
+      "question": "Why select previous evidence before saving the new running report?",
+      "answer": "Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.",
+      "result": "Type Diagnostic Report to download the current run or Diagnostic Report Previous to download eligible older evidence as viewer-diagnostic-previous.json. Ready and fatal observations now persist, and an eligible earlier failure or interruption is announced in the existing command dock after reload. No eligible report gives a command error without a download. Storage denial still permits current downloads and drawing. Finish the healthy proof view with Move 0.05,0,0 and Fit.",
+      "experiment": "Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.",
+      "production": "Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.",
+      "tests": true,
+      "frame": "journey/checks/34fb-store.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/live-storage.cjs",
+      "story": "Startup opens the store and selects earlier evidence before creating or saving its own running report. The current report uses stable tab identity while the store retains a distinct key for this run. Selected previous metadata is cached separately: writing the new ready report cannot erase the evidence needed by the previous-report command.\n\nRecording releases the current RefCell borrow before persisting a cloned metadata value. Current-report downloads refresh context and attempt persistence, then use the existing independent Blob URL owner. Previous-report serialization likewise finishes its borrow before the anchor click. Neither report retains a source document, renderer or device.\n\nReal ready and fatal observations now write through the bounded store. Device loss still stops only the matching GPU lifetime before fatal recording; storage is independent and survives that disposal. Storage errors are ignored by startup and observation callers so current reports, downloads and rendering remain available. Browser process termination can prevent any final write: a stale running heartbeat is interruption evidence rather than proof of a crash. Periodic heartbeat and lifecycle observations follow.\n\nAn eligible previous run appears in the existing GPU command dock, with failed and interrupted wording distinguished. Diagnostic Report Previous downloads its cached metadata. Missing previous evidence gives a command error and no download. There are no new HTML feature controls.\n\nHeaded Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.\n\n![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)",
+      "browser_caption": "Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Diagnostic Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.",
+      "edits": [
+        {
+          "path": "src/browser_report.rs",
+          "before": "thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) }; }",
+          "snippet": "journey/code/34fb-store-01.rs",
+          "why": "Keep current and previous diagnostic metadata independent of the GPU runtime and source documents."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "    let report = Report::new(uuid::Uuid::new_v4().to_string(), js_sys::Date::new_0().to_iso_string().into(), context()?);\n    REPORT.with(|slot| slot.replace(Some(report)));\n    Ok(())",
+          "snippet": "journey/code/34fb-store-02.rs",
+          "why": "Select earlier evidence before writing this new run, retain stable tab identity and let denied storage leave startup usable."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "    REPORT.with(|slot| {\n        let mut slot = slot.borrow_mut(); let report = slot.as_mut().ok_or(\"No report\")?;\n        report.context = context;\n        report.record(js_sys::Date::new_0().to_iso_string().into(), elapsed, kind, message).map_err(JsValue::from_str)\n    })",
+          "snippet": "journey/code/34fb-store-03.rs",
+          "why": "Save successful observations after releasing the current-report borrow; storage failure cannot replace a diagnostic error or interrupt drawing."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "    let json = diagnostic_snapshot()?;",
+          "snippet": "journey/code/34fb-store-04.rs",
+          "why": "Persist refreshed current context while retaining manual downloads when storage is unavailable."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "pub fn fatal(message: &str) {",
+          "snippet": "journey/code/34fb-store-05.rs",
+          "why": "Serialize independent previous metadata before the download callback; report interruption separately from proof of a crash."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Diagnostic Report\",",
+          "snippet": "journey/code/34fb-store-06.rs",
+          "why": "Expose previous-report retrieval as a named command in the actual dock."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    panel.update(None, &canvas)?;\n    if resize(",
+          "snippet": "journey/code/34fb-store-07.rs",
+          "why": "Show an eligible previous-run notice in the existing command dock, keeping HTML free of feature buttons."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            } else if line == \"diagnostic report\" {\n                let result = crate::browser_report::download().map(|()| \"Diagnostic report downloaded.\".to_owned())",
+          "snippet": "journey/code/34fb-store-08.rs",
+          "why": "Dispatch current and previous JSON downloads without changing document history or the stopped-runtime failure guard."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "            \"controls\": controls, \"command\": self.model.command, \"history\": self.model.history,",
+          "snippet": "journey/code/34fb-store-09.rs",
+          "why": "Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors."
+        }
+      ]
     }
   ]
 }

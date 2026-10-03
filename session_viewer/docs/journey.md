@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 112 cumulative lessons, about 160–297 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 115 cumulative lessons, about 163–303 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **178 proposed slots: 112 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **180 proposed slots: 115 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -128,6 +128,9 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [34ea · Admit only supported bounded saved JSON](journey/34ea-decode.md) | 1–2 hours | Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate. |
 | [34eb · Choose a recent failure without blaming active tabs](journey/34eb-recency.md) | 1–2 hours | Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity. |
 | [34ec · Prove saved-run exclusions before adopting storage](journey/34ec-proof.md) | 1–2 hours | Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download. |
+| [34f · Read previous reports from real browser storage](journey/34f-storage.md) | 1–2 hours | Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning. |
+| [34fa · Retain only three diagnostic runs](journey/34fa-retain.md) | 1–2 hours | Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state. |
+| [34fb · Retrieve saved failure evidence through the command line](journey/34fb-store.md) | 1–2 hours | Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

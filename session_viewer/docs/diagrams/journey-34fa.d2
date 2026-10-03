@@ -1,0 +1,9 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+admit: "Valid metadata and matching stable tab"
+bounds: "Bound key examination and serialized byte size"
+write: "Save this run before deleting prior evidence"
+prune: "Retain current plus two newest valid older reports"
+result: "Return false on write or deletion failure"
+admit -> bounds -> write -> prune -> result
