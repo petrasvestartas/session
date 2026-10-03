@@ -1,0 +1,14 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Command: capture target + arguments"
+n1: "Required source keys?"
+n2: "Warm: execute immediately"
+n3: "Cold: cancel older flight, fetch with Intent"
+n4: "Camera + selection remain available"
+n5: "Current completion: validate, restore, replay once"
+n6: "Context or newer edit: cancel and abort"
+n0 -> n1
+n1 -> n2
+n1 -> n3 -> n4 -> n5
+n3 -> n6

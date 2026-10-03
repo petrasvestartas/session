@@ -593,3 +593,22 @@ Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, 
 - [ ] Next 32gid automatic Move/Delete/Save replay and context revocation; split that topic again if its typing estimate exceeds one hour. Then32gj combined browser failures/timing/precision/cleanup, remaining geometry/rendering/application lessons, early splits and full production inventory/parity.
 
 Phone fix edce6df7 and parent3e23ade are published. Viewer-check37137124994 passed; primaryPages37137125136 and Sessionmini37137125024 are running. Prior course duplicatePages37136890185 passed. Public phone rotation acceptance is still pending deployment and actual user feedback.
+
+### 2026-10-03 · Actual phone rotation accepted
+
+- [x] edce6df7 deployed: viewer-check37137124994, primaryPages37137125136 and Sessionmini37137125024 pass. Post-mini duplicatePages37137930710 was automatically cancelled by pending deployment concurrency, not a source failure.
+- [x] Public headed regression passes mouse orbit, touch orbit, pan/pinch and cancellation; quality passes all three canvas/MSAA configurations. Published-floor load 893/860/2879 ms desktop/phone/6×CPU emulation, one replacement each; all default and explicit opacity checks pass.
+- [x] User refreshed the SAME actual-phone tab and confirmed “Rotation is smooth now.” Appearance was already accepted and loading faster. Numerical phone load time remains unmeasured; do not relabel desktop emulation as Qualcomm telemetry.
+- [x] Source-completion lessons published dbba0273, parent52b08f6; all 94 endpoints verified locally. viewer-check37137932541 passes; primaryPages37137932687 and Sessionmini37137932544 remain running and must finish.
+- [ ] Resume main tutorial work with automatic source reload/replay (32gid); retain cancellation, original target, later selection/camera, current placement, original Save precision and one Undo transaction. Remaining full course and early splits remain required.
+
+
+### 2026-10-03 · Automatic command restoration verified locally
+
+- [x] 32gid-complete validates restoration before replaying captured Move/Delete/Save; stale context returns no result and current failures cannot edit or download. Native checks preserve later selection/camera and verify one Undo transaction.
+- [x] 32gie-response routes Changed/Saved results and failures to the original command name. Explicit Reload Sources remains verified through the new receiver.
+- [x] 32gif-auto connects cold-source Move/Delete/Save to required source keys, abortable fetching and captured replay. Warm operations remain immediate; new real edits or Save supersede older pending work. Camera/selection remain available.
+- [x] All three checkpoints pass 108 native checks, WebAssembly, optimized Trunk, native GPU rendering and visible Chrome. Held real source responses verify original targets, later selection/camera, one-step Undo, Save download/history, newer-edit supersession and Cancel Reload/Undo/Close late-reply rejection. Controlled waits test ordering, not performance. The first automatic browser run passed its feature checks but failed the inherited explicit-reload final status; its checkpoint expectation now correctly names the actual Move completion. Final rerun passes.
+- [x] Typing estimates: completion 30–59 minutes; result handling 14–27 minutes; automatic routing 25–49 minutes. Split the original single slot into three before publication: 164 planned slots, 97 locally verified, 67 future and 17 oversized early splits remain. Full feature target retained.
+- [ ] Publish this batch after diagram/evidence/tool/strict-Vue checks and same-tab refresh; watch every triggered workflow, including the previous batch’s post-mini Pages run37138814656.
+- [ ] Next combined browser failures, exact restored Save precision, multi-origin failures and URL lifetime checks (32gj); then listener lifetime/device recovery, remaining geometry/rendering/attributes/commands, early splits and full inventory/parity.

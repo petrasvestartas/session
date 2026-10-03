@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 94 cumulative lessons, about 142–261 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 97 cumulative lessons, about 145–267 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **162 proposed slots: 94 current checkpoints and 68 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **164 proposed slots: 97 current checkpoints and 67 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -110,6 +110,9 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32gic · Own the intent with its pending source ticket](journey/32gic-owner.md) | 1–2 hours | Store source keys and captured intent in one pending owner that current completion can consume once. |
 | [32gica · Pair captured intent with complete source bodies](journey/32gica-reply.md) | 1–2 hours | Build a completion value that retains captured intent and rejects incomplete source-body pairings. |
 | [32gicb · Carry captured intent through browser completion](journey/32gicb-bridge.md) | 1–2 hours | Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure. |
+| [32gid · Validate restoration before replaying the command](journey/32gid-complete.md) | 1–2 hours | Complete source restoration and replay the captured operation only after current document validation. |
+| [32gie · Deliver restored edit and Save results to the dock](journey/32gie-response.md) | 1–2 hours | Route validated scene edits and original-precision downloads back to the captured command history. |
+| [32gif · Automatically restore sources for Move, Delete and Save](journey/32gif-auto.md) | 1–2 hours | Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

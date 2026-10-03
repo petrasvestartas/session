@@ -1,13 +1,13 @@
 # Course release: command-line checkpoints
 
-**All 94 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 97 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
 ## What was checked
 
 - Every displayed checkpoint reconstructs, builds for WebAssembly, and produces a Trunk browser bundle. Native state tests and GPU readbacks run where applicable.
-- The completion-value and browser-delivery checkpoints pass 106 native checks: captured intent stays beside exact source bodies or a failure, and missing/extra bodies are rejected before pairing. Chrome verifies explicit reload through the new mailbox type. Automatic command replay remains the next lesson.
+- Source completion and automatic-command checkpoints finish with 108 native checks. Complete body pairs, current origins/epochs and file versions are validated before captured Move/Delete/Save replay. Visible Chrome holds actual source responses, changes selection and camera, checks original-target replay and one-step Undo, verifies a single Save download without consuming Undo, supersedes older pending edits, and rejects late replies after Cancel Reload, Undo and Close. Broader combined failure cases and browser verification of restored Save precision remain the next acceptance lessons.
 - Every checkpoint fills the browser content area from its first frame. Chrome checks the canvas position and dimensions, rejects visible headings or teaching paragraphs, and checks that the GPU image matches the initial window size.
 - The course’s dock model, layout and theme match the production source. An automated check rejects HTML feature buttons and button-based lesson actions.
 - Chrome types commands through actual keyboard events. Enter clears the field and records exactly one command. Completion and Escape are checked separately.

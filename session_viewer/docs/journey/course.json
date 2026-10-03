@@ -6872,6 +6872,165 @@
           "why": "Keep the existing explicit source-restoration receiver reading the reply body."
         }
       ]
+    },
+    {
+      "id": "32gid-complete",
+      "title": "Validate restoration before replaying the command",
+      "page": "journey/32gid-complete.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Complete source restoration and replay the captured operation only after current document validation.",
+      "trace": "Reply → complete bodies → current keys and versions → hydrate → captured Intent → edit result",
+      "question": "Why does a stale restoration return None instead of replaying its captured Save or edit?",
+      "answer": "The source keys no longer match the current document and release epoch. The reply has lost authority; neither a scene change nor a download belongs to the replacement context.",
+      "result": "From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward. Type Delete, Undo, Select Next twice and Redo. Undo restores the geometry; selection must be chosen again after deleting the selected row. Finally type Select Next and Fit to inspect a remaining object. Move 0.15,0,0, Save, Undo and Redo; Save must leave the Move available to Undo. Finally type Fit. Type Move 0,0,0.15 and Fit. Inspect the native owner tests for stale, duplicate and cancelled completions. Type Orbit Right and Fit. Inspect the native completion checks before connecting automatic command replay. Type Move 0,0.15,0 and Fit. Automatic Move/Delete/Save reload remains the next checkpoint. Type Move 0.1,0,0 and Fit. Native tests now complete captured operations; browser automatic commands follow next.",
+      "experiment": "Move intent.replay above hydrate and run the failed/stale completion checks. Explain which edits or downloads could escape document validation.",
+      "production": "One editor completion boundary validates restoration before applying a captured operation; fetch itself never mutates selection, camera or history.",
+      "tests": true,
+      "frame": "journey/checks/32gid-complete.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-complete.cjs",
+      "story": "The reply already pairs complete bodies with the operation captured before fetching. complete now gives it one synchronous editor boundary. Hydration validates current source identity, release epoch, file version and metadata before it restores any source. A stale context returns None; a failed fetch or invalid body returns an error. Neither path replays the operation.\n\nAfter successful hydration, Some(intent) calls the explicit-target replay taught earlier. Move and Delete each create one edit transaction; Save produces the original-precision document bytes without creating history. None represents explicit Reload Sources and returns a scene result. The browser will consume these results in the next checkpoint.\n\nNative checks complete all three cold-source operations, change selection and camera while waiting, verify the original target and one-step Undo, and reject a closed document and a network failure. Existing replay checks cover exact source doubles and Save history. Chrome still checks explicit browser reload because automatic command routing is connected next.\n\n![Validate before replay](../illustrations/journey-32gid.svg)",
+      "browser_caption": "Native checks complete captured cold-source Move/Delete/Save and reject stale or failed restoration. Chrome retains explicit reload until automatic command routing is connected next.",
+      "edits": [
+        {
+          "path": "src/reload_reply.rs",
+          "before": "impl Reply {\n",
+          "snippet": "journey/code/32gid-complete-01.rs",
+          "why": "Validate every current source key and body before replay; a stale context produces no reply."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod reload_reply_tests;\n",
+          "snippet": "journey/code/32gid-complete-02.rs",
+          "why": "Register native completion checks separately from the body-pairing checks."
+        },
+        {
+          "path": "src/reload_complete_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32gid-complete-03.rs",
+          "why": "Prove automatic native Move/Delete/Save completion, original target, later selection/camera, Undo, and stale or failed completion."
+        }
+      ]
+    },
+    {
+      "id": "32gie-response",
+      "title": "Deliver restored edit and Save results to the dock",
+      "page": "journey/32gie-response.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Route validated scene edits and original-precision downloads back to the captured command history.",
+      "trace": "Current completion → captured command name → complete → Changed or Saved → dock answer",
+      "question": "Why is the command name read from the reply before completion consumes it?",
+      "answer": "The reply owns the operation submitted before fetching. Later selection and typing do not identify that operation. Completion consumes its source bodies and intent, so capture the name first.",
+      "result": "From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward. Type Delete, Undo, Select Next twice and Redo. Undo restores the geometry; selection must be chosen again after deleting the selected row. Finally type Select Next and Fit to inspect a remaining object. Move 0.15,0,0, Save, Undo and Redo; Save must leave the Move available to Undo. Finally type Fit. Type Move 0,0,0.15 and Fit. Inspect the native owner tests for stale, duplicate and cancelled completions. Type Orbit Right and Fit. Inspect the native completion checks before connecting automatic command replay. Type Move 0,0.15,0 and Fit. Automatic Move/Delete/Save reload remains the next checkpoint. Type Move 0.1,0,0 and Fit. Native tests now complete captured operations; browser automatic commands follow next. Type Move 0,0,0.1 and Fit. Observe explicit Reload Sources still uses its original completion label.",
+      "experiment": "Use the current command field as the completion label. Type a camera command while a fetch is held and explain why that label would attach the result to the wrong operation.",
+      "production": "Asynchronous result ownership follows the submitted operation; neither the latest input nor later selection renames the completed command.",
+      "tests": true,
+      "frame": "journey/checks/32gie-response.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-response.cjs",
+      "story": "The browser receiver now calls complete instead of hydrating only the body. It records the command name from the captured intent before consuming the reply. Changed synchronizes the renderer; Saved downloads the bytes produced by the original-precision snapshot. A stale None does nothing. Errors use the same original command name.\n\nExplicit Reload Sources still uses None intent and keeps its existing success message. save_result converts either the browser download failure or its success into one dock message. Actual automatic commands are connected next; this checkpoint prepares their result handling.\n\nNative completion checks still exercise captured Move/Delete/Save and stale or failed restoration. Chrome exercises explicit restoration through this new receiver, including the inherited fetch and cancellation checks. It does not yet claim an automatic browser edit.\n\n![Deliver the captured command result](../illustrations/journey-32gie.svg)",
+      "browser_caption": "Chrome checks explicit restoration through the result-aware receiver. Native tests verify captured edit and Save replies; browser command-triggered restoration follows next.",
+      "edits": [
+        {
+          "path": "src/edit_intent.rs",
+          "before": "impl Intent {\n",
+          "snippet": "journey/code/32gie-response-01.rs",
+          "why": "Name the captured operation independently of the current input field or selection."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            if let Some(reply) = reload_delivery.borrow_mut().take() {\n                match reply.result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {\n                    Ok(true) => {\n                        renderer.set_scene(&editor.scene, editor.selected);\n                        let message = \"Editable sources restored; display retained.\";\n                        report(message); panel.answer(\"Reload Sources\", message);\n                    }\n                    Ok(false) => {}\n                    Err(error) => { report(&error); panel.answer(\"Reload Sources\", &error); }\n                }\n            }",
+          "snippet": "journey/code/32gie-response-02.rs",
+          "why": "Consume validated edit or Save results and associate success or failure with the original command."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "pub async fn run() -> Result<(), JsValue> {",
+          "snippet": "journey/code/32gie-response-03.rs",
+          "why": "Keep download handling shared by immediate and restored Save results."
+        }
+      ]
+    },
+    {
+      "id": "32gif-auto",
+      "title": "Automatically restore sources for Move, Delete and Save",
+      "page": "journey/32gif-auto.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Connect cold-source edits and Save to captured reload and validated replay without requiring Reload Sources first.",
+      "trace": "Typed command → capture original intent → required cold keys → fetch → validated completion → one edit or download",
+      "question": "Which commands should keep working while source restoration is pending?",
+      "answer": "Camera and selection commands execute immediately. The pending operation retains its original target and arguments. A new real edit or Save supersedes earlier pending work; Close, Undo, Redo, Unload Sources and replacement already cancel its authority.",
+      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step.",
+      "experiment": "Hold a source response, submit Move, select another object and orbit, then release it. Explain why replay must use the captured object identity but preserve the later selection and camera.",
+      "production": "Automatic editable-source restoration obeys command ownership, document-context revocation, original targets, current placement, original precision and ordinary history boundaries.",
+      "tests": true,
+      "frame": "journey/checks/32gif-auto.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Move completed after source reload.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-auto.cjs",
+      "story": "restore_for finds only the captured operation’s required cold source keys. Move and Delete need the original target’s source; Save needs all active cold sources. It cancels older pending work, returns false for a warm operation, and otherwise starts the existing abortable flight with Some(intent).\n\nThe shared action path captures Move/Delete before applying them. Its Result<Option<Change>, String> distinguishes an immediate change (Some), a waiting operation (None), and a failure (Err). map(Some) wraps an immediate editor result; and_then carries an earlier error forward without applying the action. A pending restoration leaves drawing, placement and edit history untouched. Camera and selection commands still run immediately; completed replay uses the captured target and the current placement, while preserving the later view and selection. Save uses the same decision and downloads only after completion has restored every required source.\n\nZero Move and Delete with no selection request no fetch. Warm commands retain their normal behavior. Close, Undo, Redo, source unload and document replacement keep the cancellation taught earlier. A newer real edit or Save supersedes an older pending intent even when the newer operation is warm.\n\nChrome uses held real source responses to check original-target Move and Delete, later selection and camera, one-step Undo, automatic Save download and cancellation. These controlled waits test ordering, not phone performance. Exact source-coordinate preservation remains covered by native Save/replay checks; the following acceptance lesson broadens browser failures and precision.\n\n![Automatic cold-source commands](../illustrations/journey-32gif.svg)",
+      "browser_caption": "Visible Chrome types real cold-source Move/Delete/Save commands, holds fetch responses, changes selection and camera, then checks replay, download, Undo and cancellation. Controlled waits establish ordering, not device speed.",
+      "edits": [
+        {
+          "path": "src/browser_reload.rs",
+          "before": "pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {",
+          "snippet": "journey/code/32gif-auto-01.rs",
+          "why": "A new edit supersedes older pending work. Warm edits need no fetch; cold edits capture their required keys and operation."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                match crate::document::snapshot(&editor.scene) {\n                    Ok(bytes) => match crate::file_output::download(&bytes) {\n                        Ok(()) => panel.result(&format!(\"Saved editable document ({} bytes)\", bytes.len())),\n                        Err(error) => panel.result(&format!(\"Save failed: {error:?}\")),\n                    },\n                    Err(error) => panel.result(error),\n                }",
+          "snippet": "journey/code/32gif-auto-02.rs",
+          "why": "Save reloads every active cold source before producing its original-precision download; warm Save remains immediate."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            match editor.apply(action) {\n                Ok(Change::Scene) => {",
+          "snippet": "journey/code/32gif-auto-03.rs",
+          "why": "Capture Move/Delete before fetching; camera and selection commands remain immediate while pending work keeps its original target."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                Ok(Change::View) => {}\n                Err(error) => {\n                    report(error);\n                    if event.type_() == \"viewer-file\" { panel.answer(\"Open\", error); }\n                    else { panel.result(error); }\n                }",
+          "snippet": "journey/code/32gif-auto-04.rs",
+          "why": "A deferred command has no scene change yet; failures retain normal dock reporting."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-object-count\", &editor.scene.objects().len().to_string())?;",
+          "snippet": "journey/code/32gif-auto-05.rs",
+          "why": "Expose read-only placement, selection and camera values so Chrome checks the original target and later view exactly. These values add no controls."
+        }
+      ]
     }
   ]
 }

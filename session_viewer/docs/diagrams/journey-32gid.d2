@@ -1,0 +1,11 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Complete source bodies + captured Intent"
+n1: "Hydrate: validate current keys, epoch and version"
+n2: "Current: restore sources, replay original target"
+n3: "Stale: no result; failure: error"
+n4: "Move/Delete: one edit; Save: original bytes"
+n0 -> n1
+n1 -> n2 -> n4
+n1 -> n3

@@ -1,0 +1,13 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Capture original command name from reply"
+n1: "complete(editor)"
+n2: "Changed: synchronize renderer"
+n3: "Saved: download original-precision bytes"
+n4: "Answer original command in dock"
+n5: "Stale: no answer; error: original command failure"
+n0 -> n1
+n1 -> n2 -> n4
+n1 -> n3 -> n4
+n1 -> n5

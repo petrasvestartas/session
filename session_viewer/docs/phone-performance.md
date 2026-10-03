@@ -101,3 +101,7 @@ The existing sharpness regression passes for default phone, explicit phone and d
 Native 40-frame orbit measurements produce byte-identical final images and unchanged GPU allocations. The existing adaptive tier alternates full and plane visibility: before p50/p95 were 20.4/44.1 ms, after 40.0/44.6 ms, with tier-1 medians 20.0/17.3 ms. The overall medians reflect different tier occupancy; no native speed improvement is claimed for this browser-only scheduling change.
 
 The maintained command-input check also passes immediate typing, named View commands, fresh right-click Move repeat, mouse orbit/jitter and phone navigation.
+
+Deployed as `edce6df7`, with viewer-check, primary Pages and Session mini tests passing. Public headed Chrome passes all four held-completion gesture cases and preserves default phone, explicit phone and desktop canvas/MSAA settings. Published-floor loads take 893 ms desktop, 860 ms phone dimensions and 2879 ms at 6× CPU throttle, with one live replacement and default/explicit opacity checks passing. These loading numbers remain desktop GPU/network emulation.
+
+After refreshing the same public page on the actual phone, the user confirmed on 2026-10-03: “Rotation is smooth now.” Earlier feedback confirmed correct appearance and faster loading. The phone’s numerical load-time target and CPU timings have not been measured here.
