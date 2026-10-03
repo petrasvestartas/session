@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 180 lesson slots; 115 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 181 lesson slots; 116 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 115 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 116 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -264,6 +264,8 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 - [x] 34fa · [Retain only three diagnostic runs](34fa-retain.md) — Actual writes, metadata-only ownership and denied-storage behavior; builds and actual Chrome checks pass.
 
 - [x] 34fb · [Retrieve saved failure evidence through the command line](34fb-store.md) — Live persistence and typed previous-report download; builds and actual Chrome checks pass.
+
+- [x] 34fc · [Preserve unsupported telemetry while pruning](34fc-retention.md) — Separate raw retention from strict adoption; native, WebAssembly, rendering and actual Chrome checks pass.
 
 - [ ] 34g · Recover from GPU loss — lifecycle/heartbeat/error and detailed load telemetry, then bounded recovery.
 

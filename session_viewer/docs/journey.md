@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 115 cumulative lessons, about 163–303 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 116 cumulative lessons, about 164–305 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **180 proposed slots: 115 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **181 proposed slots: 116 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -131,6 +131,7 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [34f · Read previous reports from real browser storage](journey/34f-storage.md) | 1–2 hours | Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning. |
 | [34fa · Retain only three diagnostic runs](journey/34fa-retain.md) | 1–2 hours | Write admitted report metadata to an independent run key and retain a bounded set without disturbing viewer state. |
 | [34fb · Retrieve saved failure evidence through the command line](journey/34fb-store.md) | 1–2 hours | Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command. |
+| [34fc · Preserve unsupported telemetry while pruning](journey/34fc-retention.md) | 1–2 hours | Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

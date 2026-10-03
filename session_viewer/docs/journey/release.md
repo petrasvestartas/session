@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 115 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 116 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -74,6 +74,12 @@ Three further checkpoints retain the 125 inherited native state tests and pass W
 The final endpoint selects previous metadata before writing its own running report, persists ready/fatal observations independently of GPU disposal, shows failed/interrupted notices in the actual dock and accepts Diagnostic Report Previous. Chrome destroys a real device, reads the actual stored failure, reloads the same test page and downloads unchanged previous JSON from a healthy run. Stable tab/new key, three-report bounds, scene/history invariants, download URL release, quiet healthy/active-other-tab cases and denied-storage current downloads pass. There are no new HTML feature controls. Heartbeat/lifecycle/error observations and full load/adapter/resource telemetry remain upcoming; diagnostics do not restore unsaved edits.
 
 The three typing estimates are 21–41, 18–36 and 25–49 minutes. An initial live test incorrectly assumed the inspector exported status; the final lesson exposes the existing drawn status for acceptance, then passes all checks. One recheck also failed an inherited command-clear assertion; an unchanged confirmation run and the final live run passed. Its cause was not established, and the assertion was not weakened.
+
+## Compatibility-safe retention
+
+The next checkpoint corrects a compatibility gap in the initial writer. Strict admission excluded newer schemas, so using admitted reports as the retention list could delete newer-format evidence. Retention now reads only a bounded positive-version/date header, ranks the two newest older values and leaves their original stored bytes unchanged. Unsupported or typed-invalid values can occupy a retained slot but remain ineligible for notices and typed downloads. Syntax errors, excessive bytes and unusable headers can still be pruned; a failed older-value read aborts before any mutation.
+
+127 native tests, WebAssembly, Trunk, native GPU rendering and real Chrome pass. Chrome preserves exact whitespace-bearing version2 JSON with unknown telemetry, confirms strict selection refuses it, and verifies read denial leaves all values untouched. The inherited real loss/reload/previous-download and scene/history checks also pass. Typing26–51 minutes.
 
 ## Reproduce
 

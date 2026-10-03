@@ -7997,6 +7997,55 @@
           "why": "Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors."
         }
       ]
+    },
+    {
+      "id": "34fc-retention",
+      "title": "Preserve unsupported telemetry while pruning",
+      "page": "journey/34fc-retention.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.",
+      "trace": "bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download",
+      "question": "Why does refusing to adopt an unsupported report not justify treating it as malformed during pruning?",
+      "answer": "Its extra fields or version may belong to a newer viewer. Adoption requires our complete supported schema, but bounded retention needs only a usable version/date header. Keep its original stored bytes if it is one of the two newest older values; do not convert it through our older typed model.",
+      "result": "Run native tests and the viewer. Diagnostic Report and Diagnostic Report Previous retain the previous lesson’s behavior. Chrome stores a newer-format report with unknown telemetry and proves successful pruning retains its exact original JSON while leaving it ineligible for typed adoption. A failed older-value read aborts before any storage mutation. Finish the healthy proof view with Move 0,-0.05,0 and Fit.",
+      "experiment": "Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.",
+      "production": "Report schema evolves as detailed telemetry is taught. Admission stays strict, while bounded retention preserves newest unsupported raw evidence without conversion. Heartbeat/lifecycle observations, new telemetry fields and bounded recovery follow.",
+      "tests": true,
+      "frame": "journey/checks/34fc-retention.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/compatible-retention.cjs",
+      "story": "The preceding writer had a compatibility counterexample. Its reports() reader intentionally rejects unsupported fields and versions, but using that same decoded list to choose retention deleted a newer-format value even when it was the newest saved evidence. Rejection prevents an older export from stripping fields; pruning must not undo that protection.\n\nretention_time parses at most one MiB and requires a positive integer version plus bounded timestamp text with a finite, non-future time. It permits unsupported fields and future format versions, returning only their retention score. It does not adopt the value, validate a full report, create a notice or serialize a replacement. Dateable values with invalid typed shape can occupy a retained slot; they remain excluded by the strict reader.\n\nThe writer reads each bounded owned older value before mutation and ranks these header scores. The two newest older values stay in place byte for byte. Unsupported versions compete under the same three-total-report policy; they are not retained forever. Syntax errors, unbounded text or unusable headers can be pruned after the current write succeeds. A failed read aborts the write entirely, avoiding deletion of evidence that could not be inspected.\n\nNative tests separate retention from admission and cover byte/date/version bounds without mutating input. Headed Chrome stores actual unknown telemetry in version2, preserves its exact whitespace-bearing JSON through repeated writes and proves the typed reader still refuses it. A controlled getItem denial leaves all prior values unchanged and performs no current write. All inherited real GPU-loss, reload, previous-download and scene/history checks remain.\n\n![Retain raw evidence separately from admission](../illustrations/journey-34fc.svg)",
+      "browser_caption": "Chrome preserves exact raw JSON from a newer-format report through actual pruning, refuses typed adoption and aborts safely when reading an older value is denied. Full inherited live diagnostics and scene/history checks pass.",
+      "edits": [
+        {
+          "path": "src/report_store.rs",
+          "before": "pub const MAX_BYTES: usize = 1024 * 1024;",
+          "snippet": "journey/code/34fc-retention-01.rs",
+          "why": "Read a bounded date/version header for retention without adopting, converting or rewriting unsupported telemetry."
+        },
+        {
+          "path": "src/report_storage.rs",
+          "before": "        let mut old = self.reports(); old.retain(|(key, _)| key != &self.key);\n        old.retain(|(_, report)| js_sys::Date::parse(&report.last_seen).is_finite());\n        old.sort_by(|a, b| js_sys::Date::parse(&b.1.last_seen).total_cmp(&js_sys::Date::parse(&a.1.last_seen)));\n        let keep: Vec<_> = old.iter().take(2).map(|(key, _)| key).collect();",
+          "snippet": "journey/code/34fc-retention-02.rs",
+          "why": "Retain raw supported or unsupported bounded JSON by header time; a failed read aborts before writing or pruning."
+        },
+        {
+          "path": "src/report_store_tests.rs",
+          "before": "use crate::{diagnostic::Report, diagnostic_shape_tests::report, report_store::{decode, MAX_BYTES}};\n\n#[test]\nfn stored_json_rejects_invalid_shape() {\n    let good = serde_json::to_value(report()).unwrap();\n    for (key, bad) in [(\"version\", serde_json::json!(2)), (\"tab\", serde_json::json!(\"\")),\n        (\"page\", serde_json::json!(\"https://example.test/?private=1\")), (\"devicePixelRatio\", serde_json::json!(0)),\n        (\"events\", serde_json::json!([{\"time\":\"now\",\"kind\":\"fatal\",\"message\":\"bad\",\"elapsedMs\":null}])),\n        (\"outcome\", serde_json::json!(\"failed\")), (\"unknown\", serde_json::json!(true))] {\n        let mut value = good.clone(); value[key] = bad;\n        assert!(decode(&value.to_string()).is_none(), \"{key}\");\n    }\n    assert!(decode(\"{\").is_none());\n}\n\n#[test]\nfn stored_json_bounds_bytes_events_and_text() {\n    let json = serde_json::to_string(&report()).unwrap();\n    let padding = MAX_BYTES - json.len(); let padded = json + &\" \".repeat(padding);\n    assert!(decode(&padded).is_some()); assert!(decode(&(padded + \" \")).is_none());\n    let mut value = serde_json::to_value(report()).unwrap();\n    let event = serde_json::json!({\"time\":\"now\",\"kind\":\"phase\",\"message\":\"test\",\"elapsedMs\":1.0});\n    value[\"events\"] = serde_json::json!(vec![event; 25]); assert!(decode(&value.to_string()).is_none());\n    let mut bypass: Report = serde_json::from_value(value).unwrap();\n    bypass.record(\"later\".into(), 2.0, \"phase\", \"bounded\").unwrap();\n    assert_eq!(serde_json::to_value(bypass).unwrap()[\"events\"].as_array().unwrap().len(), 24);\n    let mut failure = report(); failure.record(\"later\".into(), 1.0, \"fatal\", \"first reason\").unwrap();\n    let json = serde_json::to_string(&failure).unwrap(); assert_eq!(decode(&json), Some(failure));\n    let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();\n    value[\"failure\"][\"message\"] = serde_json::json!(\"😀\".repeat(4097)); assert!(decode(&value.to_string()).is_none());\n}\n",
+          "snippet": "journey/code/34fc-retention-03.rs",
+          "why": "Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing."
+        }
+      ]
     }
   ]
 }

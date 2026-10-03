@@ -1,0 +1,10 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+raw: "Bounded raw JSON from storage"
+header: "Date/version header for retention only"
+keep: "Keep two newest older values unchanged"
+admit: "Supported schema and typed invariants"
+use: "Eligible previous notice or typed download"
+raw -> header -> keep
+raw -> admit -> use
