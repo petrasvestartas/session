@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 158 lesson slots; 88 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 160 lesson slots; 89 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -209,7 +209,11 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32gia · [Load only the sources the requested edit needs](32gia-scope.md) — Original target → its one cold origin; Save → unique active cold origins. Loaded targets fetch nothing; missing targets fail.
 
-- [ ] 32gib · Replay against the current target placement — Apply the original Move/Delete exactly once, preserve a later selection, and make one document history transaction.
+- [x] 32gib · [Move the original target from its current placement](32gib-move.md) — Original ObjectId + offset compose with the current model; preserve later selection and camera; one document history transaction.
+
+- [ ] 32giba · Delete the original target while keeping later selection — Resolve the captured ObjectId, require editable geometry, preserve other selected rows and refuse a missing target without changing history.
+
+- [ ] 32gibb · Route captured Move, Delete and Save results — Return the edit change or original-precision snapshot bytes; leave history unchanged for Save and pair the result with the pending owner.
 
 - [ ] 32gic · Pair the captured edit with reload authority — Keep intent with the pending ticket; cancel it on context changes and reject obsolete completion.
 
