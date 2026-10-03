@@ -26,7 +26,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Revise 03d and 22 for immediate typing and command-only keyboard features; recheck 23–26.
 - [x] Refresh all changed earlier endpoints and their screenshot evidence.
 - [x] [Review this week’s commits](weekly-changes.md) and map visibility, locking, tree colors and curve sampling to lessons.
-- [ ] Fix missing ink at close zoom and sharp angles; ordinary-distance checks are insufficient.
+- [x] [Fix missing ink at close zoom and sharp angles](line-visibility.md); geometric oracle and Chrome zoom checks pass. Teach this in the later rendering chapters.
 - [x] Publish the verified tutorial and viewer input batches; refresh the same existing tutorial tab.
 
 - [x] 01 · [A page that Rust can reach](01-canvas.md).

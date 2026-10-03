@@ -114,6 +114,7 @@ Per-pixel attachments dominate: at 4x MSAA the colour, depth and `Rgba16Float` m
 ## Depth and visible ink
 
 - Depth is reversed: near is larger, the clear value is zero, opaque faces compare `Greater`.
+- Close-up triangle depth is derived from homogeneous clip corners and anchored at the viewport centre; the near-clipped polygon still determines coverage. Strokes derive their screen line from original clip ends and measure coverage near the viewport centre. Placement roundoff scales with rebased coordinates and eye distance. The [close-up regression report](docs/journey/line-visibility.md) explains the failure and native/Chrome checks.
 - A stroke covers samples beside its axis. The ink shader transfers the winning primitive's depth to the axis through the stored gradient before comparing, so a line on a surface is not hidden by the surface beside it.
 - A stroke drawn off its faces by `sag` mm (a curved edge's exact samples between the facets' vertices) carries that sag to the fragment stage as a depth and a pixel term (`sag_terms` in `ribbon.wgsl`), and every visibility test adds `ink_sag_slack`: the rise itself plus the rise in pixels times the surface's screen depth gradient, so a facet seen at a grazing angle, whose depth changes by its whole length within the rise, cannot hide the exact rim of the bore it approximates. It is the polygon offset of the fixed pipeline; a nearer face of another object still hides the stroke unless it is as thin on screen as the sag.
 - A stroke of a sampled surface that one triangle covers at both ends, nearer than each by more than the tolerance and that slack, is dropped in the vertex stage (`segment_covered` in `ribbon.wgsl`): depth is affine along a projected segment and across a triangle, so the ends decide the middle, and the hidden ink's fragments never run the tests below. The dowel bores of a timber floor are mostly such strokes.
@@ -191,14 +192,17 @@ Loader routing state, live polling and the small UI model have one-page lifetime
 | Left click on a gumball handle | A number box beside it: Move mm, Rotate deg or Scale factor; Enter applies one undo step, Escape closes |
 | Ctrl + left click | Select an original mesh, BRep or NURBS edge |
 | Ctrl + Shift + left click | Select an original face; a nearby eligible edge wins |
-| F10 / Escape | Show the parent's original controls / leave the mode, then clear |
-| 1–7, C, F, Space | Standard views, reset, fit, projection toggle |
-| Q, W, E, O, P, D, B | Points, lines, mesh edges, silhouettes, x-ray, lighting, back faces |
-| H / S / T | Hide selection / show all / toggle selected names |
+| Printable typing | Focus the command dock immediately and retain the first character |
+| Enter / Escape | Submit or finish the active command / cancel or clear |
+| Right click | Repeat the last successful command; interactive tools ask for fresh points |
+| One-finger drag / two-finger drag / pinch | Orbit / pan / zoom on phones |
+| Typed View Top, View Side, View Isometric, View Reset, Fit | Standard directions, reset and framing |
+| Typed View Perspective, View Orthographic, View Show Edges, View Outline On | Projection and display settings |
+| Typed View Hide Selected, View Show All, View Names, Controls | Visibility, names and original controls |
 
 ## Editing overlays
 
-`app/ui/mod.rs` owns the egui context and translates winit input into panel actions and commands; each panel (number box, command line, layers) is one file under `app/ui/` that keeps its own state and implements `Panel` (fill from `State`, show, apply, keys, phone field, taps, test snapshot), named once in the `panels!` list; clicks and lines to run come back through one `Output`. `engine/gpu/ui.rs` owns its renderer and font textures and draws after the scene. Text input takes keyboard focus while the command window is open; scene shortcuts resume after closing it. The white/black visuals follow the archive customization. The old DOM command and layer listeners are removed.
+`app/ui/mod.rs` owns the egui context and translates winit input into panel actions and commands; each panel (number box, command line, layers) is one file under `app/ui/` that keeps its own state and implements `Panel` (fill from `State`, show, apply, keys, phone field, taps, test snapshot), named once in the `panels!` list; clicks and lines to run come back through one `Output`. `engine/gpu/ui.rs` owns its renderer and font textures and draws after the scene. Printable text focuses the command input before delivery unless another text field owns it. Keyboard feature shortcuts are absent; Enter/Escape and text editing remain. The white/black visuals follow the archive customization. The old DOM command and layer listeners are removed.
 
 The gumball owns one fixed mesh and 96-byte uniform, plus a selected-only antialiasing tile capped at 1024×1024. Its shader uses unlit colors; the tile uses 4× MSAA and 2× resolution before compositing. Deselect destroys the tile. Neither overlay owns document geometry. UI hit-box snapshots are opt-in with `?inspect=1`.
 

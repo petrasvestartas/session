@@ -74,13 +74,11 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
             equations[i] = vec4<f32>(normal, -dot(normal, a), 0.0);
         }
 
-        let ab = polygon.points[1]-polygon.points[0];
-        let ac = polygon.points[2]-polygon.points[0];
-        // depth change per screen pixel
-        let gradient = vec2<f32>(ab.z*ac.y-ac.z*ab.y, ab.x*ac.z-ac.x*ab.z)/area;
-        out.edge0 = vec4<f32>(equations[0].xyz, polygon.points[0].x);
-        out.edge1 = vec4<f32>(equations[1].xyz, polygon.points[0].y);
-        out.edge2 = vec4<f32>(equations[2].xyz, polygon.points[0].z);
+        // Anchor the depth plane inside the viewport, never at a near-clipped corner:
+        // that corner can project millions of pixels away at depth 1.
+        out.edge0 = vec4<f32>(equations[0].xyz, line.vp_w * 0.5);
+        out.edge1 = vec4<f32>(equations[1].xyz, line.vp_h * 0.5);
+        out.edge2 = vec4<f32>(equations[2].xyz, polygon.depth.z);
         out.edge3 = vec4<f32>(equations[3].xyz, f32(polygon.count));
         // nearest corner depth
         var nearest = polygon.points[0].z;
@@ -90,7 +88,7 @@ fn cs_main(@builtin(global_invocation_id) id: vec3<u32>) {
         }
 
         let row = physical_row(placed.x*3u, placed.y);
-        out.gradient = vec4<f32>(gradient, nearest, instances[row].ao_radius);
+        out.gradient = vec4<f32>(polygon.depth.xy, nearest, instances[row].ao_radius);
         out.bounds = vec4<f32>(lo, hi);
     }
 
@@ -102,6 +100,7 @@ struct ProjectedPolygon {
     points: array<vec3<f32>,
     4>,
     count: u32, // corners; 0 = not drawn
+    depth: vec3<f32>, // screen gradient xy and depth at the viewport centre
 };
 
 // Row drawing index `index`: `row`, or the vertex's own for SLOT_OWN_ROW.
@@ -160,6 +159,18 @@ fn project_physical_triangle(primitive: u32, row: u32) -> ProjectedPolygon {
     }
 
     let input = array<vec4<f32>, 3>(physical_clip_corner(base, owner), physical_clip_corner(base+1u, owner), physical_clip_corner(base+2u, owner));
+    // Homogeneous barycentric coordinates give z_ndc as an affine plane without
+    // dividing corners by w. Its constant is the depth at ndc (0, 0).
+    let edge0 = cross(input[1].xyw, input[2].xyw);
+    let determinant = dot(edge0, input[0].xyw);
+
+    if (determinant == 0.0) {
+        return polygon;
+    }
+
+    let plane = (input[0].z * edge0 + input[1].z * cross(input[2].xyw, input[0].xyw)
+        + input[2].z * cross(input[0].xyw, input[1].xyw)) / determinant;
+    polygon.depth = vec3<f32>(2.0 * plane.x / line.vp_w, -2.0 * plane.y / line.vp_h, plane.z);
     var clipped: array<vec4<f32>, 4>;
     var previous = input[2];
     var previous_distance = previous.w - previous.z;

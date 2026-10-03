@@ -564,6 +564,8 @@ fn report_pick(gpu: &mut Gpu, scene: &Scene, input: &FrameInput, at: (u32, u32))
 
 /// Upload and picking checks on one device.
 pub mod lifecycle;
+#[cfg(test)]
+mod oracle;
 pub mod profile;
 
 /// Check that every BRep edge keeps its id after upload.

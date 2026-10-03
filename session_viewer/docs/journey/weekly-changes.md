@@ -13,7 +13,7 @@ This review covers the viewer commits from September 28 through October 3, 2026,
 | Nearly solid face default | The October 2 default was 0.9 (`740888fe`). The requested current default is 0.95. Query overrides and explicit opacity commands still determine user choices. | 93 opacity |
 | Keyboard feature commands and right-click repeat | Printable input opens the command dock without losing its first character. Mouse/phone gestures navigate. Right-click restarts an interactive tool with fresh arguments; coordinate responses do not replace that tool. | 03d typing; 22 wheel navigation; 47 parsing; 48 interactive tools; 54 ownership |
 
-The close-up hidden-line correction (`ee3db14a`) and its adapter fallback (`ffbe7f2e`) were reverted on October 2 (`cf4f6c81`, `c5da88f2`). The current line-loss investigation must reproduce the failing views and establish why before changing this rendering path. The reverted implementation and oracle are useful evidence, but their presence in history is not a verified fix for the current viewer.
+The close-up hidden-line correction (`ee3db14a`) and its adapter fallback (`ffbe7f2e`) were reverted on October 2 (`cf4f6c81`, `c5da88f2`). The foreground investigation reproduced 1,650 missing samples out of 7,609 visible points. The new correction retains near-clipped polygon coverage, derives depth from homogeneous corners, anchors strokes from their original endpoints, and adds coordinate-scaled rounding slack. The [regression report](line-visibility.md) records the explanation and checks. The corresponding cumulative rendering lessons remain to be authored.
 
 The local protobuf checkout currently predates the kernel's committed visibility/locking bindings. Verification uses `REGEN_PROTO=0` to preserve those committed bindings. Updating a schema checkout must be deliberate; regenerating older bindings removes fields the kernel already uses. This checkout issue is separate from the viewer behavior the lessons teach.
 
@@ -21,7 +21,7 @@ The local protobuf checkout currently predates the kernel's committed visibility
 - [x] Verify current production typing, repeat and mouse/phone input in Chrome.
 - [x] Revise and verify lessons 03d and 22–26.
 - [ ] Add visibility/locking and color load/save fixtures to the cumulative course.
-- [ ] Diagnose and fix current close-up line loss with a geometric oracle and browser views.
+- [x] Diagnose and fix current close-up line loss with a geometric oracle and browser views: eight native view/sample combinations and 24 Chrome zoom views pass.
 - [ ] Verify the attributes and opacity defaults in the completed rendering chapters.
 
 [Return to the complete lesson checklist](roadmap.md).
