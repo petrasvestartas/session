@@ -103,7 +103,7 @@ Replace that block with:
 
 ### 5. `src/browser.rs`
 
-Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the background state.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -123,7 +123,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Own the background and toggle it when the dock submits Background.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -164,7 +164,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Pass the background into presentation and update the status message.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -195,7 +195,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Draw the scene with the current background.
 
 <details>
 <summary>Locate the existing block</summary>

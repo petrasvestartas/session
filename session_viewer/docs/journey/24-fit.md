@@ -26,7 +26,7 @@ Continue from [Keep the document behind the picture](23-import.md). Save your ow
 
 ### 1. `src/bounds.rs`
 
-A box needs only its smallest and largest coordinate on each axis. Its centre is halfway between them. Half its diagonal is the radius of a sphere containing every corner. array::from_fn fills the three entries by calling the small expression once per index.
+Store coordinate minima/maxima; compute the centre and enclosing-sphere radius from them.
 
 Create the file and type:
 
@@ -36,7 +36,7 @@ Create the file and type:
 
 ### 2. `src/scene.rs`
 
-Walk the displayed positions once. The first vertex starts the box; later vertices enlarge it. None means there was no vertex at all. We use f64 for the calculation even though the GPU mesh stores f32.
+Accumulate displayed vertices into f64 bounds; return None for an empty scene.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -93,7 +93,7 @@ Replace that block with:
 
 ### 5. `src/camera.rs`
 
-The smaller half-angle limits the view: horizontal in a tall window, vertical in a wide one. A tangent from the eye to the enclosing sphere gives sin(angle) = radius / distance. Multiply by 1.1 for a little breathing room. A single point has no size, so give it a one-unit viewing scale.
+Fit the enclosing sphere through the smaller half-angle: distance = radius × 1.1 / sin(angle).
 
 <details>
 <summary>Locate the existing block</summary>
@@ -112,7 +112,7 @@ Replace that block with:
 
 ### 6. `src/camera.rs`
 
-Keep the existing zoom limits proportional to the measured scene. Otherwise the first wheel event after fitting a large model would jump back to a distance of 50 units.
+Scale zoom limits with scene radius to prevent a jump after fitting a large model.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -131,7 +131,7 @@ Replace that block with:
 
 ### 7. `src/camera.rs`
 
-Move the clipping planes with the viewing scale too. The near plane stays in front of the eye; the far plane reaches beyond the fitted sphere. A fixed far plane at 100 would erase a large fitted scene. Zooming inside geometry can still clip it, as it should.
+Scale near and far clipping planes with camera distance and scene radius.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -169,7 +169,7 @@ Replace that block with:
 
 ### 9. `src/editor.rs`
 
-Read the current scene, including imported meshes. An empty scene leaves the camera alone. This branch returns Change::View, so it neither uploads meshes nor creates a history entry.
+Fit only when scene bounds exist; preserve document history and mesh uploads.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -188,7 +188,7 @@ Replace that block with:
 
 ### 10. `src/fit_tests.rs`
 
-Test the promise rather than one distance: every box corner must survive projection and clipping. Also check that Fit preserves selection, leaves the import as one undoable action, and handles an empty scene or one point.
+Check projected corners, preserved selection, undoable import, and empty or single-point scenes.
 
 Create the file and type:
 
@@ -245,7 +245,7 @@ Replace that block with:
 
 ### 13. `src/browser.rs`
 
-Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add Fit to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -269,7 +269,7 @@ Replace that block with:
 
 ### 14. `src/browser.rs`
 
-Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Route Fit through the editor action.
 
 <details>
 <summary>Locate the existing block</summary>

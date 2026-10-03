@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 192 lesson slots; 123 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The six early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 193 lesson slots; 124 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The seven early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -18,15 +18,17 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Put the to-do link on every lesson and in the course navigation.
 - [x] Check the revised page layout and visible progress links in the same Chrome tab.
 - [x] Review every current main explanation against the same direct teaching style.
-- [ ] Split the 15 checkpoints that exceed one hour of typing into runnable steps.
+- [x] Replace 100 long or generic code instructions with the exact action, in at most 25 words.
+- [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
+- [ ] Split the 14 checkpoints that exceed one hour of typing into runnable steps.
 - [ ] Write and verify the 69 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
-Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Keep the small concepts that explain the code; put extended test evidence in supporting notes.
+Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 15 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 14 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 123 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 124 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -35,8 +37,8 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 ## Typing splits still required
 
 - [x] Split the former 03a panel checkpoint into font/painter ownership, text painting and field layout; each fits one hour of typing.
-- [ ] [Give the command line its memory](03b-state.md): current typing 74–148 minutes; split at complete functions and verify each new step.
-- [ ] [Draw completion and history](03c-layout.md): current typing 251–501 minutes; split at complete functions and verify each new step.
+- [x] Split 03b into a connected state model and the completion helpers; remove unrelated GPU formatting changes.
+- [ ] [Draw completion and history](03c-layout.md): current typing 270–540 minutes; split at complete functions and verify each new step.
 - [ ] [Type into the real command dock](03d-input.md): current typing 68–136 minutes; split at complete functions and verify each new step.
 - [ ] [Give the scene an owner](11-scene.md): current typing 47–93 minutes; split at complete functions and verify each new step.
 - [ ] [Name objects without depending on their row](12-identity.md): current typing 42–83 minutes; split at complete functions and verify each new step.
@@ -81,7 +83,9 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] 03a · [Lay out the command field](03a-panel.md).
 
-- [x] 03b · [Give the command line its memory](03b-state.md).
+- [x] 03b · [Give the command field its memory](03b-memory.md).
+
+- [x] 03b · [Prepare the dock completion helpers](03b-state.md).
 
 - [x] 03c · [Draw completion and history](03c-layout.md).
 

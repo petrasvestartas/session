@@ -174,7 +174,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the history owner.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -197,7 +197,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add Undo and Redo to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -221,7 +221,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Create document history beside the scene.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -245,7 +245,7 @@ Replace that block with:
 
 ### 12. `src/browser.rs`
 
-Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Record the example toggle as a history edit.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -270,7 +270,7 @@ Replace that block with:
 
 ### 13. `src/browser.rs`
 
-Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Record deletion and route Undo/Redo through history; retain only valid selection.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -298,7 +298,7 @@ Replace that block with:
 
 ### 14. `src/browser.rs`
 
-Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the undo result.
 
 <details>
 <summary>Locate the existing block</summary>

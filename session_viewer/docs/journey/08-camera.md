@@ -54,7 +54,7 @@ Replace that block with:
 
 ### 3. `src/browser.rs`
 
-Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the camera owner.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -75,7 +75,7 @@ Replace that block with:
 
 ### 4. `src/browser.rs`
 
-Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add camera commands and present its initial uniform.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -105,7 +105,7 @@ Replace that block with:
 
 ### 5. `src/browser.rs`
 
-Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Apply the submitted camera command, then redraw with its uniform.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -137,7 +137,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that navigation leaves the mesh unchanged.
 
 <details>
 <summary>Locate the existing block</summary>

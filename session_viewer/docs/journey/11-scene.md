@@ -191,7 +191,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the scene owner.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -215,7 +215,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Create the demo scene and add Example Triangle to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -246,7 +246,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Toggle the example object and synchronize the renderer.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -270,7 +270,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the separation between scene data and drawing.
 
 <details>
 <summary>Locate the existing block</summary>

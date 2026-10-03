@@ -122,12 +122,12 @@
       "keyboardRoundtrip": false
     },
     "03b-state": {
-      "source": "31ddc33a6ecf2b799429ca55631c748e94bc38e1474f60f69db00b82fd3c46de",
+      "source": "e88a499409646bab84996cfc8d72630db40bf7cdc1484931e7ffdd7df25f9e41",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "43c498ac366c2bcb40310c3c04e39174de9730e143e751aec3278b0d99b3ad05",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T22:41:21.978Z",
+      "captured": "2026-10-03T23:09:27.051Z",
       "status": "The command model owns the text and history.",
       "canvas": "0164e13f7d651e846d59a7cb2f4fc45aabadc1bf8e166900d817c5902da84cbb",
       "file": "03b-state-browser.png",
@@ -145,7 +145,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "e94be6b7972d7c32165326e0e43abb889d39cdd027f3fb31544b15e62ff9dcee",
+      "bundle": "577580b398a576ae4c72cffbebd0021a189f9dd7d53716854f3311a5fce1df86",
       "commands": [],
       "keyboardRoundtrip": false
     },
@@ -3672,6 +3672,34 @@
         "height": 760
       },
       "bundle": "163300a8ea0833d4ad9f6aaf3ac250e3a6cd1952f6cafebaa37349750e87446d",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "03b-memory": {
+      "source": "ea0fb0f2e46e2475c719d23755df4f6a9f812d11e9706159445e325a1c25fe82",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ab21302be2688868ef0931c94e591cd92f279f1c8ca61359f00345755bcb2ac4",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T23:13:32.421Z",
+      "status": "The command model owns the text and history.",
+      "canvas": "0164e13f7d651e846d59a7cb2f4fc45aabadc1bf8e166900d817c5902da84cbb",
+      "file": "03b-memory-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "ac44c7a0e382f02b84a0cf271068a93b6c7b9dd6a8f74576c2cd1a6ea160f4f9",
       "commands": [],
       "keyboardRoundtrip": false
     }

@@ -46,7 +46,7 @@ Create the file and type:
 
 ### 3. `Cargo.toml`
 
-Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+Enable the browser event bindings used by the command dock.
 
 <details>
 <summary>Locate the existing block</summary>

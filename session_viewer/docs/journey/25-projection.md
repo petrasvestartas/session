@@ -26,7 +26,7 @@ Continue from [Find the whole scene](24-fit.md). Save your own work first: `npm 
 
 ### 1. `src/camera.rs`
 
-Name the two choices instead of passing an unexplained true or false. Copy lets us pass this small enum by value; PartialEq and Eq let us compare it. HALF_FOV is the same 30-degree half-angle used by the existing camera.
+Name the projection choices with an enum; derive copying and equality for this small value.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -102,7 +102,7 @@ Replace that block with:
 
 ### 5. `src/camera.rs`
 
-Perspective keeps the enclosing-sphere calculation from lesson 24. Orthographic fits that sphere inside a rectangle: half-height is distance × tan(30°), and half-width is half-height × aspect. The smaller side must hold the radius and margin.
+Fit the sphere through a perspective half-angle or the smaller orthographic half-extent.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -121,7 +121,7 @@ Replace that block with:
 
 ### 6. `src/camera.rs`
 
-The orthographic rectangle matches the perspective view at the target plane. Its depth interval extends behind and ahead of the eye; this lets parallel rays reach the scene even when a close zoom puts the eye inside it. Both matrices still map visible depth to 0–1.
+Choose the projection matrix; match orthographic size at the target plane and retain visible depth in 0–1.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -159,7 +159,7 @@ Replace that block with:
 
 ### 8. `src/editor.rs`
 
-Changing projection preserves target, distance and orientation. It returns Change::View and leaves document history alone. Isometric remains an orientation choice; it does not silently choose a projection.
+Change projection without moving the camera or creating a document history entry.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -178,7 +178,7 @@ Replace that block with:
 
 ### 9. `src/projection_tests.rs`
 
-Check the geometric promises: equal scale on the target plane, depth-independent orthographic size, parallel pick rays, complete fitting, and selection at close zoom. The final test also checks that switching modes never becomes an undoable document edit.
+Check target-plane scale, parallel picking rays, fitting, close selection, and document history preservation.
 
 Create the file and type:
 
@@ -212,7 +212,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add the two named projection commands.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -236,7 +236,7 @@ Replace that block with:
 
 ### 12. `src/browser.rs`
 
-Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Map each projection command to its enum value.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -260,7 +260,7 @@ Replace that block with:
 
 ### 13. `src/browser.rs`
 
-Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Refresh the reported projection after applying an action.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -284,7 +284,7 @@ Replace that block with:
 
 ### 14. `src/browser.rs`
 
-Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Expose the current projection on the canvas for inspection.
 
 <details>
 <summary>Locate the existing block</summary>

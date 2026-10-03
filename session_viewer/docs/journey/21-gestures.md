@@ -65,7 +65,7 @@ Create the file and type:
 
 ### 4. `Cargo.toml`
 
-Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+Enable the browser event bindings used by the command dock.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -114,7 +114,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the gesture state.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -137,7 +137,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Retain the canvas and one gesture across pointer events.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -161,7 +161,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Begin choosing between submitted commands and pointer gestures.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -210,7 +210,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Use pointer gestures only when the dock has not consumed input; apply any resulting action.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -234,7 +234,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Use the retained pointer canvas for resizing.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -259,7 +259,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Keep the callback open for pointer event registration.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -284,7 +284,7 @@ Replace that block with:
 
 ### 12. `src/browser.rs`
 
-Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Track pointer presses, capture and release; cancel on blur or resize and suppress the browser context menu.
 
 <details>
 <summary>Locate the existing block</summary>

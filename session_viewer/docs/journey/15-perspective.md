@@ -315,7 +315,7 @@ Replace that block with:
 
 ### 8. `Cargo.toml`
 
-Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+Add the geometry kernel and browser-compatible random number support.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -339,7 +339,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Initialize camera aspect from the canvas size.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -364,7 +364,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Build a camera ray for the clicked screen position and pick along it.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -389,7 +389,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Preserve aspect when resetting the camera.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -414,7 +414,7 @@ Replace that block with:
 
 ### 12. `src/browser.rs`
 
-Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that drawing and picking share the camera.
 
 <details>
 <summary>Locate the existing block</summary>

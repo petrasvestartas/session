@@ -155,7 +155,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the viewport size type.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -179,7 +179,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Size renderer attachments from the viewport.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -211,7 +211,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Handle initial resizing and retain the window for later resize events.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -244,7 +244,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Keep the event callback open for the resize path.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -269,7 +269,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Resize before handling input; refresh dock layout and drawing when dimensions change.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -305,7 +305,7 @@ Replace that block with:
 
 ### 12. `src/browser.rs`
 
-Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Register resize events and update canvas pixels, surface configuration, attachments and camera aspect together.
 
 <details>
 <summary>Locate the existing block</summary>

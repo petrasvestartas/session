@@ -189,7 +189,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add vertical orbit and isometric commands.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -213,7 +213,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Apply vertical orbit or the isometric orientation.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -237,7 +237,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that orbit preserves the target.
 
 <details>
 <summary>Locate the existing block</summary>

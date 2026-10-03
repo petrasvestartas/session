@@ -26,7 +26,7 @@ Continue from [Keep navigation on the mouse and commands in the dock](22-shortcu
 
 ### 1. `src/document.rs`
 
-Decode into a protobuf record before constructing kernel geometry. Validate the subset we can draw, then prepare every display mesh before changing the scene. Source keeps the complete session and its original mesh GUID.
+Decode and validate the document, then prepare every display mesh before committing an import.
 
 Create the file and type:
 
@@ -161,7 +161,7 @@ Replace that block with:
 
 ### 10. `src/file_input.rs`
 
-Read asynchronously without borrowing Editor across await. A numbered request prevents a slow earlier file from replacing a newer choice. Deliver bytes to the callback that already owns Editor.
+Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback.
 
 Create the file and type:
 
@@ -171,7 +171,7 @@ Create the file and type:
 
 ### 11. `Cargo.toml`
 
-Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+Enable file selection, byte delivery and protobuf decoding bindings.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -267,7 +267,7 @@ Replace that block with:
 
 ### 15. `src/browser.rs`
 
-Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add Open to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -291,7 +291,7 @@ Replace that block with:
 
 ### 16. `src/browser.rs`
 
-Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Own a shared request number for asynchronous file reads.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -315,7 +315,7 @@ Replace that block with:
 
 ### 17. `src/browser.rs`
 
-Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Route file selection and completion events through the editor; Open activates the hidden file picker.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -359,7 +359,7 @@ Replace that block with:
 
 ### 18. `src/browser.rs`
 
-Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report successful import as one undoable edit.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -383,7 +383,7 @@ Replace that block with:
 
 ### 19. `src/browser.rs`
 
-Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Register file selection and byte-completion events.
 
 <details>
 <summary>Locate the existing block</summary>

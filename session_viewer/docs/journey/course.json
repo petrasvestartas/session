@@ -139,7 +139,7 @@
           "path": "src/triangle.wgsl",
           "snippet": "journey/code/03-triangle-01.wgsl",
           "before": null,
-          "why": "Create the shader. Rust runs on the CPU; these two functions run on the GPU. The fourth position component is 1 because we have not introduced perspective."
+          "why": "Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink."
         },
         {
           "path": "src/renderer.rs",
@@ -332,74 +332,114 @@
       ]
     },
     {
-      "id": "03b-state",
-      "title": "Give the command line its memory",
+      "id": "03b-memory",
+      "title": "Give the command field its memory",
       "hours": [
-        3,
-        5
+        1,
+        2
       ],
-      "goal": "The text field and history have one owner.",
-      "page": "journey/03b-state.md",
-      "trace": "Browser → Panel → CommandLine → layout → existing GPU",
-      "story": "Replace the field's single `String` with `CommandLine`, the production dock's state. `Panel` owns this one model; layout reads and updates it.\n\nGroup its fields by purpose: text and history, focus, completion, and widget rectangles. Drawing and snap prompts start hidden and are used later.\n\n`VecDeque<String>` retains answers and can discard the oldest from the front. `Option<Rect>` allows an undrawn widget to have no rectangle. `Default` creates the empty state; `pub(crate)` exposes it within this project.\n\nCaret helpers use character positions rather than UTF-8 byte offsets. That keeps symbols editable. `record` stores widget rectangles for inspection; it does not generate input.\n\n![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03b.svg)",
-      "question": "What survives when the next frame starts?",
-      "answer": "The CommandLine stored inside Panel survives. Local layout widgets are recreated, but the typed text, completion selection and history remain in that model.",
-      "result": "The folded field shows “The field now belongs to CommandLine.” Change its initial `status` to a short message, save, and confirm that the hint changes. Restore the message. Keyboard input arrives in 03d.",
-      "experiment": "Change only the model status sentence. Predict where it appears. Restore it, then trace the borrowed String from Panel through view::field.",
+      "goal": "Store the field text and history in one owned model.",
+      "page": "journey/03b-memory.md",
+      "trace": "Panel owns CommandLine → field borrows text → placeholder borrows status",
+      "story": "Replace the panel’s local `String` with `CommandLine`. The field now reads and edits `model.command`; its empty hint comes from `model.status`.\n\n`String` owns editable text. `VecDeque<String>` retains ordered history and can remove the oldest entry from the front. `Option` represents values that do not exist yet, such as an undrawn widget’s rectangle. `Default` starts strings and queues empty, flags false and optional values absent.\n\n`placeholder` returns borrowed text. Its lifetime keeps that slice tied to the supplied prompt or status. Rust allows the field to borrow command mutably and status immutably because they are separate fields.\n\nThe model also reserves completion and input state used by the next lessons. Keyboard events are connected later.\n\n![The panel owns the model and the field borrows its text.](../illustrations/journey-03b-memory.svg)",
+      "question": "Which value keeps the command text between draws?",
+      "answer": "CommandLine inside Panel owns it. The field borrows model.command during layout; finishing the draw does not discard that String.",
+      "result": "The empty field now shows “The field now belongs to CommandLine.” Change that initial status, save, and check the hint changes. Restore it. Keyboard input comes later.",
+      "experiment": "Change only the initial status. Predict which part of the dock changes, then rebuild and restore it.",
       "production": "This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.",
       "browser_status": "The command model owns the text and history.",
-      "browser_caption": "Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.",
+      "browser_caption": "Actual browser drawing of the connected model. Keyboard event handling is still absent.",
       "edits": [
         {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/03b-state-dock-01.toml",
-          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser bindings for the dock and serde for its inspection record. The GPU dependency stays pinned."
+          "path": "src/panel.rs",
+          "before": "use crate::command_dock::{theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    line: String,\n}\n\nimpl Panel {\n",
+          "snippet": "journey/code/03b-memory-01.rs",
+          "why": "Replace the local String with an owned CommandLine."
         },
         {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/03b-state-dock-02.toml",
-          "before": "egui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
-          "why": "Enable the browser bindings for the dock and serde for its inspection record. The GPU dependency stays pinned."
+          "path": "src/panel.rs",
+          "before": "        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter, line: String::new() }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n",
+          "snippet": "journey/code/03b-memory-02.rs",
+          "why": "Give the model its initial status; keep all other fields at their defaults."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.line, \"Type a command\", 0.0, false);\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n",
+          "snippet": "journey/code/03b-memory-03.rs",
+          "why": "Borrow the model text for editing and its status for the empty-field hint."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer, &mut panel)?;\n    report(\"Our command line is drawn. Input comes next.\");\n    Ok(())\n}\n",
+          "snippet": "journey/code/03b-memory-04.rs",
+          "why": "Report that the field now uses the command model."
         },
         {
           "path": "src/command_dock/mod.rs",
-          "snippet": "journey/code/03b-state-dock-08.rs",
           "before": "pub(crate) mod theme;\npub(crate) mod view;\n",
-          "why": "Keep command text, history and completion state together. The application supplies vocabulary through Commands; this component owns editing and drawing."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03b-state-scale-1.rs",
-          "before": "use crate::command_dock::{theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    line: String,\n}\n\nimpl Panel {\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03b-state-scale-2.rs",
-          "before": "        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter, line: String::new() }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03b-state-scale-3.rs",
-          "before": "                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.line, \"Type a command\", 0.0, false);\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);\n        }\n        let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);\n        let mut encoder = renderer.device.create_command_encoder(&Default::default());\n        let mut buffers = self.painter.update_buffers(\n            &renderer.device, &renderer.queue, &mut encoder, &jobs, &screen,\n        );\n        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n            label: Some(\"command panel\"),\n            color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                view: target, resolve_target: None, depth_slice: None,\n                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },\n            })],\n            ..Default::default()\n        });\n        self.painter.render(&mut pass.forget_lifetime(), &jobs, &screen);\n        buffers.push(encoder.finish());\n        renderer.queue.submit(buffers);\n        for id in output.textures_delta.free { self.painter.free_texture(&id); }\n    }\n}\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/03b-state-window-1.rs",
-          "before": "    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n",
-          "why": "Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/03b-state-window-2.rs",
-          "before": "        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {\n        compatible_surface: Some(&surface),\n        ..Default::default()\n    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())\n        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let width = (window.inner_width()?.as_f64().ok_or(\"No window width\")? as u32).clamp(1, limit);\n    let height = (window.inner_height()?.as_f64().ok_or(\"No window height\")? as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface.get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer, &mut panel)?;\n    report(\"Our command line is drawn. Input comes next.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => return Err(JsValue::from_str(&format!(\"Surface unavailable: {other:?}\"))),\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n",
-          "why": "Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page."
+          "snippet": "journey/code/03b-memory-05.rs",
+          "why": "Define the state and choose the empty-field hint from borrowed text."
         }
       ],
-      "lock": "journey/release/03b-state.lock"
+      "checks": "Native checks exercise retained text/history and every placeholder priority branch. Chrome checks the changed dock hint and preserves every scene pixel above it.",
+      "browser_check": "journey/checks/browser/03b-memory.cjs",
+      "frame": "journey/checks/03b-memory-frame.rs"
+    },
+    {
+      "id": "03b-state",
+      "title": "Prepare the dock completion helpers",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Give the upcoming layout a vocabulary contract and caret helpers.",
+      "page": "journey/03b-state.md",
+      "trace": "Commands contract → optional inspection → character-based caret positions",
+      "story": "The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices can refer to its fixed vocabulary; `option_label` borrows from the supplied line.\n\n`Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.\n\nCaret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.\n\nThese helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.\n\n![The layout receives application rules and text helpers.](../illustrations/journey-03b-state.svg)",
+      "question": "Why does the caret helper use chars().count()?",
+      "answer": "String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.",
+      "result": "The connected field looks exactly as before. The vocabulary, inspection and caret helpers are ready for the following layout and input lessons.",
+      "experiment": "For é🙂x, predict the byte length and character count. Compare len() with chars().count() in a small Rust scratch program.",
+      "production": "This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.",
+      "browser_status": "The command model owns the text and history.",
+      "browser_caption": "Chrome verifies the complete frame remains identical to 03b-memory.",
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
+          "snippet": "journey/code/03b-state-01.toml",
+          "why": "Enable serialization and the browser bindings used by the dock."
+        },
+        {
+          "path": "Cargo.toml",
+          "before": "egui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
+          "snippet": "journey/code/03b-state-02.toml",
+          "why": "Enable serialization and the browser bindings used by the dock."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "\npub(crate) mod theme;\npub(crate) mod view;\n\n/// What the command line shows and remembers between frames.\n#[derive(Default)]\n",
+          "snippet": "journey/code/03b-state-03.rs",
+          "why": "Define the application vocabulary contract without coupling the dock to scene types."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "    pub(crate) agent_edit: Option<bool>,             // phone keyboard set the text, true on delete\n}\n\n/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.\npub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {\n    if !prompt.is_empty() {\n",
+          "snippet": "journey/code/03b-state-04.rs",
+          "why": "Record actual widget bounds only when inspection is enabled."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "    \"Type a command\"\n}\n",
+          "snippet": "journey/code/03b-state-05.rs",
+          "why": "Add character-based caret and prefix helpers for the dock."
+        }
+      ],
+      "lock": "journey/release/03b-state.lock",
+      "checks": "Native checks use actual egui layout bounds and serialized inspection data, spaced/Unicode prefixes, absent field state and stored caret/selection ranges. The trait is compile-checked; application command behavior arrives later.",
+      "image_same_as": "03b-memory",
+      "browser_check": "journey/checks/browser/03b-state.cjs",
+      "frame": "journey/checks/03b-state-frame.rs"
     },
     {
       "id": "03c-layout",
@@ -428,27 +468,21 @@
         },
         {
           "path": "src/panel.rs",
-          "snippet": "journey/code/03c-layout-scale-1.rs",
-          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self {\n            context,\n            painter,\n            model: CommandLine {\n                status: \"The field now belongs to CommandLine.\".into(),\n                ..Default::default()\n            },\n        }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor {\n            size_in_pixels: size,\n            pixels_per_point: 1.0,\n        };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO,\n                egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(\n                        ui,\n                        &mut self.model.command,\n                        placeholder(\"\", &self.model.status, false),\n                        0.0,\n                        false,\n                    );\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter\n                .update_texture(&renderer.device, &renderer.queue, *id, delta);\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03c-layout-scale-2.rs",
-          "before": "            &renderer.queue,\n            &mut encoder,\n            &jobs,\n            &screen,\n        );\n        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n            label: Some(\"command panel\"),\n            color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                view: target,\n                resolve_target: None,\n                depth_slice: None,\n                ops: wgpu::Operations {\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03c-layout-scale-3.rs",
-          "before": "            ..Default::default()\n        });\n        self.painter\n            .render(&mut pass.forget_lifetime(), &jobs, &screen);\n        buffers.push(encoder.finish());\n        renderer.queue.submit(buffers);\n        for id in output.textures_delta.free {\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
+          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter, model: CommandLine {\n            status: \"The field now belongs to CommandLine.\".into(),\n            ..Default::default()\n        } }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, false), 0.0, false);\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);\n        }\n        let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);\n        let mut encoder = renderer.device.create_command_encoder(&Default::default());\n        let mut buffers = self.painter.update_buffers(\n            &renderer.device, &renderer.queue, &mut encoder, &jobs, &screen,\n        );\n        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n            label: Some(\"command panel\"),\n            color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                view: target, resolve_target: None, depth_slice: None,\n                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },\n            })],\n            ..Default::default()\n        });\n        self.painter.render(&mut pass.forget_lifetime(), &jobs, &screen);\n        buffers.push(encoder.finish());\n        renderer.queue.submit(buffers);\n        for id in output.textures_delta.free { self.painter.free_texture(&id); }\n    }\n}\n",
+          "snippet": "journey/code/03c-layout-direct-01.rs",
+          "why": "Implement the application vocabulary and keep the model and prepared layout output in Panel."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/03c-layout-window-1.rs",
-          "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer, &mut panel)?;\n    report(\"The command model owns the text and history.\");\n    Ok(())\n}\n\n",
-          "why": "Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page."
+          "before": "    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n",
+          "snippet": "journey/code/03c-layout-direct-02.rs",
+          "why": "Rewrap the existing canvas lookup; browser setup behavior stays unchanged."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {\n        compatible_surface: Some(&surface),\n        ..Default::default()\n    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())\n        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let width = (window.inner_width()?.as_f64().ok_or(\"No window width\")? as u32).clamp(1, limit);\n    let height = (window.inner_height()?.as_f64().ok_or(\"No window height\")? as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface.get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer, &mut panel)?;\n    report(\"The command model owns the text and history.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => return Err(JsValue::from_str(&format!(\"Surface unavailable: {other:?}\"))),\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n",
+          "snippet": "journey/code/03c-layout-direct-03.rs",
+          "why": "Initialize the Help vocabulary and lay out the dock before presentation."
         }
       ]
     },
@@ -544,25 +578,25 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/04-input-window-1.rs",
           "before": "use crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\n",
-          "why": "Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the background state."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/04-input-window-2.rs",
           "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &[\"Help\"]);\n    panel.update(None, &canvas)?;\n    present(&surface, &renderer, &mut panel)?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let _line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(&surface, &renderer, &mut panel) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n",
-          "why": "Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Own the background and toggle it when the dock submits Background."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/04-input-window-3.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Type Help in the command field and press Enter.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n",
-          "why": "Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Pass the background into presentation and update the status message."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/04-input-window-4.rs",
           "before": "        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n",
-          "why": "Connect make a choice change the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Draw the scene with the current background."
         }
       ],
       "story": "We can already type in the viewer’s own command line. Today one submitted word changes the picture. Type Background and press Enter: one boolean flips, and the existing renderer draws again.\n\nThe browser owns Background beside Panel and Renderer. Panel reads the line; Background owns the choice; Renderer turns that choice into pixels. No new device or pipeline is created when you run the command.\n\n![The command changes one background value, then redraws with the existing renderer.](../illustrations/journey-04.svg)\n\n`Option<String>` means a submitted line may or may not be present. Most events only move a caret or update completion. Only the recognised Background line changes the background. The match reads that result without inventing a second input path.",
@@ -623,7 +657,7 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/05-vertices-window-1.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Change the background. The triangle keeps its shape and colour.\");\n    Ok(())\n}\n\n",
-          "why": "Connect let rust supply the corners to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that the uploaded corners form a rectangle."
         }
       ],
       "frame": "journey/checks/05-vertices.rs"
@@ -674,7 +708,7 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/06-indices-window-1.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Six uploaded corners make one rectangle.\");\n    Ok(())\n}\n\n",
-          "why": "Connect share a corner between triangles to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that four shared corners form two triangles."
         }
       ],
       "frame": "journey/checks/06-indices.rs"
@@ -732,31 +766,31 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/07-uniforms-window-1.rs",
           "before": "    );\n    panel.update(None, &canvas)?;\n    let mut background = Background::default();\n    present(&surface, &renderer, &background, &mut panel)?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n",
-          "why": "Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Set the initial scale and translation for presentation."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/07-uniforms-window-2.rs",
           "before": "            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(&surface, &renderer, &background, &mut panel) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n",
-          "why": "Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Redraw with the same transform after a command."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/07-uniforms-window-3.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Four shared corners make two triangles.\");\n    Ok(())\n}\n\n",
-          "why": "Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the shared view setting."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/07-uniforms-window-4.rs",
           "before": "    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n",
-          "why": "Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Accept the transform at the presentation boundary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/07-uniforms-window-5.rs",
           "before": "        format: Some(frame.texture.format().add_srgb_suffix()),\n        ..Default::default()\n    });\n    renderer.draw(&view, background);\n    panel.draw(renderer, &view);\n    frame.present();\n    Ok(())\n",
-          "why": "Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Pass the transform to the renderer."
         }
       ]
     },
@@ -802,25 +836,25 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/08-camera-window-1.rs",
           "before": "use crate::background::Background;\nuse crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\n",
-          "why": "Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the camera owner."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/08-camera-window-2.rs",
           "before": "    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\"Help\", \"Background\"],\n    );\n    panel.update(None, &canvas)?;\n    let mut background = Background::default();\n    let transform = [0.75, 0.75, 0.25, 0.15];\n    present(&surface, &renderer, &background, &transform, &mut panel)?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n",
-          "why": "Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add camera commands and present its initial uniform."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/08-camera-window-3.rs",
           "before": "                return;\n            }\n        };\n        if line.as_deref() == Some(\"background\") {\n            background.toggle();\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(&surface, &renderer, &background, &transform, &mut panel) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n",
-          "why": "Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Apply the submitted camera command, then redraw with its uniform."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/08-camera-window-4.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"One view setting moves all four corners.\");\n    Ok(())\n}\n\n",
-          "why": "Connect move the view, keep the geometry to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that navigation leaves the mesh unchanged."
         }
       ]
     },
@@ -902,25 +936,25 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/09-matrices-window-1.rs",
           "before": "            \"Zoom Out\",\n            \"Pan Left\",\n            \"Pan Right\",\n            \"View Reset\",\n        ],\n    );\n",
-          "why": "Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add Orbit Right to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/09-matrices-window-2.rs",
           "before": "                \"zoom out\" => camera.zoom(0.5),\n                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"view reset\" => camera = Camera::default(),\n                _ => return,\n            }\n",
-          "why": "Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Rotate the camera when Orbit Right is submitted."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/09-matrices-window-3.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Pan and zoom change the view, not the mesh.\");\n    Ok(())\n}\n\n",
-          "why": "Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the matrix transform."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/09-matrices-window-4.rs",
           "before": "    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n    background: &Background,\n    transform: &[f32; 4],\n    panel: &mut crate::panel::Panel,\n) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n",
-          "why": "Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Pass the full matrix into presentation."
         }
       ]
     },
@@ -990,13 +1024,13 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/10-depth-window-1.rs",
           "before": "        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n",
-          "why": "Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Allocate depth storage at the canvas size."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/10-depth-window-2.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"A matrix carries pan, scale and rotation.\");\n    Ok(())\n}\n\n",
-          "why": "Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report which triangle wins the overlap."
         }
       ]
     },
@@ -1072,25 +1106,25 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/11-scene-window-1.rs",
           "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n",
-          "why": "Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the scene owner."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/11-scene-window-2.rs",
           "before": "        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n",
-          "why": "Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Create the demo scene and add Example Triangle to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/11-scene-window-3.rs",
           "before": "\n        if let Some(line) = line {\n            match line.as_str() {\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n",
-          "why": "Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Toggle the example object and synchronize the renderer."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/11-scene-window-4.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"The nearer pink triangle wins the overlap.\");\n    Ok(())\n}\n\n",
-          "why": "Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the separation between scene data and drawing."
         }
       ],
       "frame_constructor": "make_renderer(device, queue, format)"
@@ -1161,25 +1195,25 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/12-identity-window-1.rs",
           "before": "        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n",
-          "why": "Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add Select Next and Delete to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/12-identity-window-2.rs",
           "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n",
-          "why": "Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Start without a selected object."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/12-identity-window-3.rs",
           "before": "            match line.as_str() {\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    renderer.set_scene(&scene);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n",
-          "why": "Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Preserve valid selection, cycle by identity, and delete the selected object."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/12-identity-window-4.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Scene data owns the meshes; the renderer displays them.\");\n    Ok(())\n}\n\n",
-          "why": "Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that selection follows object identity."
         }
       ],
       "frame_constructor": "make_renderer(device, queue, format)"
@@ -1230,7 +1264,7 @@
           "path": "Cargo.toml",
           "snippet": "journey/code/13-picking-dock-01.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events."
+          "why": "Enable the browser event bindings used by the command dock."
         },
         {
           "path": "src/lib.rs",
@@ -1242,19 +1276,19 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/13-picking-window-1.rs",
           "before": "            }\n        };\n\n        if let Some(line) = line {\n            match line.as_str() {\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    selected = selected.filter(|id| scene.contains(*id));\n",
-          "why": "Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Convert an unconsumed canvas click into a picking request."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/13-picking-window-2.rs",
           "before": "        \"keydown\",\n        \"keyup\",\n        \"blur\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n",
-          "why": "Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Listen for canvas clicks."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/13-picking-window-3.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Selection follows object identity, even when rows move.\");\n    Ok(())\n}\n\n",
-          "why": "Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the visible selection result."
         }
       ]
     },
@@ -1355,37 +1389,37 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-1.rs",
           "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n",
-          "why": "Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the history owner."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-2.rs",
           "before": "            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n            \"Background\",\n            \"Zoom In\",\n            \"Zoom Out\",\n",
-          "why": "Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add Undo and Redo to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-3.rs",
           "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n",
-          "why": "Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Create document history beside the scene."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-4.rs",
           "before": "                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    scene.toggle_extra();\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n",
-          "why": "Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Record the example toggle as a history edit."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-5.rs",
           "before": "                }\n                \"delete\" => {\n                    if let Some(id) = selected.take() {\n                        scene.remove(id);\n                        renderer.set_scene(&scene, selected);\n                    }\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n",
-          "why": "Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Record deletion and route Undo/Redo through history; retain only valid selection."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-6.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Click a triangle; the visible object is selected.\");\n    Ok(())\n}\n\n",
-          "why": "Connect make document changes reversible to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the undo result."
         }
       ]
     },
@@ -1457,31 +1491,31 @@
           "path": "Cargo.toml",
           "snippet": "journey/code/15-perspective-dock-01.toml",
           "before": "console_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n",
-          "why": "Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events."
+          "why": "Add the geometry kernel and browser-compatible random number support."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/15-perspective-window-1.rs",
           "before": "    let mut history = History::default();\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n        &surface,\n        &renderer,\n",
-          "why": "Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Initialize camera aspect from the canvas size."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/15-perspective-window-2.rs",
           "before": "                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n",
-          "why": "Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Build a camera ray for the clicked screen position and pick along it."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/15-perspective-window-3.rs",
           "before": "                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"view reset\" => camera = Camera::default(),\n                _ => return,\n            }\n        }\n",
-          "why": "Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Preserve aspect when resetting the camera."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/15-perspective-window-4.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Undo restores the document while the view stays put.\");\n    Ok(())\n}\n\n",
-          "why": "Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that drawing and picking share the camera."
         }
       ]
     },
@@ -1564,19 +1598,19 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/16-orbit-window-1.rs",
           "before": "            \"Pan Left\",\n            \"Pan Right\",\n            \"Orbit Right\",\n            \"View Reset\",\n        ],\n    );\n",
-          "why": "Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add vertical orbit and isometric commands."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/16-orbit-window-2.rs",
           "before": "                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"view reset\" => camera = Camera { aspect: camera.aspect, ..Camera::default() },\n                _ => return,\n            }\n",
-          "why": "Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Apply vertical orbit or the isometric orientation."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/16-orbit-window-3.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Perspective and picking use the same camera.\");\n    Ok(())\n}\n\n",
-          "why": "Connect walk around the model to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that orbit preserves the target."
         }
       ],
       "browser_caption": "Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions."
@@ -1645,19 +1679,19 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/17-solid-window-1.rs",
           "before": "        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Triangle\",\n            \"Select Next\",\n            \"Delete\",\n",
-          "why": "Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add Example Box to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/17-solid-window-2.rs",
           "before": "                        .and_then(|ray| crate::picking::pick(&scene, &ray));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    history.edit(&mut scene, Scene::toggle_extra);\n                    selected = selected.filter(|id| scene.contains(*id));\n",
-          "why": "Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Insert the box as one fallible history edit and report construction errors."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/17-solid-window-3.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Orbit moves the eye around a fixed target.\");\n    Ok(())\n}\n\n",
-          "why": "Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the undoable kernel object."
         }
       ],
       "browser_caption": "Example Box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint."
@@ -1702,7 +1736,7 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/18-light-window-1.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Kernel geometry becomes an undoable scene object.\");\n    Ok(())\n}\n\n",
-          "why": "Connect read the shape through light to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report that lighting changes brightness without changing geometry."
         }
       ],
       "browser_caption": "Compare the box with lesson 17: the same geometry now has three face brightnesses."
@@ -1762,43 +1796,43 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-1.rs",
           "before": "use crate::background::Background;\nuse crate::camera::Camera;\nuse crate::history::History;\nuse crate::renderer::Renderer;\nuse crate::scene::Scene;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the editor action types."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-2.rs",
           "before": "        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut scene = Scene::demo();\n    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Create one editor and initialize drawing from its scene."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-3.rs",
           "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    let mut history = History::default();\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };\n    present(\n        &surface,\n        &renderer,\n        &background,\n        &camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Present the editor background and camera."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-4.rs",
           "before": "            .then(|| \"canvas\".into())\n        });\n        if let Some(line) = line {\n            match line.as_str() {\n                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Start converting submitted lines into actions."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-5.rs",
           "before": "                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    let screen = [\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = camera\n                        .ray(screen)\n                        .and_then(|ray| crate::picking::pick(&scene, &ray));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example box\" => {\n                    if let Err(error) =\n                        history.try_edit(&mut scene, |scene| scene.add_box().map(|_| ()))\n                    {\n                        report(error);\n                        return;\n                    }\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n                    history.edit(&mut scene, Scene::toggle_extra);\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"select next\" => {\n                    selected = scene.next(selected);\n                    renderer.set_scene(&scene, selected);\n                }\n                \"delete\" => {\n                    if let Some(id) = selected.take() {\n                        history.edit(&mut scene, |scene| {\n                            scene.remove(id);\n                        });\n                        renderer.set_scene(&scene, selected);\n                    }\n                }\n                \"undo\" | \"redo\" => {\n                    if line == \"undo\" {\n                        history.undo(&mut scene);\n                    } else {\n                        history.redo(&mut scene);\n                    }\n                    selected = selected.filter(|id| scene.contains(*id));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"background\" => background.toggle(),\n                \"zoom in\" => camera.zoom(2.0),\n                \"zoom out\" => camera.zoom(0.5),\n                \"pan left\" => camera.pan(-0.25, 0.0),\n                \"pan right\" => camera.pan(0.25, 0.0),\n                \"orbit right\" => camera.rotate(std::f32::consts::FRAC_PI_4),\n                \"orbit up\" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => camera.isometric(),\n                \"view reset\" => camera = Camera { aspect: camera.aspect, ..Camera::default() },\n                _ => return,\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Map commands to Action, apply through Editor, and synchronize according to Change."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-6.rs",
           "before": "        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &background,\n            &camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Redraw from the editor state."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/19-actions-window-7.rs",
           "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Surface direction changes brightness, not geometry.\");\n    Ok(())\n}\n\n",
-          "why": "Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report the shared action route."
         }
       ],
       "browser_caption": "The box is yellow after Select Next reaches it. commands feed the shared Editor action path."
@@ -1883,37 +1917,37 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/20-resize-window-1.rs",
           "before": "use crate::background::Background;\nuse crate::editor::{Action, Change, Editor};\nuse crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n\npub fn report(message: &str) {\n",
-          "why": "Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the viewport size type."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/20-resize-window-2.rs",
           "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let mut editor = Editor::default();\n    editor.camera.aspect = width as f64 / height as f64;\n    let mut renderer = Renderer::new(\n        device,\n        queue,\n        config.format.add_srgb_suffix(),\n        &editor.scene,\n    );\n    renderer.resize(width, height);\n    let mut panel = crate::panel::Panel::new(\n        &renderer,\n        config.format.add_srgb_suffix(),\n",
-          "why": "Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Size renderer attachments from the viewport."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/20-resize-window-3.rs",
           "before": "        ],\n    );\n    panel.update(None, &canvas)?;\n    present(\n        &surface,\n        &renderer,\n        &editor.background,\n        &editor.camera.uniform(),\n        &mut panel,\n    )?;\n    let input_canvas = canvas.clone();\n    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n",
-          "why": "Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Handle initial resizing and retain the window for later resize events."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/20-resize-window-4.rs",
           "before": "                return;\n            }\n        };\n\n        let line = line.or_else(|| {\n            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;\n            (event.type_() == \"click\"\n",
-          "why": "Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Keep the event callback open for the resize path."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/20-resize-window-5.rs",
           "before": "                }\n            }\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n            report(&format!(\"Cannot lay out commands: {error:?}\"));\n            return;\n        }\n        if let Err(error) = present(\n            &surface,\n            &renderer,\n            &editor.background,\n            &editor.camera.uniform(),\n            &mut panel,\n        ) {\n            report(&format!(\"Cannot redraw: {error:?}\"));\n        }\n    });\n    for name in [\n",
-          "why": "Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Resize before handling input; refresh dock layout and drawing when dimensions change."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/20-resize-window-6.rs",
           "before": "        \"blur\",\n        \"click\",\n    ] {\n        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        click.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Every document action follows the same editor path.\");\n    Ok(())\n}\n\nfn present(\n    surface: &wgpu::Surface<'_>,\n    renderer: &Renderer,\n",
-          "why": "Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Register resize events and update canvas pixels, surface configuration, attachments and camera aspect together."
         }
       ],
       "browser_caption": "The browser window has been resized. The drawing buffer, depth texture and camera aspect now follow the canvas dimensions."
@@ -1981,7 +2015,7 @@
           "path": "Cargo.toml",
           "snippet": "journey/code/21-gestures-dock-01.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"DomRect\", \"PointerEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events."
+          "why": "Enable the browser event bindings used by the command dock."
         },
         {
           "path": "src/lib.rs",
@@ -1993,43 +2027,43 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-1.rs",
           "before": "use crate::background::Background;\nuse crate::editor::{Action, Change, Editor};\nuse crate::renderer::Renderer;\nuse crate::viewport::Viewport;\nuse wasm_bindgen::{JsCast, JsValue, closure::Closure};\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Import the gesture state."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-2.rs",
           "before": "    }\n    let input_canvas = canvas.clone();\n    let browser_window = window.clone();\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Retain the canvas and one gesture across pointer events."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-3.rs",
           "before": "                return;\n            }\n        };\n        let line = line.or_else(|| {\n            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;\n            (event.type_() == \"click\"\n                && !panel.consumed\n                && mouse\n                    .target()\n                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())\n                    .is_some_and(|target| target.id() == \"canvas\"))\n            .then(|| \"canvas\".into())\n        });\n        if let Some(line) = line {\n            let action = match line.as_str() {\n                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n                    };\n                    let rect = input_canvas.get_bounding_client_rect();\n                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    Action::Pick([\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ])\n                }\n                \"example box\" => Action::AddBox,\n                \"example triangle\" => Action::ToggleExtra,\n                \"select next\" => Action::SelectNext,\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Begin choosing between submitted commands and pointer gestures."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-4.rs",
           "before": "                \"view reset\" => Action::ResetView,\n                _ => return,\n            };\n            match editor.apply(action) {\n                Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),\n                Ok(Change::View) => {}\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Use pointer gestures only when the dock has not consumed input; apply any resulting action."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-5.rs",
           "before": "        }\n        if resize(\n            &browser_window,\n            &input_canvas,\n            &surface,\n            &mut config,\n            &mut renderer,\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Use the retained pointer canvas for resizing."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-6.rs",
           "before": "        \"keydown\",\n        \"keyup\",\n        \"blur\",\n        \"click\",\n    ] {\n        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;\n    }\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Keep the callback open for pointer event registration."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/21-gestures-window-7.rs",
           "before": "        &options,\n    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Canvas pixels, depth and camera resize together.\");\n    Ok(())\n}\n\nfn resize(\n    window: &web_sys::Window,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Connect remember a press until it ends to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Track pointer presses, capture and release; cancel on blur or resize and suppress the browser context menu."
         }
       ],
       "image_result": "Compared with lesson 18, the box and triangles have turned substantially. The helper feeds a right press at (320, 240), a move to (416, 288), and a release into Gesture, then renders the resulting camera. This checks the Rust gesture calculation. Pointer capture and cancellation in Chrome still need a browser interaction check.",
@@ -2086,7 +2120,7 @@
           "path": "Cargo.toml",
           "snippet": "journey/code/22-shortcuts-dock-01.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events."
+          "why": "Enable the browser event bindings used by the command dock."
         },
         {
           "path": "src/lib.rs",
@@ -2151,7 +2185,7 @@
           "path": "src/document.rs",
           "before": null,
           "snippet": "journey/code/23-import-01.rs",
-          "why": "Decode into a protobuf record before constructing kernel geometry. Validate the subset we can draw, then prepare every display mesh before changing the scene. Source keeps the complete session and its original mesh GUID."
+          "why": "Decode and validate the document, then prepare every display mesh before committing an import."
         },
         {
           "path": "src/specimen.rs",
@@ -2205,13 +2239,13 @@
           "path": "src/file_input.rs",
           "before": null,
           "snippet": "journey/code/23-import-13.rs",
-          "why": "Read asynchronously without borrowing Editor across await. A numbered request prevents a slow earlier file from replacing a newer choice. Deliver bytes to the callback that already owns Editor."
+          "why": "Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback."
         },
         {
           "path": "Cargo.toml",
           "snippet": "journey/code/23-import-dock-01.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false }\n",
-          "why": "Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events."
+          "why": "Enable file selection, byte delivery and protobuf decoding bindings."
         },
         {
           "path": "index.html",
@@ -2235,31 +2269,31 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/23-import-window-1.rs",
           "before": "        config.format.add_srgb_suffix(),\n        &[\n            \"Help\",\n            \"Example Box\",\n            \"Example Triangle\",\n            \"Select Next\",\n",
-          "why": "Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add Open to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/23-import-window-2.rs",
           "before": "    let browser_window = window.clone();\n    let pointer_canvas = canvas.clone();\n    let mut gesture = Gesture::default();\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n",
-          "why": "Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Own a shared request number for asynchronous file reads."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/23-import-window-3.rs",
           "before": "                return;\n            }\n        };\n        let action = if let Some(line) = line {\n            let action = match line.as_str() {\n                \"example box\" => Action::AddBox,\n                \"example triangle\" => Action::ToggleExtra,\n                \"select next\" => Action::SelectNext,\n                \"delete\" => Action::Delete,\n                \"undo\" => Action::Undo,\n                \"redo\" => Action::Redo,\n                \"background\" => Action::Background,\n                \"zoom in\" => Action::Zoom(2.0),\n                \"zoom out\" => Action::Zoom(0.5),\n                \"pan left\" => Action::Pan(-0.25, 0.0),\n                \"pan right\" => Action::Pan(0.25, 0.0),\n                \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                \"view isometric\" => Action::Isometric,\n                \"view reset\" => Action::ResetView,\n                _ => return,\n            };\n            Some(action)\n        } else if !panel.consumed {\n            navigation_action(&event, &pointer_canvas, &mut gesture)\n        } else {\n",
-          "why": "Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Route file selection and completion events through the editor; Open activates the hidden file picker."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/23-import-window-4.rs",
           "before": "                }\n            }\n        }\n        if resize(\n            &browser_window,\n            &pointer_canvas,\n",
-          "why": "Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Report successful import as one undoable edit."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/23-import-window-5.rs",
           "before": "    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.\");\n",
-          "why": "Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Register file selection and byte-completion events."
         }
       ],
       "browser_result_status": "File imported. Undo removes the entire import.",
@@ -2283,13 +2317,13 @@
           "path": "src/bounds.rs",
           "before": null,
           "snippet": "journey/code/24-fit-01.rs",
-          "why": "A box needs only its smallest and largest coordinate on each axis. Its centre is halfway between them. Half its diagonal is the radius of a sphere containing every corner. array::from_fn fills the three entries by calling the small expression once per index."
+          "why": "Store coordinate minima/maxima; compute the centre and enclosing-sphere radius from them."
         },
         {
           "path": "src/scene.rs",
           "before": "    pub fn objects(&self) -> &[Object] {\n",
           "snippet": "journey/code/24-fit-03.rs",
-          "why": "Walk the displayed positions once. The first vertex starts the box; later vertices enlarge it. None means there was no vertex at all. We use f64 for the calculation even though the GPU mesh stores f32."
+          "why": "Accumulate displayed vertices into f64 bounds; return None for an empty scene."
         },
         {
           "path": "src/camera.rs",
@@ -2307,19 +2341,19 @@
           "path": "src/camera.rs",
           "before": "    pub fn pan(&mut self, dx: f32, dy: f32) {\n",
           "snippet": "journey/code/24-fit-06.rs",
-          "why": "The smaller half-angle limits the view: horizontal in a tall window, vertical in a wide one. A tangent from the eye to the enclosing sphere gives sin(angle) = radius / distance. Multiply by 1.1 for a little breathing room. A single point has no size, so give it a one-unit viewing scale."
+          "why": "Fit the enclosing sphere through the smaller half-angle: distance = radius × 1.1 / sin(angle)."
         },
         {
           "path": "src/camera.rs",
           "before": "            self.distance = (self.distance / factor as f64).clamp(0.2, 50.0);\n",
           "snippet": "journey/code/24-fit-07.rs",
-          "why": "Keep the existing zoom limits proportional to the measured scene. Otherwise the first wheel event after fitting a large model would jump back to a distance of 50 units."
+          "why": "Scale zoom limits with scene radius to prevent a jump after fitting a large model."
         },
         {
           "path": "src/camera.rs",
           "before": "        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);\n",
           "snippet": "journey/code/24-fit-08.rs",
-          "why": "Move the clipping planes with the viewing scale too. The near plane stays in front of the eye; the far plane reaches beyond the fitted sphere. A fixed far plane at 100 would erase a large fitted scene. Zooming inside geometry can still clip it, as it should."
+          "why": "Scale near and far clipping planes with camera distance and scene radius."
         },
         {
           "path": "src/editor.rs",
@@ -2331,13 +2365,13 @@
           "path": "src/editor.rs",
           "before": "                    Action::Isometric => self.camera.isometric(),\n",
           "snippet": "journey/code/24-fit-10.rs",
-          "why": "Read the current scene, including imported meshes. An empty scene leaves the camera alone. This branch returns Change::View, so it neither uploads meshes nor creates a history entry."
+          "why": "Fit only when scene bounds exist; preserve document history and mesh uploads."
         },
         {
           "path": "src/fit_tests.rs",
           "before": null,
           "snippet": "journey/code/24-fit-13.rs",
-          "why": "Test the promise rather than one distance: every box corner must survive projection and clipping. Also check that Fit preserves selection, leaves the import as one undoable action, and handles an empty scene or one point."
+          "why": "Check projected corners, preserved selection, undoable import, and empty or single-point scenes."
         },
         {
           "path": "src/lib.rs",
@@ -2355,13 +2389,13 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/24-fit-window-1.rs",
           "before": "            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"View Reset\",\n        ],\n    );\n",
-          "why": "Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add Fit to the vocabulary."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/24-fit-window-2.rs",
           "before": "                    \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                    \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                    \"view isometric\" => Action::Isometric,\n                    \"view reset\" => Action::ResetView,\n                    _ => return,\n                };\n",
-          "why": "Connect find the whole scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Route Fit through the editor action."
         }
       ],
       "tests": true,
@@ -2412,7 +2446,7 @@
           "path": "src/camera.rs",
           "before": "pub struct Ray {\n",
           "snippet": "journey/code/25-projection-01.rs",
-          "why": "Name the two choices instead of passing an unexplained true or false. Copy lets us pass this small enum by value; PartialEq and Eq let us compare it. HALF_FOV is the same 30-degree half-angle used by the existing camera."
+          "why": "Name the projection choices with an enum; derive copying and equality for this small value."
         },
         {
           "path": "src/camera.rs",
@@ -2436,13 +2470,13 @@
           "path": "src/camera.rs",
           "before": "        self.distance = self.radius * 1.1 / half_x.min(half_y).sin();\n",
           "snippet": "journey/code/25-projection-05.rs",
-          "why": "Perspective keeps the enclosing-sphere calculation from lesson 24. Orthographic fits that sphere inside a rectangle: half-height is distance × tan(30°), and half-width is half-height × aspect. The smaller side must hold the radius and margin."
+          "why": "Fit the sphere through a perspective half-angle or the smaller orthographic half-extent."
         },
         {
           "path": "src/camera.rs",
           "before": "        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);\n",
           "snippet": "journey/code/25-projection-06.rs",
-          "why": "The orthographic rectangle matches the perspective view at the target plane. Its depth interval extends behind and ahead of the eye; this lets parallel rays reach the scene even when a close zoom puts the eye inside it. Both matrices still map visible depth to 0–1."
+          "why": "Choose the projection matrix; match orthographic size at the target plane and retain visible depth in 0–1."
         },
         {
           "path": "src/editor.rs",
@@ -2454,13 +2488,13 @@
           "path": "src/editor.rs",
           "before": "                    Action::Isometric => self.camera.isometric(),\n",
           "snippet": "journey/code/25-projection-08.rs",
-          "why": "Changing projection preserves target, distance and orientation. It returns Change::View and leaves document history alone. Isometric remains an orientation choice; it does not silently choose a projection."
+          "why": "Change projection without moving the camera or creating a document history entry."
         },
         {
           "path": "src/projection_tests.rs",
           "before": null,
           "snippet": "journey/code/25-projection-14.rs",
-          "why": "Check the geometric promises: equal scale on the target plane, depth-independent orthographic size, parallel pick rays, complete fitting, and selection at close zoom. The final test also checks that switching modes never becomes an undoable document edit."
+          "why": "Check target-plane scale, parallel picking rays, fitting, close selection, and document history preservation."
         },
         {
           "path": "src/lib.rs",
@@ -2472,25 +2506,25 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/25-projection-window-1.rs",
           "before": "            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"Fit\",\n            \"View Reset\",\n        ],\n",
-          "why": "Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Add the two named projection commands."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/25-projection-window-2.rs",
           "before": "                    \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                    \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                    \"view isometric\" => Action::Isometric,\n                    \"fit\" => Action::Fit,\n                    \"view reset\" => Action::ResetView,\n                    _ => return,\n",
-          "why": "Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Map each projection command to its enum value."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/25-projection-window-3.rs",
           "before": "                }\n            }\n        }\n        if event.type_() == \"viewer-file\" {\n            report(\"File imported. Undo removes the entire import.\");\n        }\n",
-          "why": "Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Refresh the reported projection after applying an action."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/25-projection-window-4.rs",
           "before": "    Ok(())\n}\n\nfn navigation_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Connect choose how depth changes size to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Expose the current projection on the canvas for inspection."
         }
       ],
       "tests": true,

@@ -129,7 +129,7 @@ Replace that block with:
 
 ### 5. `src/browser.rs`
 
-Connect share a corner between triangles to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that four shared corners form two triangles.
 
 <details>
 <summary>Locate the existing block</summary>

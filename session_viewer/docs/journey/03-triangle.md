@@ -22,7 +22,7 @@ Continue from [Give browser presentation its own function](02-clear.md). Save yo
 
 ### 1. `src/triangle.wgsl`
 
-Create the shader. Rust runs on the CPU; these two functions run on the GPU. The fourth position component is 1 because we have not introduced perspective.
+Create GPU vertex and fragment functions; the vertex function chooses a corner and the fragment function returns pink.
 
 Create the file and type:
 

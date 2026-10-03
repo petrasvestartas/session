@@ -190,7 +190,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add Select Next and Delete to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -214,7 +214,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Start without a selected object.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -238,7 +238,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Preserve valid selection, cycle by identity, and delete the selected object.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -263,7 +263,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect name objects without depending on their row to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that selection follows object identity.
 
 <details>
 <summary>Locate the existing block</summary>

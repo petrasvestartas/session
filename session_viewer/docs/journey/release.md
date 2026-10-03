@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 123 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the six early dock steps, from font setup through keyboard input. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 124 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the seven early dock steps, from font setup through keyboard input. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,13 +10,21 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Fifteen other checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+Fourteen checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
 
 ## Command-panel typing split
 
 The former 03a checkpoint required 81–162 minutes of typing. It is now three complete runnable steps: prepare the fonts and GPU painter (30–60 minutes), paint the Command label over the scene (25–49), then lay out the production field (30–60). Their main explanations are short; field input is explicitly deferred to the input lesson.
 
-Four affected endpoints pass fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome. Chrome observes the actual egui shader/pipeline owner, checks Noto label ink and exact preservation of the scene above the white dock, and retains the production field checks. One repeated layout-setting call is removed from the panel/state introduction; the other 119 previous endpoints remain byte-identical. Fifteen oversized checkpoints still need splitting.
+Four affected endpoints passed fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome at that split. Chrome observes the actual egui shader/pipeline owner, checks Noto label ink and exact preservation of the scene above the white dock, and retains the production field checks. One repeated layout-setting call was removed from the panel/state introduction; 119 other endpoints remained byte-identical then.
+
+## Direct instructions and command-state split
+
+One hundred long or generic code instructions now name their exact change in at most 25 words. The main explanations still teach the Rust needed for the step; detailed checks remain expandable.
+
+The former 03b required 74–148 minutes of typing. Two complete endpoints now connect the model immediately (25–49 minutes), then prepare the vocabulary, inspection and caret helpers (28–55). Existing GPU code is kept without unnecessary formatting changes. All 122 other existing source endpoints remain byte-identical.
+
+Both endpoints pass fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome. Native checks cover retained text/history, borrowed hint priorities, actual egui inspection bounds and JSON, Unicode prefixes and stored caret ranges. Chrome verifies the changed model hint and exact scene preservation, then an unchanged full frame after the helpers. These stages still have no keyboard event handling.
 
 ## What was checked
 

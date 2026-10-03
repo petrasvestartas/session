@@ -210,7 +210,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Allocate depth storage at the canvas size.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -235,7 +235,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report which triangle wins the overlap.
 
 <details>
 <summary>Locate the existing block</summary>

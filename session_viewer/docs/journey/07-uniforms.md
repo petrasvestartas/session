@@ -138,7 +138,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Set the initial scale and translation for presentation.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -163,7 +163,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Redraw with the same transform after a command.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -188,7 +188,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the shared view setting.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -212,7 +212,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Accept the transform at the presentation boundary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -236,7 +236,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Pass the transform to the renderer.
 
 <details>
 <summary>Locate the existing block</summary>

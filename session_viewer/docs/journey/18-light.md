@@ -61,7 +61,7 @@ Replace that block with:
 
 ### 2. `src/browser.rs`
 
-Connect read the shape through light to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that lighting changes brightness without changing geometry.
 
 <details>
 <summary>Locate the existing block</summary>

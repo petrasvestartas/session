@@ -60,7 +60,7 @@ Replace that block with:
 
 ### 3. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Import the editor action types.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -86,7 +86,7 @@ Replace that block with:
 
 ### 4. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Create one editor and initialize drawing from its scene.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -112,7 +112,7 @@ Replace that block with:
 
 ### 5. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Present the editor background and camera.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -145,7 +145,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Start converting submitted lines into actions.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -170,7 +170,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Map commands to Action, apply through Editor, and synchronize according to Change.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -248,7 +248,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Redraw from the editor state.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -274,7 +274,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect give every action the same route to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the shared action route.
 
 <details>
 <summary>Locate the existing block</summary>

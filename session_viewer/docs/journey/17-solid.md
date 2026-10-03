@@ -129,7 +129,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add Example Box to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -153,7 +153,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Insert the box as one fallible history edit and report construction errors.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -177,7 +177,7 @@ Replace that block with:
 
 ### 8. `src/browser.rs`
 
-Connect bring a solid into the scene to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the undoable kernel object.
 
 <details>
 <summary>Locate the existing block</summary>

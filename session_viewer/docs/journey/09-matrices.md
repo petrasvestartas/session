@@ -193,7 +193,7 @@ Replace that block with:
 
 ### 9. `src/browser.rs`
 
-Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Add Orbit Right to the vocabulary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -217,7 +217,7 @@ Replace that block with:
 
 ### 10. `src/browser.rs`
 
-Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Rotate the camera when Orbit Right is submitted.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -241,7 +241,7 @@ Replace that block with:
 
 ### 11. `src/browser.rs`
 
-Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the matrix transform.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -265,7 +265,7 @@ Replace that block with:
 
 ### 12. `src/browser.rs`
 
-Connect let one matrix describe the view to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Pass the full matrix into presentation.
 
 <details>
 <summary>Locate the existing block</summary>

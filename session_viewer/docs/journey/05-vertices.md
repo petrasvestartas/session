@@ -158,7 +158,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect let rust supply the corners to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report that the uploaded corners form a rectangle.
 
 <details>
 <summary>Locate the existing block</summary>

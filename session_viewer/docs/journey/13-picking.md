@@ -55,7 +55,7 @@ Create the file and type:
 
 ### 3. `Cargo.toml`
 
-Enable the browser event bindings used by the command dock. serde records the drawn field for browser verification; the same code still receives real keyboard events.
+Enable the browser event bindings used by the command dock.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -104,7 +104,7 @@ Replace that block with:
 
 ### 5. `src/browser.rs`
 
-Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Convert an unconsumed canvas click into a picking request.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -130,7 +130,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Listen for canvas clicks.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -154,7 +154,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Connect ask which object is under the pointer to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+Report the visible selection result.
 
 <details>
 <summary>Locate the existing block</summary>
