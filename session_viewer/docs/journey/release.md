@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 91 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 92 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -45,6 +45,8 @@ The early dock stages have different purposes: 03a draws the styling, 03b adds t
 The captured Delete checkpoint passes 100 native tests. It deletes the original identity in one history transaction, preserves later selection and camera, clears selection only for the removed target, and preserves Redo when the target is cold/missing or no row is selected. Chrome checks ordinary Delete/Undo/Redo through that same helper; native tests exercise the delayed identity. Automatic asynchronous replay remains pending.
 
 The captured reply checkpoint passes 102 native tests. Move/Delete return a scene change; Save returns original-source snapshot bytes without history, selection or camera changes. Exact saved doubles and Move Undo after Save are checked natively; cold Save preserves Redo. Chrome checks the existing normal download and Move Undo paths. The next lessons connect replies to current asynchronous owners; this checkpoint does not yet perform automatic browser replay.
+
+The intent-owner checkpoint passes 104 native tests. A generic pending value owns keys and intent together; stale replies preserve newer work, current replies consume the pair once and cancellation releases metadata without retaining the kernel source. Existing explicit reload callers use a unit payload and retain their browser behavior. Intent-bearing browser delivery and context revocation remain future work; the browser bridge is a separate planned checkpoint to keep typing below one hour.
 
 The course pins wgpu 29.0.4 and egui/egui-wgpu 0.34.3. Locks are introduced for the initial project, egui drawing, dock inspection dependencies, the Rust geometry kernel, protobuf import and explicit UUID generation. The dependency command preserves the previous lock and installs binary fonts; all implementation code is displayed for typing.
 

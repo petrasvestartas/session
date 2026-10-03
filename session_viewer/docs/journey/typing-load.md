@@ -103,15 +103,16 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [32gib-move](32gib-move.md) | 45 | 2604 | 27–53 min | 1–2 h | Within planning limit |
 | [32giba-delete](32giba-delete.md) | 49 | 2580 | 26–52 min | 1–2 h | Within planning limit |
 | [32gibb-reply](32gibb-reply.md) | 51 | 2495 | 25–50 min | 1–2 h | Within planning limit |
+| [32gic-owner](32gic-owner.md) | 54 | 2635 | 27–53 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 91 current checkpoints.
+- [x] Count the exact source edits for all 92 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 160 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 161 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

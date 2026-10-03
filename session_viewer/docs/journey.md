@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 91 cumulative lessons, about 139–255 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 92 cumulative lessons, about 140–257 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **160 proposed slots: 91 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **161 proposed slots: 92 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -107,6 +107,7 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32gib · Move the original target from its current placement](journey/32gib-move.md) | 1–2 hours | Apply a captured Move to its original target, composing with the placement that exists at replay time. |
 | [32giba · Delete the original target while keeping later selection](journey/32giba-delete.md) | 1–2 hours | Delete a captured target by identity without redirecting the command to a later selection. |
 | [32gibb · Route captured Move, Delete and Save results](journey/32gibb-reply.md) | 1–2 hours | Return a scene change or original-precision save bytes from a captured intent. |
+| [32gic · Own the intent with its pending source ticket](journey/32gic-owner.md) | 1–2 hours | Store source keys and captured intent in one pending owner that current completion can consume once. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

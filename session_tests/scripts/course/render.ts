@@ -72,6 +72,11 @@ export function generate() {
     const planned = [...read(path.join(docs, 'journey/roadmap.md'))
         .matchAll(/^- \[(?:x| )\] \d+[a-z]* · /gm)].length;
     if (planned < steps.length) throw Error('Roadmap must include every available lesson');
+    const roadmap = path.join(docs, 'journey/roadmap.md');
+    write(roadmap, read(roadmap)
+        .replace(/\*\*Draft plan: \d+ lesson slots; \d+ current checkpoints have fresh build and Chrome evidence\.\*\*/,
+            `**Draft plan: ${planned} lesson slots; ${steps.length} current checkpoints have fresh build and Chrome evidence.**`)
+        .replace(/all \d+ current checkpoints/g, `all ${steps.length} current checkpoints`));
     const table = ['| Lesson | Time | Working result |', '| --- | --- | --- |',
         ...steps.map((step, i) => `| [${step.id.split('-')[0]} · ${step.title}](${step.page}) | ${step.hours.join('–')} hours | ${step.goal} |`)];
     write(overview, read(overview)

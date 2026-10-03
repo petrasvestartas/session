@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 160 lesson slots; 89 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 161 lesson slots; 92 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 86 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 92 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -215,9 +215,11 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32gibb · [Route captured Move, Delete and Save results](32gibb-reply.md) — Return the edit change or original-precision snapshot bytes; Save leaves history unchanged. Pending-owner integration follows next.
 
-- [ ] 32gic · Pair the captured edit with reload authority — Keep intent with the pending ticket; cancel it on context changes and reject obsolete completion.
+- [x] 32gic · [Own the intent with its pending source ticket](32gic-owner.md) — Keep intent and keys in one owner; consume current completion once, preserve newer work on stale replies and drop both on cancellation. Browser context revocation follows with automatic commands.
 
-- [ ] 32gid · Reload automatically for Move, Delete and Save — Connect browser commands to source requests and captured replay; retain original Save doubles and asynchronous command history.
+- [ ] 32gica · Carry intent through browser completion — Bind the generic pending owner to fetch/abort/delivery without rewriting selection; retain the existing explicit Reload Sources path.
+
+- [ ] 32gid · Reload automatically for Move, Delete and Save — Connect browser commands to source requests and captured replay; retain original Save doubles and asynchronous command history. Cancel, Replace, history travel and Close must revoke pending edits; hydration must reject stale origin/epoch context.
 
 - [ ] 32gj · Prove reload timing in Chrome — combined automatic-replay timing, target selection changes, exact restored Save precision, missing-body/current-network/invalid-length failures, multi-origin partial failures and real URL owner cleanup. Explicit reload already has late/out-of-order/cancellation checks.
 

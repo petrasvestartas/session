@@ -6665,6 +6665,85 @@
           "why": "Register the captured-intent result module."
         }
       ]
+    },
+    {
+      "id": "32gic-owner",
+      "title": "Own the intent with its pending source ticket",
+      "page": "journey/32gic-owner.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Store source keys and captured intent in one pending owner that current completion can consume once.",
+      "trace": "ReloadJob<Intent> → Pending { ticket, keys, payload } → current finish_with takes both once",
+      "question": "Why does a stale completion check the current ticket before taking the pending value?",
+      "answer": "Taking first would destroy a newer request. Checking first preserves newer keys and intent; only the matching current completion can consume the pair. Cancellation drops the whole pending owner.",
+      "result": "From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward. Type Delete, Undo, Select Next twice and Redo. Undo restores the geometry; selection must be chosen again after deleting the selected row. Finally type Select Next and Fit to inspect a remaining object. Move 0.15,0,0, Save, Undo and Redo; Save must leave the Move available to Undo. Finally type Fit. Type Move 0,0,0.15 and Fit. Inspect the native owner tests for stale, duplicate and cancelled completions.",
+      "experiment": "Move pending.take before the ticket comparison in finish_with. Run the stale completion test and explain which newer request was lost.",
+      "production": "Request identity and its payload share one owner. Completion ownership is checked before document context; hydration and replay follow only after both checks.",
+      "tests": true,
+      "frame": "journey/checks/32gic-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/edit-owner.cjs",
+      "story": "Generalize ReloadJob with a payload type P. Pending stores that payload beside its ticket and keys; begin_with installs them together, finish_with returns them together once, and cancel drops them together. The request sent to a future still owns only URL strings and a ticket.\n\nP is a Rust type parameter: ReloadJob<Intent> owns a captured modeling request, while ReloadJob<()> carries the unit value, which means no additional data. The default type keeps existing explicit Reload Sources callers unchanged. A manual Default implementation starts empty without requiring Intent to implement Default.\n\nThe normal begin/finish methods are thin wrappers for the unit specialization. Existing cancellation, ticket exhaustion, duplicate-origin and browser fetch checks still run. New native checks prove an old reply cannot consume the newer Save, the current reply returns its exact intent once, and cancellation drops pending metadata without retaining a kernel document.\n\nA matching ticket establishes current request ownership, not document validity. The next browser lesson must still hydrate with the captured keys and reject changed origin/epoch context before replay. Success and failure both consume only their own current ticket; a stale failure must never abort newer work.\n\nChrome checks the unchanged explicit reload/download/editor paths; this lesson does not yet connect an intent-bearing browser completion.\n\n![Own the intent and ticket together](../illustrations/journey-32gic.svg)",
+      "browser_caption": "Chrome preserves the existing explicit reload, download and modeling paths. Native tests exercise intent-bearing ticket ownership, stale/duplicate replies and cancellation. Automatic browser replay follows next.",
+      "edits": [
+        {
+          "path": "src/reload_job.rs",
+          "before": "struct Pending {\n    ticket: u64,\n    keys: Vec<ReloadKey>,\n}",
+          "snippet": "journey/code/32gic-owner-01.rs",
+          "why": "Keep the intent and source keys inside the same ticket-owned value."
+        },
+        {
+          "path": "src/reload_job.rs",
+          "before": "#[derive(Default)]\npub struct ReloadJob {\n    issued: u64,\n    pending: Option<Pending>,\n}\n\nimpl ReloadJob {\n",
+          "snippet": "journey/code/32gic-owner-02.rs",
+          "why": "Allow any payload without requiring that payload to have a default value."
+        },
+        {
+          "path": "src/reload_job.rs",
+          "before": "    pub fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<Request, &'static str> {\n",
+          "snippet": "journey/code/32gic-owner-03.rs",
+          "why": "Capture the requested operation when beginning its scoped source request."
+        },
+        {
+          "path": "src/reload_job.rs",
+          "before": "        self.pending = Some(Pending { ticket, keys });\n",
+          "snippet": "journey/code/32gic-owner-04.rs",
+          "why": "Install keys and payload together after request validation succeeds."
+        },
+        {
+          "path": "src/reload_job.rs",
+          "before": "    pub fn finish(&mut self, ticket: u64) -> Option<Vec<ReloadKey>> {\n        if self.pending() != Some(ticket) { return None; }\n        self.pending.take().map(|pending| pending.keys)\n    }\n",
+          "snippet": "journey/code/32gic-owner-05.rs",
+          "why": "Take the current payload once; stale replies leave newer work untouched."
+        },
+        {
+          "path": "src/reload_job.rs",
+          "before": "    pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }\n}\n",
+          "snippet": "journey/code/32gic-owner-06.rs",
+          "why": "Keep explicit Reload Sources using a unit payload and its existing interface."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod edit_replay;\n",
+          "snippet": "journey/code/32gic-owner-07.rs",
+          "why": "Register native ownership checks without exposing test code to the browser."
+        },
+        {
+          "path": "src/edit_owner_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32gic-owner-08.rs",
+          "why": "Prove stale/duplicate/cancelled replies cannot consume an intent or retain its source metadata."
+        }
+      ]
     }
   ]
 }

@@ -76,4 +76,6 @@ Both before/after PPMs are byte-identical and allocation estimates are unchanged
 
 Verification: 506 native tests passed, 55 ignored; WebAssembly check and optimized Trunk build passed. Headed Chrome retained visible box edges in all 24 close-up cases and canvas/MSAA quality after slow drags in default phone, explicit phone and desktop cases, with no browser errors.
 
+Deployed as `4f254643`; viewer-check, Pages and Session mini tests are green. Public headed Chrome navigation checks preserve all three quality configurations. The real published floor loads in 1149 ms desktop, 875 ms at phone dimensions, and 3076 ms with 6× CPU throttling, with one scene replacement per run; explicit opacity checks also pass. These use the desktop NVIDIA GPU and local network, not the user's phone or its connection.
+
 The user confirmed the appearance is correct and that both loading and camera movement remain extremely slow on their phone. Actual current phone diagnostics are still needed to distinguish network, CPU conversion and GPU startup delays. Phase 3 CPU restructuring remains conditional on that evidence.

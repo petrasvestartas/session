@@ -538,7 +538,7 @@ Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, 
 - [x] Integrated Intel GPU, phone-sized canvas, 20-frame before/after: close view 24.2 → 14.2 ms median, ink 18.914 → 9.252 ms; fitted view 31.4 → 29.9 ms. Both image pairs are byte-identical; actual Qualcomm performance remains unmeasured.
 - [x] Four viewport boundaries × two wide pen sizes retain visible fringes with their axes outside the viewport. Full native suite: 506 passed / 55 ignored; WebAssembly check passes.
 - [x] Optimized browser build and headed Chrome checks: 24 close-up views, three slow-navigation quality configurations, no browser errors.
-- [ ] Publish this optimization; wait for viewer-check, Pages and Session mini results and verify the deployed viewer.
+- [x] Published optimization 4f254643 / superproject 270f60c. Viewer-check, Pages and Session mini are green; public slow-drag quality and loading/opacity checks pass. Desktop GPU emulation: 1149 ms desktop, 875 ms phone dimensions, 3076 ms with 6× CPU throttle; actual phone remains unmeasured.
 - [ ] Obtain a current phone Diagnostic Report to distinguish download, decode, walk and first-GPU-frame delay. CPU restructuring remains conditional on that evidence.
 - [ ] Resume course building: explicit-target Delete (32giba), captured Move/Delete/Save replay (32gibb), owned pending tickets (32gic), automatic cold-source edits (32gid), headed failure/timing acceptance (32gj), then listeners/device recovery and remaining geometry/rendering/attributes/command parity.
 - [ ] Split the 17 oversized early lessons and complete all 71 future checkpoints; keep the 89 verified checkpoints and learner work intact. Retire old references only after complete replacement acceptance.
@@ -561,3 +561,12 @@ Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, 
 - [x] D2 reproduction, white full-window screenshot, 25–50 minute typing estimate, all 91 stored checkpoints, nine course-tool tests and strict Vue build (15.13 seconds).
 - [ ] Publish both new lesson commits after camera-optimization deployment acceptance. Refresh the same selected Chrome tab after rebuilds; never redirect the reader's selected route.
 - [ ] Next owned intent/ticket (32gic), actual automatic cold-source Move/Delete/Save (32gid), headed timing/failure/precision/cleanup checks (32gj). Full course: 91 verified, 160 proposed, 69 future; 17 oversized early checkpoints still require splits.
+
+### 2026-10-03 · Own captured intent with source ticket
+
+- [x] 32gic-owner generalizes the existing ReloadJob payload while preserving explicit Reload Sources callers. Keys and intent share one Pending; stale replies preserve newer work, current replies consume once and cancellation drops the pair.
+- [x] Native 104 tests, WebAssembly, optimized runnable checkpoint, native GPU frame and headed Chrome pass. Kernel weak references die on unload; cancelled intent-bearing requests release their remaining origin metadata.
+- [x] Typing 27–53 minutes. Added a separate planned browser-completion bridge (32gica) so the automatic-command work stays in manageable lessons; context cancellation and origin/epoch checks remain explicit requirements of 32gid.
+- [x] D2 reproduction, all 92 stored checkpoints, nine tool tests and strict Vue build (15.04 seconds) pass. Roadmap/release totals now update from the actual current course and planned slots.
+- [ ] Refresh verification and publish the three new lesson commits; await their CI.
+- [ ] Course now has 92 verified endpoints; updated plan has 161 proposed slots and 69 future slots. All 17 early splits and complete production parity remain required.

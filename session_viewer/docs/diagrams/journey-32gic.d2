@@ -1,0 +1,11 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Pending: ticket + keys + Intent"
+n1: "Stale reply → keep newer Pending"
+n2: "Current reply → take keys + Intent once"
+n3: "Cancel → drop Pending"
+n4: "Next lesson: hydrate valid keys, then replay"
+n0 -> n1
+n0 -> n2 -> n4
+n0 -> n3
