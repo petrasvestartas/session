@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 158 lesson slots; 87 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 158 lesson slots; 88 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -207,7 +207,7 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32gi · [Capture the requested edit before waiting](32gi-capture.md) — Record the original ObjectId and Move arguments; retain no source owner. Native target/release checks and the existing explicit browser reload are verified.
 
-- [ ] 32gia · Request the captured edit’s sources — Move/Delete load only the original target’s cold origin; Save deduplicates every active cold origin; missing targets fail.
+- [x] 32gia · [Load only the sources the requested edit needs](32gia-scope.md) — Original target → its one cold origin; Save → unique active cold origins. Loaded targets fetch nothing; missing targets fail.
 
 - [ ] 32gib · Replay against the current target placement — Apply the original Move/Delete exactly once, preserve a later selection, and make one document history transaction.
 

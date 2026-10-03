@@ -6457,6 +6457,61 @@
           "why": "Capture the requested target and arguments without retaining any source owners."
         }
       ]
+    },
+    {
+      "id": "32gia-scope",
+      "title": "Load only the sources the requested edit needs",
+      "page": "journey/32gia-scope.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Select source requests from the original edit target, with Save covering the active document.",
+      "trace": "Intent → original current row → cold origin + epoch; Save → unique active cold origins",
+      "question": "Why should Save ignore a released source that exists only in Undo history?",
+      "answer": "Save serializes the active scene. History-only rows are not in that file, so fetching their source delays Save without supplying any required data. Undo can request that source later when its rows become active.",
+      "result": "From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests.",
+      "experiment": "In the first scope test, point selection at a row from the second import. Explain why Move and Delete still request the first import, while Save requests both.",
+      "production": "The operation determines its source dependencies. Current selection, history size and the number of displayed rows do not determine a request’s authority.",
+      "tests": true,
+      "frame": "journey/checks/32gia-scope.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/edit-scope.cjs",
+      "story": "Move and Delete follow the captured ObjectId, even if selection now belongs to a different import. A loaded target needs no source request. A missing target fails before any fetch begins. For a cold row, ReloadKey::of returns its exact origin and release epoch.\n\nSave reuses Editor::reload_keys: it gathers each active cold origin once, even when several rows share it. It excludes loaded rows and sources held only by Undo/Redo history. Three native tests distinguish two imports, later selection, deduplication, history-only sources and missing or loaded targets.\n\nThe method borrows Editor only while collecting keys. The returned keys temporarily retain the origins needed by a future ReloadJob; the Intent itself still holds values only. Browser interception and replay are not connected yet. Chrome verifies the existing explicit reload and a subsequent normal Move.\n\n![Choose requested source scope](../illustrations/journey-32gia.svg)",
+      "browser_caption": "Chrome checks the inherited explicit source reload and this placed drawing. Original-target source selection, active-document Save scope and refusal cases are proved natively; automatic browser replay is still pending.",
+      "edits": [
+        {
+          "path": "src/edit_intent.rs",
+          "before": "use crate::{editor::Action, scene::ObjectId};\n",
+          "snippet": "journey/code/32gia-scope-01.rs",
+          "why": "Bring the editor and existing release-key type into this module."
+        },
+        {
+          "path": "src/edit_intent.rs",
+          "before": "impl Intent {\n",
+          "snippet": "journey/code/32gia-scope-02.rs",
+          "why": "Resolve dependencies from the captured target or active Save scene."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod edit_intent;\n",
+          "snippet": "journey/code/32gia-scope-03.rs",
+          "why": "Register the independent source-scope tests."
+        },
+        {
+          "path": "src/edit_scope_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32gia-scope-04.rs",
+          "why": "Distinguish target imports from later selection, active Save sources from history, and missing targets from loaded ones."
+        }
+      ]
     }
   ]
 }

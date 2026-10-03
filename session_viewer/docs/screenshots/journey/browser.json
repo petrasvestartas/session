@@ -2666,6 +2666,34 @@
       "bundle": "9f05ebdb0063da7df6e34d9f91c8d29efb10d60a61299e244949e9045b21dbc4",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "32gia-scope": {
+      "source": "66b25b4fc3a54e3412a41c9e23c17e273ee9ea7441faf4cd19ae51a214bc20eb",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ce79926253d9eb4485e4949dff4904933ad81ade1dc98d6e1c67b59728582037",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T14:59:40.425Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "798fa6ad6170e777f64a2d1157a7822bc09197f06c4268a6780df3b39629c025",
+      "file": "32gia-scope-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "3ad13959bb05d34d157543450e36645f93440936bd04576d925dc29f4789a503",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }

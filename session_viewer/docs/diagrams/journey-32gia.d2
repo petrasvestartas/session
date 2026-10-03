@@ -1,0 +1,10 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Value-only captured Intent"
+n1: "Move / Delete: original ObjectId"
+n2: "Find that current row; missing → refuse"
+n3: "Cold row → its one origin + release epoch"
+n4: "Save → all active cold origins, once each"
+n0 -> n1 -> n2 -> n3
+n0 -> n4

@@ -99,10 +99,11 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [32gh-command](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | Within planning limit |
 | [32gha-cancel](32gha-cancel.md) | 28 | 1550 | 16–31 min | 1–2 h | Within planning limit |
 | [32gi-capture](32gi-capture.md) | 72 | 2957 | 30–60 min | 1–2 h | Within planning limit |
+| [32gia-scope](32gia-scope.md) | 68 | 2986 | 30–60 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 87 current checkpoints.
+- [x] Count the exact source edits for all 88 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
