@@ -21,7 +21,8 @@ The local protobuf checkout currently predates the kernel's committed visibility
 - [x] Verify current production typing, repeat and mouse/phone input in Chrome.
 - [x] Revise and verify lessons 03d and 22–26.
 - [x] Preserve original double coordinates, names and visibility/locking attributes through source preparation; share original imported geometry.
-- [ ] Add visibility/locking and color save/reopen fixtures, then implement their drawing and selection policies.
+- [x] Verify exact source coordinates, names and visibility/locking through save/reopen; preserve object colour in the snapshot check.
+- [ ] Implement visibility/locking drawing and selection policies, and inherited tree colour load/save fixtures.
 - [x] Diagnose and fix current close-up line loss with a geometric oracle and browser views: eight native view/sample combinations and 24 Chrome zoom views pass.
 - [ ] Verify the attributes and opacity defaults in the completed rendering chapters.
 

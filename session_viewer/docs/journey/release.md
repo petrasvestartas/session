@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 39 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–28 plus placement and source-ownership follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 44 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–29 plus placement, source-ownership and save/reopen follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -15,6 +15,7 @@ This is the opening of the full viewer course. The [remaining lesson checklist](
 - Fit is checked for repeatability, recovery after panning, document history, and geometry margins in wide and tall windows.
 - Placement lessons keep local mesh coordinates separate from model matrices; bounds, ray picking and GPU drawing share world placement. Typed Move checks world-axis composition, immutable shared geometry, Undo/Redo, finite arguments and zero-offset history. Chrome checks rendered interior picking and visible command errors; exact raster-edge ownership is deferred to GPU picking.
 - The source-ownership lessons retain original kernel meshes beside their derived display arrays. The final endpoint passes 51 native tests, including double-coordinate preservation, adapter failure, imported allocation identity and ownership across Move/Undo/Redo. Chrome checks import, placed drawing, history and interior picking; visibility and locking policies are still later work.
+- Save/reopen lessons preserve exact source doubles, mesh names and visibility/locking attributes, stored object identities and separate placements. The final checkpoint passes 57 native tests. Chrome downloads the real file, proves Save does not consume Undo, refuses an empty Save without a download, checks delayed URL cleanup, and reopens into a cleared scene with identical scene pixels. The bounded flat-mesh subset accepts 1–64 meshes and files up to 4 MiB; nested trees, tree colour policy, definitions and other geometry remain later course work.
 - Lesson 25 checks the perspective/orthographic pixel round trip and selects a visible imported beam in each projection. Its 39 Rust tests also check camera, fitting, picking and document invariants.
 
 The scene comparison excludes the command strip. When a key opens completion over the drawing, the test dismisses that overlay before checking camera pixels. Full-page screenshots still show the real interface.
@@ -31,7 +32,7 @@ The early dock stages have different purposes: 03a draws the styling, 03b adds t
 
 ## Fixed inputs and remaining scope
 
-The course pins wgpu 29.0.4 and egui/egui-wgpu 0.34.3. Locks are introduced for the initial project, egui drawing, dock inspection dependencies, the Rust geometry kernel, and protobuf import. The dependency command preserves the previous lock and installs binary fonts; all implementation code is displayed for typing.
+The course pins wgpu 29.0.4 and egui/egui-wgpu 0.34.3. Locks are introduced for the initial project, egui drawing, dock inspection dependencies, the Rust geometry kernel, protobuf import and explicit UUID generation. The dependency command preserves the previous lock and installs binary fonts; all implementation code is displayed for typing.
 
 Early commands such as Background, Pan and Example are teaching vocabulary. The component and its styling are the real viewer dock. Later command chapters build the complete production vocabulary, argument handling, clipboard, composition and touch integration.
 

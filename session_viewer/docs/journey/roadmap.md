@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 108 lesson slots; 39 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 112 lesson slots; 44 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 39 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 44 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -111,7 +111,15 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 28c · [Prove source ownership survives editing](28c-ownership.md) — Move, Undo/Redo and row removal preserve source and display owners.
 
-- [ ] 29 · Save a document and reopen it — preserve geometry, names, IDs and placements.
+- [x] 29 · [Give each saved object a stable identity](29-identity.md) — keep duplicate imports distinct without changing original source GUIDs.
+
+- [x] 29a · [Write a snapshot from the editable sources](29a-snapshot.md) — save live local geometry and separate placements without editing history.
+
+- [x] 29b · [Reopen source geometry with its placement](29b-placements.md) — reject invalid, duplicate and orphaned matrices before construction.
+
+- [x] 29c · [Prove the saved document reopens faithfully](29c-roundtrip.md) — exact doubles, names, visibility/locking and independent imported identities.
+
+- [x] 29d · [Download the editable document from the command line](29d-save.md) — real Chrome download, unchanged Undo history, empty-save error and pixel-identical reopening.
 
 - [ ] 30 · Open and replace documents safely — cancel stale reads and leave a failed load recoverable.
 

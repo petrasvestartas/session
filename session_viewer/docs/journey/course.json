@@ -3264,6 +3264,464 @@
       "image_result": "The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.",
       "browser_check": "journey/checks/browser/placement.cjs",
       "browser_result_status": "File imported. Undo removes the entire import."
+    },
+    {
+      "id": "29-identity",
+      "title": "Give each saved object a stable identity",
+      "page": "journey/29-identity.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Distinguish a scene object from the original geometry it shares.",
+      "trace": "Source GUID → inserted object GUID → cloned history → stable file identity",
+      "question": "Why can two imports share a source GUID but need different saved GUIDs?",
+      "answer": "The source GUID identifies geometry in an original file. Two imports create two scene objects with separate placements and histories. Each needs a unique stored identity. We preserve the source GUID when available, assign a fresh UUID on collision, and store that decision in the object so saving or row changes cannot rename it.",
+      "story": "Save needs an identifier that can connect a stored mesh, its tree row and its placement. ObjectId already names objects within this running editor, but it is a small counter belonging to this scene. The source GUID belongs to the imported geometry. Neither distinction should disappear when we write a file.\n\nAdd a GUID to Object. Prefer the original geometry GUID when it is unused. When the same file is imported again, assign a fresh UUID to the new object. Keep the original kernel mesh and Source provenance untouched. The new identity belongs to this inserted object.\n\n![The original source GUID can be shared, but each inserted object keeps one distinct GUID through history.](../illustrations/journey-29.svg)\n\nThe while loop checks the candidate against live objects. Even a generated UUID is checked, so insertion’s uniqueness rule is explicit. Assignment happens once during insertion. Cloning a scene for history clones the stored String; Move and saving must never regenerate it.\n\nThe check imports the same bytes twice. Corresponding sources have the same GUID, while all inserted objects have distinct GUIDs. It removes an earlier object and travels through Undo/Redo to prove identity is independent of display row and history position. Save is not connected yet; this prepares its identifiers.",
+      "result": "Run the duplicate-import identity check. In the viewer, Example Box, Select Next three times, Move -0.5,-0.5,0.2, View Isometric and Fit. Moving the new object still uses its local ObjectId. Its additional stored GUID has no camera or drawing effect.",
+      "experiment": "Inspect both imported copies’ source GUIDs and object GUIDs in the check. Predict which pair matches. Add another Undo/Redo cycle, then restore the check.",
+      "production": "The production viewer keeps unique object identity in editable sessions and distinguishes it from shared definitions or source references. Our flat mesh editor establishes that boundary before serializing placements.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move -0.5,-0.5,0.2"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "frame": "journey/checks/29-identity.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "prost = \"=0.14.4\"\n",
+          "snippet": "journey/code/29-identity-01.toml",
+          "why": "Declare the UUID generator explicitly; browser randomness uses its js feature."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub id: ObjectId,\n",
+          "snippet": "journey/code/29-identity-02.rs",
+          "why": "Store the inserted object identity separately from kernel source identity and the local counter."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        self.objects.push(Object { id, mesh: Rc::new(prepared.display), geometry: prepared.geometry,\n",
+          "snippet": "journey/code/29-identity-03.rs",
+          "why": "Keep the source GUID when available; assign and check a fresh stored GUID for a duplicate import."
+        },
+        {
+          "path": "src/file_identity_tests.rs",
+          "before": null,
+          "snippet": "journey/code/29-identity-04.rs",
+          "why": "Exercise duplicate imports, row removal and history without mutating original source GUIDs."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod source_tests;\n",
+          "snippet": "journey/code/29-identity-05.rs",
+          "why": "Compile the file-identity regression check."
+        }
+      ],
+      "lock": "journey/release/29-identity.lock",
+      "browser_check": "journey/checks/browser/placement.cjs"
+    },
+    {
+      "id": "29a-snapshot",
+      "title": "Write a snapshot from the editable sources",
+      "page": "journey/29a-snapshot.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Serialize live source meshes and their placements without changing the editor.",
+      "trace": "Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes",
+      "question": "Why must saving copy source messages instead of modifying the retained session?",
+      "answer": "The retained file can contain objects that have since been deleted, and imported source allocations are shared through history. Saving traverses current objects and copies their source messages. It applies the inserted object GUID to each copy and writes placement separately, leaving the original geometry, history and file provenance unchanged.",
+      "story": "Now prepare the bytes Save will download. Read Scene::objects, not the old imported Session: the live scene includes generated objects and edits, while deleted rows must stay deleted.\n\nEach kernel mesh can make its own protobuf message. That preserves double coordinates, topology, colours, names and attributes. Replace only that message copy’s GUID with the object’s stored identity. The original shared mesh is untouched.\n\n![Current objects supply copied mesh messages; stored object GUIDs connect those messages to a flat tree and placement records.](../illustrations/journey-29a.svg)\n\nWrite placements as XformEntry records, keyed by the same stored object GUID. The geometry remains local. Baking a transform into mesh vertices and also writing that transform would move an object twice.\n\nFor this flat mesh course, the new file has one tree child per live object and no hierarchy, definitions or interactions. A later lesson expands this contract. Scene camera, selection, display arrays and Undo/Redo stacks are application state, so they do not enter this document snapshot.\n\nThe existing loader accepts only 1–64 meshes. Save therefore refuses an empty or larger scene and rejects an encoded file over 4 MiB. It also validates the source subset before returning bytes. Unsupported data is reported instead of silently writing a file our course cannot reopen.\n\nToday we inspect the protobuf snapshot in Rust. The loader still rejects placement records until the next lesson, and the browser Save command is not connected yet.",
+      "result": "Run the snapshot check. It removes one demo, adds a box and serializes only the two live objects. Compare original local vertices and separate placement. In the viewer, Example Box, Select Next three times, Move 0.2,0.4,0.3, View Isometric and Fit Selected; this is the state a later Save command will write.",
+      "experiment": "Change the box placement in the check, then predict whether mesh vertices or the XformEntry changes. Confirm the retained source GUID stays unchanged and restore the check.",
+      "production": "The production serializer combines editable source objects and placements rather than reading GPU buffers. This checkpoint covers a deliberately bounded flat-mesh document; complete trees, geometry families and metadata arrive later.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 0.2,0.4,0.3"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/29a-snapshot.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "fn validate(message: &proto::Session) -> Result<(), &'static str> {\n",
+          "snippet": "journey/code/29a-snapshot-01.rs",
+          "why": "Copy live sources into one bounded flat document, write placements separately and return bytes without editor mutation."
+        },
+        {
+          "path": "src/snapshot_tests.rs",
+          "before": null,
+          "snippet": "journey/code/29a-snapshot-02.rs",
+          "why": "Check live row membership, source topology/attributes, separate placement and untouched history."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod file_identity_tests;\n",
+          "snippet": "journey/code/29a-snapshot-03.rs",
+          "why": "Compile the read-only snapshot checks."
+        }
+      ],
+      "browser_check": "journey/checks/browser/placement.cjs"
+    },
+    {
+      "id": "29b-placements",
+      "title": "Reopen source geometry with its placement",
+      "page": "journey/29b-placements.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Validate stored placements before reconstructing source-backed objects.",
+      "trace": "Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects",
+      "question": "Where must a saved transform be applied when reopening?",
+      "answer": "A saved transform belongs to the object placement. Load prepares the original local kernel mesh and attaches its validated matrix. Scene insertion uses that matrix once. It must not transform source vertices and also retain the placement, or the object moves twice.",
+      "story": "The snapshot contains local geometry and separate placement records. Extend the loader to accept exactly that contract. A transform is trusted only after its GUID belongs to a mesh, it occurs once, and its message contains sixteen finite values with an affine final row.\n\nPut the matrix rule in placement::valid so file loading and Scene::place enforce the same boundary. The kernel Xform constructor can accept a short message by leaving other entries at defaults; the file validator must reject that ambiguity before construction.\n\n![The loader validates mesh identities and affine placements, then prepares local source/display pairs with one object matrix.](../illustrations/journey-29b.svg)\n\nPreparedMesh now carries a model matrix, initially identity for generated geometry. During load, copy the validated placement for that mesh GUID from the retained session. Scene insertion takes the prepared matrix instead of replacing it with identity.\n\nThe snapshot can now call the same full validator as load. No temporary copy with placements removed is necessary. Both directions accept the same bounded flat-mesh subset.\n\nThe snapshot checks still compare unchanged local source data and separate placement. The next lesson checks exact save/reopen round trips. The malformed-message checks reject short, non-finite and projective matrices, orphan GUIDs and duplicate placement entries before any scene changes.\n\nSave is still a Rust function today. The next lesson connects its bytes to the command dock and a browser download.",
+      "result": "Run the snapshot and malformed-placement checks. In the viewer, Open your specimen, Example Box, Select Next six times, Move 1,0.5,0.3, View Isometric and Fit. Existing import and Move still work; the new loader also accepts snapshots that carry placements.",
+      "experiment": "Change the malformed-placement check’s projective matrix into a finite translation. Predict why validation accepts it, then restore the rejection case. Explain why a fifteen-value matrix remains invalid even if every supplied value is finite.",
+      "production": "The production session stores local placements keyed by object GUID and composes nested tree transforms later. This checkpoint handles one flat level and rejects unsupported definitions and interactions.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 1,0.5,0.3"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "frame": "journey/checks/29b-placements.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/placement.rs",
+          "before": null,
+          "snippet": "journey/code/29b-placements-01.rs",
+          "why": "Use one affine validation rule for decoded matrices and direct edits."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod prepared;\n",
+          "snippet": "journey/code/29b-placements-02.rs",
+          "why": "Expose the shared matrix validator."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        if !model.m.iter().all(|v| v.is_finite())\n            || [model.m[3], model.m[7], model.m[11], model.m[15]] != [0.0, 0.0, 0.0, 1.0]\n",
+          "snippet": "journey/code/29b-placements-03.rs",
+          "why": "Make direct placement edits use the same rule as imported files."
+        },
+        {
+          "path": "src/prepared.rs",
+          "before": "    pub source: Option<Source>,\n",
+          "snippet": "journey/code/29b-placements-04.rs",
+          "why": "Carry the validated object placement beside local source geometry."
+        },
+        {
+          "path": "src/prepared.rs",
+          "before": "        Ok(Self { geometry, display, source: None })\n",
+          "snippet": "journey/code/29b-placements-05.rs",
+          "why": "Generated geometry begins with identity placement."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;\n",
+          "snippet": "journey/code/29b-placements-06.rs",
+          "why": "Retain the validated stored placement without baking it into source vertices."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "            model: session_rust::Xform::identity(), source: prepared.source });\n",
+          "snippet": "journey/code/29b-placements-07.rs",
+          "why": "Insert each prepared model exactly once."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    // Source validation; placements come next.\n",
+          "snippet": "journey/code/29b-placements-08.rs",
+          "why": "Remove the temporary source-only validation comment."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    let mut geometry = message.clone(); geometry.xforms.clear();\n    validate(&geometry)?;\n",
+          "snippet": "journey/code/29b-placements-09.rs",
+          "why": "Validate the complete saved message now that the loader accepts placements."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {\n        return Err(\"Placements, definitions and interactions arrive in later checkpoints\");\n",
+          "snippet": "journey/code/29b-placements-10.rs",
+          "why": "Accept placements while keeping the other unsupported source families explicit."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {\n",
+          "snippet": "journey/code/29b-placements-11.rs",
+          "why": "Reject unknown, duplicate, incomplete, non-finite or projective placement records before kernel construction."
+        },
+        {
+          "path": "src/placement_load_tests.rs",
+          "before": null,
+          "snippet": "journey/code/29b-placements-12.rs",
+          "why": "Reject all malformed placement families using actual encoded messages."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod snapshot_tests;\n",
+          "snippet": "journey/code/29b-placements-13.rs",
+          "why": "Compile the malformed-input checks."
+        }
+      ],
+      "browser_check": "journey/checks/browser/placement.cjs"
+    },
+    {
+      "id": "29c-roundtrip",
+      "title": "Prove the saved document reopens faithfully",
+      "page": "journey/29c-roundtrip.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Check exact local source data, attributes, identities and placement through saving and loading.",
+      "trace": "Live source and placement → snapshot bytes → load → identical source values and object matrices",
+      "question": "What can a screenshot prove about saved precision and identity?",
+      "answer": "A screenshot proves the drawing, not exact saved doubles or identifiers. Native round-trip checks compare original vertices, names, attributes, GUIDs and matrices. Duplicate-import checks also ensure separate objects survive one saved file even when they came from the same source GUID.",
+      "story": "Before adding the download, verify the document bytes independently of browser APIs. The same public snapshot and load functions serve the tests and the coming Save command.\n\n![Native round-trip checks compare source values and identity; browser drawing is a separate check.](../illustrations/journey-29c.svg)\n\nThe first check clears the demos and inserts a triangle at a coordinate distinguishable in double precision but rounded by its display. Give it a name, hide and lock attributes, and a translation. Saving and reopening must retain all of those source values exactly. The drawing is derived again, while placement remains separate.\n\nThe second check imports the same file twice and saves the live objects. The reopened mesh GUIDs must match each inserted object’s stored GUID, including the fork assigned to a duplicate import. Each prepared placement must match its original object matrix. The retained imported source remains untouched.\n\nThese checks use structural equality after decoding. A protobuf map need not emit bytes in the same order every time, so comparing file bytes would test an unrelated ordering rule. They also avoid treating pixels as evidence of double precision or identity.\n\nFlags are retained here. A hidden source is not yet filtered from our tutorial drawing; a locked source is not yet excluded from editing. Later lessons connect those policies across the tree, selection and saving.",
+      "result": "Run the two round-trip checks. In the browser, Open your sample file, Select Next five times and Move -0.6,0,0. Open the same file again, Select Next three times, Move 0.6,0,0.2, View Isometric and Fit. The two imported frames now have visibly separate top beams. Saving keeps both imports and their independent placements instead of deduplicating their original source GUIDs.",
+      "experiment": "Change the exact coordinate to 123456789.125. Predict why the reopened kernel coordinate matches exactly even though the display uses floats. Then inspect corresponding imported copies’ saved GUIDs. Restore the checks.",
+      "production": "The production viewer preserves editable source data through save/reopen and assigns distinct identities to inserted copies. These bounded flat-mesh tests establish that contract before browser downloading or full geometry families.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move -0.6,0,0"
+        },
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 0.6,0,0.2"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "browser_check": "journey/checks/browser/placement.cjs",
+      "frame": "journey/checks/29c-roundtrip.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/save_roundtrip_tests.rs",
+          "before": null,
+          "snippet": "journey/code/29c-roundtrip-01.rs",
+          "why": "Compare exact source values, stored identities and object matrices after encoding and decoding."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod placement_load_tests;\n",
+          "snippet": "journey/code/29c-roundtrip-02.rs",
+          "why": "Compile exact document round-trip checks."
+        }
+      ]
+    },
+    {
+      "id": "29d-save",
+      "title": "Download the editable document from the command line",
+      "page": "journey/29d-save.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Connect Save to a browser download and reopen the actual downloaded document.",
+      "trace": "Typed Save → source snapshot → Blob URL → download → Open → restored source and placement",
+      "question": "Why does Save belong outside document history?",
+      "answer": "Save reads the current scene and creates bytes; it does not edit geometry, placement or selection. It must not consume an Undo step. The browser owns file downloading, while the native snapshot and loader own the document contract.",
+      "story": "Type Save in the same command dock. The command calls snapshot on the current editor scene and passes its bytes to a small browser-only file adapter. Snapshot failures appear in command history and do not start a download.\n\n![Save reads the editor, creates a temporary browser Blob URL and downloads a file; Open reuses the validated loader.](../illustrations/journey-29d.svg)\n\nUint8Array copies the Rust bytes into the browser. Blob gives those bytes a file-like owner. An object URL lets a temporary anchor download that Blob as viewer.session. The anchor stays hidden, is appended only for the click, then is removed. It is not a viewer control; the only user command remains Save.\n\nThe object URL must outlive the click. A one-shot timer revokes it after ten seconds, leaving the browser time to start the download. The callback owns its URL String until then. If the timer cannot be scheduled, call the cleanup immediately and return an error. A later resource-lifetime lesson builds a wider policy for outstanding work.\n\nBrowser errors and document errors go to panel.result, so a failed Save appears beside the typed command. A successful Save records the byte count. There is no new Action and no document history transaction: Save reads the scene while Undo still refers to the last edit.\n\nThe browser experiment downloads the actual file, confirms Save leaves the drawing unchanged, and proves Undo/Redo still reaches the preceding Move. It deletes the current rows, checks that saving an empty scene reports an error without downloading, then opens the downloaded file. After selecting the same object, every scene pixel must return.",
+      "result": "Open your specimen, Example Box, Select Next six times, Move 0.2,-0.7,0.2, View Isometric and Fit. Type Save and keep viewer.session. Undo must still undo Move. Redo restores it. Repeat Select Next and Delete six times to clear the current objects, Open the saved file, then Select Next six times: the same source geometry and placement return without resetting the camera.",
+      "experiment": "Save after moving the box, then move it again and save to a second file. Reopen each into a cleared scene and predict which placement it restores. Saving should leave the next Undo step unchanged.",
+      "production": "The production Save command downloads the complete editable scene. This lesson connects a real browser download to our flat mesh serializer; complete trees and geometry families still require later chapters.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 0.2,-0.7,0.2"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "browser_check": "journey/checks/browser/save.cjs",
+      "frame": "journey/checks/29d-save.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "web-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"HtmlInputElement\", \"File\", \"FileList\", \"Blob\", \"CustomEvent\", \"CustomEventInit\", \"FocusOptions\"] }\n",
+          "snippet": "journey/code/29d-save-01.toml",
+          "why": "Enable the browser object URL and download anchor APIs. These features do not change dependency versions."
+        },
+        {
+          "path": "src/file_output.rs",
+          "before": null,
+          "snippet": "journey/code/29d-save-02.rs",
+          "why": "Create a temporary file owner, request a download and schedule one-shot URL cleanup."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod file_input;\n",
+          "snippet": "journey/code/29d-save-03.rs",
+          "why": "Expose the browser file-output adapter."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Open\",\n",
+          "snippet": "journey/code/29d-save-04.rs",
+          "why": "Offer Save through command completion in the actual dock."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            } else if line == \"move\" || line.starts_with(\"move \") {\n",
+          "snippet": "journey/code/29d-save-05.rs",
+          "why": "Read the scene for Save without creating a document action or consuming history."
+        },
+        {
+          "path": "index.html",
+          "before": "  <input id=\"open\" type=\"file\" accept=\".pb\" hidden>\n",
+          "snippet": "journey/code/29d-save-06.html",
+          "why": "Let the native file picker offer both original specimens and downloaded session files."
+        }
+      ]
     }
   ]
 }

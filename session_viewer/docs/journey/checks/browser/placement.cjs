@@ -38,13 +38,15 @@ module.exports = async (page, {command, drawing, step}) => {
     };
     const selected = (x, y) => {
         const at = (y * width + x) * 4;
-        return data[at] > data[at + 1] + 10 && data[at + 1] > data[at + 2] + 50;
+        return data[at] > data[at + 1] + 10 && data[at + 1] > data[at + 2] + 50
+            && data[at + 1] > data[at + 2] * 3;
     };
     for (let y = 10; y < height - 50; y++) for (let x = 10; x < width - 10; x++) {
         const at = (y * width + x) * 4;
         const [r, g, b] = data.subarray(at, at + 3);
         // Exact raster-edge ownership is covered when the course introduces GPU picking.
-        if (r > g + 10 && g > b + 50 && selected(x - 5, y) && selected(x + 5, y)
+        // Selection's gold has far less blue than the unselected timber brown.
+        if (selected(x, y) && selected(x - 5, y) && selected(x + 5, y)
             && selected(x, y - 5) && selected(x, y + 5)) gold.push([x, y]);
         if (!empty && white(x, y) && white(x - 5, y) && white(x + 5, y) && white(x, y - 5) && white(x, y + 5)) empty = [x, y];
     }

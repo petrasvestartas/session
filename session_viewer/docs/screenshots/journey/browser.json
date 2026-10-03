@@ -977,10 +977,10 @@
     "27b-model": {
       "source": "e27af2a23003d9314f4ea259c3fc3d5f81bc67b68ac4b8a88594e4b0362fb358",
       "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
-      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T10:12:20.058Z",
+      "captured": "2026-10-03T10:59:28.282Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "853a4d59caf7d4c1302a8f73fbbef799d819beb8ce0d72221fe7d358eed3a8bb",
       "file": "27b-model-browser.png",
@@ -1012,10 +1012,10 @@
     "27c-move": {
       "source": "e54712ce123972f55251a85061c1d4ef8313fdc869554cb57551a36fe9f34e82",
       "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
-      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T10:12:32.225Z",
+      "captured": "2026-10-03T10:59:40.459Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "5ccd51a4347e7e5e43bfd1d51c6d45686a371436b03ae50547a45bbe8a9783f8",
       "file": "27c-move-browser.png",
@@ -1048,10 +1048,10 @@
     "27d-history": {
       "source": "a1253b9f19acdb7e04b075bc5f9fa3cdac574db7f9907b14e4335e4068d04c67",
       "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
-      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T10:12:44.807Z",
+      "captured": "2026-10-03T10:59:52.693Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "1282596a5016b8c8dabbb245c0ec65a1fb2372c7498f24ca5678599a2ba08c50",
       "file": "27d-history-browser.png",
@@ -1155,10 +1155,10 @@
     "28b-generated": {
       "source": "1af50895562fad1e31b76c3048436412c4217f7fa33275ceac5816db0baa81b4",
       "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
-      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T10:49:04.152Z",
+      "captured": "2026-10-03T10:59:58.673Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "aeaaea6cac24311dc6252f5774e1c226be85e7b01c258d6f67703c1aed1c129d",
       "file": "28b-generated-browser.png",
@@ -1190,10 +1190,10 @@
     "28c-ownership": {
       "source": "fa434c404ca48831918d210556f4ad44473c7c439ab276463a2092f167baa5ae",
       "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
-      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-03T10:49:13.920Z",
+      "captured": "2026-10-03T11:00:08.460Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "88b29e2e7f1505f6d87832eb60ef524368f32be84de6970be71b042f1c65e498",
       "file": "28c-ownership-browser.png",
@@ -1225,6 +1225,197 @@
         "Redo",
         "View Isometric",
         "Fit Selected"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "29-identity": {
+      "source": "8ac13bc9eedc302c872df28fe30c676fc22236e4ecfc13e1b238e0aa466d78f9",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T11:00:20.459Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "3146c2625c6053933c631c1ddc52a931e76fc1a56de5e5f75a947dcc570b3a2e",
+      "file": "29-identity-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "18edf67f2ef7b24ed5827b785de7f9acdc694c868ba1afb9c8e3f6abdac7b523",
+      "commands": [
+        "Example Box",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move -0.5,-0.5,0.2",
+        "View Isometric",
+        "Fit"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "29a-snapshot": {
+      "source": "fcb911c1f6291f90d003bbbf1cbd80ae8366386ae49132fc0a88a29586c26aae",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T11:04:14.892Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "c143062880e92ff32cdb91727b88da071c6f693ecc00bfcbe64d1d85e87b7823",
+      "file": "29a-snapshot-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "8b18d447218f8c1bd601d6e58b0b3ac161255d0fd99ca3789b2f46e0455d48e8",
+      "commands": [
+        "Example Box",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move 0.2,0.4,0.3",
+        "View Isometric",
+        "Fit Selected"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "29b-placements": {
+      "source": "8ddc36d2ad96726564e5a4cd0686d267dfab34c3617b7d1f7f0181c7865ad967",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T11:00:41.224Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "a3280b177ade55f74abdc22ef1f386ae50b724721741e1d17108ca42cf22adfc",
+      "file": "29b-placements-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "d9230ec9c2d1602ada099e6302fbfe7ffd19d2eb793fbf6b440c4106904633e9",
+      "commands": [
+        "Example Box",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move 1,0.5,0.3",
+        "View Isometric",
+        "Fit"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "29d-save": {
+      "source": "9f91fe3178ecd63f3d221c59106d920df12b381e3d4c4ab3c0c409a95aa30c47",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "d5fa4b7bac24587959f4427d63d6d2f912b3f14db7f08cf9a12379124c5a8115",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T11:02:15.757Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "ae0ccabfe84072f5db3d9f0327062ac159f9c1efeec0d1bc0ca6d6a7a2db9b83",
+      "file": "29d-save-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "4fc6f1c5e0d6ec32d654c8623677bf4e5aa6554bec949acda6e871ca9d6168ec",
+      "commands": [
+        "Example Box",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move 0.2,-0.7,0.2",
+        "View Isometric",
+        "Fit"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "29c-roundtrip": {
+      "source": "3710a08503bff1840dd205bea6207fb8006ca5a8d7bb6ec3e16b4144709e30a3",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "dd73b345757b90d048eeaef1b829106ffa3f5a333a9185a1c8858b5d4b6a2a57",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T11:02:45.842Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "034f116fd1474906a8d626df555217567647f7d0c47c962fb1df2bacd69bb09e",
+      "file": "29c-roundtrip-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "bcad82380ff34efa625afcbe754d2882e52cd3d7cc0325b52bc6fd0333dc31b7",
+      "commands": [
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move -0.6,0,0",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move 0.6,0,0.2",
+        "View Isometric",
+        "Fit"
       ],
       "keyboardRoundtrip": false
     }

@@ -51,15 +51,20 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [28a-imported](28a-imported.md) | 34 | 1583 | 16–32 min | 1–2 h | Within planning limit |
 | [28b-generated](28b-generated.md) | 25 | 1539 | 16–31 min | 1–2 h | Within planning limit |
 | [28c-ownership](28c-ownership.md) | 46 | 1992 | 20–40 min | 1–2 h | Within planning limit |
+| [29-identity](29-identity.md) | 38 | 1861 | 19–38 min | 1–2 h | Within planning limit |
+| [29a-snapshot](29a-snapshot.md) | 66 | 2996 | 30–60 min | 1–2 h | Within planning limit |
+| [29b-placements](29b-placements.md) | 48 | 2374 | 24–48 min | 1–2 h | Within planning limit |
+| [29c-roundtrip](29c-roundtrip.md) | 47 | 2268 | 23–46 min | 1–2 h | Within planning limit |
+| [29d-save](29d-save.md) | 46 | 2339 | 24–47 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 39 current checkpoints.
+- [x] Count the exact source edits for all 44 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 108 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 112 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

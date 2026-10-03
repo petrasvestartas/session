@@ -2,7 +2,7 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 39 cumulative lessons, about 87–151 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 44 cumulative lessons, about 92–161 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
 The [complete draft lesson checklist](journey/roadmap.md) has **101 proposed slots: 29 current checkpoints and 72 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
@@ -55,6 +55,11 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [28a · Retain the imported mesh behind each row](journey/28a-imported.md) | 1–2 hours | Insert imported source geometry and its prepared display together. |
 | [28b · Give generated objects the same source owner](journey/28b-generated.md) | 1–2 hours | Build demo triangles and Example Box from kernel geometry; derive all displays on insertion. |
 | [28c · Prove source ownership survives editing](journey/28c-ownership.md) | 1–2 hours | Connect local source geometry, display caches, provenance and document history. |
+| [29 · Give each saved object a stable identity](journey/29-identity.md) | 1–2 hours | Distinguish a scene object from the original geometry it shares. |
+| [29a · Write a snapshot from the editable sources](journey/29a-snapshot.md) | 1–2 hours | Serialize live source meshes and their placements without changing the editor. |
+| [29b · Reopen source geometry with its placement](journey/29b-placements.md) | 1–2 hours | Validate stored placements before reconstructing source-backed objects. |
+| [29c · Prove the saved document reopens faithfully](journey/29c-roundtrip.md) | 1–2 hours | Check exact local source data, attributes, identities and placement through saving and loading. |
+| [29d · Download the editable document from the command line](journey/29d-save.md) | 1–2 hours | Connect Save to a browser download and reopen the actual downloaded document. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 
