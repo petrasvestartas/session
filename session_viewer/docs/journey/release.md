@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 35 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–27 plus four short placement follow-ups plus the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 39 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–28 plus placement and source-ownership follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -14,6 +14,7 @@ This is the opening of the full viewer course. The [remaining lesson checklist](
 - Later checks cover command actions, picking, resizing, orbit and release, wheel without page scrolling, immediate command-field focus without losing the first character, and Open with whole-import Undo/Redo.
 - Fit is checked for repeatability, recovery after panning, document history, and geometry margins in wide and tall windows.
 - Placement lessons keep local mesh coordinates separate from model matrices; bounds, ray picking and GPU drawing share world placement. Typed Move checks world-axis composition, immutable shared geometry, Undo/Redo, finite arguments and zero-offset history. Chrome checks rendered interior picking and visible command errors; exact raster-edge ownership is deferred to GPU picking.
+- The source-ownership lessons retain original kernel meshes beside their derived display arrays. The final endpoint passes 51 native tests, including double-coordinate preservation, adapter failure, imported allocation identity and ownership across Move/Undo/Redo. Chrome checks import, placed drawing, history and interior picking; visibility and locking policies are still later work.
 - Lesson 25 checks the perspective/orthographic pixel round trip and selects a visible imported beam in each projection. Its 39 Rust tests also check camera, fitting, picking and document invariants.
 
 The scene comparison excludes the command strip. When a key opens completion over the drawing, the test dismisses that overlay before checking camera pixels. Full-page screenshots still show the real interface.
@@ -61,6 +62,6 @@ npm --prefix ../session_tests run course -- capture
 npm --prefix ../session_tests run course -- generate
 ```
 
-Capture checks the build fingerprints before launching Chrome. These commands use `target` and leave `workspace/journey` untouched. The separate `structure` audit includes the unfinished production destination comparison; its remaining differences must be resolved before declaring the entire course complete.
+Capture checks the build fingerprints and runs each uploaded specimen’s handwritten Rust example before launching Chrome. These commands use `target` and leave `workspace/journey` untouched. The separate `structure` audit includes the unfinished production destination comparison; its remaining differences must be resolved before declaring the entire course complete.
 
 [Return to the course](../journey.md)

@@ -2905,6 +2905,365 @@
       "image_result": "The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels.",
       "browser_check": "journey/checks/browser/placement.cjs",
       "browser_result_status": "Select an object before Move"
+    },
+    {
+      "id": "28-record",
+      "title": "Prepare a display from an owned source mesh",
+      "page": "journey/28-record.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Give source geometry a shared owner and prepare its display before committing an object.",
+      "trace": "Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays",
+      "question": "Why must a save read the source mesh instead of the displayed vertex array?",
+      "answer": "The display array uses floats, triangle indices and draw colours. The kernel mesh keeps double coordinates, original topology, names, visibility and locking. PreparedMesh owns the kernel mesh and derives the display from it, so failure happens before the scene takes ownership.",
+      "story": "The imported file has a retained source, but Example Box currently keeps only the arrays made for drawing. That would be a poor starting point for Save: a drawing buffer cannot recover all the source information.\n\nIntroduce PreparedMesh. It is a transit value between source construction and scene insertion. The kernel mesh is the source; display is a derived, validated adapter result. This checkpoint builds and tests that boundary. The next two lessons connect it to import and generated objects. The live scene still uses the previous insertion path today.\n\n![An owned kernel mesh is prepared into source ownership and a derived display before insertion.](../illustrations/journey-28.svg)\n\nRc shares one immutable kernel mesh between records and later history snapshots. Source remains optional provenance: generated geometry has no imported file, while an imported object can still refer to its original session and GUID. A missing file is not the same as missing geometry.\n\nThe constructor initializes the kernel mesh’s lazy GUID before handing it to shared owners. Then it calls the adapter we already wrote. The ? returns an adapter error before a PreparedMesh exists. No object ID or undo record is consumed by this preparation.\n\nThe precision check chooses a coordinate that is distinguishable as a double but rounds when cast to a float. This is intentional evidence that the two representations serve different purposes. It also checks that the source name and visibility/locking attributes survived preparation. Those attributes are retained here; their display and selection policies come in later small lessons.\n\nThe second check uses a finite double too large for a float. Preparation must return an error. Finite source coordinates alone do not prove the display can represent them.",
+      "result": "Build and run the source-record checks. The source retains its exact double coordinate, name and flags; its display uses float coordinates. In the live viewer, Open your sample file, View Isometric, Select Next four times and Fit Selected. That existing picture is unchanged by adding the preparation type.",
+      "experiment": "Change the precision check’s coordinate to 123456789.125 and predict the source and float values. Restore it. Explain why a clone of Rc keeps one source allocation while a float display still needs its own arrays.",
+      "production": "The production viewer retains kernel source objects separately from upload tables. PreparedMesh makes the source-to-display boundary explicit; import and generated-object insertion adopt it next.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/28-record.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/prepared.rs",
+          "before": null,
+          "snippet": "journey/code/28-record-01.rs",
+          "why": "Create the transit owner. Keep original kernel data beside the display prepared from it."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod mesh;\n",
+          "snippet": "journey/code/28-record-02.rs",
+          "why": "Expose the preparation boundary without changing the running browser adapter."
+        },
+        {
+          "path": "src/prepared_tests.rs",
+          "before": null,
+          "snippet": "journey/code/28-record-03.rs",
+          "why": "Compare original doubles with the display, and retain name, flags and GUID through preparation."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod move_tests;\n",
+          "snippet": "journey/code/28-record-04.rs",
+          "why": "Compile the source checks in the native test build."
+        }
+      ],
+      "browser_caption": "Prepare a display from an owned source mesh. These commands run in the actual dock; kernel ownership is checked separately in Rust.",
+      "image_result": "The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.",
+      "browser_result_status": "File imported. Undo removes the entire import."
+    },
+    {
+      "id": "28a-imported",
+      "title": "Retain the imported mesh behind each row",
+      "page": "journey/28a-imported.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Insert imported source geometry and its prepared display together.",
+      "trace": "Decoded session → prepared source/display pair → Object source geometry → history snapshot",
+      "question": "If rows move after deletion, how can the object still find its source?",
+      "answer": "Source identity uses a retained session and GUID, not the row index. The object also directly owns the original kernel mesh through Rc. Its display can move to another row without changing either source owner.",
+      "story": "Now use the preparation boundary when loading. Loaded carries PreparedMesh values instead of a GUID/display tuple. Each prepared value retains the complete kernel mesh and its provenance before any scene insertion occurs.\n\nThe scene is in a short migration: imported objects get Some shared source geometry; our older hand-written demos and generated box still get None. The next lesson removes that temporary gap. The Option makes the current state explicit rather than pretending every existing object already has a source.\n\n![A retained source session supplies prepared meshes; each imported row keeps its source geometry and GUID.](../illustrations/journey-28a.svg)\n\nThe kernel session already stores each mesh in an Rc. Rc::clone shares that same source allocation with the prepared value and later scene snapshots. No deep geometry copy is needed. The imported session remains intact: it holds file context such as the tree and document name. These are two related owners with different jobs.\n\nPreparation may fail while decoding the supported subset. No scene has been touched then. Scene::import inserts each display and moves the corresponding source owners into that same object. History still wraps the entire import as one transaction.\n\nMoving prepared.display transfers that field into the insertion function. Rust still lets this transit value transfer its other fields individually: geometry and source have not moved yet. The later complete insertion groups these transfers in one place.",
+      "result": "Open your sample file, Select Next five times, View Orthographic and Fit Selected. The top beam is framed and selectable. Inspect the Rust checks: imported objects have source geometry even after their display row moves; Undo/Redo restores the same Rc owners.",
+      "experiment": "In the import test, remove both original demo IDs before inspecting the imported object. Its row number changes while its ObjectId, source GUID and geometry allocation remain stable. Restore the test before checking your files.",
+      "production": "The production scene keeps source identity through row replacement and compaction. This lesson connects source ownership to our smaller row table; generated objects adopt the same path next.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "View Orthographic"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/28a-imported.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "use crate::mesh::Mesh;\n",
+          "snippet": "journey/code/28a-imported-01.rs",
+          "why": "Load source/display pairs rather than display arrays alone."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    pub meshes: Vec<(String, Mesh)>,\n",
+          "snippet": "journey/code/28a-imported-02.rs",
+          "why": "Retain the prepared geometry alongside its display."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "        meshes.push((mesh.guid().to_owned(), Mesh::from_kernel(mesh)?));\n",
+          "snippet": "journey/code/28a-imported-03.rs",
+          "why": "Share the session’s existing kernel mesh owner, then attach retained file provenance."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub mesh: Rc<Mesh>,\n",
+          "snippet": "journey/code/28a-imported-04.rs",
+          "why": "During migration, distinguish rows with source geometry from older demo rows."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        self.objects.push(Object { id, mesh: Rc::new(mesh), model: session_rust::Xform::identity(), source: None });\n",
+          "snippet": "journey/code/28a-imported-05.rs",
+          "why": "Keep the existing insertion path while imported rows begin retaining source geometry."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for (guid, mesh) in loaded.meshes {\n            self.insert(mesh)?;\n            self.objects.last_mut().unwrap().source = Some(crate::document::Source {\n                document: Rc::clone(&loaded.document), guid,\n            });\n        }\n",
+          "snippet": "journey/code/28a-imported-06.rs",
+          "why": "Keep each prepared display and source on the same stable object record."
+        },
+        {
+          "path": "src/imported_source_tests.rs",
+          "before": null,
+          "snippet": "journey/code/28a-imported-07.rs",
+          "why": "Prove import shares the session’s existing source allocation even when earlier display rows disappear."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod prepared_tests;\n",
+          "snippet": "journey/code/28a-imported-08.rs",
+          "why": "Run the source allocation check at this intermediate checkpoint."
+        }
+      ],
+      "browser_caption": "Retain the imported mesh behind each row. These commands run in the actual dock; kernel ownership is checked separately in Rust.",
+      "image_result": "The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.",
+      "browser_result_status": "File imported. Undo removes the entire import."
+    },
+    {
+      "id": "28b-generated",
+      "title": "Give generated objects the same source owner",
+      "page": "journey/28b-generated.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.",
+      "trace": "Kernel triangle or box → PreparedMesh → source-owning Object → derived display",
+      "question": "What does None provenance mean after every object owns kernel geometry?",
+      "answer": "It means the object was made here instead of imported from a file. It no longer means geometry is missing: Object::geometry is now a required shared source mesh. The display is derived from that source on the same insertion path.",
+      "story": "Close the migration. Demo triangles and the optional extra triangle are small kernel meshes; Example Box retains the kernel mesh it already creates. All enter through PreparedMesh. Every Object can now keep its source geometry, placement and optional file provenance independently of the drawing cache.\n\n![Imported and generated source geometry converge on the same preparation and insertion boundary.](../illustrations/journey-28b.svg)\n\nPreparedMesh::triangle creates three kernel Points and one triangular face. Color is an object attribute. The kernel stores its colour channels in bytes, so these demo colours are quantized before the display adapter reads them; a slight shade change is expected. This does not change the source/drawing ownership rule.\n\nChange Scene::insert to consume a prepared value. The geometry goes to Object::geometry, display goes into the Rc drawing cache, and provenance goes to Object::source. Remove Option from geometry because every call now supplies it. Identity still initializes placement.\n\nExample Box stops discarding its kernel mesh after conversion. Imported objects use the same insertion function, so import no longer patches source fields on the last inserted row. Bounds, picking, GPU matrices and Move keep the ownership conventions already established.",
+      "result": "Run Example Box, Select Next three times, Move 0.4,0.2,0 and Fit Selected. The placed box still works. All five kinds of row created so far—two demos, extra triangle, generated box and imported meshes—retain kernel geometry. The next check proves history shares it.",
+      "experiment": "Change PreparedMesh::triangle’s object colour, then compare its kernel colour with the uploaded display colour. Explain why the conversion may quantize channels and why changing the camera does not rewrite either geometry representation. Restore the original code.",
+      "production": "The maintained viewer creates and edits source geometry first, then synchronizes display tables. This checkpoint establishes that direction for every current mesh object. Later geometry families extend it without making GPU data the editable document.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 0.4,0.2,0"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/28b-generated.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/prepared.rs",
+          "before": "impl PreparedMesh {\n",
+          "snippet": "journey/code/28b-generated-01.rs",
+          "why": "Create demo source geometry before deriving the drawing representation."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "use crate::mesh::Mesh;\n",
+          "snippet": "journey/code/28b-generated-02.rs",
+          "why": "All insertion callers now supply prepared source geometry."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub geometry: Option<Rc<session_rust::Mesh>>,\n",
+          "snippet": "journey/code/28b-generated-03.rs",
+          "why": "Every current object has source geometry; only imported-file provenance stays optional."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        let pink = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid pink triangle\");\n        let turquoise = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid turquoise triangle\");\n",
+          "snippet": "journey/code/28b-generated-04.rs",
+          "why": "Describe the same two triangles as source points and an object colour."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {\n        let next = self.next_id.checked_add(1).ok_or(\"Object IDs exhausted\")?;\n        let id = ObjectId(self.next_id);\n        self.next_id = next;\n        self.objects.push(Object { id, mesh: Rc::new(mesh), geometry: None, model: session_rust::Xform::identity(), source: None });\n        Ok(id)\n    }\n",
+          "snippet": "journey/code/28b-generated-05.rs",
+          "why": "Consume one prepared value into one source-owning document record."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for prepared in loaded.meshes {\n            self.insert(prepared.display)?;\n            let object = self.objects.last_mut().unwrap();\n            object.geometry = Some(prepared.geometry);\n            object.source = prepared.source;\n        }\n",
+          "snippet": "journey/code/28b-generated-06.rs",
+          "why": "Import uses the same complete record insertion as generated geometry."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        let id = self.insert(Mesh::from_kernel(&source)?)?;\n",
+          "snippet": "journey/code/28b-generated-07.rs",
+          "why": "Retain the kernel box instead of keeping only its display."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n",
+          "snippet": "journey/code/28b-generated-08.rs",
+          "why": "Keep source geometry for the optional triangle too."
+        },
+        {
+          "path": "src/imported_source_tests.rs",
+          "before": "    let geometry = Rc::clone(imported.geometry.as_ref().unwrap());\n",
+          "snippet": "journey/code/28b-generated-09.rs",
+          "why": "The source is now required, so remove the temporary Option unwrap in the check."
+        },
+        {
+          "path": "src/imported_source_tests.rs",
+          "before": "    assert!(Rc::ptr_eq(moved_row.geometry.as_ref().unwrap(), &geometry));\n",
+          "snippet": "journey/code/28b-generated-10.rs",
+          "why": "Compare the required shared owner after its display row changes."
+        }
+      ],
+      "browser_caption": "Give generated objects the same source owner. These commands run in the actual dock; kernel ownership is checked separately in Rust.",
+      "image_result": "The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.",
+      "browser_check": "journey/checks/browser/placement.cjs"
+    },
+    {
+      "id": "28c-ownership",
+      "title": "Prove source ownership survives editing",
+      "page": "journey/28c-ownership.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Connect local source geometry, display caches, provenance and document history.",
+      "trace": "Source mesh plus placement → Move → Undo/Redo → same source allocation and identity",
+      "question": "Which data must stay unchanged when Move edits only placement?",
+      "answer": "The original kernel vertices and attributes, the Rc source allocation, source GUID, imported session and local display arrays must remain unchanged. Undo and Redo change the placement stored in the document, while the camera stays where the user put it.",
+      "story": "Now test the complete boundary rather than only the constructor. A moved object is still the same source shape. Its placement changes, but editing must not bake that placement into either the kernel vertices or drawing arrays.\n\n![Move and history replace placement while the same shared source geometry and provenance survive.](../illustrations/journey-28c.svg)\n\nThe first check uses a generated box. It clones the Rc owners, records a source vertex and GUID, moves the box, then travels through history. Pointer equality proves we did not silently replace a source allocation with an equivalent copy.\n\nThe second check imports a file, removes the two original demo rows and asks again about the imported object by stable ID. The display row changes, but the owned source mesh still matches the source GUID and retained session.\n\nTogether with the preparation and import checks, these checks cover generated and imported source owners. Generated objects have geometry even without file provenance. Imported objects have both. These are the owners Save can use next; it must never rebuild source geometry from the float drawing cache.",
+      "result": "Open the sample file, Example Box, Select Next six times, Move -0.3,0,0, Undo, Redo, View Isometric and Fit Selected. The generated box moves and history restores its placement. Run the ownership checks to inspect source vertices, GUIDs and shared owners independently of the picture.",
+      "experiment": "In the generated-box check, add a second Move with a different offset and another Undo. Predict which placement is restored and why both Rc pointers stay identical. Restore the original checks afterward.",
+      "production": "The production source transaction and display synchronization paths preserve document identity through moves, undo and row compaction. These checks establish the source owner for our current mesh subset; later save/load and additional geometry types extend it.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move -0.3,0,0"
+        },
+        {
+          "command": "Undo"
+        },
+        {
+          "command": "Redo"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "frame": "journey/checks/28c-ownership.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/source_tests.rs",
+          "before": null,
+          "snippet": "journey/code/28c-ownership-01.rs",
+          "why": "Check source and display allocations, original vertices, placement history and retained file provenance."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod prepared_tests;\n",
+          "snippet": "journey/code/28c-ownership-02.rs",
+          "why": "Compile the connected ownership checks with the current scene."
+        }
+      ],
+      "browser_caption": "Prove source ownership survives editing. These commands run in the actual dock; kernel ownership is checked separately in Rust.",
+      "image_result": "The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.",
+      "browser_check": "journey/checks/browser/placement.cjs",
+      "browser_result_status": "File imported. Undo removes the entire import."
     }
   ]
 }

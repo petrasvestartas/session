@@ -1080,6 +1080,153 @@
         "Fit"
       ],
       "keyboardRoundtrip": false
+    },
+    "28-record": {
+      "source": "b75ebfb4d1d0099006d5f48546096c7ffcabd5359095f6e394cbfc0ab13e57b0",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T10:48:52.787Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "72d5a1c8c3f9955f0ec2135e00f7b4fd925c97cafe4a3709f8950caa331da410",
+      "file": "28-record-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1a1adc74bf0af6605e30715df339a404ed5318561780222fa8c85639ea025cf3",
+      "commands": [
+        "View Isometric",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Fit Selected"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "28a-imported": {
+      "source": "2ae7285bd415c9d1e562371e9d6138aa52dcf6e29879622b3a95c78136a30351",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T10:48:58.121Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "4386301f18c363832395b53d8087f3997467c74e1c6fbde8150431fcf1218ede",
+      "file": "28a-imported-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "c53fcd9be828d20dd2fabbfccd7943129a1c8eac4ba1ff89c59e99ffdeabc7de",
+      "commands": [
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "View Orthographic",
+        "Fit Selected"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "28b-generated": {
+      "source": "1af50895562fad1e31b76c3048436412c4217f7fa33275ceac5816db0baa81b4",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T10:49:04.152Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "aeaaea6cac24311dc6252f5774e1c226be85e7b01c258d6f67703c1aed1c129d",
+      "file": "28b-generated-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "360c7eb5cdc3aa45c81c9f84cc8dffe61edfae52c36508b43b0a7af75cbf099a",
+      "commands": [
+        "Example Box",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move 0.4,0.2,0",
+        "Fit Selected"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "28c-ownership": {
+      "source": "fa434c404ca48831918d210556f4ad44473c7c439ab276463a2092f167baa5ae",
+      "checker": "7fe6978c9c20e8421525b36a89726991047609a8648bc995562f3a3d500a0d4c",
+      "extraChecker": "c03e9955a640425b9ad9e788b483a7b7374a22eb8695f11d5df182954382e43f",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T10:49:13.920Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "88b29e2e7f1505f6d87832eb60ef524368f32be84de6970be71b042f1c65e498",
+      "file": "28c-ownership-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "5eebbf13a6275301fbc5e545897065885888494149458aac076082ca6b1c77dc",
+      "commands": [
+        "Example Box",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Select Next",
+        "Move -0.3,0,0",
+        "Undo",
+        "Redo",
+        "View Isometric",
+        "Fit Selected"
+      ],
+      "keyboardRoundtrip": false
     }
   }
 }

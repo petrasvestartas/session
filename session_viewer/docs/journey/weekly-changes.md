@@ -20,7 +20,8 @@ The local protobuf checkout currently predates the kernel's committed visibility
 - [x] Review the week's commit history and identify its teaching destinations.
 - [x] Verify current production typing, repeat and mouse/phone input in Chrome.
 - [x] Revise and verify lessons 03d and 22–26.
-- [ ] Add visibility/locking and color load/save fixtures to the cumulative course.
+- [x] Preserve original double coordinates, names and visibility/locking attributes through source preparation; share original imported geometry.
+- [ ] Add visibility/locking and color save/reopen fixtures, then implement their drawing and selection policies.
 - [x] Diagnose and fix current close-up line loss with a geometric oracle and browser views: eight native view/sample combinations and 24 Chrome zoom views pass.
 - [ ] Verify the attributes and opacity defaults in the completed rendering chapters.
 

@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 105 lesson slots; 35 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 108 lesson slots; 39 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 35 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 39 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -103,7 +103,13 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 27d · [Prove placement and history agree](27d-history.md) — shared mesh identity, Undo/Redo, errors, zero offsets and actual rendered picking.
 
-- [ ] 28 · Keep source records as the editable document — derive display rows from stable source identity.
+- [x] 28 · [Prepare a display from an owned source mesh](28-record.md) — preserve double coordinates, attributes and identity before display conversion.
+
+- [x] 28a · [Retain the imported mesh behind each row](28a-imported.md) — share the original session allocation and retain file provenance.
+
+- [x] 28b · [Give generated objects the same source owner](28b-generated.md) — source geometry is required for every scene object.
+
+- [x] 28c · [Prove source ownership survives editing](28c-ownership.md) — Move, Undo/Redo and row removal preserve source and display owners.
 
 - [ ] 29 · Save a document and reopen it — preserve geometry, names, IDs and placements.
 

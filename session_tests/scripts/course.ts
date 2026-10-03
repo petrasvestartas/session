@@ -5,7 +5,7 @@ import {spawnSync} from 'node:child_process';
 import {course, docs, viewer, work, expected, referenceFiles, compare, materialize, referenceAssets, safeOutput, lockFor, dependencies, assetsFor} from './course/model.ts';
 import {save, restore} from './course/checkpoints.ts';
 import {generate} from './course/render.ts';
-import {structure, verify} from './course/verify.ts';
+import {structure, verify, runCommand} from './course/verify.ts';
 import {serve} from './course/serve.ts';
 import {verifyReference, parity} from './course/reference.ts';
 import {diagrams} from './course/diagrams.ts';
@@ -70,8 +70,20 @@ function main() {
         const stored = ids.includes('--stored');
         verify(ids.filter(id => id !== '--stored'), stored);
     } else if (action === 'capture') {
-        verify([name, ...args].filter(Boolean), true);
-        const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), ...[name, ...args].filter(Boolean)], {cwd: viewer, stdio: 'inherit',
+        const ids = [name, ...args].filter(Boolean);
+        verify(ids, true);
+        // Verification reconstructs each checkpoint from scratch. Recreate its
+        // handwritten specimen before Chrome opens the file picker.
+        for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
+            const uploads = (step.browser_actions || []).filter(action => 'file' in action);
+            if (!uploads.length) continue;
+            if (uploads.some(action => 'file' in action && action.file !== 'sample.pb')) {
+                throw Error(`${step.id}: unsupported browser specimen`);
+            }
+            runCommand(`${step.id}-sample`, ['cargo', 'run', '--example', 'sample', '--locked',
+                '--target', 'x86_64-unknown-linux-gnu', '-j4'], path.join(viewer, 'target', `course-${step.id}`));
+        }
+        const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), ...ids], {cwd: viewer, stdio: 'inherit',
             env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
         if (result.status !== 0) throw Error('Browser capture failed; see the error above.');
     } else if (action === 'serve') {
