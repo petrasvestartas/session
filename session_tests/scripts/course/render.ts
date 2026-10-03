@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createRequire} from 'node:module';
-import {course, docs, read, json, write, hash, typingLoad} from './model.ts';
+import {course, docs, read, json, write, hash, typingLoad, expected} from './model.ts';
 import {signature} from './verify.ts';
 
 const language: Record<string, string> = {'.rs': 'rust', '.wgsl': 'wgsl', '.html': 'html', '.toml': 'toml', '.md': 'markdown', '.sh': 'sh', '.yaml': 'yaml'};
@@ -15,6 +15,7 @@ export function generate() {
     for (const [index, step] of steps.entries()) {
         const [low, high] = step.hours;
         const typing = typingLoad(step);
+        const buildEnv = expected(step.id)['Cargo.toml'].includes('session_rust') ? 'REGEN_PROTO=0 ' : '';
         const page = [`# ${step.id.split('-')[0]} · ${step.title}`,
             `**Combined study estimate: ${low}–${high} hours.** Includes reading, typing, reasoning and experiments.`,
             `**Typing estimate: ${typing.minutes.join('–')} minutes.** ${typing.lines} added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).`,
@@ -39,7 +40,7 @@ export function generate() {
         if (step.lock) page.push('After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:',
             `\`\`\`sh\n${command} dependencies ${step.id}\n\`\`\``);
         page.push('From `session_viewer`, enter your project folder:',
-            '```sh\ncd workspace/journey\ncargo build --lib --locked --target wasm32-unknown-unknown -j4\nCARGO_BUILD_JOBS=4 trunk serve --port 8780\n```',
+            `\`\`\`sh\ncd workspace/journey\n${buildEnv}cargo build --lib --locked --target wasm32-unknown-unknown -j4\n${buildEnv}CARGO_BUILD_JOBS=4 trunk serve --port 8780\n\`\`\``,
             'Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.', step.result);
         const evidence = browser[step.id];
         if (evidence && evidence.source === signature(step.id)
@@ -56,7 +57,7 @@ export function generate() {
                 `![Native renderer output for ${step.title.toLowerCase()}.](../screenshots/journey/${picture}.png)`,
                 '*Read directly from this checkpoint’s GPU texture. Browser controls and event delivery remain unverified until the browser check passes.*');
         }
-        if (step.tests) page.push('Run the state checks from your project folder:', '```sh\ncargo test --lib --locked -j4\n```');
+        if (step.tests) page.push('Run the state checks from your project folder:', `\`\`\`sh\n${buildEnv}cargo test --lib --locked -j4\n\`\`\``);
         page.push('## Try one small experiment', step.experiment, '## Explain it in your own words',
             'Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.',
             `<details>\n<summary>Compare your explanation</summary>\n\n${step.answer}\n\n</details>`,

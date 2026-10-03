@@ -64,11 +64,19 @@ From `session_viewer`, enter your project folder:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
+REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+
+When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+
+```sh
+REGEN_PROTO=0 cargo run --example sample --locked -j4
+```
+
+Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
 
 Build the atomic hydration API. The browser still ends with the source unloaded; use the next native checkpoint to exercise restored editing and saving.
 
@@ -83,7 +91,7 @@ The browser checks the existing command-only unload behavior and retained drawin
 Run the state checks from your project folder:
 
 ```sh
-cargo test --lib --locked -j4
+REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 ## Try one small experiment

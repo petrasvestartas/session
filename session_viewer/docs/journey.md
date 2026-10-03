@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 79 cumulative lessons, about 127–231 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 86 cumulative lessons, about 134–245 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **150 proposed slots: 79 current checkpoints and 71 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **154 proposed slots: 86 current checkpoints and 68 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -95,6 +95,13 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [32gc · Prove source restoration preserves display and history](journey/32gc-roundtrip.md) | 1–2 hours | Restore exact source coordinates and editing without reallocating retained display owners. |
 | [32gd · Reject stale or inconsistent source batches atomically](journey/32gd-rejections.md) | 1–2 hours | Keep rows cold on changed versions, missing source identity and obsolete release keys. |
 | [32ge · Ignore old reload results before decoding them](journey/32ge-stale.md) | 1–2 hours | Reject results for closed imports, loaded rows, duplicate keys and previous release epochs. |
+| [32gf · Give each source request its own owner](journey/32gf-request.md) | 1–2 hours | Give each source request its own owner. |
+| [32gfa · Prove cancelled work releases its source owners](journey/32gfa-ownership.md) | 1–2 hours | Prove cancelled work releases its source owners. |
+| [32gg · Read a source response within its byte limit](journey/32gg-fetch.md) | 1–2 hours | Read a source response within its byte limit. |
+| [32gga · Pair reload ownership with a browser abort controller](journey/32gga-flight.md) | 1–2 hours | Pair reload ownership with a browser abort controller. |
+| [32ggb · Deliver only the current completed reload batch](journey/32ggb-delivery.md) | 1–2 hours | Deliver only the current completed reload batch. |
+| [32gh · Restore editable sources through the command line](journey/32gh-command.md) | 1–2 hours | Restore editable sources through the command line. |
+| [32gha · Cancel reloads when their document context changes](journey/32gha-cancel.md) | 1–2 hours | Cancel reloads when their document context changes. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

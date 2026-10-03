@@ -296,8 +296,8 @@ From `session_viewer`, enter your project folder:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
+REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
@@ -313,7 +313,7 @@ Open the specimen, Example Box, Select Next six times, Move 0.5,-0.6,0.3, View I
 Run the state checks from your project folder:
 
 ```sh
-cargo test --lib --locked -j4
+REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 ## Try one small experiment

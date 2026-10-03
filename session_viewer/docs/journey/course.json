@@ -1270,7 +1270,7 @@
       "question": "Why can a larger world z value now belong to the nearer triangle?",
       "answer": "World z is a scene coordinate, not distance from the camera. This camera is at positive z and looks toward z = 0, so the triangle at z = 0.75 is nearer than the one at z = 0.25. The view and projection matrices convert those world positions into depth values for the existing Less comparison.",
       "story": "Our earlier view treated distance like a flat drawing. Perspective makes the same object appear larger when it is closer to the eye. Today the camera looks from z = 3 toward z = 0, with a 60-degree vertical field of view.\n\nThe matrix now has two jobs. The **view matrix** describes positions relative to the eye and its right, up and forward directions. The **projection matrix** produces clip coordinates. The GPU divides x, y and z by w before mapping them into the image. Farther points have a larger divisor, so they appear smaller.\n\n![The eye sees a widening region between near and far planes; reversing the projection turns a clicked pixel into a segment through that region.](../illustrations/journey-15.svg)\n\nThe shader already multiplies a four-component position by a matrix. It does not need to change. The depth attachment also keeps its existing Less rule. The matrix now calculates depth from the camera rather than using world z directly. Notice the result: the turquoise triangle is nearer from this camera position, so it wins the overlap.\n\nWe now use `Point`, `Vector` and `Xform` from the repository's Rust geometry kernel, the same library used by the finished viewer. These are geometry-library operations, not a hidden viewer implementation. `to_f32` supplies the column-major bytes our uniform already expects. The kernel uses double precision for calculations; the GPU still receives floats. The path in Cargo.toml points from your handwritten project to the existing `session_rust` crate.\n\nA click is no longer one world point. It describes a line of sight. Transform that screen location at depth 0 and depth 1 through the inverse view-projection matrix: these are its near and far points. Their difference gives a direction, and their separation limits the ray to the visible depth interval. We therefore reject hits behind the near point or beyond the far point.\n\nThe triangle query solves `origin + t×direction = a + u×edge1 + v×edge2`. u and v retain the coverage meaning from the last lesson; t is now distance along the ray. The cross products let each dot product isolate one unknown. A determinant close to zero means the ray and triangle cannot provide a reliable intersection. After finding coverage, compare t across objects and keep the nearest valid hit.\n\nThe fixed field of view and clipping planes are enough for this small specimen. Later lessons add orbit, fit-to-scene, dynamic viewport size and the precision policy of the full viewer.\n\nSet the camera’s aspect to the initial window width divided by its height. The projection then agrees with the full-window image. Resetting the camera keeps this aspect: changing the view must not change the window’s proportions.",
-      "result": "The triangles now have perspective-dependent sizes. Turquoise wins the central overlap from this camera position. Click it, run `Delete`, then `Undo`. Run `Zoom In` and repeat: picking should still agree with the picture.",
+      "result": "`REGEN_PROTO=0` uses the kernel’s committed protobuf bindings. Keep that setting for these tutorial builds so a different local protobuf checkout cannot regenerate incompatible fields.\n\nThe triangles now have perspective-dependent sizes. Turquoise wins the central overlap from this camera position. Click it, run `Delete`, then `Undo`. Run `Zoom In` and repeat: picking should still agree with the picture.",
       "experiment": "Before running, predict which triangle is closer to an eye at z = 3. Check the overlap. Then select and delete turquoise: the pink surface beneath should become selectable. Undo, zoom in, and explain why the CPU ray and GPU depth test still agree despite the changed apparent sizes.",
       "production": "The full viewer uses this same geometry kernel, view-projection boundary and identity resolution. Its later camera adds world-up orbit, units, fit, floating origins and reversed depth for large scenes; those are extensions of the responsibilities introduced here.",
       "browser_status": "Perspective and picking use the same camera.",
@@ -5853,7 +5853,7 @@
       "question": "Why is a file GUID insufficient to accept a reload result?",
       "answer": "Duplicate imports can share the same original GUID and byte version. A result must belong to this imported Origin allocation and its current release epoch. Loaded rows, closed rows and another release cycle must not match it.",
       "story": "Define `ReloadKey` as an Origin owner and one release epoch. matches compares the actual imported Origin Rc and the row’s current epoch. That is the residency identity; local/saved object identity and source GUID remain separate.\n\nCollect distinct keys from active cold rows. A later explicit reload can use them, while source adoption will also visit matching history roots. Do not fetch a history-only source without a current active request. If history later restores that source, a new request can obtain its current key.\n\nThe native test unloads, records a key, closes and imports the same bytes again. The old key cannot match the new import. A key with a changed epoch cannot match the current cold row either. No fetch or Reload Sources command exists yet; the browser retains the preceding unload behavior.\n\n`Rc::clone` creates another owner of the same value; it does not copy the Origin. `Rc::ptr_eq` asks whether two owners refer to that same allocation. `Option<Self>` means a row might have no reload key: the question marks return None immediately for a loaded or unlocated row. `is_some_and` runs the comparison only when an origin exists.\n\n![Borrow the current imported release identity and epoch before asking for source data.](../illustrations/journey-32g.svg)",
-      "result": "Run the release-identity checks, then Unload Sources in the unchanged browser. Compare the current origin/epoch with the saved row GUID.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nRun the release-identity checks, then Unload Sources in the unchanged browser. Compare the current origin/epoch with the saved row GUID.",
       "experiment": "Compare two imports of the same file. Explain why sharing the byte version must not make a result for one import eligible for the other.",
       "production": "Production source fetches carry a release token. This explicit key prepares the same rejection of old completions across replacement, Close and another release cycle.",
       "tests": true,
@@ -5902,7 +5902,7 @@
       "question": "Why should reloading editable sources avoid preparing another display mesh?",
       "answer": "The displayed rows and GPU buffers are already retained. Reload needs original kernel ownership for editing, not a second float approximation or a new upload. Decode and validate the exact source version, then keep a candidate Session until every affected row is checked.",
       "story": "Introduce `document::decode` as the common bounded protobuf/schema boundary. Ordinary `load_at` still creates an Origin and prepares display meshes. `document::restore` instead validates the expected immutable byte version, constructs the kernel `Session` and returns its Rc directly.\n\n`PreparedReload` owns one key and one candidate `Session`. It checks each matching row’s original source GUID, name and visibility/locking against the decoded kernel mesh. Missing source identity or metadata drift refuses adoption; retained displays are never treated as editable geometry.\n\nA candidate does not change a row. This separation makes it possible to validate every candidate and history root before mutation. SHA-256 here identifies the immutable selected File; mutable published HTTP source policies remain later work.\n\nThe ampersand borrows bytes and the Origin for this call. `Result<Rc<Session>, &'static str>` returns either an owned `Session` handle or an error message; the messages are string literals that exist for the whole program. map wraps only a successful `Session` in Rc. A failed candidate cannot change the `Scene` because preparation never receives a mutable `Scene`.\n\n![Validate an immutable source version and restore its `Session` into a private reload candidate.](../illustrations/journey-32ga.svg)",
-      "result": "Run the existing bounded-loader and source tests with the refactored decode boundary. The picture, file behavior and source-unload command remain unchanged.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nRun the existing bounded-loader and source tests with the refactored decode boundary. The picture, file behavior and source-unload command remain unchanged.",
       "experiment": "Follow the difference between load_at and restore. Identify where display conversion occurs, and why the restored candidate should not invoke it.",
       "production": "Production hydration brings back kernel Sessions before editing. This preparation stage restores original source ownership while preserving the current display and placement policy.",
       "tests": true,
@@ -5951,7 +5951,7 @@
       "question": "What prevents a valid first candidate from committing when a later source fails?",
       "answer": "Prepare every candidate and validate every affected row before the adoption loop. If any version, source GUID or metadata check fails, the function returns with all rows still cold and no new history entry.",
       "story": "hydrate accepts key/byte pairs from a completed request. First check that each distinct key still matches an active cold row; a stale or duplicate key cannot start preparation. Next build every candidate and validate all matching active, Undo and Redo rows. Only after every check succeeds does `Scene` adopt the prepared source owners.\n\nAdoption changes only `EditSource`: each matching row receives the restored mesh and Source sharing one candidate `Session` and the original Origin. Keep local ID, saved GUID, metadata Rc, display Rc and model matrix exactly as they were.\n\nThis is a residency pass, not a document edit. It must not clear history, append an Undo entry or alter camera/selection. The next endpoint adds explicit ownership, precision and rejection checks. Browser fetching and command replay are not wired yet.\n\n`collect::<Result<_, _>>()` turns many candidate results into one result: an error stops collection and drops candidates already prepared. The question mark returns that error before adoption starts. `flat_map` visits rows from each active/history `Scene` without copying them. The final mutable pass replaces only editable ownership; it is not a History edit.\n\n![Validate current releases and all matching history rows before adopting any kernel candidate.](../illustrations/journey-32gb.svg)",
-      "result": "Build the atomic hydration API. The browser still ends with the source unloaded; use the next native checkpoint to exercise restored editing and saving.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nBuild the atomic hydration API. The browser still ends with the source unloaded; use the next native checkpoint to exercise restored editing and saving.",
       "experiment": "Move the adoption loop ahead of candidate validation in a scratch copy. Explain what a failure in the second origin would leave behind.",
       "production": "The production operation validates released identity before hydration. This API additionally groups the requested immutable-source candidates so one command cannot partially adopt its source batch.",
       "tests": true,
@@ -5994,7 +5994,7 @@
       "question": "How can the test distinguish rehydration from rebuilding the whole scene?",
       "answer": "Record row IDs, saved GUIDs, metadata/display Rc identities, model matrices, camera and history-root count. After hydration these must be unchanged, while kernel geometry becomes available again from the restored original bytes.",
       "story": "Add a fixture with a deliberately precise double coordinate and original flags. Import through a located source, Move, unload, then hydrate the captured key with the original bytes. The old kernel value stays expired; restored source geometry has the exact original coordinate.\n\nThe row’s display and metadata Rcs are retained, as are its IDs, placement, camera and history roots. Snapshot can again serialize the exact editable source. Undo/Redo still return the earlier and moved placements with available restored kernel owners.\n\nThe native GPU fixture adds the same boundary: source hydration must preserve the existing geometry/settings allocations and drawing. The browser still demonstrates unloading at this endpoint; actual fetch and replay come after the native rejection checks.\n\nThe protobuf field uses `Some(true)` because its representation distinguishes an explicitly stored flag from an omitted one. This test checks flag preservation, not the later selection/locking policy. `Rc::downgrade` observes a value without keeping it alive; upgrade returning None proves the old kernel allocation is gone. `Rc::ptr_eq` then distinguishes a retained display from a newly copied display with equal coordinates.\n\n![Restore exact source coordinates and editing without reallocating retained display owners.](../illustrations/journey-32gc.svg)",
-      "result": "Run the exact source round trip and GPU retention checks. Compare the saved double with its f32 display approximation; only the original kernel coordinate is saveable.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nRun the exact source round trip and GPU retention checks. Compare the saved double with its f32 display approximation; only the original kernel coordinate is saveable.",
       "experiment": "Replace the restored kernel coordinate with a value reconstructed from the retained display and predict which assertion fails.",
       "production": "Rehydration is separate from scene rebuild and document history. The forthcoming browser callback can adopt this checked result without silently changing drawing or targeting another selection.",
       "tests": true,
@@ -6037,7 +6037,7 @@
       "question": "Should a late result after Close be decoded before deciding that it is obsolete?",
       "answer": "No. First confirm the captured key still matches an active cold row. An obsolete result returns false before source construction or mutation, whether its payload is valid or malformed.",
       "story": "A successful round trip is not enough. Use duplicate imports with independent origins and validate all candidates before adoption. Change the second source version and confirm neither origin becomes loaded. A wrong original source GUID in a retained row must also reject the candidate.\n\nClose and reimport the same bytes, then deliver an old key with malformed bytes: the stale result must be ignored without even trying to decode it. Restore one origin, release again and verify the old epoch no longer matches; a duplicate completion of an already adopted key is also ignored.\n\nThese are native acceptance checks for the atomic API. Fetch errors, aborts and queued edits belong to the next browser request boundary.\n\n`Rc::make_mut` gives this row its own metadata value when another history row shares the original. That lets the check simulate an inconsistent retained row without changing the imported file. The changed byte version and the changed row metadata exercise separate rejection boundaries.\n\n![Keep rows cold on changed versions, missing source identity and obsolete release keys.](../illustrations/journey-32gd.svg)",
-      "result": "Run the rejection cases and verify unchanged row IDs, model data, display identities and source availability after each failed or stale batch.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nRun the rejection cases and verify unchanged row IDs, model data, display identities and source availability after each failed or stale batch.",
       "experiment": "Change the second candidate in a two-origin batch to malformed bytes. Predict why validating all candidates first keeps the first origin cold.",
       "production": "Late source delivery must never revive a closed or replaced import. Immutable file-version checks and origin/epoch checks address different causes of stale data.",
       "tests": true,
@@ -6074,7 +6074,7 @@
       "question": "Why deliver deliberately invalid bytes with an obsolete reload key?",
       "answer": "A false result instead of a decode error proves the identity check happens first. Invalid stale payloads cannot revive a closed import or disturb the current source release.",
       "story": "Close and reimport the same file with the same original GUIDs. The import Origin is a new allocation, so the previous key must be ignored. Then hydrate the current release, deliver it twice, release again and deliver the previous epoch. Every obsolete completion returns false.\n\nA request must contain at most one candidate per origin. Duplicate keys are rejected before preparing either candidate. An empty batch also has no effect. Keep the current rows and their display identities throughout.\n\nThese checks establish the native adoption contract. Browser request cancellation and automatic Move/Delete/Save replay are still pending; the browser at this endpoint continues to demonstrate Unload Sources.\n\n`Ok(false)` means this result no longer belongs to a current request; it is not a document error. `Err(message)` means a current candidate failed validation. Keeping those outcomes separate lets a later browser callback silently discard obsolete completions while reporting failures for the current reload. A captured key owns its Origin, so the next request-lifetime lesson must also drop that owner when cancelling work.\n\n![Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.](../illustrations/journey-32ge.svg)",
-      "result": "Run the stale-result checks with invalid bytes and verify that no stale key triggers decoding or changes current row residency.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nRun the stale-result checks with invalid bytes and verify that no stale key triggers decoding or changes current row residency.",
       "experiment": "Use the current key with invalid bytes instead. Predict why the error now concerns the source version rather than an obsolete request.",
       "production": "Request ownership, import identity and release epochs must all survive asynchronous timing. The next lessons add that browser boundary to this checked state API.",
       "tests": true,
@@ -6097,6 +6097,323 @@
         }
       ],
       "browser_caption": "The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending."
+    },
+    {
+      "id": "32gf-request",
+      "title": "Give each source request its own owner",
+      "page": "journey/32gf-request.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Give each source request its own owner.",
+      "trace": "Active release keys → ReloadJob → ticket and URL strings → one accepted completion",
+      "question": "Why does the asynchronous request receive URL strings instead of cloned Origins?",
+      "answer": "A cloned Origin would retain its URL owner after cancellation or Close. Keep the keys in the pending job, clear them on cancellation, and let asynchronous work carry plain URL strings and a ticket. A late result then has no source ownership to revive.",
+      "story": "Add a browser-independent `ReloadJob`. It owns only one pending set of release keys, issues checked tickets and gives the caller a `Request` containing a ticket and URL strings. A new request cancels older keys before validating its own candidates. Empty requests, duplicate origins and missing locations return errors.\n\n`finish` first checks the ticket, then takes the matching keys once. `Option<Vec<ReloadKey>>` distinguishes accepted keys from obsolete work. `take` replaces the pending option with `None`; the removed owners drop when the caller finishes with them. Cancellation takes the keys without handing them to abandoned work.\n\nThe request ticket identifies this operation; each key still identifies the imported source and its release epoch. Both checks are needed. This native owner is not yet connected to fetch or a new browser command.\n\n![Give each source request its own owner](../illustrations/journey-32gf.svg)",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nBuild the request owner. The browser retains its previous Unload Sources endpoint; the next lesson adds stale-result and owner-expiration checks.",
+      "experiment": "Keep a returned Request alive after cancelling the job. Explain why its strings cannot keep the Origin or ReloadUrl alive.",
+      "production": "Production reloads carry release tokens across asynchronous work. This request owner gives the browser a distinct current-operation boundary and keeps ownership separate from immutable source identity.",
+      "tests": true,
+      "frame": "journey/checks/32gf-request.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod rehydrate;\n",
+          "snippet": "journey/code/32gf-request-01.rs",
+          "why": "Expose the native request owner without adding browser APIs to it."
+        },
+        {
+          "path": "src/reload_job.rs",
+          "before": null,
+          "snippet": "journey/code/32gf-request-02.rs",
+          "why": "Issue checked tickets and retain source keys only in current pending work."
+        }
+      ],
+      "browser_caption": "The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson."
+    },
+    {
+      "id": "32gfa-ownership",
+      "title": "Prove cancelled work releases its source owners",
+      "page": "journey/32gfa-ownership.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Prove cancelled work releases its source owners.",
+      "trace": "Pending job holds keys → Close drops rows → cancel drops keys → abandoned request is inert",
+      "question": "Can a held reference to the job keep the source alive after cancellation?",
+      "answer": "It can keep the empty job alive, but not its removed keys. Weak observers of the Origin and URL must expire even while an abandoned caller still holds the job and its request strings.",
+      "story": "Add three native checks. The first starts requests out of order and proves that an older ticket cannot consume current keys; a matching ticket consumes them once. Cancellation, empty requests and duplicate origins leave no pending work.\n\nThe ownership check closes the editor while a pending job still owns the source. Then it cancels the job and keeps a simulated abandoned asynchronous owner alive. `Weak::upgrade` must return `None` for the Origin and URL while the request strings remain readable. This directly tests the reason for separating URL strings from source owners.\n\nFinally force ticket exhaustion. A checked increment must fail, never wrap, and leave older keys cancelled. These tests do not claim the browser has aborted a network read yet; that controller belongs to the later browser flight.\n\n![Prove cancelled work releases its source owners](../illustrations/journey-32gfa.svg)",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nRun the ticket and weak-owner tests. Browser behavior is unchanged, with real input and URL cleanup still checked by the existing unload baseline.",
+      "experiment": "Change Request to store an `Rc<Origin>` in a scratch copy and predict which Weak assertion would fail after cancellation.",
+      "production": "Ownership proofs matter even when the browser ignores an abort temporarily. Cancelled asynchronous work must have neither authority to commit nor a retained kernel/URL owner.",
+      "tests": true,
+      "frame": "journey/checks/32gfa-ownership.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "src/reload_job.rs",
+          "before": "    pub fn cancel(&mut self) -> bool { self.pending.take().is_some() }\n}\n",
+          "snippet": "journey/code/32gfa-ownership-01.rs",
+          "why": "Check ordering, exhaustion and actual owner expiration while abandoned work remains alive."
+        }
+      ],
+      "browser_caption": "The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson."
+    },
+    {
+      "id": "32gg-fetch",
+      "title": "Read a source response within its byte limit",
+      "page": "journey/32gg-fetch.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Read a source response within its byte limit.",
+      "trace": "Recorded URL → fetch with AbortSignal → HTTP/length checks → bounded stream chunks",
+      "question": "Why is checking only Content-Length insufficient?",
+      "answer": "The header can be missing or wrong. Check it before reading when present, then enforce the same limit on every received chunk. Never append a chunk that would exceed the per-source byte budget.",
+      "story": "Enable the browser fetch, response, stream-reader and abort types. `source_fetch::fetch` uses a borrowed URL and AbortSignal, checks the HTTP status and optional length, then reads the response body as a stream. The current tutorial limit remains 4 MiB per source; it is not a measurement of browser staging or total process memory.\n\n`JsFuture::from` lets Rust await a browser promise. `dyn_into` checks that the returned JavaScript value has the expected browser type. Each reader reply contains `done` and a byte-array `value`; `Reflect::get` reads those fields. Check remaining capacity before converting and appending a chunk.\n\nOn read failure, cancel the reader and release its lock. On success, release the lock and return original bytes. Version/schema checks still belong to source preparation, before adoption. This helper is compiled here; the browser command will exercise it after the flight and delivery boundaries exist.\n\n![Read a source response within its byte limit](../illustrations/journey-32gg.svg)",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nBuild the streaming reader for WebAssembly. Continue using Unload Sources in the browser; the helper is not a user command yet.",
+      "experiment": "Remove the incremental limit in a scratch copy. Explain what a response without a length header could allocate before the final check.",
+      "production": "Later publication lessons extend fetching to large published sources and their version policy. This immutable File/Blob path preserves exact source bytes and a bounded read for the current mesh subset.",
+      "tests": true,
+      "frame": "journey/checks/32gg-fetch.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "\"Url\", \"HtmlAnchorElement\"]",
+          "snippet": "journey/code/32gg-fetch-01.toml",
+          "why": "Enable only the browser types used by streaming and cancellation."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;\n",
+          "snippet": "journey/code/32gg-fetch-02.rs",
+          "why": "Keep browser promises and streams out of the native editor."
+        },
+        {
+          "path": "src/source_fetch.rs",
+          "before": null,
+          "snippet": "journey/code/32gg-fetch-03.rs",
+          "why": "Read original byte chunks without exceeding the per-source limit."
+        }
+      ],
+      "browser_caption": "The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson."
+    },
+    {
+      "id": "32gga-flight",
+      "title": "Pair reload ownership with a browser abort controller",
+      "page": "journey/32gga-flight.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Pair reload ownership with a browser abort controller.",
+      "trace": "ReloadJob + AbortController → captured signal → cancel or current finish",
+      "question": "Why must an old failed request not abort the newer controller?",
+      "answer": "Only a matching current ticket may finish and take the current controller. A late result first fails the job ticket check and cannot touch newer work.",
+      "story": "Define `Flight` with the native job and one AbortController. `begin` cancels the previous flight, creates the browser controller and gives the fetch task its signal together with URL strings. The controller stays in the current owner.\n\n`cancel` removes keys and takes the controller before calling abort. `finish` checks the ticket through the job first. A matching failure aborts any remaining response work; a successful complete batch simply drops its controller. An older completion cannot reach either path.\n\n`Shared` is an `Rc<RefCell<Flight>>` because one browser event callback and its asynchronous task need the same owner. Borrow only for short synchronous operations. Never keep a RefCell borrow across await: another event must be able to cancel while a fetch is waiting.\n\n![Pair reload ownership with a browser abort controller](../illustrations/journey-32gga.svg)",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nCompile the browser flight and compare its ownership with the native job tests. Fetch spawning and result delivery are added next.",
+      "experiment": "Move controller.take before the job ticket check in a scratch copy. Trace how a late failure could remove the newer request controller.",
+      "production": "Abort is an I/O request, not permission to commit. The native ticket and release-key checks remain necessary even when network cancellation behaves correctly.",
+      "tests": true,
+      "frame": "journey/checks/32gga-flight.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod source_fetch;\n",
+          "snippet": "journey/code/32gga-flight-01.rs",
+          "why": "Keep the browser flight beside the fetch adapter."
+        },
+        {
+          "path": "src/browser_reload.rs",
+          "before": null,
+          "snippet": "journey/code/32gga-flight-02.rs",
+          "why": "Cancel keys and I/O together without letting old results touch a new flight."
+        }
+      ],
+      "browser_caption": "The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson."
+    },
+    {
+      "id": "32ggb-delivery",
+      "title": "Deliver only the current completed reload batch",
+      "page": "journey/32ggb-delivery.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Deliver only the current completed reload batch.",
+      "trace": "Flight begin → await URL reads → finish ticket once → scoped Rust reply → viewer event",
+      "question": "Why is the restored source data kept in a Rust delivery slot rather than event.detail?",
+      "answer": "The slot carries the accepted release keys with their bytes. The event only wakes the viewer; an external event without accepted Rust data cannot fabricate a source completion.",
+      "story": "Add a `Delivery` slot and spawn one local asynchronous task. Fetch each requested URL with the captured signal. A failure stops the batch; successful bytes are kept in request order. No Scene changes while any read is pending.\n\nAfter awaiting, ask the shared owner to finish this ticket. A cancelled or replaced request returns immediately, before reporting an error or dispatching a viewer event. For the current request, zip the accepted keys with its bytes and place that Result in the Rust slot for synchronous dispatch. Clear any unclaimed result after dispatch.\n\nThe asynchronous task holds the shared flight, plain strings, signal and delivery slot. Cancellation empties the flight keys, so a delayed task does not keep the old Origin alive. Event callbacks will take the accepted slot and call the atomic hydration API; the command is connected next.\n\n![Deliver only the current completed reload batch](../illustrations/journey-32ggb.svg)",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nBuild the complete request/fetch/delivery path. It remains dormant until the command-line wiring in the next endpoint.",
+      "experiment": "Dispatch viewer-reload from the browser console without an accepted slot. Predict why it cannot restore any source.",
+      "production": "The accepted File bridge and the source-reload bridge use the same principle: retain native ownership through one accepted handoff and do not let generic browser events become source authority.",
+      "tests": true,
+      "frame": "journey/checks/32ggb-delivery.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources unloaded; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "src/browser_reload.rs",
+          "before": "pub type Shared = Rc<RefCell<Flight>>;\n",
+          "snippet": "journey/code/32ggb-delivery-01.rs",
+          "why": "Spawn bounded source reads and deliver only one current owned completion."
+        }
+      ],
+      "browser_caption": "The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson."
+    },
+    {
+      "id": "32gh-command",
+      "title": "Restore editable sources through the command line",
+      "page": "journey/32gh-command.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Restore editable sources through the command line.",
+      "trace": "Reload Sources → active keys → owned fetch → atomic hydrate → same GPU display",
+      "question": "Does source restoration need a new Undo entry?",
+      "answer": "No. Restoring editable ownership changes residency, not the document. Keep the existing drawing, placement and history; only the later requested edit should create a document transaction.",
+      "story": "Add `Reload Sources` and `Cancel Reload` to the same production-styled dock. Reload collects active release keys and starts the browser flight. Immediate setup errors belong to the typed command; later success or failure gets its own `Reload Sources` history reply.\n\nA `viewer-reload` event takes only the accepted Rust delivery slot. Atomic hydrate validates keys, immutable bytes and every affected history row before restoring source owners. Synchronize the renderer afterward: retained display Rcs and object settings must produce zero new GPU allocations or writes.\n\nChrome runs a real Blob fetch, checks unchanged pixels/IDs/metadata/GPU counters, saves the restored document and uses Undo/Redo. It also sends an external reload event with no slot and checks a second reload when nothing is cold. Automatic Move/Delete/Save-triggered reload remains the next feature; users explicitly reload first here.\n\n![Restore editable sources through the command line](../illustrations/journey-32gh.svg)",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nType Unload Sources, then Reload Sources. Wait for Editable sources restored; display retained. Move and Save work again; source restoration itself does not consume Undo.",
+      "experiment": "Keep a command such as View Isometric between the reload request and its reply. Explain why panel.answer must append its own result instead of replacing that newer command.",
+      "production": "The full viewer hydrates released sources before editing. This endpoint makes the browser restore operation real; captured-target automatic command replay follows separately.",
+      "tests": true,
+      "frame": "journey/checks/32gh-command.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Unload Sources\",\n",
+          "snippet": "journey/code/32gh-command-01.rs",
+          "why": "Make source residency requests typed commands without feature buttons."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));\n",
+          "snippet": "journey/code/32gh-command-02.rs",
+          "why": "Own one current reload flight and one scoped accepted reply."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        } else if event.type_() == \"viewer-file\" {\n            match crate::file_input::action(&event, &delivery) {\n",
+          "snippet": "journey/code/32gh-command-03.rs",
+          "why": "Adopt only an accepted current result and give asynchronous replies their own history entry."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            if line == \"unload sources\" {\n",
+          "snippet": "journey/code/32gh-command-04.rs",
+          "why": "Start or cancel an owned request from the actual command field."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    window.add_event_listener_with_callback(\"viewer-file-error\", update.as_ref().unchecked_ref())?;\n",
+          "snippet": "journey/code/32gh-command-05.rs",
+          "why": "Wake the viewer for a scoped accepted result."
+        }
+      ]
+    },
+    {
+      "id": "32gha-cancel",
+      "title": "Cancel reloads when their document context changes",
+      "page": "journey/32gha-cancel.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Cancel reloads when their document context changes.",
+      "trace": "Close / replacement / Undo / release → cancel flight → late result is inert",
+      "question": "Why cancel Open Replace at picker opening rather than after its file finishes reading?",
+      "answer": "The user has already chosen to replace the document context. Cancel the older reload before waiting for another picker or file read, so its delayed result cannot adopt into that context.",
+      "story": "Cancel the reload before Close, another Unload Sources, Undo/Redo or replacement adoption. Open Replace also cancels at picker opening, matching the existing file-read boundary. Camera and selection remain available while a source request waits.\n\nChrome holds real fetch results while typing camera commands, Cancel Reload, Undo, Close and Open Replace. It releases both late successes and failures after invalidation and verifies no adopted source or new history reply. Closing drops the current source URL even if a delayed task still exists.\n\nThe same browser checker injects HTTP failures, oversized/stream-error bodies and changed versions, then performs a successful retry. These failures keep the display cold and pixel-identical. A real Blob retry restores source ownership without allocating geometry. Automatic requested-edit replay remains pending.\n\n![Cancel reloads when their document context changes](../illustrations/journey-32gha.svg)\n\nType a small native `reload_check` example to compare the original file with the actual browser download. It compares original double vertices and topology by saved GUID, checks names/flags and requires separately stored placements. Run `REGEN_PROTO=0 cargo run --example reload_check -- sample.pb ~/Downloads/viewer.session` from your project. The Chrome checker invokes this same example on its actual saved file; it does not substitute a generated fixture.",
+      "result": "When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:\n\n```sh\nREGEN_PROTO=0 cargo run --example sample --locked -j4\n```\n\nType `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.\n\nHold a source request, cancel or change its context, then release it. The old result must not change current pixels, residency or command history. Retry Reload Sources successfully.",
+      "experiment": "Cancel only after replacement adoption in a scratch copy. Explain the interval in which an older reload could still finish while the replacement picker or read is pending.",
+      "production": "Context cancellation and source release-key checks complement one another. Neither a network abort nor a valid original file is enough to authorize an obsolete completion.",
+      "tests": true,
+      "frame": "journey/checks/32gha-cancel.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Editable sources restored; display retained.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-browser.cjs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "before": "                read_mode.set(if line == \"open replace\" { crate::file_input::Mode::Replace }\n",
+          "snippet": "journey/code/32gha-cancel-01.rs",
+          "why": "Invalidate the old reload as soon as replacement intent begins."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        if let Some(action) = action {\n",
+          "snippet": "journey/code/32gha-cancel-02.rs",
+          "why": "Remove reload keys and abort I/O before changing the current document context."
+        },
+        {
+          "path": "examples/reload_check.rs",
+          "before": null,
+          "snippet": "journey/code/32gha-cancel-03.rs",
+          "why": "Compare original geometry and flags with the real browser download using the typed protobuf reader."
+        }
+      ]
     }
   ]
 }

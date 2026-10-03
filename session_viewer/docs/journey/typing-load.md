@@ -91,15 +91,22 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [32gc-roundtrip](32gc-roundtrip.md) | 33 | 2148 | 22–43 min | 1–2 h | Within planning limit |
 | [32gd-rejections](32gd-rejections.md) | 38 | 2439 | 25–49 min | 1–2 h | Within planning limit |
 | [32ge-stale](32ge-stale.md) | 23 | 1509 | 16–31 min | 1–2 h | Within planning limit |
+| [32gf-request](32gf-request.md) | 45 | 1447 | 15–29 min | 1–2 h | Within planning limit |
+| [32gfa-ownership](32gfa-ownership.md) | 54 | 2544 | 26–51 min | 1–2 h | Within planning limit |
+| [32gg-fetch](32gg-fetch.md) | 40 | 2331 | 24–47 min | 1–2 h | Within planning limit |
+| [32gga-flight](32gga-flight.md) | 35 | 1164 | 12–24 min | 1–2 h | Within planning limit |
+| [32ggb-delivery](32ggb-delivery.md) | 30 | 1381 | 14–28 min | 1–2 h | Within planning limit |
+| [32gh-command](32gh-command.md) | 30 | 1729 | 18–35 min | 1–2 h | Within planning limit |
+| [32gha-cancel](32gha-cancel.md) | 28 | 1550 | 16–31 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 79 current checkpoints.
+- [x] Count the exact source edits for all 86 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 150 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 154 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

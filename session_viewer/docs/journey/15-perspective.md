@@ -424,11 +424,13 @@ From `session_viewer`, enter your project folder:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
+REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
+
+`REGEN_PROTO=0` uses the kernel’s committed protobuf bindings. Keep that setting for these tutorial builds so a different local protobuf checkout cannot regenerate incompatible fields.
 
 The triangles now have perspective-dependent sizes. Turquoise wins the central overlap from this camera position. Click it, run `Delete`, then `Undo`. Run `Zoom In` and repeat: picking should still agree with the picture.
 
@@ -441,7 +443,7 @@ The triangles now have perspective-dependent sizes. Turquoise wins the central o
 Run the state checks from your project folder:
 
 ```sh
-cargo test --lib --locked -j4
+REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
 ## Try one small experiment

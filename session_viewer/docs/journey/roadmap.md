@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 150 lesson slots; 79 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 154 lesson slots; 86 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 79 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 86 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -191,15 +191,23 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32ge · [Ignore old reload results before decoding them](32ge-stale.md) — Reject results for closed imports, loaded rows, duplicate keys and previous release epochs.
 
-- [ ] 32gf · Give reload requests an owner — checked request issuance, captured release keys, cancellation and one accepted completion; no Origin owners left in abandoned asynchronous work.
+- [x] 32gf · [Give each source request its own owner](32gf-request.md) — Active release keys → ReloadJob → ticket and URL strings → one accepted completion.
 
-- [ ] 32gg · Fetch a bounded immutable source — recorded URL, response/body limits, HTTP/read/abort failures and exact selected-file version checks before source adoption.
+- [x] 32gfa · [Prove cancelled work releases its source owners](32gfa-ownership.md) — Pending job holds keys → Close drops rows → cancel drops keys → abandoned request is inert.
 
-- [ ] 32gh · Reload through the command line — Reload Sources/Cancel Reload, owned asynchronous history replies, stable drawing and successful retries.
+- [x] 32gg · [Read a source response within its byte limit](32gg-fetch.md) — Recorded URL → fetch with AbortSignal → HTTP/length checks → bounded stream chunks.
+
+- [x] 32gga · [Pair reload ownership with a browser abort controller](32gga-flight.md) — ReloadJob + AbortController → captured signal → cancel or current finish.
+
+- [x] 32ggb · [Deliver only the current completed reload batch](32ggb-delivery.md) — Flight begin → await URL reads → finish ticket once → scoped Rust reply → viewer event.
+
+- [x] 32gh · [Restore editable sources through the command line](32gh-command.md) — Reload Sources → active keys → owned fetch → atomic hydrate → same GPU display.
+
+- [x] 32gha · [Cancel reloads when their document context changes](32gha-cancel.md) — Close / replacement / Undo / release → cancel flight → late result is inert.
 
 - [ ] 32gi · Replay the edit that requested a reload — preserve the original ObjectId and Move arguments, hydrate all Save sources, apply exactly once and retain one document Undo transaction.
 
-- [ ] 32gj · Prove reload timing in Chrome — held/reordered results, cancellation, Close/replacement/Undo invalidation, changed versions, selection changes, restored Save precision and real URL owner cleanup.
+- [ ] 32gj · Prove reload timing in Chrome — combined automatic-replay timing, target selection changes, exact restored Save precision, missing-body/current-network/invalid-length failures, multi-origin partial failures and real URL owner cleanup. Explicit reload already has late/out-of-order/cancellation checks.
 
 - [ ] 33 · Give browser listeners a lifetime — detach callbacks and cancel work when the viewer closes.
 
