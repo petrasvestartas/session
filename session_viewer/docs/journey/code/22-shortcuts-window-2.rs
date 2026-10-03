@@ -1,7 +1,7 @@
     window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
     // Both event sources retain this one callback for the lifetime of the page.
     update.forget();
-    report("Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.");
+    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
     Ok(())
 }
 
@@ -14,7 +14,7 @@ fn navigation_action(
         "wheel" => {
             let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
             let mode = wheel.delta_mode();
-            crate::shortcuts::wheel(
+            crate::navigation::wheel(
                 wheel.delta_y(),
                 mode,
                 canvas.get_bounding_client_rect().height(),
@@ -30,12 +30,7 @@ fn navigation_action(
                 event.prevent_default();
                 return None;
             }
-            crate::shortcuts::key(
-                &key.key(),
-                key.ctrl_key() || key.meta_key(),
-                key.shift_key(),
-                key.repeat(),
-            )
+            return None;
         }
         _ => return pointer_action(event, canvas, gesture),
     }?;

@@ -76,6 +76,15 @@
                         && !input.modifiers.command
                         && !input.modifiers.alt
                     {
+                        // Request focus before egui handles this first Text event.
+                        if !self.context.egui_wants_keyboard_input() {
+                            self.model.command_open = true;
+                            self.model.focus_command = true;
+                            self.context.memory_mut(|memory| {
+                                memory.request_focus(egui::Id::new("command-input"))
+                            });
+                        }
+                        self.consumed = true;
                         input.events.push(egui::Event::Text(key.key()));
                     }
                     if self.context.egui_wants_keyboard_input() {

@@ -2,19 +2,23 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 29 cumulative lessons, about 77–131 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 30 cumulative lessons, about 78–133 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
 The [complete draft lesson checklist](journey/roadmap.md) has **101 proposed slots: 29 current checkpoints and 72 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
+The white canvas fills the browser window from lesson 01. The runtime shows your drawing and the command dock; lesson titles and explanations stay in this documentation.
+
+**One-hour typing target:** the [typing-load audit](journey/typing-load.md) separates actual code changes from reading and experiments. Seventeen existing checkpoints still need splitting; working builds alone do not make those long sections finished lessons.
+
 ## Start small, keep the destination
 
 | Lesson | Time | Working result |
 | --- | --- | --- |
-| [01 · A page that Rust can reach](journey/01-canvas.md) | 1–2 hours | Open a canvas and let Rust tell us it has started. |
-| [02 · Ask the GPU to paint](journey/02-clear.md) | 2–3 hours | Paint the whole canvas blue with a real GPU command. |
-| [03 · Give the GPU three corners](journey/03-triangle.md) | 1–2 hours | Draw a pink triangle on the blue background. |
+| [01 · A page that Rust can reach](journey/01-canvas.md) | 1–2 hours | Fill the browser window with a canvas and let Rust signal that it has started. |
+| [02 · Ask the GPU to paint](journey/02-clear.md) | 2–3 hours | Paint the whole canvas white with a real GPU command. |
+| [03 · Give the GPU three corners](journey/03-triangle.md) | 1–2 hours | Draw a pink triangle on the white background. |
 | [03a · Draw our command line](journey/03a-panel.md) | 4–6 hours | Draw the production command panel and its Noto text over the triangle, using the same GPU. |
 | [03b · Give the command line its memory](journey/03b-state.md) | 3–5 hours | The text field and history have one owner. |
 | [03c · Draw completion and history](journey/03c-layout.md) | 8–12 hours | Lay out the production command dock from its model. |
@@ -37,10 +41,11 @@ The [complete draft lesson checklist](journey/roadmap.md) has **101 proposed slo
 | [19 · Give every action the same route](journey/19-actions.md) | 3–5 hours | Move document actions into a browser-independent editor while keeping picking, undo and drawing working. |
 | [20 · Keep a changing window in proportion](journey/20-resize.md) | 3–5 hours | Resize the drawing buffer, depth attachment and camera together, including on dense displays. |
 | [21 · Remember a press until it ends](journey/21-gestures.md) | 3–5 hours | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. |
-| [22 · Give the keyboard a place to work](journey/22-shortcuts.md) | 2–4 hours | Zoom with the wheel and use focused keyboard shortcuts without stealing keys from the rest of the page. |
+| [22 · Keep navigation on the mouse and commands in the dock](journey/22-shortcuts.md) | 2–4 hours | Normalize wheel input and keep every keyboard feature command in the command dock. |
 | [23 · Keep the document behind the picture](journey/23-import.md) | 5–8 hours | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. |
 | [24 · Find the whole scene](journey/24-fit.md) | 3–5 hours | Frame all current objects without rotating them or changing the document. |
 | [25 · Choose how depth changes size](journey/25-projection.md) | 3–5 hours | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. |
+| [26 · Frame one object without changing its size](journey/26-selected.md) | 1–2 hours | Run Fit Selected while keeping geometry, selection and document history unchanged. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

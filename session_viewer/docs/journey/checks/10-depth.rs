@@ -13,5 +13,5 @@ fn verify_pixels(pixels: &[u8]) {
     assert!(colour(256, 380, [243, 137, 179]), "Near triangle outside the overlap");
     assert!(colour(440, 240, [63, 218, 218]), "Far triangle outside the overlap");
     assert!(colour(384, 70, [63, 218, 218]), "Far triangle above the near triangle");
-    assert!(colour(30, 30, [48, 85, 124]), "Background remains visible");
+    assert!(colour(30, 30, [255, 255, 255]), "Background remains visible");
 }

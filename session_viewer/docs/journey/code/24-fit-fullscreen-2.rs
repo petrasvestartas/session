@@ -3,6 +3,6 @@ mod document_tests;
 #[cfg(test)]
 mod fit_tests;
 #[cfg(test)]
-mod shortcut_tests;
+mod navigation_tests;
 #[cfg(test)]
 mod gesture_tests;

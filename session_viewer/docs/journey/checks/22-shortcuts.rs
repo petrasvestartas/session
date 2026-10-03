@@ -1,11 +1,10 @@
 fn editor() -> viewer_journey::editor::Editor {
-    use viewer_journey::{editor::{Action, Editor}, shortcuts::{key, wheel}};
+    use viewer_journey::{editor::{Action, Editor}, navigation::wheel};
     let mut editor = Editor::default();
     editor.apply(Action::AddBox).unwrap();
     editor.apply(Action::Isometric).unwrap();
     editor.apply(wheel(-120.0, 0, 480.0).unwrap()).unwrap();
-    editor.apply(key("ArrowRight", false, false, false).unwrap()).unwrap();
-    editor.apply(key("ArrowUp", false, false, false).unwrap()).unwrap();
+    editor.apply(Action::Pan(0.25, 0.0)).unwrap();
     editor
 }
 

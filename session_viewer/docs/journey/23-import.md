@@ -1,6 +1,10 @@
 # 23 · Keep the document behind the picture
 
-**Plan about 5–8 hours.** 338 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 5–8 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 126–252 minutes.** 280 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
 
@@ -26,7 +30,7 @@ This checkpoint accepts small, flat sessions containing triangle or quad meshes 
 
 ## Type the change
 
-Continue [Give the keyboard a place to work](22-shortcuts.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-23-import`. A save keeps your own work; it does not fill in the next lesson.
+Continue [Keep navigation on the mouse and commands in the dock](22-shortcuts.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-23-import`. A save keeps your own work; it does not fill in the next lesson.
 
 ### 1. `src/document.rs`
 
@@ -181,7 +185,27 @@ Replace that block with:
 --8<-- "journey/code/23-import-dock-01.toml"
 ```
 
-### 12. `src/lib.rs`
+### 12. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+<body>
+  <p id="status" role="status" hidden>Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/23-import-fullscreen-1.html"
+```
+
+### 13. `src/lib.rs`
 
 Register the reader, specimen and native checks.
 
@@ -190,19 +214,19 @@ Find this exact block:
 ```rust
 pub mod viewport;
 pub mod gesture;
-pub mod shortcuts;
+pub mod navigation;
 #[cfg(test)]
-mod shortcut_tests;
+mod navigation_tests;
 #[cfg(test)]
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-02.rs"
+--8<-- "journey/code/23-import-fullscreen-2.rs"
 ```
 
-### 13. `src/lib.rs`
+### 14. `src/lib.rs`
 
 Register the reader, specimen and native checks.
 
@@ -219,10 +243,10 @@ use wasm_bindgen::prelude::*;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-03.rs"
+--8<-- "journey/code/23-import-fullscreen-3.rs"
 ```
 
-### 14. `src/browser.rs`
+### 15. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -240,10 +264,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-04.rs"
+--8<-- "journey/code/23-import-window-1.rs"
 ```
 
-### 15. `src/browser.rs`
+### 16. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -261,10 +285,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-05.rs"
+--8<-- "journey/code/23-import-window-2.rs"
 ```
 
-### 16. `src/browser.rs`
+### 17. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -302,10 +326,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-06.rs"
+--8<-- "journey/code/23-import-window-3.rs"
 ```
 
-### 17. `src/browser.rs`
+### 18. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -323,10 +347,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-07.rs"
+--8<-- "journey/code/23-import-window-4.rs"
 ```
 
-### 18. `src/browser.rs`
+### 19. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -338,34 +362,13 @@ Find this exact block:
     window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
     // Both event sources retain this one callback for the lifetime of the page.
     update.forget();
-    report("Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.");
+    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-08.rs"
-```
-
-### 19. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480"
-    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
-  <p>Commands: Help · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/23-import-page-1.html"
+--8<-- "journey/code/23-import-window-5.rs"
 ```
 
 ## Run and look

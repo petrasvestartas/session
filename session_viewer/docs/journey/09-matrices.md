@@ -1,6 +1,8 @@
 # 09 · Let one matrix describe the view
 
-**Plan about 2–4 hours.** 61 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 12–23 minutes.** 30 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Today:** Rotate the flat view using a matrix, ready for the third dimension.
 
@@ -136,29 +138,41 @@ Allocate enough space for all sixteen floats. A smaller buffer would violate the
 Find this exact block:
 
 ```rust
+        });
+        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("view transform"),
             size: 16,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-07.rs"
+--8<-- "journey/code/09-matrices-fullscreen-5.rs"
 ```
 
 ### 8. `src/renderer.rs`
 
-Accept the complete matrix for upload. The existing byte conversion handles all sixteen entries.
+Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout.
 
 Find this exact block:
 
 ```rust
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
         transform: &[f32; 4],
+    ) {
+        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
+        self.queue.write_buffer(&self.uniform, 0, &bytes);
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-08.rs"
+--8<-- "journey/code/09-matrices-fullscreen-6.rs"
 ```
 
 ### 9. `src/browser.rs`
@@ -179,7 +193,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-dock-01.rs"
+--8<-- "journey/code/09-matrices-window-1.rs"
 ```
 
 ### 10. `src/browser.rs`
@@ -200,7 +214,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-dock-02.rs"
+--8<-- "journey/code/09-matrices-window-2.rs"
 ```
 
 ### 11. `src/browser.rs`
@@ -221,7 +235,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-dock-03.rs"
+--8<-- "journey/code/09-matrices-window-3.rs"
 ```
 
 ### 12. `src/browser.rs`
@@ -243,28 +257,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/09-matrices-dock-04.rs"
-```
-
-### 13. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Background · Zoom In · Zoom Out · Pan Left · Pan Right · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/09-matrices-page-1.html"
+--8<-- "journey/code/09-matrices-window-4.rs"
 ```
 
 ## Run and look

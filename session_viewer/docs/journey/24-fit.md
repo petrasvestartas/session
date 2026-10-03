@@ -1,6 +1,10 @@
 # 24 · Find the whole scene
 
-**Plan about 3–5 hours.** 169 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 53–105 minutes.** 133 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Frame all current objects without rotating them or changing the document.
 
@@ -191,7 +195,7 @@ pub mod picking;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/24-fit-dock-01.rs"
+--8<-- "journey/code/24-fit-fullscreen-1.rs"
 ```
 
 ### 12. `src/lib.rs`
@@ -204,7 +208,7 @@ Find this exact block:
 #[cfg(test)]
 mod document_tests;
 #[cfg(test)]
-mod shortcut_tests;
+mod navigation_tests;
 #[cfg(test)]
 mod gesture_tests;
 ```
@@ -212,7 +216,7 @@ mod gesture_tests;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/24-fit-dock-02.rs"
+--8<-- "journey/code/24-fit-fullscreen-2.rs"
 ```
 
 ### 13. `src/browser.rs`
@@ -233,7 +237,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/24-fit-dock-03.rs"
+--8<-- "journey/code/24-fit-window-1.rs"
 ```
 
 ### 14. `src/browser.rs`
@@ -254,29 +258,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/24-fit-dock-04.rs"
-```
-
-### 15. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480"
-    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
-  <p>Commands: Help · Open · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
-  <input id="open" type="file" accept=".pb" hidden>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/24-fit-page-1.html"
+--8<-- "journey/code/24-fit-window-2.rs"
 ```
 
 ## Run and look

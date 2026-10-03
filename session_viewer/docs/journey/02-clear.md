@@ -1,8 +1,12 @@
 # 02 · Ask the GPU to paint
 
-**Plan about 2–3 hours.** 105 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 2–3 hours.** Includes reading, typing, reasoning and experiments.
 
-**Today:** Paint the whole canvas blue with a real GPU command.
+**Typing estimate: 44–87 minutes.** 106 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+
+**Today:** Paint the whole canvas white with a real GPU command.
 
 **In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
 
@@ -10,7 +14,7 @@
 
 **Before you finish, explain:** What starts the GPU work, and what makes its image appear in the canvas?
 
-Now let us give the GPU one simple instruction: paint the whole sheet blue. We do not need a triangle yet. Keeping these jobs separate will make a blank picture easier to diagnose.
+Now let us give the GPU one simple instruction: clear the whole sheet to white. We do not need a triangle yet. Keeping these jobs separate will make a blank picture easier to diagnose.
 
 There are two new owners. `browser.rs` owns page access and the drawing surface. `renderer.rs` owns the device and queue. The browser hands a texture view to the renderer; the renderer records a clear and submits it. The browser presents that image automatically. We also call wgpu’s present method to express the end of the surface frame; it is an explicit presentation request on native surface backends.
 
@@ -27,6 +31,8 @@ The first edit revisits the entry point for a reason: GPU setup must wait asynch
 For descriptor fields, `Default::default()` selects the library’s ordinary settings. We will replace defaults when a lesson needs a different behavior. Today the choices that matter are the WebGPU backend, a compatible surface, the image size, and keeping the cleared result with `Store`. The named `_pass` stays alive until the closing brace; the underscore says we intentionally do not call methods on it yet.
 
 We allow an sRGB texture view and use it when drawing. It converts linear colour values into the display encoding, matching our native reference images. The pipeline added next must use that same view format.
+
+CSS controls how much space the canvas occupies. The GPU also needs image dimensions: read the window width and height, cap them at the device limit, and give that same size to the canvas and surface. For now one CSS pixel uses one drawing pixel. Lesson 20 adds display density and updates after a window resize.
 
 ## Type the change
 
@@ -55,7 +61,7 @@ pub fn start() -> Result<(), JsValue> {
 Replace that block with:
 
 ```rust
---8<-- "journey/code/02-clear-02.rs"
+--8<-- "journey/code/02-clear-fullscreen-2.rs"
 ```
 
 ### 2. `src/renderer.rs`
@@ -65,7 +71,7 @@ Create the renderer. A clear is a real render operation, even though it has no t
 Create the file and type:
 
 ```rust
---8<-- "journey/code/02-clear-03.rs"
+--8<-- "journey/code/02-clear-fullscreen-4.rs"
 ```
 
 ### 3. `src/browser.rs`
@@ -75,7 +81,7 @@ Create the browser adapter. It owns the surface, asks for a compatible GPU and g
 Create the file and type:
 
 ```rust
---8<-- "journey/code/02-clear-04.rs"
+--8<-- "journey/code/02-clear-window-1.rs"
 ```
 
 ## Run and look
@@ -90,9 +96,11 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The canvas turns blue and the status says “The GPU painted the canvas.” If it says “Cannot draw”, read the reason before editing anything else. WebGPU needs a supporting browser and a secure context such as localhost.
+The canvas stays white. Its pixels now come from a submitted GPU clear. A startup failure shows its reason over the canvas; successful startup adds no text. WebGPU needs a supporting browser and a secure context such as localhost.
 
 **Actual Chrome screenshot.**
+
+This freshly captured white image deliberately looks like lesson 01. The change is who paints it: the GPU now clears and presents the image. The native check verifies every background pixel.
 
 ![Actual browser result: Ask the GPU to paint.](../screenshots/journey/02-clear-browser.png)
 
@@ -100,7 +108,7 @@ The canvas turns blue and the status says “The GPU painted the canvas.” If i
 
 ## Try one small experiment
 
-Before running, predict what happens if the renderer’s clear colour becomes `r: 0.9, g: 0.9, b: 0.9`. Change it, run, and explain why no shader needed to change. Restore the original numbers. If the page stays grey, check the status and browser console: CSS grey is different from our GPU blue.
+Temporarily change the renderer’s clear colour to `r: 0.9, g: 0.9, b: 0.9`. The canvas should become light grey: that confirms the GPU owns these pixels. Restore all three values to 1.0 for the white background.
 
 ## Explain it in your own words
 

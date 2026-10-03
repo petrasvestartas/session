@@ -1,6 +1,8 @@
 # 06 · Share a corner between triangles
 
-**Plan about 1–2 hours.** 24 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 8–15 minutes.** 14 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Today:** Draw a diamond from four positions and six small index numbers.
 
@@ -33,83 +35,95 @@ Replace the positions and add their connections. The diamond makes the four dist
 Find this exact block:
 
 ```rust
+use wgpu::util::DeviceExt;
+
 const POSITIONS: [[f32; 2]; 6] = [
     [-0.6, -0.5], [0.6, -0.5], [0.6, 0.6],
     [-0.6, -0.5], [0.6, 0.6], [-0.6, 0.6],
 ];
+
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+    vertices: wgpu::Buffer,
+}
+
+impl Renderer {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/06-indices-01.rs"
+--8<-- "journey/code/06-indices-fullscreen-2.rs"
 ```
 
 ### 2. `src/renderer.rs`
 
-Keep the index buffer beside the position buffer. They serve different roles.
+Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
 Find this exact block:
 
 ```rust
-    vertices: wgpu::Buffer,
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/06-indices-02.rs"
+--8<-- "journey/code/06-indices-fullscreen-3.rs"
 ```
 
 ### 3. `src/renderer.rs`
 
-Upload the index numbers. Reusing the name bytes starts a new binding; the previous upload is already complete.
+Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
 Find this exact block:
 
 ```rust
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            multiview_mask: None,
+            cache: None,
+        });
+        Self { device, queue, pipeline, vertices }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/06-indices-03.rs"
+--8<-- "journey/code/06-indices-fullscreen-4.rs"
 ```
 
 ### 4. `src/renderer.rs`
 
-Transfer ownership of both buffers to the renderer.
+Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
 
 Find this exact block:
 
 ```rust
-        Self { device, queue, pipeline, vertices }
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/06-indices-04.rs"
-```
-
-### 5. `src/renderer.rs`
-
-Select the index format and draw six index entries. The existing vertex-buffer binding still supplies positions.
-
-Find this exact block:
-
-```rust
+            });
+            pass.set_pipeline(&self.pipeline);
+            pass.set_vertex_buffer(0, self.vertices.slice(..));
             pass.draw(0..POSITIONS.len() as u32, 0..1);
+        }
+        self.queue.submit([encoder.finish()]);
+    }
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/06-indices-05.rs"
+--8<-- "journey/code/06-indices-fullscreen-5.rs"
 ```
 
-### 6. `src/browser.rs`
+### 5. `src/browser.rs`
 
 Connect share a corner between triangles to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -127,7 +141,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/06-indices-dock-01.rs"
+--8<-- "journey/code/06-indices-window-1.rs"
 ```
 
 ## Run and look

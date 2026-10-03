@@ -1,4 +1,4 @@
-use crate::{editor::{Action, Change, Editor}, shortcuts::{key, wheel}};
+use crate::{editor::{Action, Change, Editor}, navigation::wheel};
 
 fn distance(delta: f64, mode: u32) -> f64 {
     let mut editor = Editor::default();
@@ -33,32 +33,20 @@ fn wheel_rejects_invalid_input_and_bounds_large_jumps() {
 }
 
 #[test]
-fn held_keys_repeat_navigation_but_not_document_commands() {
-    assert!(matches!(key("ArrowRight", false, false, true), Some(Action::Pan(_, _))));
-    for name in ["Delete", "Home", "Tab", "a"] {
-        assert!(key(name, false, false, true).is_none());
-    }
-    assert!(key("z", true, false, true).is_none());
-    assert!(key("+", true, false, false).is_none());
-    assert!(matches!(key("Z", true, true, false), Some(Action::Redo)));
-    assert!(matches!(key("y", true, false, false), Some(Action::Redo)));
-}
-
-#[test]
-fn shortcuts_use_document_history_and_leave_navigation_alone() {
+fn navigation_preserves_document_history() {
     let mut editor = Editor::default();
     editor.apply(Action::AddBox).unwrap();
     editor.apply(wheel(-120.0, 0, 480.0).unwrap()).unwrap();
     let zoomed = editor.camera.distance;
-    editor.apply(key("z", true, false, false).unwrap()).unwrap();
+    editor.apply(Action::Undo).unwrap();
     assert_eq!(editor.scene.objects().len(), 2);
     assert_eq!(editor.camera.distance, zoomed);
-    editor.apply(key("Z", true, true, false).unwrap()).unwrap();
+    editor.apply(Action::Redo).unwrap();
     assert_eq!(editor.scene.objects().len(), 3);
     editor.apply(Action::SelectNext).unwrap();
     let selected = editor.selected.unwrap();
-    editor.apply(key("Delete", false, false, false).unwrap()).unwrap();
+    editor.apply(Action::Delete).unwrap();
     assert!(!editor.scene.contains(selected));
-    editor.apply(key("z", true, false, false).unwrap()).unwrap();
+    editor.apply(Action::Undo).unwrap();
     assert!(editor.scene.contains(selected));
 }

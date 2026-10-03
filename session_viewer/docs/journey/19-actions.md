@@ -1,6 +1,10 @@
 # 19 · Give every action the same route
 
-**Plan about 3–5 hours.** 218 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 60–120 minutes.** 165 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
 
@@ -10,7 +14,7 @@
 
 **Before you finish, explain:** Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?
 
-Our browser callback now knows too much. It translates HTML events, edits geometry, maintains history and repairs selection. Adding keyboard shortcuts there would tempt us to copy the same editing rules a second time.
+Our browser callback now knows too much. It translates HTML events, edits geometry, maintains history and repairs selection. Adding more commands there would tempt us to copy the same editing rules a second time.
 
 Give those rules one home: `Editor`. It owns the current scene, selection, camera, background and history. It has no browser handles and no GPU buffers. We can use it in Rust tests now and in a native window later.
 
@@ -56,7 +60,7 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-01.rs"
+--8<-- "journey/code/19-actions-fullscreen-1.rs"
 ```
 
 ### 3. `src/browser.rs`
@@ -79,7 +83,7 @@ pub fn report(message: &str) {
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-02.rs"
+--8<-- "journey/code/19-actions-window-1.rs"
 ```
 
 ### 4. `src/browser.rs`
@@ -94,15 +98,15 @@ Find this exact block:
     surface.configure(&device, &config);
     let mut scene = Scene::demo();
     let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);
+    renderer.resize(width, height);
     let mut panel = crate::panel::Panel::new(
         &renderer,
-        config.format.add_srgb_suffix(),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-03.rs"
+--8<-- "journey/code/19-actions-window-2.rs"
 ```
 
 ### 5. `src/browser.rs`
@@ -118,7 +122,7 @@ Find this exact block:
     let mut history = History::default();
     let mut selected = None;
     let mut background = Background::default();
-    let mut camera = Camera::default();
+    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };
     present(
         &surface,
         &renderer,
@@ -132,7 +136,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-04.rs"
+--8<-- "journey/code/19-actions-window-3.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -154,7 +158,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-05.rs"
+--8<-- "journey/code/19-actions-window-4.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -219,7 +223,7 @@ Find this exact block:
                 "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
                 "orbit up" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),
                 "view isometric" => camera.isometric(),
-                "view reset" => camera = Camera::default(),
+                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
                 _ => return,
             }
         }
@@ -229,7 +233,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-06.rs"
+--8<-- "journey/code/19-actions-window-5.rs"
 ```
 
 ### 8. `src/browser.rs`
@@ -252,7 +256,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-07.rs"
+--8<-- "journey/code/19-actions-window-6.rs"
 ```
 
 ### 9. `src/browser.rs`
@@ -273,7 +277,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-dock-08.rs"
+--8<-- "journey/code/19-actions-window-7.rs"
 ```
 
 ## Run and look

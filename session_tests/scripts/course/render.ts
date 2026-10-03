@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {course, docs, read, json, write, hash} from './model.ts';
+import {course, docs, read, json, write, hash, typingLoad} from './model.ts';
 import {signature} from './verify.ts';
 
 const language: Record<string, string> = {'.rs': 'rust', '.wgsl': 'wgsl', '.html': 'html', '.toml': 'toml', '.md': 'markdown', '.sh': 'sh', '.yaml': 'yaml'};
@@ -12,9 +12,11 @@ export function generate() {
     const browser = fs.existsSync(capture) ? json(capture).steps : {};
     for (const [index, step] of steps.entries()) {
         const [low, high] = step.hours;
-        const count = step.edits.reduce((n, edit) => n + read(path.join(docs, edit.snippet)).split('\n').length - 1, 0);
+        const typing = typingLoad(step);
         const page = [`# ${step.id.split('-')[0]} · ${step.title}`,
-            `**Plan about ${low}–${high} hours.** ${count} lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.`,
+            `**Combined study estimate: ${low}–${high} hours.** Includes reading, typing, reasoning and experiments.`,
+            `**Typing estimate: ${typing.minutes.join('–')} minutes.** ${typing.lines} added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).`,
+            ...(typing.minutes[1] > 60 ? ['**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.'] : []),
             `**Today:** ${step.goal}`,
             '**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).',
             `**Follow:** ${step.trace}.`, `**Before you finish, explain:** ${step.question}`, step.story, '## Type the change'];
@@ -68,5 +70,13 @@ export function generate() {
     write(overview, read(overview)
         .replace(/\*\*Current release:[^\n]+/, `**Current release: ${steps.length} cumulative lessons, about ${hours.join('–')} active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.`)
         .replace(/\| Lesson \|[\s\S]*?(?=\n\n)/, table.join('\n')));
+    const audit = path.join(docs, 'journey/typing-load.md');
+    const rows = steps.map(step => {
+        const typing = typingLoad(step);
+        return `| [${step.id}](${step.id}.md) | ${typing.lines} | ${typing.characters} | ${typing.minutes.join('–')} min | ${step.hours.join('–')} h | ${typing.minutes[1] <= 60 ? 'Within planning limit' : 'Split required'} |`;
+    });
+    write(audit, read(audit).replace(/\| Checkpoint \|[\s\S]*?(?=\n\n)/,
+        ['| Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Typing limit |',
+            '| --- | ---: | ---: | --- | --- | --- |', ...rows].join('\n')));
     console.log(`Generated ${steps.length} lessons from their source edits.`);
 }

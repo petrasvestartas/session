@@ -1,6 +1,10 @@
 # 03a · Draw our command line
 
-**Plan about 4–6 hours.** 218 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 4–6 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 81–162 minutes.** 196 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Draw the production command panel and its Noto text over the triangle, using the same GPU.
 
@@ -29,6 +33,8 @@ The panel currently covers the bottom 30 pixels of the picture. Later, when inpu
 Read the two paint operations carefully: the scene uses **Clear**, while the panel uses **Load**. Both store their result, and only the browser presents it. There is one picture, built in order by two painters.
 
 `|ui| { ... }` is a short function egui calls with an area to draw in. Here it borrows Panel’s text for one layout call; it does not outlive draw. An `egui::Frame` describes a widget’s decoration and margins. It is different from the surface image we present to the browser.
+
+We use one egui layout pass, as the production viewer does. A widget can request another pass while laying itself out. Replaying an input event in that pass could type or submit twice, so the bridge limits each update to one pass.
 
 ## Type the change
 
@@ -85,7 +91,17 @@ Create the file and type:
 --8<-- "journey/code/03a-panel-panel-05.rs"
 ```
 
-### 5. `src/lib.rs`
+### 5. `src/panel.rs`
+
+Keep the context and painter alive. Each draw lays out widgets, uploads changed font pixels, tessellates shapes, then paints with Load. forget_lifetime lets egui receive the render pass; finish the pass before finishing its encoder. The temporary pass still ends at the semicolon; forget_lifetime does not keep it alive forever.
+
+Create the file and type:
+
+```rust
+--8<-- "journey/code/03a-panel-scale-1.rs"
+```
+
+### 6. `src/lib.rs`
 
 Register the interface modules only for browser builds. Native scene checks continue to use the existing Renderer.
 
@@ -100,10 +116,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03a-panel-panel-02.rs"
+--8<-- "journey/code/03a-panel-fullscreen-1.rs"
 ```
 
-### 6. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Create the interface once beside the scene renderer. Pass that same mutable Panel to present, then paint the interface after the scene and before presenting the frame.
 
@@ -127,10 +143,10 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsVal
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03a-panel-panel-03.rs"
+--8<-- "journey/code/03a-panel-window-1.rs"
 ```
 
-### 7. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Create the interface once beside the scene renderer. Pass that same mutable Panel to present, then paint the interface after the scene and before presenting the frame.
 
@@ -148,17 +164,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03a-panel-panel-04.rs"
-```
-
-### 8. `src/panel.rs`
-
-Keep the context and painter alive. Each draw lays out widgets, uploads changed font pixels, tessellates shapes, then paints with Load. forget_lifetime lets egui receive the render pass; finish the pass before finishing its encoder. The temporary pass still ends at the semicolon; forget_lifetime does not keep it alive forever.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/03a-panel-scale-1.rs"
+--8<-- "journey/code/03a-panel-window-2.rs"
 ```
 
 ## Run and look

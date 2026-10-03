@@ -4,13 +4,19 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {save, restore, savedPath} from './checkpoints.ts';
-import {expected, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course} from './model.ts';
+import {expected, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines} from './model.ts';
 
 function fixture(run: (folder: string) => void) {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-'));
     try { run(folder); }
     finally { fs.rmSync(folder, {recursive: true, force: true}); }
 }
+
+test('typing estimates exclude unchanged context and removed lines', () => {
+    assert.deepEqual(addedLines('before\nold\nafter\n', 'before\nnew\nafter\n'), ['new\n']);
+    assert.deepEqual(addedLines('before\nold\nafter\n', 'before\nafter\n'), []);
+    assert.deepEqual(addedLines('', '// Explain ownership\n\nlet value = 1;\n'), ['// Explain ownership\n', '\n', 'let value = 1;\n']);
+});
 
 test('restore preserves the unfinished project and does not overwrite a save', () => fixture(folder => {
     const project = path.join(folder, 'journey');

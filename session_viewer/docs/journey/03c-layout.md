@@ -1,6 +1,10 @@
 # 03c · Draw completion and history
 
-**Plan about 8–12 hours.** 639 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 8–12 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 251–501 minutes.** 575 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Lay out the production command dock from its model.
 
@@ -26,52 +30,7 @@ A trait is a list of operations another type promises to supply. Here `Commands`
 
 Continue [Give the command line its memory](03b-state.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-03c-layout`. A save keeps your own work; it does not fill in the next lesson.
 
-### 1. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
-
-Find this exact block:
-
-```rust
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03c-layout-dock-01.rs"
-```
-
-### 2. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
-
-Find this exact block:
-
-```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
-    present(&surface, &renderer, &mut panel)?;
-    report("The command model owns the text and history.");
-    Ok(())
-}
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03c-layout-dock-02.rs"
-```
-
-### 3. `src/command_dock/mod.rs`
+### 1. `src/command_dock/mod.rs`
 
 Keep command text, history and completion state together. The application supplies vocabulary through Commands; this component owns editing and drawing.
 
@@ -92,7 +51,7 @@ Replace that block with:
 --8<-- "journey/code/03c-layout-dock-06.rs"
 ```
 
-### 4. `src/panel.rs`
+### 2. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -111,6 +70,8 @@ pub struct Panel {
 impl Panel {
     pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
         let context = egui::Context::default();
+        // Text input must be handled once, even when a widget requests another layout pass.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_fonts(theme::fonts([
             include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
             include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
@@ -173,7 +134,7 @@ Replace that block with:
 --8<-- "journey/code/03c-layout-scale-1.rs"
 ```
 
-### 5. `src/panel.rs`
+### 3. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -200,7 +161,7 @@ Replace that block with:
 --8<-- "journey/code/03c-layout-scale-2.rs"
 ```
 
-### 6. `src/panel.rs`
+### 4. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -220,6 +181,29 @@ Replace that block with:
 
 ```rust
 --8<-- "journey/code/03c-layout-scale-3.rs"
+```
+
+### 5. `src/browser.rs`
+
+Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
+
+Find this exact block:
+
+```rust
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
+    present(&surface, &renderer, &mut panel)?;
+    report("The command model owns the text and history.");
+    Ok(())
+}
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03c-layout-window-1.rs"
 ```
 
 ## Run and look

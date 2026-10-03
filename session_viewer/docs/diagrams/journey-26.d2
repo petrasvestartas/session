@@ -1,0 +1,11 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+command: "Fit Selected command"
+editor: "Editor owns selection\nOption<ObjectId>"
+scene: "Scene finds that stable ID\nVertices → Bounds"
+camera: "Camera::fit\nNew target and distance"
+mesh: "Shared mesh unchanged\nSame model coordinates"
+frame: "Renderer draws a closer view"
+command -> editor -> scene -> camera -> frame
+scene -> mesh: "borrows"

@@ -1,6 +1,8 @@
 # 05 · Let Rust supply the corners
 
-**Plan about 1–2 hours.** 42 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 12–23 minutes.** 26 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Today:** Draw a rectangle from six positions stored in a GPU buffer.
 
@@ -63,95 +65,91 @@ Find this exact block:
 
 ```rust
 pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/05-vertices-02.rs"
+--8<-- "journey/code/05-vertices-fullscreen-2.rs"
 ```
 
 ### 3. `src/renderer.rs`
 
-Keep the uploaded vertex buffer for later redraws.
+Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
 Find this exact block:
 
 ```rust
-    pipeline: wgpu::RenderPipeline,
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/05-vertices-03.rs"
+--8<-- "journey/code/05-vertices-fullscreen-3.rs"
 ```
 
 ### 4. `src/renderer.rs`
 
-Upload the positions once, during renderer construction.
+Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
 Find this exact block:
 
 ```rust
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            multiview_mask: None,
+            cache: None,
+        });
+        Self { device, queue, pipeline }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/05-vertices-04.rs"
+--8<-- "journey/code/05-vertices-fullscreen-4.rs"
 ```
 
 ### 5. `src/renderer.rs`
 
-Describe the bytes: two f32 values at location zero, repeated every eight bytes.
+Add the six positions above the renderer. Each consecutive group of three forms one triangle.
 
 Find this exact block:
 
 ```rust
-                buffers: &[],
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/05-vertices-05.rs"
-```
-
-### 6. `src/renderer.rs`
-
-Transfer the buffer into the renderer with the pipeline.
-
-Find this exact block:
-
-```rust
-        Self { device, queue, pipeline }
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/05-vertices-06.rs"
-```
-
-### 7. `src/renderer.rs`
-
-Bind the whole vertex buffer to slot zero and draw its six vertices.
-
-Find this exact block:
-
-```rust
+                ..Default::default()
+            });
+            pass.set_pipeline(&self.pipeline);
             pass.draw(0..3, 0..1);
+        }
+        self.queue.submit([encoder.finish()]);
+    }
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/05-vertices-07.rs"
+--8<-- "journey/code/05-vertices-fullscreen-5.rs"
 ```
 
-### 8. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Connect let rust supply the corners to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -169,7 +167,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/05-vertices-dock-01.rs"
+--8<-- "journey/code/05-vertices-window-1.rs"
 ```
 
 ## Run and look

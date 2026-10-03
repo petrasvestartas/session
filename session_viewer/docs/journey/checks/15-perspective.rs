@@ -19,5 +19,5 @@ fn verify_pixels(pixels: &[u8]) {
     };
     assert!(colour(320, 240, [63, 218, 218]), "GPU visibility must agree with the centre ray");
     assert!(colour(290, 320, [243, 137, 179]), "The lower pink surface remains visible");
-    assert!(colour(30, 30, [48, 85, 124]));
+    assert!(colour(30, 30, [255, 255, 255]));
 }

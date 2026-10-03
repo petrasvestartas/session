@@ -1,6 +1,8 @@
 # 16 · Walk around the model
 
-**Plan about 2–4 hours.** 93 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 28–56 minutes.** 61 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Today:** Orbit and tilt a perspective camera while keeping its target in place.
 
@@ -187,7 +189,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/16-orbit-dock-01.rs"
+--8<-- "journey/code/16-orbit-window-1.rs"
 ```
 
 ### 10. `src/browser.rs`
@@ -200,7 +202,7 @@ Find this exact block:
                 "pan left" => camera.pan(-0.25, 0.0),
                 "pan right" => camera.pan(0.25, 0.0),
                 "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "view reset" => camera = Camera::default(),
+                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
                 _ => return,
             }
 ```
@@ -208,7 +210,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/16-orbit-dock-02.rs"
+--8<-- "journey/code/16-orbit-window-2.rs"
 ```
 
 ### 11. `src/browser.rs`
@@ -229,28 +231,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/16-orbit-dock-03.rs"
-```
-
-### 12. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/16-orbit-page-1.html"
+--8<-- "journey/code/16-orbit-window-3.rs"
 ```
 
 ## Run and look

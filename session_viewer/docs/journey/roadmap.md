@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 101 lesson slots; 29 current checkpoints have build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 101 lesson slots; 30 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -8,7 +8,24 @@ A checked box means the implementation exists, the displayed code builds, its Ru
 
 Each future lesson will get its own typing estimate, architecture diagram, experiment, buildable endpoint and screenshot when it is authored. No reliable total study-time estimate exists for the unpublished lessons.
 
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+
+- [x] Audit the added/changed code in all 30 current checkpoints, excluding unchanged context.
+- [x] Display separate typing and combined study estimates at each checkpoint’s top.
+- [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
+- [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
+- [ ] Publish each completed lesson and refresh the same existing Chrome tutorial tab, preserving the reader’s current lesson.
+
 ## Published checkpoints and current work
+
+- [x] Move the work into this foreground session on GPT-6.1 Sol High.
+- [x] Production typing focus, named View commands and right-click repeat verified in Chrome.
+- [x] Phone orbit, two-finger pan, pinch zoom and touch cancellation verified.
+- [x] Revise 03d and 22 for immediate typing and command-only keyboard features; recheck 23–26.
+- [x] Refresh all changed earlier endpoints and their screenshot evidence.
+- [x] [Review this week’s commits](weekly-changes.md) and map visibility, locking, tree colors and curve sampling to lessons.
+- [ ] Fix missing ink at close zoom and sharp angles; ordinary-distance checks are insufficient.
+- [ ] Publish the verified changes and refresh the same existing tutorial tab.
 
 - [x] 01 · [A page that Rust can reach](01-canvas.md).
 
@@ -60,7 +77,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 - [x] 21 · [Remember a press until it ends](21-gestures.md).
 
-- [x] 22 · [Give the keyboard a place to work](22-shortcuts.md).
+- [x] 22 · [Keep navigation on the mouse and commands in the dock](22-shortcuts.md).
 
 - [x] 23 · [Keep the document behind the picture](23-import.md).
 
@@ -72,7 +89,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
-- [ ] 26 · Fit selected objects and work in model units — distinguish display scale from stored coordinates.
+- [x] 26 · [Frame one object without changing its size](26-selected.md) — camera-only fitting and model coordinates; Rust, WebAssembly, GPU and Chrome checks passed.
 
 - [ ] 27 · Place an object without rewriting its mesh — introduce local and world coordinates.
 

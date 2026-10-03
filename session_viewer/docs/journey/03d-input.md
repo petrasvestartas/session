@@ -1,6 +1,10 @@
 # 03d · Type into the real command dock
 
-**Plan about 5–8 hours.** 174 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 5–8 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 68–136 minutes.** 149 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Send browser events to the dock and submit Help.
 
@@ -14,7 +18,7 @@ Now the field becomes usable. A browser key is not automatically an egui key: Pa
 
 Follow one letter: KeyboardEvent → egui Text event → CommandLine.command → layout → GPU triangles. Follow Enter separately: the dock returns the line, the vocabulary accepts it, and the answer joins history.
 
-The scene and dock share one canvas. consumed means this event belongs to the dock. Later, camera shortcuts must check it before reacting; otherwise typing an arrow or Delete could also change the scene. Clicking outside the dock releases text focus.
+The scene and dock share one canvas. consumed means this event belongs to the dock. Mouse navigation must check it before reacting. Clicking outside the dock releases text focus; the next printable key requests focus before its Text event reaches the field. This ordering keeps the first letter. There are no keyboard feature shortcuts.
 
 The second update receives no event. It lays out the cleared field and new answer after submission. Sending the same key twice would type duplicate letters. FullOutput.append keeps texture uploads from the earlier layout while retaining the latest shapes.
 
@@ -26,48 +30,7 @@ The second update receives no event. It lays out the cleared field and new answe
 
 Continue [Draw completion and history](03c-layout.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-03d-input`. A save keeps your own work; it does not fill in the next lesson.
 
-### 1. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
-
-Find this exact block:
-
-```rust
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03d-input-dock-01.rs"
-```
-
-### 2. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
-
-Find this exact block:
-
-```rust
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    panel.update(None, &canvas)?;
-    present(&surface, &renderer, &mut panel)?;
-    report("The real dock lays out history and the command field.");
-    Ok(())
-}
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03d-input-dock-02.rs"
-```
-
-### 3. `src/panel.rs`
+### 1. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -90,7 +53,7 @@ Replace that block with:
 --8<-- "journey/code/03d-input-scale-1.rs"
 ```
 
-### 4. `src/panel.rs`
+### 2. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -112,7 +75,7 @@ Replace that block with:
 --8<-- "journey/code/03d-input-scale-2.rs"
 ```
 
-### 5. `src/panel.rs`
+### 3. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -133,25 +96,45 @@ Replace that block with:
 --8<-- "journey/code/03d-input-scale-3.rs"
 ```
 
-### 6. `index.html`
+### 4. `src/browser.rs`
 
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
 
 Find this exact block:
 
-```html
-<body>
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" width="640" height="480" aria-label="Viewer drawing"></canvas>
-</body>
-</html>
+```rust
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn report(message: &str) {
+    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
 ```
 
 Replace that block with:
 
-```html
---8<-- "journey/code/03d-input-page-1.html"
+```rust
+--8<-- "journey/code/03d-input-window-1.rs"
+```
+
+### 5. `src/browser.rs`
+
+Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
+
+Find this exact block:
+
+```rust
+    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
+    panel.update(None, &canvas)?;
+    present(&surface, &renderer, &mut panel)?;
+    report("The real dock lays out history and the command field.");
+    Ok(())
+}
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-window-2.rs"
 ```
 
 ## Run and look

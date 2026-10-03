@@ -1,6 +1,8 @@
 # 04 · Make a choice change the picture
 
-**Plan about 1–2 hours.** 87 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 12–24 minutes.** 38 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Today:** Use a command to switch backgrounds without changing the triangle.
 
@@ -32,39 +34,7 @@ Create the file and type:
 --8<-- "journey/code/04-input-02.rs"
 ```
 
-### 2. `src/renderer.rs`
-
-The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
-
-Find this exact block:
-
-```rust
-    pub fn draw(&self, view: &wgpu::TextureView) {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/04-input-04.rs"
-```
-
-### 3. `src/renderer.rs`
-
-Use the three values just read instead of a colour fixed inside the renderer.
-
-Find this exact block:
-
-```rust
-                            r: 0.03, g: 0.09, b: 0.20, a: 1.0,
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/04-input-05.rs"
-```
-
-### 4. `src/lib.rs`
+### 2. `src/lib.rs`
 
 Register the state module so both the browser and the renderer can use it.
 
@@ -79,7 +49,51 @@ mod browser;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-dock-01.rs"
+--8<-- "journey/code/04-input-fullscreen-1.rs"
+```
+
+### 3. `src/renderer.rs`
+
+The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
+
+Find this exact block:
+
+```rust
+        Self { device, queue, pipeline }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView) {
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/04-input-fullscreen-6.rs"
+```
+
+### 4. `src/renderer.rs`
+
+The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
+
+Find this exact block:
+
+```rust
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/04-input-fullscreen-7.rs"
 ```
 
 ### 5. `src/browser.rs`
@@ -96,7 +110,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-dock-02.rs"
+--8<-- "journey/code/04-input-window-1.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -134,7 +148,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-dock-03.rs"
+--8<-- "journey/code/04-input-window-2.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -162,7 +176,7 @@ fn present(
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-dock-04.rs"
+--8<-- "journey/code/04-input-window-3.rs"
 ```
 
 ### 8. `src/browser.rs`
@@ -184,27 +198,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/04-input-dock-05.rs"
-```
-
-### 9. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/04-input-page-1.html"
+--8<-- "journey/code/04-input-window-4.rs"
 ```
 
 ## Run and look
@@ -219,7 +213,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Type `Background` in the white command field and press Enter. Blue becomes light. Submit `Background` again: every scene pixel should return to its original colour, while the dock remembers both commands. The triangle stays pink.
+Type `Background` in the white command field and press Enter. White becomes light grey. Submit `Background` again: every scene pixel should return to its original colour, while the dock remembers both commands. The triangle stays pink.
 
 **Actual Chrome screenshot.**
 

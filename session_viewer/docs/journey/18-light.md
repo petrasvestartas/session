@@ -1,6 +1,8 @@
 # 18 · Read the shape through light
 
-**Plan about 1–2 hours.** 33 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 1–2 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 6–11 minutes.** 9 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
 
 **Today:** Shade the box faces according to their direction, using the same mesh and renderer.
 
@@ -80,7 +82,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/18-light-dock-01.rs"
+--8<-- "journey/code/18-light-window-1.rs"
 ```
 
 ## Run and look

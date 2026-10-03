@@ -118,7 +118,7 @@ export function verify(ids: string[], stored = false) {
 }
 
 export function structure() {
-    const images = new Set<string>();
+    const images = new Map<string, string>();
     for (const step of course().steps) {
         const files = expected(step.id);
         const page = read(path.join(docs, step.page));
@@ -129,8 +129,12 @@ export function structure() {
         for (const match of page.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
             const file = path.resolve(path.dirname(path.join(docs, step.page)), match[1]);
             const digest = hash(fs.readFileSync(file));
-            assert(!images.has(digest), `Repeated lesson image: ${file}`);
-            images.add(digest);
+            const previous = images.get(digest);
+            // The first GPU clear deliberately preserves lesson 01's empty white window.
+            const firstClear = path.basename(file) === '02-clear-browser.png'
+                && previous && path.basename(previous) === '01-canvas-browser.png';
+            assert(!previous || firstClear, `Repeated lesson image: ${file}`);
+            images.set(digest, file);
         }
     }
     const destination = json(path.join(docs, 'journey/destination.json'));

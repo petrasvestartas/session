@@ -1,0 +1,56 @@
+# Keep each typing lesson under one hour
+
+The complete viewer remains the destination. A working checkpoint can still be too large for a good typing lesson. The table below separates the code you must add or change from the reading and experiments around it.
+
+This audit counts added or changed lines in each exact code edit. Unchanged context shown around an edit is excluded: keep those lines rather than retyping them. A changed line is counted in full, including indentation, comments and its line break.
+
+For planning, the typing range assumes 10–20 five-character words per minute (50–100 characters per minute). This is a conservative estimate, not a measurement of your speed. Reading, reasoning, debugging and experiments take additional time. The existing study ranges combine those activities and must be reassessed as lessons are split.
+
+**Acceptance target:** at most 60 minutes of estimated typing at the slower planning rate, with a complete buildable endpoint. Splits must follow a responsibility or a working behaviour, never stop midway through a Rust function. No implementation file is supplied as a shortcut.
+
+## Current checkpoint audit
+
+| Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Typing limit |
+| --- | ---: | ---: | --- | --- | --- |
+| [01-canvas](01-canvas.md) | 49 | 1585 | 16–32 min | 1–2 h | Within planning limit |
+| [02-clear](02-clear.md) | 106 | 4343 | 44–87 min | 2–3 h | Split required |
+| [03-triangle](03-triangle.md) | 47 | 1866 | 19–38 min | 1–2 h | Within planning limit |
+| [03a-panel](03a-panel.md) | 196 | 8087 | 81–162 min | 4–6 h | Split required |
+| [03b-state](03b-state.md) | 195 | 7353 | 74–148 min | 3–5 h | Split required |
+| [03c-layout](03c-layout.md) | 575 | 25022 | 251–501 min | 8–12 h | Split required |
+| [03d-input](03d-input.md) | 149 | 6795 | 68–136 min | 5–8 h | Split required |
+| [04-input](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | Within planning limit |
+| [05-vertices](05-vertices.md) | 26 | 1115 | 12–23 min | 1–2 h | Within planning limit |
+| [06-indices](06-indices.md) | 14 | 737 | 8–15 min | 1–2 h | Within planning limit |
+| [07-uniforms](07-uniforms.md) | 35 | 1583 | 16–32 min | 2–3 h | Within planning limit |
+| [08-camera](08-camera.md) | 93 | 2482 | 25–50 min | 2–3 h | Within planning limit |
+| [09-matrices](09-matrices.md) | 30 | 1130 | 12–23 min | 2–4 h | Within planning limit |
+| [10-depth](10-depth.md) | 63 | 2798 | 28–56 min | 2–4 h | Within planning limit |
+| [11-scene](11-scene.md) | 136 | 4629 | 47–93 min | 3–5 h | Split required |
+| [12-identity](12-identity.md) | 115 | 4143 | 42–83 min | 3–5 h | Split required |
+| [13-picking](13-picking.md) | 116 | 4601 | 47–93 min | 2–4 h | Split required |
+| [14-history](14-history.md) | 112 | 3476 | 35–70 min | 2–4 h | Split required |
+| [15-perspective](15-perspective.md) | 106 | 5439 | 55–109 min | 4–7 h | Split required |
+| [16-orbit](16-orbit.md) | 61 | 2785 | 28–56 min | 2–4 h | Within planning limit |
+| [17-solid](17-solid.md) | 67 | 2667 | 27–54 min | 3–5 h | Within planning limit |
+| [18-light](18-light.md) | 9 | 529 | 6–11 min | 1–2 h | Within planning limit |
+| [19-actions](19-actions.md) | 165 | 5995 | 60–120 min | 3–5 h | Split required |
+| [20-resize](20-resize.md) | 149 | 5217 | 53–105 min | 3–5 h | Split required |
+| [21-gestures](21-gestures.md) | 216 | 7609 | 77–153 min | 3–5 h | Split required |
+| [22-shortcuts](22-shortcuts.md) | 111 | 4157 | 42–84 min | 2–4 h | Split required |
+| [23-import](23-import.md) | 280 | 12600 | 126–252 min | 5–8 h | Split required |
+| [24-fit](24-fit.md) | 133 | 5231 | 53–105 min | 3–5 h | Split required |
+| [25-projection](25-projection.md) | 132 | 5776 | 58–116 min | 3–5 h | Split required |
+| [26-selected](26-selected.md) | 54 | 2186 | 22–44 min | 1–2 h | Within planning limit |
+
+## Work still required
+
+- [x] Count the exact source edits for all 29 current checkpoints.
+- [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
+- [ ] Split every over-limit checkpoint into meaningful runnable lessons.
+- [ ] Put separate typing and study estimates at each revised lesson’s top.
+- [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
+- [ ] Update the full roadmap, navigation and recovery instructions.
+- [ ] Recheck total lesson counts after splitting; the current 101 slots are not a fixed final count.
+
+[Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

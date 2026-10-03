@@ -1,6 +1,10 @@
 # 25 · Choose how depth changes size
 
-**Plan about 3–5 hours.** 174 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 58–116 minutes.** 132 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
 
@@ -174,7 +178,7 @@ Find this exact block:
 #[cfg(test)]
 mod fit_tests;
 #[cfg(test)]
-mod shortcut_tests;
+mod navigation_tests;
 #[cfg(test)]
 mod gesture_tests;
 ```
@@ -182,7 +186,7 @@ mod gesture_tests;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/25-projection-dock-01.rs"
+--8<-- "journey/code/25-projection-fullscreen-1.rs"
 ```
 
 ### 11. `src/browser.rs`
@@ -203,7 +207,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/25-projection-dock-02.rs"
+--8<-- "journey/code/25-projection-window-1.rs"
 ```
 
 ### 12. `src/browser.rs`
@@ -224,7 +228,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/25-projection-dock-03.rs"
+--8<-- "journey/code/25-projection-window-2.rs"
 ```
 
 ### 13. `src/browser.rs`
@@ -245,7 +249,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/25-projection-dock-04.rs"
+--8<-- "journey/code/25-projection-window-3.rs"
 ```
 
 ### 14. `src/browser.rs`
@@ -266,29 +270,7 @@ fn navigation_action(
 Replace that block with:
 
 ```rust
---8<-- "journey/code/25-projection-dock-05.rs"
-```
-
-### 15. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480"
-    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
-  <p>Commands: Help · Open · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · Fit · View Reset. Type in the white Command field and press Enter.</p>
-  <input id="open" type="file" accept=".pb" hidden>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/25-projection-page-1.html"
+--8<-- "journey/code/25-projection-window-4.rs"
 ```
 
 ## Run and look

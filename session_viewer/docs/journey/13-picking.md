@@ -1,6 +1,10 @@
 # 13 · Ask which object is under the pointer
 
-**Plan about 2–4 hours.** 149 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 2–4 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 47–93 minutes.** 116 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** Click a visible triangle to select its stable object ID, including after camera movement.
 
@@ -94,7 +98,7 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-02.rs"
+--8<-- "journey/code/13-picking-fullscreen-1.rs"
 ```
 
 ### 5. `src/browser.rs`
@@ -117,7 +121,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-03.rs"
+--8<-- "journey/code/13-picking-window-1.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -138,7 +142,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-04.rs"
+--8<-- "journey/code/13-picking-window-2.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -159,7 +163,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-05.rs"
+--8<-- "journey/code/13-picking-window-3.rs"
 ```
 
 ## Run and look

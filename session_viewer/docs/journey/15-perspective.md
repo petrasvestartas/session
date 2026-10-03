@@ -1,6 +1,10 @@
 # 15 · Look through a perspective camera
 
-**Plan about 4–7 hours.** 200 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 4–7 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 55–109 minutes.** 106 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
 
@@ -25,6 +29,8 @@ A click is no longer one world point. It describes a line of sight. Transform th
 The triangle query solves `origin + t×direction = a + u×edge1 + v×edge2`. u and v retain the coverage meaning from the last lesson; t is now distance along the ray. The cross products let each dot product isolate one unknown. A determinant close to zero means the ray and triangle cannot provide a reliable intersection. After finding coverage, compare t across objects and keep the nearest valid hit.
 
 The fixed field of view and clipping planes are enough for this small specimen. Later lessons add orbit, fit-to-scene, dynamic viewport size and the precision policy of the full viewer.
+
+Set the camera’s aspect to the initial window width divided by its height. The projection then agrees with the full-window image. Resetting the camera keeps this aspect: changing the view must not change the window’s proportions.
 
 ## Type the change
 
@@ -326,6 +332,28 @@ Connect look through a perspective camera to the typed command path. Keep the sc
 Find this exact block:
 
 ```rust
+    let mut history = History::default();
+    let mut selected = None;
+    let mut background = Background::default();
+    let mut camera = Camera::default();
+    present(
+        &surface,
+        &renderer,
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/15-perspective-window-1.rs"
+```
+
+### 10. `src/browser.rs`
+
+Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
                         (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
                         (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
                     ];
@@ -338,10 +366,32 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/15-perspective-dock-02.rs"
+--8<-- "journey/code/15-perspective-window-2.rs"
 ```
 
-### 10. `src/browser.rs`
+### 11. `src/browser.rs`
+
+Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+                "pan left" => camera.pan(-0.25, 0.0),
+                "pan right" => camera.pan(0.25, 0.0),
+                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                "view reset" => camera = Camera::default(),
+                _ => return,
+            }
+        }
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/15-perspective-window-3.rs"
+```
+
+### 12. `src/browser.rs`
 
 Connect look through a perspective camera to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -359,7 +409,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/15-perspective-dock-03.rs"
+--8<-- "journey/code/15-perspective-window-4.rs"
 ```
 
 ## Run and look

@@ -134,7 +134,6 @@ async function capture() {
             if (message.type() === 'error') errors.push(`${message.text()} ${message.location().url}`);
         });
         const base = process.env.JOURNEY_URL || 'http://127.0.0.1:8781/';
-        const seen = new Set();
         for (const step of course.steps.filter(step => !selected.length || selected.includes(step.id))) {
             const id = step.id;
             errors.length = 0;
@@ -154,6 +153,10 @@ async function capture() {
             if (id !== '01-canvas') {
                 assert.deepEqual(await page.locator('canvas').evaluate(c => ({width: c.width, height: c.height})),
                     viewport, id + ': GPU image must match the initial window at display density 1');
+                const url = await page.locator('canvas').evaluate(c => c.toDataURL());
+                const pixels = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
+                assert.deepEqual([...pixels.data.subarray(0, 4)], [255, 255, 255, 255],
+                    id + ': the initial GPU background must be white');
             }
             if (id === '03a-panel') {
                 const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
@@ -169,12 +172,29 @@ async function capture() {
                 assert(ink > 100, 'Noto letters must actually render, not just a blank panel');
             }
             if (id === '03d-input') {
+                await page.mouse.click(8, 8);
+                await page.keyboard.type('He');
+                await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command === 'Help');
+                await page.keyboard.press('Escape');
                 await command(page, 'Help');
                 await focusCommand(page);
                 await page.keyboard.type('He');
-                await page.waitForTimeout(100);
+                await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command === 'Help');
                 assert.equal(JSON.parse(await page.locator('canvas').getAttribute('data-command-ui')).command, 'Help');
                 await page.keyboard.press('Escape');
+            }
+            if (id === '22-shortcuts') {
+                const before = await drawing(page);
+                await page.mouse.click(8, 8);
+                await page.keyboard.type('g');
+                await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command.toLowerCase().startsWith('g'));
+                await page.keyboard.press('Escape');
+                await page.waitForTimeout(120);
+                assert.equal(await drawing(page), before, 'Typing must not trigger a feature shortcut');
+                await page.mouse.click(8, 8);
+                await page.keyboard.press('ArrowRight');
+                await page.waitForTimeout(120);
+                assert.equal(await drawing(page), before, 'An arrow outside the dock must not navigate');
             }
             if (parseInt(id) >= 4) {
                 assert.equal(await page.locator('button, input:not([type=file]), fieldset').count(), 0,
@@ -183,7 +203,7 @@ async function capture() {
                 const before = await drawing(page);
                 await focusCommand(page);
                 await page.keyboard.type('Bac');
-                await page.waitForTimeout(100);
+                await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command === 'Background');
                 const ui = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui'));
                 assert.equal(ui.command, 'Background', 'Production inline completion must work');
                 await page.keyboard.press('Escape');
@@ -196,7 +216,6 @@ async function capture() {
                 assert.notEqual(await drawing(page), dark, 'Typed Background must change scene pixels');
                 await command(page, 'Background');
                 assert.equal(await drawing(page), dark, 'The keyboard round-trip must restore every scene pixel');
-                await command(page, 'Background');
             }
             for (const action of step.browser_actions || []) {
                 if (action.command) {
@@ -283,14 +302,13 @@ async function capture() {
             }
             if (id === '25-projection') await projection(page);
             const canvas = await drawing(page);
-            assert(!seen.has(canvas), 'Each lesson must have a distinct visible result');
-            seen.add(canvas);
             assert.deepEqual(errors, []);
             assert.equal(await page.locator('#status').textContent(), step.browser_result_status || step.browser_status);
             const file = `${id}-browser.png`;
             await page.screenshot({path: path.join(output, file), fullPage: true});
             records.steps[id] = {source: builds[id].source, checker: hash(fs.readFileSync(__filename)),
                 browser: browser.version(), headless, captured: new Date().toISOString(), status, canvas, file,
+                initialViewport: viewport, initialCanvas: box, screenshotViewport: page.viewportSize(),
                 bundle: hash(fs.readFileSync(`target/course-checks/${id}/dist/index.html`)),
                 commands: (step.browser_actions || []).filter(action => action.command).map(action => action.command),
                 keyboardRoundtrip: id === '04-input'};

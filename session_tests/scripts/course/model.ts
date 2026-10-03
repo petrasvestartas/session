@@ -35,6 +35,28 @@ export const lines = (text: string) => text.match(/[^\n]*\n|[^\n]+$/g) || [];
 export const sorted = (files: Files) => Object.fromEntries(Object.keys(files).sort().map(name => [name, files[name]]));
 export const fingerprint = (files: Files) => hash(JSON.stringify(sorted(files)));
 
+export function addedLines(before: string, after: string): string[] {
+    const a = lines(before), b = lines(after);
+    const common = Array.from({length: a.length + 1}, () => new Uint32Array(b.length + 1));
+    for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) {
+        common[i][j] = a[i] === b[j] ? common[i + 1][j + 1] + 1 : Math.max(common[i + 1][j], common[i][j + 1]);
+    }
+    const added: string[] = [];
+    let i = 0, j = 0;
+    while (j < b.length) {
+        if (i < a.length && a[i] === b[j]) { i++; j++; }
+        else if (i < a.length && common[i + 1][j] > common[i][j + 1]) i++;
+        else added.push(b[j++]);
+    }
+    return added;
+}
+
+export function typingLoad(step: Step) {
+    const added = step.edits.flatMap(edit => addedLines(edit.before || '', read(path.join(docs, edit.snippet))));
+    const characters = [...added.join('')].length;
+    return {lines: added.length, characters, minutes: [Math.ceil(characters / 100), Math.ceil(characters / 50)]};
+}
+
 export function lockFor(id: string): string {
     let lock = 'journey/release/Cargo.lock';
     for (const step of course().steps) {

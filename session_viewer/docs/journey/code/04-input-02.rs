@@ -12,7 +12,7 @@ impl Background {
         if self.light {
             [0.9, 0.9, 0.9]
         } else {
-            [0.03, 0.09, 0.20]
+            [1.0, 1.0, 1.0]
         }
     }
 }

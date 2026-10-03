@@ -1,6 +1,10 @@
 # 03b · Give the command line its memory
 
-**Plan about 3–5 hours.** 278 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Combined study estimate: 3–5 hours.** Includes reading, typing, reasoning and experiments.
+
+**Typing estimate: 74–148 minutes.** 195 added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).
+
+**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
 
 **Today:** The text field and history have one owner.
 
@@ -67,75 +71,7 @@ Replace that block with:
 --8<-- "journey/code/03b-state-dock-02.toml"
 ```
 
-### 3. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
-
-Find this exact block:
-
-```rust
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas").ok_or("Missing canvas")?.dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03b-state-dock-03.rs"
-```
-
-### 4. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
-
-Find this exact block:
-
-```rust
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
-        compatible_surface: Some(&surface),
-        ..Default::default()
-    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())
-        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let mut config = surface.get_default_config(&adapter, 640, 480)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
-    present(&surface, &renderer, &mut panel)?;
-    report("Our command line is drawn. Input comes next.");
-    Ok(())
-}
-
-fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => return Err(JsValue::from_str(&format!("Surface unavailable: {other:?}"))),
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03b-state-dock-04.rs"
-```
-
-### 5. `src/command_dock/mod.rs`
+### 3. `src/command_dock/mod.rs`
 
 Keep command text, history and completion state together. The application supplies vocabulary through Commands; this component owns editing and drawing.
 
@@ -152,7 +88,7 @@ Replace that block with:
 --8<-- "journey/code/03b-state-dock-08.rs"
 ```
 
-### 6. `src/panel.rs`
+### 4. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -177,7 +113,7 @@ Replace that block with:
 --8<-- "journey/code/03b-state-scale-1.rs"
 ```
 
-### 7. `src/panel.rs`
+### 5. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -207,7 +143,7 @@ Replace that block with:
 --8<-- "journey/code/03b-state-scale-2.rs"
 ```
 
-### 8. `src/panel.rs`
+### 6. `src/panel.rs`
 
 Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
 
@@ -251,6 +187,79 @@ Replace that block with:
 
 ```rust
 --8<-- "journey/code/03b-state-scale-3.rs"
+```
+
+### 7. `src/browser.rs`
+
+Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
+
+Find this exact block:
+
+```rust
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas").ok_or("Missing canvas")?.dyn_into()?;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::BROWSER_WEBGPU,
+        flags: Default::default(),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03b-state-window-1.rs"
+```
+
+### 8. `src/browser.rs`
+
+Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
+
+Find this exact block:
+
+```rust
+        backend_options: Default::default(),
+        display: None,
+    });
+    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
+        compatible_surface: Some(&surface),
+        ..Default::default()
+    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())
+        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;
+    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
+    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let mut config = surface.get_default_config(&adapter, width, height)
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
+    present(&surface, &renderer, &mut panel)?;
+    report("Our command line is drawn. Input comes next.");
+    Ok(())
+}
+
+fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {
+    let frame = match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(frame)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        other => return Err(JsValue::from_str(&format!("Surface unavailable: {other:?}"))),
+    };
+    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
+        format: Some(frame.texture.format().add_srgb_suffix()),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03b-state-window-2.rs"
 ```
 
 ## Run and look

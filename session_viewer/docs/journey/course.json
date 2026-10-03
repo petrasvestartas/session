@@ -10,7 +10,7 @@
         2
       ],
       "goal": "Fill the browser window with a canvas and let Rust signal that it has started.",
-      "trace": "HTML canvas → WebAssembly entry point → visible status",
+      "trace": "HTML canvas → WebAssembly entry point → hidden startup status",
       "question": "Does seeing the canvas prove that the GPU has drawn anything?",
       "answer": "No. HTML creates the canvas and CSS gives it a background. The status proves Rust ran; GPU commands begin in the next lesson.",
       "edits": [
@@ -33,11 +33,12 @@
           "why": "Create Rust’s entry point. The browser calls start after loading WebAssembly; ? returns an error if a required element is missing."
         }
       ],
-      "story": "Think of the canvas as an empty sheet of paper. Today that sheet fills the browser window. Rust turns it from white to grey when it starts. We are checking the connection before asking the GPU to draw.\n\nYou will make three files. `index.html` owns the page. `Cargo.toml` tells Rust which libraries the project uses. `src/lib.rs` contains the function the browser will call. There is no application state or renderer yet.\n\n![HTML fills the window with a canvas; Rust marks it ready and CSS turns it grey.](../illustrations/journey-01.svg)\n\nFrom `session_viewer`, create your project with `npm --prefix ../session_tests run course -- init`. This supplies only the fixed dependency lock. Create a `src` folder inside `workspace/journey`, then type the files below. All lessons use this same project.\n\n`let` gives a value a name. `fn` defines a function. `Result<(), JsValue>` means “success with no returned value, or a browser error”. The `?` after a lookup stops the function if that lookup failed. Read each lookup as a question: do we have a window, then a document, then our canvas and status elements?\n\nThe dependencies for the next lessons are listed now so this release can use one unchanged lock file. They are libraries, not hidden viewer code. `dev-dependencies` are used by the course's verification tools. You can explore [Rust values](../foundations/01-values.md) and [errors](../foundations/05-errors.md) before typing if these expressions are unfamiliar.\n\nThe page has no margin or scrolling: the canvas owns the whole window from this first lesson. `set_attribute` adds `data-ready` to the canvas; the matching CSS rule turns it grey. The hidden status element lets our browser check read the startup result without putting teaching text over your drawing.",
-      "result": "The whole browser content area turns grey, with no title, border or instructions around it. This is CSS responding to Rust; the GPU has not drawn anything yet.",
-      "experiment": "Predict what happens if you change only the colour in `canvas[data-ready]`. Save and check the full-window result. Then temporarily remove the `set_attribute` call: the canvas should stay white, because Rust no longer marks it ready. Restore both edits.",
+      "story": "Think of the canvas as an empty sheet of paper. Today that sheet fills the browser window. Rust records a startup message in a hidden page element. We are checking the connection before asking the GPU to draw.\n\nYou will make three files. `index.html` owns the page. `Cargo.toml` tells Rust which libraries the project uses. `src/lib.rs` contains the function the browser will call. There is no application state or renderer yet.\n\n![HTML fills the window with a white canvas; Rust records its startup result.](../illustrations/journey-01.svg)\n\nFrom `session_viewer`, create your project with `npm --prefix ../session_tests run course -- init`. This supplies only the fixed dependency lock. Create a `src` folder inside `workspace/journey`, then type the files below. All lessons use this same project.\n\n`let` gives a value a name. `fn` defines a function. `Result<(), JsValue>` means “success with no returned value, or a browser error”. The `?` after a lookup stops the function if that lookup failed. Read each lookup as a question: do we have a window, then a document, then our status element?\n\nThe dependencies for the next lessons are listed now so this release can use one unchanged lock file. They are libraries, not hidden viewer code. `dev-dependencies` are used by the course's verification tools. You can explore [Rust values](../foundations/01-values.md) and [errors](../foundations/05-errors.md) before typing if these expressions are unfamiliar.\n\nThe page has no margin or scrolling: the canvas owns the whole window from this first lesson. The hidden status element lets our browser check read the startup result without putting teaching text over your drawing.",
+      "result": "The browser content area is entirely white, with no title, border or instructions. Open the browser’s developer console and evaluate `document.getElementById(\"status\").textContent`: it should report “Rust is running. The canvas is ready.” The canvas is still plain HTML and CSS.",
+      "experiment": "Change the sentence passed to `set_text_content`, save, and read the hidden status again in the browser console. The sentence changes while the white canvas stays still. Restore the original sentence before comparing your code.",
       "production": "Our entry point will grow into the maintained viewer’s `lib.rs`. Browser setup is deliberately small here; the later application needs winit event routing, resizing and device recovery.",
-      "browser_status": "Rust is running. The canvas is ready."
+      "browser_status": "Rust is running. The canvas is ready.",
+      "browser_caption": "A white canvas fills the window. Rust startup is checked through the hidden status; there is deliberately no visible heading or message."
     },
     {
       "id": "02-clear",
@@ -47,21 +48,15 @@
         2,
         3
       ],
-      "goal": "Paint the whole canvas blue with a real GPU command.",
+      "goal": "Paint the whole canvas white with a real GPU command.",
       "trace": "Browser canvas → surface → renderer records a clear → queue → presented image",
       "question": "What starts the GPU work, and what makes its image appear in the canvas?",
       "answer": "queue.submit sends the recorded commands to the GPU. The browser presents its canvas image automatically. We still call frame.present to mark the end of our surface frame through wgpu’s shared API; native surface backends use that call to request presentation.",
       "edits": [
         {
-          "path": "index.html",
-          "snippet": "journey/code/02-clear-fullscreen-1.html",
-          "before": "  <style>\n    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }\n    canvas { display: block; width: 100%; height: 100%; outline: none; background: #fff; }\n    canvas[data-ready] { background: #e9e9ec; }\n    #status:not([hidden]) { position: fixed; bottom: 32px; left: 8px; right: 8px; margin: 0; padding: 8px; background: white; font: 14px system-ui; }\n  </style>\n</head>\n",
-          "why": "Continue through the same input and rendering owners."
-        },
-        {
           "path": "src/lib.rs",
           "snippet": "journey/code/02-clear-fullscreen-2.rs",
-          "before": "use wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() -> Result<(), JsValue> {\n    console_error_panic_hook::set_once();\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let status = document.get_element_by_id(\"status\").ok_or(\"Missing status\")?;\n    document.get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.set_attribute(\"data-ready\", \"true\")?;\n    status.set_text_content(Some(\"Rust is running. The canvas is ready.\"));\n    Ok(())\n}\n",
+          "before": "use wasm_bindgen::prelude::*;\n\n#[wasm_bindgen(start)]\npub fn start() -> Result<(), JsValue> {\n    console_error_panic_hook::set_once();\n    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let status = document.get_element_by_id(\"status\").ok_or(\"Missing status\")?;\n    status.set_text_content(Some(\"Rust is running. The canvas is ready.\"));\n    Ok(())\n}\n",
           "why": "Replace start’s file. Opening a GPU is asynchronous: the browser must remain free while we wait. The browser module owns page access; the renderer will also work without a page."
         },
         {
@@ -77,11 +72,12 @@
           "why": "Create the browser adapter. It owns the surface, asks for a compatible GPU and gives one texture to the renderer. The renderer does not look up HTML elements."
         }
       ],
-      "story": "Now let us give the GPU one simple instruction: paint the whole sheet blue. We do not need a triangle yet. Keeping these jobs separate will make a blank picture easier to diagnose.\n\nThere are two new owners. `browser.rs` owns page access and the drawing surface. `renderer.rs` owns the device and queue. The browser hands a texture view to the renderer; the renderer records a clear and submits it. The browser presents that image automatically. We also call wgpu’s present method to express the end of the surface frame; it is an explicit presentation request on native surface backends.\n\n![The browser supplies a surface image; the renderer records a clear and submits commands before the browser presents it.](../illustrations/journey-02.svg)\n\nAn **adapter** is an available GPU connection. A **device** creates resources. A **queue** receives work. A **surface** supplies the images that can appear in the canvas. Follow those four values in `run` before reading individual descriptor options.\n\n`struct` groups the values an owner keeps. `impl` groups its functions. `&self` borrows the renderer for one call. `async` allows a function to wait, and `.await` marks a wait for the browser's GPU request. It does not freeze the page.\n\nThe first edit revisits the entry point for a reason: GPU setup must wait asynchronously, while the first lesson only changed a DOM element. Your previous work is still the starting point.\n\n`pub` lets another module use an item. `#[cfg(target_arch = \"wasm32\")]` includes browser code only in the browser build; our native checker uses the renderer alone. `map_err` converts a GPU error into the browser error type returned by `run`. The short `|error| ...` expressions are callbacks: functions called with that error. `Arc::new` gives wgpu a shared owner for its error callback so it remains valid after setup.\n\nFor descriptor fields, `Default::default()` selects the library’s ordinary settings. We will replace defaults when a lesson needs a different behavior. Today the choices that matter are the WebGPU backend, a compatible surface, the image size, and keeping the cleared result with `Store`. The named `_pass` stays alive until the closing brace; the underscore says we intentionally do not call methods on it yet.\n\nWe allow an sRGB texture view and use it when drawing. It converts linear colour values into the display encoding, matching our native reference images. The pipeline added next must use that same view format.\n\nCSS controls how much space the canvas occupies. The GPU also needs image dimensions: read the window width and height, cap them at the device limit, and give that same size to the canvas and surface. For now one CSS pixel uses one drawing pixel. Lesson 20 adds display density and updates after a window resize.",
-      "result": "The entire canvas turns blue. A startup failure shows its reason over the canvas; successful startup adds no text. WebGPU needs a supporting browser and a secure context such as localhost.",
-      "experiment": "Before running, predict what happens if the renderer’s clear colour becomes `r: 0.9, g: 0.9, b: 0.9`. Change it, run, and explain why no shader needed to change. Restore the original numbers. If the canvas stays white, check the error message and browser console: the GPU may not have painted yet.",
+      "story": "Now let us give the GPU one simple instruction: clear the whole sheet to white. We do not need a triangle yet. Keeping these jobs separate will make a blank picture easier to diagnose.\n\nThere are two new owners. `browser.rs` owns page access and the drawing surface. `renderer.rs` owns the device and queue. The browser hands a texture view to the renderer; the renderer records a clear and submits it. The browser presents that image automatically. We also call wgpu’s present method to express the end of the surface frame; it is an explicit presentation request on native surface backends.\n\n![The browser supplies a surface image; the renderer records a clear and submits commands before the browser presents it.](../illustrations/journey-02.svg)\n\nAn **adapter** is an available GPU connection. A **device** creates resources. A **queue** receives work. A **surface** supplies the images that can appear in the canvas. Follow those four values in `run` before reading individual descriptor options.\n\n`struct` groups the values an owner keeps. `impl` groups its functions. `&self` borrows the renderer for one call. `async` allows a function to wait, and `.await` marks a wait for the browser's GPU request. It does not freeze the page.\n\nThe first edit revisits the entry point for a reason: GPU setup must wait asynchronously, while the first lesson only changed a DOM element. Your previous work is still the starting point.\n\n`pub` lets another module use an item. `#[cfg(target_arch = \"wasm32\")]` includes browser code only in the browser build; our native checker uses the renderer alone. `map_err` converts a GPU error into the browser error type returned by `run`. The short `|error| ...` expressions are callbacks: functions called with that error. `Arc::new` gives wgpu a shared owner for its error callback so it remains valid after setup.\n\nFor descriptor fields, `Default::default()` selects the library’s ordinary settings. We will replace defaults when a lesson needs a different behavior. Today the choices that matter are the WebGPU backend, a compatible surface, the image size, and keeping the cleared result with `Store`. The named `_pass` stays alive until the closing brace; the underscore says we intentionally do not call methods on it yet.\n\nWe allow an sRGB texture view and use it when drawing. It converts linear colour values into the display encoding, matching our native reference images. The pipeline added next must use that same view format.\n\nCSS controls how much space the canvas occupies. The GPU also needs image dimensions: read the window width and height, cap them at the device limit, and give that same size to the canvas and surface. For now one CSS pixel uses one drawing pixel. Lesson 20 adds display density and updates after a window resize.",
+      "result": "The canvas stays white. Its pixels now come from a submitted GPU clear. A startup failure shows its reason over the canvas; successful startup adds no text. WebGPU needs a supporting browser and a secure context such as localhost.",
+      "experiment": "Temporarily change the renderer’s clear colour to `r: 0.9, g: 0.9, b: 0.9`. The canvas should become light grey: that confirms the GPU owns these pixels. Restore all three values to 1.0 for the white background.",
       "production": "These owners become the production GPU device setup and presentation modules. The drawing operation stays independent of page lookup. Surface resizing, retry and recovery are later lessons, not hidden in this one.",
-      "browser_status": "The GPU painted the canvas."
+      "browser_status": "The GPU painted the canvas.",
+      "browser_caption": "This freshly captured white image deliberately looks like lesson 01. The change is who paints it: the GPU now clears and presents the image. The native check verifies every background pixel."
     },
     {
       "id": "03-triangle",
@@ -91,10 +87,10 @@
         1,
         2
       ],
-      "goal": "Draw a pink triangle on the blue background.",
+      "goal": "Draw a pink triangle on the white background.",
       "trace": "Three shader positions → triangle coverage → fragment colour → canvas",
       "question": "If you change the top vertex, which part of the picture changes, and which stays the same?",
-      "answer": "The triangle silhouette changes because its corner positions changed. The surrounding blue stays the same: the render pass clears the background before drawing the triangle.",
+      "answer": "The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.",
       "edits": [
         {
           "path": "src/triangle.wgsl",
@@ -122,7 +118,7 @@
         }
       ],
       "story": "The GPU can already paint an image. Today we ask it to paint a shape inside that image. We give it three corners and a colour, then connect them with a pipeline.\n\n`triangle.wgsl` contains two small GPU programs. The vertex function places each corner. The fragment function chooses the colour of covered samples. `renderer.rs` connects them and records one draw. `browser.rs` only needs to tell the renderer the surface format.\n\n![Three corner positions form a triangle; a fragment shader colours its covered pixels.](../illustrations/journey-03.svg)\n\nFor now, positions go directly into clip space: x and y near −1 and +1 reach the sides of the image. Our top corner is `(0.0, 0.6)`. The triangle stays away from the edges so its silhouette is easy to inspect. Perspective, world units and the camera come later.\n\nA **pipeline** is a reusable drawing recipe. Compiling one per click would repeat setup unnecessarily, so we keep it in the renderer. `0..3` means 0, 1 and 2. The GPU calls the vertex function for those three indices. `0..1` asks for one instance.\n\n`include_str!` puts the shader file’s text into the program at compile time; there is no second browser download. `Some` supplies an optional value and `None` leaves it absent. The empty `buffers` list means no vertex buffer supplies data yet. The pipeline still needs its two shader stages and a colour target, even for three hard-coded corners.",
-      "result": "A pink triangle appears on the blue background. Its top corner is above the centre. The background is still the render-pass clear from the previous lesson.",
+      "result": "A pink triangle appears on the white background. Its top corner is above the centre. The background is still the render-pass clear from the previous lesson.",
       "experiment": "Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`. Run it: the top should move right while the base stays still. Then change only the fragment colour. Explain why that changes the inside colour but not the silhouette. Restore both edits.",
       "production": "The production viewer also separates shader programs, pipeline setup and frame recording. Later mesh buffers replace the shader’s three hard-coded positions. We will make that replacement explicitly, after understanding what the positions do.",
       "browser_status": "Three corners became a triangle."
@@ -139,7 +135,7 @@
       "trace": "Panel layout → shapes and font atlas → egui triangles → second GPU pass → one presented image",
       "question": "Why does the interface pass load the existing image instead of clearing it?",
       "answer": "The scene pass has already drawn the triangle. Load keeps those pixels. The interface pass draws its own triangles over them; another Clear would erase the scene.",
-      "story": "We already know that a GPU draws triangles. A command line may look different, but its letters and rectangles eventually become triangles too. egui measures and arranges the interface for us; egui-wgpu paints the result with the device we already own.\n\nToday we draw the real viewer’s panel, fonts and field. Keyboard input comes in the following command-line lesson. This checkpoint is deliberately about the picture: the field and + sign are visible, but their actions are not connected yet.\n\n![One GPU receives the scene pass followed by the egui interface pass.](../illustrations/journey-03a.svg)\n\nThere are three small owners. `command_dock/theme.rs` chooses fonts and colours. `command_dock/view.rs` lays out the real viewer’s panel and text field. `Panel` keeps egui’s context and GPU painter alive between frames. The browser owns one Panel beside its scene Renderer.\n\nA **context** remembers egui’s fonts and interface state. A **font atlas** is a texture containing letter shapes. **Tessellation** turns interface shapes into triangles. We upload changed atlas pixels, upload the triangles, then draw them over the scene.\n\nThe theme and field functions below are the same implementation used by the production viewer. Type them here; there is no hidden dependency on its application. The three .ttf files are binary font assets, supplied by the dependency command below. You do not need to type a font file.\n\nThe panel currently covers the bottom 30 pixels of the picture. Later, when input and resizable panels are connected, we will also distinguish the scene rectangle from the full canvas. Do not confuse interface layout coordinates with camera coordinates.\n\n`String` owns editable text. `&mut self` lets Panel update that text and its painter. `Arc` lets egui share the embedded font bytes without copying them for each label. In the font loop, `zip` pairs each name with its matching byte slice.\n\nRead the two paint operations carefully: the scene uses **Clear**, while the panel uses **Load**. Both store their result, and only the browser presents it. There is one picture, built in order by two painters.\n\n`|ui| { ... }` is a short function egui calls with an area to draw in. Here it borrows Panel’s text for one layout call; it does not outlive draw. An `egui::Frame` describes a widget’s decoration and margins. It is different from the surface image we present to the browser.",
+      "story": "We already know that a GPU draws triangles. A command line may look different, but its letters and rectangles eventually become triangles too. egui measures and arranges the interface for us; egui-wgpu paints the result with the device we already own.\n\nToday we draw the real viewer’s panel, fonts and field. Keyboard input comes in the following command-line lesson. This checkpoint is deliberately about the picture: the field and + sign are visible, but their actions are not connected yet.\n\n![One GPU receives the scene pass followed by the egui interface pass.](../illustrations/journey-03a.svg)\n\nThere are three small owners. `command_dock/theme.rs` chooses fonts and colours. `command_dock/view.rs` lays out the real viewer’s panel and text field. `Panel` keeps egui’s context and GPU painter alive between frames. The browser owns one Panel beside its scene Renderer.\n\nA **context** remembers egui’s fonts and interface state. A **font atlas** is a texture containing letter shapes. **Tessellation** turns interface shapes into triangles. We upload changed atlas pixels, upload the triangles, then draw them over the scene.\n\nThe theme and field functions below are the same implementation used by the production viewer. Type them here; there is no hidden dependency on its application. The three .ttf files are binary font assets, supplied by the dependency command below. You do not need to type a font file.\n\nThe panel currently covers the bottom 30 pixels of the picture. Later, when input and resizable panels are connected, we will also distinguish the scene rectangle from the full canvas. Do not confuse interface layout coordinates with camera coordinates.\n\n`String` owns editable text. `&mut self` lets Panel update that text and its painter. `Arc` lets egui share the embedded font bytes without copying them for each label. In the font loop, `zip` pairs each name with its matching byte slice.\n\nRead the two paint operations carefully: the scene uses **Clear**, while the panel uses **Load**. Both store their result, and only the browser presents it. There is one picture, built in order by two painters.\n\n`|ui| { ... }` is a short function egui calls with an area to draw in. Here it borrows Panel’s text for one layout call; it does not outlive draw. An `egui::Frame` describes a widget’s decoration and margins. It is different from the surface image we present to the browser.\n\nWe use one egui layout pass, as the production viewer does. A widget can request another pass while laying itself out. Replaying an input event in that pass could type or submit twice, so the bridge limits each update to one pass.",
       "result": "The triangle remains pink. A white command strip sits at the bottom of the same canvas, with Noto text, an empty field and a + sign. Typing and history expansion are not connected at this checkpoint.",
       "experiment": "Change only the interface pass from Load to Clear with a white colour. Predict what will happen to the triangle, then try it. Restore Load afterward. Which painter still drew correctly, and whose work did the later pass erase?",
       "production": "This is the actual production panel and field styling, introduced before command behaviour. The next command-line parts connect input, submission, completion and history. We will keep these theme and layout functions as the application grows.",
@@ -301,7 +297,7 @@
         {
           "path": "src/panel.rs",
           "snippet": "journey/code/03c-layout-scale-1.rs",
-          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self {\n            context,\n            painter,\n            model: CommandLine {\n                status: \"The field now belongs to CommandLine.\".into(),\n                ..Default::default()\n            },\n        }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor {\n            size_in_pixels: size,\n            pixels_per_point: 1.0,\n        };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO,\n                egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(\n                        ui,\n                        &mut self.model.command,\n                        placeholder(\"\", &self.model.status, false),\n                        0.0,\n                        false,\n                    );\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter\n                .update_texture(&renderer.device, &renderer.queue, *id, delta);\n",
+          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        // Text input must be handled once, even when a widget requests another layout pass.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self {\n            context,\n            painter,\n            model: CommandLine {\n                status: \"The field now belongs to CommandLine.\".into(),\n                ..Default::default()\n            },\n        }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor {\n            size_in_pixels: size,\n            pixels_per_point: 1.0,\n        };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO,\n                egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(\n                        ui,\n                        &mut self.model.command,\n                        placeholder(\"\", &self.model.status, false),\n                        0.0,\n                        false,\n                    );\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter\n                .update_texture(&renderer.device, &renderer.queue, *id, delta);\n",
           "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
         },
         {
@@ -334,7 +330,7 @@
       "goal": "Send browser events to the dock and submit Help.",
       "page": "journey/03d-input.md",
       "trace": "Browser → Panel → CommandLine → layout → existing GPU",
-      "story": "Now the field becomes usable. A browser key is not automatically an egui key: Panel translates it and passes it to the context. Enter produces a submitted line. Help writes an answer into history. In lesson 04, the same path will change the scene.\n\nFollow one letter: KeyboardEvent → egui Text event → CommandLine.command → layout → GPU triangles. Follow Enter separately: the dock returns the line, the vocabulary accepts it, and the answer joins history.\n\nThe scene and dock share one canvas. consumed means this event belongs to the dock. Later, camera shortcuts must check it before reacting; otherwise typing an arrow or Delete could also change the scene. Clicking outside the dock releases text focus.\n\nThe second update receives no event. It lays out the cleared field and new answer after submission. Sending the same key twice would type duplicate letters. FullOutput.append keeps texture uploads from the earlier layout while retaining the latest shapes.\n\n![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)\n\n`Result<Option<String>, JsValue>` distinguishes three outcomes: an error, an ordinary event with no submitted line, or one submitted line. `dyn_ref` checks which browser event we received and borrows it as that type. The callback uses `move` to keep its owners alive after setup returns. `tabindex=\"0\"` makes the canvas focusable; drawing an input field alone does not make the browser deliver keyboard events to it.",
+      "story": "Now the field becomes usable. A browser key is not automatically an egui key: Panel translates it and passes it to the context. Enter produces a submitted line. Help writes an answer into history. In lesson 04, the same path will change the scene.\n\nFollow one letter: KeyboardEvent → egui Text event → CommandLine.command → layout → GPU triangles. Follow Enter separately: the dock returns the line, the vocabulary accepts it, and the answer joins history.\n\nThe scene and dock share one canvas. consumed means this event belongs to the dock. Mouse navigation must check it before reacting. Clicking outside the dock releases text focus; the next printable key requests focus before its Text event reaches the field. This ordering keeps the first letter. There are no keyboard feature shortcuts.\n\nThe second update receives no event. It lays out the cleared field and new answer after submission. Sending the same key twice would type duplicate letters. FullOutput.append keeps texture uploads from the earlier layout while retaining the latest shapes.\n\n![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)\n\n`Result<Option<String>, JsValue>` distinguishes three outcomes: an error, an ordinary event with no submitted line, or one submitted line. `dyn_ref` checks which browser event we received and borrows it as that type. The callback uses `move` to keep its owners alive after setup returns. `tabindex=\"0\"` makes the canvas focusable; drawing an input field alone does not make the browser deliver keyboard events to it.",
       "question": "Why do we lay out again without replaying the event?",
       "answer": "Submitting a line changes the field and history after the first layout. An empty-input update draws that new state while processing the key exactly once.",
       "result": "Click inside the Command field, type Help, then press Enter. The field clears and history records the answer. Type He: the viewer’s completion fills Help. Escape cancels it. No feature buttons are added.",
@@ -409,7 +405,7 @@
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/04-input-fullscreen-7.rs",
-          "before": "                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r: 0.03, g: 0.09, b: 0.20, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n",
+          "before": "                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n",
           "why": "The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice."
         },
         {
@@ -438,7 +434,7 @@
         }
       ],
       "story": "We can already type in the viewer’s own command line. Today one submitted word changes the picture. Type Background and press Enter: one boolean flips, and the existing renderer draws again.\n\nThe browser owns Background beside Panel and Renderer. Panel reads the line; Background owns the choice; Renderer turns that choice into pixels. No new device or pipeline is created when you run the command.\n\n![The command changes one background value, then redraws with the existing renderer.](../illustrations/journey-04.svg)\n\n`Option<String>` means a submitted line may or may not be present. Most events only move a caret or update completion. Only the recognised Background line changes the background. The match reads that result without inventing a second input path.",
-      "result": "Type `Background` in the white command field and press Enter. Blue becomes light. Submit `Background` again: every scene pixel should return to its original colour, while the dock remembers both commands. The triangle stays pink.",
+      "result": "Type `Background` in the white command field and press Enter. White becomes light grey. Submit `Background` again: every scene pixel should return to its original colour, while the dock remembers both commands. The triangle stays pink.",
       "experiment": "Before submitting Background twice, predict the final picture. Then trace the one boolean changed by toggle. Find the Renderer constructor and explain why neither command calls it again.",
       "production": "In the full viewer, input similarly requests a change before a new frame reads the result. This background is view state, not geometry. Moving an object will instead change the document and refresh its display data.\n\nThis uses the production dock and styling. Background is a course practice command; later chapters build the production vocabulary. The command names below each checkpoint tell you exactly what it currently accepts.",
       "browser_status": "Change the background. The triangle keeps its shape and colour."
@@ -1591,7 +1587,7 @@
       "trace": "HTML event → Action → Editor → Change → GPU upload when needed → draw",
       "question": "Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?",
       "answer": "The keyboard handler should produce Action::Delete and pass it to Editor::apply. The editor already owns selection, the document and history. Reusing that action gives the shortcut the same transaction and selection repair as the command; the keyboard handler should not remove scene objects itself.",
-      "story": "Our browser callback now knows too much. It translates HTML events, edits geometry, maintains history and repairs selection. Adding keyboard shortcuts there would tempt us to copy the same editing rules a second time.\n\nGive those rules one home: `Editor`. It owns the current scene, selection, camera, background and history. It has no browser handles and no GPU buffers. We can use it in Rust tests now and in a native window later.\n\n![commands and future keyboard input both become an Action; the editor returns whether the renderer needs new scene data or just a new view.](../illustrations/journey-19.svg)\n\nAn **enum** lists the alternatives a value may hold. `Action::Delete` carries no extra information; `Action::Pan(dx, dy)` carries two numbers. The browser chooses an action, then `apply` matches that action to its behavior.\n\nThe editor returns another enum, `Change`. A view change needs a redraw. A scene change also needs an upload because geometry or its selection colour may have changed. We can improve upload efficiency later without changing how a command requests deletion.\n\nAfter any scene action, one line checks whether the selected ID still exists. That covers deletion and both directions of history travel. View actions return earlier because moving a camera cannot delete an object.\n\nWe are moving responsibilities you already understand, not inventing new editing behavior. Keep this map beside the code: **browser translates; editor decides; history remembers; renderer draws**.",
+      "story": "Our browser callback now knows too much. It translates HTML events, edits geometry, maintains history and repairs selection. Adding more commands there would tempt us to copy the same editing rules a second time.\n\nGive those rules one home: `Editor`. It owns the current scene, selection, camera, background and history. It has no browser handles and no GPU buffers. We can use it in Rust tests now and in a native window later.\n\n![commands and future keyboard input both become an Action; the editor returns whether the renderer needs new scene data or just a new view.](../illustrations/journey-19.svg)\n\nAn **enum** lists the alternatives a value may hold. `Action::Delete` carries no extra information; `Action::Pan(dx, dy)` carries two numbers. The browser chooses an action, then `apply` matches that action to its behavior.\n\nThe editor returns another enum, `Change`. A view change needs a redraw. A scene change also needs an upload because geometry or its selection colour may have changed. We can improve upload efficiency later without changing how a command requests deletion.\n\nAfter any scene action, one line checks whether the selected ID still exists. That covers deletion and both directions of history travel. View actions return earlier because moving a camera cannot delete an object.\n\nWe are moving responsibilities you already understand, not inventing new editing behavior. Keep this map beside the code: **browser translates; editor decides; history remembers; renderer draws**.",
       "result": "Run `Example Box`, then `Select Next` three times, `Delete`, and `Undo`. The box returns. Your camera and background stay as you left them. Each typed line now reaches Editor through the same Action route.",
       "experiment": "Add a box, then change the background and zoom. Undo once. Predict which of those three changes disappears. Only the box addition is a document edit; the other two belong to the view. Find the early return in apply that keeps those actions out of history.",
       "production": "The full command system will build on this boundary. commands, keyboard input and tools request document operations through the same owner, while rendering consumes the result. More commands should add behavior here or in focused command modules, not duplicate transactions in UI handlers.",
@@ -1805,7 +1801,7 @@
       "story": "Put your finger on the table. Move it, then lift it. Those are three events, but you understand them as one gesture because you remember the press. Our viewer needs that little piece of memory too.\n\nA click waits until release. If a left press travels more than four CSS pixels, it is no longer a click—even if it comes back. A right press turns each movement into an orbit delta. We already know how to orbit; this lesson only supplies the changing angles.\n\nRust’s `Option<Drag>` means “either one active drag, or none.” `as_mut()` lets us update the remembered position without taking the drag out. `take()` removes it on release. Keeping this small state machine outside the browser lets us test interrupted gestures as ordinary Rust calls.\n\n![A press remembers one pointer; moves update the view; release may pick; cancellation clears the memory.](../illustrations/journey-21.svg)",
       "result": "Run `Example Box` and `View Isometric`. Right-drag the drawing, move beyond its edge, and release. Further movement must not orbit. Left-click a face to select it; a left drag must not select. Resize or switch windows during a press and check that the drag stops.",
       "experiment": "Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.",
-      "production": "The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom, keyboard shortcuts and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.",
+      "production": "The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.",
       "browser_status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
       "browser_actions": [
         {
@@ -1909,21 +1905,21 @@
     },
     {
       "id": "22-shortcuts",
-      "title": "Give the keyboard a place to work",
+      "title": "Keep navigation on the mouse and commands in the dock",
       "page": "journey/22-shortcuts.md",
       "hours": [
         2,
         4
       ],
-      "goal": "Zoom with the wheel and use focused keyboard shortcuts without stealing keys from the rest of the page.",
-      "trace": "Canvas focus → browser event → shortcuts → existing Editor action → scene or camera → frame",
-      "question": "Why does scrolling need units, while a keyboard shortcut needs an owner?",
-      "answer": "A wheel delta can mean pixels, lines or pages, so its number alone is incomplete. A key has a different ambiguity: which part of the page should use it? We normalize wheel units and attach key handling only to the focusable canvas. Both routes then produce the same actions as our commands.",
-      "story": "Click the drawing, then press an arrow. Now Tab to a command and press an arrow again. The key is the same; its owner has changed. This boundary matters when we later add a command box: typing in that box must not move the camera or delete a selected object.\n\nWe add one small module, `shortcuts.rs`, beside `gesture.rs`. A gesture remembers a press. A shortcut needs no memory: input goes in and an optional Action comes out. Neither module owns a camera, history or mesh. Those still belong to Editor. Rust’s `Option<Action>` lets us say “this input has no viewer command” and leave the page alone.\n\nA wheel reports pixels, lines or pages. We read its mode first and choose sixteen CSS pixels per line and one canvas height per page as our navigation policy. These are sensitivity choices, not physical measurements. An exponential turns the signed distance into a positive zoom factor: opposite small movements cancel, and ten small movements match one equal total movement. We cap a single event at 600 pixels; Camera keeps its existing distance limits.\n\n![Wheel units and focused keys meet at the existing Action and Editor boundary.](../illustrations/journey-22.svg)\n\nThe browser rules come from [wheel delta modes](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode), [listener options](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) and [text composition](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/isComposing). We request a non-passive wheel listener so a handled zoom can stop page scrolling.",
-      "result": "Run `Example Box` and `View Isometric`. Click the drawing, then try arrows, +/− and Home. Wheel over the drawing: it zooms without scrolling the page. Click the Command field and use arrow or Delete keys: they edit the command without moving or deleting geometry. Start a right drag and press Escape; further movement must not orbit.",
-      "experiment": "Change the wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Then explain why Ctrl/Cmd+Z still restores an object after several wheel movements: navigation never enters document history. Finally Tab away during a drag; the canvas blur listener should cancel it.",
-      "production": "The maintained viewer routes input through src/app/input.rs and command handling. We now have three input sources—commands, remembered gestures and stateless shortcuts—sharing Editor. Loading files and adding panels can extend that boundary without creating another undo stack. Zoom remains centred on the camera target here; zoom around the pointer and drawing-tool key maps come later.",
-      "browser_status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "goal": "Normalize wheel input and keep every keyboard feature command in the command dock.",
+      "trace": "Wheel units → navigation::wheel → Editor action → camera → frame; typed text → command dock → Editor action",
+      "question": "Why does a wheel need units, while typed text needs one owner?",
+      "answer": "A wheel delta may represent pixels, lines or pages. Normalize those units before zooming. Typed text belongs to the command dock, even after clicking the drawing. There is no second keyboard feature map to accidentally move the camera or delete geometry.",
+      "story": "Click the drawing and type `Pan Right`. The first letter opens the dock and stays in the field. Enter runs the complete command. Arrow and Delete keys edit text when the field owns focus; they never become camera or document shortcuts.\n\nWe add `navigation.rs` beside `gesture.rs`. A gesture remembers a press. The wheel translator has no memory: a number, its unit and the canvas height become an optional Action. Neither module owns a camera, history or mesh. Those still belong to Editor. `Option<Action>` expresses that an invalid or zero movement has no navigation action.\n\nA wheel reports pixels, lines or pages. We choose sixteen CSS pixels per line and one canvas height per page. These are sensitivity choices, not physical measurements. An exponential turns signed distance into a positive zoom factor: opposite small movements cancel, and ten small movements match one equal total movement. We cap a single event at 600 pixels; Camera keeps its existing distance limits.\n\n![Wheel navigation and typed commands meet at the existing Editor boundary.](../illustrations/journey-22.svg)\n\nThe dock already receives printable keys from lesson 03d. The browser navigation dispatcher handles only the wheel and pointer gestures. Escape cancels an active gesture; it is a lifecycle key, not a feature shortcut. This keeps one route for Undo, Delete and view commands.\n\nThe browser rules come from [wheel delta modes](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode) and [listener options](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener). A non-passive wheel listener lets a handled zoom stop page scrolling.",
+      "result": "Run `Example Box` and `View Isometric`. Wheel over the drawing: it zooms without scrolling the page. Click the drawing and type `Pan Right`, then Enter. Type a single letter without Enter: it must appear in the dock without changing the picture. Arrow and Delete keys must never move or delete geometry. Start a right drag and press Escape; further movement must not orbit.",
+      "experiment": "Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.",
+      "production": "The maintained viewer routes mouse and phone navigation through src/app/input.rs. Printable input activates the command dock immediately; named commands share the existing state and history. This checkpoint keeps wheel zoom centred on the camera target. Pointer-centred zoom and phone gestures will extend navigation without introducing keyboard feature shortcuts.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_actions": [
         {
           "command": "Example Box"
@@ -1935,10 +1931,7 @@
           "wheel": -120
         },
         {
-          "key": "ArrowRight"
-        },
-        {
-          "key": "ArrowUp"
+          "command": "Pan Right"
         }
       ],
       "frame": "journey/checks/22-shortcuts.rs",
@@ -1946,16 +1939,16 @@
       "tests": true,
       "edits": [
         {
-          "path": "src/shortcuts.rs",
+          "path": "src/navigation.rs",
           "before": null,
           "snippet": "journey/code/22-shortcuts-01.rs",
-          "why": "Translate wheel units and key names into existing actions. A match arm ending in None means the viewer has no command for that input."
+          "why": "Normalize wheel units into the existing Zoom action. Zero or invalid input returns None."
         },
         {
-          "path": "src/shortcut_tests.rs",
+          "path": "src/navigation_tests.rs",
           "before": null,
           "snippet": "journey/code/22-shortcuts-02.rs",
-          "why": "Compare equivalent wheel inputs, repeat behaviour and undo results. The tests exercise the same Editor that the page uses."
+          "why": "Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history."
         },
         {
           "path": "Cargo.toml",
@@ -1973,23 +1966,23 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/22-shortcuts-window-1.rs",
           "before": "            };\n            Some(action)\n        } else if !panel.consumed {\n            pointer_action(&event, &pointer_canvas, &mut gesture)\n        } else {\n            None\n        };\n",
-          "why": "Connect give the keyboard a place to work to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/22-shortcuts-window-2.rs",
           "before": "    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.\");\n    Ok(())\n}\n\nfn pointer_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Connect give the keyboard a place to work to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/22-shortcuts-window-3.rs",
           "before": "        \"pointerdown\" => {\n            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {\n                event.prevent_default();\n                if canvas.set_pointer_capture(id).is_err() {\n                    gesture.cancel();\n                }\n            }\n",
-          "why": "Connect give the keyboard a place to work to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
+          "why": "Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock."
         }
       ],
-      "image_result": "The helper adds the box, chooses Isometric, applies a −120-pixel wheel input, then Right and Up keys. The view moves closer and shifts its target. Pixel checks verify the resulting box face; browser focus and wheel delivery still need the browser check.",
-      "browser_caption": "Wheel input zooms and focused arrow keys pan. The browser check also confirms that wheel zoom does not scroll the page and keys outside the canvas do not navigate."
+      "image_result": "The helper adds the box, chooses Isometric, applies a −120-pixel wheel input, then the same Pan Right action used by the command. Pixel checks verify the resulting face; browser checks verify wheel delivery and typing ownership.",
+      "browser_caption": "Wheel input zooms and the Pan Right command pans. Typing after clicking the drawing activates the dock without invoking keyboard feature shortcuts."
     },
     {
       "id": "23-import",
@@ -2008,7 +2001,7 @@
       "experiment": "Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.",
       "production": "The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.",
       "image_result": "This native frame imports the generated sample.pb bytes, chooses Isometric and draws the three orange pieces alongside the original triangles. It checks a known point on the beam and the orange pixel area. The browser picker, asynchronous completion and latest-request behaviour still require a browser run.",
-      "browser_status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_actions": [
         {
           "file": "sample.pb"
@@ -2097,7 +2090,7 @@
         {
           "path": "src/lib.rs",
           "snippet": "journey/code/23-import-fullscreen-2.rs",
-          "before": "pub mod viewport;\npub mod gesture;\npub mod shortcuts;\n#[cfg(test)]\nmod shortcut_tests;\n#[cfg(test)]\n",
+          "before": "pub mod viewport;\npub mod gesture;\npub mod navigation;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\n",
           "why": "Register the reader, specimen and native checks."
         },
         {
@@ -2133,7 +2126,7 @@
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/23-import-window-5.rs",
-          "before": "    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.\");\n",
+          "before": "    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.\");\n",
           "why": "Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action."
         }
       ],
@@ -2223,7 +2216,7 @@
         {
           "path": "src/lib.rs",
           "snippet": "journey/code/24-fit-fullscreen-2.rs",
-          "before": "#[cfg(test)]\nmod document_tests;\n#[cfg(test)]\nmod shortcut_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
+          "before": "#[cfg(test)]\nmod document_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
           "why": "Register the bounds module beside the camera. It owns numbers, not GPU resources."
         },
         {
@@ -2245,7 +2238,7 @@
       "production": "Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.",
       "frame": "journey/checks/24-fit.rs",
       "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_result_status": "File imported. Undo removes the entire import.",
       "browser_actions": [
         {
@@ -2340,7 +2333,7 @@
         {
           "path": "src/lib.rs",
           "snippet": "journey/code/25-projection-fullscreen-1.rs",
-          "before": "#[cfg(test)]\nmod fit_tests;\n#[cfg(test)]\nmod shortcut_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
+          "before": "#[cfg(test)]\nmod fit_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
           "why": "Register the new checks without changing the production browser entry point."
         },
         {
@@ -2375,7 +2368,7 @@
       "production": "The production camera uses this same target-plane scale relationship. Its tighter fitting, units, named views and camera-relative coordinates come next. Production also uses reversed depth for precision; this checkpoint keeps the existing 0-near/1-far depth convention. Switching modes deliberately preserves the view parameters rather than automatically refitting; run Fit if the new perspective clips or crops a nearby part.",
       "frame": "journey/checks/25-projection.rs",
       "frame_constructor": "make_renderer(device, queue, format)",
-      "browser_status": "Focus the drawing for shortcuts. Wheel zooms; arrows pan; Escape cancels a drag.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_result_status": "File imported. Undo removes the entire import.",
       "browser_actions": [
         {
@@ -2393,6 +2386,86 @@
       ],
       "browser_caption": "The orange frame is fitted in orthographic view; the pink Orthographic command records the active choice. Chrome checks mouse and keyboard switching, exact perspective/orthographic round trips, visible-face selection in both modes, and fitting at wide and tall viewport sizes.",
       "image_result": "The native frame imports the orange frame, sets an isometric direction, selects orthographic projection and fits all objects. It checks projected vertex bounds, beam colour and nearest-object picking. Browser controls need their own Chrome check."
+    },
+    {
+      "id": "26-selected",
+      "title": "Frame one object without changing its size",
+      "page": "journey/26-selected.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Run Fit Selected while keeping geometry, selection and document history unchanged.",
+      "trace": "Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame",
+      "question": "Does fitting an object change its coordinates or only the camera?",
+      "answer": "Only the camera target and distance change. The selected object keeps the same shared mesh and stable ID. Bounds are measured in existing model coordinates; fitting changes their screen coverage, not their physical dimensions.",
+      "story": "A small component can be lost inside a large assembly. Fit shows the whole scene; Fit Selected should show just the object you chose. We reuse the fitting policy from lesson 24 and change only the source of its bounds.\n\nScene searches by ObjectId, rather than treating a vector index as identity. The question mark after find returns None immediately if that ID is absent. A second question mark handles an empty vertex list. Starting from the first real vertex avoids accidentally including the origin in every box.\n\nEditor holds an Option<ObjectId>. and_then asks Scene for bounds only when that option contains an ID. Camera then receives the same Bounds type it already understands. No duplicated fitting mathematics is needed.\n\n![The selected ID chooses bounds; fitting changes the camera and leaves the shared mesh alone.](../illustrations/journey-26.svg)\n\nA model coordinate and a screen pixel are different quantities. If an object spans ten model units, fitting it does not make it one unit wide. It makes those same ten units occupy more pixels. We have not introduced a unit-conversion command or claimed millimetres: the document coordinate convention still determines the unit. Later placements and source-document lessons will preserve that distinction.",
+      "result": "Run Example Box, View Isometric, Select Next and Fit Selected. The first triangle becomes the fitting target while the other objects remain in the scene. Run Fit to compare the whole-scene view. Type Fit Selected after clicking the drawing: it must reach the command dock. Run Undo: it removes the added box, not the camera move.",
+      "experiment": "Select Next repeatedly and run Fit Selected after each selection. Predict the camera target from that object’s minimum and maximum coordinates. Then compare perspective and orthographic fits. Explain why neither operation should create an undo entry.",
+      "production": "The maintained viewer fits selected display rows and their world-space bounds. This checkpoint establishes stable selection and camera-only fitting. Local placements, inherited transforms and multiple selected objects will extend the bounds query in later lessons.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "browser_caption": "Fit Selected frames the first triangle without deleting the added box or changing object coordinates.",
+      "frame": "journey/checks/26-selected.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn objects(&self) -> &[Object] {\n",
+          "snippet": "journey/code/26-selected-01.rs",
+          "why": "Find one stable ID and collect only its displayed vertices. An absent ID or empty mesh returns None."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    Fit,\n    Projection(crate::camera::Projection),\n",
+          "snippet": "journey/code/26-selected-02.rs",
+          "why": "Name a separate action for fitting the selection."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "                    Action::ResetView => {\n",
+          "snippet": "journey/code/26-selected-03.rs",
+          "why": "Borrow the selected ID, ask Scene for its bounds, and reuse Camera::fit. Neither the mesh nor document history changes."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Fit\",\n            \"View Reset\",\n",
+          "snippet": "journey/code/26-selected-04.rs",
+          "why": "Expose Fit Selected in the existing command vocabulary."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"fit\" => Action::Fit,\n                    \"view reset\" => Action::ResetView,\n",
+          "snippet": "journey/code/26-selected-05.rs",
+          "why": "Translate the named command into the new action."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod projection_tests;\n",
+          "snippet": "journey/code/26-selected-06.rs",
+          "why": "Register the focused state checks."
+        },
+        {
+          "path": "src/selected_fit_tests.rs",
+          "before": null,
+          "snippet": "journey/code/26-selected-07.rs",
+          "why": "Check both projection modes, selection, shared mesh identity, history and the empty-selection case."
+        }
+      ]
     }
   ]
 }
