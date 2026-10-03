@@ -50,3 +50,13 @@ The headed phone startup test reports 1.1 ms of pipeline-constructor preparation
 A 48-triangle overlapping fixture overflows the initial tile-reference pool. The GPU regression proves that pending reports request another frame, the pool grows until the full list fits, and the view returns to demand-driven drawing. Disabling all stroke readers releases the tables and cannot keep the view awake. A headed phone test verifies stationary frame counters after initial load, zoom, hide-lines/edges and restore/Fit; all four stop, with no GPU errors. The test dismisses the editable command-field caret before measuring an idle scene. Native checks pass 504 tests with 55 ignored, with this GPU case run explicitly; WebAssembly and optimized Trunk checks pass.
 
 Public acceptance after overflow deployment also passes: headed phone frame counts settle at 11/45/53/72 across initial floor, zoom, hidden stroke readers and restored Fit. No GPU errors occur. The primary deployment and viewer-check are green; the broader test matrix remains in progress at this measurement.
+
+## Navigation quality
+
+A deterministic headed Chrome regression advances the frame clock during 48 real mouse-drag updates. This exercises the sustained-slow-navigation detector without pretending that desktop GPU emulation measures phone performance. The previous viewer permanently reduced a phone canvas from 824×1830 to 412×915 and left it there after release. Ordinary slow navigation now retains the chosen canvas resolution and MSAA; temporary ink/outline tiers still recover full detail at rest. Device-loss recovery retains its separate conservative fallback.
+
+Headed Chrome checks now pass for the phone default (824×1830, 1× MSAA), explicit phone settings (618×1373, 4× MSAA), and desktop (1200×800, 4× MSAA). Each check proves the slow-navigation detector fires before asserting the dimensions and sample count remain unchanged. The WebAssembly check and optimized Trunk build pass; native tests pass 505 cases with 55 ignored.
+
+A new real-floor CPU ray oracle checks six close-up views at desktop and portrait phone sizes, zoom scales 0.3/0.1 and grazing angles 3°/12°. All sampled visible edges draw, with no detected hidden-edge leaks. This supplements the six permanent far-view cases and the close-up plate cases; it does not establish coverage of an unspecified user camera view.
+
+The 900×700 NVIDIA selftest (20 frames, solid opacity) remains comparable: previous median frame 4.4 ms / ink 3.445 ms; current median frame 4.6 ms / ink 3.588 ms. GPU allocation estimates and non-background pixel count are unchanged. This fixes a navigation quality policy; these runs do not demonstrate a rendering speedup.

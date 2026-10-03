@@ -593,19 +593,15 @@ impl State {
             self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
 
-            // slow even at the top drag tier: drop to device scale 1 and no antialiasing
+            // Slow navigation already uses temporary ink/outline tiers. Keep the chosen
+            // raster resolution and MSAA: a drag must not permanently blur the resting view.
             if self.gpu.performance.take_slow_interaction()
                 && self.gpu.performance.geometry_complete()
-                && (crate::engine::gpu::view::device_pixel_ratio() > 1.0
-                    || self.gpu.targets.samples > 1)
             {
-                crate::engine::gpu::view::reduce();
-                self.gpu
-                    .resize(self.gpu.config.width, self.gpu.config.height);
-                log::warn!(
-                    "slow interaction frames; rendering at device scale 1 without antialiasing"
+                crate::app::feedback::diagnostic(
+                    "quality",
+                    "Slow navigation: retained canvas resolution and antialiasing",
                 );
-                self.status("Slow frames: rendering at device scale 1 without antialiasing");
             }
 
             dropped = drawn.is_none() && self.gpu.surface.is_some(); // try again next frame

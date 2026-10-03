@@ -519,3 +519,14 @@ Additional user requirement: KEEP a visible Chrome tutorial tab open and refresh
 Production defaults verification: native suite now passes494 tests,53 GPU-dependent tests ignored. Two existing instance-feature tests initially assumed features were on by default; they now explicitly enable features where needed, and the toggle test checks default-off → on → off with original ribbon counts restored. Optimized Trunk/WebAssembly production build passes (`viewer-defaults-web.log`; set NO_COLOR=true because inherited1 is rejected by Trunk). Edits: scene.rs attributes false, view.rs DEFAULT_OPACITY0.95, state.rs reuses that constant, scene_instances.rs tests. New destination-contract paragraphs record the latest input/visibility/locking/colour/zoom/default requirements without claiming the future lessons are finished.
 
 Same-tab refresh is now automated by local target/course-checks/watch-docs.cjs, process exec85396. It polls target/docs/vue/index.html mtime (survives Trunk's atomic output-directory replacement), debounces, connects to9224, locates the EXISTING8788 documentation page, disables cache for reload, reloads it without changing URL/hash, waits for the rendered heading, and logs the result. It NEVER creates a page/window and never redirects to01 if the user changed lessons. Log target/course-checks/docs-tab-refresh.log confirms actual reload. Current defaults-contract Vue build running to exercise the watcher. This script is a local session helper, not committed tooling.
+
+
+### 2026-10-03 · Preserve navigation raster quality
+
+- [x] Reproduce the permanent slow-navigation downgrade in headed Chrome: phone canvas 824×1830 becomes 412×915 and remains reduced after release.
+- [x] Remove ordinary navigation's permanent canvas/MSAA reduction. Temporary visibility/outline tiers still return to full detail at rest; device-loss recovery keeps its independent fallback.
+- [x] Verify real pointer drags reach the slow detector and preserve default phone, explicit phone DPR/MSAA and desktop quality. A synthetic timing clock makes the policy test deterministic; it is not an actual phone performance measurement.
+- [x] Add six real-floor close-up oracle views at phone/desktop sizes: 100% sampled visible edges, zero detected hidden-edge leaks. Existing far and close-plate gates remain unchanged.
+- [x] Native suite: 505 passed / 55 ignored; WebAssembly and optimized Trunk builds pass. Same Chrome documentation tab refreshed with the selected 32gia route retained.
+- [ ] Confirm latest pushed viewer-check, Pages and Session mini workflows and public navigation acceptance.
+- [ ] Continue the 89-checkpoint cumulative course with explicit Delete/Save replay, owned fetch/replay tickets and automatic cold-source editing. The full course and production robustness inventory remain unfinished.
