@@ -60,7 +60,7 @@ impl View {
 pub const DEFAULT_MAX_DPR: f64 = 2.0;
 
 /// Face opacity unless `?opacity=` says otherwise: nearly solid, hidden edges still show faintly.
-pub const DEFAULT_OPACITY: f32 = 0.9;
+pub const DEFAULT_OPACITY: f32 = 0.95;
 
 /// Framebuffer pixels per CSS pixel, capped by `?dpr=` or else at `DEFAULT_MAX_DPR`.
 pub fn device_pixel_ratio() -> f64 {

@@ -8,6 +8,21 @@ The September 29 [browser-recovery fixes](../debugging.md) must also be taught a
 
 [Course route and availability](../journey.md) · [Complete draft lesson checklist](roadmap.md) · [Release checks](release.md)
 
+## Current viewer changes to teach
+
+The white canvas fills the browser window from the first lesson. Teaching text stays in the documentation, and feature requests use the viewer’s styled command line.
+
+The completed course must also teach these current requirements:
+
+- Typing starts a command without first clicking the field. Feature shortcuts give way to named commands such as `View Top`, `View Side`, `View Show Edges` and `View Outline`.
+- Mouse and phone camera gestures remain. A right click repeats the last command; a right drag moves the camera.
+- New scenes start with element features off and face opacity at `0.95`. `Element Features On` reveals the features; `Opacity` changes the shared face setting.
+- Loading and saving preserve each object’s `is_visible` and `is_locked`. Hidden objects stay hidden, and locked objects cannot be edited through selection.
+- Object colours follow their tree node or nearest coloured parent unless explicitly overridden. Curved edges retain their own curve geometry.
+- Lines remain readable at close zoom and shallow viewing angles. A passing ordinary-distance screenshot is insufficient for this check.
+
+These changes extend the frozen inventory below. Their cumulative teaching and browser checks remain tracked in the course work; listing a requirement does not mark it complete.
+
 ## Feature destinations
 
 | Existing section | Course | What must survive |

@@ -148,7 +148,7 @@ impl Scene {
             colors: HashMap::new(),
             edge_colors: HashMap::new(),
             selected: None,
-            attributes: true,
+            attributes: false,
             order: Vec::new(),
             owners: Vec::new(),
             feet: Vec::new(),
