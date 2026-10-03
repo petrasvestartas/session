@@ -26,6 +26,8 @@ pub mod layers; // register:layers
 pub mod live; // register:live
 #[cfg(target_arch = "wasm32")] // register:loader
 pub mod loader; // register:loader
+#[cfg(any(target_arch = "wasm32", test))]
+mod live_revision;
 pub mod manifest; // register:manifest
 pub mod mesh_preview; // register:mesh_preview
 pub mod modeling; // register:modeling

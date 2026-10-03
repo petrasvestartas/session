@@ -8,7 +8,6 @@ use super::scene::FileDoc;
 use session_rust::Session;
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use wasm_bindgen::closure::Closure;
@@ -80,19 +79,18 @@ enum Read {
 
 /// The watched scene and what was last seen of it.
 pub struct LiveSource {
-    pub url: String,                        // manifest URL
-    pub tick_ms: i32,                       // how often `check` runs
-    pub poll_ms: f64,                       // how often the network is read
-    last_read_ms: f64,                      // when it was last read
-    base: String,                           // prefix for the manifest's files
-    manifest: Option<Manifest>,             // last good manifest
-    etags: HashMap<String, String>,         // last ETag per URL
-    hashes: HashMap<String, u64>,           // last content hash per URL without ETag
-    sessions: HashMap<String, Rc<Session>>, // decoded file per URL
-    last_warning: Option<String>,           // last message logged
-    pending: bool,                          // a change waits to be shown
-    notify: Option<Notify>,                 // relay connection
-    notify_url: Option<String>,             // relay opened after the first scene
+    pub url: String,                            // manifest URL
+    pub tick_ms: i32,                           // how often `check` runs
+    pub poll_ms: f64,                           // how often the network is read
+    last_read_ms: f64,                          // when it was last read
+    base: String,                               // prefix for the manifest's files
+    manifest: Option<Manifest>,                 // last good manifest
+    revisions: super::live_revision::Revisions, // validators and byte identity
+    sessions: HashMap<String, Rc<Session>>,     // decoded file per URL
+    last_warning: Option<String>,               // last message logged
+    pending: bool,                              // a change waits to be shown
+    notify: Option<Notify>,                     // relay connection
+    notify_url: Option<String>,                 // relay opened after the first scene
 }
 
 impl LiveSource {
@@ -157,8 +155,7 @@ impl LiveSource {
             last_read_ms: f64::NEG_INFINITY,
             base: String::new(),
             manifest: None,
-            etags: HashMap::new(),
-            hashes: HashMap::new(),
+            revisions: super::live_revision::Revisions::default(),
             sessions: HashMap::new(),
             last_warning: None,
             pending: false,
@@ -177,15 +174,14 @@ impl LiveSource {
 
     /// Log and forget `url` so the next poll reads it again.
     fn forget(&mut self, url: &str, message: String) {
-        self.etags.remove(url);
-        self.hashes.remove(url);
+        self.revisions.forget(url);
         self.sessions.remove(url);
         self.warn(message);
     }
 
     /// Read `url`, reporting Same when it did not change.
     async fn read(&mut self, url: &str) -> Read {
-        let known = self.etags.get(url).cloned();
+        let known = self.revisions.etag(url);
         let opts = GetOpts {
             no_store: false,
             revalidate: !immutable_key(url),
@@ -198,26 +194,10 @@ impl LiveSource {
             Ok(r) if r.status == 304 => Read::Same,
             Ok(r) if !(200..300).contains(&r.status) => Read::Failed(format!("HTTP {}", r.status)),
             Ok(r) => {
-                if let Some(tag) = r.etag {
-                    let same = known.as_deref() == Some(tag.as_str());
-                    self.etags.insert(url.to_string(), tag);
-                    return if same {
-                        Read::Same
-                    } else {
-                        Read::Changed(r.bytes)
-                    };
-                }
-
-                // no ETag: compare a hash of the bytes
-                let mut hasher = std::collections::hash_map::DefaultHasher::new();
-                r.bytes.hash(&mut hasher);
-                let hash = hasher.finish();
-                let same = self.hashes.insert(url.to_string(), hash) == Some(hash);
-
-                if same {
-                    Read::Same
-                } else {
+                if self.revisions.changed(url, r.etag, &r.bytes) {
                     Read::Changed(r.bytes)
+                } else {
+                    Read::Same
                 }
             }
         }
@@ -268,8 +248,7 @@ impl LiveSource {
             }
             Read::Changed(bytes) => {
                 if !self.adopt(&bytes) {
-                    self.etags.remove(&url);
-                    self.hashes.remove(&url);
+                    self.revisions.forget(&url);
                     return None;
                 }
 
