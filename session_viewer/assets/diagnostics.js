@@ -80,7 +80,7 @@
             report.phases = report.phases.slice(-256);
         }
         if (kind === 'live-reload') report.liveReloads++;
-        if (kind === 'milestone' && message === 'geometry on screen') report.outcome = 'ready';
+        if (kind === 'milestone' && message === 'geometry on screen' && !report.failure && report.outcome !== 'closed') report.outcome = 'ready';
         if (kind === 'fatal') {
             report.failure ||= event;
             report.outcome = 'failed';
@@ -103,14 +103,11 @@
     addEventListener('unhandledrejection', event => {
         window.viewerDiagnostic('fatal', event.reason?.stack || event.reason);
     });
-    addEventListener('pagehide', () => {
-        if (report.outcome !== 'failed') report.outcome = 'closed';
+    addEventListener('pagehide', event => {
+        if (!event?.persisted && report.outcome !== 'failed') report.outcome = 'closed';
         save();
     });
-    addEventListener('pageshow', event => {
-        if (event.persisted && report.outcome === 'closed') report.outcome = 'running';
-        save();
-    });
+    addEventListener('pageshow', save);
     document.addEventListener?.('visibilitychange', () => window.viewerDiagnostic('visibility', document.visibilityState));
     document.addEventListener?.('freeze', () => window.viewerDiagnostic('freeze', 'page frozen'));
     document.addEventListener?.('resume', () => window.viewerDiagnostic('resume', 'page resumed'));

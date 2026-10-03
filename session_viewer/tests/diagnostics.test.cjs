@@ -122,3 +122,35 @@ test('failed and interrupted reports from yesterday do not show a stale warning'
         assert.equal(open(data).elements['viewer-diagnostics'].hidden, true);
     }
 });
+
+test('cached transitions retain running, ready and failed outcomes', () => {
+    for (const outcome of ['running', 'ready', 'failed']) {
+        const page = open();
+        if (outcome === 'ready') page.viewerDiagnostic('milestone', 'geometry on screen');
+        if (outcome === 'failed') page.viewerDiagnostic('fatal', 'original failure');
+        const first = page.viewerDiagnostics.read().failure;
+        page.listeners.pagehide({persisted: true});
+        assert.equal(page.viewerDiagnostics.read().outcome, outcome);
+        page.listeners.pageshow({persisted: true});
+        assert.equal(page.viewerDiagnostics.read().outcome, outcome);
+        assert.deepEqual(page.viewerDiagnostics.read().failure, first);
+    }
+});
+
+test('late ready observations preserve final closed and failed outcomes', () => {
+    for (const outcome of ['closed', 'failed']) {
+        const page = open();
+        if (outcome === 'failed') page.viewerDiagnostic('fatal', 'original failure');
+        else page.listeners.pagehide({persisted: false});
+        const first = page.viewerDiagnostics.read().failure;
+        page.viewerDiagnostic('milestone', 'geometry on screen');
+        assert.equal(page.viewerDiagnostics.read().outcome, outcome);
+        assert.deepEqual(page.viewerDiagnostics.read().failure, first);
+    }
+});
+
+test('a cached ready run does not become an interrupted startup on reload', () => {
+    const page = open(); page.viewerDiagnostic('milestone', 'geometry on screen');
+    page.listeners.pagehide({persisted: true}); page.listeners.pageshow({persisted: true});
+    assert.equal(open(page.localStorage, page.sessionStorage).elements['viewer-diagnostics'].hidden, true);
+});
