@@ -1,0 +1,10 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Listeners owns Rust Closure"
+n1: "Register on targets; record only successful bindings"
+n2: "Events call the live callback"
+n3: "Drop: detach every handler while Closure is valid"
+n4: "Normal field cleanup frees callback + captures"
+n5: "Later events do nothing; main runtime binding follows next"
+n0 -> n1 -> n2 -> n3 -> n4 -> n5

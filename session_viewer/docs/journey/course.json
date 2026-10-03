@@ -7129,6 +7129,110 @@
           "why": "A failure, missing body, changed file, duplicate key or stale epoch must not partially restore a multi-source Save."
         }
       ]
+    },
+    {
+      "id": "33-owner",
+      "title": "Own browser listeners instead of forgetting callbacks",
+      "page": "journey/33-owner.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.",
+      "trace": "Rust Closure → successful EventTarget bindings → owner Drop → remove handlers → free captured values",
+      "question": "Why must event listeners be removed before the Rust closure is dropped?",
+      "answer": "The browser keeps JavaScript references to the callback. Dropping its Rust environment first would leave a registered handler that can invoke an invalid closure. Detach every handler while the closure is still valid.",
+      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. The sample now includes an original double that differs from its f32 display value. Inspect the actual Save download with the precision checker. Type Orbit Up and Fit for the final proof view. Run the combined acceptance checks. Failed restoration must leave the visible scene unchanged and sources cold. Type Orbit Right and Fit for the final proof view. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces. Type Orbit Right and Fit. Run the debug listener probe and expect [2,2,0]: two live calls, no calls after Drop, and no surviving captured owner. In the browser developer console run Array.from(window.wasmBindings.listener_probe()). The probe is available in this debug checkpoint; release builds omit it.",
+      "experiment": "Remove the Drop loop and dispatch the probe events after dropping the owner. Predict the invalid-closure error before running it; refresh to restore the verified checkpoint.",
+      "production": "Browser callback lifetime is owned explicitly, as in the production command and pointer-cancellation agents. Full viewer runtime binding and pending-work disposal follow next.",
+      "tests": true,
+      "frame": "journey/checks/33-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/listener-owner.cjs",
+      "story": "A Closure owns the Rust environment used by a JavaScript callback. Listeners keeps that closure beside each successfully registered target and event name. One callback can serve the canvas, window and document. listen records a binding only after registration succeeds; if later setup fails, dropping the owner removes earlier registrations.\n\nDrop runs before Rust drops the fields. Its loop removes each handler while callback still exists, then normal field cleanup releases the closure and captured values. Registration uses passive false so the existing wheel and pointer prevention behavior can be retained during integration. The next checkpoint replaces the main viewer’s forgotten callback with this owner and adds explicit runtime disposal. This checkpoint prepares ownership; it does not yet stop the existing viewer runtime.\n\nA debug-only exported probe registers the same callback on two real browser EventTargets. Two dispatched events must increment the count twice. After dropping the owner, the same events must do nothing and a Weak observer must show the captured value has been released. Chrome calls this probe through Trunk’s real WebAssembly bindings; it adds no feature controls to the HTML. Native editor checks remain inherited, while listener behavior is specifically verified in the browser.\n\n![Listener ownership](../illustrations/journey-33.svg)",
+      "browser_caption": "Chrome calls the debug WebAssembly probe against real EventTargets and verifies two live calls, no post-Drop calls, and release of captured ownership. Existing editor/reload/precision/failure checks remain active; main runtime disposal follows next.",
+      "edits": [
+        {
+          "path": "src/listeners.rs",
+          "before": null,
+          "snippet": "journey/code/33-owner-01.rs",
+          "why": "Own one Rust callback and every successful browser registration; detach handlers before its captured values drop. The debug probe exercises real EventTargets."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod panel;",
+          "snippet": "journey/code/33-owner-02.rs",
+          "why": "Register browser-only lifetime ownership without changing native rendering."
+        }
+      ]
+    },
+    {
+      "id": "33a-runtime",
+      "title": "Dispose the viewer without leaving pending work alive",
+      "page": "journey/33a-runtime.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.",
+      "trace": "Live runtime → pagehide → next microtask → cancel read/fetch → detach eighteen listeners → release captures",
+      "question": "Why is disposal deferred until the next microtask instead of dropping the runtime inside its own event callback?",
+      "answer": "The pagehide callback is still executing from the owned closure. Disposal waits for that invocation to return, then cancels work and drops the closure safely. spawn_local schedules the task for the next microtask even when its future is immediately ready.",
+      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. The sample now includes an original double that differs from its f32 display value. Inspect the actual Save download with the precision checker. Type Orbit Up and Fit for the final proof view. Run the combined acceptance checks. Failed restoration must leave the visible scene unchanged and sources cold. Type Orbit Right and Fit for the final proof view. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces. Type Orbit Right and Fit. Run the debug listener probe and expect [2,2,0]: two live calls, no calls after Drop, and no surviving captured owner. In the browser developer console run Array.from(window.wasmBindings.listener_probe()). The probe is available in this debug checkpoint; release builds omit it. Reload to restart after a lifecycle disposal experiment. In the debug console inspect window.wasmBindings.runtime_running(); dispatch window.dispatchEvent(new Event(\"pagehide\")), then check it on the next task: false. Ordinary document Close still leaves the viewer running. After restarting, finish with View Isometric, Orbit Right and Fit for the final proof view.",
+      "experiment": "Skip read/fetch cancellation in Runtime::drop, hold a source response and dispose the viewer. Explain which source URL or late-read acceptance checks reveal retained or revived authority.",
+      "production": "Browser listener, document and asynchronous request ownership end together. GPU-loss recovery can now dispose this runtime before starting another one.",
+      "tests": true,
+      "frame": "journey/checks/33a-runtime.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/runtime-owner.cjs",
+      "story": "The main viewer now transfers update into Listeners and records all canvas, document and window bindings. A thread-local Option<Runtime> keeps that owner alive after run returns. install replaces any earlier owner; stop takes the current owner out of the slot and consumes it. The slot’s mutable borrow has ended before Runtime is dropped.\n\nRuntime’s Drop first cancels the read gate and abortable source flight. It then allows the listener owner to detach handlers and release the callback, editor, renderer and other captured values. Cancelling releases pending source keys even when an asynchronous task remains alive. This is ownership cleanup; it does not claim browser or driver memory is reclaimed at the same instant.\n\npagehide schedules stop through spawn_local and returns immediately. Its task runs on the next microtask so the event callback is no longer active when it is freed. Document Close retains its existing meaning and can still be followed by Open. Page exit disposes the viewer itself.\n\nChrome checks the actual main callback’s eighteen removals, an aborted held source request, source URL release, no new GPU submissions after disposal, ignored input and late replies, and cancellation of a held file read before URL adoption. Each restart reloads the same test page; no feature buttons are added. The inherited command/navigation/precision/failure checks remain active.\n\n![Dispose runtime ownership](../illustrations/journey-33a.svg)",
+      "browser_caption": "Chrome verifies real viewer page-exit disposal, eighteen listener removals, source abort/URL release, no later submissions, ignored input/completions, and cancelled file URL adoption; ordinary document Close still permits reopening.",
+      "edits": [
+        {
+          "path": "src/browser_runtime.rs",
+          "before": null,
+          "snippet": "journey/code/33a-runtime-01.rs",
+          "why": "Keep the live owner in one runtime slot; Drop cancels read/fetch authority before listeners and captured editor/GPU owners are released."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod listeners;",
+          "snippet": "journey/code/33a-runtime-02.rs",
+          "why": "Register browser runtime ownership beside the listener owner."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line",
+          "snippet": "journey/code/33a-runtime-03.rs",
+          "why": "Retain cancellation handles outside the moving callback. Defer page-exit disposal until the active callback has returned."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    for name in [\n        \"pointerdown\",",
+          "snippet": "journey/code/33a-runtime-04.rs",
+          "why": "Transfer the event callback into the owner before attaching its targets."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;\n    }\n    let options = web_sys::AddEventListenerOptions::new();\n    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\n        \"wheel\",\n        update.as_ref().unchecked_ref(),\n        &options,\n    )?;\n    window.add_event_listener_with_callback(\"resize\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    document.add_event_listener_with_callback(\"change\", update.as_ref().unchecked_ref())?;\n    document.add_event_listener_with_callback(\"cancel\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"viewer-file\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"viewer-file-error\", update.as_ref().unchecked_ref())?;\n    window.add_event_listener_with_callback(\"viewer-reload\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();",
+          "snippet": "journey/code/33a-runtime-05.rs",
+          "why": "Register all eighteen live bindings through the owner; retain it in the runtime instead of forgetting the Rust callback."
+        }
+      ]
     }
   ]
 }

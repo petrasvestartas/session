@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 165 lesson slots; 99 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 166 lesson slots; 101 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 99 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 101 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -231,7 +231,9 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 32gja · [Prove failed restoration cannot partly commit](32gja-failures.md) — Automatic Move/Delete/Save reject HTTP, length/body/read/network/type/version failures without changing drawing or state. Multiple-source Save restores nothing if its second source fails; native missing-body/stale/duplicate-key checks and late-Close URL release remain explicit.
 
-- [ ] 33 · Give browser listeners a lifetime — detach callbacks and cancel work when the viewer closes.
+- [x] 33 · [Own browser listeners instead of forgetting callbacks](33-owner.md) — One Closure owns successful bindings. Real EventTargets verify handler detachment and captured-value release after Drop.
+
+- [x] 33a · [Dispose the viewer without leaving pending work alive](33a-runtime.md) — Bind eighteen live listeners to a runtime owner; pagehide defers safe disposal, cancels read/fetch authority and releases captures. Chrome checks late source/file replies, URL release, no further GPU submissions and ordinary document Close/reopen.
 
 - [ ] 34 · Recover from GPU loss — stop submissions, download diagnostics and recover the previous run.
 
