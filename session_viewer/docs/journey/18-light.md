@@ -80,7 +80,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/18-light-dock-01.rs"
+--8<-- "journey/code/18-light-window-1.rs"
 ```
 
 ## Run and look

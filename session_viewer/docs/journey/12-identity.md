@@ -1,6 +1,6 @@
 # 12 · Name objects without depending on their row
 
-**Plan about 3–5 hours.** 175 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 183 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Select and delete objects using stable identities, then highlight the selected object.
 
@@ -118,46 +118,60 @@ Find this exact block:
 
 ```rust
 use crate::{gpu_mesh::GpuMesh, scene::Scene};
+
+pub struct Renderer {
+    pub device: wgpu::Device,
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-04.rs"
+--8<-- "journey/code/12-identity-fullscreen-5.rs"
 ```
 
 ### 5. `src/renderer.rs`
 
-Upload the scene’s objects with no initial selection.
+Use the identity type at the renderer’s scene synchronization boundary.
 
 Find this exact block:
 
 ```rust
+        format: wgpu::TextureFormat,
+        scene: &Scene,
+    ) -> Self {
         let meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&device, mesh)).collect();
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-05.rs"
+--8<-- "journey/code/12-identity-fullscreen-6.rs"
 ```
 
 ### 6. `src/renderer.rs`
 
-Compare identities while uploading so the selected object receives the display tint.
+Use the identity type at the renderer’s scene synchronization boundary.
 
 Find this exact block:
 
 ```rust
+        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
+    }
+
     pub fn set_scene(&mut self, scene: &Scene) {
         self.meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&self.device, mesh)).collect();
     }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-06.rs"
+--8<-- "journey/code/12-identity-fullscreen-7.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -178,7 +192,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-dock-01.rs"
+--8<-- "journey/code/12-identity-window-1.rs"
 ```
 
 ### 8. `src/browser.rs`
@@ -199,7 +213,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-dock-02.rs"
+--8<-- "journey/code/12-identity-window-2.rs"
 ```
 
 ### 9. `src/browser.rs`
@@ -221,7 +235,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-dock-03.rs"
+--8<-- "journey/code/12-identity-window-3.rs"
 ```
 
 ### 10. `src/browser.rs`
@@ -242,28 +256,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/12-identity-dock-04.rs"
-```
-
-### 11. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Example Triangle · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/12-identity-page-1.html"
+--8<-- "journey/code/12-identity-window-4.rs"
 ```
 
 ## Run and look

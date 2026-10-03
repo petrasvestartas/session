@@ -7,6 +7,7 @@ This is the opening of the full viewer course. The [remaining lesson checklist](
 ## What was checked
 
 - Every displayed checkpoint reconstructs, builds for WebAssembly, and produces a Trunk browser bundle. Native state tests and GPU readbacks run where applicable.
+- Every checkpoint fills the browser content area from its first frame. Chrome checks the canvas position and dimensions, rejects visible headings or teaching paragraphs, and checks that the GPU image matches the initial window size.
 - The course’s dock model, layout and theme match the production source. An automated check rejects HTML feature buttons and button-based lesson actions.
 - Chrome types commands through actual keyboard events. Enter clears the field and records exactly one command. Completion and Escape are checked separately.
 - Lesson 04 submits Background twice and compares every scene pixel above the folded dock. The second submission restores the original drawing exactly.
@@ -20,7 +21,9 @@ The scene comparison excludes the command strip. When a key opens completion ove
 
 Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, checker hash, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
 
-The initial browser viewport is 900 × 760 CSS pixels at display density 1. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
+The initial browser viewport is 900 × 760 CSS pixels at display density 1. The evidence records that viewport, the canvas bounds and the final screenshot viewport. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
+
+The full-window white canvas starts in lesson 01; GPU sizing starts in lesson 02. The first two screenshots intentionally look alike: lesson 02 replaces the CSS-only background with a verified GPU clear. Each is captured from its own bundle. Lesson 10 gives the depth image matching dimensions before the first draw. Lesson 20 adds resizing after startup and display-density handling. Earlier checkpoints should be reloaded after changing the window size.
 
 The early dock stages have different purposes: 03a draws the styling, 03b adds the model, 03c draws production history/layout, and 03d connects keyboard input. Their captions state when input becomes usable. Native GPU images are separate evidence and are never labelled browser screenshots.
 

@@ -1,6 +1,6 @@
 # 08 · Move the view, keep the geometry
 
-**Plan about 2–3 hours.** 133 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–3 hours.** 127 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Pan, zoom and reset a flat view through camera state.
 
@@ -54,7 +54,7 @@ mod browser;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/08-camera-dock-01.rs"
+--8<-- "journey/code/08-camera-fullscreen-1.rs"
 ```
 
 ### 3. `src/browser.rs`
@@ -72,7 +72,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 Replace that block with:
 
 ```rust
---8<-- "journey/code/08-camera-dock-02.rs"
+--8<-- "journey/code/08-camera-window-1.rs"
 ```
 
 ### 4. `src/browser.rs`
@@ -99,7 +99,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/08-camera-dock-03.rs"
+--8<-- "journey/code/08-camera-window-2.rs"
 ```
 
 ### 5. `src/browser.rs`
@@ -128,7 +128,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/08-camera-dock-04.rs"
+--8<-- "journey/code/08-camera-window-3.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -149,28 +149,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/08-camera-dock-05.rs"
-```
-
-### 7. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Background. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/08-camera-page-1.html"
+--8<-- "journey/code/08-camera-window-4.rs"
 ```
 
 ## Run and look

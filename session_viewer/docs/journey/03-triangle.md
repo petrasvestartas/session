@@ -1,8 +1,8 @@
 # 03 · Give the GPU three corners
 
-**Plan about 1–2 hours.** 51 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 1–2 hours.** 75 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
-**Today:** Draw a pink triangle on the blue background.
+**Today:** Draw a pink triangle on the white background.
 
 **In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
 
@@ -43,96 +43,74 @@ Keep the compiled drawing recipe beside the device and queue. It will be reused 
 Find this exact block:
 
 ```rust
+pub struct Renderer {
+    pub device: wgpu::Device,
     pub queue: wgpu::Queue,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
+        Self { device, queue }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView) {
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03-triangle-02.rs"
+--8<-- "journey/code/03-triangle-fullscreen-2.rs"
 ```
 
 ### 3. `src/renderer.rs`
 
-Replace new. A pipeline connects the two shader entry points and the destination pixel format. No buffers are needed because the shader contains all three positions.
+Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame.
 
 Find this exact block:
 
 ```rust
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
-        Self { device, queue }
+                })],
+                ..Default::default()
+            });
+        }
+        self.queue.submit([encoder.finish()]);
     }
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03-triangle-03.rs"
+--8<-- "journey/code/03-triangle-fullscreen-3.rs"
 ```
 
-### 4. `src/renderer.rs`
-
-Name the pass and make its binding mutable so we can record drawing commands.
-
-Find this exact block:
-
-```rust
-            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03-triangle-04.rs"
-```
-
-### 5. `src/renderer.rs`
-
-After beginning the pass, select the recipe and draw vertices 0, 1 and 2 once. The upper end of a Rust range is excluded.
-
-Find this exact block:
-
-```rust
-                ..Default::default()
-            });
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03-triangle-05.rs"
-```
-
-### 6. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.
 
 Find this exact block:
 
 ```rust
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
     let renderer = Renderer::new(device, queue);
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03-triangle-06.rs"
-```
-
-### 7. `src/browser.rs`
-
-Update the visible result message.
-
-Find this exact block:
-
-```rust
+    present(&surface, &renderer)?;
     report("The GPU painted the canvas.");
+    Ok(())
+}
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03-triangle-07.rs"
+--8<-- "journey/code/03-triangle-window-1.rs"
 ```
 
 ## Run and look
@@ -147,7 +125,7 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-A pink triangle appears on the blue background. Its top corner is above the centre. The background is still the render-pass clear from the previous lesson.
+A pink triangle appears on the white background. Its top corner is above the centre. The background is still the render-pass clear from the previous lesson.
 
 **Actual Chrome screenshot.**
 
@@ -166,7 +144,7 @@ Trace the values through the files without reading the answer first. If you lose
 <details>
 <summary>Compare your explanation</summary>
 
-The triangle silhouette changes because its corner positions changed. The surrounding blue stays the same: the render pass clears the background before drawing the triangle.
+The triangle silhouette changes because its corner positions changed. The surrounding white stays the same: the render pass clears the background before drawing the triangle.
 
 </details>
 

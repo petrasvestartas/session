@@ -2,7 +2,7 @@
 
 **Every interactive checkpoint uses the viewer’s own Rust/egui command dock.** Type a command in the white field and press Enter. The lessons and browser checks use that route for features; picking and camera gestures still happen on the drawing.
 
-The canvas fills the browser window from lesson 01. The dock sits inside that canvas; lesson titles and explanations stay in these documentation pages.
+The white canvas fills the browser window from lesson 01. The dock sits inside that canvas; lesson titles and explanations stay in these documentation pages.
 
 Start with these lessons, in order:
 
@@ -18,7 +18,7 @@ Each page gives its typing estimate and complete source changes. The first three
 
 ## Follow one command
 
-In lesson 04, type `Bac`. Completion suggests `Background`. Press Enter: the background changes while the triangle stays put. Submit `Background` again to return to blue. The dock remembers both commands.
+In lesson 04, type `Bac`. Completion suggests `Background`. Press Enter: the background changes while the triangle stays put. Submit `Background` again to return to white. The dock remembers both commands.
 
 ![A typed command passes through the real dock to application state, then the GPU draws the scene and interface.](../illustrations/journey-command-dock.svg)
 

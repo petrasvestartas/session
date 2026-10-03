@@ -1,6 +1,6 @@
 # 23 · Keep the document behind the picture
 
-**Plan about 5–8 hours.** 338 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 5–8 hours.** 337 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
 
@@ -181,7 +181,27 @@ Replace that block with:
 --8<-- "journey/code/23-import-dock-01.toml"
 ```
 
-### 12. `src/lib.rs`
+### 12. `index.html`
+
+Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
+
+Find this exact block:
+
+```html
+<body>
+  <p id="status" role="status" hidden>Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+</body>
+</html>
+```
+
+Replace that block with:
+
+```html
+--8<-- "journey/code/23-import-fullscreen-1.html"
+```
+
+### 13. `src/lib.rs`
 
 Register the reader, specimen and native checks.
 
@@ -199,10 +219,10 @@ mod shortcut_tests;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-02.rs"
+--8<-- "journey/code/23-import-fullscreen-2.rs"
 ```
 
-### 13. `src/lib.rs`
+### 14. `src/lib.rs`
 
 Register the reader, specimen and native checks.
 
@@ -219,10 +239,10 @@ use wasm_bindgen::prelude::*;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-03.rs"
+--8<-- "journey/code/23-import-fullscreen-3.rs"
 ```
 
-### 14. `src/browser.rs`
+### 15. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -240,10 +260,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-04.rs"
+--8<-- "journey/code/23-import-window-1.rs"
 ```
 
-### 15. `src/browser.rs`
+### 16. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -261,10 +281,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-05.rs"
+--8<-- "journey/code/23-import-window-2.rs"
 ```
 
-### 16. `src/browser.rs`
+### 17. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -302,10 +322,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-06.rs"
+--8<-- "journey/code/23-import-window-3.rs"
 ```
 
-### 17. `src/browser.rs`
+### 18. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -323,10 +343,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-07.rs"
+--8<-- "journey/code/23-import-window-4.rs"
 ```
 
-### 18. `src/browser.rs`
+### 19. `src/browser.rs`
 
 Connect keep the document behind the picture to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -344,28 +364,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-dock-08.rs"
-```
-
-### 19. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-    Home resets. Delete removes the selection. Ctrl/Cmd+Z undoes; Shift adds redo.</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480"
-    aria-label="Viewer drawing" aria-describedby="navigation"></canvas>
-  <p>Commands: Help · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/23-import-page-1.html"
+--8<-- "journey/code/23-import-window-5.rs"
 ```
 
 ## Run and look

@@ -1,6 +1,6 @@
 # 10 · Keep the nearest surface
 
-**Plan about 2–4 hours.** 68 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 123 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
 
@@ -18,7 +18,7 @@ The pink triangle is nearer, at z = 0.25. The turquoise one is farther, at z = 0
 
 For this lesson our matrix leaves z unchanged. WebGPU's visible depth interval is 0 through 1 after dividing by w. Smaller values are nearer. The depth texture starts at 1, the far end. `Less` accepts a fragment only when its depth is smaller than the stored value. Writing depth updates that stored value for later triangles.
 
-A depth texture is an attachment alongside the colour texture. It is not a picture we show on the page. Its size and sample count must agree with the colour attachment. Both are currently 640 × 480 with one sample. We will make their sizes follow the window together in the resizing lesson.
+A depth texture is an attachment alongside the colour texture. It is not a picture we show on the page. Its size and sample count must agree with the colour attachment. Both use the initial window size with one sample. `browser.rs` passes that size to `renderer.resize` before drawing the first frame; the renderer creates a matching depth texture. Lesson 20 will update both when the window changes size.
 
 We also give each vertex a colour, so that you can see which triangle won. A vertex now occupies 24 bytes: three floats for position followed by three for colour. Location zero reads position; location one reads colour. The vertex shader passes colour to the fragment shader through a small output structure. All three corners of each triangle have the same colour here, so interpolation leaves it constant.
 
@@ -28,138 +28,7 @@ Opaque visibility is the purpose of this depth test. Transparent surfaces will n
 
 Continue [Let one matrix describe the view](09-matrices.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-10-depth`. A save keeps your own work; it does not fill in the next lesson.
 
-### 1. `src/renderer.rs`
-
-Replace the flat diamond with two coloured triangles at different depths.
-
-Find this exact block:
-
-```rust
-const POSITIONS: [[f32; 2]; 4] = [
-    [-0.6, 0.0], [0.0, -0.6], [0.6, 0.0], [0.0, 0.6],
-];
-const INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-01.rs"
-```
-
-### 2. `src/renderer.rs`
-
-Upload the new six-float records using the byte conversion you already know.
-
-Find this exact block:
-
-```rust
-POSITIONS.iter().flatten()
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-02.rs"
-```
-
-### 3. `src/renderer.rs`
-
-Retain a view of the depth attachment. The view keeps its underlying GPU texture alive.
-
-Find this exact block:
-
-```rust
-    view_group: wgpu::BindGroup,
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-03.rs"
-```
-
-### 4. `src/renderer.rs`
-
-Advance 24 bytes to the next vertex.
-
-Find this exact block:
-
-```rust
-                    array_stride: 8,
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-04.rs"
-```
-
-### 5. `src/renderer.rs`
-
-Read three position floats followed by three colour floats. The macro calculates the second offset as 12 bytes.
-
-Find this exact block:
-
-```rust
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x2],
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-05.rs"
-```
-
-### 6. `src/renderer.rs`
-
-Tell the pipeline to keep a fragment only when it is nearer, then write its depth.
-
-Find this exact block:
-
-```rust
-            depth_stencil: None,
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-06.rs"
-```
-
-### 7. `src/renderer.rs`
-
-Create the depth texture with the same dimensions and sample count as the colour image.
-
-Find this exact block:
-
-```rust
-        Self { device, queue, pipeline, vertices, indices, uniform, view_group }
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-07.rs"
-```
-
-### 8. `src/renderer.rs`
-
-Attach depth to the pass and clear it to the farthest value before drawing.
-
-Find this exact block:
-
-```rust
-                label: Some("canvas"),
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/10-depth-08.rs"
-```
-
-### 9. `src/triangle.wgsl`
+### 1. `src/triangle.wgsl`
 
 Pass transformed 3D positions and vertex colours to the rasterizer. The fragment function uses the interpolated colour.
 
@@ -185,7 +54,168 @@ Replace that block with:
 --8<-- "journey/code/10-depth-09.wgsl"
 ```
 
-### 10. `src/browser.rs`
+### 2. `src/renderer.rs`
+
+Replace the flat diamond with two coloured triangles at different depths.
+
+Find this exact block:
+
+```rust
+use wgpu::util::DeviceExt;
+
+const POSITIONS: [[f32; 2]; 4] = [
+    [-0.6, 0.0], [0.0, -0.6], [0.6, 0.0], [0.0, 0.6],
+];
+const INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
+
+pub struct Renderer {
+    pub device: wgpu::Device,
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-fullscreen-3.rs"
+```
+
+### 3. `src/renderer.rs`
+
+Replace the flat diamond with two coloured triangles at different depths.
+
+Find this exact block:
+
+```rust
+    indices: wgpu::Buffer,
+    uniform: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
+        let bytes: Vec<u8> = POSITIONS.iter().flatten()
+            .flat_map(|value| value.to_ne_bytes()).collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("rectangle positions"),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-fullscreen-4.rs"
+```
+
+### 4. `src/renderer.rs`
+
+Replace the flat diamond with two coloured triangles at different depths.
+
+Find this exact block:
+
+```rust
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 8,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x2],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-fullscreen-5.rs"
+```
+
+### 5. `src/renderer.rs`
+
+Replace the flat diamond with two coloured triangles at different depths.
+
+Find this exact block:
+
+```rust
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: None,
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-fullscreen-6.rs"
+```
+
+### 6. `src/renderer.rs`
+
+Replace the flat diamond with two coloured triangles at different depths.
+
+Find this exact block:
+
+```rust
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        Self { device, queue, pipeline, vertices, indices, uniform, view_group }
+    }
+
+    pub fn draw(
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-fullscreen-7.rs"
+```
+
+### 7. `src/renderer.rs`
+
+Replace the flat diamond with two coloured triangles at different depths.
+
+Find this exact block:
+
+```rust
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-fullscreen-8.rs"
+```
+
+### 8. `src/browser.rs`
+
+Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/10-depth-window-1.rs"
+```
+
+### 9. `src/browser.rs`
 
 Connect keep the nearest surface to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -203,7 +233,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/10-depth-dock-01.rs"
+--8<-- "journey/code/10-depth-window-2.rs"
 ```
 
 ## Run and look

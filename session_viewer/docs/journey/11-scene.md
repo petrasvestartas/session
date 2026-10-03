@@ -1,6 +1,6 @@
 # 11 · Give the scene an owner
 
-**Plan about 3–5 hours.** 177 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 197 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Add and remove a mesh through scene data while reusing the renderer and camera.
 
@@ -58,155 +58,7 @@ Create the file and type:
 --8<-- "journey/code/11-scene-03.rs"
 ```
 
-### 4. `src/renderer.rs`
-
-The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
-
-Find this exact block:
-
-```rust
-use wgpu::util::DeviceExt;
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-05.rs"
-```
-
-### 5. `src/renderer.rs`
-
-Remove the geometry constants from the renderer. Their coordinates now live in Scene::demo.
-
-Find this exact block:
-
-```rust
-// Each vertex stores x, y, z, then red, green and blue.
-const VERTICES: [[f32; 6]; 6] = [
-    [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
-    [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
-    [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],
-    [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
-    [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
-    [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],
-];
-const INDICES: [u16; 6] = [0, 1, 2, 3, 4, 5];
-```
-
-Delete this block.
-
-### 6. `src/renderer.rs`
-
-Replace the one built-in mesh with a list of uploaded meshes.
-
-Find this exact block:
-
-```rust
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-07.rs"
-```
-
-### 7. `src/renderer.rs`
-
-Borrow the caller’s scene for the first upload. The renderer does not take ownership of it.
-
-Find this exact block:
-
-```rust
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-08.rs"
-```
-
-### 8. `src/renderer.rs`
-
-Build one GPU representation per mesh instead of uploading the old constants.
-
-Find this exact block:
-
-```rust
-        let bytes: Vec<u8> = VERTICES.iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("rectangle positions"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = INDICES.iter().flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("diamond indices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-09.rs"
-```
-
-### 9. `src/renderer.rs`
-
-Retain the uploaded list with the shared drawing resources.
-
-Find this exact block:
-
-```rust
-        Self { device, queue, pipeline, vertices, indices, uniform, view_group, depth }
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-10.rs"
-```
-
-### 10. `src/renderer.rs`
-
-Add an explicit synchronization operation for scene changes. Drawing alone does not rebuild mesh buffers.
-
-Find this exact block:
-
-```rust
-    pub fn draw(
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-11.rs"
-```
-
-### 11. `src/renderer.rs`
-
-Draw every uploaded mesh with the pipeline, camera binding and depth attachment already selected.
-
-Find this exact block:
-
-```rust
-            pass.set_vertex_buffer(0, self.vertices.slice(..));
-            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/11-scene-12.rs"
-```
-
-### 12. `src/lib.rs`
+### 4. `src/lib.rs`
 
 Register the three new owners.
 
@@ -223,10 +75,113 @@ mod browser;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-dock-01.rs"
+--8<-- "journey/code/11-scene-fullscreen-1.rs"
 ```
 
-### 13. `src/browser.rs`
+### 5. `src/renderer.rs`
+
+The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
+
+Find this exact block:
+
+```rust
+use wgpu::util::DeviceExt;
+
+// Each vertex stores x, y, z, then red, green and blue.
+const VERTICES: [[f32; 6]; 6] = [
+    [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
+    [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
+    [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],
+    [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
+    [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
+    [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],
+];
+const INDICES: [u16; 6] = [0, 1, 2, 3, 4, 5];
+
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+    vertices: wgpu::Buffer,
+    indices: wgpu::Buffer,
+    uniform: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+    depth: wgpu::TextureView,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
+        let bytes: Vec<u8> = VERTICES.iter().flatten()
+            .flat_map(|value| value.to_ne_bytes()).collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("rectangle positions"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let bytes: Vec<u8> = INDICES.iter().flat_map(|index| index.to_ne_bytes()).collect();
+        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("diamond indices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/11-scene-fullscreen-6.rs"
+```
+
+### 6. `src/renderer.rs`
+
+The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
+
+Find this exact block:
+
+```rust
+            }],
+        });
+        let depth = Self::depth(&device, 640, 480);
+        Self { device, queue, pipeline, vertices, indices, uniform, view_group, depth }
+    }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/11-scene-fullscreen-7.rs"
+```
+
+### 7. `src/renderer.rs`
+
+The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
+
+Find this exact block:
+
+```rust
+            });
+            pass.set_pipeline(&self.pipeline);
+            pass.set_bind_group(0, &self.view_group, &[]);
+            pass.set_vertex_buffer(0, self.vertices.slice(..));
+            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
+            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
+        }
+        self.queue.submit([encoder.finish()]);
+    }
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/11-scene-fullscreen-8.rs"
+```
+
+### 8. `src/browser.rs`
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -244,10 +199,10 @@ pub fn report(message: &str) {
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-dock-02.rs"
+--8<-- "journey/code/11-scene-window-1.rs"
 ```
 
-### 14. `src/browser.rs`
+### 9. `src/browser.rs`
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -257,7 +212,8 @@ Find this exact block:
         .ok_or("No compatible surface format")?;
     config.view_formats = vec![config.format.add_srgb_suffix()];
     surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    renderer.resize(width, height);
     let mut panel = crate::panel::Panel::new(
         &renderer,
         config.format.add_srgb_suffix(),
@@ -271,10 +227,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-dock-03.rs"
+--8<-- "journey/code/11-scene-window-2.rs"
 ```
 
-### 15. `src/browser.rs`
+### 10. `src/browser.rs`
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -292,10 +248,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-dock-04.rs"
+--8<-- "journey/code/11-scene-window-3.rs"
 ```
 
-### 16. `src/browser.rs`
+### 11. `src/browser.rs`
 
 Connect give the scene an owner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -313,28 +269,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/11-scene-dock-05.rs"
-```
-
-### 17. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/11-scene-page-1.html"
+--8<-- "journey/code/11-scene-window-4.rs"
 ```
 
 ## Run and look

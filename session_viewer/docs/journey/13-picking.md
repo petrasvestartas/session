@@ -94,7 +94,7 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-02.rs"
+--8<-- "journey/code/13-picking-fullscreen-1.rs"
 ```
 
 ### 5. `src/browser.rs`
@@ -117,7 +117,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-03.rs"
+--8<-- "journey/code/13-picking-window-1.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -138,7 +138,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-04.rs"
+--8<-- "journey/code/13-picking-window-2.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -159,7 +159,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/13-picking-dock-05.rs"
+--8<-- "journey/code/13-picking-window-3.rs"
 ```
 
 ## Run and look

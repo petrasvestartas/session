@@ -88,7 +88,7 @@ async fn render() -> Result<(), Box<dyn std::error::Error>> {
 
 fn verify_pixels(pixels: &[u8]) {
     let mode = std::env::var("COURSE_FRAME").expect("The course runner supplies the expected frame");
-    let background = if mode == "light" { [243, 243, 243] } else { [48, 85, 124] };
+    let background = if mode == "light" { [243, 243, 243] } else { [255, 255, 255] };
     assert!(near(&pixels[..3], background), "Unexpected background: {:?}", &pixels[..3]);
     let changed = pixels.chunks_exact(4).filter(|pixel| !near(&pixel[..3], background)).count();
 

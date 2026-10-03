@@ -1,6 +1,6 @@
 # 22 · Give the keyboard a place to work
 
-**Plan about 2–4 hours.** 200 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 184 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Zoom with the wheel and use focused keyboard shortcuts without stealing keys from the rest of the page.
 
@@ -84,7 +84,7 @@ pub mod gpu_mesh;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/22-shortcuts-dock-02.rs"
+--8<-- "journey/code/22-shortcuts-fullscreen-1.rs"
 ```
 
 ### 5. `src/browser.rs`
@@ -106,7 +106,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/22-shortcuts-dock-03.rs"
+--8<-- "journey/code/22-shortcuts-window-1.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -131,7 +131,7 @@ fn pointer_action(
 Replace that block with:
 
 ```rust
---8<-- "journey/code/22-shortcuts-dock-04.rs"
+--8<-- "journey/code/22-shortcuts-window-2.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -153,34 +153,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/22-shortcuts-dock-05.rs"
-```
-
-### 8. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <style>
-    body { margin: 2rem auto; padding: 0 1rem; max-width: 960px; font: 18px/1.5 system-ui; color: #172238; }
-    canvas { touch-action: none; display: block; width: 100%; height: min(60vh, 480px); background: #e9e9ec; outline: 1px solid #455b6b; }
-  </style>
-</head>
-<body>
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Example Box · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/22-shortcuts-page-1.html"
+--8<-- "journey/code/22-shortcuts-window-3.rs"
 ```
 
 ## Run and look

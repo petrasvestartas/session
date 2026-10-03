@@ -10,6 +10,8 @@ pub struct Panel {
 impl Panel {
     pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
         let context = egui::Context::default();
+        // Text input must be handled once, even when a widget requests another layout pass.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         context.set_fonts(theme::fonts([
             include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
             include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),

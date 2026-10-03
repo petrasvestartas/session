@@ -1,6 +1,6 @@
 # 20 · Keep a changing window in proportion
 
-**Plan about 3–5 hours.** 220 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 225 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Resize the drawing buffer, depth attachment and camera together, including on dense displays.
 
@@ -10,7 +10,7 @@
 
 **Before you finish, explain:** Why is changing only the canvas width insufficient?
 
-Make the browser narrow. Until now, CSS stretches a fixed 640 × 480 image to fit. The viewer needs to draw a new image at the right size instead.
+Our canvas has filled the window since lesson 01, and the GPU has used the startup window size since lesson 02. Now narrow the window after opening it: we need to update the image dimensions as well as the CSS layout. Today we add that response and support sharper drawing on dense displays.
 
 There are two measurements. **CSS pixels** describe page layout. **Drawing pixels** describe the GPU image. A canvas 768 CSS pixels wide on a display with a density of 2 needs 1536 drawing pixels across. Geometry should look the same size on the page, just sharper.
 
@@ -22,7 +22,7 @@ The browser will update three things together: the canvas and surface, the depth
 
 Clicks and window resize events can share one callback. Browser events arrive one at a time; the callback already owns our mutable editor and renderer. The window clone is another handle to the same browser window, not another window. We check size before every redraw, but recreate textures only when the dimensions change.
 
-One small trap remains: View Reset used to replace the whole camera. Keep the aspect while resetting its pose. The new test catches this, so resizing cannot quietly stop working after a reset.
+Keep the aspect while resetting the camera pose, just as we did when introducing perspective. This rule now belongs in Editor, where all actions meet. The new test catches this, so resizing cannot quietly stop working after a reset.
 
 ## Type the change
 
@@ -38,49 +38,7 @@ Create the file and type:
 --8<-- "journey/code/20-resize-01.rs"
 ```
 
-### 2. `src/renderer.rs`
-
-Move depth-image construction into one helper that also serves resize.
-
-Find this exact block:
-
-```rust
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width: 640, height: 480, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Depth32Float,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        let depth = depth_texture.create_view(&Default::default());
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-03.rs"
-```
-
-### 3. `src/renderer.rs`
-
-Recreate the depth attachment when the colour image changes size. The old view is dropped when replaced.
-
-Find this exact block:
-
-```rust
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-04.rs"
-```
-
-### 4. `src/editor.rs`
+### 2. `src/editor.rs`
 
 Reset the camera pose while retaining the current viewport proportions.
 
@@ -96,7 +54,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-05.rs"
 ```
 
-### 5. `src/editor.rs`
+### 3. `src/editor.rs`
 
 Catch a resize bug that would otherwise return whenever the learner presses Reset view.
 
@@ -113,7 +71,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-06.rs"
 ```
 
-### 6. `src/lib.rs`
+### 4. `src/lib.rs`
 
 Make the size calculation usable by browser code and Rust tests.
 
@@ -131,7 +89,57 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-dock-01.rs"
+--8<-- "journey/code/20-resize-fullscreen-1.rs"
+```
+
+### 5. `src/renderer.rs`
+
+Reuse the depth helper from lesson 10 with the measured Viewport dimensions.
+
+Find this exact block:
+
+```rust
+        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
+    }
+
+    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
+        self.meshes = scene.objects().iter().map(|object| {
+            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))
+        }).collect();
+    }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("opaque depth"),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/20-resize-fullscreen-8.rs"
+```
+
+### 6. `src/renderer.rs`
+
+Reuse the depth helper from lesson 10 with the measured Viewport dimensions.
+
+Find this exact block:
+
+```rust
+        depth_texture.create_view(&Default::default())
+    }
+
+    pub fn resize(&mut self, width: u32, height: u32) {
+        self.depth = Self::depth(&self.device, width, height);
+    }
+
+    pub fn draw(
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/20-resize-fullscreen-9.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -152,10 +160,39 @@ pub fn report(message: &str) {
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-dock-02.rs"
+--8<-- "journey/code/20-resize-window-1.rs"
 ```
 
 ### 8. `src/browser.rs`
+
+Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
+
+Find this exact block:
+
+```rust
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let mut editor = Editor::default();
+    editor.camera.aspect = width as f64 / height as f64;
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+        config.format.add_srgb_suffix(),
+        &editor.scene,
+    );
+    renderer.resize(width, height);
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+```
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/20-resize-window-2.rs"
+```
+
+### 9. `src/browser.rs`
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -182,10 +219,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-dock-03.rs"
+--8<-- "journey/code/20-resize-window-3.rs"
 ```
 
-### 9. `src/browser.rs`
+### 10. `src/browser.rs`
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -204,10 +241,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-dock-04.rs"
+--8<-- "journey/code/20-resize-window-4.rs"
 ```
 
-### 10. `src/browser.rs`
+### 11. `src/browser.rs`
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -237,10 +274,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-dock-05.rs"
+--8<-- "journey/code/20-resize-window-5.rs"
 ```
 
-### 11. `src/browser.rs`
+### 12. `src/browser.rs`
 
 Connect keep a changing window in proportion to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -273,30 +310,7 @@ fn present(
 Replace that block with:
 
 ```rust
---8<-- "journey/code/20-resize-dock-06.rs"
-```
-
-### 12. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <title>My viewer</title>
-  <link data-trunk rel="rust">
-  <style>
-    body { margin: 2rem auto; padding: 0 1rem; max-width: 640px; font: 18px/1.5 system-ui; color: #172238; }
-    canvas { display: block; width: 100%; background: #e9e9ec; outline: 1px solid #455b6b; }
-  </style>
-</head>
-<body>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/20-resize-page-1.html"
+--8<-- "journey/code/20-resize-window-6.rs"
 ```
 
 ## Run and look

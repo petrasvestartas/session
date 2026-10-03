@@ -1,6 +1,6 @@
 # 07 · Send one view setting to every corner
 
-**Plan about 2–3 hours.** 68 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–3 hours.** 86 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Scale and shift the diamond without changing its stored positions.
 
@@ -67,64 +67,67 @@ Retain the uniform for uploads and the bind group for draws.
 Find this exact block:
 
 ```rust
+    pipeline: wgpu::RenderPipeline,
+    vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
+}
+
+impl Renderer {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-03.rs"
+--8<-- "journey/code/07-uniforms-fullscreen-6.rs"
 ```
 
 ### 4. `src/renderer.rs`
 
-Create the buffer and connect it to binding zero after the pipeline exists.
+Retain the uniform for uploads and the bind group for draws.
 
 Find this exact block:
 
 ```rust
+            multiview_mask: None,
+            cache: None,
+        });
         Self { device, queue, pipeline, vertices, indices }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
+        let [r, g, b] = background.rgb();
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-04.rs"
+--8<-- "journey/code/07-uniforms-fullscreen-7.rs"
 ```
 
 ### 5. `src/renderer.rs`
 
-Accept view values from the caller and upload them before recording this frame.
+Retain the uniform for uploads and the bind group for draws.
 
 Find this exact block:
 
 ```rust
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
-```
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/07-uniforms-05.rs"
-```
-
-### 6. `src/renderer.rs`
-
-Bind the view resource to group zero. The empty list means no dynamic buffer offsets are needed.
-
-Find this exact block:
-
-```rust
+                ..Default::default()
+            });
             pass.set_pipeline(&self.pipeline);
+            pass.set_vertex_buffer(0, self.vertices.slice(..));
+            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
+            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
 ```
 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-06.rs"
+--8<-- "journey/code/07-uniforms-fullscreen-8.rs"
 ```
 
-### 7. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -143,10 +146,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-dock-01.rs"
+--8<-- "journey/code/07-uniforms-window-1.rs"
 ```
 
-### 8. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -165,10 +168,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-dock-02.rs"
+--8<-- "journey/code/07-uniforms-window-2.rs"
 ```
 
-### 9. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -186,10 +189,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-dock-03.rs"
+--8<-- "journey/code/07-uniforms-window-3.rs"
 ```
 
-### 10. `src/browser.rs`
+### 9. `src/browser.rs`
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -207,10 +210,10 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-dock-04.rs"
+--8<-- "journey/code/07-uniforms-window-4.rs"
 ```
 
-### 11. `src/browser.rs`
+### 10. `src/browser.rs`
 
 Connect send one view setting to every corner to the typed command path. Keep the scene state in its existing owner and redraw the dock after applying an action.
 
@@ -229,7 +232,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/07-uniforms-dock-05.rs"
+--8<-- "journey/code/07-uniforms-window-5.rs"
 ```
 
 ## Run and look

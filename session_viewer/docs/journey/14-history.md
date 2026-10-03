@@ -1,6 +1,6 @@
 # 14 · Make document changes reversible
 
-**Plan about 2–4 hours.** 166 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 2–4 hours.** 160 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Undo and redo adding or deleting an object without changing the camera or losing identity.
 
@@ -152,7 +152,7 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-01.rs"
+--8<-- "journey/code/14-history-fullscreen-1.rs"
 ```
 
 ### 9. `src/browser.rs`
@@ -172,7 +172,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-02.rs"
+--8<-- "journey/code/14-history-window-1.rs"
 ```
 
 ### 10. `src/browser.rs`
@@ -193,7 +193,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-03.rs"
+--8<-- "journey/code/14-history-window-2.rs"
 ```
 
 ### 11. `src/browser.rs`
@@ -214,7 +214,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-04.rs"
+--8<-- "journey/code/14-history-window-3.rs"
 ```
 
 ### 12. `src/browser.rs`
@@ -236,7 +236,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-05.rs"
+--8<-- "journey/code/14-history-window-4.rs"
 ```
 
 ### 13. `src/browser.rs`
@@ -261,7 +261,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-06.rs"
+--8<-- "journey/code/14-history-window-5.rs"
 ```
 
 ### 14. `src/browser.rs`
@@ -282,28 +282,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/14-history-dock-07.rs"
-```
-
-### 15. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Example Triangle · Select Next · Delete · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/14-history-page-1.html"
+--8<-- "journey/code/14-history-window-6.rs"
 ```
 
 ## Run and look

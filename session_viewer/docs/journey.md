@@ -8,13 +8,15 @@ The [complete draft lesson checklist](journey/roadmap.md) has **101 proposed slo
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
+The white canvas fills the browser window from lesson 01. The runtime shows your drawing and the command dock; lesson titles and explanations stay in this documentation.
+
 ## Start small, keep the destination
 
 | Lesson | Time | Working result |
 | --- | --- | --- |
-| [01 · A page that Rust can reach](journey/01-canvas.md) | 1–2 hours | Open a canvas and let Rust tell us it has started. |
-| [02 · Ask the GPU to paint](journey/02-clear.md) | 2–3 hours | Paint the whole canvas blue with a real GPU command. |
-| [03 · Give the GPU three corners](journey/03-triangle.md) | 1–2 hours | Draw a pink triangle on the blue background. |
+| [01 · A page that Rust can reach](journey/01-canvas.md) | 1–2 hours | Fill the browser window with a canvas and let Rust signal that it has started. |
+| [02 · Ask the GPU to paint](journey/02-clear.md) | 2–3 hours | Paint the whole canvas white with a real GPU command. |
+| [03 · Give the GPU three corners](journey/03-triangle.md) | 1–2 hours | Draw a pink triangle on the white background. |
 | [03a · Draw our command line](journey/03a-panel.md) | 4–6 hours | Draw the production command panel and its Noto text over the triangle, using the same GPU. |
 | [03b · Give the command line its memory](journey/03b-state.md) | 3–5 hours | The text field and history have one owner. |
 | [03c · Draw completion and history](journey/03c-layout.md) | 8–12 hours | Lay out the production command dock from its model. |

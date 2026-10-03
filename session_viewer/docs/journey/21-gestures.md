@@ -1,6 +1,6 @@
 # 21 · Remember a press until it ends
 
-**Plan about 3–5 hours.** 285 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 278 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.
 
@@ -100,7 +100,7 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-02.rs"
+--8<-- "journey/code/21-gestures-fullscreen-1.rs"
 ```
 
 ### 6. `src/browser.rs`
@@ -120,7 +120,7 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-03.rs"
+--8<-- "journey/code/21-gestures-window-1.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -141,7 +141,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-04.rs"
+--8<-- "journey/code/21-gestures-window-2.rs"
 ```
 
 ### 8. `src/browser.rs`
@@ -187,7 +187,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-05.rs"
+--8<-- "journey/code/21-gestures-window-3.rs"
 ```
 
 ### 9. `src/browser.rs`
@@ -208,7 +208,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-06.rs"
+--8<-- "journey/code/21-gestures-window-4.rs"
 ```
 
 ### 10. `src/browser.rs`
@@ -230,7 +230,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-07.rs"
+--8<-- "journey/code/21-gestures-window-5.rs"
 ```
 
 ### 11. `src/browser.rs`
@@ -252,7 +252,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-08.rs"
+--8<-- "journey/code/21-gestures-window-6.rs"
 ```
 
 ### 12. `src/browser.rs`
@@ -279,29 +279,7 @@ fn resize(
 Replace that block with:
 
 ```rust
---8<-- "journey/code/21-gestures-dock-09.rs"
-```
-
-### 13. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <link data-trunk rel="rust">
-  <style>
-    body { margin: 2rem auto; padding: 0 1rem; max-width: 960px; font: 18px/1.5 system-ui; color: #172238; }
-    canvas { display: block; width: 100%; height: min(60vh, 480px); background: #e9e9ec; outline: 1px solid #455b6b; }
-  </style>
-</head>
-<body>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/21-gestures-page-1.html"
+--8<-- "journey/code/21-gestures-window-7.rs"
 ```
 
 ## Run and look

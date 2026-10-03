@@ -1,6 +1,6 @@
 # 17 · Bring a solid into the scene
 
-**Plan about 3–5 hours.** 105 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
+**Plan about 3–5 hours.** 99 lines to type, including comments and blank lines. Allow time to read, predict and experiment; this is an estimate, not a deadline.
 
 **Today:** Create a kernel box, convert it to display data, and add it as one undoable scene object.
 
@@ -136,7 +136,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/17-solid-dock-01.rs"
+--8<-- "journey/code/17-solid-window-1.rs"
 ```
 
 ### 7. `src/browser.rs`
@@ -157,7 +157,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/17-solid-dock-02.rs"
+--8<-- "journey/code/17-solid-window-2.rs"
 ```
 
 ### 8. `src/browser.rs`
@@ -178,28 +178,7 @@ Find this exact block:
 Replace that block with:
 
 ```rust
---8<-- "journey/code/17-solid-dock-03.rs"
-```
-
-### 9. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-Find this exact block:
-
-```html
-  <h1>My viewer</h1>
-  <p id="status" role="status">Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-  <p>Commands: Help · Example Triangle · Select Next · Delete · Undo · Redo · Background · Zoom In · Zoom Out · Pan Left · Pan Right · Orbit Right · Orbit Up · View Isometric · View Reset. Type in the white Command field and press Enter.</p>
-</body>
-</html>
-```
-
-Replace that block with:
-
-```html
---8<-- "journey/code/17-solid-page-1.html"
+--8<-- "journey/code/17-solid-window-3.rs"
 ```
 
 ## Run and look
