@@ -20,12 +20,14 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 - [x] Move the work into this foreground session on GPT-6.1 Sol High.
 - [x] Production typing focus, named View commands and right-click repeat verified in Chrome.
-- [x] Phone orbit, two-finger pan, pinch zoom and touch cancellation verified.
+- [x] Phone orbit, two-finger pan, pinch zoom and touch cancellation verified in Chrome.
+- [x] Production attributes/features default off and opacity 0.95 verified in Chrome.
+- [x] Drawing options and snapping use typed commands; broader command-workspace regression passed.
 - [x] Revise 03d and 22 for immediate typing and command-only keyboard features; recheck 23–26.
 - [x] Refresh all changed earlier endpoints and their screenshot evidence.
 - [x] [Review this week’s commits](weekly-changes.md) and map visibility, locking, tree colors and curve sampling to lessons.
 - [ ] Fix missing ink at close zoom and sharp angles; ordinary-distance checks are insufficient.
-- [ ] Publish the verified changes and refresh the same existing tutorial tab.
+- [x] Publish the verified tutorial and viewer input batches; refresh the same existing tutorial tab.
 
 - [x] 01 · [A page that Rust can reach](01-canvas.md).
 
