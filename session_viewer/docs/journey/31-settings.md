@@ -6,11 +6,7 @@
 
 **Today:** Put placement and selection in an explicitly packed object uniform.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged.
-
-**Before you finish, explain:** Why must selection move before we can share one vertex buffer?
 
 Our renderer currently copies gold into every selected vertex during upload. That makes selection part of geometry storage. Before sharing any buffers, separate those two responsibilities.
 
@@ -26,7 +22,7 @@ This endpoint still rebuilds GPU rows after every scene change. It establishes t
 
 ## Type the change
 
-Continue [Prove recovery at the transaction and display boundaries](30e-recovery.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-31-settings`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove recovery at the transaction and display boundaries](30e-recovery.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31-settings` (from `session_viewer`).
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -143,13 +139,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open Replace the specimen, select the right post and Move it. Cycle selection through all three rows and return to the same post. The picture must return exactly; source colours remain available when a row is deselected.
+Select an object and move it. Its colour and placement now come from an object uniform; the original vertex colours and positions stay unchanged.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep selection out of the vertex data.](../screenshots/journey/31-settings-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -157,13 +153,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Temporarily put the selection flag at byte sixty-eight while leaving the shader field unchanged. Predict why the first selection component remains zero. Restore byte sixty-four before continuing.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must selection move before we can share one vertex buffer?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -181,10 +180,28 @@ npm --prefix ../session_tests run course -- check 31-settings
 npm --prefix ../session_tests run course -- save 31-settings
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Object presentation must stay separate from shared geometry in the production renderer, including selection, opacity and other display flags. This uniform introduces that boundary without claiming the later rendering modes are complete.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 31-settings
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

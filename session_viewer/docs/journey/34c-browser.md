@@ -6,25 +6,21 @@
 
 **Today:** Start a bounded page report and read real browser context independently of the renderer’s lifetime.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** page begins → sanitized context → independent report slot → current context → JSON snapshot.
 
-**Before you finish, explain:** Why does the report live outside the Runtime that GPU failure disposes?
+Populate the report from the page before requesting a GPU. One thread-local `RefCell<Option<Report>>` owns metadata independently of the drawing runtime. `RefCell` checks short shared/mutable borrows at runtime.
 
-The report now has a browser producer. One thread-local slot owns one small Report for this page. It contains metadata and bounded observations, never the editor, source document or GPU device. This is an intentional lifetime beyond viewer disposal. No timer or extra browser listener is added here.
+`context` reads the real viewport, canvas, density and browser details. Build the page value from origin and path, excluding query and fragment. `Reflect` reads WebGPU availability without generated WebGPU bindings.
 
-context reads the actual page origin/path, browser user agent, secure-context and WebGPU availability, CSS viewport, drawing buffer and display density. The query string and fragment are excluded from the page value. Typed web-sys access requires Location, Navigator and Performance in the existing manifest; Reflect checks the WebGPU property without requiring unstable generated WebGPU bindings.
+`start` creates a fresh run ID and UTC start time. `observe` combines `performance.now()` timing with a UTC timestamp. `diagnostic_snapshot` refreshes context and serializes the current report. Its debug export lets you inspect the JSON in the console; it does not add a feature button.
 
-start assigns a fresh run identifier and UTC timestamp before the GPU request. Stable tab identity across reloads is still part of the later storage policy. observe uses performance.now for relative timing and Date for readable wall time, then passes values through our existing bounded recorder. diagnostic_snapshot refreshes context and produces actual JSON. Its debug-only WebAssembly export lets Chrome inspect that same production function; it adds no visible feature control.
-
-Chrome compares real browser/canvas dimensions, density, identity, sanitized URL, timestamps and run identifiers with the JSON. Reading a snapshot leaves GPU counters unchanged. It then changes the test viewport and verifies fresh context, reloads the same test tab to require a new run ID and reproduces the final proof scene. Readiness/failure observations and the typed download command are connected in the next checkpoint; this report still says running.
+Readiness and fatal observations are wired in the next lesson.
 
 ![Report lifetime beyond GPU runtime](../illustrations/journey-34c.svg)
 
 ## Type the change
 
-Continue [Keep recent events without losing the first failure](34ba-events.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34c-browser`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep recent events without losing the first failure](34ba-events.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34c-browser` (from `session_viewer`).
 
 ### 1. `src/browser_report.rs`
 
@@ -97,15 +93,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, Select Next, and use Move or Orbit Up. Device loss is normally external; the browser acceptance calls the real GPUDevice.destroy() through a test-only observer. Failure shows Cannot draw, and old input cannot submit another frame. Reload the SAME page to start a new viewer; unsaved placement is not recovered. In a working run, finish with Orbit Up and Fit. Run the native tests to inspect the report’s JSON header; the Diagnostic Report command is introduced after browser wiring. Finish the healthy proof view with Orbit Right and Fit. The native tests exercise bounded diagnostics; live download and storage are still upcoming. In a debug build, window.wasmBindings.diagnostic_snapshot() returns the current header and empty event window. It remains a metadata read, not a command or GPU submission. Finish with Move 0.05,0,0 and Fit.
+In the debug console, inspect `window.wasmBindings.diagnostic_snapshot()`. Its viewport and canvas dimensions must match this browser. Resize and read again: context should refresh without changing the scene.
 
-**Actual Chrome screenshot.**
-
-Chrome verifies real diagnostic context, sanitized URL, fresh dimensions, snapshot reads without GPU writes and a new run identifier on same-tab reload. Readiness/failure recording and downloads follow next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Read live diagnostic context outside the GPU runtime.](../screenshots/journey/34c-browser-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -113,13 +107,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Put the report inside Runtime instead, trigger the actual device-loss check, and explain why it would disappear with the evidence it was meant to retain. Compare a URL containing a query parameter with the report’s page field.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does the report live outside the Runtime that GPU failure disposes?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -137,10 +134,30 @@ npm --prefix ../session_tests run course -- check 34c-browser
 npm --prefix ../session_tests run course -- save 34c-browser
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production diagnostic context lives outside the renderer. This browser bridge establishes that independent report lifetime and real metadata; current/fatal downloads, adapter/phases/resources, bounded storage and recovery remain next.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome compares real browser/canvas dimensions, density, identity, sanitized URL, timestamps and run identifiers with the JSON. Reading a snapshot leaves GPU counters unchanged. It then changes the test viewport and verifies fresh context, reloads the same test tab to require a new run ID and reproduces the final proof scene. Readiness/failure observations and the typed download command are connected in the next checkpoint; this report still says running.
+
+Chrome verifies real diagnostic context, sanitized URL, fresh dimensions, snapshot reads without GPU writes and a new run identifier on same-tab reload. Readiness/failure recording and downloads follow next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34c-browser
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

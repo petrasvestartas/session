@@ -8,11 +8,7 @@
 
 **Today:** Lay out the production command dock from its model.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Browser → Panel → CommandLine → layout → existing GPU.
-
-**Before you finish, explain:** Who decides which commands exist?
 
 We now replace the small field layout with the viewer’s complete dock. Read it in three parts: history above, the command field below, and the completion list beside the field. Each part reads or updates CommandLine. Commands supplies the words this application understands; it does not own the document.
 
@@ -28,7 +24,7 @@ A trait is a list of operations another type promises to supply. Here `Commands`
 
 ## Type the change
 
-Continue [Give the command line its memory](03b-state.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-03c-layout`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give the command line its memory](03b-state.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03c-layout` (from `session_viewer`).
 
 ### 1. `src/command_dock/mod.rs`
 
@@ -218,23 +214,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The white dock is expanded and shows “Command history lives here.” Its field, separator, fonts and spacing use the production implementation. Input is connected next.
+The dock now draws its field, completion and history from the model. Resize the window: the dock should remain attached to the bottom of the drawing.
 
-**Actual Chrome screenshot.**
-
-Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Draw completion and history.](../screenshots/journey/03c-layout-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Set command_expanded to false, run, and compare the folded panel. Restore true. The history remains in memory even when its layout is hidden.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Who decides which commands exist?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -252,10 +249,20 @@ npm --prefix ../session_tests run course -- check 03c-layout
 npm --prefix ../session_tests run course -- save 03c-layout
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+
+[Full validation scope](release.md).
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Prepare a whole replacement before changing live rows, then commit it through existing history.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs.
-
-**Before you finish, explain:** Why must the scene counter survive replacing all its rows?
 
 Append and replace are different document operations. Import adds prepared objects to the current rows. Replace removes the current rows and inserts the new prepared document. Both must use the same validation and history boundary.
 
@@ -28,7 +24,7 @@ Old objects retained by Undo are still alive. Replacement alone is not a promise
 
 ## Type the change
 
-Continue [Cancel reads without accepting their late result](30b-cancel.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-30c-replace`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Cancel reads without accepting their late result](30b-cancel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30c-replace` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -117,13 +113,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the replacement state check: old local IDs disappear, source allocations return on Undo, replacement IDs return on Redo and camera values stay fixed. In the live viewer, Open the specimen, Example Box, Select Next six times, Move -0.8,-0.6,0.2, View Isometric and Fit. Open Replace becomes available in the next lesson.
+Run the replacement checks below. A valid replacement is one Undo step; an invalid candidate must leave the existing scene unchanged. The browser command is connected next.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Replace a document as one reversible change.](../screenshots/journey/30c-replace-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -131,13 +127,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 In the replacement check, change camera distance and aspect before replacing. Predict why Undo and Redo preserve both values. Explain why setting next_id back to one would make an old selection unsafe.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must the scene counter survive replacing all its rows?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -155,10 +154,28 @@ npm --prefix ../session_tests run course -- check 30c-replace
 npm --prefix ../session_tests run course -- save 30c-replace
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production replacement stages a new scene before committing and preserves the last valid scene on failure. This flat editor teaches the same atomic boundary; browser cancellation, larger sources and resource release are separate concerns.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 30c-replace
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

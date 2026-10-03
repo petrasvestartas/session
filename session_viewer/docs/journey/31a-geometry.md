@@ -6,11 +6,7 @@
 
 **Today:** Separate vertex/index storage from each object’s uniform and retain its CPU source.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** CPU display Rc → GPU geometry Rc → object row with its own uniform → draw.
-
-**Before you finish, explain:** What does cloning Rc<GpuGeometry> copy?
 
 A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact Rc<Mesh> that produced its buffers; that source owner will also make identity safe when we introduce the cache.
 
@@ -24,7 +20,7 @@ The native GPU check constructs two rows from one geometry owner with different 
 
 ## Type the change
 
-Continue [Keep selection out of the vertex data](31-settings.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-31a-geometry`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep selection out of the vertex data](31-settings.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31a-geometry` (from `session_viewer`).
 
 ### 1. `src/gpu_geometry.rs`
 
@@ -165,13 +161,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Build and run the specimen. Selection, Move and Undo/Redo must keep the same appearance. Explain which fields could now be shared by two placements and which must remain independent.
+Run the GPU ownership checks below. Two object rows sharing a display must share vertex/index storage while keeping separate uniforms.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give immutable GPU geometry one owner.](../screenshots/journey/31a-geometry-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -179,13 +175,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Follow Rc::clone from a geometry owner into two GPU rows. Predict the strong owner count after the local owner is dropped and after each row is dropped. Do not confuse that count with a byte count.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What does cloning Rc<GpuGeometry> copy?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -203,10 +202,28 @@ npm --prefix ../session_tests run course -- check 31a-geometry
 npm --prefix ../session_tests run course -- save 31a-geometry
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This is the ownership boundary needed for cached uploads and later definition instances. Production packed arenas and large-scene performance remain later work.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 31a-geometry
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

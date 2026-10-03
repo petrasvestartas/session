@@ -6,11 +6,7 @@
 
 **Today:** Give source geometry a shared owner and prepare its display before committing an object.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Kernel mesh → PreparedMesh → shared source geometry plus validated display arrays.
-
-**Before you finish, explain:** Why must a save read the source mesh instead of the displayed vertex array?
 
 The imported file has a retained source, but Example Box currently keeps only the arrays made for drawing. That would be a poor starting point for Save: a drawing buffer cannot recover all the source information.
 
@@ -28,7 +24,7 @@ The second check uses a finite double too large for a float. Preparation must re
 
 ## Type the change
 
-Continue [Prove placement and history agree](27d-history.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-28-record`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove placement and history agree](27d-history.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-28-record` (from `session_viewer`).
 
 ### 1. `src/prepared.rs`
 
@@ -95,15 +91,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Build and run the source-record checks. The source retains its exact double coordinate, name and flags; its display uses float coordinates. In the live viewer, Open your sample file, View Isometric, Select Next four times and Fit Selected. That existing picture is unchanged by adding the preparation type.
+Run the source-record checks below. The original double coordinate remains exact while the display uses floats. This preparation type does not change the browser picture yet.
 
-**Actual Chrome screenshot.**
-
-Prepare a display from an owned source mesh. These commands run in the actual dock; kernel ownership is checked separately in Rust.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prepare a display from an owned source mesh.](../screenshots/journey/28-record-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -111,13 +105,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the precision check’s coordinate to 123456789.125 and predict the source and float values. Restore it. Explain why a clone of Rc keeps one source allocation while a float display still needs its own arrays.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must a save read the source mesh instead of the displayed vertex array?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -135,10 +132,20 @@ npm --prefix ../session_tests run course -- check 28-record
 npm --prefix ../session_tests run course -- save 28-record
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production viewer retains kernel source objects separately from upload tables. PreparedMesh makes the source-to-display boundary explicit; import and generated-object insertion adopt it next.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Prepare a display from an owned source mesh. These commands run in the actual dock; kernel ownership is checked separately in Rust.
+
+[Full validation scope](release.md).
+
+</details>

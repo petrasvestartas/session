@@ -6,11 +6,7 @@
 
 **Today:** Cache GPU geometry by its retained CPU allocation and release dead cache entries.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Scene row → source allocation identity → weak cache lookup → shared GPU geometry → object settings.
-
-**Before you finish, explain:** Why must the cache store Weak owners and retain the CPU source inside GpuGeometry?
 
 Now the renderer can ask for an existing upload before creating buffers. GeometryCache maps a CPU display address to Weak<GpuGeometry>. The pointer is an identity key only: we never dereference it.
 
@@ -20,11 +16,9 @@ A live GpuGeometry owns its source Rc. Therefore a successful Weak::upgrade cann
 
 Renderer constructs itself with an empty row list and then synchronizes the initial scene through the same path used for later changes. This avoids a separate startup cache policy. Each scene synchronization still creates new object uniforms, but retained geometry no longer needs another vertex/index upload.
 
-Hidden canvas diagnostics record cumulative geometry uploads and object-uniform allocations. They are validation data, not visible controls or a performance claim. The native check requests the same source twice, then an equal but independent source, and verifies reuse, ownership and expiration. Chrome confirms selection and Move create no new geometry uploads. The next lesson also retains unchanged object uniforms.
-
 ## Type the change
 
-Continue [Give immutable GPU geometry one owner](31a-geometry.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-31b-cache`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give immutable GPU geometry one owner](31a-geometry.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31b-cache` (from `session_viewer`).
 
 ### 1. `src/geometry_cache.rs`
 
@@ -220,13 +214,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open Replace the specimen, cycle selection and Move a post. Inspect data-gpu-stats in the developer console. Geometry uploads stay fixed while object uniforms are still recreated at this transitional endpoint.
+Run the cache checks below. A second live owner must reuse the same upload; after the final owner drops, the weak cache must not retain it.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Reuse uploads while their geometry is alive.](../screenshots/journey/31b-cache-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -234,13 +228,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Explain why cloning Rc<Mesh> finds the same upload while constructing a new Mesh with equal vertices does not. Then drop every GPU row and prune; the weak cache must not keep a geometry owner alive.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must the cache store Weak owners and retain the CPU source inside GpuGeometry?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -258,10 +255,28 @@ npm --prefix ../session_tests run course -- check 31b-cache
 npm --prefix ../session_tests run course -- save 31b-cache
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This cache teaches retained geometry identity and release. The production viewer’s arenas, byte accounting and instancing still need their own later lessons and benchmarks.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Hidden canvas diagnostics record cumulative geometry uploads and object-uniform allocations. They are validation data, not visible controls or a performance claim. The native check requests the same source twice, then an equal but independent source, and verifies reuse, ownership and expiration. Chrome confirms selection and Move create no new geometry uploads. The next lesson also retains unchanged object uniforms.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 31b-cache
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

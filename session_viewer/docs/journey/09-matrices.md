@@ -6,11 +6,7 @@
 
 **Today:** Rotate the flat view using a matrix, ready for the third dimension.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Camera centre, angle and scale → four matrix columns → uniform buffer → matrix × world position.
-
-**Before you finish, explain:** Which matrix column moves a point, and why does its input position end with a 1?
 
 Scale and offset described our flat view, but they cannot turn it. A matrix gives us one consistent way to combine those operations. We will use the same kind of matrix for a 3D camera later.
 
@@ -28,7 +24,7 @@ A full turn is 2π radians. `FRAC_PI_4` means π/4, or 45 degrees. The camera te
 
 ## Type the change
 
-Continue [Move the view, keep the geometry](08-camera.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-09-matrices`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Move the view, keep the geometry](08-camera.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-09-matrices` (from `session_viewer`).
 
 ### 1. `src/camera.rs`
 
@@ -272,13 +268,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Orbit Right`. The diamond turns 45 degrees and appears as a screen-aligned rectangle. `View Reset` clears the angle. Pan and zoom commands still move the camera without editing positions.
+Type `Orbit Right`. The diamond rotates by 45 degrees. Type `View Reset` to restore its angle. The vertex buffer stays unchanged.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Let one matrix describe the view.](../screenshots/journey/09-matrices-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -286,13 +282,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Pan Right, then turn the view. Predict where the origin will appear before you run it. Reset, turn twice, and locate the original right-hand corner: a 90-degree camera turn places it below the centre. The position buffer must remain unchanged throughout.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Which matrix column moves a point, and why does its input position end with a 1?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -310,10 +309,11 @@ npm --prefix ../session_tests run course -- check 09-matrices
 npm --prefix ../session_tests run course -- save 09-matrices
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Frame uniforms in the complete renderer carry view and projection matrices. Reading a matrix as transformed axes plus an origin helps diagnose a transposed upload, a wrong multiplication order or geometry that drifts while orbiting.
 
-[Validation status and course release](release.md).
+</details>

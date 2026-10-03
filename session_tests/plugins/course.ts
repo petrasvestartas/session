@@ -126,8 +126,32 @@ function navGroups(bySlug: Map<string, string>): Group[] {
   const journey = path.join(DOCS, 'journey/course.json');
   if (fs.existsSync(journey)) {
     const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
-    const slugs = opening.steps.map((step: { page: string }) => pageSlug(path.join(DOCS, step.page)));
-    groups.splice(1, 0, { title: 'Build the viewer · command line', slugs });
+    const subjects = [
+      {title: '01–10 · Drawing and command input', first: '01-canvas', last: '10-depth'},
+      {title: '11–22 · Scene, camera and actions', first: '11-scene', last: '22-shortcuts'},
+      {title: '23–30e · Import, placement and saving', first: '23-import', last: '30e-recovery'},
+      {title: '31–31c · GPU geometry owners', first: '31-settings', last: '31c-incremental'},
+      {title: '32–32fl · Document and source lifetime', first: '32-history', last: '32fl-guards'},
+      {title: '32g–32gja · Restore sources for editing', first: '32g-keys', last: '32gja-failures'},
+      {title: '33–34a · Browser lifetime and GPU failure', first: '33-owner', last: '34a-stop'},
+      {title: '34b–34d · Download the current report', first: '34b-report', last: '34d-download'},
+      {title: '34e–34fc · Retrieve previous reports', first: '34e-schema', last: '34fc-retention'},
+      {title: '34g–34gba · Report activity and page exit', first: '34g-heartbeat', last: '34gba-lifecycle'},
+    ];
+    const lessonGroups: Group[] = [];
+    let at = 0;
+    for (const subject of subjects) {
+      if (opening.steps[at]?.id !== subject.first) throw Error(`Course subject does not start at ${subject.first}`);
+      const end = opening.steps.findIndex((step: {id: string}) => step.id === subject.last);
+      if (end < at) throw Error(`Course subject does not end at ${subject.last}`);
+      lessonGroups.push({title: subject.title, slugs: opening.steps.slice(at, end + 1)
+        .map((step: {page: string}) => pageSlug(path.join(DOCS, step.page)))});
+      at = end + 1;
+    }
+    // Unpublished subjects can continue the sequence without disappearing from navigation.
+    if (at < opening.steps.length) lessonGroups.push({title: 'Continue building the viewer',
+      slugs: opening.steps.slice(at).map((step: {page: string}) => pageSlug(path.join(DOCS, step.page)))});
+    groups.splice(1, 0, ...lessonGroups);
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Complete viewer reference';
   }

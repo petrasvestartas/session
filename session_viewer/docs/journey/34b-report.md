@@ -6,25 +6,21 @@
 
 **Today:** Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** browser metadata → owned Context → Report header → explicit JSON → independent snapshot.
 
-**Before you finish, explain:** Why does a diagnostic snapshot own small strings and dimensions instead of keeping the editor or renderer?
+Create a report that survives losing the GPU. `Context` stores page/browser details and dimensions. `Report` stores that context, run identity, timestamps and outcome; it owns no document or device.
 
-After GPU failure, the viewer may no longer be able to paint its command dock. Its report therefore needs an independent lifetime. Begin with a plain Rust value, before wiring browser observations and downloads. Context records the page origin/path, browser identity, secure/WebGPU availability, CSS viewport, drawing buffer and display density. Callers will supply a page without its query string; this model does not itself sanitize arbitrary input.
+Owned strings and copied dimensions make a clone an independent snapshot. `Outcome` distinguishes Running, Ready, Closed and Failed. A Running value alone is not proof of a crash.
 
-Strings own their text and dimensions are small copied arrays. Report contains no Editor, Session, GPU device or reference-counted document. Cloning it makes an independent snapshot. Outcome distinguishes a live run, a drawn scene, ordinary close and failure; it does not call a stale running report proof of a crash.
+Serde’s derives serialize and parse the value. `rename_all` writes camelCase JSON names; `flatten` puts Context fields in the report’s top level. `version` identifies the format. `started` stays fixed while `lastSeen` can advance.
 
-Serde derives define JSON serialization and parsing. rename_all writes browser-style camelCase names. flatten places Context fields at the top level while keeping the Rust responsibilities separate. The schema version lets the later storage reader reject incompatible reports. new initializes lastSeen from started, then keeps the original start separately from later observations.
-
-Native tests check actual JSON names, header values, round-trip decoding and independent context after resize. Chrome verifies the already-wired loss/input/lifetime behavior and a new proof view. This header is not yet populated from the live browser, downloadable or stored. Events, first-failure retention and browser connection follow.
+This lesson builds the Rust value. Reading live browser metadata and downloading it are separate steps below.
 
 ![Independent diagnostic context](../illustrations/journey-34b.svg)
 
 ## Type the change
 
-Continue [Stop the viewer when its GPU device fails](34a-stop.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34b-report`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Stop the viewer when its GPU device fails](34a-stop.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34b-report` (from `session_viewer`).
 
 ### 1. `src/diagnostic.rs`
 
@@ -74,15 +70,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, Select Next, and use Move or Orbit Up. Device loss is normally external; the browser acceptance calls the real GPUDevice.destroy() through a test-only observer. Failure shows Cannot draw, and old input cannot submit another frame. Reload the SAME page to start a new viewer; unsaved placement is not recovered. In a working run, finish with Orbit Up and Fit. Run the native tests to inspect the report’s JSON header; the Diagnostic Report command is introduced after browser wiring.
+Run the report checks below. Serialize a report and inspect its flat JSON header; changing a cloned snapshot must not change the live value. Browser metadata is connected later.
 
-**Actual Chrome screenshot.**
-
-Chrome verifies the inherited real GPU-loss and restart acceptance, then captures Orbit Up. The report header’s schema and ownership are checked natively; live reporting is not wired yet.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Describe a viewer run without keeping its document.](../screenshots/journey/34b-report-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -90,13 +84,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Remove serde(flatten), run the JSON assertion, and explain how the public format changed. Then compare the live and cloned report after changing its drawing-buffer size.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does a diagnostic snapshot own small strings and dimensions instead of keeping the editor or renderer?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -114,10 +111,30 @@ npm --prefix ../session_tests run course -- check 34b-report
 npm --prefix ../session_tests run course -- save 34b-report
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production diagnostics retain browser/page/viewport/drawing-buffer context outside the renderer and version their reports. This checkpoint establishes that value; bounded observations, downloads, storage policy and recovery follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Native tests check actual JSON names, header values, round-trip decoding and independent context after resize. Chrome verifies the already-wired loss/input/lifetime behavior and a new proof view. This header is not yet populated from the live browser, downloadable or stored. Events, first-failure retention and browser connection follow.
+
+Chrome verifies the inherited real GPU-loss and restart acceptance, then captures Orbit Up. The report header’s schema and ownership are checked natively; live reporting is not wired yet.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34b-report
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

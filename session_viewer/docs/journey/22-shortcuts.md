@@ -8,11 +8,7 @@
 
 **Today:** Normalize wheel input and keep every keyboard feature command in the command dock.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Wheel units → navigation::wheel → Editor action → camera → frame; typed text → command dock → Editor action.
-
-**Before you finish, explain:** Why does a wheel need units, while typed text needs one owner?
 
 Click the drawing and type `Pan Right`. The first letter opens the dock and stays in the field. Enter runs the complete command. Arrow and Delete keys edit text when the field owns focus; they never become camera or document shortcuts.
 
@@ -28,7 +24,7 @@ The browser rules come from [wheel delta modes](https://developer.mozilla.org/en
 
 ## Type the change
 
-Continue [Remember a press until it ends](21-gestures.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-22-shortcuts`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Remember a press until it ends](21-gestures.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-22-shortcuts` (from `session_viewer`).
 
 ### 1. `src/navigation.rs`
 
@@ -174,15 +170,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Box` and `View Isometric`. Wheel over the drawing: it zooms without scrolling the page. Click the drawing and type `Pan Right`, then Enter. Type a single letter without Enter: it must appear in the dock without changing the picture. Arrow and Delete keys must never move or delete geometry. Start a right drag and press Escape; further movement must not orbit.
+Click the canvas and type a single letter. It must appear in the command field without changing the scene. Type `Pan Right` and press Enter to move the view. Wheel input still zooms.
 
-**Actual Chrome screenshot.**
-
-Wheel input zooms and the Pan Right command pans. Typing after clicking the drawing activates the dock without invoking keyboard feature shortcuts.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep navigation on the mouse and commands in the dock.](../screenshots/journey/22-shortcuts-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -190,13 +184,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does a wheel need units, while typed text needs one owner?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -214,10 +211,20 @@ npm --prefix ../session_tests run course -- check 22-shortcuts
 npm --prefix ../session_tests run course -- save 22-shortcuts
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer routes mouse and phone navigation through src/app/input.rs. Printable input activates the command dock immediately; named commands share the existing state and history. This checkpoint keeps wheel zoom centred on the camera target. Pointer-centred zoom and phone gestures will extend navigation without introducing keyboard feature shortcuts.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Wheel input zooms and the Pan Right command pans. Typing after clicking the drawing activates the dock without invoking keyboard feature shortcuts.
+
+[Full validation scope](release.md).
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Restore exact source coordinates and editing without reallocating retained display owners.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Move → Unload Sources → checked hydrate → exact Save → retained Undo/Redo and GPU owners.
-
-**Before you finish, explain:** How can the test distinguish rehydration from rebuilding the whole scene?
 
 Add a fixture with a deliberately precise double coordinate and original flags. Import through a located source, Move, unload, then hydrate the captured key with the original bytes. The old kernel value stays expired; restored source geometry has the exact original coordinate.
 
@@ -24,7 +20,7 @@ The protobuf field uses `Some(true)` because its representation distinguishes an
 
 ## Type the change
 
-Continue [Adopt restored source owners as one residency change](32gb-adopt.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gc-roundtrip`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Adopt restored source owners as one residency change](32gb-adopt.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gc-roundtrip` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -64,23 +60,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+Run the cold-source round-trip checks below. Restoring and saving must retain the original double coordinates through Undo and Redo.
 
-```sh
-REGEN_PROTO=0 cargo run --example sample --locked -j4
-```
-
-Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
-
-Run the exact source round trip and GPU retention checks. Compare the saved double with its f32 display approximation; only the original kernel coordinate is saveable.
-
-**Actual Chrome screenshot.**
-
-The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prove source restoration preserves display and history.](../screenshots/journey/32gc-roundtrip-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -88,13 +74,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Replace the restored kernel coordinate with a value reconstructed from the retained display and predict which assertion fails.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+How can the test distinguish rehydration from rebuilding the whole scene?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -112,10 +101,28 @@ npm --prefix ../session_tests run course -- check 32gc-roundtrip
 npm --prefix ../session_tests run course -- save 32gc-roundtrip
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Rehydration is separate from scene rebuild and document history. The forthcoming browser callback can adopt this checked result without silently changing drawing or targeting another selection.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gc-roundtrip
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

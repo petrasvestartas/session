@@ -6,11 +6,7 @@
 
 **Today:** Give each source request its own owner.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Active release keys → ReloadJob → ticket and URL strings → one accepted completion.
-
-**Before you finish, explain:** Why does the asynchronous request receive URL strings instead of cloned Origins?
 
 Add a browser-independent `ReloadJob`. It owns only one pending set of release keys, issues checked tickets and gives the caller a `Request` containing a ticket and URL strings. A new request cancels older keys before validating its own candidates. Empty requests, duplicate origins and missing locations return errors.
 
@@ -22,7 +18,7 @@ The request ticket identifies this operation; each key still identifies the impo
 
 ## Type the change
 
-Continue [Ignore old reload results before decoding them](32ge-stale.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gf-request`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Ignore old reload results before decoding them](32ge-stale.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gf-request` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -62,23 +58,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+Run the request checks below. A reload ticket must identify one current batch and permit its completion once. Browser fetching follows next.
 
-```sh
-REGEN_PROTO=0 cargo run --example sample --locked -j4
-```
-
-Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
-
-Build the request owner. The browser retains its previous Unload Sources endpoint; the next lesson adds stale-result and owner-expiration checks.
-
-**Actual Chrome screenshot.**
-
-The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give each source request its own owner.](../screenshots/journey/32gf-request-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -86,13 +72,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Keep a returned Request alive after cancelling the job. Explain why its strings cannot keep the Origin or ReloadUrl alive.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does the asynchronous request receive URL strings instead of cloned Origins?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -110,10 +99,28 @@ npm --prefix ../session_tests run course -- check 32gf-request
 npm --prefix ../session_tests run course -- save 32gf-request
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production reloads carry release tokens across asynchronous work. This request owner gives the browser a distinct current-operation boundary and keeps ownership separate from immutable source identity.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gf-request
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Retain an owned Blob URL through imports and history, then release it with its last owner.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Retain an owned Blob URL through imports and history, then release it with its last owner..
-
-**Before you finish, explain:** Why must URL ownership exist before validation can fail?
 
 A version says which bytes a row expects; it does not provide a way to read them again. Add ReloadUrl, an owner of one URL created by this viewer. Its Drop implementation revokes the browser Blob URL. Native checks observe its Rc lifetime through Weak; actual browser revocation is tested after the next adapter endpoint.
 
@@ -22,7 +18,7 @@ Add ImportAt and ReplaceAt to the editor while keeping the existing Import/Repla
 
 ## Type the change
 
-Continue [Attach one origin to an imported document](32fd-origin.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fe-location`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Attach one origin to an imported document](32fd-origin.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fe-location` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -200,13 +196,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the URL lifetime tests: successful import/history retain an owned location, Close releases it, and invalid input cannot leave a location alive.
+Run the location checks below. The reload location stays alive while owned and is released once after its final owner drops. File adoption is connected next.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give a reload URL an explicit owner.](../screenshots/journey/32fe-location-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -214,13 +210,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Retain a separate Rc<ReloadUrl> in a caller scope and explain why closing the editor cannot revoke that caller’s resource yet.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must URL ownership exist before validation can fail?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -238,10 +237,28 @@ npm --prefix ../session_tests run course -- check 32fe-location
 npm --prefix ../session_tests run course -- save 32fe-location
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This owner is for viewer-created Blob URLs. The later published HTTP locations have different ownership and caching rules; they must not be treated as owned Blob resources.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fe-location
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

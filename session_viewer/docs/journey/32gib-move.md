@@ -6,23 +6,17 @@
 
 **Today:** Apply a captured Move to its original target, composing with the placement that exists at replay time.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Captured ObjectId + offset → current row.model → world shift × model → one history edit.
-
-**Before you finish, explain:** Why must a delayed Move compose with the current placement rather than a matrix saved when the request began?
 
 Extract Editor::move_object with an explicit ObjectId. It validates arguments, finds that current row, composes the world shift with its current model and makes one History::try_edit transaction. It leaves selection and camera untouched. Normal Action::Translate calls the same method after resolving current selection.
 
-The native test captures a Move, changes the target’s placement and selects another object before executing the captured values. The result is based on the newer placement; selection and camera stay unchanged. One Undo restores the immediate prior model, another Undo does nothing, and Redo restores the result. No-op or refused moves preserve an existing Redo. Existing source tests still reject moving a cold row until hydration.
-
-This is the native Move replay operation. One-shot asynchronous authority is added in the ticket/intent lesson, and automatic browser interception follows it. Chrome checks the normal Move/Undo/Redo path using this same method. Delete and Save are taught separately to keep each change small.
+This is the native Move replay operation. One-shot asynchronous authority is added in the ticket/intent lesson, and automatic browser interception follows it. Delete and Save are taught separately to keep each change small.
 
 ![Replay the original Move target](../illustrations/journey-32gib.svg)
 
 ## Type the change
 
-Continue [Load only the sources the requested edit needs](32gia-scope.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gib-move`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Load only the sources the requested edit needs](32gia-scope.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gib-move` (from `session_viewer`).
 
 ### 1. `src/editor.rs`
 
@@ -101,15 +95,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward.
+Run the captured-Move checks below. Change selection while waiting: replay must still move the original target and compose with its current placement.
 
-**Actual Chrome screenshot.**
-
-Chrome checks normal Move/Undo/Redo through the extracted explicit-target method. Delayed target identity, current-placement composition and later selection are proved natively; automatic browser replay is still pending.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Move the original target from its current placement.](../screenshots/journey/32gib-move-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -117,13 +109,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 In the native test, replace the newer model with the model that existed at capture time. Explain which placement that stale replacement would lose.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must a delayed Move compose with the current placement rather than a matrix saved when the request began?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -141,10 +136,30 @@ npm --prefix ../session_tests run course -- check 32gib-move
 npm --prefix ../session_tests run course -- save 32gib-move
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Captured intent names the target and requested delta. Replay reads current state; a separate ticket owner limits which completion may execute it.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The native test captures a Move, changes the target’s placement and selects another object before executing the captured values. The result is based on the newer placement; selection and camera stay unchanged. One Undo restores the immediate prior model, another Undo does nothing, and Redo restores the result. No-op or refused moves preserve an existing Redo. Existing source tests still reject moving a cold row until hydration.
+
+Chrome checks normal Move/Undo/Redo through the extracted explicit-target method. Delayed target identity, current-placement composition and later selection are proved natively; automatic browser replay is still pending.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gib-move
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Scale and shift the diamond without changing its stored positions.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** View values → uniform buffer → bind group 0 → shader binding 0 → transformed position.
-
-**Before you finish, explain:** If the diamond moves, must its position buffer have changed?
 
 Let us move our diamond without rewriting its corners. Keep the original drawing on the desk and imagine sliding a frame over it. We need a second kind of data: a setting shared by every vertex in a draw.
 
@@ -28,7 +24,7 @@ The buffer has two usages. `UNIFORM` lets a shader read it as uniform data. `COP
 
 ## Type the change
 
-Continue [Share a corner between triangles](06-indices.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-07-uniforms`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Share a corner between triangles](06-indices.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-07-uniforms` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -249,21 +245,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The diamond becomes smaller and moves toward the upper right. `Background` still changes only the background. Its stored positions and indices are unchanged.
+Change the uniform’s scale or offset, save, and compare the diamond. Its stored vertex positions stay unchanged. Restore the original uniform.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Send one view setting to every corner.](../screenshots/journey/07-uniforms-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Predict the result of changing only the first scale from 0.75 to 0.25. The diamond should become narrower without becoming shorter. Then restore it and set the horizontal offset to -0.25: the diamond moves left. Explain why neither experiment edits POSITIONS or INDICES.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+If the diamond moves, must its position buffer have changed?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -281,10 +280,11 @@ npm --prefix ../session_tests run course -- check 07-uniforms
 npm --prefix ../session_tests run course -- save 07-uniforms
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The full viewer sends camera and viewport information through frame uniforms. This is the same boundary: application state calculates values; the renderer uploads them; shaders use them while drawing unchanged geometry.
 
-[Validation status and course release](release.md).
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Use a command to switch backgrounds without changing the triangle.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Typed Background → Panel returns a line → Background toggles → Renderer redraws.
-
-**Before you finish, explain:** Does submitting Background create a new GPU pipeline?
 
 We can already type in the viewer’s own command line. Today one submitted word changes the picture. Type Background and press Enter: one boolean flips, and the existing renderer draws again.
 
@@ -22,7 +18,7 @@ The browser owns Background beside Panel and Renderer. Panel reads the line; Bac
 
 ## Type the change
 
-Continue [Type into the real command dock](03d-input.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-04-input`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Type into the real command dock](03d-input.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-04-input` (from `session_viewer`).
 
 ### 1. `src/background.rs`
 
@@ -213,21 +209,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Type `Background` in the white command field and press Enter. White becomes light grey. Submit `Background` again: every scene pixel should return to its original colour, while the dock remembers both commands. The triangle stays pink.
+Type `Background` twice. The first command changes the background; the second restores white. The triangle keeps the same shape and position.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Make a choice change the picture.](../screenshots/journey/04-input-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Before submitting Background twice, predict the final picture. Then trace the one boolean changed by toggle. Find the Renderer constructor and explain why neither command calls it again.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Does submitting Background create a new GPU pipeline?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -245,12 +244,13 @@ npm --prefix ../session_tests run course -- check 04-input
 npm --prefix ../session_tests run course -- save 04-input
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 In the full viewer, input similarly requests a change before a new frame reads the result. This background is view state, not geometry. Moving an object will instead change the document and refresh its display data.
 
 This uses the production dock and styling. Background is a course practice command; later chapters build the production vocabulary. The command names below each checkpoint tell you exactly what it currently accepts.
 
-[Validation status and course release](release.md).
+</details>

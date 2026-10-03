@@ -8,11 +8,7 @@
 
 **Today:** Undo and redo adding or deleting an object without changing the camera or losing identity.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Document edit → prior scene snapshot → undo or redo → restored scene → selection repair → GPU synchronization.
-
-**Before you finish, explain:** Why must restoring an old scene not reset the object-ID counter to its old value?
 
 You should be able to try an edit without fearing that one mistake will ruin your work. Today an edit remembers the scene as it was just before the change. Undo brings that scene back; redo restores the scene we just left.
 
@@ -30,7 +26,7 @@ We retain the most recent 64 edits. Sharing mesh data makes these snapshots usef
 
 ## Type the change
 
-Continue [Ask which object is under the pointer](13-picking.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-14-history`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Ask which object is under the pointer](13-picking.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-14-history` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -301,13 +297,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Triangle`, `Undo`, then `Redo`. The object and its original colour return. Change the view or background and undo a document edit: those view choices stay put. A new document edit after Undo removes the abandoned redo path.
+Type `Example Triangle`, `Undo`, then `Redo`. The added triangle disappears and returns as one document change; the camera stays fixed.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Make document changes reversible.](../screenshots/journey/14-history-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -315,13 +311,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Add the third triangle, undo that addition, then add it again. It looks similar, but the new addition must receive a new ID. Read the branching-history test and explain why. Next pan the camera, delete an object and undo: the camera should stay where you put it.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must restoring an old scene not reset the object-ID counter to its old value?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -339,10 +338,11 @@ npm --prefix ../session_tests run course -- check 14-history
 npm --prefix ../session_tests run course -- save 14-history
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The full viewer groups document operations into transactions and coordinates restoration with displayed rows and tool state. This lesson establishes reversible document changes, shared immutable data, preserved identity and the boundary between an edit and a view change.
 
-[Validation status and course release](release.md).
+</details>

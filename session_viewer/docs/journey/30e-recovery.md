@@ -6,11 +6,7 @@
 
 **Today:** Test partial replacement failure, preserved selection/Redo and placement upload limits.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check.
-
-**Before you finish, explain:** Why do we need a failure after the first new row was inserted?
 
 A successful replacement and a malformed-file refusal are useful checks, but they exercise different boundaries. We also need an error after replacement has begun changing rows.
 
@@ -22,11 +18,9 @@ A separate editor check refuses malformed replacement while selection and Redo a
 
 There is also a display boundary in placement::valid. A matrix value can be finite as a double yet become infinity when our current GPU adapter casts it to float. Check that cast before accepting the matrix. The native test uses f64::MAX to demonstrate the difference and requires the original placement to remain unchanged. The same coefficient in an encoded file must also be refused before construction. This is a limit of the current float upload path, not a change to the retained source precision; later rendering lessons improve coordinate handling.
 
-Chrome repeats the file errors, cancelled newer picker, replacement and Undo/Redo checks against this final endpoint. It also forces adapter unavailability before startup, checks the visible failure fallback, then reloads and restores a working viewer. Its screenshot shows the replaced frame, with an independently moved right post. Native frame checks distinguish selected gold from timber brown rather than treating both as selection.
-
 ## Type the change
 
-Continue [Choose append or replace before opening the picker](30d-bridge.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-30e-recovery`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Choose append or replace before opening the picker](30d-bridge.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30e-recovery` (from `session_viewer`).
 
 ### 1. `src/placement.rs`
 
@@ -105,13 +99,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the partial-insertion, malformed-replacement and float-upload checks. Open Replace your specimen, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Up and Fit. A failed replacement must keep the last valid document and its existing undo branch.
+Run the recovery checks below. A replacement that fails on its second mesh must preserve the whole previous scene and its Redo branch.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prove recovery at the transaction and display boundaries.](../screenshots/journey/30e-recovery-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -119,13 +113,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why do we need a failure after the first new row was inserted?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -143,10 +140,28 @@ npm --prefix ../session_tests run course -- check 30e-recovery
 npm --prefix ../session_tests run course -- save 30e-recovery
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production recovery preserves the last valid scene and checks display representations separately from editable source data. This endpoint proves those boundaries for the current flat mesh editor; full geometry, streaming and coordinate rebasing remain later lessons.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome repeats the file errors, cancelled newer picker, replacement and Undo/Redo checks against this final endpoint. It also forces adapter unavailability before startup, checks the visible failure fallback, then reloads and restores a working viewer. Its screenshot shows the replaced frame, with an independently moved right post. Native frame checks distinguish selected gold from timber brown rather than treating both as selection.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 30e-recovery
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

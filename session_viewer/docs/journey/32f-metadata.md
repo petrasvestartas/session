@@ -6,11 +6,7 @@
 
 **Today:** Retain names, original source GUIDs and visibility/locking flags without keeping kernel owners alive.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Prepared source → independent row metadata → shared scene snapshots → source ownership proof.
-
-**Before you finish, explain:** Why is a row’s original source GUID separate from its saved object GUID?
 
 Source unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.
 
@@ -20,13 +16,11 @@ RowMetadata copies the original source GUID, name, is_visible and is_locked when
 
 Keep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson29; it now remains available without borrowing a kernel mesh.
 
-The native check retains only metadata and Weak observers, closes the editor, and proves the old kernel value is gone while the name and flags remain readable. Another check follows duplicate imports, Move and Undo. Chrome inspects a hidden diagnostic attribute to compare the same metadata through import and history; no interface button or teaching panel is added.
-
 This endpoint does not unload a source yet. Both source and display still exist. Visibility and locking are preserved as values; their full drawing/editing policy is taught later in the course.
 
 ## Type the change
 
-Continue [Prove release does not retain the old document](32e-release.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32f-metadata`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove release does not retain the old document](32e-release.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32f-metadata` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -114,13 +108,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import the same file twice. Compare original source GUIDs with saved row GUIDs, then Move and Undo. The metadata must stay unchanged. Run the native ownership check to prove that retained metadata alone cannot pin a closed source.
+Run the metadata checks below. Names, GUIDs and visible/locked flags survive after the editable source owner drops; metadata must not retain that source.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep row metadata separate from editable geometry.](../screenshots/journey/32f-metadata-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -128,13 +122,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Replace one row’s metadata Rc in a test with newly owned values. Predict why an older scene snapshot must keep the original values. Do not mutate a shared metadata allocation behind history.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is a row’s original source GUID separate from its saved object GUID?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -152,10 +149,28 @@ npm --prefix ../session_tests run course -- check 32f-metadata
 npm --prefix ../session_tests run course -- save 32f-metadata
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production source release retains shape/name/tree information while its editable Session is unloaded. This row boundary prepares that same lifetime distinction; release across active/history roots and guarded rehydration remain required next steps.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The native check retains only metadata and Weak observers, closes the editor, and proves the old kernel value is gone while the name and flags remain readable. Another check follows duplicate imports, Move and Undo. Chrome inspects a hidden diagnostic attribute to compare the same metadata through import and history; no interface button or teaching panel is added.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32f-metadata
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

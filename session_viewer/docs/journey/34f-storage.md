@@ -6,25 +6,19 @@
 
 **Today:** Read admitted saved reports using stable tab identity, the real browser timestamp parser and bounded scanning.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence.
 
-**Before you finish, explain:** Why keep tab identity separate from the new run’s storage key?
+Read previous reports from browser storage. `Store` keeps a storage handle, this tab’s stable ID and the new run key. Session storage preserves the tab ID across reloads; unavailable storage uses a fresh ID without stopping startup.
 
-Store owns a browser storage handle, a stable tab identifier and a fresh run key. It owns no source document, renderer, listener or timer. Session storage retains tab identity across reloads; unavailable storage falls back to a fresh identifier without rejecting viewer startup.
+Scan at most 256 storage keys and 32 keys in the course namespace. Pass each candidate through bounded decoding and the recency policy. Browser `Date.parse` supplies actual timestamp interpretation.
 
-Reading examines at most 256 storage keys and 32 keys in our course namespace. Each value passes the one-MiB decoder and typed shape validator before selection. These limits bound examination when edited storage contains many entries. Values outside that examination window are not adopted. The later writer keeps the normal owned set to three reports. No key is removed by this reader.
-
-The real browser Date parser now supplies the clock port taught in the preceding lessons. Eligible failures rank by their first fatal time; interrupted running reports rank by heartbeat. A newer heartbeat cannot make an older fatal event outrank a newer failure. Malformed, unsupported, healthy, active-other-tab and invalid-time values do not become previous evidence.
-
-A debug-only WebAssembly probe exercises this owner against real sessionStorage and localStorage in headed Chrome. It proves stable tab identity, distinct run keys, correct ranking and storage denial without changing current report, document drawing or GPU geometry counters. These seeded values belong only to the test page’s course namespace. Live persistence and a visible previous-report command are connected after bounded writes are complete.
+Rank failures by first fatal time and unfinished runs by heartbeat. Reading removes nothing. This lesson introduces the reader; bounded writes and the previous-report command follow.
 
 ![Read validated storage evidence](../illustrations/journey-34f.svg)
 
 ## Type the change
 
-Continue [Prove saved-run exclusions before adopting storage](34ec-proof.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34f-storage`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove saved-run exclusions before adopting storage](34ec-proof.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34f-storage` (from `session_viewer`).
 
 ### 1. `src/report_storage.rs`
 
@@ -80,15 +74,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run this lesson’s Rust checks and viewer. Current Diagnostic Report and Save still work as before. Chrome’s debug probe reads real seeded localStorage, ranks actual UTC timestamps and tests denied storage. The viewer’s live report is not persisted yet; bounded writes and command retrieval follow. Finish the healthy proof view with Move 0.05,0,0 and Fit.
+Run the storage browser acceptance in the expandable notes below. The reader must choose eligible evidence from real browser storage and retain the tab ID across reloads. Live persistence follows next.
 
-**Actual Chrome screenshot.**
-
-Headed Chrome uses real Web Storage and UTC timestamp parsing to test candidate selection, stable tab identity, independent run keys and denied storage. Current viewer reports are still not persisted at this checkpoint.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Read previous reports from real browser storage.](../screenshots/journey/34f-storage-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -96,13 +88,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change selection to rank lastSeen, then compare the two saved failures whose heartbeat order disagrees with failure order. Explain which evidence should win and why. Deny browser storage and explain why current diagnostics must remain usable.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why keep tab identity separate from the new run’s storage key?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -120,10 +115,28 @@ npm --prefix ../session_tests run course -- check 34f-storage
 npm --prefix ../session_tests run course -- save 34f-storage
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production reader uses browser storage and stable tab identity. This endpoint connects the native admission/recency policy to actual storage reads. Bounded writes, live report adoption and the previous-report command follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Headed Chrome uses real Web Storage and UTC timestamp parsing to test candidate selection, stable tab identity, independent run keys and denied storage. Current viewer reports are still not persisted at this checkpoint.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34f-storage
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

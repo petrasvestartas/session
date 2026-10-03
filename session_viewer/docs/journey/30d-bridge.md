@@ -6,11 +6,7 @@
 
 **Today:** Carry the selected Open operation through asynchronous file reading and cancel older work immediately.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action.
-
-**Before you finish, explain:** Why must a newer Open revoke old work before the new file is chosen?
 
 The native editor can replace a document, but the browser still appends every delivered file. Add Open Replace as a complete command name. Keep Open as our existing append operation so earlier experiments remain meaningful.
 
@@ -24,11 +20,9 @@ The native file input’s cancel event revokes the pending ticket and appends an
 
 After a successful transaction, report whether a file was appended or the document was replaced. A failed replacement keeps the old scene; Undo after a successful replacement restores it as one change. Camera and projection stay where the user put them.
 
-Chrome opens a newer replacement picker while an old file promise is held, cancels the picker, then releases the old result. It checks that no rows arrive. It also verifies malformed replacement, successful replacement and pixel-identical Undo/Redo before capturing the replaced document.
-
 ## Type the change
 
-Continue [Replace a document as one reversible change](30c-replace.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-30d-bridge`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Replace a document as one reversible change](30c-replace.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30d-bridge` (from `session_viewer`).
 
 ### 1. `src/file_input.rs`
 
@@ -295,13 +289,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open your specimen normally, then type Open Replace and choose the same file. The two demos disappear and only the three imported pieces remain. Undo restores the earlier rows; Redo restores the replacement. Select Next twice, Move 0.35,0,0.25, View Isometric and Fit to inspect the right post in the replaced document.
+Type `Open Replace` and choose `sample.pb`, then type `Undo`. The preceding document returns as one transaction. `Open Append` instead keeps existing objects.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Choose append or replace before opening the picker.](../screenshots/journey/30d-bridge-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -309,13 +303,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Hold a previous read, open Open Replace, cancel the new picker and then let the old read finish. Predict why the old file must stay rejected despite the new picker having no chosen file.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must a newer Open revoke old work before the new file is chosen?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -333,10 +330,28 @@ npm --prefix ../session_tests run course -- check 30d-bridge
 npm --prefix ../session_tests run course -- save 30d-bridge
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production scene replacement uses a generation started at request time and stages a whole scene before commit. This checkpoint applies that policy to the flat file picker; later command chapters align the full production vocabulary and loading paths.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome opens a newer replacement picker while an old file promise is held, cancels the picker, then releases the old result. It checks that no rows arrive. It also verifies malformed replacement, successful replacement and pixel-identical Undo/Redo before capturing the replaced document.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 30d-bridge
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

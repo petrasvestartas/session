@@ -6,23 +6,17 @@
 
 **Today:** Retain the original object and arguments before any source request starts.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Command + original selection → value-only Intent → unchanged target while waiting.
-
-**Before you finish, explain:** Why store ObjectId and Move offset rather than selection or a precomputed model?
 
 A delayed edit needs a small record of the user’s request. Intent contains only a stable ObjectId and copied Move arguments, or Save. It owns no geometry, origin or URL. Changing selection cannot redirect that value.
 
 Unselected Delete, zero-offset Move and ordinary view commands do not create an edit intent; invalid Move values are refused. Save is represented explicitly because it will need every active cold origin instead of one selected target. Source selection and replay are added in the following checkpoints.
 
-This checkpoint introduces and tests the request record. It does not yet intercept browser edits or replay them. Chrome checks the existing explicit reload path and its retained drawing; native tests prove captured target identity and that Close releases sources despite a retained intent.
-
 ![Capture identity before waiting](../illustrations/journey-32gi.svg)
 
 ## Type the change
 
-Continue [Cancel reloads when their document context changes](32gha-cancel.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gi-capture`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Cancel reloads when their document context changes](32gha-cancel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gi-capture` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -62,15 +56,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending.
+Run the intent checks below. Capture Move for one selected object, change selection, and compare the stored target and offset. Automatic browser replay comes later.
 
-**Actual Chrome screenshot.**
-
-The existing explicit source reload preserves this checkpoint’s placed drawing. Captured-intent identity and release ownership are checked natively; automatic browser replay is introduced next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Capture the requested edit before waiting.](../screenshots/journey/32gi-capture-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -78,13 +70,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Capture Move for one object, change selection, then inspect the captured ObjectId in the native test. Explain which origin the request must load.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why store ObjectId and Move offset rather than selection or a precomputed model?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -102,10 +97,30 @@ npm --prefix ../session_tests run course -- check 32gi-capture
 npm --prefix ../session_tests run course -- save 32gi-capture
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Separate requested intent from current interaction state. Source tickets authorize the completion; the captured target determines which edit may be replayed.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+This checkpoint introduces and tests the request record. It does not yet intercept browser edits or replay them. Chrome checks the existing explicit reload path and its retained drawing; native tests prove captured target identity and that Close releases sources despite a retained intent.
+
+The existing explicit source reload preserves this checkpoint’s placed drawing. Captured-intent identity and release ownership are checked natively; automatic browser replay is introduced next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gi-capture
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

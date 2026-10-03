@@ -6,11 +6,7 @@
 
 **Today:** Keep the drawing and GPU allocations while the dock unloads eligible imported sources.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Keep the drawing and GPU allocations while the dock unloads eligible imported sources..
-
-**Before you finish, explain:** Why should renderer allocation counters stay unchanged during source unloading?
 
 Expose Unload Sources through the existing dock vocabulary. It is a typed feature command with no button or keyboard shortcut. Remember the action kind before apply consumes it, then report success only after the editor residency pass and renderer synchronization succeed.
 
@@ -24,7 +20,7 @@ This finishes display-preserving unloading for the current mesh subset. It does 
 
 ## Type the change
 
-Continue [Prove unloading preserves placed history](32fj-proof.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fk-command`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove unloading preserves placed history](32fj-proof.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fk-command` (from `session_viewer`).
 
 ### 1. `src/browser.rs`
 
@@ -118,13 +114,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open the specimen and Move a post. Type Unload Sources: the scene should look identical. Try Move, Delete and Save, then Undo the previous placement. The display stays usable while source edits correctly await reload.
+Open `sample.pb`, then type `Unload Sources`. The scene stays visible. Move/Delete/Save now report that source restoration is required; browser reloading is not connected yet.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Unload editable sources through the command line.](../screenshots/journey/32fk-command-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -132,13 +128,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Compare data-gpu-stats before and after unloading. Then Undo a placement and explain why a settings write can occur without a new geometry upload.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why should renderer allocation counters stay unchanged during source unloading?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -156,10 +155,28 @@ npm --prefix ../session_tests run course -- check 32fk-command
 npm --prefix ../session_tests run course -- save 32fk-command
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production distinguishes display-only files from resident editable Sessions. This endpoint demonstrates that distinction with real Chrome pixels and managed owner checks, while the next lessons complete reload-before-edit behavior.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fk-command
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

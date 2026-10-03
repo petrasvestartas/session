@@ -6,23 +6,17 @@
 
 **Today:** Build a browser listener owner that detaches every registered event before freeing the Rust callback and its captured data.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Rust Closure → successful EventTarget bindings → owner Drop → remove handlers → free captured values.
-
-**Before you finish, explain:** Why must event listeners be removed before the Rust closure is dropped?
 
 A Closure owns the Rust environment used by a JavaScript callback. Listeners keeps that closure beside each successfully registered target and event name. One callback can serve the canvas, window and document. listen records a binding only after registration succeeds; if later setup fails, dropping the owner removes earlier registrations.
 
 Drop runs before Rust drops the fields. Its loop removes each handler while callback still exists, then normal field cleanup releases the closure and captured values. Registration uses passive false so the existing wheel and pointer prevention behavior can be retained during integration. The next checkpoint replaces the main viewer’s forgotten callback with this owner and adds explicit runtime disposal. This checkpoint prepares ownership; it does not yet stop the existing viewer runtime.
 
-A debug-only exported probe registers the same callback on two real browser EventTargets. Two dispatched events must increment the count twice. After dropping the owner, the same events must do nothing and a Weak observer must show the captured value has been released. Chrome calls this probe through Trunk’s real WebAssembly bindings; it adds no feature controls to the HTML. Native editor checks remain inherited, while listener behavior is specifically verified in the browser.
-
 ![Listener ownership](../illustrations/journey-33.svg)
 
 ## Type the change
 
-Continue [Prove failed restoration cannot partly commit](32gja-failures.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-33-owner`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove failed restoration cannot partly commit](32gja-failures.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-33-owner` (from `session_viewer`).
 
 ### 1. `src/listeners.rs`
 
@@ -63,15 +57,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. The sample now includes an original double that differs from its f32 display value. Inspect the actual Save download with the precision checker. Type Orbit Up and Fit for the final proof view. Run the combined acceptance checks. Failed restoration must leave the visible scene unchanged and sources cold. Type Orbit Right and Fit for the final proof view. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces. Type Orbit Right and Fit. Run the debug listener probe and expect [2,2,0]: two live calls, no calls after Drop, and no surviving captured owner. In the browser developer console run Array.from(window.wasmBindings.listener_probe()). The probe is available in this debug checkpoint; release builds omit it.
+In the debug browser console, run `Array.from(window.wasmBindings.listener_probe())`. Expect `[2, 2, 0]`: two live calls, no calls after Drop, and no retained captured owner.
 
-**Actual Chrome screenshot.**
-
-Chrome calls the debug WebAssembly probe against real EventTargets and verifies two live calls, no post-Drop calls, and release of captured ownership. Existing editor/reload/precision/failure checks remain active; main runtime disposal follows next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Own browser listeners instead of forgetting callbacks.](../screenshots/journey/33-owner-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -79,13 +71,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Remove the Drop loop and dispatch the probe events after dropping the owner. Predict the invalid-closure error before running it; refresh to restore the verified checkpoint.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must event listeners be removed before the Rust closure is dropped?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -103,10 +98,30 @@ npm --prefix ../session_tests run course -- check 33-owner
 npm --prefix ../session_tests run course -- save 33-owner
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Browser callback lifetime is owned explicitly, as in the production command and pointer-cancellation agents. Full viewer runtime binding and pending-work disposal follow next.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+A debug-only exported probe registers the same callback on two real browser EventTargets. Two dispatched events must increment the count twice. After dropping the owner, the same events must do nothing and a Weak observer must show the captured value has been released. Chrome calls this probe through Trunk’s real WebAssembly bindings; it adds no feature controls to the HTML. Native editor checks remain inherited, while listener behavior is specifically verified in the browser.
+
+Chrome calls the debug WebAssembly probe against real EventTargets and verifies two live calls, no post-Drop calls, and release of captured ownership. Existing editor/reload/precision/failure checks remain active; main runtime disposal follows next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 33-owner
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

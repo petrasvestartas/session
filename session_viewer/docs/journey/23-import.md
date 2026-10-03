@@ -8,11 +8,7 @@
 
 **Today:** Import a real mesh-session file, keep its source identity, and undo the whole import as one action.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** File picker → bytes → validated session → prepared display meshes → one history transaction → GPU upload.
-
-**Before you finish, explain:** Why do we retain the session after creating the arrays that the renderer needs?
 
 So far every object was born inside our example. Now let a real file enter. Think of the source session as the labelled drawing in a folder, and the GPU mesh as the picture projected on a screen. We need both: the screen is quick to draw, while the folder remembers what the object means.
 
@@ -30,7 +26,7 @@ This checkpoint accepts small, flat sessions containing triangle or quad meshes 
 
 ## Type the change
 
-Continue [Keep navigation on the mouse and commands in the dock](22-shortcuts.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-23-import`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep navigation on the mouse and commands in the dock](22-shortcuts.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-23-import` (from `session_viewer`).
 
 ### 1. `src/document.rs`
 
@@ -389,15 +385,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-In another terminal inside `workspace/journey`, run `cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4` to create `sample.pb`. Type `Open`, press Enter, and choose it. Run `View Isometric`: three orange pieces join the triangles. `Undo` removes the entire import; `Redo` restores it. Importing the file again creates an independent set. A text file renamed .pb must leave the document unchanged.
+In another terminal in `workspace/journey`, run `REGEN_PROTO=0 cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4`. Type `Open` and choose `sample.pb`. `Undo` must remove the whole import; `Redo` restores it.
 
-**Actual Chrome screenshot.**
-
-The file picker imports all three orange pieces. The browser check removes the entire import with one Undo, restores it with Redo, and then chooses Isometric.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep the document behind the picture.](../screenshots/journey/23-import-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -405,13 +399,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why do we retain the session after creating the arrays that the renderer needs?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -429,10 +426,20 @@ npm --prefix ../session_tests run course -- check 23-import
 npm --prefix ../session_tests run course -- save 23-import
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The file picker imports all three orange pieces. The browser check removes the entire import with one Undo, restores it with Redo, and then chooses Isometric.
+
+[Full validation scope](release.md).
+
+</details>

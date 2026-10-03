@@ -8,11 +8,7 @@
 
 **Today:** Paint the whole canvas white with a real GPU command.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Browser canvas → surface → renderer records a clear → queue → presented image.
-
-**Before you finish, explain:** What starts the GPU work, and what makes its image appear in the canvas?
 
 Now let us give the GPU one simple instruction: clear the whole sheet to white. We do not need a triangle yet. Keeping these jobs separate will make a blank picture easier to diagnose.
 
@@ -36,7 +32,7 @@ CSS controls how much space the canvas occupies. The GPU also needs image dimens
 
 ## Type the change
 
-Continue [A page that Rust can reach](01-canvas.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-02-clear`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [A page that Rust can reach](01-canvas.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-02-clear` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -96,23 +92,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The canvas stays white. Its pixels now come from a submitted GPU clear. A startup failure shows its reason over the canvas; successful startup adds no text. WebGPU needs a supporting browser and a secure context such as localhost.
+The canvas stays white. Temporarily set the clear colour to `r: 0.9, g: 0.9, b: 0.9`: the GPU should paint it grey. Restore all three values to `1.0`.
 
-**Actual Chrome screenshot.**
-
-This freshly captured white image deliberately looks like lesson 01. The change is who paints it: the GPU now clears and presents the image. The native check verifies every background pixel.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Ask the GPU to paint.](../screenshots/journey/02-clear-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Temporarily change the renderer’s clear colour to `r: 0.9, g: 0.9, b: 0.9`. The canvas should become light grey: that confirms the GPU owns these pixels. Restore all three values to 1.0 for the white background.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What starts the GPU work, and what makes its image appear in the canvas?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -130,10 +127,20 @@ npm --prefix ../session_tests run course -- check 02-clear
 npm --prefix ../session_tests run course -- save 02-clear
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 These owners become the production GPU device setup and presentation modules. The drawing operation stays independent of page lookup. Surface resizing, retry and recovery are later lessons, not hidden in this one.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+This freshly captured white image deliberately looks like lesson 01. The change is who paints it: the GPU now clears and presents the image. The native check verifies every background pixel.
+
+[Full validation scope](release.md).
+
+</details>

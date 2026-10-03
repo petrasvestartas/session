@@ -6,11 +6,7 @@
 
 **Today:** Connect Save to a browser download and reopen the actual downloaded document.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Typed Save → source snapshot → Blob URL → download → Open → restored source and placement.
-
-**Before you finish, explain:** Why does Save belong outside document history?
 
 Type Save in the same command dock. The command calls snapshot on the current editor scene and passes its bytes to a small browser-only file adapter. Snapshot failures appear in command history and do not start a download.
 
@@ -26,7 +22,7 @@ The browser experiment downloads the actual file, confirms Save leaves the drawi
 
 ## Type the change
 
-Continue [Prove the saved document reopens faithfully](29c-roundtrip.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-29d-save`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove the saved document reopens faithfully](29c-roundtrip.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29d-save` (from `session_viewer`).
 
 ### 1. `Cargo.toml`
 
@@ -130,13 +126,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open your specimen, Example Box, Select Next six times, Move 0.2,-0.7,0.2, View Isometric and Fit. Type Save and keep viewer.session. Undo must still undo Move. Redo restores it. Repeat Select Next and Delete six times to clear the current objects, Open the saved file, then Select Next six times: the same source geometry and placement return without resetting the camera.
+Open `sample.pb`, select an object and move it. Type `Save`, then reopen the downloaded `viewer.session`. The placed scene should return; Save itself must not consume Undo.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Download the editable document from the command line.](../screenshots/journey/29d-save-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -144,13 +140,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Save after moving the box, then move it again and save to a second file. Reopen each into a cleared scene and predict which placement it restores. Saving should leave the next Undo step unchanged.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does Save belong outside document history?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -168,10 +167,28 @@ npm --prefix ../session_tests run course -- check 29d-save
 npm --prefix ../session_tests run course -- save 29d-save
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production Save command downloads the complete editable scene. This lesson connects a real browser download to our flat mesh serializer; complete trees and geometry families still require later chapters.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 29d-save
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

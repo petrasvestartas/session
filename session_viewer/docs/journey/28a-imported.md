@@ -6,11 +6,7 @@
 
 **Today:** Insert imported source geometry and its prepared display together.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Decoded session → prepared source/display pair → Object source geometry → history snapshot.
-
-**Before you finish, explain:** If rows move after deletion, how can the object still find its source?
 
 Now use the preparation boundary when loading. Loaded carries PreparedMesh values instead of a GUID/display tuple. Each prepared value retains the complete kernel mesh and its provenance before any scene insertion occurs.
 
@@ -26,7 +22,7 @@ Moving prepared.display transfers that field into the insertion function. Rust s
 
 ## Type the change
 
-Continue [Prepare a display from an owned source mesh](28-record.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-28a-imported`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prepare a display from an owned source mesh](28-record.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-28a-imported` (from `session_viewer`).
 
 ### 1. `src/document.rs`
 
@@ -168,15 +164,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open your sample file, Select Next five times, View Orthographic and Fit Selected. The top beam is framed and selectable. Inspect the Rust checks: imported objects have source geometry even after their display row moves; Undo/Redo restores the same Rc owners.
+Open `sample.pb`. Run the import checks below: every imported row must retain both its original source mesh and its prepared display. Failed preparation must add no rows.
 
-**Actual Chrome screenshot.**
-
-Retain the imported mesh behind each row. These commands run in the actual dock; kernel ownership is checked separately in Rust.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Retain the imported mesh behind each row.](../screenshots/journey/28a-imported-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -184,13 +178,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 In the import test, remove both original demo IDs before inspecting the imported object. Its row number changes while its ObjectId, source GUID and geometry allocation remain stable. Restore the test before checking your files.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+If rows move after deletion, how can the object still find its source?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -208,10 +205,20 @@ npm --prefix ../session_tests run course -- check 28a-imported
 npm --prefix ../session_tests run course -- save 28a-imported
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production scene keeps source identity through row replacement and compaction. This lesson connects source ownership to our smaller row table; generated objects adopt the same path next.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Retain the imported mesh behind each row. These commands run in the actual dock; kernel ownership is checked separately in Rust.
+
+[Full validation scope](release.md).
+
+</details>

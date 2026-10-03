@@ -6,11 +6,7 @@
 
 **Today:** Prove cancelled work releases its source owners.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Pending job holds keys → Close drops rows → cancel drops keys → abandoned request is inert.
-
-**Before you finish, explain:** Can a held reference to the job keep the source alive after cancellation?
 
 Add three native checks. The first starts requests out of order and proves that an older ticket cannot consume current keys; a matching ticket consumes them once. Cancellation, empty requests and duplicate origins leave no pending work.
 
@@ -22,7 +18,7 @@ Finally force ticket exhaustion. A checked increment must fail, never wrap, and 
 
 ## Type the change
 
-Continue [Give each source request its own owner](32gf-request.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gfa-ownership`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give each source request its own owner](32gf-request.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gfa-ownership` (from `session_viewer`).
 
 ### 1. `src/reload_job.rs`
 
@@ -53,23 +49,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+Run the request-owner checks below. Cancelling a batch releases its request metadata; a late completion must not revive that owner.
 
-```sh
-REGEN_PROTO=0 cargo run --example sample --locked -j4
-```
-
-Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
-
-Run the ticket and weak-owner tests. Browser behavior is unchanged, with real input and URL cleanup still checked by the existing unload baseline.
-
-**Actual Chrome screenshot.**
-
-The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prove cancelled work releases its source owners.](../screenshots/journey/32gfa-ownership-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -77,13 +63,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change Request to store an `Rc<Origin>` in a scratch copy and predict which Weak assertion would fail after cancellation.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Can a held reference to the job keep the source alive after cancellation?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -101,10 +90,28 @@ npm --prefix ../session_tests run course -- check 32gfa-ownership
 npm --prefix ../session_tests run course -- save 32gfa-ownership
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Ownership proofs matter even when the browser ignores an abort temporarily. Cancelled asynchronous work must have neither authority to commit nor a retained kernel/URL owner.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gfa-ownership
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

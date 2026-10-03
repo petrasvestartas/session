@@ -6,11 +6,7 @@
 
 **Today:** Serialize live source meshes and their placements without changing the editor.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Live objects → source protobuf copies + object GUIDs → flat tree and placements → bytes.
-
-**Before you finish, explain:** Why must saving copy source messages instead of modifying the retained session?
 
 Now prepare the bytes Save will download. Read Scene::objects, not the old imported Session: the live scene includes generated objects and edits, while deleted rows must stay deleted.
 
@@ -28,7 +24,7 @@ Today we inspect the protobuf snapshot in Rust. The loader still rejects placeme
 
 ## Type the change
 
-Continue [Give each saved object a stable identity](29-identity.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-29a-snapshot`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give each saved object a stable identity](29-identity.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29a-snapshot` (from `session_viewer`).
 
 ### 1. `src/document.rs`
 
@@ -85,13 +81,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the snapshot check. It removes one demo, adds a box and serializes only the two live objects. Compare original local vertices and separate placement. In the viewer, Example Box, Select Next three times, Move 0.2,0.4,0.3, View Isometric and Fit Selected; this is the state a later Save command will write.
+Run the snapshot checks below. Serialization must read original source coordinates and separate placements without changing the live editor. Browser Save is connected in lesson 29d.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Write a snapshot from the editable sources.](../screenshots/journey/29a-snapshot-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -99,13 +95,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the box placement in the check, then predict whether mesh vertices or the XformEntry changes. Confirm the retained source GUID stays unchanged and restore the check.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must saving copy source messages instead of modifying the retained session?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -123,10 +122,28 @@ npm --prefix ../session_tests run course -- check 29a-snapshot
 npm --prefix ../session_tests run course -- save 29a-snapshot
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production serializer combines editable source objects and placements rather than reading GPU buffers. This checkpoint covers a deliberately bounded flat-mesh document; complete trees, geometry families and metadata arrive later.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 29a-snapshot
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

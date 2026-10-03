@@ -6,11 +6,7 @@
 
 **Today:** Measure live document buffer sizes separately from cumulative allocation counters.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Live GPU rows → unique geometry owners and independent settings → buffer-size ledger.
-
-**Before you finish, explain:** Why can index buffer bytes exceed the six index bytes we supplied?
 
 The upload counters tell us how much work happened over time. They cannot tell us how much document storage is alive now. Add a live GPU ledger that visits each geometry allocation once and every object-settings buffer separately.
 
@@ -24,7 +20,7 @@ The browser exposes data-gpu-usage alongside data-cpu-usage. After document clos
 
 ## Type the change
 
-Continue [Count shared CPU displays once](32a-cpu.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32b-gpu`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Count shared CPU displays once](32a-cpu.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32b-gpu` (from `session_viewer`).
 
 ### 1. `src/gpu_geometry.rs`
 
@@ -119,13 +115,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Read data-gpu-usage after selecting and moving the specimen. Live geometry and settings counts stay at three. Compare these live values with data-gpu-stats, whose cumulative counters continue increasing when new documents are uploaded.
+Run the GPU accounting checks below. Live document buffer bytes must count shared allocations once; cumulative upload counters do not fall when owners drop.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Count each shared GPU buffer once.](../screenshots/journey/32b-gpu-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -133,13 +129,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 For three u16 indices, calculate six payload bytes and eight allocated upload bytes. Then calculate two object uniforms sharing that geometry. Explain why adding geometry bytes for both rows would be wrong.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can index buffer bytes exceed the six index bytes we supplied?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -157,10 +156,28 @@ npm --prefix ../session_tests run course -- check 32b-gpu
 npm --prefix ../session_tests run course -- save 32b-gpu
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production accounting also includes packed arenas, textures, staging and renderer infrastructure. This chapter establishes exact document-buffer sharing before those later resource families are introduced.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32b-gpu
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

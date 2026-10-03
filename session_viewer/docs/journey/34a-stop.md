@@ -6,25 +6,19 @@
 
 **Today:** Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure.
 
-**Before you finish, explain:** Why record a failure before deferring cleanup, and why check the device identity again during cleanup?
+Connect both GPU error callbacks to the same `Fault`. When the first error arrives, mark the device failed immediately so the input handler cannot submit another frame.
 
-The pinned wgpu Device API provides on_uncaptured_error and set_device_lost_callback. Both callbacks keep clones of our Fault value; neither captures a browser window or renderer. Their messages retain the original error or device-loss reason.
+Schedule disposal on the next microtask: the active callback must return before its Rust closure is released. Compare the captured Fault allocation with the installed runtime before taking that runtime out of its slot. An old device’s callback must leave a replacement alone.
 
-failed records the first reason synchronously. It then schedules cleanup for the next microtask, using the deferred-callback lifetime established earlier. The input handler checks the same signal before the command panel can allocate resources or submit work. Cleanup compares allocation identity with the installed runtime, takes only a matching owner and releases the slot borrow before Drop cancels pending requests and removes handlers. An old callback cannot dispose an independently installed replacement.
-
-The visible status reports Cannot draw after cleanup. It is startup/failure feedback, with no feature buttons. This checkpoint does not download diagnostics, restore unsaved edits or automatically recover. Those responsibilities follow.
-
-Chrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application.
+Drop then cancels pending requests and removes input listeners. The page shows “Cannot draw”. Reloading starts a new viewer; automatic recovery comes later.
 
 ![Stop a failed device’s runtime](../illustrations/journey-34a.svg)
 
 ## Type the change
 
-Continue [Keep the first GPU failure with its device](34-fault.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34a-stop`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep the first GPU failure with its device](34-fault.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34a-stop` (from `session_viewer`).
 
 ### 1. `src/browser_runtime.rs`
 
@@ -138,15 +132,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, Select Next, and use Move or Orbit Up. Device loss is normally external; the browser acceptance calls the real GPUDevice.destroy() through a test-only observer. Failure shows Cannot draw, and old input cannot submit another frame. Reload the SAME page to start a new viewer; unsaved placement is not recovered.
+Run the GPU-stop browser acceptance described below. Destroying the real test device must show “Cannot draw” and stop further rendering. Reloading the same page starts a fresh viewer.
 
-**Actual Chrome screenshot.**
-
-Chrome destroys a real GPUDevice, verifies visible loss feedback and disposed listeners, and observes no GPU work from subsequent input. A same-tab reload produces the final working screenshot; it does not recover unsaved edits.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Stop the viewer when its GPU device fails.](../screenshots/journey/34a-stop-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -154,13 +146,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Move the failure guard below panel.update and explain which GPU writes could happen before it. Then remove the identity check in stop_if and explain how an older callback could stop a new runtime.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why record a failure before deferring cleanup, and why check the device identity again during cleanup?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -178,10 +173,30 @@ npm --prefix ../session_tests run course -- check 34a-stop
 npm --prefix ../session_tests run course -- save 34a-stop
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production records the first GPU failure and gates UI/uploads/rendering before further GPU work. This checkpoint establishes the stopped lifetime. Structured diagnostics, persisted reports and bounded recovery remain next.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application.
+
+Chrome destroys a real GPUDevice, verifies visible loss feedback and disposed listeners, and observes no GPU work from subsequent input. A same-tab reload produces the final working screenshot; it does not recover unsaved edits.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34a-stop
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

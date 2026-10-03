@@ -6,11 +6,7 @@
 
 **Today:** Bind real viewer input to owned callbacks and cancel pending file/source authority when the page hides.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Live runtime → pagehide → next microtask → cancel read/fetch → detach eighteen listeners → release captures.
-
-**Before you finish, explain:** Why is disposal deferred until the next microtask instead of dropping the runtime inside its own event callback?
 
 The main viewer now transfers update into Listeners and records all canvas, document and window bindings. A thread-local Option<Runtime> keeps that owner alive after run returns. install replaces any earlier owner; stop takes the current owner out of the slot and consumes it. The slot’s mutable borrow has ended before Runtime is dropped.
 
@@ -18,13 +14,11 @@ Runtime’s Drop first cancels the read gate and abortable source flight. It the
 
 pagehide schedules stop through spawn_local and returns immediately. Its task runs on the next microtask so the event callback is no longer active when it is freed. Document Close retains its existing meaning and can still be followed by Open. Page exit disposes the viewer itself.
 
-Chrome checks the actual main callback’s eighteen removals, an aborted held source request, source URL release, no new GPU submissions after disposal, ignored input and late replies, and cancellation of a held file read before URL adoption. Each restart reloads the same test page; no feature buttons are added. The inherited command/navigation/precision/failure checks remain active.
-
 ![Dispose runtime ownership](../illustrations/journey-33a.svg)
 
 ## Type the change
 
-Continue [Own browser listeners instead of forgetting callbacks](33-owner.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-33a-runtime`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Own browser listeners instead of forgetting callbacks](33-owner.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-33a-runtime` (from `session_viewer`).
 
 ### 1. `src/browser_runtime.rs`
 
@@ -131,15 +125,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. The sample now includes an original double that differs from its f32 display value. Inspect the actual Save download with the precision checker. Type Orbit Up and Fit for the final proof view. Run the combined acceptance checks. Failed restoration must leave the visible scene unchanged and sources cold. Type Orbit Right and Fit for the final proof view. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces. Type Orbit Right and Fit. Run the debug listener probe and expect [2,2,0]: two live calls, no calls after Drop, and no surviving captured owner. In the browser developer console run Array.from(window.wasmBindings.listener_probe()). The probe is available in this debug checkpoint; release builds omit it. Reload to restart after a lifecycle disposal experiment. In the debug console inspect window.wasmBindings.runtime_running(); dispatch window.dispatchEvent(new Event("pagehide")), then check it on the next task: false. Ordinary document Close still leaves the viewer running. After restarting, finish with View Isometric, Orbit Right and Fit for the final proof view.
+In the debug console, dispatch `window.dispatchEvent(new Event("pagehide"))`. On the next task, `window.wasmBindings.runtime_running()` must be false. Reload the same page to restart.
 
-**Actual Chrome screenshot.**
-
-Chrome verifies real viewer page-exit disposal, eighteen listener removals, source abort/URL release, no later submissions, ignored input/completions, and cancelled file URL adoption; ordinary document Close still permits reopening.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Dispose the viewer without leaving pending work alive.](../screenshots/journey/33a-runtime-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -147,13 +139,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Skip read/fetch cancellation in Runtime::drop, hold a source response and dispose the viewer. Explain which source URL or late-read acceptance checks reveal retained or revived authority.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is disposal deferred until the next microtask instead of dropping the runtime inside its own event callback?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -171,10 +166,30 @@ npm --prefix ../session_tests run course -- check 33a-runtime
 npm --prefix ../session_tests run course -- save 33a-runtime
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Browser listener, document and asynchronous request ownership end together. GPU-loss recovery can now dispose this runtime before starting another one.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome checks the actual main callback’s eighteen removals, an aborted held source request, source URL release, no new GPU submissions after disposal, ignored input and late replies, and cancellation of a held file read before URL adoption. Each restart reloads the same test page; no feature buttons are added. The inherited command/navigation/precision/failure checks remain active.
+
+Chrome verifies real viewer page-exit disposal, eighteen listener removals, source abort/URL release, no later submissions, ignored input/completions, and cancelled file URL adoption; ordinary document Close still permits reopening.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 33a-runtime
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

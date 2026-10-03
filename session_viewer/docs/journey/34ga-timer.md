@@ -6,27 +6,19 @@
 
 **Today:** Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release.
 
-**Before you finish, explain:** Why must clearing the interval happen before dropping its Rust Closure?
+Own the browser interval and its Rust closure together. `Timer` stores the Window, native handle and Closure. Drop clears the interval before releasing the callback environment.
 
-Timer owns a native interval handle, its Window and the Rust Closure backing its JavaScript callback. Registration must succeed before the owner is returned. If registration fails, the unregistered closure drops normally. Drop clears the interval before normal field cleanup releases the callback environment.
+Keep one timer outside the GPU runtime and schedule a metadata heartbeat every 15000 milliseconds. Its callback captures no renderer or document, so diagnostics can continue after device loss.
 
-The report module stores one Timer independently of the GPU runtime. Startup replaces prior scheduling, then installs a 15000-millisecond callback that captures no device, renderer, document or source owner. It calls the metadata heartbeat operation only. Losing the GPU does not cancel diagnostics or rewrite the original fatal time. A timer cannot guarantee delivery while a browser suspends a page; lifecycle handling is the next responsibility.
-
-Explicit stop takes the owner outside the RefCell borrow before dropping it. Repeated stop is harmless. Replacement clears the previous handle before a new registration; a failed replacement leaves no old timer running. The callback itself never disposes its own owner. These functions are ordinary Rust interfaces; debug exports let Chrome test actual lifecycle behavior without feature buttons.
-
-The test observes the real 15000-millisecond registration, then substitutes faster browser delivery to verify callbacks without a 15-second wait. During inherited acceptance it gates delivery, preserving the preceding checkpoints’ exact snapshot comparisons; custom acceptance enables real callback invocation afterward. This is semantic scheduling/ownership evidence, not a phone performance measurement. It proves lastSeen refresh with unchanged events/outcome, zero GPU calls inside each callback, continued metadata after real device destruction, first-failure preservation, exact cancellation and replacement, and ready startup when registration is denied.
-
-Final-exit and cached-page pause/resume still need automatic hooks. The next checkpoint connects them to this owner.
+Stop takes the owner out of the `RefCell` before dropping it. Replacement stops the old timer first; failed registration leaves no old timer running. Never dispose the timer from inside its active callback. Browser suspension/final-exit handling follows.
 
 ![Own interval and callback together](../illustrations/journey-34ga.svg)
 
 ## Type the change
 
-Continue [Refresh heartbeat without rewriting failure evidence](34g-heartbeat.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34ga-timer`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Refresh heartbeat without rewriting failure evidence](34g-heartbeat.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34ga-timer` (from `session_viewer`).
 
 ### 1. `src/timer.rs`
 
@@ -117,15 +109,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Use the viewer normally: diagnostics now refresh every 15 seconds, including after GPU failure. Chrome observes the actual interval registration and accelerates delivery only in the test to prove metadata refresh, replacement/cancellation and no GPU work. Scheduler denial leaves the viewer ready and current downloads usable. Finish the proof view with Move 0,-0.05,0 and Fit. Lifecycle suspension and final-exit cleanup follow next.
+Download `Diagnostic Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.
 
-**Actual Chrome screenshot.**
-
-Chrome observes actual 15-second interval registration and accelerates test delivery. It verifies owned callback replacement/cancellation, independent post-loss metadata, unchanged failure/events, zero callback GPU work and usable startup/downloads when scheduling fails.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Own the periodic diagnostic heartbeat.](../screenshots/journey/34ga-timer-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -133,13 +123,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Call start_periodic twice and inspect the cleared handles. Make registration throw and explain why the previous owner must not remain running. Never drop the owner from inside its own active callback.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must clearing the interval happen before dropping its Rust Closure?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -157,10 +150,30 @@ npm --prefix ../session_tests run course -- check 34ga-timer
 npm --prefix ../session_tests run course -- save 34ga-timer
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production periodically saves diagnostics. The course now has explicit callback ownership and real scheduled persistence independent of GPU loss. Automatic lifecycle/error observations, full load telemetry and bounded recovery follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The test observes the real 15000-millisecond registration, then substitutes faster browser delivery to verify callbacks without a 15-second wait. During inherited acceptance it gates delivery, preserving the preceding checkpoints’ exact snapshot comparisons; custom acceptance enables real callback invocation afterward. This is semantic scheduling/ownership evidence, not a phone performance measurement. It proves lastSeen refresh with unchanged events/outcome, zero GPU calls inside each callback, continued metadata after real device destruction, first-failure preservation, exact cancellation and replacement, and ready startup when registration is denied.
+
+Chrome observes actual 15-second interval registration and accelerates test delivery. It verifies owned callback replacement/cancellation, independent post-loss metadata, unchanged failure/events, zero callback GPU work and usable startup/downloads when scheduling fails.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34ga-timer
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

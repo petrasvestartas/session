@@ -6,11 +6,7 @@
 
 **Today:** Retain GPU rows by object and geometry identity, then write only changed uniform ranges.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Scene row → retained GPU row → matrix or selection byte difference → queued range write → next draw.
-
-**Before you finish, explain:** Why must row reuse compare both ObjectId and the geometry owner?
 
 The cache removes repeated vertex/index uploads, but every scene synchronization still allocates object settings. Retain each GPU row when its ObjectId and CPU display owner both match. Keep scene order when collecting the new row list; swap_remove only changes the temporary list of old rows.
 
@@ -22,11 +18,9 @@ The buffer adds COPY_DST because updates use the queue. [wgpu’s write_buffer c
 
 The renderer takes its old rows temporarily, finds matching identities, updates their settings, and puts them in scene order. Rows left in the old list are dropped before the weak cache is pruned. The hidden counters now record actual range writes and bytes in addition to allocations.
 
-Native GPU and Chrome checks verify no allocation during selection or Move, no writes for unchanged settings, exact selection and Move/Undo pixel round trips, and release/reupload after deleting and undoing a row. Deleting clears selection, and document Undo restores the row without restoring that selection. The checks explicitly reselect the row before comparing its original gold pixels. These counters describe the calls made by this renderer; they do not claim driver memory size or frame-time performance.
-
 ## Type the change
 
-Continue [Reuse uploads while their geometry is alive](31b-cache.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-31c-incremental`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Reuse uploads while their geometry is alive](31b-cache.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-31c-incremental` (from `session_viewer`).
 
 ### 1. `src/gpu_mesh.rs`
 
@@ -176,13 +170,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Cycle selection through the specimen and Move the right post. Read the four hidden counters: geometry uploads and uniform allocations remain fixed; selection writes sixteen bytes per changed row and Move writes sixty-four for its one row. Undo must restore the exact picture.
+Move a selected object, then Undo. Run the GPU counter checks: these changes update only the matrix range, without reuploading vertex or index buffers.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Update only changed object settings.](../screenshots/journey/31c-incremental-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -190,13 +184,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Select the same row again without changing placement, or synchronize the same scene directly in the native check. Predict zero additional writes. Explain why a deleted row may need a fresh upload when Undo restores it: the cache deliberately has only weak ownership.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must row reuse compare both ObjectId and the geometry owner?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -214,10 +211,28 @@ npm --prefix ../session_tests run course -- check 31c-incremental
 npm --prefix ../session_tests run course -- save 31c-incremental
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Incremental ownership is a prerequisite for production arenas, resource accounting and large-scene responsiveness. Their complete packing and performance acceptance remain later lessons.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Native GPU and Chrome checks verify no allocation during selection or Move, no writes for unchanged settings, exact selection and Move/Undo pixel round trips, and release/reupload after deleting and undoing a row. Deleting clears selection, and document Undo restores the row without restoring that selection. The checks explicitly reselect the row before comparing its original gold pixels. These counters describe the calls made by this renderer; they do not claim driver memory size or frame-time performance.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 31c-incremental
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

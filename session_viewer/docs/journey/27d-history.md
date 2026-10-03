@@ -6,11 +6,7 @@
 
 **Today:** Check that Move changes world placement, preserves local geometry, and remains one reversible transaction.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Parsed offset → world translation → shared mesh → Undo/Redo → identical placement.
-
-**Before you finish, explain:** What evidence distinguishes moving a placement from rewriting a mesh?
 
 The visible result is useful evidence, but a moved picture alone does not prove which data changed. These checks follow the values that future editing tools must preserve.
 
@@ -22,11 +18,9 @@ Scene::place takes ownership of its Xform. Save the sixteen-value array before t
 
 Undo must restore the complete old placement, and Redo must restore the moved placement. Insert invalid and zero moves between Undo and Redo: neither may discard the redo record. This is why a history transaction belongs in Editor rather than in a browser key handler.
 
-The native frame also projects a known point on the moved box, casts its picking ray, and samples the resulting GPU pixels. Chrome repeats the typed move/Undo/Redo picture round trip and checks visible errors. These are separate checks of state, shader presentation and event delivery. An exact edge click compares two different calculations—the CPU ray and GPU raster. Here we test an interior fragment; the later GPU-ID lesson covers exact raster ownership.
-
 ## Type the change
 
-Continue [Move a placed object with a typed offset](27c-move.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-27d-history`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Move a placed object with a typed offset](27c-move.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-27d-history` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -67,15 +61,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run Example Box, Select Next three times, View Orthographic, Move 0,0.6,0, and Fit. Then Undo and Redo the move. Run the Rust checks and compare the local mesh, model matrix, world point, selected ID and camera values at each stage.
+Run the placement/history checks below. Move and Undo must change only placement, preserve shared local geometry, and treat a zero offset as no document edit.
 
-**Actual Chrome screenshot.**
-
-Prove placement and history agree. The actual command dock drives this checkpoint; the selected object is highlighted.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prove placement and history agree.](../screenshots/journey/27d-history-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -83,13 +75,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the existing x scale in the world-axis test from 2 to 3. Predict the local-axis error you would see if the multiplication order were reversed. Confirm the existing implementation still shifts the world point by the same amount, then restore the test.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What evidence distinguishes moving a placement from rewriting a mesh?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -107,10 +102,30 @@ npm --prefix ../session_tests run course -- check 27d-history
 npm --prefix ../session_tests run course -- save 27d-history
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 These invariants carry into picked-point Move, Copy, Rotate, Scale, previews and cancellation. The production course must keep the same source/placement distinction while adding large scenes, instancing and incremental uploads.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The native frame also projects a known point on the moved box, casts its picking ray, and samples the resulting GPU pixels. Chrome repeats the typed move/Undo/Redo picture round trip and checks visible errors. These are separate checks of state, shader presentation and event delivery. An exact edge click compares two different calculations—the CPU ray and GPU raster. Here we test an interior fragment; the later GPU-ID lesson covers exact raster ownership.
+
+Prove placement and history agree. The actual command dock drives this checkpoint; the selected object is highlighted.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 27d-history
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

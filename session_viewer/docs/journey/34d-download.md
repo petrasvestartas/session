@@ -6,25 +6,19 @@
 
 **Today:** Download a current ready-run report with Diagnostic Report and attempt one independent first-failure download after GPU disposal.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** first scene presented → ready report → typed Diagnostic Report → JSON Blob → actual download → delayed URL cleanup.
 
-**Before you finish, explain:** Why can the failed viewer download a report after GPU input and drawing have stopped?
+Add `Diagnostic Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.
 
-The metadata producer becomes a real viewer command. The first scene presentation records the geometry-on-screen milestone and changes an otherwise healthy report to ready. Diagnostic Report serializes the current context and invokes the existing download owner with a JSON filename. Save still writes viewer.session and retains its exact original-source contract. Neither command consumes scene Undo.
+Finish serializing before clicking the temporary download anchor. This releases the report’s `RefCell` borrow before browser behavior can call back into Rust. The existing download owner revokes its Blob URL after ten seconds.
 
-The serializer releases its report-slot borrow before anchor.click can invoke browser behavior. The hidden download anchor is temporary, and the existing10-second URL cleanup owns only the Blob URL. No feature button or permanent GPU reference is introduced. This command does not claim that diagnostic counters are total browser memory or actual-phone timing.
-
-A matching GPU failure first disposes the runtime, then records the fatal reason and attempts one automatic report download. Startup failure is recorded too when report initialization succeeded. Some browsers can block automatic downloads; this checkpoint preserves the report in memory only. Persisted recovery and a later typed previous-report download are the next responsibility. Failure diagnostics do not restore unsaved edits.
-
-Chrome types Diagnostic Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer.
+A GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.
 
 ![Command and fatal report downloads](../illustrations/journey-34d.svg)
 
 ## Type the change
 
-Continue [Read live diagnostic context outside the GPU runtime](34c-browser.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34d-download`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Read live diagnostic context outside the GPU runtime](34c-browser.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34d-download` (from `session_viewer`).
 
 ### 1. `src/file_output.rs`
 
@@ -170,15 +164,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import and move sample.pb. Type Diagnostic Report to download viewer-diagnostic.json, containing a ready outcome and actual browser context. Save still downloads viewer.session. On a recorded GPU or startup failure the viewer attempts one JSON report download, then shows failure feedback. Reload starts a fresh run; no saved previous report or unsaved-edit recovery is connected yet. Finish the proof view with Move 0,-0.05,0 and Fit.
+Type `Diagnostic Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
 
-**Actual Chrome screenshot.**
-
-Chrome reads actual typed ready-report and real GPU-loss/startup-failure JSON downloads, checks scene/history/camera/GPU invariants and late-input blocking, then reloads the same test page for its final working picture.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Download diagnostics through the real command line.](../screenshots/journey/34d-download-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -186,13 +178,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Keep the report inside the GPU Runtime and explain why the fatal download would lose it. Then compare the actual document Save and diagnostic downloads and explain why they cannot be used interchangeably.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can the failed viewer download a report after GPU input and drawing have stopped?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -210,10 +205,30 @@ npm --prefix ../session_tests run course -- check 34d-download
 npm --prefix ../session_tests run course -- save 34d-download
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production exposes Diagnostic Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome types Diagnostic Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer.
+
+Chrome reads actual typed ready-report and real GPU-loss/startup-failure JSON downloads, checks scene/history/camera/GPU invariants and late-input blocking, then reloads the same test page for its final working picture.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34d-download
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

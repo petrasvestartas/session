@@ -6,11 +6,7 @@
 
 **Today:** Drop active rows and both history branches while preserving the local ID counter and camera.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Close action → scene storage release and history reset → empty renderer synchronization.
-
-**Before you finish, explain:** Why does Close keep next_id even though it drops every row?
 
 Close is different from Delete and Open Replace. Delete is an undoable edit. Replacement is one transaction that lets Undo recover the previous document. Close ends that document history entirely.
 
@@ -24,7 +20,7 @@ The native GPU proof closes the editor first, then synchronizes an empty scene. 
 
 ## Type the change
 
-Continue [Count each shared GPU buffer once](32b-gpu.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32c-close`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Count each shared GPU buffer once](32b-gpu.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32c-close` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -107,13 +103,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the close tests. This endpoint adds the editor operation and native GPU release proof; the browser still has no Close vocabulary entry until the next step. Its ordinary selection and Move workflow remains intact.
+Run the close checks below. Closing empties active rows, Undo and Redo while preserving camera and ID issuance. The typed Close command follows next.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Close the document without resetting the view.](../screenshots/journey/32c-close-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -121,13 +117,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Compare calling Delete three times with calling Close once. Predict which sources history retains in each case, and whether Undo can restore the old document.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does Close keep next_id even though it drops every row?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -145,10 +144,28 @@ npm --prefix ../session_tests run course -- check 32c-close
 npm --prefix ../session_tests run course -- save 32c-close
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Closing, replacing, unloading source-only data and recovering a released source have different contracts. The following source-unload/reload lessons preserve visible display rows instead of emptying them.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32c-close
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

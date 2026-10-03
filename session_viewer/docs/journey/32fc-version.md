@@ -6,11 +6,7 @@
 
 **Today:** Own a small document header, a distinct import ID and an exact file fingerprint.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Own a small document header, a distinct import ID and an exact file fingerprint..
-
-**Before you finish, explain:** Why can two imports share a file fingerprint but still need different origin IDs?
 
 An unloaded row will need enough information to find its source again. Define Origin as owned document metadata plus an import ID and FileVersion. Its header retains the source name, GUID, tree, graph, bounds and original placement entries. It deliberately has no objects or definitions.
 
@@ -22,7 +18,7 @@ UUID separates two imports of the same file. None of these values owns a kernel 
 
 ## Type the change
 
-Continue [Make editable ownership a private row boundary](32fb-boundary.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fc-version`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Make editable ownership a private row boundary](32fb-boundary.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fc-version` (from `session_viewer`).
 
 ### 1. `Cargo.toml`
 
@@ -84,13 +80,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the state tests. The viewer picture is unchanged: origins are not attached to rows until the next endpoint.
+Run the version checks below. Changing one file byte changes its fingerprint; importing the same bytes again gets a distinct import ID. The browser picture is unchanged.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Record a reload version without retaining geometry.](../screenshots/journey/32fc-version-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -98,13 +94,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change one source byte and predict the version comparison. Then import identical bytes twice and explain why their origin IDs should differ.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can two imports share a file fingerprint but still need different origin IDs?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -122,10 +121,28 @@ npm --prefix ../session_tests run course -- check 32fc-version
 npm --prefix ../session_tests run course -- save 32fc-version
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production released sources retain document/tree metadata. This module prepares that ownership boundary; selected immutable files have an exact byte version, while the later HTTP publication flow needs its own version policy.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fc-version
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

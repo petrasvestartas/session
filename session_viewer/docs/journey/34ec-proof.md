@@ -6,23 +6,19 @@
 
 **Today:** Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation.
 
-**Before you finish, explain:** Why test healthy and invalid-clock cases before wiring the policy to localStorage?
+Complete the previous-run policy with rejected examples. Use a fixed clock to test invalid timestamps, reversed start/heartbeat order, and a failure dated before its run.
 
-Eligibility needs both accepted and rejected examples. The preceding checkpoint covers recent failure, old failure with a fresh heartbeat, active/interrupted other tabs and temporal cutoffs. This checkpoint completes the exclusion proof before the browser adopts stored values.
+Ready and Closed must never produce interruption evidence. Compare the report before and after selection: eligibility reads its metadata without changing it.
 
-Native tests reject invalid current clocks, failed timestamp parsing, start after heartbeat and a first failure before start. Ready and closed runs remain quiet. The same report compares equal before and after policy evaluation: selection reads metadata without altering its evidence. Browser Date.parse and storage are still connected next.
-
-Chrome retains actual report-download, GPU-loss and startup-restart acceptance. This proof adds no timer, listener, visible control or storage adoption.
+This step adds the boundary checks. The browser storage reader is connected next.
 
 ![Exclude false interruption evidence](../illustrations/journey-34ec.svg)
 
 ## Type the change
 
-Continue [Choose a recent failure without blaming active tabs](34eb-recency.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34ec-proof`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Choose a recent failure without blaming active tabs](34eb-recency.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34ec-proof` (from `session_viewer`).
 
 ### 1. `src/report_recency_tests.rs`
 
@@ -78,15 +74,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0,-0.05,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.
+Run the exclusion checks below. Ready/Closed reports and invalid clocks must remain ineligible, with the input report unchanged.
 
-**Actual Chrome screenshot.**
-
-Native tests prove invalid/healthy/closed/bad-order candidates are excluded without mutation. Chrome retains existing real diagnostic/loss/download acceptance; browser storage follows next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prove saved-run exclusions before adopting storage.](../screenshots/journey/34ec-proof-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -94,13 +88,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Make the default outcome branch return a score for Ready, then run the tests and describe the false notice. Make the parser return NaN for the failure and explain why comparison/ranking must reject it.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why test healthy and invalid-clock cases before wiring the policy to localStorage?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -118,10 +115,32 @@ npm --prefix ../session_tests run course -- check 34ec-proof
 npm --prefix ../session_tests run course -- save 34ec-proof
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Previous-report notices must avoid blaming a live or healthy tab and must reject invalid chronology. These native exclusions complete the policy acceptance before browser storage is connected.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Native tests reject invalid current clocks, failed timestamp parsing, start after heartbeat and a first failure before start. Ready and closed runs remain quiet. The same report compares equal before and after policy evaluation: selection reads metadata without altering its evidence. Browser Date.parse and storage are still connected next.
+
+Chrome retains actual report-download, GPU-loss and startup-restart acceptance. This proof adds no timer, listener, visible control or storage adoption.
+
+Native tests prove invalid/healthy/closed/bad-order candidates are excluded without mutation. Chrome retains existing real diagnostic/loss/download acceptance; browser storage follows next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34ec-proof
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

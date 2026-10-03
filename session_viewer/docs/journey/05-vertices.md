@@ -6,11 +6,7 @@
 
 **Today:** Draw a rectangle from six positions stored in a GPU buffer.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Rust positions → bytes → vertex buffer → vertex layout → shader location 0 → two triangles.
-
-**Before you finish, explain:** Who owns the positions, and how does the shader know where each pair of numbers begins?
 
 Our triangle kept its corners inside the shader. That made the first draw easy to follow. A viewer needs to draw geometry supplied by a document, so let us move those corners into data that Rust supplies.
 
@@ -26,7 +22,7 @@ Read `POSITIONS.iter().flatten()` as “visit each number in each pair”. `flat
 
 ## Type the change
 
-Continue [Make a choice change the picture](04-input.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-05-vertices`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Make a choice change the picture](04-input.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-05-vertices` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -182,21 +178,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-A pink rectangle replaces the triangle. Type `Background` and press Enter: only the background changes. The shared diagonal is invisible because both triangles have the same colour.
+The GPU draws a rectangle from six buffered positions. Change one corner in the Rust vertex array, save, and check the changed outline. Restore it.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Let Rust supply the corners.](../screenshots/journey/05-vertices-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Predict which triangle changes if you move only the first position to [-0.9, -0.5]. Try it. The other occurrence of that corner stays put, opening a mismatch along the shared edge. Restore the value. This is the duplication that indices will remove.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Who owns the positions, and how does the shader know where each pair of numbers begins?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -214,10 +213,11 @@ npm --prefix ../session_tests run course -- check 05-vertices
 npm --prefix ../session_tests run course -- save 05-vertices
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer uploads mesh vertices into shared GPU storage. This lesson establishes the CPU-to-GPU byte contract used by those uploads. Document identity and shared allocation are separate jobs introduced later.
 
-[Validation status and course release](release.md).
+</details>

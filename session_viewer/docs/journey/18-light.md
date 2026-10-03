@@ -6,11 +6,7 @@
 
 **Today:** Shade the box faces according to their direction, using the same mesh and renderer.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** World position → neighbouring surface directions → normal → light alignment → fragment colour.
-
-**Before you finish, explain:** Why should orbiting the camera leave the brightness of a particular box face unchanged?
 
 Place a plain cardboard box near a lamp. Its faces have the same material, yet some look brighter. That difference tells your eye where the surface turns. We will give our grey box the same simple clue.
 
@@ -28,7 +24,7 @@ Only the shader needs new drawing logic. Mesh still owns positions and colours; 
 
 ## Type the change
 
-Continue [Bring a solid into the scene](17-solid.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-18-light`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Bring a solid into the scene](17-solid.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-18-light` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -97,15 +93,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Box`, then `View Isometric`. Compare the three visible face colours. Run `Orbit Right`: the light stays fixed in the world. Click a face to see shaded yellow selection.
+Type `Example Box` and `View Isometric`. Faces pointing in different directions should have different brightness, making the box’s shape easier to read.
 
-**Actual Chrome screenshot.**
-
-Compare the box with lesson 17: the same geometry now has three face brightnesses.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Read the shape through light.](../screenshots/journey/18-light-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -113,13 +107,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the light to vec3<f32>(0.0, 0.0, 1.0). Predict the box first: the top should be bright and both vertical sides equally dark. Try it, then restore the original light. Explain why this changes colour without moving a single vertex.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why should orbiting the camera leave the brightness of a particular box face unchanged?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -137,10 +134,20 @@ npm --prefix ../session_tests run course -- check 18-light
 npm --prefix ../session_tests run course -- save 18-light
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This is flat lighting: each triangle has one surface direction. The final viewer also needs smooth normals, materials, two-sided surface rules and contact shadows. Those features will extend the same distinction between geometry, view and shading.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Compare the box with lesson 17: the same geometry now has three face brightnesses.
+
+[Full validation scope](release.md).
+
+</details>

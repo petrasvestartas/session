@@ -6,11 +6,7 @@
 
 **Today:** Build demo triangles and Example Box from kernel geometry; derive all displays on insertion.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Kernel triangle or box → PreparedMesh → source-owning Object → derived display.
-
-**Before you finish, explain:** What does None provenance mean after every object owns kernel geometry?
 
 Close the migration. Demo triangles and the optional extra triangle are small kernel meshes; Example Box retains the kernel mesh it already creates. All enter through PreparedMesh. Every Object can now keep its source geometry, placement and optional file provenance independently of the drawing cache.
 
@@ -24,7 +20,7 @@ Example Box stops discarding its kernel mesh after conversion. Imported objects 
 
 ## Type the change
 
-Continue [Retain the imported mesh behind each row](28a-imported.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-28b-generated`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Retain the imported mesh behind each row](28a-imported.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-28b-generated` (from `session_viewer`).
 
 ### 1. `src/prepared.rs`
 
@@ -222,15 +218,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run Example Box, Select Next three times, Move 0.4,0.2,0 and Fit Selected. The placed box still works. All five kinds of row created so far—two demos, extra triangle, generated box and imported meshes—retain kernel geometry. The next check proves history shares it.
+Type `Example Box`, then `Undo`. The generated box now uses the same source/display ownership as imported geometry and remains one reversible object.
 
-**Actual Chrome screenshot.**
-
-Give generated objects the same source owner. These commands run in the actual dock; kernel ownership is checked separately in Rust.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give generated objects the same source owner.](../screenshots/journey/28b-generated-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -238,13 +232,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change PreparedMesh::triangle’s object colour, then compare its kernel colour with the uploaded display colour. Explain why the conversion may quantize channels and why changing the camera does not rewrite either geometry representation. Restore the original code.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What does None provenance mean after every object owns kernel geometry?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -262,10 +259,28 @@ npm --prefix ../session_tests run course -- check 28b-generated
 npm --prefix ../session_tests run course -- save 28b-generated
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer creates and edits source geometry first, then synchronizes display tables. This checkpoint establishes that direction for every current mesh object. Later geometry families extend it without making GPU data the editable document.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Give generated objects the same source owner. These commands run in the actual dock; kernel ownership is checked separately in Rust.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 28b-generated
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

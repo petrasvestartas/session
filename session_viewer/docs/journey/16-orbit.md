@@ -6,11 +6,7 @@
 
 **Today:** Orbit and tilt a perspective camera while keeping its target in place.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** View action → orientation quaternion → eye and up vectors → view-projection matrix → drawing and pick ray.
-
-**Before you finish, explain:** Which camera value should stay fixed while you orbit around the model?
 
 Imagine walking around a small sculpture while keeping your eyes on one point. Your position changes, but the point you are watching stays put. That point is the camera target.
 
@@ -28,7 +24,7 @@ The default orientation preserves the previous lesson's straight-down view: forw
 
 ## Type the change
 
-Continue [Look through a perspective camera](15-perspective.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-16-orbit`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Look through a perspective camera](15-perspective.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-16-orbit` (from `session_viewer`).
 
 ### 1. `src/camera.rs`
 
@@ -246,15 +242,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Orbit Up` to see the triangles at different heights. `Orbit Right` moves around the target. `View Isometric` chooses a repeatable oblique view. Click a visible surface after each change and check the selection.
+Type `View Isometric`, then `Orbit Right`. The eye moves around the same target. Click a visible face to confirm picking still agrees with the new view.
 
-**Actual Chrome screenshot.**
-
-Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Walk around the model.](../screenshots/journey/16-orbit-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -262,13 +256,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Type `View Isometric` and press Enter, pan, then tilt. Predict whether the point at the screen centre will stay centred during the tilt. It should: pan chose a new target, and orbit keeps that target fixed. Delete a selected surface and undo; the camera should keep its current orientation.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Which camera value should stay fixed while you orbit around the model?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -286,10 +283,20 @@ npm --prefix ../session_tests run course -- check 16-orbit
 npm --prefix ../session_tests run course -- save 16-orbit
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained camera uses target, distance, orientation and world-up in the same way. Later gesture lessons turn pointer deltas into these operations; unit conversion, fit-to-scene and large-coordinate precision extend the camera without moving source geometry.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Look at the two triangles from Isometric: the changed overlap comes from the camera, not edited vertex positions.
+
+[Full validation scope](release.md).
+
+</details>

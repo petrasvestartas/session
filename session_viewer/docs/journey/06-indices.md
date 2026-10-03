@@ -6,11 +6,7 @@
 
 **Today:** Draw a diamond from four positions and six small index numbers.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Six indices → four shared positions → vertex shader → two joined triangles.
-
-**Before you finish, explain:** Why do we draw six indices when there are only four positions?
 
 Imagine numbering the corners of a paper diamond. To name its bottom triangle, say “0, 1, 2”. To name its top triangle, say “0, 2, 3”. The numbers tell us how to connect corners; they do not contain coordinates themselves.
 
@@ -26,7 +22,7 @@ The shader does not need an “indexed” version. It receives a position in exa
 
 ## Type the change
 
-Continue [Let Rust supply the corners](05-vertices.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-06-indices`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Let Rust supply the corners](05-vertices.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-06-indices` (from `session_viewer`).
 
 ### 1. `src/renderer.rs`
 
@@ -156,21 +152,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The rectangle becomes a diamond. Its upper and lower triangles meet along the horizontal diagonal. Run `Background` to check that the command path still works.
+A diamond is drawn from four vertices. Follow the six indices into those vertices: they must describe two triangles that share the middle edge.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Share a corner between triangles.](../screenshots/journey/06-indices-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Move position 0 from [-0.6, 0.0] to [-0.9, 0.0]. Predict which triangles change. Both should move their left corner together, leaving no crack. Then restore the coordinate and temporarily draw only 0..3 indices: only the lower triangle should remain. Restore 0..6 before comparing.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why do we draw six indices when there are only four positions?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -188,10 +187,11 @@ npm --prefix ../session_tests run course -- check 06-indices
 npm --prefix ../session_tests run course -- save 06-indices
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Mesh topology uses indices to share vertices. The production mesh lane uses the same distinction between a vertex range and an index range; its shared allocations add offsets without changing what an index means.
 
-[Validation status and course release](release.md).
+</details>

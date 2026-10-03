@@ -8,11 +8,7 @@
 
 **Today:** Send browser events to the dock and submit Help.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Browser → Panel → CommandLine → layout → existing GPU.
-
-**Before you finish, explain:** Why do we lay out again without replaying the event?
 
 Now the field becomes usable. A browser key is not automatically an egui key: Panel translates it and passes it to the context. Enter produces a submitted line. Help writes an answer into history. In lesson 04, the same path will change the scene.
 
@@ -28,7 +24,7 @@ The second update receives no event. It lays out the cleared field and new answe
 
 ## Type the change
 
-Continue [Draw completion and history](03c-layout.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-03d-input`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Draw completion and history](03c-layout.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03d-input` (from `session_viewer`).
 
 ### 1. `src/panel.rs`
 
@@ -149,23 +145,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Click inside the Command field, type Help, then press Enter. The field clears and history records the answer. Type He: the viewer’s completion fills Help. Escape cancels it. No feature buttons are added.
+Type `Help` and press Enter. The field clears and one reply appears in history. Click the canvas and type again: the first character must reach the command field.
 
-**Actual Chrome screenshot.**
-
-Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Type into the real command dock.](../screenshots/journey/03d-input-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Type an unknown word and press Enter. The dock should explain that it is unknown while leaving the triangle unchanged. Type Help again. Explain why input and document changes are separate.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why do we lay out again without replaying the event?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -183,10 +180,20 @@ npm --prefix ../session_tests run course -- check 03d-input
 npm --prefix ../session_tests run course -- save 03d-input
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+
+[Full validation scope](release.md).
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Send a separate model matrix for each draw while retaining local vertex buffers.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Local vertex → model uniform → world point → camera uniform → clip position.
-
-**Before you finish, explain:** Why do model and camera matrices need separate owners?
 
 Bounds and picking now understand placement. Drawing must apply that same matrix, or the visible object and the selectable object would disagree.
 
@@ -24,7 +20,7 @@ Finally change Example Box: create its shape around the local origin, then give 
 
 ## Type the change
 
-Continue [Ask geometry questions in world coordinates](27a-world.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-27b-model`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Ask geometry questions in world coordinates](27a-world.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-27b-model` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -226,15 +222,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run Example Box, Select Next three times, View Isometric and Fit Selected. The box must appear at its placed world position, remain selectable, and fit correctly. Its local coordinates stay centred around zero. Check the shader trace: model first, camera second.
+Type `Example Box`, then `View Isometric`. The box now draws at its placed position. Click a visible face: picking must agree with the GPU placement, while local vertices stay unchanged.
 
-**Actual Chrome screenshot.**
-
-Apply object placement on the GPU. The actual command dock drives this checkpoint; the selected object is highlighted.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Apply object placement on the GPU.](../screenshots/journey/27b-model-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -242,13 +236,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change Example Box’s placement translation from (0.9, 0, 0.4) to (1.4, 0, 0.4). Predict where Fit Selected will aim and verify the visible box and its pick agree. Restore the original value. Do not move the box by rewriting its mesh.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why do model and camera matrices need separate owners?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -266,10 +263,28 @@ npm --prefix ../session_tests run course -- check 27b-model
 npm --prefix ../session_tests run course -- save 27b-model
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer shares local geometry across instances and supplies placement data to GPU draws. This checkpoint introduces the same ownership boundary with one bind group per object; batching and resource accounting follow later.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Apply object placement on the GPU. The actual command dock drives this checkpoint; the selected object is highlighted.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 27b-model
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

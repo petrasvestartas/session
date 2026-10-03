@@ -8,11 +8,7 @@
 
 **Today:** Frame all current objects without rotating them or changing the document.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Fit command → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer.
-
-**Before you finish, explain:** Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?
 
 Imagine opening a model drawn far from the origin. The file loaded correctly, but the canvas looks empty. More clicking is not a reliable way to find it. Let us give the viewer a command that asks: “How much space do all these objects occupy?”
 
@@ -28,7 +24,7 @@ Think of the viewing angle as a pair of scissors opened at the eye. In a tall wi
 
 ## Type the change
 
-Continue [Keep the document behind the picture](23-import.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-24-fit`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep the document behind the picture](23-import.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-24-fit` (from `session_viewer`).
 
 ### 1. `src/bounds.rs`
 
@@ -273,17 +269,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Create `sample.pb` as in lesson 23. Run `Open` and choose it, then `View Isometric`, `Pan Right` three times, and `Fit`. The whole scene returns with a margin; the isometric orientation stays.
+Open `sample.pb` from lesson 23. Type `View Isometric`, `Pan Right`, then `Fit`. The whole scene returns with a margin and keeps its viewing direction.
 
-Run `Undo`: the import disappears although Fit came later. `Redo` restores it. Narrow the browser and run `Fit` again. Resizing keeps the distance; Fit recalculates it for the new window shape.
-
-**Actual Chrome screenshot.**
-
-The orange frame and both triangles are centred together after three pans and Fit scene. Chrome also checks that a second Fit leaves the drawing unchanged, that Fit recovers after another pan, and that the imported file remains one undoable action.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Find the whole scene.](../screenshots/journey/24-fit-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -291,13 +283,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -315,10 +310,20 @@ npm --prefix ../session_tests run course -- check 24-fit
 npm --prefix ../session_tests run course -- save 24-fit
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The orange frame and both triangles are centred together after three pans and Fit scene. Chrome also checks that a second Fit leaves the drawing unchanged, that Fit recovers after another pan, and that the imported file remains one undoable action.
+
+[Full validation scope](release.md).
+
+</details>

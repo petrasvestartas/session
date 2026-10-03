@@ -6,11 +6,7 @@
 
 **Today:** Inspect undo/redo roots and release both branches explicitly.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Scene snapshots → shared source/display owners → history reset → ownership tests.
-
-**Before you finish, explain:** Why can deleting every visible row leave its source alive?
 
 Deleting a row removes it from drawing, but Undo can bring it back. That requires an owner somewhere. Our History keeps scene snapshots whose rows clone Rc owners rather than copying mesh payloads.
 
@@ -26,7 +22,7 @@ The browser still behaves as before at this endpoint. We are making the ownershi
 
 ## Type the change
 
-Continue [Update only changed object settings](31c-incremental.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32-history`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Update only changed object settings](31c-incremental.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32-history` (from `session_viewer`).
 
 ### 1. `src/history.rs`
 
@@ -73,13 +69,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the state checks. Open Replace the specimen, Move a post and Undo it; ordinary history must still work. No Close command exists yet.
+Run the history checks below. After edits and Undo, inspect both branches; releasing history must empty both retained roots without changing active rows.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Find the owners retained by history.](../screenshots/journey/32-history-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -87,13 +83,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Keep a cloned Rc of a removed display in a test scope. Predict why clearing history will no longer make its Weak upgrade fail until that extra owner is dropped.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can deleting every visible row leave its source alive?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -111,10 +110,28 @@ npm --prefix ../session_tests run course -- check 32-history
 npm --prefix ../session_tests run course -- save 32-history
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 History ownership matters for source release, document replacement and large scenes. Production source unloading also retains display and tree metadata; its later lessons are distinct from closing the document.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32-history
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

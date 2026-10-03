@@ -6,11 +6,7 @@
 
 **Today:** Finish migrating owner checks and prevent other modules from bypassing source availability.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Remaining native ownership proofs → borrowed accessors → private source fields.
-
-**Before you finish, explain:** Why keep PreparedMesh geometry mandatory when Object geometry is accessed optionally?
 
 Complete the access migration before introducing source unloading. Move the remaining document, duplicate-import, replacement and close checks to geometry() and source(), then make Object’s two editable-owner fields private. Rust now rejects external direct field access.
 
@@ -24,7 +20,7 @@ Public id, saved guid, metadata, model and derived mesh remain the retained row 
 
 ## Type the change
 
-Continue [Ask whether an editable source is available](32fa-access.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fb-boundary`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Ask whether an editable source is available](32fa-access.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fb-boundary` (from `session_viewer`).
 
 ### 1. `src/editor.rs`
 
@@ -377,13 +373,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run every state and GPU check. Duplicate imports must stay distinct, Move/Undo must share the correct source, and Close must release old source/document values. In Chrome, repeat import and history checks through the dock.
+Build and run the checks below. Other modules must use the source accessor; the private row field prevents bypassing source availability.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Make editable ownership a private row boundary.](../screenshots/journey/32fb-boundary-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -391,13 +387,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Try reading object.geometry directly from document.rs and predict the compiler error. Explain why a renderer’s row.geometry or a prepared candidate’s geometry can remain valid even after this row source field becomes private.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why keep PreparedMesh geometry mandatory when Object geometry is accessed optionally?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -415,10 +414,28 @@ npm --prefix ../session_tests run course -- check 32fb-boundary
 npm --prefix ../session_tests run course -- save 32fb-boundary
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Next add reload origin/version information, release eligible imported owners across active and history roots, and restore them atomically. A source-only unload must not masquerade as Close.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fb-boundary
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

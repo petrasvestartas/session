@@ -6,11 +6,7 @@
 
 **Today:** Transfer the accepted File through synchronous delivery and create its URL at adoption.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Transfer the accepted File through synchronous delivery and create its URL at adoption..
-
-**Before you finish, explain:** Why not create a Blob URL as soon as the user selects a file?
 
 The browser already owns asynchronous file delivery through ReadGate. Add one shared delivery slot holding the accepted File only during the viewer-file dispatch. After the read finishes and its ticket is accepted, the producer places the File in this slot, dispatches, then clears any unclaimed value.
 
@@ -18,13 +14,11 @@ The listener validates the event payload, takes the File, creates ReloadUrl and 
 
 The slot is a Rust handoff, not a persistent cache of file bytes or kernel sources. It also prevents an unrelated external viewer-file event from manufacturing a located import without an accepted File. Later listener teardown cancels work and releases this handoff lifetime.
 
-Chrome checks real fetches from adopted URLs, invalid-import revocation, cancelled reads with no new URLs, URL retention through Undo/Redo and revocation after Close. Recordings use the browser’s URL methods, while the resulting drawing remains the same command-only viewer.
-
 ![Transfer the accepted File through synchronous delivery and create its URL at adoption.](../illustrations/journey-32ff.svg)
 
 ## Type the change
 
-Continue [Give a reload URL an explicit owner](32fe-location.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32ff-bridge`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give a reload URL an explicit owner](32fe-location.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32ff-bridge` (from `session_viewer`).
 
 ### 1. `src/file_input.rs`
 
@@ -224,13 +218,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open a specimen, inspect the owned origin URL, and fetch its bytes. Duplicate imports get distinct URLs and origin IDs. Close and confirm their URLs are revoked; cancelled reads must never allocate one.
+Open `sample.pb`. Run the adoption checks below: only an accepted read may acquire its Blob URL; cancelled or stale reads must not retain one.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Adopt the selected file as a reloadable source.](../screenshots/journey/32ff-bridge-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -238,13 +232,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Remove the final delivery-slot cleanup in a scratch copy and predict what happens if no listener adopts its File. Keep the production implementation unchanged after the experiment.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why not create a Blob URL as soon as the user selects a file?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -262,10 +259,28 @@ npm --prefix ../session_tests run course -- check 32ff-bridge
 npm --prefix ../session_tests run course -- save 32ff-bridge
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Accepted immutable Files now have a reload path and exact byte version. Source residency can change next without inventing URLs from kernel geometry or drawing floats.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome checks real fetches from adopted URLs, invalid-import revocation, cancelled reads with no new URLs, URL retention through Undo/Redo and revocation after Close. Recordings use the browser’s URL methods, while the resulting drawing remains the same command-only viewer.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32ff-bridge
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

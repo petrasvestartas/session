@@ -8,11 +8,7 @@
 
 **Today:** Resize the drawing buffer, depth attachment and camera together, including on dense displays.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** CSS rectangle × display density → bounded pixel size → canvas and surface + depth image + camera aspect → draw.
-
-**Before you finish, explain:** Why is changing only the canvas width insufficient?
 
 Our canvas has filled the window since lesson 01, and the GPU has used the startup window size since lesson 02. Now narrow the window after opening it: we need to update the image dimensions as well as the CSS layout. Today we add that response and support sharper drawing on dense displays.
 
@@ -30,7 +26,7 @@ Keep the aspect while resetting the camera pose, just as we did when introducing
 
 ## Type the change
 
-Continue [Give every action the same route](19-actions.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-20-resize`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give every action the same route](19-actions.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-20-resize` (from `session_viewer`).
 
 ### 1. `src/viewport.rs`
 
@@ -329,15 +325,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Box` and `View Isometric`. Widen and narrow the browser: the box keeps its proportions while the visible horizontal space changes. Run `View Reset` after resizing. The drawing dimensions should follow display density.
+Resize the browser from wide to tall. The canvas, depth image and camera must use the new dimensions; the scene must not stretch.
 
-**Actual Chrome screenshot.**
-
-The browser window has been resized. The drawing buffer, depth texture and camera aspect now follow the canvas dimensions.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep a changing window in proportion.](../screenshots/journey/20-resize-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -345,13 +339,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 At density 2, predict the drawing size for a 768 × 384 CSS canvas: 1536 × 768. Now set the GPU limit in the viewport test to 1024. Both dimensions must shrink together to 1024 × 512. Run the test and explain why clamping each dimension independently would stretch the scene.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is changing only the canvas width insufficient?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -369,10 +366,20 @@ npm --prefix ../session_tests run course -- check 20-resize
 npm --prefix ../session_tests run course -- save 20-resize
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The final viewer uses the same size agreement for every attachment, including multisampling, picking and post-processing. Later panels need element resize observation as well as window events; this lesson handles window resizing and rechecks layout on each action.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The browser window has been resized. The drawing buffer, depth texture and camera aspect now follow the canvas dimensions.
+
+[Full validation scope](release.md).
+
+</details>

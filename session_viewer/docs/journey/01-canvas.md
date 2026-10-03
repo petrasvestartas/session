@@ -6,11 +6,7 @@
 
 **Today:** Fill the browser window with a canvas and let Rust signal that it has started.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** HTML canvas → WebAssembly entry point → hidden startup status.
-
-**Before you finish, explain:** Does seeing the canvas prove that the GPU has drawn anything?
 
 Think of the canvas as an empty sheet of paper. Today that sheet fills the browser window. Rust records a startup message in a hidden page element. We are checking the connection before asking the GPU to draw.
 
@@ -70,23 +66,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The browser content area is entirely white, with no title, border or instructions. Open the browser’s developer console and evaluate `document.getElementById("status").textContent`: it should report “Rust is running. The canvas is ready.” The canvas is still plain HTML and CSS.
+The window is white. In the browser console, evaluate `document.getElementById("status").textContent`. It should say “Rust is running. The canvas is ready.” Rust has started; GPU drawing comes next.
 
-**Actual Chrome screenshot.**
-
-A white canvas fills the window. Rust startup is checked through the hidden status; there is deliberately no visible heading or message.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: A page that Rust can reach.](../screenshots/journey/01-canvas-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the sentence passed to `set_text_content`, save, and read the hidden status again in the browser console. The sentence changes while the white canvas stays still. Restore the original sentence before comparing your code.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Does seeing the canvas prove that the GPU has drawn anything?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -104,10 +101,20 @@ npm --prefix ../session_tests run course -- check 01-canvas
 npm --prefix ../session_tests run course -- save 01-canvas
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Our entry point will grow into the maintained viewer’s `lib.rs`. Browser setup is deliberately small here; the later application needs winit event routing, resizing and device recovery.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+A white canvas fills the window. Rust startup is checked through the hidden status; there is deliberately no visible heading or message.
+
+[Full validation scope](release.md).
+
+</details>

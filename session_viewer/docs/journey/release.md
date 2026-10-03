@@ -1,8 +1,14 @@
 # Course release: command-line checkpoints
 
-**All 118 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 120 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
+
+## Lesson clarity revision
+
+All 120 current lessons now have a focused exercise instead of an accumulated command tour. Chapter 34’s 18 explanations have been rewritten around their own change and the Rust needed for it. Experiments, implementation context and extended acceptance evidence are expandable supporting notes. The to-do link is visible on every lesson.
+
+This revision changes teaching text and layout, preserving the verified code and browser checks. Seventeen typing splits and the review of the remaining explanations are still listed in the roadmap; build evidence alone does not establish teaching quality.
 
 ## What was checked
 
@@ -88,6 +94,18 @@ Two more checkpoints pass 129 native tests each, WebAssembly, Trunk, native GPU 
 The next endpoint owns its native interval, Window and Rust Closure together. Startup registers 15000 milliseconds; cancellation clears the native interval before releasing the callback. Explicit stop is idempotent and replacement clears the preceding owner. The timer captures no device, renderer, document or source. Chrome observes the actual requested period and accelerates delivery only in the proof, checking multiple metadata updates, exact handle cancellation/replacement, zero GPU calls inside callbacks, continued diagnostics after GPU loss and ready startup/current download when registration throws. It does not measure real 15-second wall-clock scheduling or phone performance. Automatic lifecycle suspension/final-exit hooks follow next.
 
 Typing estimates are 17–33 and 16–32 minutes. The first timer capture passed its custom assertions but failed the common no-page-error check because its observer accessed GPUQueue on the Back-test navigation target without WebGPU. The helper now guards that interface; a full repeat passes with the original page-error assertion intact. Both final captures retain the white full-window canvas and actual command dock.
+
+## Final-close and page-transition ownership
+
+Two further checkpoints pass 132 native tests each, WebAssembly, Trunk, native GPU frames and actual headed Chrome. Final close validates timestamp text before mutation, marks healthy reports Closed and preserves Failed with its original fatal timestamp and observations. A targeted late-ready test failed before the correction: a milestone reopened Closed as Ready. That promotion is now prevented, and Chrome sends the actual late observation through the debug metadata export to prove Closed remains stored. Scene, placement, selection, camera, history and geometry counters stay unchanged. This operation does not itself cancel an outstanding adapter/device promise.
+
+A separate browser owner retains two metadata bindings and an Rc allocation token independently of the eighteen drawing/input bindings. Cached pagehide records activity and pauses its interval without closing the report; pageshow resumes one interval. Final exit persists close immediately, then disposes listeners on the next microtask only if the allocation still matches. The callback returns before its own Rust Closure is released. Taking owners out of RefCell slots before dropping them avoids reentrant borrows. Denied registration cleans the partial binding, records unavailable lifecycle service, and leaves ready drawing/current downloads usable.
+
+Chrome has focused transition acceptance plus the common real command/camera/input checks; it does not alter the older optional ownership assertions. It separately observes two metadata/eighteen GPU bindings, actual device destruction, retained post-loss observations, healthy/failed final cleanup, zero late GPU work and replacement before an older cleanup microtask. Synthetic persisted transitions establish the branch, not actual browser cache eligibility. Earlier checkpoints retain independent fresh evidence. Hidden/frozen suspension reasons, pending-startup revocation, error observations, complete phases and bounded recovery remain next.
+
+Typing estimates are 22–44 and 26–52 minutes. An initial close capture failed an inherited command-history assertion; its checker now logs the inspector on inherited failure, with the assertion intact. The full repeat and final corrected-policy recheck pass. Its input cause remains unestablished and belongs to the pending dock audit.
+
+Production diagnostics separately corrects cached outcome loss and late-milestone overwrites in 16f01f7e. Three new regression tests failed before and all ten pass after; headed Chrome reproduces the cached failure before and passes all three lifecycle cases afterward. All ten recency cases, the full serial native suite (506 passed, 55 ignored) and WebAssembly pass. The permanent far-floor oracle actually renders all six desktop/portrait configurations: 100.0000% of visible samples remain inked. It is a visible-edge acceptance, not zero hidden-line-leak evidence or a phone timing measurement. Rendering code is unchanged by this metadata correction.
 
 ## Reproduce
 

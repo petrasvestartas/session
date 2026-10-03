@@ -6,11 +6,7 @@
 
 **Today:** Run Fit Selected while keeping geometry, selection and document history unchanged.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Fit Selected → Editor → stable ObjectId → selected bounds → Camera::fit → frame.
-
-**Before you finish, explain:** Does fitting an object change its coordinates or only the camera?
 
 A small component can be lost inside a large assembly. Fit shows the whole scene; Fit Selected should show just the object you chose. We reuse the fitting policy from lesson 24 and change only the source of its bounds.
 
@@ -24,7 +20,7 @@ A model coordinate and a screen pixel are different quantities. If an object spa
 
 ## Type the change
 
-Continue [Choose how depth changes size](25-projection.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-26-selected`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Choose how depth changes size](25-projection.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-26-selected` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -148,15 +144,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run Example Box, View Isometric, Select Next and Fit Selected. The first triangle becomes the fitting target while the other objects remain in the scene. Run Fit to compare the whole-scene view. Type Fit Selected after clicking the drawing: it must reach the command dock. Run Undo: it removes the added box, not the camera move.
+Type `Select Next`, then `Fit Selected`. The selected object fills the view with a margin. Geometry, selection and Undo history stay unchanged.
 
-**Actual Chrome screenshot.**
-
-Fit Selected frames the first triangle without deleting the added box or changing object coordinates.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Frame one object without changing its size.](../screenshots/journey/26-selected-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -164,13 +158,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Select Next repeatedly and run Fit Selected after each selection. Predict the camera target from that object’s minimum and maximum coordinates. Then compare perspective and orthographic fits. Explain why neither operation should create an undo entry.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Does fitting an object change its coordinates or only the camera?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -188,10 +185,20 @@ npm --prefix ../session_tests run course -- check 26-selected
 npm --prefix ../session_tests run course -- save 26-selected
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer fits selected display rows and their world-space bounds. This checkpoint establishes stable selection and camera-only fitting. Local placements, inherited transforms and multiple selected objects will extend the bounds query in later lessons.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Fit Selected frames the first triangle without deleting the added box or changing object coordinates.
+
+[Full validation scope](release.md).
+
+</details>

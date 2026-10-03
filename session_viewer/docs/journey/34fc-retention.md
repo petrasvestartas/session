@@ -6,25 +6,19 @@
 
 **Today:** Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** bounded raw JSON header → retention score → keep original stored bytes; supported schema → typed admission → candidate notice/download.
 
-**Before you finish, explain:** Why does refusing to adopt an unsupported report not justify treating it as malformed during pruning?
+Separate retaining raw evidence from adopting it. The strict reader rejects newer schemas; using that accepted list to prune storage would also delete newer telemetry.
 
-The preceding writer had a compatibility counterexample. Its reports() reader intentionally rejects unsupported fields and versions, but using that same decoded list to choose retention deleted a newer-format value even when it was the newest saved evidence. Rejection prevents an older export from stripping fields; pruning must not undo that protection.
+`retention_time` reads only a bounded version/date header. It returns a ranking timestamp without constructing a Report. A newer-format value can therefore occupy an older-report slot while remaining ineligible for a notice or typed download.
 
-retention_time parses at most one MiB and requires a positive integer version plus bounded timestamp text with a finite, non-future time. It permits unsupported fields and future format versions, returning only their retention score. It does not adopt the value, validate a full report, create a notice or serialize a replacement. Dateable values with invalid typed shape can occupy a retained slot; they remain excluded by the strict reader.
-
-The writer reads each bounded owned older value before mutation and ranks these header scores. The two newest older values stay in place byte for byte. Unsupported versions compete under the same three-total-report policy; they are not retained forever. Syntax errors, unbounded text or unusable headers can be pruned after the current write succeeds. A failed read aborts the write entirely, avoiding deletion of evidence that could not be inspected.
-
-Native tests separate retention from admission and cover byte/date/version bounds without mutating input. Headed Chrome stores actual unknown telemetry in version2, preserves its exact whitespace-bearing JSON through repeated writes and proves the typed reader still refuses it. A controlled getItem denial leaves all prior values unchanged and performs no current write. All inherited real GPU-loss, reload, previous-download and scene/history checks remain.
+Read and rank older values before mutation. Keep the two newest raw strings byte for byte. If a read fails, abort rather than delete uninspected evidence. Invalid JSON or unusable headers can be pruned after a successful current write.
 
 ![Retain raw evidence separately from admission](../illustrations/journey-34fc.svg)
 
 ## Type the change
 
-Continue [Retrieve saved failure evidence through the command line](34fb-store.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34fc-retention`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Retrieve saved failure evidence through the command line](34fb-store.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34fc-retention` (from `session_viewer`).
 
 ### 1. `src/report_store.rs`
 
@@ -119,15 +113,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run native tests and the viewer. Diagnostic Report and Diagnostic Report Previous retain the previous lesson’s behavior. Chrome stores a newer-format report with unknown telemetry and proves successful pruning retains its exact original JSON while leaving it ineligible for typed adoption. A failed older-value read aborts before any storage mutation. Finish the healthy proof view with Move 0,-0.05,0 and Fit.
+Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
 
-**Actual Chrome screenshot.**
-
-Chrome preserves exact raw JSON from a newer-format report through actual pruning, refuses typed adoption and aborts safely when reading an older value is denied. Full inherited live diagnostics and scene/history checks pass.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Preserve unsupported telemetry while pruning.](../screenshots/journey/34fc-retention-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -135,13 +127,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Replace the retention-header loop with reports() again, then inspect the saved futureTelemetry value after pruning. Explain why refusing a previous-report download and deleting its original evidence are different decisions.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does refusing to adopt an unsupported report not justify treating it as malformed during pruning?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -159,10 +154,30 @@ npm --prefix ../session_tests run course -- check 34fc-retention
 npm --prefix ../session_tests run course -- save 34fc-retention
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Report schema evolves as detailed telemetry is taught. Admission stays strict, while bounded retention preserves newest unsupported raw evidence without conversion. Heartbeat/lifecycle observations, new telemetry fields and bounded recovery follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Native tests separate retention from admission and cover byte/date/version bounds without mutating input. Headed Chrome stores actual unknown telemetry in version2, preserves its exact whitespace-bearing JSON through repeated writes and proves the typed reader still refuses it. A controlled getItem denial leaves all prior values unchanged and performs no current write. All inherited real GPU-loss, reload, previous-download and scene/history checks remain.
+
+Chrome preserves exact raw JSON from a newer-format report through actual pruning, refuses typed adoption and aborts safely when reading an older value is denied. Full inherited live diagnostics and scene/history checks pass.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34fc-retention
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

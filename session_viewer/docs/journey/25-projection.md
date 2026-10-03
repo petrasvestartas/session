@@ -8,11 +8,7 @@
 
 **Today:** Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** projection command → Editor → Camera matrix → drawing and inverse-matrix picking.
-
-**Before you finish, explain:** Why can the same ray-picking code work in both views even though their rays have different shapes?
 
 Look down a corridor: the far end appears smaller. That is perspective. Now imagine a technical drawing of the same corridor: equal lengths can keep the same size even at different depths. That is orthographic projection.
 
@@ -28,7 +24,7 @@ The depth buffer still decides which surface is nearest. In orthographic mode, w
 
 ## Type the change
 
-Continue [Find the whole scene](24-fit.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-25-projection`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Find the whole scene](24-fit.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-25-projection` (from `session_viewer`).
 
 ### 1. `src/camera.rs`
 
@@ -285,17 +281,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Open` and choose `sample.pb`. Enter `View Isometric`, `View Orthographic`, then `Fit`. Now run `View Perspective` without fitting again. The target stays fixed, but near and far objects change their relative sizes.
+Open `sample.pb`. Type `View Isometric`, `View Orthographic`, `Fit`, then `View Perspective`. The target stays fixed while depth changes the relative sizes.
 
-Click an orange beam in each mode; selection should follow the visible face. Run `View Reset` to return to perspective. Compare both modes in a narrow window, using `Fit` after each change.
-
-**Actual Chrome screenshot.**
-
-The orange frame is fitted in orthographic view; the pink Orthographic command records the active choice. Chrome checks mouse and keyboard switching, exact perspective/orthographic round trips, visible-face selection in both modes, and fitting at wide and tall viewport sizes.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Choose how depth changes size.](../screenshots/journey/25-projection-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -303,13 +295,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Switch modes while looking squarely at the two original triangles. Which one changes size more? Their depths differ, and neither lies on the target plane. Now orbit: the mode should stay selected while the viewing direction changes. Explain why Isometric and Orthographic are not synonyms.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can the same ray-picking code work in both views even though their rays have different shapes?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -327,10 +322,20 @@ npm --prefix ../session_tests run course -- check 25-projection
 npm --prefix ../session_tests run course -- save 25-projection
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production camera uses this same target-plane scale relationship. Its tighter fitting, units, named views and camera-relative coordinates come next. Production also uses reversed depth for precision; this checkpoint keeps the existing 0-near/1-far depth convention. Switching modes deliberately preserves the view parameters rather than automatically refitting; run Fit if the new perspective clips or crops a nearby part.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The orange frame is fitted in orthographic view; the pink Orthographic command records the active choice. Chrome checks mouse and keyboard switching, exact perspective/orthographic round trips, visible-face selection in both modes, and fitting at wide and tall viewport sizes.
+
+[Full validation scope](release.md).
+
+</details>

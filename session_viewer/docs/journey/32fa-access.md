@@ -6,11 +6,7 @@
 
 **Today:** Route saving, source accounting and owner checks through borrowed source accessors.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Scene row → Option of borrowed editable geometry/provenance → checked source consumers.
-
-**Before you finish, explain:** Does Option<&Rc<Mesh>> add another mesh owner?
 
 A public mandatory kernel field cannot express a display-only row. Introduce geometry() and source() as the boundary used by consumers before changing storage. geometry returns an Option of a borrowed Rc; source returns optional imported provenance. At this checkpoint every row still has geometry, and generated rows still have no imported provenance.
 
@@ -26,7 +22,7 @@ The fields remain temporarily public so the remaining tests can be migrated in a
 
 ## Type the change
 
-Continue [Keep row metadata separate from editable geometry](32f-metadata.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fa-access`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep row metadata separate from editable geometry](32f-metadata.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fa-access` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -239,13 +235,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the native checks and Save after moving an imported post. Reopen the saved document and verify its original double coordinates and placement. The browser drawing and metadata must match the previous endpoint’s behavior.
+Run the source-access checks below. Saving and accounting borrow the available source through its accessor rather than owning another copy.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Ask whether an editable source is available.](../screenshots/journey/32fa-access-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -253,13 +249,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Compare Rc::clone(row.geometry().unwrap()) with merely calling row.geometry(). Predict which expression adds a strong owner and how that affects a later Weak release check.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Does Option<&Rc<Mesh>> add another mesh owner?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -277,10 +276,28 @@ npm --prefix ../session_tests run course -- check 32fa-access
 npm --prefix ../session_tests run course -- save 32fa-access
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Source release needs an explicit absence state and reload ownership. These borrowed accessors prepare that state without changing renderer geometry or weakening the save format.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fa-access
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

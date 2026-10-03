@@ -1,5 +1,6 @@
 <template>
   <div class="course-page">
+    <p class="course-progress"><router-link to="/course/journey/roadmap">To-do list and progress</router-link></p>
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
     </p>
@@ -96,6 +97,11 @@ const onClick = (e: MouseEvent) => {
 <style scoped>
 .course-page {
   padding: 1.5rem 0 3rem;
+}
+
+.course-progress {
+  margin: 0 0 1rem;
+  font-size: 14px;
 }
 
 .missing {

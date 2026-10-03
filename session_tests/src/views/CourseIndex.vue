@@ -4,10 +4,11 @@
     <p class="lead">
       Build a small viewer you can explain, then grow toward the full viewer’s features and quality.
       Follow a working picture through geometry buffers, view state and drawing.
-      The course is being extended; browser checks and the later feature lessons remain pending.
+      The course is being extended; remaining feature lessons and the final parity review are pending.
       The complete implementation reference stays available below.
     </p>
     <p><router-link to="/course/journey">Start with the course route</router-link></p>
+    <p><router-link to="/course/journey/roadmap">To-do list and progress: finished and remaining lessons</router-link></p>
     <details v-for="g in groups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas')">
       <summary>{{ g.title }}</summary>
       <ol :class="{ plain: g.title !== 'Course' }">

@@ -6,11 +6,7 @@
 
 **Today:** Pan, zoom and reset a flat view through camera state.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** command → camera centre or scale → four uniform values → existing renderer → unchanged mesh in a different view.
-
-**Before you finish, explain:** When the camera centre moves right, why does the diamond move left on the screen?
 
 Place a drawing under a small window cut in a sheet of paper. Slide the window right. The drawing appears to move left inside it, although the drawing stayed on the table. A camera changes the place from which we see the scene.
 
@@ -28,7 +24,7 @@ Two tests protect the meaning of that state. One proves that the point we look a
 
 ## Type the change
 
-Continue [Send one view setting to every corner](07-uniforms.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-08-camera`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Send one view setting to every corner](07-uniforms.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-08-camera` (from `session_viewer`).
 
 ### 1. `src/camera.rs`
 
@@ -166,13 +162,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Submit these lines one at a time: `Zoom Out`, `Pan Right`, `Pan Left`, `View Reset`. The diamond shrinks, moves left, moves back, then returns to its initial size. Run `Background`, then `View Reset`: the background stays as you chose it.
+Type `Zoom Out`, then `View Reset`. The diamond shrinks, then returns to its initial size. The camera changed; the geometry did not.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Move the view, keep the geometry.](../screenshots/journey/08-camera-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -180,13 +176,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Zoom Out once, Pan Right once, then Pan Left once. Predict what View Reset will change. Now change the background and reset again: the background should stay as you chose it. This checks that camera state and background state have separate responsibilities.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+When the camera centre moves right, why does the diamond move left on the screen?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -204,10 +203,11 @@ npm --prefix ../session_tests run course -- check 08-camera
 npm --prefix ../session_tests run course -- save 08-camera
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 A full 3D camera also owns a target and a viewing scale or distance. Its orientation and projection add the third dimension. We will extend this view model before connecting orbit gestures, while preserving the separation between camera state, document geometry and GPU resources.
 
-[Validation status and course release](release.md).
+</details>

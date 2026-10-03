@@ -1,0 +1,9 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+exit: "Final exit: validate timestamp text"
+healthy: "Healthy run becomes Closed"
+failed: "Failed keeps original first failure"
+store: "Persist metadata; no GPU work"
+exit -> healthy -> store
+exit -> failed -> store

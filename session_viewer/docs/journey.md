@@ -2,15 +2,26 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 118 cumulative lessons, about 166–309 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 120 cumulative lessons, about 168–313 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **186 proposed slots: 118 current checkpoints and 68 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **189 proposed slots: 120 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
 The white canvas fills the browser window from lesson 01. The runtime shows your drawing and the command dock; lesson titles and explanations stay in this documentation.
 
 **One-hour typing target:** the [typing-load audit](journey/typing-load.md) separates actual code changes from reading and experiments. Seventeen existing checkpoints still need splitting; working builds alone do not make those long sections finished lessons.
+
+Each lesson now follows one change: explain the needed Rust, type the code, then run one focused check. Experiments and detailed verification notes expand when you need them. The [to-do list and progress](journey/roadmap.md) is also linked at the top of every lesson.
+
+Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
+
+| Outcome | Steps |
+| --- | --- |
+| Stop work after a GPU failure | [34](journey/34-fault.md)–[34a](journey/34a-stop.md) |
+| Describe and download the current run | [34b](journey/34b-report.md)–[34d](journey/34d-download.md) |
+| Validate, retain and retrieve previous reports | [34e](journey/34e-schema.md)–[34fc](journey/34fc-retention.md) |
+| Track activity and close the page’s report | [34g](journey/34g-heartbeat.md)–[34gba](journey/34gba-lifecycle.md) |
 
 ## Start small, keep the destination
 
@@ -134,6 +145,8 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [34fc · Preserve unsupported telemetry while pruning](journey/34fc-retention.md) | 1–2 hours | Separate trusted-report admission from raw storage retention so an older viewer cannot strip or prematurely delete newer telemetry. |
 | [34g · Refresh heartbeat without rewriting failure evidence](journey/34g-heartbeat.md) | 1–2 hours | Refresh actual last-seen metadata independently of first failure, event history and GPU ownership. |
 | [34ga · Own the periodic diagnostic heartbeat](journey/34ga-timer.md) | 1–2 hours | Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner. |
+| [34gb · Mark a final healthy run closed](journey/34gb-close.md) | 1–2 hours | Persist a healthy final exit as closed while preserving first-failure evidence and every observation. |
+| [34gba · Own diagnostic page transitions](journey/34gba-lifecycle.md) | 1–2 hours | Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

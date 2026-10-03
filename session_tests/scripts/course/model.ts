@@ -13,6 +13,7 @@ export interface Step {
     id: string; title: string; page: string; hours: [number, number]; goal: string;
     trace: string; question: string; answer: string; edits: Edit[]; story: string;
     result: string; experiment: string; production: string; browser_status?: string;
+    checks?: string;
     browser_result_status?: string;
     browser_caption?: string;
     browser_check?: string;

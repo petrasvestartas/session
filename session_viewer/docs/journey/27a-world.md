@@ -6,11 +6,7 @@
 
 **Today:** Use placement for scene bounds, selected bounds and ray picking.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Object placement → world vertices → bounds or ray/triangle query.
-
-**Before you finish, explain:** Why must picking and fitting use the same placement as drawing?
 
 A local vertex is useful for sharing a shape, but the camera does not live in every object’s local coordinate system. Bounds and ray tests must agree on where that object is.
 
@@ -24,7 +20,7 @@ The new state check places a triangle, asks for its bounds, projects its centroi
 
 ## Type the change
 
-Continue [Give each object a placement](27-placement.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-27a-world`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give each object a placement](27-placement.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-27a-world` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -142,15 +138,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run Example Box, Select Next three times, View Orthographic and Fit Selected. The box is framed. Run the world-query check: its moved triangle must be picked at its placed centroid and its world bounds must shift by the same offset.
+Run the Rust checks below. Bounds and ray picking must use placed world coordinates, while the stored local mesh remains unchanged. GPU placement follows next.
 
-**Actual Chrome screenshot.**
-
-Ask geometry questions in world coordinates. The actual command dock drives this checkpoint; the selected object is highlighted.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Ask geometry questions in world coordinates.](../screenshots/journey/27a-world-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -158,13 +152,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the world-query test’s translation to (4, 2, −0.25). Predict the new bounds and camera target, then restore it. Explain why querying colors would not help identify the triangle’s position.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must picking and fitting use the same placement as drawing?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -182,10 +179,20 @@ npm --prefix ../session_tests run course -- check 27a-world
 npm --prefix ../session_tests run course -- save 27a-world
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production viewer combines source bounds and world placements, including inherited instance transforms. These loops establish one coordinate convention before adding hierarchy and shared GPU storage.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Ask geometry questions in world coordinates. The actual command dock drives this checkpoint; the selected object is highlighted.
+
+[Full validation scope](release.md).
+
+</details>

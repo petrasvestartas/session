@@ -6,27 +6,19 @@
 
 **Today:** Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous.
 
-**Before you finish, explain:** Why select previous evidence before saving the new running report?
+Persist live diagnostics and add `Diagnostic Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
 
-Startup opens the store and selects earlier evidence before creating or saving its own running report. The current report uses stable tab identity while the store retains a distinct key for this run. Selected previous metadata is cached separately: writing the new ready report cannot erase the evidence needed by the previous-report command.
+After an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.
 
-Recording releases the current RefCell borrow before persisting a cloned metadata value. Current-report downloads refresh context and attempt persistence, then use the existing independent Blob URL owner. Previous-report serialization likewise finishes its borrow before the anchor click. Neither report retains a source document, renderer or device.
-
-Real ready and fatal observations now write through the bounded store. Device loss still stops only the matching GPU lifetime before fatal recording; storage is independent and survives that disposal. Storage errors are ignored by startup and observation callers so current reports, downloads and rendering remain available. Browser process termination can prevent any final write: a stale running heartbeat is interruption evidence rather than proof of a crash. Periodic heartbeat and lifecycle observations follow.
-
-An eligible previous run appears in the existing GPU command dock, with failed and interrupted wording distinguished. Diagnostic Report Previous downloads its cached metadata. Missing previous evidence gives a command error and no download. There are no new HTML feature controls.
-
-Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.
+Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
 
 ![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)
 
 ## Type the change
 
-Continue [Retain only three diagnostic runs](34fa-retain.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34fb-store`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Retain only three diagnostic runs](34fa-retain.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34fb-store` (from `session_viewer`).
 
 ### 1. `src/browser_report.rs`
 
@@ -192,15 +184,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Type Diagnostic Report to download the current run or Diagnostic Report Previous to download eligible older evidence as viewer-diagnostic-previous.json. Ready and fatal observations now persist, and an eligible earlier failure or interruption is announced in the existing command dock after reload. No eligible report gives a command error without a download. Storage denial still permits current downloads and drawing. Finish the healthy proof view with Move 0.05,0,0 and Fit.
+After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally.
 
-**Actual Chrome screenshot.**
-
-Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Diagnostic Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Retrieve saved failure evidence through the command line.](../screenshots/journey/34fb-store-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -208,13 +198,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why select previous evidence before saving the new running report?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -232,10 +225,30 @@ npm --prefix ../session_tests run course -- check 34fb-store
 npm --prefix ../session_tests run course -- save 34fb-store
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.
+
+Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Diagnostic Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34fb-store
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Pair reload ownership with a browser abort controller.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** ReloadJob + AbortController → captured signal → cancel or current finish.
-
-**Before you finish, explain:** Why must an old failed request not abort the newer controller?
 
 Define `Flight` with the native job and one AbortController. `begin` cancels the previous flight, creates the browser controller and gives the fetch task its signal together with URL strings. The controller stays in the current owner.
 
@@ -22,7 +18,7 @@ Define `Flight` with the native job and one AbortController. `begin` cancels the
 
 ## Type the change
 
-Continue [Read a source response within its byte limit](32gg-fetch.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gga-flight`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Read a source response within its byte limit](32gg-fetch.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gga-flight` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -63,23 +59,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+Run the checks below and build the browser bundle. The flight now pairs its ticket with an AbortController; cancelling it removes authority and aborts its fetch.
 
-```sh
-REGEN_PROTO=0 cargo run --example sample --locked -j4
-```
-
-Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
-
-Compile the browser flight and compare its ownership with the native job tests. Fetch spawning and result delivery are added next.
-
-**Actual Chrome screenshot.**
-
-The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Pair reload ownership with a browser abort controller.](../screenshots/journey/32gga-flight-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -87,13 +73,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Move controller.take before the job ticket check in a scratch copy. Trace how a late failure could remove the newer request controller.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must an old failed request not abort the newer controller?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -111,10 +100,28 @@ npm --prefix ../session_tests run course -- check 32gga-flight
 npm --prefix ../session_tests run course -- save 32gga-flight
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Abort is an I/O request, not permission to commit. The native ticket and release-key checks remain necessary even when network cancellation behaves correctly.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The browser checks existing command-only unloading and retained drawing. The new infrastructure is compiled here; the Reload Sources command is connected in the following command lesson.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gga-flight
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

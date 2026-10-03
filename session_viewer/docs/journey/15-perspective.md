@@ -8,11 +8,7 @@
 
 **Today:** View the scene in perspective and select surfaces with a ray that agrees with the camera.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** World point → view matrix → projection → divide by w → canvas; click → inverse projection → clipped ray → object ID.
-
-**Before you finish, explain:** Why can a larger world z value now belong to the nearer triangle?
 
 Our earlier view treated distance like a flat drawing. Perspective makes the same object appear larger when it is closer to the eye. Today the camera looks from z = 3 toward z = 0, with a 60-degree vertical field of view.
 
@@ -34,7 +30,7 @@ Set the camera’s aspect to the initial window width divided by its height. The
 
 ## Type the change
 
-Continue [Make document changes reversible](14-history.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-15-perspective`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Make document changes reversible](14-history.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-15-perspective` (from `session_viewer`).
 
 ### 1. `src/camera.rs`
 
@@ -430,15 +426,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-`REGEN_PROTO=0` uses the kernel’s committed protobuf bindings. Keep that setting for these tutorial builds so a different local protobuf checkout cannot regenerate incompatible fields.
+Click the turquoise triangle at the overlap, type `Delete`, then `Undo`. Repeat after `Zoom In`. Picking must agree with the perspective drawing.
 
-The triangles now have perspective-dependent sizes. Turquoise wins the central overlap from this camera position. Click it, run `Delete`, then `Undo`. Run `Zoom In` and repeat: picking should still agree with the picture.
-
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Look through a perspective camera.](../screenshots/journey/15-perspective-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -446,13 +440,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Before running, predict which triangle is closer to an eye at z = 3. Check the overlap. Then select and delete turquoise: the pink surface beneath should become selectable. Undo, zoom in, and explain why the CPU ray and GPU depth test still agree despite the changed apparent sizes.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can a larger world z value now belong to the nearer triangle?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -470,10 +467,11 @@ npm --prefix ../session_tests run course -- check 15-perspective
 npm --prefix ../session_tests run course -- save 15-perspective
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The full viewer uses this same geometry kernel, view-projection boundary and identity resolution. Its later camera adds world-up orbit, units, fit, floating origins and reversed depth for large scenes; those are extensions of the responsibilities introduced here.
 
-[Validation status and course release](release.md).
+</details>

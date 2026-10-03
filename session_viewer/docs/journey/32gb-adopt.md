@@ -6,11 +6,7 @@
 
 **Today:** Validate current releases and all matching history rows before adopting any kernel candidate.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Current keys → prepare all candidates → validate all matching roots → adopt editable owners.
-
-**Before you finish, explain:** What prevents a valid first candidate from committing when a later source fails?
 
 hydrate accepts key/byte pairs from a completed request. First check that each distinct key still matches an active cold row; a stale or duplicate key cannot start preparation. Next build every candidate and validate all matching active, Undo and Redo rows. Only after every check succeeds does `Scene` adopt the prepared source owners.
 
@@ -24,7 +20,7 @@ This is a residency pass, not a document edit. It must not clear history, append
 
 ## Type the change
 
-Continue [Prepare original kernel data without rebuilding its display](32ga-prepare.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gb-adopt`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prepare original kernel data without rebuilding its display](32ga-prepare.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gb-adopt` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -70,23 +66,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+Run the adoption checks below. A bad second candidate must restore neither source. Valid candidates restore editable owners without changing display, placement or history.
 
-```sh
-REGEN_PROTO=0 cargo run --example sample --locked -j4
-```
-
-Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
-
-Build the atomic hydration API. The browser still ends with the source unloaded; use the next native checkpoint to exercise restored editing and saving.
-
-**Actual Chrome screenshot.**
-
-The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Adopt restored source owners as one residency change.](../screenshots/journey/32gb-adopt-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -94,13 +80,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Move the adoption loop ahead of candidate validation in a scratch copy. Explain what a failure in the second origin would leave behind.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What prevents a valid first candidate from committing when a later source fails?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -118,10 +107,28 @@ npm --prefix ../session_tests run course -- check 32gb-adopt
 npm --prefix ../session_tests run course -- save 32gb-adopt
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production operation validates released identity before hydration. This API additionally groups the requested immutable-source candidates so one command cannot partially adopt its source batch.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gb-adopt
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

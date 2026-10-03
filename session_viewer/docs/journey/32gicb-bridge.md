@@ -6,11 +6,7 @@
 
 **Today:** Carry optional captured intent through the abortable flight and deliver it beside complete source bodies or a current failure.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Flight → ReloadJob<Option<Intent>> → current finish_with → Reply → synchronous browser mailbox.
-
-**Before you finish, explain:** Why does the asynchronous future retain a ticket instead of owning the pending intent and keys?
 
 The browser flight now uses ReloadJob<Option<Intent>>. None means explicit Reload Sources; Some carries the captured operation that an automatic command will request next. start keeps its existing interface and calls start_with using None.
 
@@ -18,13 +14,11 @@ The async future owns URL strings, an abort signal and a ticket. Current complet
 
 The existing receiver reads reply.result and restores sources. Automatic commands will call start_with and replay reply.intent only after document-context validation in the next lesson. This checkpoint wires the completion boundary, not automatic replay.
 
-Chrome checks explicit fetch, cancellation and editing through the changed delivery type. The native Reply and ticket tests still check all captured operations, exact bytes and failed completions.
-
 ![Carry intent through browser completion](../illustrations/journey-32gicb.svg)
 
 ## Type the change
 
-Continue [Pair captured intent with complete source bodies](32gica-reply.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gicb-bridge`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Pair captured intent with complete source bodies](32gica-reply.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gicb-bridge` (from `session_viewer`).
 
 ### 1. `src/browser_reload.rs`
 
@@ -171,15 +165,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward. Type Delete, Undo, Select Next twice and Redo. Undo restores the geometry; selection must be chosen again after deleting the selected row. Finally type Select Next and Fit to inspect a remaining object. Move 0.15,0,0, Save, Undo and Redo; Save must leave the Move available to Undo. Finally type Fit. Type Move 0,0,0.15 and Fit. Inspect the native owner tests for stale, duplicate and cancelled completions. Type Orbit Right and Fit. Inspect the native completion checks before connecting automatic command replay. Type Move 0,0.15,0 and Fit. Automatic Move/Delete/Save reload remains the next checkpoint.
+Build the browser bundle and run the checks below. Accepted delivery now carries the intent; an aborted older flight cannot deliver it. Automatic commands are not routed yet.
 
-**Actual Chrome screenshot.**
-
-Chrome checks explicit Reload Sources, cancellation and editing through the new reply. Native tests verify captured Move/Delete/Save and failures; automatic command replay is the next checkpoint.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Carry captured intent through browser completion.](../screenshots/journey/32gicb-bridge-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -187,13 +179,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Return the intent from the future rather than finish_with. Explain why cancelling the pending owner would no longer release that future’s captured request.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does the asynchronous future retain a ticket instead of owning the pending intent and keys?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -211,10 +206,30 @@ npm --prefix ../session_tests run course -- check 32gicb-bridge
 npm --prefix ../session_tests run course -- save 32gicb-bridge
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Request ownership, complete source bodies and captured intent reach one completion boundary. Document-context validation still precedes replay; automatic commands follow next.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome checks explicit fetch, cancellation and editing through the changed delivery type. The native Reply and ticket tests still check all captured operations, exact bytes and failed completions.
+
+Chrome checks explicit Reload Sources, cancellation and editing through the new reply. Native tests verify captured Move/Delete/Save and failures; automatic command replay is the next checkpoint.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gicb-bridge
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

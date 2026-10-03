@@ -6,11 +6,7 @@
 
 **Today:** Describe latest-read ownership, cancellation and one-shot completion in native Rust.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Begin read → pending ticket → supersede, cancel or finish once.
-
-**Before you finish, explain:** Why must a stale completion leave the newer pending ticket intact?
 
 The browser currently compares a loose counter before delivering a read. We need to express more than newest number: a cancelled or already completed read must no longer be allowed to publish a result.
 
@@ -26,7 +22,7 @@ The checks simulate completions in the wrong order, cancellation, duplicate comp
 
 ## Type the change
 
-Continue [Report the result that actually committed](30-feedback.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-30a-tickets`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Report the result that actually committed](30-feedback.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30a-tickets` (from `session_viewer`).
 
 ### 1. `src/read_gate.rs`
 
@@ -66,13 +62,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the native ReadGate checks and explain every pending value. The live viewer still uses the earlier counter at this endpoint. Open your sample, Example Box, Select Next six times, Move 0.4,-0.5,0.1, View Isometric and Fit; the existing drawing remains usable while the ticket type is introduced.
+Run the ReadGate checks below. Start two tickets and complete the older one first: only the current ticket may be accepted. Browser integration follows next.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give a pending read an explicit ticket.](../screenshots/journey/30a-tickets-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -80,13 +76,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Start three tickets and finish them in reverse order. Predict why only the newest succeeds and why the rejected older completions cannot clear it. Restore the original checks.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must a stale completion leave the newer pending ticket intact?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -104,10 +103,28 @@ npm --prefix ../session_tests run course -- check 30a-tickets
 npm --prefix ../session_tests run course -- save 30a-tickets
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production load generations reject old asynchronous results. This small gate also models cancellation and one-shot delivery, preparing the same ownership rule for browser reads and later asynchronous picking.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 30a-tickets
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Create a kernel box, convert it to display data, and add it as one undoable scene object.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Kernel box → triangle extraction → validated display Mesh → document transaction → GPU upload → visible solid.
-
-**Before you finish, explain:** Why does a failed mesh conversion belong outside the GPU draw loop?
 
 The viewer can draw and select triangles. A solid adds topology: its faces meet to enclose a volume. We will create a box with the geometry kernel, then adapt that mesh to the display layout we already understand.
 
@@ -28,7 +24,7 @@ The box is grey and has no lighting yet. In an isometric view you can recognise 
 
 ## Type the change
 
-Continue [Walk around the model](16-orbit.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-17-solid`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Walk around the model](16-orbit.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-17-solid` (from `session_viewer`).
 
 ### 1. `src/mesh.rs`
 
@@ -195,15 +191,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Box`, then `View Isometric`. A grey solid appears to the right of the triangles. Click it, run `Delete`, then `Undo`. Its identity and geometry return while the camera stays put.
+Type `Example Box`, then `View Isometric`. A solid box appears. `Undo` removes that one object; `Redo` restores it.
 
-**Actual Chrome screenshot.**
-
-Example Box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Bring a solid into the scene.](../screenshots/journey/17-solid-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -211,13 +205,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Add a box and undo. In the rollback test, predict whether a failed new edit should erase the available redo. Run the test: it should not. Then redo the successful box addition. Separate three questions in your notes: did creation succeed, did the document change, and was the change uploaded?
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does a failed mesh conversion belong outside the GPU draw loop?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -235,10 +232,20 @@ npm --prefix ../session_tests run course -- check 17-solid
 npm --prefix ../session_tests run course -- save 17-solid
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The final viewer converts kernel geometry into renderable lanes while preserving document identity and transactional edits. This adapter is the first real kernel-to-display connection; later lessons retain face and edge provenance and share allocations across many objects.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Example Box inserts the grey solid behind the triangles. Its faces have one flat colour at this checkpoint.
+
+[Full validation scope](release.md).
+
+</details>

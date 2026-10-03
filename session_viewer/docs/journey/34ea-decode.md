@@ -6,23 +6,19 @@
 
 **Today:** Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** raw text byte limit → JSON fields/version → typed shape validator → candidate for recency.
 
-**Before you finish, explain:** Why inspect raw JSON fields before deserializing the report?
+Admit saved JSON through one boundary. First reject input above one MiB. Then inspect its raw keys and version, decode it as `Report`, and run the typed shape validator.
 
-The decoder is the complete format-admission boundary. It rejects text above one MiB before parsing, inspects top-level JSON keys and rejects unsupported fields, then converts to Report and applies the shape validator. No partial report reaches a storage consumer.
+Reject unsupported fields before typed conversion. Otherwise an older reader could accept a newer report and silently strip its telemetry when exporting it.
 
-The byte limit bounds work before allocation-heavy parsing. The schema check prevents silent loss of unknown telemetry. The typed validator enforces limits and failure/outcome consistency after conversion. Timestamp interpretation and recency remain the next separate policy.
-
-Native tests use actual JSON at the exact byte limit and one byte beyond it, reject malformed/versioned/inconsistent/unsupported values, and bound arrays and multibyte text. A valid first failure round-trips. Chrome retains the existing report-download and loss acceptance; localStorage adoption is still not connected.
+Each layer answers one question: is the input bounded, is its format supported, and is its value consistent? Timestamp parsing and age policy remain separate.
 
 ![Bound raw stored JSON](../illustrations/journey-34ea.svg)
 
 ## Type the change
 
-Continue [Check the bounded shape of a diagnostic report](34e-schema.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34ea-decode`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Check the bounded shape of a diagnostic report](34e-schema.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34ea-decode` (from `session_viewer`).
 
 ### 1. `src/report_store.rs`
 
@@ -72,15 +68,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0,-0.05,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.
+Run the decoder checks below. Supported JSON at the byte limit is accepted; oversized, unknown-schema or inconsistent JSON is rejected before storage adoption.
 
-**Actual Chrome screenshot.**
-
-Native tests validate actual saved JSON boundaries and unsupported schema. Chrome checks inherited actual diagnostics and GPU-loss acceptance; browser storage adoption comes later.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Admit only supported bounded saved JSON.](../screenshots/journey/34ea-decode-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -88,13 +82,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Remove the raw-field whitelist, add an unknown telemetry field and explain why a later typed export could lose it. Compare the exact one-MiB whitespace-padded JSON with the one-byte-larger value.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why inspect raw JSON fields before deserializing the report?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -112,10 +109,30 @@ npm --prefix ../session_tests run course -- check 34ea-decode
 npm --prefix ../session_tests run course -- save 34ea-decode
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Saved reports need byte/schema/shape admission before recency and UI use. This endpoint adds that decoder; selection, real storage, telemetry and bounded recovery follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Native tests use actual JSON at the exact byte limit and one byte beyond it, reject malformed/versioned/inconsistent/unsupported values, and bound arrays and multibyte text. A valid first failure round-trips. Chrome retains the existing report-download and loss acceptance; localStorage adoption is still not connected.
+
+Native tests validate actual saved JSON boundaries and unsupported schema. Chrome checks inherited actual diagnostics and GPU-loss acceptance; browser storage adoption comes later.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34ea-decode
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

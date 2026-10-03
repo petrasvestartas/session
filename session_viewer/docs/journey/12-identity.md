@@ -8,11 +8,7 @@
 
 **Today:** Select and delete objects using stable identities, then highlight the selected object.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** ObjectId → scene lookup → selected display colour → uploaded mesh → yellow highlight.
-
-**Before you finish, explain:** After deleting the first object, is the object now at row zero a new object?
 
 A seat number tells you where someone sits today. Their name still belongs to them after they change seats. Our vector rows are seats; object IDs are names.
 
@@ -30,7 +26,7 @@ For now, the GPU upload gives selected vertices a yellow display colour. The Mes
 
 ## Type the change
 
-Continue [Give the scene an owner](11-scene.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-12-identity`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give the scene an owner](11-scene.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-12-identity` (from `session_viewer`).
 
 ### 1. `src/scene.rs`
 
@@ -275,13 +271,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Select Next` to cycle the yellow selection. `Delete` removes that object. Add or remove the third triangle with `Example Triangle`; the remaining objects keep their IDs.
+Type `Select Next`, then `Delete`. The yellow object disappears. Run the identity checks below: the remaining object must keep its ID even when its row changes.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Name objects without depending on their row.](../screenshots/journey/12-identity-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -289,13 +285,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Add the third triangle, select the first object and delete it. Toggle the third triangle off. Only the original far triangle should remain. Read the identity test before running it: which ID moves to row zero, and why must it keep its old value?
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+After deleting the first object, is the object now at row zero a new object?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -313,10 +312,11 @@ npm --prefix ../session_tests run course -- check 12-identity
 npm --prefix ../session_tests run course -- save 12-identity
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The complete viewer distinguishes document identity, displayed object rows and source sub-elements. Picking and undo must cross those mappings explicitly. This lesson establishes the first rule: a storage index cannot serve as a permanent object name.
 
-[Validation status and course release](release.md).
+</details>

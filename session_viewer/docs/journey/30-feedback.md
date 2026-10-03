@@ -6,11 +6,7 @@
 
 **Today:** Keep failed reads and imports visible in command history without claiming success.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** File read result → browser event → validated editor action → success or error in the command dock.
-
-**Before you finish, explain:** Why must import success be reported inside the successful action branch?
 
 Our native import tests already prove malformed bytes leave the document intact. The browser feedback has a separate bug: after Editor::apply returns an error, the event handler still reports File imported. The final status therefore contradicts what happened.
 
@@ -22,11 +18,11 @@ Asynchronous read errors need the same command-history route. The file adapter c
 
 Oversized files take that route in the queued task, before reading. Dispatching another event from inside the currently borrowed input callback would re-enter the same FnMut closure and fail. Waiting until the task runs releases that borrow first. A rejected read promise takes it after the existing latest-read check, so an old read still cannot publish a late error over a newer choice. The next lessons replace the loose counter with explicit tickets and cancellation.
 
-File status stays hidden while the command dock carries user feedback. A startup failure still exposes the HTML status because the GPU dock could not be created. A temporary read failure must not add a banner over the full-window drawing. Chrome checks the actual history text, unchanged scene pixels, preserved Redo, an oversize file and a rejected read promise.
+File status stays hidden while the command dock carries user feedback. A startup failure still exposes the HTML status because the GPU dock could not be created. A temporary read failure must not add a banner over the full-window drawing.
 
 ## Type the change
 
-Continue [Download the editable document from the command line](29d-save.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-30-feedback`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Download the editable document from the command line](29d-save.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30-feedback` (from `session_viewer`).
 
 ### 1. `src/browser.rs`
 
@@ -197,13 +193,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open your sample, Example Box, Select Next six times, Move -0.2,-0.8,0.1, View Isometric and Fit. Try opening a malformed file: the error must stay in command history, the drawing must stay unchanged, and Redo must remain available after an undone edit. A valid Open afterward still succeeds.
+Try opening a text file renamed `.pb`. The command history must show the read/import failure and leave the current document unchanged.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Report the result that actually committed.](../screenshots/journey/30-feedback-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -211,13 +207,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Temporarily move the success report back outside the action match. Predict the final status after malformed bytes, reproduce the contradiction, then restore the successful-branch report.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must import success be reported inside the successful action branch?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -235,10 +234,28 @@ npm --prefix ../session_tests run course -- check 30-feedback
 npm --prefix ../session_tests run course -- save 30-feedback
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production loader stages work and reports failure while keeping the last valid scene visible. This lesson separates read delivery from a committed document change; replacement and cancellation follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome checks the actual history text, unchanged scene pixels, preserved Redo, an oversize file and a rejected read promise.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 30-feedback
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

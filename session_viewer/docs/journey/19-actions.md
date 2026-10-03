@@ -8,11 +8,7 @@
 
 **Today:** Move document actions into a browser-independent editor while keeping picking, undo and drawing working.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** HTML event → Action → Editor → Change → GPU upload when needed → draw.
-
-**Before you finish, explain:** Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?
 
 Our browser callback now knows too much. It translates HTML events, edits geometry, maintains history and repairs selection. Adding more commands there would tempt us to copy the same editing rules a second time.
 
@@ -30,7 +26,7 @@ We are moving responsibilities you already understand, not inventing new editing
 
 ## Type the change
 
-Continue [Read the shape through light](18-light.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-19-actions`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Read the shape through light](18-light.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-19-actions` (from `session_viewer`).
 
 ### 1. `src/editor.rs`
 
@@ -292,15 +288,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Box`, then `Select Next` three times, `Delete`, and `Undo`. The box returns. Your camera and background stay as you left them. Each typed line now reaches Editor through the same Action route.
+Select a face, type `Delete`, then `Undo`. The editor handles both actions and restores the object without resetting the camera.
 
-**Actual Chrome screenshot.**
-
-The box is yellow after Select Next reaches it. commands feed the shared Editor action path.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give every action the same route.](../screenshots/journey/19-actions-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -308,13 +302,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Add a box, then change the background and zoom. Undo once. Predict which of those three changes disappears. Only the box addition is a document edit; the other two belong to the view. Find the early return in apply that keeps those actions out of history.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -332,10 +329,20 @@ npm --prefix ../session_tests run course -- check 19-actions
 npm --prefix ../session_tests run course -- save 19-actions
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The full command system will build on this boundary. commands, keyboard input and tools request document operations through the same owner, while rendering consumes the result. More commands should add behavior here or in focused command modules, not duplicate transactions in UI handlers.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The box is yellow after Select Next reaches it. commands feed the shared Editor action path.
+
+[Full validation scope](release.md).
+
+</details>

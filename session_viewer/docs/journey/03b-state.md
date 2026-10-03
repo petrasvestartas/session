@@ -8,11 +8,7 @@
 
 **Today:** The text field and history have one owner.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Browser → Panel → CommandLine → layout → existing GPU.
-
-**Before you finish, explain:** What survives when the next frame starts?
 
 A text field needs somewhere to keep its text. Our old String was enough to draw a blank field, but completion and history need more memory. We group that memory in CommandLine, the same type used by the viewer. Panel owns one CommandLine; the browser still owns one Panel. No second copy of the text is introduced.
 
@@ -26,7 +22,7 @@ The small caret helpers work in character positions, not UTF-8 byte offsets. Tha
 
 ## Type the change
 
-Continue [Draw our command line](03a-panel.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-03b-state`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Draw our command line](03a-panel.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03b-state` (from `session_viewer`).
 
 ### 1. `Cargo.toml`
 
@@ -280,23 +276,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-The field shows “The field now belongs to CommandLine.” It is still a drawing checkpoint; browser input is connected in 03d.
+Run the Rust checks below. Submitting a line should clear the field and add one history entry. The browser still shows the same dock; keyboard events are connected in lesson 03d.
 
-**Actual Chrome screenshot.**
-
-Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give the command line its memory.](../screenshots/journey/03b-state-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change only the model status sentence. Predict where it appears. Restore it, then trace the borrowed String from Panel through view::field.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What survives when the next frame starts?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -314,10 +311,20 @@ npm --prefix ../session_tests run course -- check 03b-state
 npm --prefix ../session_tests run course -- save 03b-state
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+
+[Full validation scope](release.md).
+
+</details>

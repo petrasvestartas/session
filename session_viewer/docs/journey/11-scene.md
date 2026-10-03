@@ -8,11 +8,7 @@
 
 **Today:** Add and remove a mesh through scene data while reusing the renderer and camera.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
-
-**Before you finish, explain:** Which values should survive if we recreate all GPU mesh buffers?
 
 Our renderer still contains the coordinates of the demonstration triangles. That makes it both the drawing machine and the drawing itself. We now have enough moving parts to give the scene its own home.
 
@@ -30,7 +26,7 @@ You will move code you understand into three focused files. This is a change of 
 
 ## Type the change
 
-Continue [Keep the nearest surface](10-depth.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-11-scene`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep the nearest surface](10-depth.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-11-scene` (from `session_viewer`).
 
 ### 1. `src/mesh.rs`
 
@@ -288,13 +284,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Triangle`: a green triangle appears at the upper left. Run it again to remove it. Pan or zoom first, then repeat the two commands. Your camera should stay where you put it.
+Type `Example Triangle` twice. A green triangle appears, then disappears. Your camera stays where it was.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give the scene an owner.](../screenshots/journey/11-scene-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -302,13 +298,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Zoom Out and change the background, then toggle the third triangle twice. Predict the final image. It should be exactly the same as before those two toggles. In the command handler, locate the one branch that uploads scene data and explain why the camera branches do not need it.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Which values should survive if we recreate all GPU mesh buffers?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -326,10 +325,11 @@ npm --prefix ../session_tests run course -- check 11-scene
 npm --prefix ../session_tests run course -- save 11-scene
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production viewer keeps source geometry and document state separate from packed GPU data. Later lessons add stable identity, incremental synchronization, shared buffers and undo. This ownership boundary allows a GPU rebuild without rebuilding the document.
 
-[Validation status and course release](release.md).
+</details>

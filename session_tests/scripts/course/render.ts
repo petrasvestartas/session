@@ -21,11 +21,10 @@ export function generate() {
             `**Typing estimate: ${typing.minutes.join('–')} minutes.** ${typing.lines} added or changed lines; unchanged context is excluded. [How this is estimated](typing-load.md).`,
             ...(typing.minutes[1] > 60 ? ['**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.'] : []),
             `**Today:** ${step.goal}`,
-            '**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).',
-            `**Follow:** ${step.trace}.`, `**Before you finish, explain:** ${step.question}`, step.story, '## Type the change'];
+            `**Follow:** ${step.trace}.`, step.story, '## Type the change'];
         if (index) {
             const previous = steps[index - 1];
-            page.push(`Continue [${previous.title}](${previous.id}.md). From \`session_viewer\`, save your files with \`${command} save before-${step.id}\`. A save keeps your own work; it does not fill in the next lesson.`);
+            page.push(`Continue from [${previous.title}](${previous.id}.md). Save your own work first: \`${command} save before-${step.id}\` (from \`session_viewer\`).`);
         }
         for (const [number, edit] of step.edits.entries()) {
             const code = read(path.join(docs, edit.snippet));
@@ -46,10 +45,9 @@ export function generate() {
         if (evidence && evidence.source === signature(step.id)
             && evidence.checker === hash(read(path.join(docs, 'capture_journey.cjs')))
             && (!step.browser_check || evidence.extraChecker === browserFingerprint(step.browser_check))) {
-            page.push('**Actual Chrome screenshot.**',
-                ...(step.browser_caption ? [step.browser_caption] : []),
+            page.push('**Verified checkpoint in Chrome.**',
                 `![Actual browser result: ${step.title}.](../screenshots/journey/${evidence.file})`,
-                '*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*');
+                '[What this screenshot checks](release.md).');
         } else if (index) {
             const picture = step.id === '04-input' ? '04-input-light' : step.id;
             page.push('**Native render check — not a browser screenshot.**',
@@ -58,13 +56,19 @@ export function generate() {
                 '*Read directly from this checkpoint’s GPU texture. Browser controls and event delivery remain unverified until the browser check passes.*');
         }
         if (step.tests) page.push('Run the state checks from your project folder:', `\`\`\`sh\n${buildEnv}cargo test --lib --locked -j4\n\`\`\``);
-        page.push('## Try one small experiment', step.experiment, '## Explain it in your own words',
-            'Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.',
+        page.push(`<details>\n<summary>Optional experiment</summary>\n\n${step.experiment}\n\n</details>`,
+            '## Explain the change', step.question,
             `<details>\n<summary>Compare your explanation</summary>\n\n${step.answer}\n\n</details>`,
             '## Keep your working result', 'Return to `session_viewer` in a second terminal. Restore experimental edits before comparing:',
             `\`\`\`sh\n${command} check ${step.id}\n${command} save ${step.id}\n\`\`\``,
-            'The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.',
-            '## Where this grows', step.production, '[Validation status and course release](release.md).');
+            'Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).',
+            `<details>\n<summary>Where this fits in the finished viewer</summary>\n\n${step.production}\n\n</details>`);
+        const supporting = [step.checks, step.browser_caption].filter(Boolean);
+        if (supporting.length || step.browser_check) {
+            page.push(`<details>\n<summary>Verification notes and browser acceptance</summary>\n\n${supporting.join('\n\n')}\n\n[Full validation scope](release.md).\n\n` +
+                (step.browser_check ? `To reproduce the scripted acceptance of the reference checkpoint, run from \`session_viewer\` with the [course bundle server](release.md#reproduce) running on port 8781:\n\n\`\`\`sh\n${command} capture ${step.id}\n\`\`\`\n\nThis uses the verified reference bundle; it does not check or change your typed project.\n\n` : '') +
+                '</details>');
+        }
         write(path.join(docs, step.page), page.join('\n\n') + '\n');
     }
     const hours = steps.reduce((sum, step) => sum.map((n, i) => n + step.hours[i]), [0, 0]);
@@ -74,8 +78,8 @@ export function generate() {
     if (planned < steps.length) throw Error('Roadmap must include every available lesson');
     const roadmap = path.join(docs, 'journey/roadmap.md');
     write(roadmap, read(roadmap)
-        .replace(/\*\*Draft plan: \d+ lesson slots; \d+ current checkpoints have fresh build and Chrome evidence\.\*\*/,
-            `**Draft plan: ${planned} lesson slots; ${steps.length} current checkpoints have fresh build and Chrome evidence.**`)
+        .replace(/\*\*Draft plan: \d+ lesson slots; \d+ current checkpoints have fresh build and Chrome evidence\.(?: \d+ planned lessons remain\.)?\*\*/,
+            `**Draft plan: ${planned} lesson slots; ${steps.length} current checkpoints have fresh build and Chrome evidence. ${planned - steps.length} planned lessons remain.**`)
         .replace(/all \d+ current checkpoints/g, `all ${steps.length} current checkpoints`));
     const table = ['| Lesson | Time | Working result |', '| --- | --- | --- |',
         ...steps.map((step, i) => `| [${step.id.split('-')[0]} · ${step.title}](${step.page}) | ${step.hours.join('–')} hours | ${step.goal} |`)];

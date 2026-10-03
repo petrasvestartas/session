@@ -6,11 +6,7 @@
 
 **Today:** Translate selected geometry through the existing command and history route.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Move x,y,z → finite offset → Editor → history transaction → new placement → GPU upload.
-
-**Before you finish, explain:** Why is a world translation multiplied on the left of the existing placement?
 
 The complete path is ready for a real command: local vertices, world queries and a GPU model matrix. Add Move x,y,z without adding a second editing owner.
 
@@ -24,7 +20,7 @@ The dock recognizes Move with arguments. It records the submitted line once; res
 
 ## Type the change
 
-Continue [Apply object placement on the GPU](27b-model.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-27c-move`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Apply object placement on the GPU](27b-model.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-27c-move` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -180,15 +176,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run Example Box, Select Next three times, View Isometric, and Move 0.6,0.2,0. Then run Fit. The box moves while the other objects stay put. Undo restores its previous placement; Redo restores the moved placement. Move with nothing selected must explain the problem rather than changing another object.
+Type `Select Next`, `Move 0.5,0,0`, then `Undo`. The selected object moves along world X and returns in one Undo step.
 
-**Actual Chrome screenshot.**
-
-Move a placed object with a typed offset. The actual command dock drives this checkpoint; the selected object is highlighted.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Move a placed object with a typed offset.](../screenshots/journey/27c-move-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -196,13 +190,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Run Move 0,0,0 followed by Undo. Explain why the zero offset creates no history entry. Try Move 1,2 and Move NaN,0,0: both must report an error without moving geometry. Restore the checkpoint before saving.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is a world translation multiplied on the left of the existing placement?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -220,10 +217,28 @@ npm --prefix ../session_tests run course -- check 27c-move
 npm --prefix ../session_tests run course -- save 27c-move
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer’s Move accepts a typed offset or starts a tool that collects points. This lesson completes the direct typed-offset route using the shared placement/history boundary. Interactive Move and repeating tools will extend it in the tool chapters.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Move a placed object with a typed offset. The actual command dock drives this checkpoint; the selected object is highlighted.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 27c-move
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

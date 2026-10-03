@@ -6,11 +6,7 @@
 
 **Today:** Release a validated whole-origin set without clearing Undo/Redo or changing placements.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Release a validated whole-origin set without clearing Undo/Redo or changing placements..
-
-**Before you finish, explain:** Why is unloading only the current Scene insufficient?
 
 Plan before mutating. Collect distinct eligible origins from all retained scene roots, then inspect every row of those origins across active, Undo and Redo roots. Remove an origin from the plan if any retained row is protected. An empty plan returns an error rather than pretending that anything was unloaded.
 
@@ -24,7 +20,7 @@ The next endpoint adds the typed ownership/history check for a moved imported po
 
 ## Type the change
 
-Continue [Protect sources that cannot be unloaded faithfully](32fh-policy.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fi-history`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Protect sources that cannot be unloaded faithfully](32fh-policy.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fi-history` (from `session_viewer`).
 
 ### 1. `src/history.rs`
 
@@ -167,13 +163,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the state checks and native GPU fixture. Generated or unlocated data is protected. Located source data can unload while display, local/saved identities and model history remain intact.
+Run the history-release checks below. Releasing an origin must visit matching active, Undo and Redo rows while retaining their display and placement.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Unload sources across active and history roots.](../screenshots/journey/32fi-history-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -181,13 +177,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Keep an external clone of Source in a fixture and explain why the editor can release its own roots while that external owner still keeps the kernel alive.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is unloading only the current Scene insufficient?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -205,10 +204,28 @@ npm --prefix ../session_tests run course -- check 32fi-history
 npm --prefix ../session_tests run course -- save 32fi-history
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 This models source residency across our shared Scene snapshots without clearing history. Guarded hydration and automatic edit replay remain required before claiming complete source-release parity.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fi-history
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

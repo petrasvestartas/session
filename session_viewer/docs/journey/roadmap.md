@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 186 lesson slots; 118 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 189 lesson slots; 120 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -8,9 +8,23 @@ A checked box means the implementation exists, the displayed code builds, its Ru
 
 Each future lesson will get its own typing estimate, architecture diagram, experiment, buildable endpoint and screenshot when it is authored. No reliable total study-time estimate exists for the unpublished lessons.
 
+## Main task: finish a direct, step-by-step viewer course
+
+- [x] Replace accumulated command tours with one focused check in all 120 current lessons.
+- [x] Rewrite all 18 chapter-34 explanations around the current change and its Rust concepts.
+- [x] Move detailed validation into expandable notes; make experiments optional.
+- [x] Put the to-do link on every lesson and in the course navigation.
+- [x] Check the revised page layout and visible progress links in the same Chrome tab.
+- [ ] Review the remaining explanations against the same direct teaching style.
+- [ ] Split the 17 checkpoints that exceed one hour of typing into runnable steps.
+- [ ] Write and verify the 69 currently planned feature lessons below.
+- [ ] Verify the final course against the complete production viewer, then retire the old reference course.
+
+Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Keep the small concepts that explain the code; put extended test evidence in supporting notes.
+
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 118 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 120 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -24,6 +38,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Production attributes/features default off and opacity 0.95 verified in Chrome.
 - [x] Drawing options and snapping use typed commands; broader command-workspace regression passed.
 - [x] Production phone edge, loading and navigation corrections accepted: appearance correct, loading faster and rotation smooth; the numerical phone loading target remains unmeasured.
+- [ ] Replace remaining production failure/recovery HTML buttons with the command-only flow; preserve usable report retrieval when the GPU stops. The runnable course checkpoints already reject feature buttons.
 - [ ] Complete remaining production robustness: adjacent-face ownership, idle tap/selection preparation and fewer ribbon variants. Teach and verify these in the rendering/performance chapters; CPU restructuring remains conditional on phone diagnostics.
 - [x] Revise 03d and 22 for immediate typing and command-only keyboard features; recheck 23–26.
 - [x] Refresh all changed earlier endpoints and their screenshot evidence.
@@ -271,7 +286,13 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34ga · [Own the periodic diagnostic heartbeat](34ga-timer.md) — Actual interval registration, independent post-loss metadata, exact cancellation/replacement and denied-scheduler startup/download; native, WebAssembly, GPU and Chrome pass.
 
-- [ ] 34gb · Observe browser lifecycle — Cached hide/show, visibility, freeze/resume and final-exit cleanup.
+- [x] 34gb · [Mark a final healthy run closed](34gb-close.md) — Stored healthy/failure outcomes and late-milestone preservation; native, WebAssembly, GPU and Chrome pass.
+
+- [x] 34gba · [Own diagnostic page transitions](34gba-lifecycle.md) — Cached pause/resume, independent post-loss metadata, guarded final cleanup and denied-registration acceptance; all build/render/Chrome checks pass.
+
+- [ ] 34gbb · Observe visibility and freezing — Pause/resume metadata scheduling across independent browser suspension reasons.
+
+- [ ] 34gbc · Revoke pending GPU startup — Final page exit must cancel startup authority before a delayed adapter/device result installs a renderer; cached transitions retain usable authority.
 
 - [ ] 34gc · Observe browser errors — Bound global error/rejection metadata and preserve first failure.
 

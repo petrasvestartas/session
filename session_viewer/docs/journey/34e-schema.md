@@ -6,25 +6,19 @@
 
 **Today:** Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** typed report → bounded metadata and observations → consistent failure/outcome → valid shape.
 
-**Before you finish, explain:** Why must a deserialized report satisfy our shape invariants before it can be used?
+Validate a report before trusting it. `valid` bounds identifiers, timestamp text and events; it requires sensible finite dimensions/timing and agreement between Failed and the retained first fatal event.
 
-The report now has a shape validator. It bounds identifiers, timestamp text, metadata and observations, requires finite positive display density and finite nonnegative event timing, and rejects unsanitized page metadata. A first fatal event must agree with the failed outcome. Recent fatal observations require retained failure; the first failure itself may remain outside the rotated recent window.
+The first fatal event may be older than the recent-event window. A recent fatal event still requires a retained failure. Validation must accept that distinction.
 
-These checks apply to typed values, including values made by deserialization. They do not enforce input byte size, reject unknown raw JSON fields or parse timestamps. Those are the next decoder and recency responsibilities; no stored value is adopted yet.
-
-record trims with while rather than if so a caller that directly deserializes an oversized queue cannot keep it oversized after a valid new observation. This repair does not replace admission validation. Native tests reject inconsistent metadata/failure, overlong Unicode text and oversized events, and verify repaired bounds with the original first failure preserved.
-
-Chrome verifies inherited real diagnostic downloads and GPU-loss/restart behavior. Browser storage is connected only after the complete admission and recency checks.
+Use `while` when trimming a deserialized queue: removing one event is insufficient if its input already exceeded the limit. Repairing that queue does not validate the rest of the report. Byte limits, raw JSON fields and timestamp interpretation follow.
 
 ![Validate typed report shape](../illustrations/journey-34e.svg)
 
 ## Type the change
 
-Continue [Download diagnostics through the real command line](34d-download.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34e-schema`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Download diagnostics through the real command line](34d-download.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34e-schema` (from `session_viewer`).
 
 ### 1. `src/diagnostic.rs`
 
@@ -96,15 +90,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0.05,0,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.
+Run the report-policy checks below. Invalid dimensions, excess events or inconsistent fatal evidence must be rejected. A valid first failure may survive outside the rotated event window.
 
-**Actual Chrome screenshot.**
-
-Chrome checks inherited actual diagnostic downloads and failure/restart behavior. Native tests establish typed report shape; raw JSON admission and browser storage follow.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Check the bounded shape of a diagnostic report.](../screenshots/journey/34e-schema-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -112,13 +104,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Directly deserialize 25 recent events, inspect valid(), then record one new observation and inspect it again. Explain why queue repair cannot validate the rest of the stored format.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must a deserialized report satisfy our shape invariants before it can be used?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -136,10 +131,30 @@ npm --prefix ../session_tests run course -- check 34e-schema
 npm --prefix ../session_tests run course -- save 34e-schema
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The saved-report reader must validate its metadata before use. This endpoint establishes typed shape invariants; raw JSON admission, recency, real storage, telemetry and recovery follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome verifies inherited real diagnostic downloads and GPU-loss/restart behavior. Browser storage is connected only after the complete admission and recency checks.
+
+Chrome checks inherited actual diagnostic downloads and failure/restart behavior. Native tests establish typed report shape; raw JSON admission and browser storage follow.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34e-schema
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

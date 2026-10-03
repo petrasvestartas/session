@@ -6,11 +6,7 @@
 
 **Today:** Check exact local source data, attributes, identities and placement through saving and loading.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Live source and placement → snapshot bytes → load → identical source values and object matrices.
-
-**Before you finish, explain:** What can a screenshot prove about saved precision and identity?
 
 Before adding the download, verify the document bytes independently of browser APIs. The same public snapshot and load functions serve the tests and the coming Save command.
 
@@ -26,7 +22,7 @@ Flags are retained here. A hidden source is not yet filtered from our tutorial d
 
 ## Type the change
 
-Continue [Reopen source geometry with its placement](29b-placements.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-29c-roundtrip`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Reopen source geometry with its placement](29b-placements.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29c-roundtrip` (from `session_viewer`).
 
 ### 1. `src/save_roundtrip_tests.rs`
 
@@ -67,13 +63,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the two round-trip checks. In the browser, Open your sample file, Select Next five times and Move -0.6,0,0. Open the same file again, Select Next three times, Move 0.6,0,0.2, View Isometric and Fit. The two imported frames now have visibly separate top beams. Saving keeps both imports and their independent placements instead of deduplicating their original source GUIDs.
+Run the round-trip checks below. Reopened geometry must retain exact doubles, attributes, saved identities and placements. Compare the source values, not the float display.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Prove the saved document reopens faithfully.](../screenshots/journey/29c-roundtrip-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -81,13 +77,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the exact coordinate to 123456789.125. Predict why the reopened kernel coordinate matches exactly even though the display uses floats. Then inspect corresponding imported copies’ saved GUIDs. Restore the checks.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+What can a screenshot prove about saved precision and identity?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -105,10 +104,28 @@ npm --prefix ../session_tests run course -- check 29c-roundtrip
 npm --prefix ../session_tests run course -- save 29c-roundtrip
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production viewer preserves editable source data through save/reopen and assigns distinct identities to inserted copies. These bounded flat-mesh tests establish that contract before browser downloading or full geometry families.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 29c-roundtrip
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

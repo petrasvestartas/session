@@ -6,11 +6,7 @@
 
 **Today:** Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Vertex z → transformed depth → depth comparison → colour written only for the nearer fragment.
-
-**Before you finish, explain:** Why is it not enough to draw the far triangle first?
 
 Place two coloured cards so they overlap. The card closer to your eye hides part of the other one. Until now our renderer only knew which draw happened last. Today we give each corner a depth and let the GPU keep the nearer surface.
 
@@ -28,7 +24,7 @@ Opaque visibility is the purpose of this depth test. Transparent surfaces will n
 
 ## Type the change
 
-Continue [Let one matrix describe the view](09-matrices.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-10-depth`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Let one matrix describe the view](09-matrices.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-10-depth` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -250,13 +246,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Pink remains in front at the overlap, although turquoise is drawn afterward. Run `Pan Right`, `Zoom Out` and `Orbit Right`: moving the view must not reverse the depth relationship.
+Look at the overlapping triangles. The nearer triangle must cover the farther one even though it is drawn first. Reverse their draw order: the overlap should stay the same. Restore the order.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep the nearest surface.](../screenshots/journey/10-depth-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -264,13 +260,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Temporarily change the near triangle’s three z values from 0.25 to 0.9. Predict which colour will appear at the shared centre. Turquoise should now win. Restore the values, then reverse the two groups of indices: the picture should stay the same. Restore the original order before comparing.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is it not enough to draw the far triangle first?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -288,10 +287,11 @@ npm --prefix ../session_tests run course -- check 10-depth
 npm --prefix ../session_tests run course -- save 10-depth
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The finished viewer uses depth attachments for opaque visibility, then adds the rules needed for strokes, CAD boundaries and transparency. This lesson establishes why those rules must refer to visible surfaces rather than draw order.
 
-[Validation status and course release](release.md).
+</details>

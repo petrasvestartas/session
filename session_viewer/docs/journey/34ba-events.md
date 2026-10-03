@@ -6,25 +6,19 @@
 
 **Today:** Bound diagnostic observations while keeping the original failure independently of recent event rotation.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** finite relative time → bounded event → first failure retained → last 24 observations → stable failed outcome.
 
-**Before you finish, explain:** Why keep the first failure separately from the recent event queue?
+Keep recent observations and the first fatal reason separately. `VecDeque` is a queue: pop its oldest entry before appending when it reaches 24 events. The first-failure field survives that rotation.
 
-One error can trigger many later errors. Keeping every message forever would let diagnostics grow without bound; keeping only recent messages would eventually lose the original reason. Report therefore owns a recent VecDeque and a separate first-failure copy. Neither contains scene or GPU handles.
+`record` rejects negative or non-finite elapsed time before mutation, caps kind/message text at 64/4096 Unicode scalar values, updates lastSeen and appends one event. A fatal event sets Failed only once; a later ready milestone cannot clear the failure.
 
-record rejects non-finite or negative elapsed time before mutation. It bounds each kind to 64 and message to 4096 Unicode scalar values, updates lastSeen and appends one observation. At 24 events it removes the oldest before appending. This limit covers observations recorded by this method, not arbitrary JSON accepted by Deserialize; the future storage reader still needs its own size/schema validation.
-
-A fatal observation stores the first failure once and marks the outcome failed. A geometry-on-screen milestone marks a non-failed report ready, but cannot erase failure. The immutable failure accessor supports later download/recovery without exposing the queue for unbounded appends.
-
-Native tests drive 30 follow-on errors, verify the exact 24-event window, preserve the first failure through a later success milestone, round-trip the report, cap multibyte text without cutting a character and reject invalid timings without mutation. The browser still verifies inherited GPU-loss behavior; actual report observation is wired next.
+These limits govern recording. Deserialized JSON still needs an admission check before the viewer trusts it.
 
 ![Bounded observations and retained failure](../illustrations/journey-34ba.svg)
 
 ## Type the change
 
-Continue [Describe a viewer run without keeping its document](34b-report.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34ba-events`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Describe a viewer run without keeping its document](34b-report.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34ba-events` (from `session_viewer`).
 
 ### 1. `src/diagnostic.rs`
 
@@ -133,15 +127,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Import sample.pb, Select Next, and use Move or Orbit Up. Device loss is normally external; the browser acceptance calls the real GPUDevice.destroy() through a test-only observer. Failure shows Cannot draw, and old input cannot submit another frame. Reload the SAME page to start a new viewer; unsaved placement is not recovered. In a working run, finish with Orbit Up and Fit. Run the native tests to inspect the report’s JSON header; the Diagnostic Report command is introduced after browser wiring. Finish the healthy proof view with Orbit Right and Fit. The native tests exercise bounded diagnostics; live download and storage are still upcoming.
+Run the event checks below. After 30 observations, exactly 24 remain, while the first fatal reason is preserved separately. Recording a success must not clear failure.
 
-**Actual Chrome screenshot.**
-
-Chrome verifies inherited real GPU loss, cancellation and restart, then captures Orbit Right. Native tests establish bounded report observations and first-failure retention; the browser report producer follows next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Keep recent events without losing the first failure.](../screenshots/journey/34ba-events-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -149,13 +141,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Store failure only in the recent queue and run the rotation test. Then remove the failed-outcome guard and explain why a later successful milestone would misdescribe the run.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why keep the first failure separately from the recent event queue?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -173,10 +168,30 @@ npm --prefix ../session_tests run course -- check 34ba-events
 npm --prefix ../session_tests run course -- save 34ba-events
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production diagnostics retain 24 recent events and the first fatal reason separately. This checkpoint implements that policy in the cumulative Rust report. Phases/resources/adapter metadata, browser connection, downloads and bounded storage/recovery still follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Native tests drive 30 follow-on errors, verify the exact 24-event window, preserve the first failure through a later success milestone, round-trip the report, cap multibyte text without cutting a character and reject invalid timings without mutation. The browser still verifies inherited GPU-loss behavior; actual report observation is wired next.
+
+Chrome verifies inherited real GPU loss, cancellation and restart, then captures Orbit Right. Native tests establish bounded report observations and first-failure retention; the browser report producer follows next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34ba-events
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

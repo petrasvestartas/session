@@ -6,23 +6,19 @@
 
 **Today:** Select source requests from the original edit target, with Save covering the active document.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Intent → original current row → cold origin + epoch; Save → unique active cold origins.
-
-**Before you finish, explain:** Why should Save ignore a released source that exists only in Undo history?
 
 Move and Delete follow the captured ObjectId, even if selection now belongs to a different import. A loaded target needs no source request. A missing target fails before any fetch begins. For a cold row, ReloadKey::of returns its exact origin and release epoch.
 
 Save reuses Editor::reload_keys: it gathers each active cold origin once, even when several rows share it. It excludes loaded rows and sources held only by Undo/Redo history. Three native tests distinguish two imports, later selection, deduplication, history-only sources and missing or loaded targets.
 
-The method borrows Editor only while collecting keys. The returned keys temporarily retain the origins needed by a future ReloadJob; the Intent itself still holds values only. Browser interception and replay are not connected yet. Chrome verifies the existing explicit reload and a subsequent normal Move.
+The method borrows Editor only while collecting keys. The returned keys temporarily retain the origins needed by a future ReloadJob; the Intent itself still holds values only. Browser interception and replay are not connected yet.
 
 ![Choose requested source scope](../illustrations/journey-32gia.svg)
 
 ## Type the change
 
-Continue [Capture the requested edit before waiting](32gi-capture.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gia-scope`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Capture the requested edit before waiting](32gi-capture.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gia-scope` (from `session_viewer`).
 
 ### 1. `src/edit_intent.rs`
 
@@ -94,15 +90,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests.
+Run the scope checks below. Move/Delete request only their captured target; Save requests active cold sources, excluding history-only rows.
 
-**Actual Chrome screenshot.**
-
-Chrome checks the inherited explicit source reload and this placed drawing. Original-target source selection, active-document Save scope and refusal cases are proved natively; automatic browser replay is still pending.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Load only the sources the requested edit needs.](../screenshots/journey/32gia-scope-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -110,13 +104,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 In the first scope test, point selection at a row from the second import. Explain why Move and Delete still request the first import, while Save requests both.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why should Save ignore a released source that exists only in Undo history?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -134,10 +131,28 @@ npm --prefix ../session_tests run course -- check 32gia-scope
 npm --prefix ../session_tests run course -- save 32gia-scope
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The operation determines its source dependencies. Current selection, history size and the number of displayed rows do not determine a request’s authority.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome checks the inherited explicit source reload and this placed drawing. Original-target source selection, active-document Save scope and refusal cases are proved natively; automatic browser replay is still pending.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gia-scope
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Adopt one-shot tickets in the browser and give asynchronous results their own history entry.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership.
-
-**Before you finish, explain:** Does cancelling a read mean its promise stops running?
 
 Replace Rc<Cell<u64>> with Rc<RefCell<ReadGate>>. Sharing the Rc lets the command callback and asynchronous tasks reach one gate. RefCell permits a short mutable borrow for begin, finish or cancel; release that borrow before dispatching an event.
 
@@ -24,11 +20,9 @@ Asynchronous outcomes append an Open entry to history. They must not call result
 
 Add a hidden data-object-count diagnostic to the canvas. It reports editable row count without changing the interface. A second copy of the same geometry can overlap every original pixel, so count gives Chrome independent evidence that a stale read did not silently append rows.
 
-Chrome holds real File.arrayBuffer promises, types other commands, cancels reads and releases old completions. It checks both scene pixels and object count, and confirms an old failure cannot overwrite a newer request or command.
-
 ## Type the change
 
-Continue [Give a pending read an explicit ticket](30a-tickets.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-30b-cancel`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Give a pending read an explicit ticket](30a-tickets.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-30b-cancel` (from `session_viewer`).
 
 ### 1. `src/file_input.rs`
 
@@ -302,13 +296,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open the specimen, Example Box, Select Next six times, Move 0.5,-0.6,0.3, View Isometric and Fit. Cancel Open is available in the dock. Native ticket checks and Chrome’s controlled promises prove cancellation even though a small ordinary file may finish too quickly to cancel manually.
+Start `Open`, then type `Cancel Open` before its read completes. A late result must not enter the document or replace a newer command’s history entry.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Cancel reads without accepting their late result.](../screenshots/journey/30b-cancel-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -316,13 +310,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Hold a read in a debugger, type View Isometric and Cancel Open, then let the read finish. Predict why neither the object count nor command history should change when that cancelled task returns.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Does cancelling a read mean its promise stops running?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -340,10 +337,28 @@ npm --prefix ../session_tests run course -- check 30b-cancel
 npm --prefix ../session_tests run course -- save 30b-cancel
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production loader generations prevent stale work from mutating the active scene. This checkpoint expresses cancellation as delivery ownership; listener and resource lifetime cleanup remains a later lesson.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome holds real File.arrayBuffer promises, types other commands, cancels reads and releases old completions. It checks both scene pixels and object count, and confirms an old failure cannot overwrite a newer request or command.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 30b-cancel
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

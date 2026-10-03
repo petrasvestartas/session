@@ -6,11 +6,7 @@
 
 **Today:** Draw a pink triangle on the white background.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Three shader positions → triangle coverage → fragment colour → canvas.
-
-**Before you finish, explain:** If you change the top vertex, which part of the picture changes, and which stays the same?
 
 The GPU can already paint an image. Today we ask it to paint a shape inside that image. We give it three corners and a colour, then connect them with a pipeline.
 
@@ -26,7 +22,7 @@ A **pipeline** is a reusable drawing recipe. Compiling one per click would repea
 
 ## Type the change
 
-Continue [Ask the GPU to paint](02-clear.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-03-triangle`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Ask the GPU to paint](02-clear.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-03-triangle` (from `session_viewer`).
 
 ### 1. `src/triangle.wgsl`
 
@@ -127,21 +123,24 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-A pink triangle appears on the white background. Its top corner is above the centre. The background is still the render-pass clear from the previous lesson.
+A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give the GPU three corners.](../screenshots/journey/03-triangle-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`. Run it: the top should move right while the base stays still. Then change only the fragment colour. Explain why that changes the inside colour but not the silhouette. Restore both edits.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+If you change the top vertex, which part of the picture changes, and which stays the same?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -159,10 +158,11 @@ npm --prefix ../session_tests run course -- check 03-triangle
 npm --prefix ../session_tests run course -- save 03-triangle
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production viewer also separates shader programs, pipeline setup and frame recording. Later mesh buffers replace the shader’s three hard-coded positions. We will make that replacement explicitly, after understanding what the positions do.
 
-[Validation status and course release](release.md).
+</details>

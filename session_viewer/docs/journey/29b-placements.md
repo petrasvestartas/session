@@ -6,11 +6,7 @@
 
 **Today:** Validate stored placements before reconstructing source-backed objects.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Bytes → validated mesh IDs and affine matrices → prepared local sources plus placement → inserted objects.
-
-**Before you finish, explain:** Where must a saved transform be applied when reopening?
 
 The snapshot contains local geometry and separate placement records. Extend the loader to accept exactly that contract. A transform is trusted only after its GUID belongs to a mesh, it occurs once, and its message contains sixteen finite values with an affine final row.
 
@@ -28,7 +24,7 @@ Save is still a Rust function today. The next lesson connects its bytes to the c
 
 ## Type the change
 
-Continue [Write a snapshot from the editable sources](29a-snapshot.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-29b-placements`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Write a snapshot from the editable sources](29a-snapshot.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29b-placements` (from `session_viewer`).
 
 ### 1. `src/placement.rs`
 
@@ -238,13 +234,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the snapshot and malformed-placement checks. In the viewer, Open your specimen, Example Box, Select Next six times, Move 1,0.5,0.3, View Isometric and Fit. Existing import and Move still work; the new loader also accepts snapshots that carry placements.
+Run the reopen checks below. Valid stored placements restore the objects; an invalid matrix must reject the document before changing live rows.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Reopen source geometry with its placement.](../screenshots/journey/29b-placements-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -252,13 +248,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the malformed-placement check’s projective matrix into a finite translation. Predict why validation accepts it, then restore the rejection case. Explain why a fifteen-value matrix remains invalid even if every supplied value is finite.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Where must a saved transform be applied when reopening?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -276,10 +275,28 @@ npm --prefix ../session_tests run course -- check 29b-placements
 npm --prefix ../session_tests run course -- save 29b-placements
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production session stores local placements keyed by object GUID and composes nested tree transforms later. This checkpoint handles one flat level and rejects unsupported definitions and interactions.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 29b-placements
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

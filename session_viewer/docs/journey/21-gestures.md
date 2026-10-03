@@ -8,11 +8,7 @@
 
 **Today:** Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Pointer event → Gesture memory → Motion → Editor action → camera or selection → frame.
-
-**Before you finish, explain:** Why do we need both browser pointer capture and our own active pointer ID?
 
 Put your finger on the table. Move it, then lift it. Those are three events, but you understand them as one gesture because you remember the press. Our viewer needs that little piece of memory too.
 
@@ -24,7 +20,7 @@ Rust’s `Option<Drag>` means “either one active drag, or none.” `as_mut()` 
 
 ## Type the change
 
-Continue [Keep a changing window in proportion](20-resize.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-21-gestures`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Keep a changing window in proportion](20-resize.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-21-gestures` (from `session_viewer`).
 
 ### 1. `src/gesture.rs`
 
@@ -298,15 +294,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run `Example Box` and `View Isometric`. Right-drag the drawing, move beyond its edge, and release. Further movement must not orbit. Left-click a face to select it; a left drag must not select. Resize or switch windows during a press and check that the drag stops.
+Right-drag the drawing and release outside the canvas. Further pointer movement must stop orbiting. A left click still selects a face.
 
-**Actual Chrome screenshot.**
-
-A right drag turns the scene. The browser check then releases the command and confirms that further pointer movement leaves the camera still.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Remember a press until it ends.](../screenshots/journey/21-gestures-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -314,13 +308,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why do we need both browser pointer capture and our own active pointer ID?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -338,10 +335,20 @@ npm --prefix ../session_tests run course -- check 21-gestures
 npm --prefix ../session_tests run course -- save 21-gestures
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+A right drag turns the scene. The browser check then releases the command and confirms that further pointer movement leaves the camera still.
+
+[Full validation scope](release.md).
+
+</details>

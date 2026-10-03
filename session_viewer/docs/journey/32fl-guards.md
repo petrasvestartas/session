@@ -6,11 +6,7 @@
 
 **Today:** Verify whole-origin protection, independent duplicate imports and checked release epochs.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Modified history origin → protection; independent origin → release; exhausted epoch → no mutation.
-
-**Before you finish, explain:** Why is a release epoch kept across Close rather than reset for each document?
 
 Add the cases that a simple active-row check would miss. A modified metadata row exists only in history, while the active original still looks eligible. Protect that entire origin. A second import of identical bytes has its own Origin and can unload independently.
 
@@ -18,11 +14,9 @@ Add the cases that a simple active-row check would miss. A modified metadata row
 
 The epoch test forces exhaustion and verifies that no row becomes cold. It then releases, closes, reopens and releases again: the new rows receive the next epoch rather than reusing one.
 
-Chrome keeps the command-only unloading proof, checks that a second unload refuses without changing pixels, and reopens in the same page before unloading again. The native GPU proof checks old kernel expiration with live display/GPU owners. These checks prepare guarded reload delivery; the fetch, cancellation and automatic edit replay are still next.
-
 ## Type the change
 
-Continue [Unload editable sources through the command line](32fk-command.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fl-guards`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Unload editable sources through the command line](32fk-command.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fl-guards` (from `session_viewer`).
 
 ### 1. `src/editor.rs`
 
@@ -53,13 +47,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the history-protection and epoch checks, then use Unload Sources twice and Close/reopen in Chrome. Failed or repeated unloads must not alter the drawing or current release identity.
+Run the unload guard checks below. A modified history row must protect its origin; duplicate imports and exhausted epochs must not release the wrong source.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Protect history and future reload tickets.](../screenshots/journey/32fl-guards-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -67,13 +61,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Reset the issuance counter inside Close in a scratch copy and predict the reopened epoch. Explain why origin identity alone should not replace per-release ownership.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is a release epoch kept across Close rather than reset for each document?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -91,10 +88,28 @@ npm --prefix ../session_tests run course -- check 32fl-guards
 npm --prefix ../session_tests run course -- save 32fl-guards
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Each source release has both an import identity and a viewer-issued epoch. The rehydration flow must verify both and its own read ticket before adopting data.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome keeps the command-only unloading proof, checks that a second unload refuses without changing pixels, and reopens in the same page before unloading again. The native GPU proof checks old kernel expiration with live display/GPU owners. These checks prepare guarded reload delivery; the fetch, cancellation and automatic edit replay are still next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fl-guards
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

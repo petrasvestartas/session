@@ -6,23 +6,17 @@
 
 **Today:** Share one geometry-free origin across imported rows and history.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Share one geometry-free origin across imported rows and history..
-
-**Before you finish, explain:** Does retaining an Origin after Close keep the imported Session alive?
 
 Construct an Origin after decoding and validation, before moving the protobuf into the kernel Session. Every prepared row shares the same Rc<Origin> through its Source. A second import gets a different Origin even when its file bytes are identical.
 
 The native check records Weak observers, retains only the Origin, and closes the editor. The Session and kernel value must disappear while the original header remains readable. Another check follows one shared origin through Move and Undo.
 
-Chrome exposes origin identity and the byte fingerprint in a hidden attribute. It checks that three rows of one import share an origin, duplicate imports have different origins but the same version, and history preserves them. No reload location or unload command exists yet.
-
 ![Share one geometry-free origin across imported rows and history.](../illustrations/journey-32fd.svg)
 
 ## Type the change
 
-Continue [Record a reload version without retaining geometry](32fc-version.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fd-origin`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Record a reload version without retaining geometry](32fc-version.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fd-origin` (from `session_viewer`).
 
 ### 1. `src/document.rs`
 
@@ -126,13 +120,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open the same specimen twice and compare import IDs and fingerprints. Move and Undo without changing either. Run the Weak ownership checks.
+Run the origin checks below. Rows from one import share its small origin header through history without retaining the original document.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Attach one origin to an imported document.](../screenshots/journey/32fd-origin-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -140,13 +134,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Clone Source instead of only Origin in the ownership check and predict which Weak observations remain alive.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Does retaining an Origin after Close keep the imported Session alive?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -164,10 +161,28 @@ npm --prefix ../session_tests run course -- check 32fd-origin
 npm --prefix ../session_tests run course -- save 32fd-origin
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Origin identity is separate from saved row GUID and original source GUID. This prevents a later completion for one duplicate import from being adopted by another.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome exposes origin identity and the byte fingerprint in a hidden attribute. It checks that three rows of one import share an origin, duplicate imports have different origins but the same version, and history preserves them. No reload location or unload command exists yet.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fd-origin
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -6,11 +6,7 @@
 
 **Today:** Represent source residency without changing retained display, identity or placement.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Represent source residency without changing retained display, identity or placement..
-
-**Before you finish, explain:** Which owners remain in a Released row?
 
 Replace Object’s private geometry/source fields with EditSource. Loaded owns the required kernel geometry and optional imported Source. Released owns an Origin and epoch. Generated Loaded rows have geometry but no imported Origin.
 
@@ -22,7 +18,7 @@ Scene insertion still requires PreparedMesh geometry. It captures metadata, crea
 
 ## Type the change
 
-Continue [Adopt the selected file as a reloadable source](32ff-bridge.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32fg-state`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Adopt the selected file as a reloadable source](32ff-bridge.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32fg-state` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -149,13 +145,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the loaded-source ownership checks and compare the Chrome drawing and metadata with the prior endpoint. Save still uses exact kernel coordinates.
+Run the residency checks below. A cold row has no editable source but retains display, metadata, identity and placement. Browser unloading comes later.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Separate loaded and released editable ownership.](../screenshots/journey/32fg-state-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -163,13 +159,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Follow the Rc edges in Loaded and Released. Explain why adding a kernel Rc to Released would defeat unloading even if source() returned None.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Which owners remain in a Released row?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -187,10 +186,28 @@ npm --prefix ../session_tests run course -- check 32fg-state
 npm --prefix ../session_tests run course -- save 32fg-state
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The private representation now expresses the production distinction between retained display rows and resident editable source. The next policy prevents releasing generated or modified sources.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32fg-state
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

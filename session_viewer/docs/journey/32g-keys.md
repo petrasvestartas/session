@@ -6,17 +6,11 @@
 
 **Today:** Borrow the current imported release identity and epoch before asking for source data.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Active cold rows → ReloadKey::of → unique imported Origin + release epoch.
-
-**Before you finish, explain:** Why is a file GUID insufficient to accept a reload result?
 
 Define `ReloadKey` as an Origin owner and one release epoch. matches compares the actual imported Origin Rc and the row’s current epoch. That is the residency identity; local/saved object identity and source GUID remain separate.
 
 Collect distinct keys from active cold rows. A later explicit reload can use them, while source adoption will also visit matching history roots. Do not fetch a history-only source without a current active request. If history later restores that source, a new request can obtain its current key.
-
-The native test unloads, records a key, closes and imports the same bytes again. The old key cannot match the new import. A key with a changed epoch cannot match the current cold row either. No fetch or Reload Sources command exists yet; the browser retains the preceding unload behavior.
 
 `Rc::clone` creates another owner of the same value; it does not copy the Origin. `Rc::ptr_eq` asks whether two owners refer to that same allocation. `Option<Self>` means a row might have no reload key: the question marks return None immediately for a loaded or unlocated row. `is_some_and` runs the comparison only when an origin exists.
 
@@ -24,7 +18,7 @@ The native test unloads, records a key, closes and imports the same bytes again.
 
 ## Type the change
 
-Continue [Protect history and future reload tickets](32fl-guards.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32g-keys`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Protect history and future reload tickets](32fl-guards.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32g-keys` (from `session_viewer`).
 
 ### 1. `src/lib.rs`
 
@@ -80,23 +74,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-When Trunk reloads after a code change, the viewer starts with its generated demo again. From `workspace/journey`, make the sample using the example you already typed:
+Run the reload-key checks below. A key from a closed import must not match a new import of identical bytes; changing the release epoch must also reject it. No fetch is connected yet.
 
-```sh
-REGEN_PROTO=0 cargo run --example sample --locked -j4
-```
-
-Type `Open Replace`, choose `sample.pb`, then type `Select Next` twice, `Move 0.35,0,0.25`, `View Isometric` and `Fit`. You now have a moved object from a retained, reloadable file.
-
-Run the release-identity checks, then Unload Sources in the unchanged browser. Compare the current origin/epoch with the saved row GUID.
-
-**Actual Chrome screenshot.**
-
-The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Identify the source release a reload belongs to.](../screenshots/journey/32g-keys-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -104,13 +88,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Compare two imports of the same file. Explain why sharing the byte version must not make a result for one import eligible for the other.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why is a file GUID insufficient to accept a reload result?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -128,10 +115,30 @@ npm --prefix ../session_tests run course -- check 32g-keys
 npm --prefix ../session_tests run course -- save 32g-keys
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production source fetches carry a release token. This explicit key prepares the same rejection of old completions across replacement, Close and another release cycle.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+The native test unloads, records a key, closes and imports the same bytes again. The old key cannot match the new import. A key with a changed epoch cannot match the current cold row either. No fetch or Reload Sources command exists yet; the browser retains the preceding unload behavior.
+
+The browser checks the existing command-only unload behavior and retained drawing. Source hydration at this endpoint is verified by the native state/GPU checks; browser fetch and automatic command replay are still pending.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32g-keys
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

@@ -130,15 +130,17 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [34fc-retention](34fc-retention.md) | 45 | 2547 | 26–51 min | 1–2 h | Within planning limit |
 | [34g-heartbeat](34g-heartbeat.md) | 36 | 1643 | 17–33 min | 1–2 h | Within planning limit |
 | [34ga-timer](34ga-timer.md) | 41 | 1574 | 16–32 min | 1–2 h | Within planning limit |
+| [34gb-close](34gb-close.md) | 47 | 2162 | 22–44 min | 1–2 h | Within planning limit |
+| [34gba-lifecycle](34gba-lifecycle.md) | 53 | 2566 | 26–52 min | 1–2 h | Within planning limit |
 
 ## Work still required
 
-- [x] Count the exact source edits for all 118 current checkpoints.
+- [x] Count the exact source edits for all 120 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 186 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 189 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

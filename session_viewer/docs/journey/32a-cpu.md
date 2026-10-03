@@ -6,11 +6,7 @@
 
 **Today:** Account for active/history rows, retained sources/documents and unique display payloads.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Borrowed scene roots and GPU display owners → identity sets → scoped CPU ledger.
-
-**Before you finish, explain:** Why does the CPU ledger include display owners held by GPU geometry?
 
 Counting a mesh once for every snapshot would exaggerate its memory. Count row records separately, then use allocation identities to count each shared source, document and derived display once.
 
@@ -26,7 +22,7 @@ The tests compare a scene with its shared snapshot and remove an imported row wh
 
 ## Type the change
 
-Continue [Find the owners retained by history](32-history.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32a-cpu`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Find the owners retained by history](32-history.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32a-cpu` (from `session_viewer`).
 
 ### 1. `src/mesh.rs`
 
@@ -130,13 +126,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Inspect data-cpu-usage on the canvas. Move or Undo adds row snapshots but does not duplicate the shared display payload. Imported document meshes remain counted while any retained row owns their Session.
+Run the CPU accounting checks below. One display shared by active rows and history must be counted once, while every row remains counted.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Count shared CPU displays once.](../screenshots/journey/32a-cpu-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -144,13 +140,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Compare a Vec with length three and capacity sixteen. Explain why its payload allocation is larger than its currently occupied elements. Then explain which memory categories this ledger deliberately does not claim to measure.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does the CPU ledger include display owners held by GPU geometry?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -168,10 +167,28 @@ npm --prefix ../session_tests run course -- check 32a-cpu
 npm --prefix ../session_tests run course -- save 32a-cpu
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production source accounting covers every kernel geometry family and cached scans. This mesh-stage ledger teaches unique ownership and known display payload; full source categories remain a required later extension.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32a-cpu
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

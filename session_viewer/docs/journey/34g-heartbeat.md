@@ -6,25 +6,19 @@
 
 **Today:** Refresh actual last-seen metadata independently of first failure, event history and GPU ownership.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence.
 
-**Before you finish, explain:** Why must a heartbeat not append a fatal event or rewrite the first failure time?
+Refresh lastSeen without recording an event. A periodic heartbeat would otherwise fill the 24-event window and push out useful observations.
 
-A heartbeat updates one run value: lastSeen. Its timestamp text must be nonempty and at most 64 Unicode scalar values. Native tests preserve every other field across running, ready, closed and failed outcomes, including the first failure and all recent observations. Invalid text is refused before mutation. Browser Date parsing and recency remain separate policies.
+`Report::heartbeat` validates timestamp text before updating that single field. Running, Ready, Closed and Failed keep their outcome, events and first fatal reason.
 
-The browser wrapper supplies an actual UTC timestamp and current viewport/canvas/density context, then persists a cloned report after releasing the report borrow. It has no renderer, source document or GPU argument and creates no observation. Repeated beats cannot fill the24-event window or change a failed outcome to ready.
-
-Headed Chrome invokes this real wrapper through a debug export, reads the corresponding localStorage value and checks unchanged drawing, selection, camera, history and geometry counters. After destroying an actual GPU device it advances the heartbeat again without new GPU work, then proves the first fatal timestamp/message and events are unchanged. It reloads the same test page to restore the healthy proof view.
-
-This endpoint supplies the operation; it deliberately installs no timer. The next checkpoint owns a real periodic callback and verifies cancellation rather than forgetting a Closure. Lifecycle suspension/resume and final-exit handling follow that owner.
+The browser wrapper supplies current UTC/context and persists after ending the report borrow. It receives no renderer or document. This lesson supplies the operation; the next owns its timer.
 
 ![Refresh activity without rewriting failure](../illustrations/journey-34g.svg)
 
 ## Type the change
 
-Continue [Preserve unsupported telemetry while pruning](34fc-retention.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-34g-heartbeat`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Preserve unsupported telemetry while pruning](34fc-retention.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-34g-heartbeat` (from `session_viewer`).
 
 ### 1. `src/diagnostic.rs`
 
@@ -96,15 +90,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run native state checks and use the viewer normally. Chrome calls the real browser heartbeat entry point, reads the stored JSON and verifies lastSeen/context refresh without scene or event changes. It also refreshes a report after real GPU destruction and preserves the first fatal evidence. No interval is installed yet; the next checkpoint owns and schedules periodic heartbeats. Finish the healthy proof view with Move 0.05,0,0 and Fit.
+In the debug console, call `window.wasmBindings.heartbeat()`. Download `Diagnostic Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
 
-**Actual Chrome screenshot.**
-
-Chrome updates and reads real stored heartbeat metadata, preserves scene/history/events and first failure, and proves heartbeat after actual GPU loss performs no GPU work. Periodic scheduling follows next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Refresh heartbeat without rewriting failure evidence.](../screenshots/journey/34g-heartbeat-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -112,13 +104,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Implement heartbeat through record("fatal", ...), then predict which failure/outcome assertion fails. Implement it as a recent observation instead and explain why frequent beats would evict useful events.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must a heartbeat not append a fatal event or rewrite the first failure time?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -136,10 +131,30 @@ npm --prefix ../session_tests run course -- check 34g-heartbeat
 npm --prefix ../session_tests run course -- save 34g-heartbeat
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production updates saved heartbeat on its periodic timer. The course now defines the metadata-only operation; owned periodic scheduling, lifecycle/error observers, detailed load telemetry and bounded recovery follow.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Headed Chrome invokes this real wrapper through a debug export, reads the corresponding localStorage value and checks unchanged drawing, selection, camera, history and geometry counters. After destroying an actual GPU device it advances the heartbeat again without new GPU work, then proves the first fatal timestamp/message and events are unchanged. It reloads the same test page to restore the healthy proof view.
+
+Chrome updates and reads real stored heartbeat metadata, preserves scene/history/events and first failure, and proves heartbeat after actual GPU loss performs no GPU work. Periodic scheduling follows next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 34g-heartbeat
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

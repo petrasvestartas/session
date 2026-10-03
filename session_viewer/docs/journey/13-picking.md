@@ -8,11 +8,7 @@
 
 **Today:** Click a visible triangle to select its stable object ID, including after camera movement.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Browser click → canvas-relative coordinates → inverse camera → triangle coverage and depth → ObjectId → highlight.
-
-**Before you finish, explain:** Why must picking undo the camera transform before testing the stored triangles?
 
 We can already select an object by its place in a list. Now let us select the object we point at. The first job is to make sure the pointer and geometry are speaking the same coordinate language.
 
@@ -30,7 +26,7 @@ This small CPU query teaches coordinate conversion and visibility. It does not r
 
 ## Type the change
 
-Continue [Name objects without depending on their row](12-identity.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-13-picking`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Name objects without depending on their row](12-identity.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-13-picking` (from `session_viewer`).
 
 ### 1. `src/camera.rs`
 
@@ -178,13 +174,13 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Click the pink triangle, then the visible turquoise part. Each becomes yellow. Click their overlap: the nearer object must win. Click empty space to clear selection. Use `Pan Right`, `Zoom Out` and `Orbit Right`, then repeat the picks.
+Click the visible triangle, then type `Delete`. The clicked object disappears. Pan the view and try again: picking must follow the picture.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Ask which object is under the pointer.](../screenshots/journey/13-picking-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -192,13 +188,16 @@ Run the state checks from your project folder:
 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why must picking undo the camera transform before testing the stored triangles?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -216,10 +215,11 @@ npm --prefix ../session_tests run course -- check 13-picking
 npm --prefix ../session_tests run course -- save 13-picking
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Production picking renders integer identifiers, reads a small result asynchronously, rejects stale results and resolves the displayed row back to source identity. The conversion and ownership questions introduced here remain the same when the implementation becomes more capable.
 
-[Validation status and course release](release.md).
+</details>

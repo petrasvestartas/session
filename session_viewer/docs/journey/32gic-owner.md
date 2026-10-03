@@ -6,11 +6,7 @@
 
 **Today:** Store source keys and captured intent in one pending owner that current completion can consume once.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** ReloadJob<Intent> → Pending { ticket, keys, payload } → current finish_with takes both once.
-
-**Before you finish, explain:** Why does a stale completion check the current ticket before taking the pending value?
 
 Generalize ReloadJob with a payload type P. Pending stores that payload beside its ticket and keys; begin_with installs them together, finish_with returns them together once, and cancel drops them together. The request sent to a future still owns only URL strings and a ticket.
 
@@ -20,13 +16,11 @@ The normal begin/finish methods are thin wrappers for the unit specialization. E
 
 A matching ticket establishes current request ownership, not document validity. The next browser lesson must still hydrate with the captured keys and reject changed origin/epoch context before replay. Success and failure both consume only their own current ticket; a stale failure must never abort newer work.
 
-Chrome checks the unchanged explicit reload/download/editor paths; this lesson does not yet connect an intent-bearing browser completion.
-
 ![Own the intent and ticket together](../illustrations/journey-32gic.svg)
 
 ## Type the change
 
-Continue [Route captured Move, Delete and Save results](32gibb-reply.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gic-owner`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Route captured Move, Delete and Save results](32gibb-reply.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-32gic-owner` (from `session_viewer`).
 
 ### 1. `src/reload_job.rs`
 
@@ -175,15 +169,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-From your project, run `REGEN_PROTO=0 cargo run --example sample --locked -j4`. Type Open Replace, choose sample.pb, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Right, Orbit Up, Move 1.92,0,0.93, Move 0.25,0,-0.15 and Fit. Unload Sources and Reload Sources must retain this drawing. Automatic Move/Delete/Save reload is still pending. Then type Move 0,0.25,0 and Fit. Inspect the native scope tests to compare original-target requests with Save requests. Then type Move 0.25,0,0.15, Undo and Redo. Undo restores the preceding drawing; Redo restores the move. Type Fit afterward. Type Delete, Undo, Select Next twice and Redo. Undo restores the geometry; selection must be chosen again after deleting the selected row. Finally type Select Next and Fit to inspect a remaining object. Move 0.15,0,0, Save, Undo and Redo; Save must leave the Move available to Undo. Finally type Fit. Type Move 0,0,0.15 and Fit. Inspect the native owner tests for stale, duplicate and cancelled completions.
+Run the owner checks below. A pending batch keeps its keys and captured intent together; cancellation and one-shot delivery must release that ownership.
 
-**Actual Chrome screenshot.**
-
-Chrome preserves the existing explicit reload, download and modeling paths. Native tests exercise intent-bearing ticket ownership, stale/duplicate replies and cancellation. Automatic browser replay follows next.
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Own the intent with its pending source ticket.](../screenshots/journey/32gic-owner-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -191,13 +183,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Move pending.take before the ticket comparison in finish_with. Run the stale completion test and explain which newer request was lost.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why does a stale completion check the current ticket before taking the pending value?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -215,10 +210,30 @@ npm --prefix ../session_tests run course -- check 32gic-owner
 npm --prefix ../session_tests run course -- save 32gic-owner
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 Request identity and its payload share one owner. Completion ownership is checked before document context; hydration and replay follow only after both checks.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+Chrome checks the unchanged explicit reload/download/editor paths; this lesson does not yet connect an intent-bearing browser completion.
+
+Chrome preserves the existing explicit reload, download and modeling paths. Native tests exercise intent-bearing ticket ownership, stale/duplicate replies and cancellation. Automatic browser replay follows next.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 32gic-owner
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

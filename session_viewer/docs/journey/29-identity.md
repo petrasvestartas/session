@@ -6,11 +6,7 @@
 
 **Today:** Distinguish a scene object from the original geometry it shares.
 
-**In the whole viewer:** Connect the browser, drawing and input, then extend the same project. [See the destination](../journey.md#the-destination).
-
 **Follow:** Source GUID → inserted object GUID → cloned history → stable file identity.
-
-**Before you finish, explain:** Why can two imports share a source GUID but need different saved GUIDs?
 
 Save needs an identifier that can connect a stored mesh, its tree row and its placement. ObjectId already names objects within this running editor, but it is a small counter belonging to this scene. The source GUID belongs to the imported geometry. Neither distinction should disappear when we write a file.
 
@@ -24,7 +20,7 @@ The check imports the same bytes twice. Corresponding sources have the same GUID
 
 ## Type the change
 
-Continue [Prove source ownership survives editing](28c-ownership.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-29-identity`. A save keeps your own work; it does not fill in the next lesson.
+Continue from [Prove source ownership survives editing](28c-ownership.md). Save your own work first: `npm --prefix ../session_tests run course -- save before-29-identity` (from `session_viewer`).
 
 ### 1. `Cargo.toml`
 
@@ -119,13 +115,13 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Run the duplicate-import identity check. In the viewer, Example Box, Select Next three times, Move -0.5,-0.5,0.2, View Isometric and Fit. Moving the new object still uses its local ObjectId. Its additional stored GUID has no camera or drawing effect.
+Import `sample.pb` twice. Run the identity checks: copies may share a source GUID, but each scene object must have its own saved identity.
 
-**Actual Chrome screenshot.**
+**Verified checkpoint in Chrome.**
 
 ![Actual browser result: Give each saved object a stable identity.](../screenshots/journey/29-identity-browser.png)
 
-*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
+[What this screenshot checks](release.md).
 
 Run the state checks from your project folder:
 
@@ -133,13 +129,16 @@ Run the state checks from your project folder:
 REGEN_PROTO=0 cargo test --lib --locked -j4
 ```
 
-## Try one small experiment
+<details>
+<summary>Optional experiment</summary>
 
 Inspect both imported copies’ source GUIDs and object GUIDs in the check. Predict which pair matches. Add another Undo/Redo cycle, then restore the check.
 
-## Explain it in your own words
+</details>
 
-Trace the values through the files without reading the answer first. If you lose the connection, stop at the last value you can follow.
+## Explain the change
+
+Why can two imports share a source GUID but need different saved GUIDs?
 
 <details>
 <summary>Compare your explanation</summary>
@@ -157,10 +156,28 @@ npm --prefix ../session_tests run course -- check 29-identity
 npm --prefix ../session_tests run course -- save 29-identity
 ```
 
-The comparison spots typing differences; it does not prove behaviour. Keep three notes: what I changed; the values I followed; the question I still have. [Recover a checkpoint](recovery.md) if an experiment gets tangled.
+Check compares your typed source; run the focused check above for behavior. [Recover your work](recovery.md).
 
-## Where this grows
+<details>
+<summary>Where this fits in the finished viewer</summary>
 
 The production viewer keeps unique object identity in editable sessions and distinguishes it from shared definitions or source references. Our flat mesh editor establishes that boundary before serializing placements.
 
-[Validation status and course release](release.md).
+</details>
+
+<details>
+<summary>Verification notes and browser acceptance</summary>
+
+
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 29-identity
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>
