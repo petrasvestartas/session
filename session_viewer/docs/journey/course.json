@@ -7325,6 +7325,73 @@
           "why": "Expose the signal and include its native tests."
         }
       ]
+    },
+    {
+      "id": "34a-stop",
+      "title": "Stop the viewer when its GPU device fails",
+      "page": "journey/34a-stop.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Connect actual GPU failure callbacks, stop new UI and GPU work, and dispose only the runtime that belongs to the failed device.",
+      "trace": "GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure",
+      "question": "Why record a failure before deferring cleanup, and why check the device identity again during cleanup?",
+      "answer": "The immediate signal blocks any intervening input or GPU updates. Deferred cleanup waits for the active callback to return; its identity check prevents an old device’s callback from stopping a replacement.",
+      "result": "Import sample.pb, Select Next, and use Move or Orbit Up. Device loss is normally external; the browser acceptance calls the real GPUDevice.destroy() through a test-only observer. Failure shows Cannot draw, and old input cannot submit another frame. Reload the SAME page to start a new viewer; unsaved placement is not recovered.",
+      "experiment": "Move the failure guard below panel.update and explain which GPU writes could happen before it. Then remove the identity check in stop_if and explain how an older callback could stop a new runtime.",
+      "production": "Production records the first GPU failure and gates UI/uploads/rendering before further GPU work. This checkpoint establishes the stopped lifetime. Structured diagnostics, persisted reports and bounded recovery remain next.",
+      "tests": true,
+      "frame": "journey/checks/34a-stop.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/device-stop.cjs",
+      "story": "The pinned wgpu Device API provides on_uncaptured_error and set_device_lost_callback. Both callbacks keep clones of our Fault value; neither captures a browser window or renderer. Their messages retain the original error or device-loss reason.\n\nfailed records the first reason synchronously. It then schedules cleanup for the next microtask, using the deferred-callback lifetime established earlier. The input handler checks the same signal before the command panel can allocate resources or submit work. Cleanup compares allocation identity with the installed runtime, takes only a matching owner and releases the slot borrow before Drop cancels pending requests and removes handlers. An old callback cannot dispose an independently installed replacement.\n\nThe visible status reports Cannot draw after cleanup. It is startup/failure feedback, with no feature buttons. This checkpoint does not download diagnostics, restore unsaved edits or automatically recover. Those responsibilities follow.\n\nChrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application.\n\n![Stop a failed device’s runtime](../illustrations/journey-34a.svg)",
+      "browser_caption": "Chrome destroys a real GPUDevice, verifies visible loss feedback and disposed listeners, and observes no GPU work from subsequent input. A same-tab reload produces the final working screenshot; it does not recover unsaved edits.",
+      "edits": [
+        {
+          "path": "src/browser_runtime.rs",
+          "before": "    reload: Shared,\n}",
+          "snippet": "journey/code/34a-stop-01.rs",
+          "why": "Retain the device failure identity beside the callbacks that use that device."
+        },
+        {
+          "path": "src/browser_runtime.rs",
+          "before": "pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared) {\n    ACTIVE.with(|slot| slot.replace(Some(Runtime { _listeners: listeners, request, reload })));\n}",
+          "snippet": "journey/code/34a-stop-02.rs",
+          "why": "Only the matching device may dispose the active runtime; drop its owner after the slot borrow ends."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "fn save_result(bytes: &[u8]) -> Result<String, String> {",
+          "snippet": "journey/code/34a-stop-03.rs",
+          "why": "Mark failure immediately, then defer identity-checked disposal and visible feedback until callbacks return."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));",
+          "snippet": "journey/code/34a-stop-04.rs",
+          "why": "Connect the real error and device-loss callbacks to this device’s shared signal."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let owned_reload = std::rc::Rc::clone(&reload);\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {",
+          "snippet": "journey/code/34a-stop-05.rs",
+          "why": "Refuse new input, UI updates and GPU work as soon as the callback marks a failure."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    crate::browser_runtime::install(listeners, owned_request, owned_reload);",
+          "snippet": "journey/code/34a-stop-06.rs",
+          "why": "Install the runtime with the same device identity used by its failure callbacks."
+        }
+      ]
     }
   ]
 }

@@ -659,3 +659,15 @@ Phone fix edce6df7 and parent3e23ade are published. Viewer-check37137124994 pass
 - [ ] Next34a: connect actual uncaptured/device-lost callbacks, set failure before further UI/GPU work, defer cleanup safely and reject an old device’s cleanup against a replacement. Verify real device.destroy in Chrome. Diagnostics and bounded recovery must retain their own explicit acceptance; continue remaining feature scope afterward.
 
 - [x] Final102–103 acceptance: both new D2 diagrams reproduce exactly; all103 stored source/build/render records are current; nine course-tool tests pass; strict Vue with link/snippet validation builds in15.57s. Same owned Chrome tutorial route remains32gia-scope with white background; the rebuild watcher refreshes that page rather than opening another tab. Publication and its triggered workflows remain the final batch steps.
+
+
+### 2026-10-03 · Actual GPU-loss disposal verified locally
+
+- [x] Cached-page/first-failure batch103 pushed as Sessiona0350168/parent768b84d. Check37142426713 running, primary Pages37142427099 pending, mini37142426757 queued. Prior101 post-mini Pages37142249258 running. Required CI monitors cache-fault-head-ci.log/cache-fault-parent-ci.log started after both pushes. Same owned Chrome tutorial route remains32gia-scope, white and refreshed.
+- [x] 34a-stop connects real uncaptured-error and device-lost callbacks to immediate shared failure state. Input gates before panel/UI/GPU work. Cleanup runs on the next microtask and takes only the matching device runtime outside the slot borrow; older device callbacks cannot dispose a distinct owner.
+- [x] Native114 tests, WebAssembly, Trunk, native GPU frame and actual headed Chrome pass. The test observer calls real GPUDevice.destroy(), sees first device-loss feedback, eighteen listener removals, a held source reload aborted and owned source URLs released once. Late source/input/camera/resize events perform zero GPU writes, submits, allocations or surface work; the first message remains. Normal same-tab reload starts a fresh working viewer. Final screenshot inspected clean and white.
+- [x] Typing15–30 minutes,28 changed lines. Recovery split after the stopped-lifetime endpoint:169 proposed slots,104 locally verified,65 future and17 early splits remain.
+- [ ] Final generated diagram/evidence/tool/strict Vue checks, same-tab refresh and publication of104. Monitor every triggered workflow, including post-mini deploys; do not claim pending runs green.
+- [ ] Next34b: structured current/failed diagnostics, retained report download and bounded recovery. No unsaved placement restoration is claimed. Continue remaining production features, early splits and full provenance/parity audit.
+
+- [x] Final104 acceptance: all104 stored checkpoints current; new D2 byte reproduction and nine course-tool tests pass; strict Vue builds in15.35s. Existing white Chrome32gia-scope refreshed18:02:19 without a new tab or route change. Publication follows; no deployment success is claimed while CI runs remain pending.

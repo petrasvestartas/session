@@ -1,0 +1,1 @@
+    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault);
