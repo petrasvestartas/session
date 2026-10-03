@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 112 lesson slots; 44 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 117 lesson slots; 50 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 44 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 50 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -121,7 +121,17 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 29d · [Download the editable document from the command line](29d-save.md) — real Chrome download, unchanged Undo history, empty-save error and pixel-identical reopening.
 
-- [ ] 30 · Open and replace documents safely — cancel stale reads and leave a failed load recoverable.
+- [x] 30 · [Report the result that actually committed](30-feedback.md) — file errors stay in the dock; a failed import cannot claim success.
+
+- [x] 30a · [Give a pending read an explicit ticket](30a-tickets.md) — native checks cover stale, cancelled, duplicate and exhausted requests.
+
+- [x] 30b · [Cancel reads without accepting their late result](30b-cancel.md) — Cancel Open revokes delivery; asynchronous results retain later command history.
+
+- [x] 30c · [Replace a document as one reversible change](30c-replace.md) — prepare sources first; preserve owners, camera and issued local IDs.
+
+- [x] 30d · [Choose append or replace before opening the picker](30d-bridge.md) — Open Replace starts a new request immediately and carries its mode through reading.
+
+- [x] 30e · [Prove recovery at the transaction and display boundaries](30e-recovery.md) — partial rollback, selection/Redo, float upload range and startup fallback/reload.
 
 - [ ] 31 · Share GPU storage across objects — update changed ranges instead of rebuilding every mesh.
 

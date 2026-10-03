@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 44 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–29 plus placement, source-ownership and save/reopen follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 50 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–30 plus placement, source-ownership, save/reopen and loading/recovery follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -16,13 +16,14 @@ This is the opening of the full viewer course. The [remaining lesson checklist](
 - Placement lessons keep local mesh coordinates separate from model matrices; bounds, ray picking and GPU drawing share world placement. Typed Move checks world-axis composition, immutable shared geometry, Undo/Redo, finite arguments and zero-offset history. Chrome checks rendered interior picking and visible command errors; exact raster-edge ownership is deferred to GPU picking.
 - The source-ownership lessons retain original kernel meshes beside their derived display arrays. The final endpoint passes 51 native tests, including double-coordinate preservation, adapter failure, imported allocation identity and ownership across Move/Undo/Redo. Chrome checks import, placed drawing, history and interior picking; visibility and locking policies are still later work.
 - Save/reopen lessons preserve exact source doubles, mesh names and visibility/locking attributes, stored object identities and separate placements. The final checkpoint passes 57 native tests. Chrome downloads the real file, proves Save does not consume Undo, refuses an empty Save without a download, checks delayed URL cleanup, and reopens into a cleared scene with identical scene pixels. The bounded flat-mesh subset accepts 1–64 meshes and files up to 4 MiB; nested trees, tree colour policy, definitions and other geometry remain later course work.
+- Loading/recovery lessons pass 64 native tests at the final endpoint. Chrome checks malformed/oversized files, rejected promises, held reads completed out of order, Cancel Open, newer-picker cancellation, asynchronous history ownership and atomic Open Replace with pixel-identical Undo/Redo. The cancel-event case dispatches the input event because Playwright intercepts the OS picker. The final check forces adapter unavailability, confirms visible startup feedback without feature controls, then reloads to a working viewer.
 - Lesson 25 checks the perspective/orthographic pixel round trip and selects a visible imported beam in each projection. Its 39 Rust tests also check camera, fitting, picking and document invariants.
 
 The scene comparison excludes the command strip. When a key opens completion over the drawing, the test dismisses that overlay before checking camera pixels. Full-page screenshots still show the real interface.
 
 ## Screenshot evidence
 
-Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
+Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, including their local helper dependencies, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
 
 The initial browser viewport is 900 × 760 CSS pixels at display density 1. The evidence records that viewport, the canvas bounds and the final screenshot viewport. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
 

@@ -1,0 +1,2 @@
+            "Open",
+            "Open Replace",

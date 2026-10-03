@@ -1,0 +1,1 @@
+                panel.answer("Open", &message);

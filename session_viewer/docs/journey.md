@@ -2,7 +2,7 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 44 cumulative lessons, about 92–161 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 50 cumulative lessons, about 98–173 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
 The [complete draft lesson checklist](journey/roadmap.md) has **101 proposed slots: 29 current checkpoints and 72 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
@@ -60,6 +60,12 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [29b · Reopen source geometry with its placement](journey/29b-placements.md) | 1–2 hours | Validate stored placements before reconstructing source-backed objects. |
 | [29c · Prove the saved document reopens faithfully](journey/29c-roundtrip.md) | 1–2 hours | Check exact local source data, attributes, identities and placement through saving and loading. |
 | [29d · Download the editable document from the command line](journey/29d-save.md) | 1–2 hours | Connect Save to a browser download and reopen the actual downloaded document. |
+| [30 · Report the result that actually committed](journey/30-feedback.md) | 1–2 hours | Keep failed reads and imports visible in command history without claiming success. |
+| [30a · Give a pending read an explicit ticket](journey/30a-tickets.md) | 1–2 hours | Describe latest-read ownership, cancellation and one-shot completion in native Rust. |
+| [30b · Cancel reads without accepting their late result](journey/30b-cancel.md) | 1–2 hours | Adopt one-shot tickets in the browser and give asynchronous results their own history entry. |
+| [30c · Replace a document as one reversible change](journey/30c-replace.md) | 1–2 hours | Prepare a whole replacement before changing live rows, then commit it through existing history. |
+| [30d · Choose append or replace before opening the picker](journey/30d-bridge.md) | 1–2 hours | Carry the selected Open operation through asynchronous file reading and cancel older work immediately. |
+| [30e · Prove recovery at the transaction and display boundaries](journey/30e-recovery.md) | 1–2 hours | Test partial replacement failure, preserved selection/Redo and placement upload limits. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

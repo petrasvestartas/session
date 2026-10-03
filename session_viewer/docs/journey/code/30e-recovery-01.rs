@@ -1,0 +1,1 @@
+matrix.iter().all(|value| value.is_finite() && (*value as f32).is_finite())

@@ -1,0 +1,1 @@
+return Err("Placement must be finite, affine and fit the display range");

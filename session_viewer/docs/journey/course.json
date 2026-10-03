@@ -3722,6 +3722,618 @@
           "why": "Let the native file picker offer both original specimens and downloaded session files."
         }
       ]
+    },
+    {
+      "id": "30-feedback",
+      "title": "Report the result that actually committed",
+      "page": "journey/30-feedback.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Keep failed reads and imports visible in command history without claiming success.",
+      "trace": "File read result → browser event → validated editor action → success or error in the command dock",
+      "question": "Why must import success be reported inside the successful action branch?",
+      "answer": "Receiving bytes does not mean they decoded or entered the scene. Editor::apply can reject a file while preserving scene, selection and history. Only a successful Scene change proves the import committed; an unconditional message after the match would erase the error.",
+      "story": "Our native import tests already prove malformed bytes leave the document intact. The browser feedback has a separate bug: after Editor::apply returns an error, the event handler still reports File imported. The final status therefore contradicts what happened.\n\nMove success reporting into the successful Scene branch. Failed decoding keeps the old scene and records its error beside the command. There is no new history path.\n\n![A read delivers bytes or an error; only a successful editor transaction reports that the file entered the scene.](../illustrations/journey-30.svg)\n\nAsynchronous read errors need the same command-history route. The file adapter cannot borrow the panel held by the main event closure. Instead it dispatches viewer-file-error with a String detail. The main closure receives that event, reports the status and calls panel.result.\n\nOversized files take that route in the queued task, before reading. Dispatching another event from inside the currently borrowed input callback would re-enter the same FnMut closure and fail. Waiting until the task runs releases that borrow first. A rejected read promise takes it after the existing latest-read check, so an old read still cannot publish a late error over a newer choice. The next lessons replace the loose counter with explicit tickets and cancellation.\n\nFile status stays hidden while the command dock carries user feedback. A startup failure still exposes the HTML status because the GPU dock could not be created. A temporary read failure must not add a banner over the full-window drawing. Chrome checks the actual history text, unchanged scene pixels, preserved Redo, an oversize file and a rejected read promise.",
+      "result": "Open your sample, Example Box, Select Next six times, Move -0.2,-0.8,0.1, View Isometric and Fit. Try opening a malformed file: the error must stay in command history, the drawing must stay unchanged, and Redo must remain available after an undone edit. A valid Open afterward still succeeds.",
+      "experiment": "Temporarily move the success report back outside the action match. Predict the final status after malformed bytes, reproduce the contradiction, then restore the successful-branch report.",
+      "production": "The production loader stages work and reports failure while keeping the last valid scene visible. This lesson separates read delivery from a committed document change; replacement and cancellation follow.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move -0.2,-0.8,0.1"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "browser_check": "journey/checks/browser/load-feedback.cjs",
+      "frame": "journey/checks/30-feedback.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "before": "            if message.starts_with(\"Cannot\") { let _ = status.remove_attribute(\"hidden\"); }\n",
+          "snippet": "journey/code/30-feedback-01.rs",
+          "why": "Keep a startup failure visible when the GPU dock could not be created; file errors stay in command history."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "        super::browser::report(\"This checkpoint accepts files up to 4 MiB\");\n",
+          "snippet": "journey/code/30-feedback-02.rs",
+          "why": "Route the size refusal through the panel’s main event closure."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "            super::browser::report(&format!(\"Cannot read file: {error:?}\"));\n",
+          "snippet": "journey/code/30-feedback-03.rs",
+          "why": "Deliver a read error only after the existing latest-read check."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "fn deliver(buffer: JsValue) -> Result<(), JsValue> {\n",
+          "snippet": "journey/code/30-feedback-04.rs",
+          "why": "Pass asynchronous errors through a small custom event rather than borrowing the panel."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        } else if event.type_() == \"viewer-file\" {\n",
+          "snippet": "journey/code/30-feedback-05.rs",
+          "why": "Receive read failures in the same closure that owns command history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),\n",
+          "snippet": "journey/code/30-feedback-06.rs",
+          "why": "A successful transaction is the only branch that may announce an imported file."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        if event.type_() == \"viewer-file\" {\n            report(\"File imported. Undo removes the entire import.\");\n        }\n",
+          "snippet": "journey/code/30-feedback-07.rs",
+          "why": "Remove the unconditional success that overwrote decoding errors."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    window.add_event_listener_with_callback(\"viewer-file\", update.as_ref().unchecked_ref())?;\n",
+          "snippet": "journey/code/30-feedback-08.rs",
+          "why": "Keep the error event connected for the viewer lifetime."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    if file.size() > crate::document::MAX_BYTES as f64 {\n        failure(\"This checkpoint accepts files up to 4 MiB\");\n        return;\n    }\n",
+          "snippet": "journey/code/30-feedback-09.rs",
+          "why": "Move the size refusal out of the currently borrowed input callback."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    wasm_bindgen_futures::spawn_local(async move {\n",
+          "snippet": "journey/code/30-feedback-10.rs",
+          "why": "Check size in the queued task before reading; error delivery can now enter the main callback safely."
+        }
+      ]
+    },
+    {
+      "id": "30a-tickets",
+      "title": "Give a pending read an explicit ticket",
+      "page": "journey/30a-tickets.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Describe latest-read ownership, cancellation and one-shot completion in native Rust.",
+      "trace": "Begin read → pending ticket → supersede, cancel or finish once",
+      "question": "Why must a stale completion leave the newer pending ticket intact?",
+      "answer": "The old operation owns only its own ticket. If rejecting it also cleared pending state, it would cancel the newer operation. finish compares IDs first, consumes only the matching current ticket, and rejects duplicate completions after it has been consumed.",
+      "story": "The browser currently compares a loose counter before delivering a read. We need to express more than newest number: a cancelled or already completed read must no longer be allowed to publish a result.\n\nCreate ReadGate as ordinary Rust. begin issues a checked increasing ticket and makes it the sole pending read. finish returns true only for that pending ticket and consumes it. cancel removes pending ownership without reusing the issued number.\n\n![One pending ticket can be superseded, cancelled or consumed once; a stale ticket cannot clear a newer one.](../illustrations/journey-30a.svg)\n\nOption distinguishes no pending read from a particular ticket. The counter names requests, while pending determines which request may still commit. Those are separate responsibilities.\n\nbegin clears pending before checking the next number. If the counter is exhausted, it returns an error and does not leave an older read able to commit after a refused new request. It never wraps back to an ID a previous operation might still hold.\n\nThe checks simulate completions in the wrong order, cancellation, duplicate completion and counter exhaustion. They need no window or GPU. This checkpoint tests the ticket model; the next lesson adopts it in the running file adapter.",
+      "result": "Run the native ReadGate checks and explain every pending value. The live viewer still uses the earlier counter at this endpoint. Open your sample, Example Box, Select Next six times, Move 0.4,-0.5,0.1, View Isometric and Fit; the existing drawing remains usable while the ticket type is introduced.",
+      "experiment": "Start three tickets and finish them in reverse order. Predict why only the newest succeeds and why the rejected older completions cannot clear it. Restore the original checks.",
+      "production": "Production load generations reject old asynchronous results. This small gate also models cancellation and one-shot delivery, preparing the same ownership rule for browser reads and later asynchronous picking.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 0.4,-0.5,0.1"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "browser_check": "journey/checks/browser/load-feedback.cjs",
+      "frame": "journey/checks/30a-tickets.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/read_gate.rs",
+          "before": null,
+          "snippet": "journey/code/30a-tickets-01.rs",
+          "why": "Own one pending ticket and test stale, duplicate, cancelled and exhausted requests independently of browser APIs."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod document;\n",
+          "snippet": "journey/code/30a-tickets-02.rs",
+          "why": "Expose the native request model without changing the browser adapter yet."
+        }
+      ]
+    },
+    {
+      "id": "30b-cancel",
+      "title": "Cancel reads without accepting their late result",
+      "page": "journey/30b-cancel.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Adopt one-shot tickets in the browser and give asynchronous results their own history entry.",
+      "trace": "Selected file → ticket-owned task → consume current ticket → deliver outcome; Cancel Open revokes ownership",
+      "question": "Does cancelling a read mean its promise stops running?",
+      "answer": "No. File.arrayBuffer has no abort operation here. Cancellation revokes permission to deliver its result. The task may finish later, but finish rejects its ticket and neither scene nor command feedback changes. A separate result entry also prevents a read outcome from rewriting a later typed command.",
+      "story": "Replace Rc<Cell<u64>> with Rc<RefCell<ReadGate>>. Sharing the Rc lets the command callback and asynchronous tasks reach one gate. RefCell permits a short mutable borrow for begin, finish or cancel; release that borrow before dispatching an event.\n\nEach selected file begins a ticket. A queued task first checks it is still pending, then checks the file size. After the read resolves, finish consumes the current ticket once. A stale or cancelled task returns without delivering bytes or an error.\n\n![The task keeps its ticket; Cancel Open revokes it; only a matching one-shot completion can deliver a result.](../illustrations/journey-30b.svg)\n\nCancel Open is a typed command. It revokes pending ownership and reports cancellation; it does not edit the document. This does not physically abort File.arrayBuffer. Its eventual value is ignored. The next lesson also invalidates work when a newer picker opens, before a file has been chosen.\n\nAsynchronous outcomes append an Open entry to history. They must not call result on whichever command happens to be last: the user may have typed View Isometric while a read was pending. Synchronous command errors still use result for their own entry.\n\nAdd a hidden data-object-count diagnostic to the canvas. It reports editable row count without changing the interface. A second copy of the same geometry can overlap every original pixel, so count gives Chrome independent evidence that a stale read did not silently append rows.\n\nChrome holds real File.arrayBuffer promises, types other commands, cancels reads and releases old completions. It checks both scene pixels and object count, and confirms an old failure cannot overwrite a newer request or command.",
+      "result": "Open the specimen, Example Box, Select Next six times, Move 0.5,-0.6,0.3, View Isometric and Fit. Cancel Open is available in the dock. Native ticket checks and Chrome’s controlled promises prove cancellation even though a small ordinary file may finish too quickly to cancel manually.",
+      "experiment": "Hold a read in a debugger, type View Isometric and Cancel Open, then let the read finish. Predict why neither the object count nor command history should change when that cancelled task returns.",
+      "production": "Production loader generations prevent stale work from mutating the active scene. This checkpoint expresses cancellation as delivery ownership; listener and resource lifetime cleanup remains a later lesson.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move 0.5,-0.6,0.3"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "browser_check": "journey/checks/browser/read-cancel.cjs",
+      "frame": "journey/checks/30b-cancel.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/file_input.rs",
+          "before": "use std::{cell::Cell, rc::Rc};\n",
+          "snippet": "journey/code/30b-cancel-01.rs",
+          "why": "Share the native gate through short interior mutable borrows."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {\n",
+          "snippet": "journey/code/30b-cancel-02.rs",
+          "why": "Receive the same pending-read owner as the command callback."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    let id = request.get() + 1;\n    request.set(id);\n",
+          "snippet": "journey/code/30b-cancel-03.rs",
+          "why": "Issue a bounded ticket; even an exhaustion error must be delivered after the input callback returns."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "        if request.get() != id { return; }\n        if file.size()",
+          "snippet": "journey/code/30b-cancel-04.rs",
+          "why": "Avoid work for a ticket already superseded or cancelled before its queued task starts."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "            failure(\"This checkpoint accepts files up to 4 MiB\");\n",
+          "snippet": "journey/code/30b-cancel-05.rs",
+          "why": "Consume the current ticket before reporting a size refusal, releasing the RefCell borrow before dispatch."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "        if request.get() != id { return; }\n        let result = result.and_then(deliver);\n",
+          "snippet": "journey/code/30b-cancel-06.rs",
+          "why": "Only a current one-shot completion may deliver bytes or a read error."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let mut editor = Editor::default();\n",
+          "snippet": "journey/code/30b-cancel-07.rs",
+          "why": "Expose the initial row count through hidden diagnostics."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Open\",\n",
+          "snippet": "journey/code/30b-cancel-08.rs",
+          "why": "Offer read cancellation as a command rather than a keyboard feature shortcut."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let request = std::rc::Rc::new(std::cell::Cell::new(0));\n",
+          "snippet": "journey/code/30b-cancel-09.rs",
+          "why": "Let the input callback and queued tasks share one native gate."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                panel.result(&message);\n",
+          "snippet": "journey/code/30b-cancel-10.rs",
+          "why": "An asynchronous read error gets its own history entry instead of rewriting a later command."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            if line == \"open\" {\n",
+          "snippet": "journey/code/30b-cancel-11.rs",
+          "why": "Revoke pending delivery without touching the scene or edit history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                        report(\"File imported. Undo removes the entire import.\");\n",
+          "snippet": "journey/code/30b-cancel-12.rs",
+          "why": "Record asynchronous success separately from subsequent typed commands."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    report(error);\n                    panel.result(error);\n",
+          "snippet": "journey/code/30b-cancel-13.rs",
+          "why": "Distinguish a file result from a synchronous error on the current command."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "show_projection(&editor.camera)",
+          "snippet": "journey/code/30b-cancel-14.rs",
+          "why": "Update hidden diagnostics after every handled event."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "fn show_projection(camera: &crate::camera::Camera) -> Result<(), JsValue> {\n",
+          "snippet": "journey/code/30b-cancel-15.rs",
+          "why": "Keep scene count and projection in one diagnostic boundary."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-projection\", &format!(\"{:?}\", camera.projection))\n",
+          "snippet": "journey/code/30b-cancel-16.rs",
+          "why": "Report rows independently of overlapping drawing pixels."
+        }
+      ]
+    },
+    {
+      "id": "30c-replace",
+      "title": "Replace a document as one reversible change",
+      "page": "journey/30c-replace.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Prepare a whole replacement before changing live rows, then commit it through existing history.",
+      "trace": "Replacement bytes → validated prepared sources → history transaction → new rows with fresh local IDs",
+      "question": "Why must the scene counter survive replacing all its rows?",
+      "answer": "A replacement must not reuse local IDs held by old selection or delayed work. Clearing rows leaves the increasing counter intact. History restoration also retains the highest issued value, while Undo restores the old objects and shared source allocations.",
+      "story": "Append and replace are different document operations. Import adds prepared objects to the current rows. Replace removes the current rows and inserts the new prepared document. Both must use the same validation and history boundary.\n\nAdd Action::Replace. First call document::load, which prepares every supported source/display pair. Only after that succeeds does History::try_edit enter Scene::replace. A malformed file therefore cannot clear the old drawing.\n\n![Prepare the full replacement before the transaction; replace rows with fresh IDs; Undo restores the old shared owners.](../illustrations/journey-30c.svg)\n\nScene::replace clears objects and the extra-demo marker, then imports the already prepared document. It deliberately leaves next_id alone. A transaction restores the old scene if insertion fails halfway through; direct callers must use that transaction boundary too.\n\nThe editor’s existing selection repair removes a selected old ID after successful replacement. Camera, projection and background are outside document history and remain unchanged. Undo returns the old rows and source allocations; Redo returns the replacement IDs.\n\nThis checkpoint connects replacement to the native editor and tests it. The browser still uses append-only Open today. The next lesson exposes Open Replace and gives the file-read bridge an explicit operation mode.\n\nOld objects retained by Undo are still alive. Replacement alone is not a promise that all old CPU or GPU resources have been released; the resource lessons account for those owners.",
+      "result": "Run the replacement state check: old local IDs disappear, source allocations return on Undo, replacement IDs return on Redo and camera values stay fixed. In the live viewer, Open the specimen, Example Box, Select Next six times, Move -0.8,-0.6,0.2, View Isometric and Fit. Open Replace becomes available in the next lesson.",
+      "experiment": "In the replacement check, change camera distance and aspect before replacing. Predict why Undo and Redo preserve both values. Explain why setting next_id back to one would make an old selection unsafe.",
+      "production": "Production replacement stages a new scene before committing and preserves the last valid scene on failure. This flat editor teaches the same atomic boundary; browser cancellation, larger sources and resource release are separate concerns.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Move -0.8,-0.6,0.2"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "browser_check": "journey/checks/browser/read-cancel.cjs",
+      "frame": "journey/checks/30c-replace.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {\n",
+          "snippet": "journey/code/30c-replace-01.rs",
+          "why": "Replace rows while preserving the issued local-ID counter; the caller supplies the transaction."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    Import(Vec<u8>),\n",
+          "snippet": "journey/code/30c-replace-02.rs",
+          "why": "Name replacement explicitly instead of giving Import a hidden destructive mode."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::Import(bytes) => {\n",
+          "snippet": "journey/code/30c-replace-03.rs",
+          "why": "Validate every source first, then replace as one undoable transaction."
+        },
+        {
+          "path": "src/replace_tests.rs",
+          "before": null,
+          "snippet": "journey/code/30c-replace-04.rs",
+          "why": "Prove replacement/Undo/Redo preserve owners, camera state and non-reused local IDs."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(test)]\nmod save_roundtrip_tests;\n",
+          "snippet": "journey/code/30c-replace-05.rs",
+          "why": "Compile the replacement contract."
+        }
+      ]
+    },
+    {
+      "id": "30d-bridge",
+      "title": "Choose append or replace before opening the picker",
+      "page": "journey/30d-bridge.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Carry the selected Open operation through asynchronous file reading and cancel older work immediately.",
+      "trace": "Open or Open Replace → new ticket plus captured mode → file bytes → explicit editor action",
+      "question": "Why must a newer Open revoke old work before the new file is chosen?",
+      "answer": "Opening a new picker expresses a new request even if the user cancels it. If the ticket were issued only after choosing a file, an older pending read could still commit behind the newer picker. Begin at the command, capture its mode at selection, and consume that ticket before delivering an outcome.",
+      "story": "The native editor can replace a document, but the browser still appends every delivered file. Add Open Replace as a complete command name. Keep Open as our existing append operation so earlier experiments remain meaningful.\n\nIssue a read ticket when either command opens the picker. The chosen operation is stored as a small Mode enum, then copied into the selected file’s task. choose uses the current pending ticket instead of starting another one. A newer picker therefore revokes old delivery even before a file is chosen.\n\n![The command starts a ticket and operation mode; the queued task captures both; its accepted bytes choose Import or Replace.](../illustrations/journey-30d.svg)\n\nThe byte event carries a two-item array: replace flag and Uint8Array. The adapter checks that shape and its byte cap before translating it into Action::Import or Action::Replace. The rest of the editor never needs browser values.\n\nThe native file input’s cancel event revokes the pending ticket and appends an Open cancellation notice. It must be distinguished from cancellation on another element. The typed Cancel Open command remains available for a read already in progress.\n\nAfter a successful transaction, report whether a file was appended or the document was replaced. A failed replacement keeps the old scene; Undo after a successful replacement restores it as one change. Camera and projection stay where the user put them.\n\nChrome opens a newer replacement picker while an old file promise is held, cancels the picker, then releases the old result. It checks that no rows arrive. It also verifies malformed replacement, successful replacement and pixel-identical Undo/Redo before capturing the replaced document.",
+      "result": "Open your specimen normally, then type Open Replace and choose the same file. The two demos disappear and only the three imported pieces remain. Undo restores the earlier rows; Redo restores the replacement. Select Next twice, Move 0.35,0,0.25, View Isometric and Fit to inspect the right post in the replaced document.",
+      "experiment": "Hold a previous read, open Open Replace, cancel the new picker and then let the old read finish. Predict why the old file must stay rejected despite the new picker having no chosen file.",
+      "production": "Production scene replacement uses a generation started at request time and stages a whole scene before commit. This checkpoint applies that policy to the flat file picker; later command chapters align the full production vocabulary and loading paths.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/replace.cjs",
+      "frame": "journey/checks/30d-bridge.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/file_input.rs",
+          "before": "pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>) {\n",
+          "snippet": "journey/code/30d-bridge-01.rs",
+          "why": "Capture a typed operation value with the selected file instead of consulting mutable state after reading."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    let Some(file) = input.files().and_then(|files| files.get(0)) else { return; };\n",
+          "snippet": "journey/code/30d-bridge-02.rs",
+          "why": "A choice with no file revokes pending ownership without editing the scene."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    let id = match request.borrow_mut().begin() {\n        Ok(id) => id,\n        Err(error) => {\n            wasm_bindgen_futures::spawn_local(async move { failure(error); });\n            return;\n        }\n    };\n",
+          "snippet": "journey/code/30d-bridge-03.rs",
+          "why": "Use the ticket already issued by the Open command."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "        let result = result.and_then(deliver);\n",
+          "snippet": "journey/code/30d-bridge-04.rs",
+          "why": "Keep the captured mode beside the accepted bytes."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "fn deliver(buffer: JsValue) -> Result<(), JsValue> {\n",
+          "snippet": "journey/code/30d-bridge-05.rs",
+          "why": "Include the selected operation in the private byte event."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "    detail.set_detail(&js_sys::Uint8Array::new(&buffer));\n",
+          "snippet": "journey/code/30d-bridge-06.rs",
+          "why": "Use an explicit replace flag and byte array at the browser bridge."
+        },
+        {
+          "path": "src/file_input.rs",
+          "before": "pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {\n    let event = event.dyn_ref::<web_sys::CustomEvent>()?;\n    let array = event.detail().dyn_into::<js_sys::Uint8Array>().ok()?;\n    if array.length() as usize > crate::document::MAX_BYTES { return None; }\n    Some(array.to_vec())\n}\n",
+          "snippet": "journey/code/30d-bridge-07.rs",
+          "why": "Translate checked browser payloads into ordinary editor actions."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Open\",\n",
+          "snippet": "journey/code/30d-bridge-08.rs",
+          "why": "Offer replacement as a typed command."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));\n",
+          "snippet": "journey/code/30d-bridge-09.rs",
+          "why": "Hold the picker operation in the event closure; each task copies it at selection."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        let action = if event.type_() == \"change\" {\n            crate::file_input::choose(&event, std::rc::Rc::clone(&request));\n",
+          "snippet": "journey/code/30d-bridge-10.rs",
+          "why": "Revoke native picker cancellation and capture the operation when a file is selected."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            crate::file_input::bytes(&event).map(Action::Import)\n",
+          "snippet": "journey/code/30d-bridge-11.rs",
+          "why": "Keep browser values outside the editor transaction."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            } else if line == \"open\" {\n",
+          "snippet": "journey/code/30d-bridge-12.rs",
+          "why": "A newer request revokes older work at picker opening, not only after file selection."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        if let Some(action) = action {\n",
+          "snippet": "journey/code/30d-bridge-13.rs",
+          "why": "Remember which successful file action was committed before consuming it."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                        report(\"File imported. Undo removes the entire import.\");\n                        panel.answer(\"Open\", \"File imported. Undo removes the entire import.\");\n",
+          "snippet": "journey/code/30d-bridge-14.rs",
+          "why": "Report the committed operation without overwriting another command."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    document.add_event_listener_with_callback(\"change\", update.as_ref().unchecked_ref())?;\n",
+          "snippet": "journey/code/30d-bridge-15.rs",
+          "why": "Receive the native file-input cancellation event for the viewer lifetime."
+        }
+      ]
+    },
+    {
+      "id": "30e-recovery",
+      "title": "Prove recovery at the transaction and display boundaries",
+      "page": "journey/30e-recovery.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Test partial replacement failure, preserved selection/Redo and placement upload limits.",
+      "trace": "Malformed source or failed insertion → retained old owners and history; double matrix → finite float upload check",
+      "question": "Why do we need a failure after the first new row was inserted?",
+      "answer": "Malformed decoding fails before a transaction starts. It does not test rollback after mutation. Exhausting the ID counter during the second insertion proves History::try_edit restores old rows and shared owners after a partial replacement, while retaining the highest issued counter so failed work cannot cause ID reuse.",
+      "story": "A successful replacement and a malformed-file refusal are useful checks, but they exercise different boundaries. We also need an error after replacement has begun changing rows.\n\nThe scene-module check puts next_id one below its limit. The first replacement insertion succeeds; the next cannot allocate another ID. History must restore every old row and allocation. Its restore rule keeps the highest issued counter, so IDs from failed work are not reused.\n\n![Decode errors occur before mutation; insertion errors trigger rollback; upload range errors are rejected before drawing.](../illustrations/journey-30e.svg)\n\nA separate editor check refuses malformed replacement while selection and Redo are live. It proves failure does not erase either. The earlier successful-replacement check proves the camera stays outside document history.\n\nThere is also a display boundary in placement::valid. A matrix value can be finite as a double yet become infinity when our current GPU adapter casts it to float. Check that cast before accepting the matrix. The native test uses f64::MAX to demonstrate the difference and requires the original placement to remain unchanged. The same coefficient in an encoded file must also be refused before construction. This is a limit of the current float upload path, not a change to the retained source precision; later rendering lessons improve coordinate handling.\n\nChrome repeats the file errors, cancelled newer picker, replacement and Undo/Redo checks against this final endpoint. It also forces adapter unavailability before startup, checks the visible failure fallback, then reloads and restores a working viewer. Its screenshot shows the replaced frame, with an independently moved right post. Native frame checks distinguish selected gold from timber brown rather than treating both as selection.",
+      "result": "Run the partial-insertion, malformed-replacement and float-upload checks. Open Replace your specimen, Select Next twice, Move 0.35,0,0.25, View Isometric, Orbit Up and Fit. A failed replacement must keep the last valid document and its existing undo branch.",
+      "experiment": "Temporarily remove History::try_edit from the partial-replacement check. Predict why the old scene disappears when the second insertion fails. Restore the transaction. Then compare f64::MAX with its float cast before reading the range-check answer.",
+      "production": "Production recovery preserves the last valid scene and checks display representations separately from editable source data. This endpoint proves those boundaries for the current flat mesh editor; full geometry, streaming and coordinate rebasing remain later lessons.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery.cjs",
+      "frame": "journey/checks/30e-recovery.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/placement.rs",
+          "before": "matrix.iter().all(|value| value.is_finite())",
+          "snippet": "journey/code/30e-recovery-01.rs",
+          "why": "Reject a finite double coefficient that cannot enter the current float uniform."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "return Err(\"Placement must be finite and affine\");",
+          "snippet": "journey/code/30e-recovery-02.rs",
+          "why": "State the full placement boundary in its error."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    fn removal_moves_a_row_without_changing_its_identity() {\n",
+          "snippet": "journey/code/30e-recovery-03.rs",
+          "why": "Fail during the second insertion, then prove rollback restores the old allocations without recycling issued IDs."
+        },
+        {
+          "path": "src/replace_tests.rs",
+          "before": "    assert_eq!((editor.camera.distance, editor.camera.aspect), (7.0, 2.0));\n}\n",
+          "snippet": "journey/code/30e-recovery-04.rs",
+          "why": "Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary."
+        }
+      ]
     }
   ]
 }

@@ -3,14 +3,30 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import {createRequire} from 'node:module';
 import {save, restore, savedPath} from './checkpoints.ts';
 import {expected, compare, safeOutput, hash, referenceFiles, reference, dependencies, lockFor, read, materialize, viewer, assetsFor, course, addedLines} from './model.ts';
+const browserFingerprint = createRequire(import.meta.url)(path.join(viewer, 'docs/journey/checks/fingerprint.cjs'));
 
 function fixture(run: (folder: string) => void) {
     const folder = fs.mkdtempSync(path.join(os.tmpdir(), 'viewer-course-'));
     try { run(folder); }
     finally { fs.rmSync(folder, {recursive: true, force: true}); }
 }
+
+test('browser evidence includes shared local checks and handles cyclic imports', () => fixture(folder => {
+    const entry = path.join(folder, 'entry.cjs'), child = path.join(folder, 'child.cjs');
+    fs.writeFileSync(entry, "require('./child.cjs');\n");
+    fs.writeFileSync(child, "require('./entry.cjs');\nmodule.exports = 1;\n");
+    const before = browserFingerprint('journey/checks/browser/entry.cjs', folder);
+    fs.writeFileSync(child, "require('./entry.cjs');\nmodule.exports = 2;\n");
+    const after = browserFingerprint('journey/checks/browser/entry.cjs', folder);
+    assert.notEqual(after, before, 'Changing a shared checker invalidates its caller');
+    fs.writeFileSync(path.join(folder, 'unused.cjs'), 'irrelevant');
+    assert.equal(browserFingerprint('journey/checks/browser/entry.cjs', folder), after);
+    fs.writeFileSync(child, "require('../outside.cjs');\n");
+    assert.throws(() => browserFingerprint('journey/checks/browser/entry.cjs', folder), /inside its check folder/);
+}));
 
 test('typing estimates exclude unchanged context and removed lines', () => {
     assert.deepEqual(addedLines('before\nold\nafter\n', 'before\nnew\nafter\n'), ['new\n']);

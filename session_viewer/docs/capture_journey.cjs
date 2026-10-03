@@ -4,6 +4,7 @@ const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
 const {chromium} = require('playwright');
 const {PNG} = require('pngjs');
+const browserFingerprint = require('./journey/checks/fingerprint.cjs');
 const course = JSON.parse(fs.readFileSync('docs/journey/course.json', 'utf8'));
 const builds = JSON.parse(fs.readFileSync('target/course-checks/results.json', 'utf8'));
 const output = 'docs/screenshots/journey';
@@ -311,7 +312,7 @@ async function capture() {
             const file = `${id}-browser.png`;
             await page.screenshot({path: path.join(output, file), fullPage: true});
             records.steps[id] = {source: builds[id].source, checker: hash(fs.readFileSync(__filename)),
-                extraChecker: step.browser_check ? hash(fs.readFileSync(path.join('docs', step.browser_check))) : null,
+                extraChecker: step.browser_check ? browserFingerprint(step.browser_check) : null,
                 browser: browser.version(), headless, captured: new Date().toISOString(), status, canvas, file,
                 initialViewport: viewport, initialCanvas: box, screenshotViewport: page.viewportSize(),
                 bundle: hash(fs.readFileSync(`target/course-checks/${id}/dist/index.html`)),

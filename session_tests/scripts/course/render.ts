@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import {createRequire} from 'node:module';
 import {course, docs, read, json, write, hash, typingLoad} from './model.ts';
 import {signature} from './verify.ts';
 
 const language: Record<string, string> = {'.rs': 'rust', '.wgsl': 'wgsl', '.html': 'html', '.toml': 'toml', '.md': 'markdown', '.sh': 'sh', '.yaml': 'yaml'};
 const command = 'npm --prefix ../session_tests run course --';
+const browserFingerprint = createRequire(import.meta.url)(path.join(docs, 'journey/checks/fingerprint.cjs'));
 
 export function generate() {
     const steps = course().steps;
@@ -42,7 +44,7 @@ export function generate() {
         const evidence = browser[step.id];
         if (evidence && evidence.source === signature(step.id)
             && evidence.checker === hash(read(path.join(docs, 'capture_journey.cjs')))
-            && (!step.browser_check || evidence.extraChecker === hash(read(path.join(docs, step.browser_check))))) {
+            && (!step.browser_check || evidence.extraChecker === browserFingerprint(step.browser_check))) {
             page.push('**Actual Chrome screenshot.**',
                 ...(step.browser_caption ? [step.browser_caption] : []),
                 `![Actual browser result: ${step.title}.](../screenshots/journey/${evidence.file})`,
