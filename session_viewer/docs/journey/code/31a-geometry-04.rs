@@ -1,0 +1,1 @@
+    pub geometry: Rc<GpuGeometry>,

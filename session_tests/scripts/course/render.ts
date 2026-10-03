@@ -68,9 +68,14 @@ export function generate() {
     }
     const hours = steps.reduce((sum, step) => sum.map((n, i) => n + step.hours[i]), [0, 0]);
     const overview = path.join(docs, 'journey.md');
+    const planned = [...read(path.join(docs, 'journey/roadmap.md'))
+        .matchAll(/^- \[(?:x| )\] \d+[a-z]? · /gm)].length;
+    if (planned < steps.length) throw Error('Roadmap must include every available lesson');
     const table = ['| Lesson | Time | Working result |', '| --- | --- | --- |',
         ...steps.map((step, i) => `| [${step.id.split('-')[0]} · ${step.title}](${step.page}) | ${step.hours.join('–')} hours | ${step.goal} |`)];
     write(overview, read(overview)
+        .replace(/^The \[complete draft lesson checklist\].+$/m,
+            `The [complete draft lesson checklist](journey/roadmap.md) has **${planned} proposed slots: ${steps.length} current checkpoints and ${planned - steps.length} later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.`)
         .replace(/\*\*Current release:[^\n]+/, `**Current release: ${steps.length} cumulative lessons, about ${hours.join('–')} active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.`)
         .replace(/\| Lesson \|[\s\S]*?(?=\n\n)/, table.join('\n')));
     const audit = path.join(docs, 'journey/typing-load.md');
@@ -78,7 +83,10 @@ export function generate() {
         const typing = typingLoad(step);
         return `| [${step.id}](${step.id}.md) | ${typing.lines} | ${typing.characters} | ${typing.minutes.join('–')} min | ${step.hours.join('–')} h | ${typing.minutes[1] <= 60 ? 'Within planning limit' : 'Split required'} |`;
     });
-    write(audit, read(audit).replace(/\| Checkpoint \|[\s\S]*?(?=\n\n)/,
+    write(audit, read(audit)
+        .replace(/all \d+ current checkpoints/, `all ${steps.length} current checkpoints`)
+        .replace(/the current \d+ slots/, `the current ${planned} slots`)
+        .replace(/\| Checkpoint \|[\s\S]*?(?=\n\n)/,
         ['| Checkpoint | Added/changed lines | Characters | Typing estimate | Existing combined study estimate | Typing limit |',
             '| --- | ---: | ---: | --- | --- | --- |', ...rows].join('\n')));
     console.log(`Generated ${steps.length} lessons from their source edits.`);

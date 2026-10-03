@@ -1,0 +1,1 @@
+        self.geometry.draw(pass);

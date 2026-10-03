@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 50 cumulative lessons, about 98–173 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 54 cumulative lessons, about 102–181 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **101 proposed slots: 29 current checkpoints and 72 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **120 proposed slots: 54 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -66,6 +66,10 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [30c · Replace a document as one reversible change](journey/30c-replace.md) | 1–2 hours | Prepare a whole replacement before changing live rows, then commit it through existing history. |
 | [30d · Choose append or replace before opening the picker](journey/30d-bridge.md) | 1–2 hours | Carry the selected Open operation through asynchronous file reading and cancel older work immediately. |
 | [30e · Prove recovery at the transaction and display boundaries](journey/30e-recovery.md) | 1–2 hours | Test partial replacement failure, preserved selection/Redo and placement upload limits. |
+| [31 · Keep selection out of the vertex data](journey/31-settings.md) | 1–2 hours | Put placement and selection in an explicitly packed object uniform. |
+| [31a · Give immutable GPU geometry one owner](journey/31a-geometry.md) | 1–2 hours | Separate vertex/index storage from each object’s uniform and retain its CPU source. |
+| [31b · Reuse uploads while their geometry is alive](journey/31b-cache.md) | 1–2 hours | Cache GPU geometry by its retained CPU allocation and release dead cache entries. |
+| [31c · Update only changed object settings](journey/31c-incremental.md) | 1–2 hours | Retain GPU rows by object and geometry identity, then write only changed uniform ranges. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

@@ -4334,6 +4334,328 @@
           "why": "Test refusal before mutation, selection/Redo retention and the double-to-float upload boundary."
         }
       ]
+    },
+    {
+      "id": "31-settings",
+      "title": "Keep selection out of the vertex data",
+      "page": "journey/31-settings.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Put placement and selection in an explicitly packed object uniform.",
+      "trace": "Object placement and selection → eighty uniform bytes → vertex shader; source colours stay unchanged",
+      "question": "Why must selection move before we can share one vertex buffer?",
+      "answer": "Two objects can use the same geometry while only one is selected. A gold colour written into their shared vertices would affect both. Keep immutable source colours in the vertex buffer and choose the displayed colour from each object’s uniform.",
+      "story": "Our renderer currently copies gold into every selected vertex during upload. That makes selection part of geometry storage. Before sharing any buffers, separate those two responsibilities.\n\nThe first sixty-four bytes still contain the placement matrix. The next sixteen bytes form a vec4 selection field: its first float is one or zero and its remaining floats are zero. We pack all eighty bytes explicitly rather than depending on the layout of a Rust struct.\n\n![Immutable vertex colours and one object uniform meet in the vertex shader.](../illustrations/journey-31.svg)\n\nThe [WGSL layout rules](https://www.w3.org/TR/WGSL/#alignment-and-size) align both a matrix and a vec4 to sixteen bytes. A four-column matrix occupies sixty-four bytes, so the following field begins at byte sixty-four and the complete uniform occupies eighty.\n\nThe shader multiplies by object.model and uses object.selection.x to choose the original colour or our existing gold. Lighting still runs after that choice. Source geometry and its colour values do not change when selection changes.\n\nThis endpoint still rebuilds GPU rows after every scene change. It establishes the data boundary; the following lessons change ownership and reuse.",
+      "result": "Open Replace the specimen, select the right post and Move it. Cycle selection through all three rows and return to the same post. The picture must return exactly; source colours remain available when a row is deselected.",
+      "experiment": "Temporarily put the selection flag at byte sixty-eight while leaving the shader field unchanged. Predict why the first selection component remains zero. Restore byte sixty-four before continuing.",
+      "production": "Object presentation must stay separate from shared geometry in the production renderer, including selection, opacity and other display flags. This uniform introduces that boundary without claiming the later rendering modes are complete.",
+      "tests": true,
+      "frame": "journey/checks/31-settings.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/gpu-settings.cjs",
+      "image_result": "The native GPU draws retained source geometry with placement and selection settings; world picking and selected pixels agree.",
+      "edits": [
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "            let mut display = *vertex;\n            if selected {\n                display[3..].copy_from_slice(&[1.0, 0.75, 0.05]);\n            }\n            for value in display {\n",
+          "snippet": "journey/code/31-settings-01.rs",
+          "why": "Upload original vertex colours regardless of which object is selected."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "        let bytes: Vec<u8> = object.model.m.iter()\n            .flat_map(|value| (*value as f32).to_ne_bytes()).collect();\n",
+          "snippet": "journey/code/31-settings-02.rs",
+          "why": "Use one encoder for the complete object uniform."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "}\n\nimpl GpuMesh {\n",
+          "snippet": "journey/code/31-settings-03.rs",
+          "why": "Encode the matrix, selection and padding at their shader offsets."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "@group(1) @binding(0) var<uniform> model: mat4x4<f32>;\n",
+          "snippet": "journey/code/31-settings-04.wgsl",
+          "why": "Describe the same eighty-byte object layout in WGSL."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    let world = model * vec4<f32>(position, 1.0);\n",
+          "snippet": "journey/code/31-settings-05.wgsl",
+          "why": "Read placement from the object settings structure."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    output.colour = colour;\n",
+          "snippet": "journey/code/31-settings-06.wgsl",
+          "why": "Choose the displayed colour per object without rewriting vertices."
+        }
+      ]
+    },
+    {
+      "id": "31a-geometry",
+      "title": "Give immutable GPU geometry one owner",
+      "page": "journey/31a-geometry.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Separate vertex/index storage from each object’s uniform and retain its CPU source.",
+      "trace": "CPU display Rc → GPU geometry Rc → object row with its own uniform → draw",
+      "question": "What does cloning Rc<GpuGeometry> copy?",
+      "answer": "It adds an owner of the same geometry allocation. It does not upload another vertex or index buffer. Each GPU row still owns an independent placement/selection uniform, so objects can share geometry without sharing their settings.",
+      "story": "A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact Rc<Mesh> that produced its buffers; that source owner will also make identity safe when we introduce the cache.\n\n![Several object rows can own one geometry allocation while retaining separate uniforms.](../illustrations/journey-31a.svg)\n\nGpuMesh becomes one object’s draw state: a shared geometry owner and its own bind group. with_geometry accepts an existing geometry owner, while upload remains a convenient wrapper that creates one. The renderer still calls upload independently at this endpoint. Automatic reuse arrives next.\n\nFollow the two draws. GpuMesh binds its object settings at group one, then GpuGeometry binds its vertex and index buffers. The render pass borrows both; it does not consume either.\n\nThe native GPU check constructs two rows from one geometry owner with different placement and selection. It checks shared allocation identity and release before drawing the ordinary lesson scene, whose independently selected rows verify the uniform boundary. This proves the ownership boundary, not automatic scene instancing; the later definition/instance lessons supply that document model.",
+      "result": "Build and run the specimen. Selection, Move and Undo/Redo must keep the same appearance. Explain which fields could now be shared by two placements and which must remain independent.",
+      "experiment": "Follow Rc::clone from a geometry owner into two GPU rows. Predict the strong owner count after the local owner is dropped and after each row is dropped. Do not confuse that count with a byte count.",
+      "production": "This is the ownership boundary needed for cached uploads and later definition instances. Production packed arenas and large-scene performance remain later work.",
+      "tests": true,
+      "frame": "journey/checks/31a-geometry.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/gpu-settings.cjs",
+      "image_result": "The native GPU draws retained source geometry with placement and selection settings; world picking and selected pixels agree.",
+      "edits": [
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": null,
+          "snippet": "journey/code/31a-geometry-01.rs",
+          "why": "Create an owner for immutable buffers and the CPU display allocation that produced them."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod gpu_mesh;\n",
+          "snippet": "journey/code/31a-geometry-02.rs",
+          "why": "Make geometry storage available to the draw row."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "use crate::scene::Object;\n",
+          "snippet": "journey/code/31a-geometry-03.rs",
+          "why": "Use a shared geometry owner."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    vertices: wgpu::Buffer,\n    indices: wgpu::Buffer,\n    index_count: u32,\n",
+          "snippet": "journey/code/31a-geometry-04.rs",
+          "why": "Keep only the geometry owner beside the object bind group."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "        let mesh = &object.mesh;\n        let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);\n        for vertex in mesh.vertices() {\n            for value in vertex {\n                bytes.extend_from_slice(&value.to_ne_bytes());\n            }\n        }\n        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"mesh vertices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::VERTEX,\n        });\n        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();\n        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"mesh indices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::INDEX,\n        });\n",
+          "snippet": "journey/code/31a-geometry-05.rs",
+          "why": "Accept an existing geometry owner while keeping object settings independent."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "        Self { vertices, indices, model_group, index_count: mesh.indices().len() as u32 }\n",
+          "snippet": "journey/code/31a-geometry-06.rs",
+          "why": "Return one draw row without copying its shared geometry."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "        pass.set_vertex_buffer(0, self.vertices.slice(..));\n        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);\n        pass.draw_indexed(0..self.index_count, 0, 0..1);\n",
+          "snippet": "journey/code/31a-geometry-07.rs",
+          "why": "Delegate immutable bindings and indexed drawing to the geometry owner."
+        }
+      ]
+    },
+    {
+      "id": "31b-cache",
+      "title": "Reuse uploads while their geometry is alive",
+      "page": "journey/31b-cache.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Cache GPU geometry by its retained CPU allocation and release dead cache entries.",
+      "trace": "Scene row → source allocation identity → weak cache lookup → shared GPU geometry → object settings",
+      "question": "Why must the cache store Weak owners and retain the CPU source inside GpuGeometry?",
+      "answer": "Weak entries do not keep unused GPU geometry alive. A successful upgrade yields a geometry owner that still retains the exact CPU allocation used as the key, so that address cannot have been reused for another live source. If upgrade fails, upload the current source and replace the dead entry.",
+      "story": "Now the renderer can ask for an existing upload before creating buffers. GeometryCache maps a CPU display address to Weak<GpuGeometry>. The pointer is an identity key only: we never dereference it.\n\n![A weak lookup reuses live geometry; a missing or expired owner causes one upload.](../illustrations/journey-31b.svg)\n\nA live GpuGeometry owns its source Rc. Therefore a successful Weak::upgrade cannot accidentally refer to another allocation that reused that address. An expired entry has no reusable buffers; get uploads the current source and replaces it. prune removes expired entries after old GPU rows are dropped. Equal vertex values in different CPU allocations deliberately remain separate keys.\n\nRenderer constructs itself with an empty row list and then synchronizes the initial scene through the same path used for later changes. This avoids a separate startup cache policy. Each scene synchronization still creates new object uniforms, but retained geometry no longer needs another vertex/index upload.\n\nHidden canvas diagnostics record cumulative geometry uploads and object-uniform allocations. They are validation data, not visible controls or a performance claim. The native check requests the same source twice, then an equal but independent source, and verifies reuse, ownership and expiration. Chrome confirms selection and Move create no new geometry uploads. The next lesson also retains unchanged object uniforms.",
+      "result": "Open Replace the specimen, cycle selection and Move a post. Inspect data-gpu-stats in the developer console. Geometry uploads stay fixed while object uniforms are still recreated at this transitional endpoint.",
+      "experiment": "Explain why cloning Rc<Mesh> finds the same upload while constructing a new Mesh with equal vertices does not. Then drop every GPU row and prune; the weak cache must not keep a geometry owner alive.",
+      "production": "This cache teaches retained geometry identity and release. The production viewer’s arenas, byte accounting and instancing still need their own later lessons and benchmarks.",
+      "tests": true,
+      "frame": "journey/checks/31b-cache.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/gpu-settings.cjs",
+      "image_result": "The native GPU draws retained source geometry with placement and selection settings; world picking and selected pixels agree.",
+      "edits": [
+        {
+          "path": "src/geometry_cache.rs",
+          "before": null,
+          "snippet": "journey/code/31b-cache-01.rs",
+          "why": "Keep weak cache entries and cumulative upload evidence without pinning unused GPU buffers."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod gpu_geometry;\n",
+          "snippet": "journey/code/31b-cache-02.rs",
+          "why": "Expose the geometry cache to the renderer."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    meshes: Vec<GpuMesh>,\n",
+          "snippet": "journey/code/31b-cache-03.rs",
+          "why": "Keep geometry reuse and object allocation counts with the renderer."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let layout = pipeline.get_bind_group_layout(1);\n        let meshes = scene.objects().iter()\n            .map(|object| GpuMesh::upload(&device, &layout, object, false)).collect();\n",
+          "snippet": "journey/code/31b-cache-04.rs",
+          "why": "Let the same scene synchronization populate startup rows."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n",
+          "snippet": "journey/code/31b-cache-05.rs",
+          "why": "Initialize startup through the same ownership path as later edits."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.meshes = scene.objects().iter().map(|object| {\n            GpuMesh::upload(&self.device, &layout, object, selected == Some(object.id))\n        }).collect();\n",
+          "snippet": "journey/code/31b-cache-06.rs",
+          "why": "Reuse live geometry before replacing the old GPU rows, then prune dead weak entries."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn draw(\n",
+          "snippet": "journey/code/31b-cache-07.rs",
+          "why": "Report cumulative geometry uploads, settings allocations and the reserved write counters."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    inspect(&editor)?;\n",
+          "snippet": "journey/code/31b-cache-08.rs",
+          "why": "Wait until the renderer exists before reporting GPU diagnostics."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    renderer.resize(Viewport { width, height });\n",
+          "snippet": "journey/code/31b-cache-09.rs",
+          "why": "Inspect CPU and GPU state after startup synchronization."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        if let Err(error) = inspect(&editor) {\n",
+          "snippet": "journey/code/31b-cache-10.rs",
+          "why": "Update diagnostics after the actual committed action."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "fn inspect(editor: &Editor) -> Result<(), JsValue> {\n",
+          "snippet": "journey/code/31b-cache-11.rs",
+          "why": "Pass renderer accounting into the private diagnostics function."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-object-count\", &editor.scene.objects().len().to_string())?;\n",
+          "snippet": "journey/code/31b-cache-12.rs",
+          "why": "Expose counters through a hidden canvas attribute rather than feature controls."
+        }
+      ]
+    },
+    {
+      "id": "31c-incremental",
+      "title": "Update only changed object settings",
+      "page": "journey/31c-incremental.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Retain GPU rows by object and geometry identity, then write only changed uniform ranges.",
+      "trace": "Scene row → retained GPU row → matrix or selection byte difference → queued range write → next draw",
+      "question": "Why must row reuse compare both ObjectId and the geometry owner?",
+      "answer": "ObjectId identifies the document row, but a geometry edit may replace its display allocation. Reuse settings and geometry only when both identities match. Otherwise request the correct upload and construct a new GPU row. Matching rows update only changed matrix or selection bytes.",
+      "story": "The cache removes repeated vertex/index uploads, but every scene synchronization still allocates object settings. Retain each GPU row when its ObjectId and CPU display owner both match. Keep scene order when collecting the new row list; swap_remove only changes the temporary list of old rows.\n\n![A retained row writes only its changed matrix or selection range before the next draw.](../illustrations/journey-31c.svg)\n\nGpuMesh now keeps its uniform buffer and a copy of the last eighty encoded bytes. Compare the sixty-four matrix bytes and sixteen selection bytes separately. A selection change writes sixteen bytes; Move writes sixty-four. Unchanged values queue no writes. Comparing the encoded float bytes also avoids writing a double change that produces the same GPU value.\n\nThe buffer adds COPY_DST because updates use the queue. [wgpu’s write_buffer contract](https://docs.rs/wgpu/29.0.4/wgpu/struct.Queue.html#method.write_buffer) copies our bytes into staging immediately and executes their transfer before the commands in the next submission. Our normal draw submits after synchronization; no extra submission is required here. Offsets zero and sixty-four, and lengths sixty-four and sixteen, satisfy the [WebGPU four-byte write alignment](https://www.w3.org/TR/webgpu/#dom-gpuqueue-writebuffer).\n\nThe renderer takes its old rows temporarily, finds matching identities, updates their settings, and puts them in scene order. Rows left in the old list are dropped before the weak cache is pruned. The hidden counters now record actual range writes and bytes in addition to allocations.\n\nNative GPU and Chrome checks verify no allocation during selection or Move, no writes for unchanged settings, exact selection and Move/Undo pixel round trips, and release/reupload after deleting and undoing a row. Deleting clears selection, and document Undo restores the row without restoring that selection. The checks explicitly reselect the row before comparing its original gold pixels. These counters describe the calls made by this renderer; they do not claim driver memory size or frame-time performance.",
+      "result": "Cycle selection through the specimen and Move the right post. Read the four hidden counters: geometry uploads and uniform allocations remain fixed; selection writes sixteen bytes per changed row and Move writes sixty-four for its one row. Undo must restore the exact picture.",
+      "experiment": "Select the same row again without changing placement, or synchronize the same scene directly in the native check. Predict zero additional writes. Explain why a deleted row may need a fresh upload when Undo restores it: the cache deliberately has only weak ownership.",
+      "production": "Incremental ownership is a prerequisite for production arenas, resource accounting and large-scene responsiveness. Their complete packing and performance acceptance remain later lessons.",
+      "tests": true,
+      "frame": "journey/checks/31c-incremental.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/gpu-settings.cjs",
+      "image_result": "The native GPU draws retained source geometry with placement and selection settings; world picking and selected pixels agree.",
+      "edits": [
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    model_group: wgpu::BindGroup,\n",
+          "snippet": "journey/code/31c-incremental-01.rs",
+          "why": "Retain row identity, its writable settings buffer and the bytes last sent."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "            usage: wgpu::BufferUsages::UNIFORM,\n",
+          "snippet": "journey/code/31c-incremental-02.rs",
+          "why": "Allow queued updates to the settings buffer."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "        Self { geometry, model_group }\n",
+          "snippet": "journey/code/31c-incremental-03.rs",
+          "why": "Keep settings ownership beside the bind group."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {\n",
+          "snippet": "journey/code/31c-incremental-04.rs",
+          "why": "Queue only changed matrix or selection ranges and count their actual calls and bytes."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    settings_allocations: usize,\n",
+          "snippet": "journey/code/31c-incremental-05.rs",
+          "why": "Accumulate settings write evidence."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            geometry: Default::default(), settings_allocations: 0, uniform, view_group, depth };\n",
+          "snippet": "journey/code/31c-incremental-06.rs",
+          "why": "Initialize the cumulative write counters."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let mut meshes = Vec::with_capacity(scene.objects().len());\n        for object in scene.objects() {\n            let geometry = self.geometry.get(&self.device, &object.mesh);\n            meshes.push(GpuMesh::with_geometry(&self.device, &layout, object,\n                selected == Some(object.id), geometry));\n            self.settings_allocations += 1;\n        }\n        self.meshes = meshes;\n        self.geometry.prune();\n",
+          "snippet": "journey/code/31c-incremental-07.rs",
+          "why": "Retain matching GPU rows, preserve scene draw order and drop unused rows before cache pruning."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        [self.geometry.uploads, self.settings_allocations, 0, 0]\n",
+          "snippet": "journey/code/31c-incremental-08.rs",
+          "why": "Report actual update calls and bytes rather than reserved zeros."
+        }
+      ]
     }
   ]
 }

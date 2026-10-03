@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 117 lesson slots; 50 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 120 lesson slots; 54 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 50 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 54 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -133,7 +133,13 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 30e · [Prove recovery at the transaction and display boundaries](30e-recovery.md) — partial rollback, selection/Redo, float upload range and startup fallback/reload.
 
-- [ ] 31 · Share GPU storage across objects — update changed ranges instead of rebuilding every mesh.
+- [x] 31 · [Keep selection out of the vertex data](31-settings.md) — separate immutable colours from eighty-byte object settings.
+
+- [x] 31a · [Give immutable GPU geometry one owner](31a-geometry.md) — retain the exact CPU display owner and share vertex/index buffers between draw rows.
+
+- [x] 31b · [Reuse uploads while their geometry is alive](31b-cache.md) — weak cache, source allocation identity and upload/allocation counters.
+
+- [x] 31c · [Update only changed object settings](31c-incremental.md) — retain rows, queue sixteen-byte selection or sixty-four-byte matrix writes, and verify deletion/reupload.
 
 - [ ] 32 · Release a closed document — account for CPU objects, GPU allocations and shared references.
 
