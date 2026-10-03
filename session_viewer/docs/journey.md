@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 108 cumulative lessons, about 156–289 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 112 cumulative lessons, about 160–297 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **173 proposed slots: 108 current checkpoints and 65 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **178 proposed slots: 112 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -124,6 +124,10 @@ The white canvas fills the browser window from lesson 01. The runtime shows your
 | [34ba · Keep recent events without losing the first failure](journey/34ba-events.md) | 1–2 hours | Bound diagnostic observations while keeping the original failure independently of recent event rotation. |
 | [34c · Read live diagnostic context outside the GPU runtime](journey/34c-browser.md) | 1–2 hours | Start a bounded page report and read real browser context independently of the renderer’s lifetime. |
 | [34d · Download diagnostics through the real command line](journey/34d-download.md) | 1–2 hours | Download a current ready-run report with Diagnostic Report and attempt one independent first-failure download after GPU disposal. |
+| [34e · Check the bounded shape of a diagnostic report](journey/34e-schema.md) | 1–2 hours | Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. |
+| [34ea · Admit only supported bounded saved JSON](journey/34ea-decode.md) | 1–2 hours | Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate. |
+| [34eb · Choose a recent failure without blaming active tabs](journey/34eb-recency.md) | 1–2 hours | Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity. |
+| [34ec · Prove saved-run exclusions before adopting storage](journey/34ec-proof.md) | 1–2 hours | Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

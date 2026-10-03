@@ -1,0 +1,1 @@
+        while self.events.len() >= 24 { self.events.pop_front(); }

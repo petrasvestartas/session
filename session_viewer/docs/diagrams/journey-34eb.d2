@@ -1,0 +1,11 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Validated candidate and finite ordered timestamps"
+n1: "Failed: first failure less than two hours old"
+n2: "Running: same tab or stale other-tab heartbeat"
+n3: "Healthy, closed, future and old candidates excluded"
+n4: "Eligible score: failure time or interrupted heartbeat"
+n0 -> n1 -> n4
+n0 -> n2 -> n4
+n0 -> n3

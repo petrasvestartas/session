@@ -7630,6 +7630,196 @@
           "why": "Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed."
         }
       ]
+    },
+    {
+      "id": "34e-schema",
+      "title": "Check the bounded shape of a diagnostic report",
+      "page": "journey/34e-schema.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it.",
+      "trace": "typed report → bounded metadata and observations → consistent failure/outcome → valid shape",
+      "question": "Why must a deserialized report satisfy our shape invariants before it can be used?",
+      "answer": "Deserialization alone does not enforce our version, metadata limits, bounded event window or consistent first-failure/outcome state. Those checks are separate from JSON syntax and later timestamp recency.",
+      "result": "Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0.05,0,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.",
+      "experiment": "Directly deserialize 25 recent events, inspect valid(), then record one new observation and inspect it again. Explain why queue repair cannot validate the rest of the stored format.",
+      "production": "The saved-report reader must validate its metadata before use. This endpoint establishes typed shape invariants; raw JSON admission, recency, real storage, telemetry and recovery follow.",
+      "tests": true,
+      "frame": "journey/checks/34e-schema.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/saved-schema.cjs",
+      "story": "The report now has a shape validator. It bounds identifiers, timestamp text, metadata and observations, requires finite positive display density and finite nonnegative event timing, and rejects unsanitized page metadata. A first fatal event must agree with the failed outcome. Recent fatal observations require retained failure; the first failure itself may remain outside the rotated recent window.\n\nThese checks apply to typed values, including values made by deserialization. They do not enforce input byte size, reject unknown raw JSON fields or parse timestamps. Those are the next decoder and recency responsibilities; no stored value is adopted yet.\n\nrecord trims with while rather than if so a caller that directly deserializes an oversized queue cannot keep it oversized after a valid new observation. This repair does not replace admission validation. Native tests reject inconsistent metadata/failure, overlong Unicode text and oversized events, and verify repaired bounds with the original first failure preserved.\n\nChrome verifies inherited real diagnostic downloads and GPU-loss/restart behavior. Browser storage is connected only after the complete admission and recency checks.\n\n![Validate typed report shape](../illustrations/journey-34e.svg)",
+      "browser_caption": "Chrome checks inherited actual diagnostic downloads and failure/restart behavior. Native tests establish typed report shape; raw JSON admission and browser storage follow.",
+      "edits": [
+        {
+          "path": "src/diagnostic.rs",
+          "before": "    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }",
+          "snippet": "journey/code/34e-schema-01.rs",
+          "why": "Validate shape, limits and failure/outcome consistency before trusting a decoded stored value."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "        if self.events.len() == 24 { self.events.pop_front(); }",
+          "snippet": "journey/code/34e-schema-02.rs",
+          "why": "Keep recording bounded even if a caller bypasses admission and directly deserializes an oversized queue."
+        },
+        {
+          "path": "src/diagnostic_shape_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34e-schema-03.rs",
+          "why": "Verify typed metadata, bounded queues and consistent first-failure state."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod diagnostic;",
+          "snippet": "journey/code/34e-schema-04.rs",
+          "why": "Include the native shape-invariant checks."
+        }
+      ]
+    },
+    {
+      "id": "34ea-decode",
+      "title": "Admit only supported bounded saved JSON",
+      "page": "journey/34ea-decode.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate.",
+      "trace": "raw text byte limit → JSON fields/version → typed shape validator → candidate for recency",
+      "question": "Why inspect raw JSON fields before deserializing the report?",
+      "answer": "The typed deserializer can ignore unknown fields. Rejecting unsupported fields first prevents a later export from silently stripping newer telemetry.",
+      "result": "Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0,-0.05,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.",
+      "experiment": "Remove the raw-field whitelist, add an unknown telemetry field and explain why a later typed export could lose it. Compare the exact one-MiB whitespace-padded JSON with the one-byte-larger value.",
+      "production": "Saved reports need byte/schema/shape admission before recency and UI use. This endpoint adds that decoder; selection, real storage, telemetry and bounded recovery follow.",
+      "tests": true,
+      "frame": "journey/checks/34ea-decode.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/saved-decode.cjs",
+      "story": "The decoder is the complete format-admission boundary. It rejects text above one MiB before parsing, inspects top-level JSON keys and rejects unsupported fields, then converts to Report and applies the shape validator. No partial report reaches a storage consumer.\n\nThe byte limit bounds work before allocation-heavy parsing. The schema check prevents silent loss of unknown telemetry. The typed validator enforces limits and failure/outcome consistency after conversion. Timestamp interpretation and recency remain the next separate policy.\n\nNative tests use actual JSON at the exact byte limit and one byte beyond it, reject malformed/versioned/inconsistent/unsupported values, and bound arrays and multibyte text. A valid first failure round-trips. Chrome retains the existing report-download and loss acceptance; localStorage adoption is still not connected.\n\n![Bound raw stored JSON](../illustrations/journey-34ea.svg)",
+      "browser_caption": "Native tests validate actual saved JSON boundaries and unsupported schema. Chrome checks inherited actual diagnostics and GPU-loss acceptance; browser storage adoption comes later.",
+      "edits": [
+        {
+          "path": "src/report_store.rs",
+          "before": null,
+          "snippet": "journey/code/34ea-decode-01.rs",
+          "why": "Bound raw input and reject unsupported JSON fields before adopting a valid typed report."
+        },
+        {
+          "path": "src/report_store_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34ea-decode-02.rs",
+          "why": "Prove actual stored JSON admission and byte/text/schema boundaries."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod diagnostic;",
+          "snippet": "journey/code/34ea-decode-03.rs",
+          "why": "Expose the decoder and its native acceptance checks."
+        }
+      ]
+    },
+    {
+      "id": "34eb-recency",
+      "title": "Choose a recent failure without blaming active tabs",
+      "page": "journey/34eb-recency.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity.",
+      "trace": "validated report → timestamp parser → ordered finite times → failure/heartbeat freshness → ranking timestamp",
+      "question": "Why does a failed report’s fresh heartbeat not prove the failure itself was recent?",
+      "answer": "A still-open failed tab can keep updating lastSeen for days. Failure freshness must use the first fatal timestamp; heartbeat age is used separately for interrupted running tabs.",
+      "result": "Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0.05,0,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.",
+      "experiment": "Rank failures by lastSeen instead of the first fatal timestamp. Explain why an old tab with a running heartbeat could displace a newer real failure. Then treat all running tabs as interrupted and identify the false notice.",
+      "production": "Production previous-report notices now date failure independently of heartbeat and reject invalid/future chronology. The course policy establishes candidate eligibility; browser storage, lifecycle telemetry and bounded recovery follow.",
+      "tests": true,
+      "frame": "journey/checks/34eb-recency.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/saved-recency.cjs",
+      "story": "The production notice had a concrete counterexample: an old failed tab kept refreshing its heartbeat and looked like a recent failure. A real Chrome regression failed before the corrected selector and passed afterward. The course now teaches the same distinction in a pure policy.\n\nA supplied timestamp parser separates browser date parsing from deterministic native policy tests. The policy validates finite current/start/heartbeat times and their ordering. A failed run is eligible only when its first fatal time lies between start and heartbeat and is less than two hours old. Its ranking timestamp is the failure time, not the heartbeat.\n\nA running report is eligible when its heartbeat is under two hours old and it belongs to this tab, or another tab whose heartbeat is more than two minutes old. A current other tab is not interruption evidence. Ready and closed reports do not qualify. An interruption is not proof of a crash.\n\nNative tests use a deterministic clock port for heartbeat/failure boundaries, future and ordering cases. The next checkpoint proves invalid clocks and healthy-run exclusions. Browser Date.parse and saved-value selection follow that proof; there is no previous-report notice or storage adoption here yet. Chrome retains all existing real diagnostics/loss/download checks.\n\n![Failure time and heartbeat have different meanings](../illustrations/journey-34eb.svg)",
+      "browser_caption": "Native tests verify failure/heartbeat recency and ranking, including the original stale-failure case. Chrome retains real diagnostics/loss acceptance. Additional clock exclusions and browser storage follow.",
+      "edits": [
+        {
+          "path": "src/report_recency.rs",
+          "before": null,
+          "snippet": "journey/code/34eb-recency-01.rs",
+          "why": "Interpret a validated report’s chronology and return an eligible timestamp for ranking, using an injected clock parser."
+        },
+        {
+          "path": "src/report_recency_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34eb-recency-02.rs",
+          "why": "Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod report_store;",
+          "snippet": "journey/code/34eb-recency-03.rs",
+          "why": "Expose native selection policy before binding it to browser storage."
+        }
+      ]
+    },
+    {
+      "id": "34ec-proof",
+      "title": "Prove saved-run exclusions before adopting storage",
+      "page": "journey/34ec-proof.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.",
+      "trace": "candidate → invalid clock/healthy state/incorrect chronology → excluded without mutation",
+      "question": "Why test healthy and invalid-clock cases before wiring the policy to localStorage?",
+      "answer": "The browser will see values from other tabs and old or edited storage. A false interruption notice is visible user behavior, so exclusions need explicit acceptance before adoption.",
+      "result": "Import sample.pb, move its selected beam, then type Diagnostic Report to download viewer-diagnostic.json. Save still downloads viewer.session. Run the native tests for this lesson’s report policy. Finish the healthy proof view with Move 0,-0.05,0 and Fit. Chrome also verifies an actual GPU-loss report and startup-failure download, followed by a healthy reload. Saved previous reports and unsaved-edit recovery are not connected yet.",
+      "experiment": "Make the default outcome branch return a score for Ready, then run the tests and describe the false notice. Make the parser return NaN for the failure and explain why comparison/ranking must reject it.",
+      "production": "Previous-report notices must avoid blaming a live or healthy tab and must reject invalid chronology. These native exclusions complete the policy acceptance before browser storage is connected.",
+      "tests": true,
+      "frame": "journey/checks/34ec-proof.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/saved-exclusions.cjs",
+      "story": "Eligibility needs both accepted and rejected examples. The preceding checkpoint covers recent failure, old failure with a fresh heartbeat, active/interrupted other tabs and temporal cutoffs. This checkpoint completes the exclusion proof before the browser adopts stored values.\n\nNative tests reject invalid current clocks, failed timestamp parsing, start after heartbeat and a first failure before start. Ready and closed runs remain quiet. The same report compares equal before and after policy evaluation: selection reads metadata without altering its evidence. Browser Date.parse and storage are still connected next.\n\nChrome retains actual report-download, GPU-loss and startup-restart acceptance. This proof adds no timer, listener, visible control or storage adoption.\n\n![Exclude false interruption evidence](../illustrations/journey-34ec.svg)",
+      "browser_caption": "Native tests prove invalid/healthy/closed/bad-order candidates are excluded without mutation. Chrome retains existing real diagnostic/loss/download acceptance; browser storage follows next.",
+      "edits": [
+        {
+          "path": "src/report_recency_tests.rs",
+          "before": "use crate::{diagnostic::Outcome, diagnostic_shape_tests::report, report_recency::eligible};\n\n#[test]\nfn previous_run_selection_respects_actual_failure_time() {\n    let now = 1_000_000_000.0;\n    for (name, failed, same, seen_age, failure_age, expected) in [\n        (\"old failure, fresh heartbeat\", true, false, 5000.0, 259_200_000.0, false),\n        (\"recent failure\", true, false, 5000.0, 10000.0, true),\n        (\"failure at cutoff\", true, false, 5000.0, 7_200_000.0, false),\n        (\"failure after heartbeat\", true, false, 5000.0, 1000.0, false),\n        (\"future heartbeat\", true, false, -1.0, 1000.0, false),\n        (\"future failure\", true, false, 0.0, -1.0, false),\n        (\"active other tab\", false, false, 120_000.0, 0.0, false),\n        (\"interrupted other tab\", false, false, 120_001.0, 0.0, true),\n        (\"stale other tab\", false, false, 7_200_000.0, 0.0, false),\n        (\"interrupted same tab\", false, true, 0.0, 0.0, true),\n    ] {\n        let mut value = report(); value.started = \"start\".into();\n        if failed { value.record(\"failed\".into(), 1.0, \"fatal\", \"original\").unwrap(); }\n        value.last_seen = \"seen\".into(); value.tab = if same { \"current\" } else { \"other\" }.into();\n        let parser = |time: &str| match time { \"start\" => now - 259_200_000.0, \"seen\" => now - seen_age,\n            \"failed\" => now - failure_age, _ => f64::NAN };\n        let selected = eligible(&value, now, \"current\", parser);\n        assert_eq!(selected.is_some(), expected, \"{name}\");\n        if expected { assert_eq!(selected, Some(now - if failed { failure_age } else { seen_age })); }\n    }\n}\n",
+          "snippet": "journey/code/34ec-proof-01.rs",
+          "why": "Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence."
+        }
+      ]
     }
   ]
 }

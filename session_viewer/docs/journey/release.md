@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 108 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 112 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the four early dock lessons, 03a–03d. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -60,6 +60,12 @@ Early commands such as Background, Pan and Example are teaching vocabulary. The 
 The original production destination remains fingerprinted separately. Browser diagnostics, device-loss guards and the shared command dock are newer than that reference, so the full source-parity audit still reports differences. The course has not yet reached production feature parity. Old reference tutorials remain until their complete replacement is verified.
 
 The production viewer separately passed a Chrome device-loss check: stop GPU work, attempt a diagnostic download, and recover the report on reload. The reported Firefox QueueId driver crash has not been reproduced or proven fixed. A web application cannot guarantee a dump when the browser process itself crashes.
+
+## Saved diagnostic report admission and recency
+
+Four further checkpoints prepare browser storage. They pass 120, 122, 123 and 125 native tests respectively, plus WebAssembly, Trunk, native GPU frames and headed Chrome. Typed validation bounds metadata and observations and requires consistent failure/outcome state. JSON decoding limits input to one MiB before parsing and rejects unsupported top-level fields. Recency uses the first fatal timestamp for failed runs and a separate heartbeat policy for interrupted running tabs; invalid chronology, active other tabs and healthy/closed runs are excluded. Policy evaluation does not mutate a report.
+
+The native tests use a deterministic timestamp parser. Actual browser Date.parse, storage adoption and previous-report notices are not connected at these checkpoints. Chrome retains the actual current-report downloads, GPU-loss disposal, startup failure, restart, source precision and command/history checks. The four typing estimates are 30–60, 27–53, 25–49 and 13–26 minutes. Storage, lifecycle telemetry and bounded GPU recovery follow.
 
 ## Reproduce
 

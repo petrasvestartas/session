@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 173 lesson slots; 108 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 178 lesson slots; 112 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,7 +10,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 17 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 108 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 112 current checkpoints, excluding unchanged context.
 - [x] Display separate typing and combined study estimates at each checkpoint’s top.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -249,7 +249,17 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34d · [Download diagnostics through the real command line](34d-download.md) — Typed actual JSON download, ready milestone, real GPU-loss and rejected-startup reports; history/state/counters/late-input and download URL release checks pass.
 
-- [ ] 34e · Recover from GPU loss — retain bounded reports, add telemetry and safely recover the previous run.
+- [x] 34e · [Check the bounded shape of a diagnostic report](34e-schema.md) — Typed metadata/events/failure validation; native, WebAssembly, GPU and Chrome checks pass.
+
+- [x] 34ea · [Admit only supported bounded saved JSON](34ea-decode.md) — Byte/schema admission; native, WebAssembly, GPU and Chrome checks pass.
+
+- [x] 34eb · [Choose a recent failure without blaming active tabs](34eb-recency.md) — Actual failure/heartbeat chronology and eligibility; native, WebAssembly, GPU and Chrome checks pass.
+
+- [x] 34ec · [Prove saved-run exclusions before adopting storage](34ec-proof.md) — Invalid clocks, healthy states and chronology acceptance; native, WebAssembly, GPU and Chrome checks pass.
+
+- [ ] 34f · Retrieve the previous report through the command line — Stable tab identity, bounded browser storage and denied-storage behavior.
+
+- [ ] 34g · Recover from GPU loss — lifecycle/heartbeat/error and detailed load telemetry, then bounded recovery.
 
 ## Geometry beyond solid triangles
 

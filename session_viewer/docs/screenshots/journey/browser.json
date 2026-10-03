@@ -3254,6 +3254,118 @@
       "bundle": "42b0a68666e46a3b5fe94723a58cf40320ee6bb54f0be5cdebd3420b62d00585",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "34e-schema": {
+      "source": "b80d14823761972fd30b93459f1b9e1a6cf745c8eb54ba923b09327db0f0065c",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "33bd246cd0689bf8728feecf0e18f044bdacce3a8623541b4b8fc5f9fbfc8b77",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T18:46:31.253Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "07ba8fd8a65476adf6baa192acc3d445cddc85b92837a69f0b9a1c5257b40fab",
+      "file": "34e-schema-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "52a535760e7c8f2fec572e167ca9fa65f7eaebd47afe6fa5e75e0125743113aa",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "34ea-decode": {
+      "source": "9ffe2e332b5f7e6d8215951a00016a51ff56e8ba8a0fbcb07d126c5b4b223641",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "619cb5caa71c5466174cc490b3faec814882aa17d4f65bd53bc72eae0be64dce",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T18:47:52.403Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "fbb08f3eaa83b9469602694b8278107328350d6ae7d939e6d8c34218429e2ca8",
+      "file": "34ea-decode-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "13df42fa1b89fb6a1af73735602f4bd8453ad87a84b81081fbbd9faf3aacd612",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "34eb-recency": {
+      "source": "e56709ec4d9ddb6f82e9d26fb92f5ff340c159207ed086ad08a8025c371f2e96",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ea51df03e5235fd5d213e64d60bd7590f112f53ee5cccd75f1c1595e55d899b6",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T18:49:14.116Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "93e8e0b1e158e5fd708feb44b45b1021082ab6d58c1134aa933969d7149d290c",
+      "file": "34eb-recency-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "c864e816463b2bb3aef8851251195d1113d32c42b165d583fba11d3abbf420fd",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "34ec-proof": {
+      "source": "fd2044ae669236a4affb16ff9d2c231a02bc3e44df9be1a668992eb08f8875a6",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "4304752ad046fd2ce9cbef4e46699de89b1f051a6f18f32841f0f544bda9bc4c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-03T18:50:57.645Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "454a385a395845e4aefb16421ab20dcbe146e9a163e573b9efb273095f23799c",
+      "file": "34ec-proof-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "c00ee2217ca06ab2259d7e715e23654ed7b267d5e4e12a72f5d70187bb1dfc5f",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }
