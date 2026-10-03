@@ -23,10 +23,17 @@
     } catch { /* Private browsing may deny storage; downloads still work. */ }
 
     // A stale heartbeat means an interruption, not proof of a browser crash.
-    const previous = reports.find(item => Date.now() - Date.parse(item.report.lastSeen) < 2 * 60 * 60 * 1000
-        && (item.report.outcome === 'failed'
-        || (item.report.outcome === 'running' && (item.report.tab === tab
-            || Date.now() - Date.parse(item.report.lastSeen) > 120000))))?.report;
+    const previous = reports.find(({report}) => {
+        const clock = Date.now(), started = Date.parse(report.started), seen = Date.parse(report.lastSeen);
+        if (!Number.isFinite(started) || !Number.isFinite(seen) || started > seen || seen > clock) return false;
+        if (report.outcome === 'failed') {
+            const failed = Date.parse(report.failure?.time);
+            return Number.isFinite(failed) && failed >= started && failed <= seen
+                && clock - failed < 2 * 60 * 60 * 1000;
+        }
+        return report.outcome === 'running' && clock - seen < 2 * 60 * 60 * 1000
+            && (report.tab === tab || clock - seen > 120000);
+    })?.report;
     const report = {
         version: 1, tab, started: now(), lastSeen: now(), outcome: 'running',
         page: location.origin + location.pathname, browser: navigator.userAgent,

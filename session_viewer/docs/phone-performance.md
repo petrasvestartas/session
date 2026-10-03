@@ -105,3 +105,8 @@ The maintained command-input check also passes immediate typing, named View comm
 Deployed as `edce6df7`, with viewer-check, primary Pages and Session mini tests passing. Public headed Chrome passes all four held-completion gesture cases and preserves default phone, explicit phone and desktop canvas/MSAA settings. Published-floor loads take 893 ms desktop, 860 ms phone dimensions and 2879 ms at 6× CPU throttle, with one live replacement and default/explicit opacity checks passing. These loading numbers remain desktop GPU/network emulation.
 
 After refreshing the same public page on the actual phone, the user confirmed on 2026-10-03: “Rotation is smooth now.” Earlier feedback confirmed correct appearance and faster loading. The phone’s numerical load-time target and CPU timings have not been measured here.
+
+
+## Previous-report recency follow-up
+
+A headed Chrome regression reproduced an old failure being treated as recent when its still-open tab kept updating lastSeen. The notice now uses the first failure’s timestamp, checks start/failure/heartbeat ordering and rejects future or invalid timestamps. Running reports use heartbeat age and tab identity; a current other tab remains quiet. Ten real-browser cases pass after the fix, including the original failing case. Native validation passes 506 tests with 55 ignored, including the far-floor edge oracle; WebAssembly check passes. This changes report notice eligibility and leaves the accepted phone navigation fix in place.
