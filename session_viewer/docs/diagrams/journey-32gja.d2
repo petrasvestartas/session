@@ -1,0 +1,13 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+n0: "Multiple current source keys + captured Save"
+n1: "Fetch every complete body"
+n2: "Validate all versions, metadata and epochs"
+n3: "Every source valid: install together"
+n4: "Any failure: all sources remain cold"
+n5: "No failed edit, download or history transaction"
+n0 -> n1 -> n2
+n2 -> n3
+n1 -> n4 -> n5
+n2 -> n4

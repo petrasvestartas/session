@@ -1,11 +1,13 @@
 fn editor() -> viewer_journey::editor::Editor {
     use viewer_journey::editor::{Action, Editor};
-    let mut editor = Editor::default(); let bytes = viewer_journey::specimen::bytes();
+    let mut editor = Editor::default(); let bytes = viewer_journey::specimen::precise_bytes();
     editor.apply(Action::ReplaceAt(bytes.clone(), std::rc::Rc::new(viewer_journey::reload_url::ReloadUrl::new("test:auto-frame".into())))).unwrap();
     for action in [Action::SelectNext, Action::Translate([0.35, 0.0, 0.25]), Action::Isometric, Action::Fit, Action::UnloadSources] { editor.apply(action).unwrap(); }
     let intent = viewer_journey::edit_intent::Intent::Move { id: editor.selected.unwrap(), offset: [0.25, 0.0, 0.15] };
     let reply = viewer_journey::reload_reply::Reply::new(intent.keys(&editor).unwrap(), Some(intent), Ok(vec![bytes]));
     assert!(matches!(reply.complete(&mut editor).unwrap(), Some(viewer_journey::edit_replay::Reply::Changed(_))));
+    editor.apply(Action::Fit).unwrap();
+    editor.apply(Action::Orbit(0.0, std::f64::consts::FRAC_PI_6)).unwrap();
     editor.apply(Action::Translate([0.0, -0.5, 0.0])).unwrap();
     editor.apply(Action::Fit).unwrap();
     editor

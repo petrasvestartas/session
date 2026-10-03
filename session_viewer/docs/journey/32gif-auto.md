@@ -22,6 +22,8 @@ Chrome uses held real source responses to check original-target Move and Delete,
 
 ![Automatic cold-source commands](../illustrations/journey-32gif.svg)
 
+The final proof placement moves the post clear of the beam. Keeping two front faces in exactly the same plane can produce depth competition; this demonstration separates the solids instead of claiming the later rendering-quality lessons are already implemented.
+
 ## Type the change
 
 Continue [Deliver restored edit and Save results to the dock](32gie-response.md). From `session_viewer`, save your files with `npm --prefix ../session_tests run course -- save before-32gif-auto`. A save keeps your own work; it does not fill in the next lesson.
@@ -130,13 +132,15 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. If Trunk is already running in this project, leave it running; it rebuilds when you save.
 
-Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step.
+Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces.
 
-**Native render check — not a browser screenshot.**
+**Actual Chrome screenshot.**
 
-![Native renderer output for automatically restore sources for move, delete and save.](../screenshots/journey/32gif-auto.png)
+Visible Chrome types real cold-source Move/Delete/Save commands, holds fetch responses, changes selection and camera, then checks replay, download, Undo and cancellation. Controlled waits establish ordering, not device speed.
 
-*Read directly from this checkpoint’s GPU texture. Browser controls and event delivery remain unverified until the browser check passes.*
+![Actual browser result: Automatically restore sources for Move, Delete and Save.](../screenshots/journey/32gif-auto-browser.png)
+
+*Captured from this checkpoint’s browser bundle after its browser checks passed. [Check scope and environment](release.md).*
 
 Run the state checks from your project folder:
 

@@ -6983,7 +6983,7 @@
       "trace": "Typed command → capture original intent → required cold keys → fetch → validated completion → one edit or download",
       "question": "Which commands should keep working while source restoration is pending?",
       "answer": "Camera and selection commands execute immediately. The pending operation retains its original target and arguments. A new real edit or Save supersedes earlier pending work; Close, Undo, Redo, Unload Sources and replacement already cancel its authority.",
-      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step.",
+      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces.",
       "experiment": "Hold a source response, submit Move, select another object and orbit, then release it. Explain why replay must use the captured object identity but preserve the later selection and camera.",
       "production": "Automatic editable-source restoration obeys command ownership, document-context revocation, original targets, current placement, original precision and ordinary history boundaries.",
       "tests": true,
@@ -6997,7 +6997,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/reload-auto.cjs",
-      "story": "restore_for finds only the captured operation’s required cold source keys. Move and Delete need the original target’s source; Save needs all active cold sources. It cancels older pending work, returns false for a warm operation, and otherwise starts the existing abortable flight with Some(intent).\n\nThe shared action path captures Move/Delete before applying them. Its Result<Option<Change>, String> distinguishes an immediate change (Some), a waiting operation (None), and a failure (Err). map(Some) wraps an immediate editor result; and_then carries an earlier error forward without applying the action. A pending restoration leaves drawing, placement and edit history untouched. Camera and selection commands still run immediately; completed replay uses the captured target and the current placement, while preserving the later view and selection. Save uses the same decision and downloads only after completion has restored every required source.\n\nZero Move and Delete with no selection request no fetch. Warm commands retain their normal behavior. Close, Undo, Redo, source unload and document replacement keep the cancellation taught earlier. A newer real edit or Save supersedes an older pending intent even when the newer operation is warm.\n\nChrome uses held real source responses to check original-target Move and Delete, later selection and camera, one-step Undo, automatic Save download and cancellation. These controlled waits test ordering, not phone performance. Exact source-coordinate preservation remains covered by native Save/replay checks; the following acceptance lesson broadens browser failures and precision.\n\n![Automatic cold-source commands](../illustrations/journey-32gif.svg)",
+      "story": "restore_for finds only the captured operation’s required cold source keys. Move and Delete need the original target’s source; Save needs all active cold sources. It cancels older pending work, returns false for a warm operation, and otherwise starts the existing abortable flight with Some(intent).\n\nThe shared action path captures Move/Delete before applying them. Its Result<Option<Change>, String> distinguishes an immediate change (Some), a waiting operation (None), and a failure (Err). map(Some) wraps an immediate editor result; and_then carries an earlier error forward without applying the action. A pending restoration leaves drawing, placement and edit history untouched. Camera and selection commands still run immediately; completed replay uses the captured target and the current placement, while preserving the later view and selection. Save uses the same decision and downloads only after completion has restored every required source.\n\nZero Move and Delete with no selection request no fetch. Warm commands retain their normal behavior. Close, Undo, Redo, source unload and document replacement keep the cancellation taught earlier. A newer real edit or Save supersedes an older pending intent even when the newer operation is warm.\n\nChrome uses held real source responses to check original-target Move and Delete, later selection and camera, one-step Undo, automatic Save download and cancellation. These controlled waits test ordering, not phone performance. Exact source-coordinate preservation remains covered by native Save/replay checks; the following acceptance lesson broadens browser failures and precision.\n\n![Automatic cold-source commands](../illustrations/journey-32gif.svg)\n\nThe final proof placement moves the post clear of the beam. Keeping two front faces in exactly the same plane can produce depth competition; this demonstration separates the solids instead of claiming the later rendering-quality lessons are already implemented.",
       "browser_caption": "Visible Chrome types real cold-source Move/Delete/Save commands, holds fetch responses, changes selection and camera, then checks replay, download, Undo and cancellation. Controlled waits establish ordering, not device speed.",
       "edits": [
         {
@@ -7029,6 +7029,104 @@
           "before": "    canvas.set_attribute(\"data-object-count\", &editor.scene.objects().len().to_string())?;",
           "snippet": "journey/code/32gif-auto-05.rs",
           "why": "Expose read-only placement, selection and camera values so Chrome checks the original target and later view exactly. These values add no controls."
+        }
+      ]
+    },
+    {
+      "id": "32gj-precision",
+      "title": "Prove restored Save keeps the source doubles",
+      "page": "journey/32gj-precision.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Verify the automatic browser Save download retains exact source coordinates after display-only unloading.",
+      "trace": "Original f64 sentinel → derived f32 display → unload kernel → reload original bytes → Save → exact source doubles",
+      "question": "Why is equal drawing insufficient proof that Save preserved source coordinates?",
+      "answer": "The GPU display already rounds coordinates to f32. Two different f64 values may draw identically. Compare the actual downloaded source coordinates and include a value whose f32 round trip differs.",
+      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. The sample now includes an original double that differs from its f32 display value. Inspect the actual Save download with the precision checker. Type Orbit Up and Fit for the final proof view. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces.",
+      "experiment": "Replace snapshot geometry with the display floats. Predict why screenshots could still pass, then run the native and downloaded-coordinate checks.",
+      "production": "Original source geometry determines editable Save; equal rendered pixels cannot establish coordinate precision.",
+      "tests": true,
+      "frame": "journey/checks/32gj-precision.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-precision.cjs",
+      "story": "The display arrays are deliberately derived and may round source doubles to floats. precise_bytes adds one non-f32-representable coordinate to the uploaded specimen while retaining the ordinary specimen function. The browser and native checks must read this actual source rather than inventing an expected drawing.\n\nThe native acceptance test moves the object, unloads its editable source, completes a captured Save with the original bytes, and compares every original vertex. It also proves the sentinel would change through f32 and Save leaves the previous Move available to Undo and Redo.\n\nVisible Chrome downloads a warm reference, unloads sources and downloads the automatic restored Save. A small test-only protobuf reader follows the documented Session → Objects → Mesh → vertex map fields, orders vertex keys and compares all double values with the actual uploaded file. It rejects a float-rounded substitute and checks both actual downloads, separate placement matrices, delayed download URL cleanup and Close releasing source URLs. This reader is verification tooling, not a second viewer loader.\n\nThe inherited automatic-command checks remain active. Broader network, body and multiple-origin failure acceptance follows next.\n\n![Prove original-coordinate Save](../illustrations/journey-32gj.svg)\n\nThe final proof placement moves the post clear of the beam. Keeping two front faces in exactly the same plane can produce depth competition; this demonstration separates the solids instead of claiming the later rendering-quality lessons are already implemented.",
+      "browser_caption": "Chrome checks actual warm and cold-source Save downloads against the precision specimen, exact double coordinates, placement preservation, delayed download URL cleanup and source URL release on Close.",
+      "edits": [
+        {
+          "path": "src/specimen.rs",
+          "before": "pub fn bytes() -> Vec<u8> {\n    use session_rust::{Color, Mesh, Session, Xform};\n    let mut session = Session::new(\"Three-piece frame\");\n    for (name, size, centre) in [\n        (\"Left post\", [0.25, 0.35, 1.0], [-0.65, 0.0, 0.5]),\n        (\"Right post\", [0.25, 0.35, 1.0], [0.65, 0.0, 0.5]),\n        (\"Top beam\", [1.8, 0.35, 0.25], [0.0, 0.0, 1.125]),\n    ] {\n        let mut mesh = Mesh::create_box(size[0], size[1], size[2]);\n        mesh.name = name.to_owned();\n        mesh.transform(&Xform::translation(centre[0], centre[1], centre[2]));\n        mesh.set_objectcolor(Color::new(0.75, 0.35, 0.1, 1.0));\n        assert!(session.add_mesh(mesh, None).is_some());\n    }\n    session.pb_dumps()\n}\n",
+          "snippet": "journey/code/32gj-precision-01.rs",
+          "why": "Add a source coordinate that cannot survive an f64-to-f32 round trip; keep the original specimen available."
+        },
+        {
+          "path": "examples/sample.rs",
+          "before": "viewer_journey::specimen::bytes()",
+          "snippet": "journey/code/32gj-precision-02.rs",
+          "why": "The browser’s actual uploaded sample now contains the precision sentinel."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod reload_complete_tests;\n",
+          "snippet": "journey/code/32gj-precision-03.rs",
+          "why": "Register the exact-coordinate restoration acceptance check."
+        },
+        {
+          "path": "src/reload_precision_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32gj-precision-04.rs",
+          "why": "Verify exact source-coordinate restoration with a real precision sentinel and unchanged edit history."
+        }
+      ]
+    },
+    {
+      "id": "32gja-failures",
+      "title": "Prove failed restoration cannot partly commit",
+      "page": "journey/32gja-failures.md",
+      "hours": [
+        1,
+        2
+      ],
+      "goal": "Verify automatic command failures preserve cold drawing, placement and history, including all-or-nothing multiple-source Save.",
+      "trace": "Captured operation → complete body set → validate every source → all restored or none → no edit/download on failure",
+      "question": "Why must the first valid source remain cold when a second source fails?",
+      "answer": "Save represents one document operation. Installing the first source before checking the remaining responses would leave a partially restored editor after the operation failed. Validate the complete set before installation.",
+      "result": "Open sample.pb with Open Replace, Select Next, Move 0.35,0,0.25, View Isometric and Fit. Unload Sources, then type Move 0.25,0,0.15 without Reload Sources. The command restores its source and moves once; Undo restores the placement. Repeat with Delete and Undo, then Unload Sources and Save. Save downloads the editable document without creating an Undo step. The sample now includes an original double that differs from its f32 display value. Inspect the actual Save download with the precision checker. Type Orbit Up and Fit for the final proof view. Run the combined acceptance checks. Failed restoration must leave the visible scene unchanged and sources cold. Type Orbit Right and Fit for the final proof view. Finish with Move 0,-0.5,0 and Fit to separate the moved post from the beam; the final proof view avoids coplanar overlapping faces.",
+      "experiment": "Install each prepared source as soon as its fetch succeeds, then fail the second source. Explain which native and browser residency assertions identify the partial commit.",
+      "production": "Document restoration validates every response before committing editable source owners; errors and abandoned work cannot partially mutate the current document.",
+      "tests": true,
+      "frame": "journey/checks/32gja-failures.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/reload-failures.cjs",
+      "story": "The restoration implementation already separates preparation from installation. This acceptance checkpoint makes the boundary observable across two independently imported origins. Native checks combine a current Save with a network failure, missing body or changed second source and prove both sources remain cold. Duplicate or stale keys revoke the complete reply without replay.\n\nChrome sends actual Move/Delete/Save commands through HTTP failure, invalid Content-Length, missing body, rejected fetch, oversized body, failed stream, invalid response type and changed source bytes. Each failure must leave placement, selection, camera, displayed pixels, residency and GPU counters unchanged; Save starts no download. It also imports a second source and fails its fetch after the first body has succeeded. No partial source restoration or document edit is accepted.\n\nThe precision checkpoint remains active. Finally, a held real response is released after Close and its source URL must already be revoked. Controlled failures and waits test ownership and atomicity, not real device speed.\n\n![All sources restore together](../illustrations/journey-32gja.svg)\n\nThe final proof placement moves the post clear of the beam. Keeping two front faces in exactly the same plane can produce depth competition; this demonstration separates the solids instead of claiming the later rendering-quality lessons are already implemented.",
+      "browser_caption": "Visible Chrome checks automatic Move/Delete/Save failures, unchanged drawing/state/GPU counters, multiple-source Save atomicity, no failed download, and Close revoking a source URL before a held reply is released.",
+      "edits": [
+        {
+          "path": "src/lib.rs",
+          "before": "mod reload_precision_tests;\n",
+          "snippet": "journey/code/32gja-failures-01.rs",
+          "why": "Register multiple-source completion acceptance checks."
+        },
+        {
+          "path": "src/reload_failure_tests.rs",
+          "before": null,
+          "snippet": "journey/code/32gja-failures-02.rs",
+          "why": "A failure, missing body, changed file, duplicate key or stale epoch must not partially restore a multi-source Save."
         }
       ]
     }

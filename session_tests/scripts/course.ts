@@ -86,6 +86,7 @@ function main() {
         const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), ...ids], {cwd: viewer, stdio: 'inherit',
             env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
         if (result.status !== 0) throw Error('Browser capture failed; see the error above.');
+        generate();
     } else if (action === 'serve') {
         serve(name ? Number(name) : 8781);
     } else if (action === 'list') {

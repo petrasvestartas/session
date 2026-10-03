@@ -86,6 +86,9 @@ module.exports = async (page, {command, drawing, step}) => {
         await page.evaluate(() => { window.__autoHold = false; }); await reset();
         await command(page, 'Unload Sources'); await submit('Move 0.25,0,0.15');
         await page.waitForFunction(() => document.getElementById('status')?.textContent === 'Move completed after source reload.');
+        await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).history.at(-1)?.startsWith('> Move\n'));
+        await submit('Move 0,-0.5,0');
+        await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).history.at(-1)?.startsWith('> Move 0,-0.5,0\n'));
         await command(page, 'Fit');
     } finally {
         await page.evaluate(() => { window.fetch = window.__autoFetch; delete window.__autoFetch; delete window.__autoHeld; delete window.__autoHold; });
