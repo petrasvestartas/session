@@ -84,6 +84,6 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 127 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 128 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

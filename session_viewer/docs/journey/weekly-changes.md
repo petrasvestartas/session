@@ -10,6 +10,8 @@ This review covers the viewer commits from September 28 through October 3, 2026,
 | Browser decoding of tree color field 5 (`92a2bfca`) | A schema field does not reach the browser merely because the native kernel reads it. Verify the window decoder separately. | 28 source records; 30 loading; 52 nested tree |
 | Curved BRep edges sampled from their own curves (`5523cc6c`, `c978aeb3`) | Surface triangulation and boundary sampling have different jobs. Curve sag gives hidden-line visibility a geometric tolerance. | 35 strokes; 38 curve sampling; 39 visibility; 56 shared boundaries |
 | Display density capped at 2 by default, and fully covered strokes culled before fragment work (`d03926a7`) | CSS pixels and drawing pixels differ. Performance optimizations must preserve close-up ink and selected geometry. | 54 display density; 86 finite-triangle visibility; 95 performance |
+| Congruent BReps reuse their display walk within one document ([661c766d](https://github.com/petrasvestartas/session/commit/661c766d042f99df3f01a21200cfc1d31627d750)) | Build a key from topology, curve/surface parameters, weights, colours and control points in a rigid local frame. Moved/rotated copies replay positions, normals, edge IDs and facing information for their own row. Mirrors and changed shapes take independent walks. Scope the recordings to document preparation and release them when its outer guard drops. | 56 boundaries; 69a congruent display walks; 95 performance |
+| Full-circle edge sampling remains translation invariant (same commit) | A tiny rounding excess beyond360degrees must not turn90display chords into91 after moving a circle. Compare independently prepared and replayed geometry, rather than only measuring cache hits. | 38 curve sampling; 56 boundaries; 69a congruent display walks |
 | Nearly solid face default | The October 2 default was 0.9 (`740888fe`). The requested current default is 0.95. Query overrides and explicit opacity commands still determine user choices. | 93 opacity |
 | Keyboard feature commands and right-click repeat | Printable input opens the command dock without losing its first character. Mouse/phone gestures navigate. Right-click restarts an interactive tool with fresh arguments; coordinate responses do not replace that tool. | 03d typing; 22 wheel navigation; 47 parsing; 48 interactive tools; 54 ownership |
 
@@ -17,7 +19,8 @@ The close-up hidden-line correction (`ee3db14a`) and its adapter fallback (`ffbe
 
 The local protobuf checkout currently predates the kernel's committed visibility/locking bindings. Verification uses `REGEN_PROTO=0` to preserve those committed bindings. Updating a schema checkout must be deliberate; regenerating older bindings removes fields the kernel already uses. This checkout issue is separate from the viewer behavior the lessons teach.
 
-- [x] Review the week's commit history and identify its teaching destinations.
+- [x] Review the week's commit history and identify its teaching destinations, including the October3 congruent-BRep change integrated during publication.
+- [ ] Teach and verify congruent BRep walk keys, replay, mirrors, per-row facing/IDs, scoped cache release and translation-invariant circle chords.
 - [x] Verify current production typing, repeat and mouse/phone input in Chrome.
 - [x] Revise and verify lessons 03d and 22–26.
 - [x] Preserve original double coordinates, names and visibility/locking attributes through source preparation; share original imported geometry.

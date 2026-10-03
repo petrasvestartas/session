@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 130 lesson slots; 63 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 131 lesson slots; 63 current checkpoints have fresh build and Chrome evidence.** The four early dock lessons introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -256,6 +256,8 @@ Publication, byte ranges, accounting, instancing and sheets: reference 04d, 13, 
 - [ ] 68 · Bound the streaming cache — evict data without releasing resources still in use.
 
 - [ ] 69 · Draw many placements of one definition — share geometry while preserving instance IDs.
+
+- [ ] 69a · Reuse display walks of congruent BReps — compare rigid-frame shape keys, replay moved/rotated copies with their own row/edge IDs and facing data, independently walk mirrors and changed geometry, release per-document recordings, and prove circle-chord and rendered-shape equivalence. Split into manageable runnable endpoints when authored.
 
 - [ ] 70 · Keep nested instance transforms correct — apply placement once at each level.
 

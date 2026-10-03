@@ -19,6 +19,7 @@ The completed course must also teach these current requirements:
 - New scenes start with element features off and face opacity at `0.95`. `Element Features On` reveals the features; `Opacity` changes the shared face setting.
 - Loading and saving preserve each object’s `is_visible` and `is_locked`. Hidden objects stay hidden, and locked objects cannot be edited through selection.
 - Object colours follow their tree node or nearest coloured parent unless explicitly overridden. Curved edges retain their own curve geometry.
+- Congruent BReps within one document reuse a prepared display walk after rigid placement. Replay preserves row/edge identities, normals and facing data; mirrors and different shapes remain distinct. Recordings end with document preparation, and a translated full circle keeps the same display chord count.
 - Lines remain readable at close zoom and shallow viewing angles. A passing ordinary-distance screenshot is insufficient for this check.
 
 These changes extend the frozen inventory below. Their cumulative teaching and browser checks remain tracked in the course work; listing a requirement does not mark it complete.
