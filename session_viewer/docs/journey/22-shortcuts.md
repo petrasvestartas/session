@@ -1,38 +1,16 @@
-# 22 · Keep navigation on the mouse and commands in the dock
+# 22 · Deliver wheel input without keyboard feature shortcuts
 
-**Typing: 42–84 minutes.** [Estimate](typing-load.md).
+**Typing: 17–34 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Route wheel events through navigation::wheel, prevent page scrolling when zoom is handled, and keep printable keyboard input in the command dock. Focus the canvas when a pointer press starts navigation.
 
-Keep keyboard features in the command dock and navigation on the mouse. Clicking the drawing then typing `Pan Right` preserves the first letter; Enter runs the command. Text-editing keys never become camera or document shortcuts.
-
-Add a stateless wheel translator beside gesture state. It turns delta, delta mode and canvas height into `Option<Action>`. Invalid or zero movement returns no action.
+There is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.
 
 ## Type
 
-Continue from [Remember a press until it ends](21-gestures.md). [Save or recover your work](recovery.md).
+Continue from [Convert wheel units to camera zoom](21a-wheel.md). [Save or recover your work](recovery.md).
 
-### 1. `src/navigation.rs`
-
-Normalize wheel units into the existing Zoom action. Zero or invalid input returns None.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/22-shortcuts-01.rs"
-```
-
-### 2. `src/navigation_tests.rs`
-
-Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/22-shortcuts-02.rs"
-```
-
-### 3. `Cargo.toml`
+### 1. `Cargo.toml`
 
 Enable the browser event bindings used by the command dock.
 
@@ -57,31 +35,7 @@ Replace that block with:
 --8<-- "journey/code/22-shortcuts-dock-01.toml"
 ```
 
-### 4. `src/lib.rs`
-
-Register the small input translator and its tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod editor;
-pub mod viewport;
-pub mod gesture;
-#[cfg(test)]
-mod gesture_tests;
-pub mod gpu_mesh;
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/22-shortcuts-fullscreen-1.rs"
-```
-
-### 5. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Route unconsumed canvas input through navigation_action.
 
@@ -106,7 +60,7 @@ Replace that block with:
 --8<-- "journey/code/22-shortcuts-window-1.rs"
 ```
 
-### 6. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Retain the shared callback and dispatch wheel or pointer navigation.
 
@@ -134,7 +88,7 @@ Replace that block with:
 --8<-- "journey/code/22-shortcuts-window-2.rs"
 ```
 
-### 7. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Focus the canvas and capture accepted pointer presses; cancel if either operation fails.
 
@@ -171,11 +125,11 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Click the canvas and type a single letter. It must appear in the command field without changing the scene. Type `Pan Right` and press Enter to move the view. Wheel input still zooms.
+Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Keep navigation on the mouse and commands in the dock.](../screenshots/journey/22-shortcuts-browser.png)
+![Actual browser result: Deliver wheel input without keyboard feature shortcuts.](../screenshots/journey/22-shortcuts-browser.png)
 
 [Verification scope](release.md).
 
@@ -188,19 +142,17 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-Convert lines to sixteen CSS pixels and pages to one canvas height. An exponential produces a positive zoom factor; cap an event at 600 pixels. Camera retains its distance limits.
 
-A non-passive wheel listener can prevent scrolling for handled zoom. Escape cancels gesture state. See the browser [delta modes](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode) and [listener options](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).
 
-Wheel units → navigation::wheel → Editor action → camera → frame; typed text → command dock → Editor action.
+Wheel → navigation_action → Editor; printable key → command dock → typed Action.
 
-![Wheel navigation and typed commands meet at the existing Editor boundary.](../illustrations/journey-22.svg)
+![Mouse navigation and typed command input share editor actions with distinct input ownership.](../illustrations/journey-direct-22-shortcuts.svg)
 
-Why does a wheel need units, while typed text needs one owner?
+Why request a non-passive wheel listener?
 
-A wheel delta may represent pixels, lines or pages. Normalize those units before zooming. Typed text belongs to the command dock, even after clicking the drawing. There is no second keyboard feature map to accidentally move the camera or delete geometry.
+Handled wheel navigation must call prevent_default so the browser does not scroll the page.
 
-Study estimate, including typing and experiments: 2–4 hours.
+Study estimate, including typing and experiments: 0.5–1 hours.
 
 </details>
 
@@ -230,8 +182,16 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 
 The maintained viewer routes mouse and phone navigation through src/app/input.rs. Printable input activates the command dock immediately; named commands share the existing state and history. This checkpoint keeps wheel zoom centred on the camera target. Pointer-centred zoom and phone gestures will extend navigation without introducing keyboard feature shortcuts.
 
-Wheel input zooms and the Pan Right command pans. Typing after clicking the drawing activates the dock without invoking keyboard feature shortcuts.
+Chrome checks actual wheel zoom without page scrolling, equivalent line/page wheel events, and immediate typing after canvas focus without keyboard feature shortcuts.
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 22-shortcuts
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>

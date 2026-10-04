@@ -65,8 +65,12 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [19-actions](19-actions.md) | 66 | 2826 | 29–57 min | 1–1.5 h | Within planning limit |
 | [19a-viewport](19a-viewport.md) | 52 | 1838 | 19–37 min | 0.75–1.25 h | Within planning limit |
 | [20-resize](20-resize.md) | 83 | 2825 | 29–57 min | 1–1.5 h | Within planning limit |
-| [21-gestures](21-gestures.md) | 216 | 7609 | 77–153 min | 3–5 h | Split required |
-| [22-shortcuts](22-shortcuts.md) | 111 | 4157 | 42–84 min | 2–4 h | Split required |
+| [20a-press](20a-press.md) | 59 | 1910 | 20–39 min | 0.75–1.25 h | Within planning limit |
+| [20b-release](20b-release.md) | 61 | 2280 | 23–46 min | 0.75–1.25 h | Within planning limit |
+| [20c-motion](20c-motion.md) | 46 | 1729 | 18–35 min | 0.75–1.25 h | Within planning limit |
+| [21-gestures](21-gestures.md) | 60 | 2253 | 23–46 min | 1–1.5 h | Within planning limit |
+| [21a-wheel](21a-wheel.md) | 70 | 2472 | 25–50 min | 0.75–1.5 h | Within planning limit |
+| [22-shortcuts](22-shortcuts.md) | 41 | 1685 | 17–34 min | 0.5–1 h | Within planning limit |
 | [23-import](23-import.md) | 280 | 12600 | 126–252 min | 5–8 h | Split required |
 | [24-fit](24-fit.md) | 133 | 5231 | 53–105 min | 3–5 h | Split required |
 | [25-projection](25-projection.md) | 132 | 5776 | 58–116 min | 3–5 h | Split required |
@@ -164,12 +168,12 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 
 ## Work still required
 
-- [x] Count the exact source edits for all 149 current checkpoints.
+- [x] Count the exact source edits for all 153 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 218 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 222 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

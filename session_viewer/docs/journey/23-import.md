@@ -10,7 +10,7 @@ Read bytes, prepare the whole import, then commit it as one history edit. A malf
 
 ## Type
 
-Continue from [Keep navigation on the mouse and commands in the dock](22-shortcuts.md). [Save or recover your work](recovery.md).
+Continue from [Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/document.rs`
 

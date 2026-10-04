@@ -717,10 +717,10 @@
     "21-gestures": {
       "source": "935f04d018a1fb7e28ce5719150cb23c7680e89ed530bf8fe03d97154a9712b7",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "d7828dd9c2bccc4674635ffe8d491df24b631e70426315c24de2aa26ed648fe4",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T01:00:50.205Z",
+      "captured": "2026-10-04T04:31:50.864Z",
       "status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
       "canvas": "b33b8946c2d5ef728217886207ffe752bb066f4e315efa431e1b289f01dae26e",
       "file": "21-gestures-browser.png",
@@ -748,10 +748,10 @@
     "22-shortcuts": {
       "source": "1931587cc0fa70f91382c5f8d01ebbe9f214f584186fd056e472f101921847ad",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "ea81a6f1084f4539f68a97499e6c3522f3304429cbda538f5b0b01a92dd6686c",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T01:00:59.462Z",
+      "captured": "2026-10-04T04:33:55.955Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
       "file": "22-shortcuts-browser.png",
@@ -4418,6 +4418,130 @@
         "Select Next",
         "Select Next",
         "Select Next"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "20a-press": {
+      "source": "a90c578965017e0780ac8b2cccf967aec15076403e4ea2277ebcb9f95f7b7149",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "e0f03b759c9023dc89f5bc83a870a08d654df73092fcb3e5ed65701e958fccdc",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T04:36:01.831Z",
+      "status": "Canvas pixels, depth and camera resize together.",
+      "canvas": "08ad5ab1bd39f0f26d102cbe86b2e3878472431bd44bdfea723a60f2f6e9001e",
+      "file": "20a-press-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1fce3d5ed7ebb8d8613e402cb52b1dd3474a402abadfe67ff9b87f2c55b5b648",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "20b-release": {
+      "source": "482561dd4c0805cc3160403a5558ae70cb67c7b2d9231326703d6bf5d68cc046",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "e0f03b759c9023dc89f5bc83a870a08d654df73092fcb3e5ed65701e958fccdc",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T04:36:19.811Z",
+      "status": "Canvas pixels, depth and camera resize together.",
+      "canvas": "72b0ac6bb8601a121993df0653e46be40d6c74416666a0cd9eea96d43f53ea73",
+      "file": "20b-release-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "4484ef187da9f04eebc81cd3585b550768e4c177183d6061c535eda77250a287",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "20c-motion": {
+      "source": "1446e07bf2c294796ea8c66d00ffb4e84b9a867bbc89fe7495b81b33be6ad536",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "e0f03b759c9023dc89f5bc83a870a08d654df73092fcb3e5ed65701e958fccdc",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T04:30:48.989Z",
+      "status": "Canvas pixels, depth and camera resize together.",
+      "canvas": "08ad5ab1bd39f0f26d102cbe86b2e3878472431bd44bdfea723a60f2f6e9001e",
+      "file": "20c-motion-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "b043731a2f29986576e698c415736a07a31f90dad5105cb4708089f8c200f649",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "21a-wheel": {
+      "source": "3b72070494c012a26d3fabfdc11589db0d3daa6c23f79947555e7a8936f9ca27",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "d7828dd9c2bccc4674635ffe8d491df24b631e70426315c24de2aa26ed648fe4",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T04:33:31.843Z",
+      "status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
+      "canvas": "b33b8946c2d5ef728217886207ffe752bb066f4e315efa431e1b289f01dae26e",
+      "file": "21a-wheel-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "a5b5e817b3224afcc6b1accbeea78f9cd142f3716c4cb1fb28ea7966ffbc09a8",
+      "commands": [
+        "Example Box",
+        "View Isometric"
       ],
       "keyboardRoundtrip": false
     }

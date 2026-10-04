@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 149 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 153 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Five checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+Three checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
 
 ## Command-panel typing split
 
@@ -49,6 +49,16 @@ The two model checkpoints independently capture the retained lighting route unti
 The viewport model (19–37 minutes of typing) and the connected resize transaction (29–57) are separate runnable steps. The new CPU model has density, GPU-limit and hidden-canvas tests; the following step updates canvas, surface, depth and aspect together. All existing code endpoints are unchanged at this split.
 
 Native/WebAssembly/Trunk/Chrome checks pass. Chrome acceptance changes wide/tall window sizes and emulates density two, verifies physical pixel dimensions and CSS geometry bounds, then restores the default capture view.
+
+## Gesture and wheel typing splits
+
+The former gesture checkpoint is four complete steps: pointer memory (20–39 minutes of typing), release and cancellation (23–46), CSS motion to editor actions (18–35), and browser pointer delivery (23–46). Wheel normalization (25–50) and browser delivery (17–34) are separate steps. All 149 previously published source endpoints remain byte-identical; every new endpoint builds for native and WebAssembly, produces a Trunk bundle and passes its Chrome checks.
+
+Preparation stages establish their new behavior with native checks and independent GPU readbacks; their Chrome captures explicitly retain the earlier input route until browser delivery is connected. Some browser images deliberately repeat the previous view and declare that relationship.
+
+Gesture acceptance uses actual captured mouse movement outside the canvas, release, lost capture, canvas blur and viewport resize. An injected pointer-cancel event checks its browser handler. A left drag returning to its start stays unselected; an actual left click selects the box; dock-owned pointer input does not orbit. The final capture reloads the initial fixture and repeats the accepted orbit.
+
+Wheel acceptance types all 26 letters and editing keys after canvas focus, checks that none performs a feature action, and submits Pan Right from immediate typing. It compares pixel/line/page wheel delivery, actual mouse-wheel zoom and prevention of page scrolling. The final capture reloads the initial fixture and repeats its accepted wheel and typed-command actions. These checkpoints do not establish phone multi-touch, right-click command repeat or the later production navigation extensions.
 
 ## What was checked
 

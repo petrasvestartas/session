@@ -1,59 +1,16 @@
-# 21 · Remember a press until it ends
+# 21 · Connect captured pointers to the editor
 
-**Typing: 77–153 minutes.** [Estimate](typing-load.md).
+**Typing: 23–46 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Deliver canvas pointer events to Gesture when the command dock has not consumed them. Capture the accepted pointer so events keep arriving outside the canvas. Apply any returned action through Editor.
 
-Put your finger on the table. Move it, then lift it. Those are three events, but you understand them as one gesture because you remember the press. Our viewer needs that little piece of memory too.
-
-A click waits until release. If a left press travels more than four CSS pixels, it is no longer a click—even if it comes back. A right press turns each movement into an orbit delta. We already know how to orbit; this lesson only supplies the changing angles.
+Release capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.
 
 ## Type
 
-Continue from [Resize canvas, depth and camera together](20-resize.md). [Save or recover your work](recovery.md).
+Continue from [Convert pointer motion to editor actions](20c-motion.md). [Save or recover your work](recovery.md).
 
-### 1. `src/gesture.rs`
-
-Keep pointer state separate from the document. Motion carries intent; converting it to an Action uses CSS dimensions, never the GPU pixel count.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/21-gestures-01.rs"
-```
-
-### 2. `src/gesture.rs`
-
-A drag remembers its pointer ID and previous position. Option lets an event produce no action without pretending it was a click.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Gesture {
-    active: Option<Drag>,
-}
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/21-gestures-02.rs"
-```
-
-### 3. `src/gesture_tests.rs`
-
-Test the event sequences that usually hide bugs: another finger, a cancelled press, and a drag returning to its start. These tests need no browser.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/21-gestures-03.rs"
-```
-
-### 4. `Cargo.toml`
+### 1. `Cargo.toml`
 
 Enable the browser event bindings used by the command dock.
 
@@ -78,31 +35,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-dock-01.toml"
 ```
 
-### 5. `src/lib.rs`
-
-Expose the gesture module to the browser and compile its tests only in the test build.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod history;
-pub mod editor;
-pub mod viewport;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/21-gestures-fullscreen-1.rs"
-```
-
-### 6. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Import the gesture state.
 
@@ -125,7 +58,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-1.rs"
 ```
 
-### 7. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Retain the canvas and one gesture across pointer events.
 
@@ -149,7 +82,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-2.rs"
 ```
 
-### 8. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Begin choosing between submitted commands and pointer gestures.
 
@@ -198,7 +131,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-3.rs"
 ```
 
-### 9. `src/browser.rs`
+### 5. `src/browser.rs`
 
 Use pointer gestures only when the dock has not consumed input; apply any resulting action.
 
@@ -222,7 +155,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-4.rs"
 ```
 
-### 10. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Use the retained pointer canvas for resizing.
 
@@ -247,7 +180,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-5.rs"
 ```
 
-### 11. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Keep the callback open for pointer event registration.
 
@@ -272,7 +205,7 @@ Replace that block with:
 --8<-- "journey/code/21-gestures-window-6.rs"
 ```
 
-### 12. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Track pointer presses, capture and release; cancel on blur or resize and suppress the browser context menu.
 
@@ -314,11 +247,11 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Right-drag the drawing and release outside the canvas. Further pointer movement must stop orbiting. A left click still selects a face.
+Right-drag the scene, then release. Further movement must stop orbiting; a left click still selects a face.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Remember a press until it ends.](../screenshots/journey/21-gestures-browser.png)
+![Actual browser result: Connect captured pointers to the editor.](../screenshots/journey/21-gestures-browser.png)
 
 [Verification scope](release.md).
 
@@ -331,17 +264,17 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-Rust’s `Option<Drag>` means “either one active drag, or none.” `as_mut()` lets us update the remembered position without taking the drag out. `take()` removes it on release. Keeping this small state machine outside the browser lets us test interrupted gestures as ordinary Rust calls.
 
-Pointer event → Gesture memory → Motion → Editor action → camera or selection → frame.
 
-![A press remembers one pointer; moves update the view; release may pick; cancellation clears the memory.](../illustrations/journey-21.svg)
+DOM pointer → Gesture → Motion::action → Editor → redraw.
+
+![Browser pointer capture and application gesture ownership meet at Editor actions.](../illustrations/journey-direct-21-gestures.svg)
 
 Why do we need both browser pointer capture and our own active pointer ID?
 
 Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.
 
-Study estimate, including typing and experiments: 3–5 hours.
+Study estimate, including typing and experiments: 1–1.5 hours.
 
 </details>
 
@@ -371,8 +304,16 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 
 The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.
 
-A right drag turns the scene. The browser check then releases the command and confirms that further pointer movement leaves the camera still.
+Chrome verifies actual right-drag orbit and release, movement outside the canvas, lost capture, pointer cancellation, blur, resize and left-click classification. The final view restores the initial accepted orbit.
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 21-gestures
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>

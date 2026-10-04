@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 218 lesson slots; 149 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 222 lesson slots; 153 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -22,18 +22,18 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 149 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 153 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
-- [ ] Split the 5 checkpoints that exceed one hour of typing into runnable steps.
+- [ ] Split the 3 checkpoints that exceed one hour of typing into runnable steps.
 - [ ] Write and verify the 69 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 5 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 3 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 149 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 153 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -52,8 +52,8 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 - [x] Verify the perspective split into drawing (20–40 minutes), screen rays (14–28) and actual picking (30–59). Existing endpoints are unchanged; native/WebAssembly/Trunk/Chrome checks pass, including actual click, Delete, Undo and Redo after zoom.
 - [x] Verify the action split: state owner (14–27 minutes), Rust actions (27–53) and browser routing (29–57). Move the aspect-preserving reset and its test before browser routing; all 20 and later endpoints are unchanged. Native/WebAssembly/Trunk/Chrome checks pass.
 - [x] Verify resize through bounded pixel sizing (19–37 minutes) and one canvas/surface/depth/aspect transaction (29–57). Source endpoints are unchanged; native/WebAssembly/Trunk/Chrome checks pass, including wide/tall windows and density two.
-- [ ] [Remember a press until it ends](21-gestures.md): current typing 77–153 minutes; split at complete functions and verify each new step.
-- [ ] [Keep navigation on the mouse and commands in the dock](22-shortcuts.md): current typing 42–84 minutes; split at complete functions and verify each new step.
+- [x] Verify gestures through pointer memory (20–39 minutes), release/cancellation (23–46), action conversion (18–35) and browser delivery (23–46). All existing code endpoints are unchanged. Native/WebAssembly/Trunk/Chrome checks pass, including actual capture outside the canvas, release, lost capture, cancellation, blur, resize and left-click classification.
+- [x] Verify wheel normalization (25–50 minutes) and browser delivery (17–34). All existing code endpoints are unchanged. Native/WebAssembly/Trunk/Chrome checks pass, including all 26 typed letters, editing keys, first-character command focus, wheel units and prevented page scrolling.
 - [ ] [Keep the document behind the picture](23-import.md): current typing 126–252 minutes; split at complete functions and verify each new step.
 - [ ] [Find the whole scene](24-fit.md): current typing 53–105 minutes; split at complete functions and verify each new step.
 - [ ] [Choose how depth changes size](25-projection.md): current typing 58–116 minutes; split at complete functions and verify each new step.
@@ -179,10 +179,14 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 - [x] 19a · [Measure a safe drawing size](19a-viewport.md).
 
 - [x] 20 · [Resize canvas, depth and camera together](20-resize.md).
+- [x] 20a · [Remember the pointer that starts a drag](20a-press.md).
+- [x] 20b · [Finish or cancel a drag](20b-release.md).
+- [x] 20c · [Convert pointer motion to editor actions](20c-motion.md).
 
-- [x] 21 · [Remember a press until it ends](21-gestures.md).
+- [x] 21 · [Connect captured pointers to the editor](21-gestures.md).
+- [x] 21a · [Convert wheel units to camera zoom](21a-wheel.md).
 
-- [x] 22 · [Keep navigation on the mouse and commands in the dock](22-shortcuts.md).
+- [x] 22 · [Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md).
 
 - [x] 23 · [Keep the document behind the picture](23-import.md).
 

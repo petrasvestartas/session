@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 149 cumulative lessons, about 154.5–296.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 153 cumulative lessons, about 154–295 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **218 proposed slots: 149 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **222 proposed slots: 153 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -80,8 +80,12 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [19 · Route browser input through the editor](journey/19-actions.md) | 1–1.5 hours | Move document actions into a browser-independent editor while keeping picking, undo and drawing working. |
 | [19a · Measure a safe drawing size](journey/19a-viewport.md) | 0.75–1.25 hours | Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions. |
 | [20 · Resize canvas, depth and camera together](journey/20-resize.md) | 1–1.5 hours | Resize the drawing buffer, depth attachment and camera together, including on dense displays. |
-| [21 · Remember a press until it ends](journey/21-gestures.md) | 3–5 hours | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. |
-| [22 · Keep navigation on the mouse and commands in the dock](journey/22-shortcuts.md) | 2–4 hours | Normalize wheel input and keep every keyboard feature command in the command dock. |
+| [20a · Remember the pointer that starts a drag](journey/20a-press.md) | 0.75–1.25 hours | Retain one pointer and produce movement relative to its previous position. |
+| [20b · Finish or cancel a drag](journey/20b-release.md) | 0.75–1.25 hours | Release an owned pointer or cancel it without inventing a click. |
+| [20c · Convert pointer motion to editor actions](journey/20c-motion.md) | 0.75–1.25 hours | Convert CSS pointer coordinates and movement into existing Pick and Orbit actions. |
+| [21 · Connect captured pointers to the editor](journey/21-gestures.md) | 1–1.5 hours | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. |
+| [21a · Convert wheel units to camera zoom](journey/21a-wheel.md) | 0.75–1.5 hours | Normalize pixels, lines and pages to bounded camera zoom without adding document history. |
+| [22 · Deliver wheel input without keyboard feature shortcuts](journey/22-shortcuts.md) | 0.5–1 hours | Normalize wheel input and keep every keyboard feature command in the command dock. |
 | [23 · Keep the document behind the picture](journey/23-import.md) | 5–8 hours | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. |
 | [24 · Find the whole scene](journey/24-fit.md) | 3–5 hours | Frame all current objects without rotating them or changing the document. |
 | [25 · Choose how depth changes size](journey/25-projection.md) | 3–5 hours | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. |

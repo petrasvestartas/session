@@ -3353,19 +3353,195 @@
       "browser_check": "journey/checks/browser/viewport.cjs"
     },
     {
+      "tests": true,
+      "frame": "journey/checks/20-resize.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Canvas pixels, depth and camera resize together.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "viewport": [
+            1000,
+            800
+          ]
+        }
+      ],
+      "browser_check": "journey/checks/browser/viewport.cjs",
+      "id": "20a-press",
+      "title": "Remember the pointer that starts a drag",
+      "page": "journey/20a-press.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain one pointer and produce movement relative to its previous position.",
+      "trace": "Press → Option<Drag> → matching move → Motion::Orbit",
+      "story": "Gesture remembers one pointer ID, its button and its positions. Reject a second press while that pointer is active. Each move reports the change from the previous position.\n\nOption holds one Drag or none. as_mut borrows the stored drag; filter accepts only its pointer ID. The click threshold remembers whether any movement exceeded four CSS pixels.\n\n![One press owns the drag; matching movement updates its remembered position.](../illustrations/journey-direct-20a-press.svg)",
+      "result": "Run the state checks. Another pointer cannot replace the press or move it; matching moves report relative deltas.",
+      "question": "Why retain both the starting and previous positions?",
+      "answer": "The start distinguishes a click from a drag. The previous position gives the next orbit delta.",
+      "experiment": "In the native check, move the matching pointer to [30.0, 28.0]. Predict the delta from [20.0, 25.0] before running it.",
+      "production": "The browser will later deliver captured pointer events. This step establishes application ownership independently of DOM capture.",
+      "browser_caption": "Native checks establish one-pointer ownership and relative movement. Chrome retains the previous resize and command route; browser gestures are connected after release and action conversion.",
+      "image_same_as": "20-resize",
+      "edits": [
+        {
+          "path": "src/gesture.rs",
+          "before": null,
+          "snippet": "journey/code/20a-press-state.rs",
+          "why": "Retain one pointer, track its starting position and return relative right-drag movement."
+        },
+        {
+          "path": "src/gesture_tests.rs",
+          "before": null,
+          "snippet": "journey/code/20a-press-tests.rs",
+          "why": "Check rejected presses, pointer ownership and movement from the previous position."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/21-gestures-fullscreen-1.rs",
+          "before": "pub mod history;\npub mod editor;\npub mod viewport;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
+          "why": "Expose the gesture module to the browser and compile its tests only in the test build."
+        }
+      ],
+      "frame_size": [
+        770,
+        385
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/20-resize.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Canvas pixels, depth and camera resize together.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "viewport": [
+            1000,
+            800
+          ]
+        }
+      ],
+      "browser_check": "journey/checks/browser/viewport.cjs",
+      "id": "20b-release",
+      "title": "Finish or cancel a drag",
+      "page": "journey/20b-release.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Release an owned pointer or cancel it without inventing a click.",
+      "trace": "Release → final move → take stored Drag → click or orbit; cancel → no active drag",
+      "story": "Release processes the final position, then takes the remembered drag out of Gesture. A left release picks only if the press never crossed the movement threshold. Right release may supply one final orbit delta.\n\nCancellation clears the state without selecting. cancel_pointer checks ownership first; another pointer cannot end the active drag.\n\n![Release finishes the remembered drag; cancellation clears it without a pick.](../illustrations/journey-direct-20b-release.svg)",
+      "result": "Run the state checks. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.",
+      "question": "What does Option::take do on release?",
+      "answer": "It returns the stored Drag and leaves None, so later movement cannot continue the finished gesture.",
+      "experiment": "Read the return-to-start test. Predict the result if release checked only its final distance instead of the remembered moved flag.",
+      "production": "Lost capture, browser blur and interrupted tools must clear application gesture ownership. Their browser adapters follow after Motion reaches Editor.",
+      "browser_caption": "Native checks establish click classification, owned release and cancellation. Chrome still retains the earlier drawing and input route.",
+      "image_same_as": "20a-press",
+      "edits": [
+        {
+          "path": "src/gesture.rs",
+          "before": "        (drag.button == 2 && delta != [0.0, 0.0]).then_some(Motion::Orbit(delta))\n    }\n\n}\n",
+          "snippet": "journey/code/20b-release-methods.rs",
+          "why": "Finish the owned pointer, preserve drag classification and clear cancelled input."
+        },
+        {
+          "path": "src/gesture_tests.rs",
+          "before": "use crate::gesture::{Gesture, Motion};\n\n#[test]\nfn a_press_retains_one_pointer_and_reports_relative_motion() {\n    let mut gesture = Gesture::default();\n    assert!(!gesture.press(1, 1, [0.0, 0.0]));\n    assert!(!gesture.press(1, 0, [f64::NAN, 0.0]));\n    assert!(gesture.press(1, 2, [10.0, 20.0]));\n    assert!(!gesture.press(2, 0, [10.0, 20.0]));\n    assert_eq!(gesture.move_to(2, [30.0, 25.0]), None);\n    assert_eq!(gesture.move_to(1, [20.0, 25.0]), Some(Motion::Orbit([10.0, 5.0])));\n    assert_eq!(gesture.move_to(1, [24.0, 28.0]), Some(Motion::Orbit([4.0, 3.0])));\n}\n",
+          "snippet": "journey/code/20b-release-tests.rs",
+          "why": "Check left-click classification, final motion, pointer ownership and cancellation."
+        }
+      ],
+      "frame_size": [
+        770,
+        385
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/21-gestures.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Canvas pixels, depth and camera resize together.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "viewport": [
+            1000,
+            800
+          ]
+        }
+      ],
+      "browser_check": "journey/checks/browser/viewport.cjs",
+      "id": "20c-motion",
+      "title": "Convert pointer motion to editor actions",
+      "page": "journey/20c-motion.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Convert CSS pointer coordinates and movement into existing Pick and Orbit actions.",
+      "trace": "Motion + CSS rectangle → Action → Editor → selection or view change",
+      "story": "Motion::action uses the canvas CSS rectangle to convert a pick to normalized screen coordinates or a drag delta to orbit angles. Reject an invalid rectangle before dividing.\n\nThe method consumes Motion. Option<Action> permits invalid input to produce no editor request. Orbit changes the view while leaving document history unchanged.\n\n![CSS pointer motion becomes a Pick or Orbit action through the existing editor.](../illustrations/journey-direct-20c-motion.svg)",
+      "result": "Run the state checks. A CSS centre maps to [0, 0]; orbit changes the camera, and Undo restores the document without rewinding it.",
+      "question": "Why use CSS dimensions instead of the GPU drawing size?",
+      "answer": "Pointer positions use CSS pixels. Mixing them with denser GPU pixels would change picking and sensitivity when display density changes.",
+      "experiment": "Double the rectangle dimensions and the pointer offsets in the centre test. Predict the same [0, 0] pick before running it.",
+      "production": "Pointer and command input share Editor actions. Camera navigation stays outside document history and browser callbacks do not edit geometry directly.",
+      "browser_caption": "Native checks route pointer motion through Editor and render its orbited view. Chrome independently retains the earlier input route until browser pointer delivery is connected next.",
+      "edits": [
+        {
+          "path": "src/gesture.rs",
+          "before": "#[derive(Debug, PartialEq)]\n",
+          "snippet": "journey/code/20c-motion-import.rs",
+          "why": "Import the editor action used by motion conversion."
+        },
+        {
+          "path": "src/gesture.rs",
+          "before": "struct Drag {\n",
+          "snippet": "journey/code/20c-motion-action.rs",
+          "why": "Convert CSS position or motion to an existing editor action after validating the canvas rectangle."
+        },
+        {
+          "path": "src/gesture_tests.rs",
+          "before": "use crate::gesture::{Gesture, Motion};\n\n#[test]\nfn a_click_selects_but_a_left_drag_does_not() {\n    let mut input = Gesture::default();\n    assert!(input.press(1, 0, [10.0, 20.0]));\n    assert_eq!(input.release(1, [12.0, 20.0]), Some(Motion::Pick([12.0, 20.0])));\n    input.press(1, 0, [10.0, 20.0]);\n    assert_eq!(input.move_to(1, [20.0, 20.0]), None);\n    assert_eq!(input.release(1, [10.0, 20.0]), None);\n    input.press(1, 0, [10.0, 20.0]);\n    assert_eq!(input.release(1, [30.0, 20.0]), None);\n}\n\n#[test]\nfn only_the_captured_pointer_can_move_or_finish_the_gesture() {\n    let mut input = Gesture::default();\n    assert!(input.press(1, 2, [0.0, 0.0]));\n    assert!(!input.press(2, 0, [0.0, 0.0]));\n    assert_eq!(input.move_to(2, [100.0, 50.0]), None);\n    assert_eq!(input.release(2, [0.0, 0.0]), None);\n    input.cancel_pointer(2);\n    assert_eq!(input.move_to(1, [10.0, 5.0]), Some(Motion::Orbit([10.0, 5.0])));\n    assert_eq!(input.move_to(1, [30.0, 8.0]), Some(Motion::Orbit([20.0, 3.0])));\n    assert_eq!(input.release(1, [30.0, 8.0]), None);\n    assert_eq!(input.move_to(1, [40.0, 8.0]), None);\n    input.press(3, 2, [0.0, 0.0]);\n    assert_eq!(input.release(3, [5.0, 2.0]), Some(Motion::Orbit([5.0, 2.0])));\n}\n\n#[test]\nfn cancellation_never_selects_and_allows_a_fresh_press() {\n    let mut input = Gesture::default();\n    input.press(1, 0, [0.0, 0.0]);\n    input.cancel_pointer(1);\n    assert_eq!(input.release(1, [0.0, 0.0]), None);\n    assert!(input.press(2, 2, [0.0, 0.0]));\n    input.cancel();\n    assert_eq!(input.move_to(2, [20.0, 0.0]), None);\n    assert!(!input.press(1, 1, [0.0, 0.0]));\n    assert!(!input.press(1, 0, [f64::NAN, 0.0]));\n}\n\n",
+          "snippet": "journey/code/20c-motion-tests.rs",
+          "why": "Check CSS coordinate conversion and camera movement outside document history."
+        }
+      ],
+      "image_same_as": "20b-release"
+    },
+    {
       "id": "21-gestures",
-      "title": "Remember a press until it ends",
+      "title": "Connect captured pointers to the editor",
       "page": "journey/21-gestures.md",
       "hours": [
-        3,
-        5
+        1,
+        1.5
       ],
       "goal": "Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus.",
-      "trace": "Pointer event → Gesture memory → Motion → Editor action → camera or selection → frame",
+      "trace": "DOM pointer → Gesture → Motion::action → Editor → redraw",
       "question": "Why do we need both browser pointer capture and our own active pointer ID?",
       "answer": "Capture keeps delivering events outside the canvas. The ID tells our application which pointer owns the gesture. Neither replaces the other: a second pointer must not finish the first gesture, and lost capture must clear our state.",
-      "story": "Put your finger on the table. Move it, then lift it. Those are three events, but you understand them as one gesture because you remember the press. Our viewer needs that little piece of memory too.\n\nA click waits until release. If a left press travels more than four CSS pixels, it is no longer a click—even if it comes back. A right press turns each movement into an orbit delta. We already know how to orbit; this lesson only supplies the changing angles.\n\nRust’s `Option<Drag>` means “either one active drag, or none.” `as_mut()` lets us update the remembered position without taking the drag out. `take()` removes it on release. Keeping this small state machine outside the browser lets us test interrupted gestures as ordinary Rust calls.\n\n![A press remembers one pointer; moves update the view; release may pick; cancellation clears the memory.](../illustrations/journey-21.svg)",
-      "result": "Right-drag the drawing and release outside the canvas. Further pointer movement must stop orbiting. A left click still selects a face.",
+      "story": "Deliver canvas pointer events to Gesture when the command dock has not consumed them. Capture the accepted pointer so events keep arriving outside the canvas. Apply any returned action through Editor.\n\nRelease capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.\n\n![Browser pointer capture and application gesture ownership meet at Editor actions.](../illustrations/journey-direct-21-gestures.svg)",
+      "result": "Right-drag the scene, then release. Further movement must stop orbiting; a left click still selects a face.",
       "experiment": "Change the four-pixel click threshold to twenty. Try a short left drag, then restore four. Explain why this distance is measured in CSS pixels: doubling display density should not make the same hand movement harder to classify. Finally undo adding the box after orbiting. The box should disappear while the camera stays where you put it.",
       "production": "The maintained viewer keeps richer gesture state and cancellation listeners in `src/app/input.rs`. This checkpoint establishes one active pointer and cancellation; touch orbit, wheel zoom and drawing tools will extend the same route rather than editing geometry inside DOM callbacks.",
       "browser_status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
@@ -3394,34 +3570,10 @@
       "tests": true,
       "edits": [
         {
-          "path": "src/gesture.rs",
-          "before": null,
-          "snippet": "journey/code/21-gestures-01.rs",
-          "why": "Keep pointer state separate from the document. Motion carries intent; converting it to an Action uses CSS dimensions, never the GPU pixel count."
-        },
-        {
-          "path": "src/gesture.rs",
-          "before": "pub struct Gesture {\n    active: Option<Drag>,\n}\n",
-          "snippet": "journey/code/21-gestures-02.rs",
-          "why": "A drag remembers its pointer ID and previous position. Option lets an event produce no action without pretending it was a click."
-        },
-        {
-          "path": "src/gesture_tests.rs",
-          "before": null,
-          "snippet": "journey/code/21-gestures-03.rs",
-          "why": "Test the event sequences that usually hide bugs: another finger, a cancelled press, and a drag returning to its start. These tests need no browser."
-        },
-        {
           "path": "Cargo.toml",
           "snippet": "journey/code/21-gestures-dock-01.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
           "why": "Enable the browser event bindings used by the command dock."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/21-gestures-fullscreen-1.rs",
-          "before": "pub mod history;\npub mod editor;\npub mod viewport;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Expose the gesture module to the browser and compile its tests only in the test build."
         },
         {
           "path": "src/browser.rs",
@@ -3466,23 +3618,89 @@
           "why": "Track pointer presses, capture and release; cancel on blur or resize and suppress the browser context menu."
         }
       ],
-      "image_result": "Compared with lesson 18, the box and triangles have turned substantially. The helper feeds a right press at (320, 240), a move to (416, 288), and a release into Gesture, then renders the resulting camera. This checks the Rust gesture calculation. Pointer capture and cancellation in Chrome still need a browser interaction check.",
-      "browser_caption": "A right drag turns the scene. The browser check then releases the command and confirms that further pointer movement leaves the camera still."
+      "image_result": "The native frame applies a right-drag Motion through Editor and verifies the turned box face. Chrome separately checks actual capture, release and cancellation.",
+      "browser_caption": "Chrome verifies actual right-drag orbit and release, movement outside the canvas, lost capture, pointer cancellation, blur, resize and left-click classification. The final view restores the initial accepted orbit.",
+      "image_same_as": "20c-motion",
+      "browser_check": "journey/checks/browser/gestures.cjs"
+    },
+    {
+      "id": "21a-wheel",
+      "title": "Convert wheel units to camera zoom",
+      "page": "journey/21a-wheel.md",
+      "hours": [
+        0.75,
+        1.5
+      ],
+      "goal": "Normalize pixels, lines and pages to bounded camera zoom without adding document history.",
+      "trace": "Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom",
+      "story": "navigation::wheel converts pixels, lines or pages to CSS pixels, caps one event at 600 pixels, then returns a positive exponential zoom factor. Invalid input returns None.\n\nThe stateless function borrows no editor. Its checks apply the returned Zoom through Editor and verify that camera movement stays outside document history.\n\n![Wheel units become bounded CSS movement and a camera zoom action.](../illustrations/journey-direct-21a-wheel.svg)",
+      "result": "Run the state checks. Equivalent pixel, line and page deltas give the same zoom; Undo restores geometry while retaining the camera.",
+      "question": "Why use an exponential for the zoom factor?",
+      "answer": "It stays positive and lets equal opposite movements restore the earlier distance, subject to the camera limits.",
+      "experiment": "Compare 48 pixels, three lines and 0.1 pages at height 480. Predict the same result before running the unit check.",
+      "production": "Mouse and phone navigation produce view actions outside document history. This step establishes wheel normalization before browser delivery.",
+      "tests": true,
+      "frame": "journey/checks/22-shortcuts.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "drag": [
+            [
+              0.5,
+              0.5
+            ],
+            [
+              0.65,
+              0.6
+            ]
+          ]
+        }
+      ],
+      "browser_check": "journey/checks/browser/gestures.cjs",
+      "browser_caption": "Native checks normalize wheel units and render the resulting view. Chrome retains the previous pointer route; actual wheel delivery is connected next.",
+      "edits": [
+        {
+          "path": "src/navigation.rs",
+          "before": null,
+          "snippet": "journey/code/22-shortcuts-01.rs",
+          "why": "Normalize wheel units into the existing Zoom action. Zero or invalid input returns None."
+        },
+        {
+          "path": "src/navigation_tests.rs",
+          "before": null,
+          "snippet": "journey/code/22-shortcuts-02.rs",
+          "why": "Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/22-shortcuts-fullscreen-1.rs",
+          "before": "pub mod editor;\npub mod viewport;\npub mod gesture;\n#[cfg(test)]\nmod gesture_tests;\npub mod gpu_mesh;\n",
+          "why": "Register the small input translator and its tests."
+        }
+      ],
+      "image_same_as": "21-gestures"
     },
     {
       "id": "22-shortcuts",
-      "title": "Keep navigation on the mouse and commands in the dock",
+      "title": "Deliver wheel input without keyboard feature shortcuts",
       "page": "journey/22-shortcuts.md",
       "hours": [
-        2,
-        4
+        0.5,
+        1
       ],
       "goal": "Normalize wheel input and keep every keyboard feature command in the command dock.",
-      "trace": "Wheel units → navigation::wheel → Editor action → camera → frame; typed text → command dock → Editor action",
-      "question": "Why does a wheel need units, while typed text needs one owner?",
-      "answer": "A wheel delta may represent pixels, lines or pages. Normalize those units before zooming. Typed text belongs to the command dock, even after clicking the drawing. There is no second keyboard feature map to accidentally move the camera or delete geometry.",
-      "story": "Keep keyboard features in the command dock and navigation on the mouse. Clicking the drawing then typing `Pan Right` preserves the first letter; Enter runs the command. Text-editing keys never become camera or document shortcuts.\n\nAdd a stateless wheel translator beside gesture state. It turns delta, delta mode and canvas height into `Option<Action>`. Invalid or zero movement returns no action.\n\nConvert lines to sixteen CSS pixels and pages to one canvas height. An exponential produces a positive zoom factor; cap an event at 600 pixels. Camera retains its distance limits.\n\nA non-passive wheel listener can prevent scrolling for handled zoom. Escape cancels gesture state. See the browser [delta modes](https://developer.mozilla.org/en-US/docs/Web/API/WheelEvent/deltaMode) and [listener options](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener).\n\n![Wheel navigation and typed commands meet at the existing Editor boundary.](../illustrations/journey-22.svg)",
-      "result": "Click the canvas and type a single letter. It must appear in the command field without changing the scene. Type `Pan Right` and press Enter to move the view. Wheel input still zooms.",
+      "trace": "Wheel → navigation_action → Editor; printable key → command dock → typed Action",
+      "question": "Why request a non-passive wheel listener?",
+      "answer": "Handled wheel navigation must call prevent_default so the browser does not scroll the page.",
+      "story": "Route wheel events through navigation::wheel, prevent page scrolling when zoom is handled, and keep printable keyboard input in the command dock. Focus the canvas when a pointer press starts navigation.\n\nThere is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.\n\n![Mouse navigation and typed command input share editor actions with distinct input ownership.](../illustrations/journey-direct-22-shortcuts.svg)",
+      "result": "Wheel over the scene to zoom. Click the canvas and type Pan Right; the first character reaches the dock and Enter pans the view.",
       "experiment": "Change wheel sensitivity from 0.002 to 0.001, predict the difference, and try it before restoring the value. Run `Undo` after several wheel movements: it removes the box while preserving the camera. Run `Redo` to restore it. Explain why navigation does not enter document history. Finally Tab away during a drag; the canvas blur listener should cancel it.",
       "production": "The maintained viewer routes mouse and phone navigation through src/app/input.rs. Printable input activates the command dock immediately; named commands share the existing state and history. This checkpoint keeps wheel zoom centred on the camera target. Pointer-centred zoom and phone gestures will extend navigation without introducing keyboard feature shortcuts.",
       "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
@@ -3505,28 +3723,10 @@
       "tests": true,
       "edits": [
         {
-          "path": "src/navigation.rs",
-          "before": null,
-          "snippet": "journey/code/22-shortcuts-01.rs",
-          "why": "Normalize wheel units into the existing Zoom action. Zero or invalid input returns None."
-        },
-        {
-          "path": "src/navigation_tests.rs",
-          "before": null,
-          "snippet": "journey/code/22-shortcuts-02.rs",
-          "why": "Compare equivalent wheel inputs, bound large jumps, and show that navigation preserves document history."
-        },
-        {
           "path": "Cargo.toml",
           "snippet": "journey/code/22-shortcuts-dock-01.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
           "why": "Enable the browser event bindings used by the command dock."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/22-shortcuts-fullscreen-1.rs",
-          "before": "pub mod editor;\npub mod viewport;\npub mod gesture;\n#[cfg(test)]\nmod gesture_tests;\npub mod gpu_mesh;\n",
-          "why": "Register the small input translator and its tests."
         },
         {
           "path": "src/browser.rs",
@@ -3548,7 +3748,9 @@
         }
       ],
       "image_result": "The helper adds the box, chooses Isometric, applies a −120-pixel wheel input, then the same Pan Right action used by the command. Pixel checks verify the resulting face; browser checks verify wheel delivery and typing ownership.",
-      "browser_caption": "Wheel input zooms and the Pan Right command pans. Typing after clicking the drawing activates the dock without invoking keyboard feature shortcuts."
+      "browser_caption": "Chrome checks actual wheel zoom without page scrolling, equivalent line/page wheel events, and immediate typing after canvas focus without keyboard feature shortcuts.",
+      "image_same_as": "21a-wheel",
+      "browser_check": "journey/checks/browser/navigation.cjs"
     },
     {
       "id": "23-import",
