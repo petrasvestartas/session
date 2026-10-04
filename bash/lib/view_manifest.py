@@ -68,9 +68,14 @@ def main():
     if encoding not in ("", "gzip"):
         raise ValueError("unsupported payload encoding")
     names = {Path(geometry).name, "view_live.pb"}
+    # an earlier publish already pointed the live item at its revision; that item is the slot again
+    slots = [item for item in data["items"] if item["file"].startswith("pb/revisions/")]
+    if len(slots) > 1:
+        raise ValueError("manifest names more than one pb/revisions/ item; cannot tell which is live")
     matched = False
     for item in data["items"]:
-        if item["file"] == revision or (Path(item["file"]).name in names and not item["file"].startswith(("http://", "https://"))):
+        local = not item["file"].startswith(("http://", "https://"))
+        if item["file"] == revision or item in slots or (Path(item["file"]).name in names and local):
             item["file"] = revision
             if encoding:
                 item["encoding"] = encoding
