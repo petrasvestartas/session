@@ -64,7 +64,7 @@ Enable the browser event bindings used by the command dock.
 
 [dependencies]
 wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "DomRect", "PointerEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "HtmlElement"] }
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "DomRect", "HtmlElement"] }
 console_error_panic_hook = "=0.1.7"
 wasm-bindgen-futures = "=0.4.78"
 wgpu = "=29.0.4"

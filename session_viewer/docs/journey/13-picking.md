@@ -1,96 +1,16 @@
-# 13 · Ask which object is under the pointer
+# 13 · Select the visible object with a mouse click
 
-**Typing: 47–93 minutes.** [Estimate](typing-load.md).
+**Typing: 14–27 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Convert an unconsumed canvas click from CSS pixels to normalized screen coordinates. Reverse y, undo the camera, then ask the query for the visible ObjectId.
 
-Resolve a click to the nearest covered object's ID. Convert viewport CSS pixels to canvas coordinates, map them to −1 through +1, and reverse y because browser y points downward.
-
-Undo the camera transform: divide by scale, rotate back, then add the centre. A round-trip test checks the two coordinate conversions agree.
+The command dock handles its own input first. A scene click updates selection and uploads its display colour.
 
 ## Type
 
-Continue from [Name objects without depending on their row](12-identity.md). [Save or recover your work](recovery.md).
+Continue from [Find the nearest triangle at a scene point](12b-picking.md). [Save or recover your work](recovery.md).
 
-### 1. `src/camera.rs`
-
-Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn uniform(&self) -> [f32; 16] {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/13-picking-03.rs"
-```
-
-### 2. `src/picking.rs`
-
-Create the CPU query and tests. It reads scene data and returns identity without changing selection or GPU resources.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/13-picking-04.rs"
-```
-
-### 3. `Cargo.toml`
-
-Enable the browser event bindings used by the command dock.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "DomRect", "HtmlElement"] }
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-```
-
-</details>
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/13-picking-dock-01.toml"
-```
-
-### 4. `src/lib.rs`
-
-Register the query module.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod camera;
-pub mod mesh;
-pub mod scene;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/13-picking-fullscreen-1.rs"
-```
-
-### 5. `src/browser.rs`
+### 1. `src/browser.rs`
 
 Convert an unconsumed canvas click into a picking request.
 
@@ -116,7 +36,7 @@ Replace that block with:
 --8<-- "journey/code/13-picking-window-1.rs"
 ```
 
-### 6. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Listen for canvas clicks.
 
@@ -140,7 +60,7 @@ Replace that block with:
 --8<-- "journey/code/13-picking-window-2.rs"
 ```
 
-### 7. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Report the visible selection result.
 
@@ -176,11 +96,11 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Click the visible triangle, then type `Delete`. The clicked object disappears. Pan the view and try again: picking must follow the picture.
+Click the visible far triangle. It turns yellow.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Ask which object is under the pointer.](../screenshots/journey/13-picking-browser.png)
+![Actual browser result: Select the visible object with a mouse click.](../screenshots/journey/13-picking-browser.png)
 
 [Verification scope](release.md).
 
@@ -193,19 +113,17 @@ cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-For this flat view, test triangles on the CPU. Write a point as `a + u×(b−a) + v×(c−a)`. Coverage requires nonnegative u and v with sum at most 1. Use those weights to interpolate depth and retain the nearest hit.
 
-Return `ObjectId`, preserving selection through row changes. Empty space returns `None`. Later GPU picking replaces this small-scene query while keeping the same input-to-identity boundary.
 
-Browser click → canvas-relative coordinates → inverse camera → triangle coverage and depth → ObjectId → highlight.
+Canvas click → normalized point → inverse camera → pick → selected display.
 
-![A browser click becomes a canvas coordinate, then a world point; triangle coverage and nearest depth produce a stable object ID.](../illustrations/journey-13.svg)
+![An unconsumed canvas click becomes a scene point and a selected ObjectId.](../illustrations/journey-direct-13-picking.svg)
 
-Why must picking undo the camera transform before testing the stored triangles?
+Why test whether the command dock consumed the click?
 
-The click describes a place on the displayed image, while the mesh vertices describe positions in the scene. Undoing camera rotation, scale and translation brings the click into the same coordinate system as those vertices. Comparing them without that conversion would select the wrong place after moving the view.
+Clicking or editing the dock must not also select scene geometry.
 
-Study estimate, including typing and experiments: 2–4 hours.
+Study estimate, including typing and experiments: 0.5–1 hours.
 
 </details>
 

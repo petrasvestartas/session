@@ -128,7 +128,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
     const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
     const subjects = [
       {title: '01–10 · Drawing and command input', first: '01-canvas', last: '10-depth'},
-      {title: '11–22 · Scene, camera and actions', first: '11-scene', last: '22-shortcuts'},
+      {title: '10a–22 · Scene, camera and actions', first: '10a-mesh', last: '22-shortcuts'},
       {title: '23–30e · Import, placement and saving', first: '23-import', last: '30e-recovery'},
       {title: '31–31c · GPU geometry owners', first: '31-settings', last: '31c-incremental'},
       {title: '32–32fl · Document and source lifetime', first: '32-history', last: '32fl-guards'},

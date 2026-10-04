@@ -1,166 +1,16 @@
-# 14 · Make document changes reversible
+# 14 · Run Undo and Redo from the command line
 
-**Typing: 35–70 minutes.** [Estimate](typing-load.md).
+**Typing: 8–16 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Route Example Triangle and Delete through History::edit. Undo and Redo restore the scene, retain only valid selection, then upload the restored display.
 
-Make edits reversible with scene snapshots. Undo moves the current scene to the redo stack and restores the previous one. Redo reverses that move; a new edit clears redo.
-
-Objects hold `Rc<Mesh>`, sharing immutable vertex data. Cloning a scene copies its object list and shared handles, not every vertex array. The pointer-equality test checks that sharing.
+The callback keeps camera and background outside history. A document restoration redraws with the current view.
 
 ## Type
 
-Continue from [Ask which object is under the pointer](13-picking.md). [Save or recover your work](recovery.md).
+Continue from [Retain reversible scene snapshots](13a-history.md). [Save or recover your work](recovery.md).
 
-### 1. `src/scene.rs`
-
-Use shared ownership for immutable mesh data.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-01.rs"
-```
-
-### 2. `src/scene.rs`
-
-Allow scene snapshots to clone the object record.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Object {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-02.rs"
-```
-
-### 3. `src/scene.rs`
-
-Share the mesh allocation between object snapshots.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub mesh: Mesh,
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-03.rs"
-```
-
-### 4. `src/scene.rs`
-
-Clone the small scene records for a snapshot. Rc prevents a deep copy of each mesh.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Scene {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-04.rs"
-```
-
-### 5. `src/scene.rs`
-
-Give a newly inserted mesh its first shared owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        self.objects.push(Object { id, mesh });
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-05.rs"
-```
-
-### 6. `src/scene.rs`
-
-Restore document contents while preserving the highest ID counter reached.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn objects(&self) -> &[Object] {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-06.rs"
-```
-
-### 7. `src/history.rs`
-
-Create bounded undo and redo stacks, plus tests for identity, shared data and a new editing branch.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/14-history-07.rs"
-```
-
-### 8. `src/lib.rs`
-
-Register history as a document operation, independent of the browser and GPU.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod mesh;
-pub mod scene;
-pub mod picking;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/14-history-fullscreen-1.rs"
-```
-
-### 9. `src/browser.rs`
+### 1. `src/browser.rs`
 
 Import the history owner.
 
@@ -183,7 +33,7 @@ Replace that block with:
 --8<-- "journey/code/14-history-window-1.rs"
 ```
 
-### 10. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Add Undo and Redo to the vocabulary.
 
@@ -207,7 +57,7 @@ Replace that block with:
 --8<-- "journey/code/14-history-window-2.rs"
 ```
 
-### 11. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Create document history beside the scene.
 
@@ -231,7 +81,7 @@ Replace that block with:
 --8<-- "journey/code/14-history-window-3.rs"
 ```
 
-### 12. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Record the example toggle as a history edit.
 
@@ -256,7 +106,7 @@ Replace that block with:
 --8<-- "journey/code/14-history-window-4.rs"
 ```
 
-### 13. `src/browser.rs`
+### 5. `src/browser.rs`
 
 Record deletion and route Undo/Redo through history; retain only valid selection.
 
@@ -284,7 +134,7 @@ Replace that block with:
 --8<-- "journey/code/14-history-window-5.rs"
 ```
 
-### 14. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Report the undo result.
 
@@ -320,11 +170,11 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Example Triangle`, `Undo`, then `Redo`. The added triangle disappears and returns as one document change; the camera stays fixed.
+Type Example Triangle, then Undo and Redo. The third triangle disappears and returns.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Make document changes reversible.](../screenshots/journey/14-history-browser.png)
+![Actual browser result: Run Undo and Redo from the command line.](../screenshots/journey/14-history-browser.png)
 
 [Verification scope](release.md).
 
@@ -337,19 +187,17 @@ cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-`History::edit` accepts `FnOnce`: an action called once with the scene. It records the prior snapshot before applying the action. Keep the latest 64 edits.
 
-History restores document contents, leaving camera and background alone. Retain selection only if its ID exists in the restored scene, then upload through the normal scene-change path. Error rollback is added in lesson 17.
 
-Document edit → prior scene snapshot → undo or redo → restored scene → selection repair → GPU synchronization.
+Typed edit → History → restored Scene → selection repair → set_scene.
 
-![An edit saves the previous scene; undo and redo move snapshots between two stacks while the camera stays outside the history.](../illustrations/journey-14.svg)
+![Typed commands restore document state and synchronize its drawing.](../illustrations/journey-direct-14-history.svg)
 
-Why must restoring an old scene not reset the object-ID counter to its old value?
+Why repair selection after restoration?
 
-IDs created after that snapshot may still be remembered by a tool or earlier result. If the counter moved backward, a new object could receive one of those names. We restore the old scene contents but keep the highest counter reached, so an undo followed by a new edit cannot silently reuse an ID.
+Selection stores an ID. The restored scene may not contain that ID, so retain it only when it still exists.
 
-Study estimate, including typing and experiments: 2–4 hours.
+Study estimate, including typing and experiments: 0.25–0.5 hours.
 
 </details>
 

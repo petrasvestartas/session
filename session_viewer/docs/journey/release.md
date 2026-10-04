@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 139 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 144 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Twelve checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+Eight checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
 
 ## Command-panel typing split
 
@@ -25,6 +25,12 @@ One hundred long or generic code instructions now name their exact change in at 
 The dock is now taught through separate working steps: history, immediate typing, submission, editing, Help, inline completion, acceptance, key handling, suggestions, browsing, prepared output, control bounds, pointer ownership, wheel browsing, shared layout and application handoff. Each of the 17 new steps has 11–58 minutes of estimated typing, a focused result check, a white diagram and its own build and Chrome evidence. The production dock is split into the same functions; interactive lessons retain exact shared-source parity.
 
 The two 03b model/helper checkpoints pass fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome. Native checks cover retained text/history, borrowed hint priorities, actual egui inspection bounds and JSON, Unicode prefixes and stored caret ranges. Chrome verifies the changed model hint and exact scene preservation, then an unchanged full frame after the helpers. These two preparation stages have no keyboard event handling; immediate typing begins in 03ca.
+
+## Scene, identity, picking and history splits
+
+Four long checkpoints are now nine runnable steps: validated CPU mesh/scene owners (24–47 minutes), GPU scene drawing (23–46), stable object IDs (29–57), selection display (16–32), inverse view coordinates (10–19), triangle coverage/depth (28–56), actual canvas picking (14–27), shared history snapshots (28–55) and typed Undo/Redo (8–16). Each fits the one-hour typing limit.
+
+The first model steps have focused native checks; their browser captures explicitly describe retained drawing until input is connected. Later steps connect the actual command or mouse path. Existing application, renderer and browser behavior is unchanged. The coordinate lesson adds a native round-trip test retained through history. A redundant dependency-feature reordering was removed from picking; only manifest ordering differs in 13–20, whose fresh native, WebAssembly and Chrome checks pass. No feature binding was added or removed.
 
 ## What was checked
 

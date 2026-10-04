@@ -1,70 +1,16 @@
-# 12 · Name objects without depending on their row
+# 12 · Display selection by object identity
 
-**Typing: 42–83 minutes.** [Estimate](typing-load.md).
+**Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Selection stores Option<ObjectId>, so it follows the object through row changes. GpuMesh uploads a yellow copy for the selected ID while Scene retains its original colours.
 
-Give each object an ID that survives changes in vector order. Remember the extra triangle's ID, so removing an earlier object cannot make its row point at the wrong mesh.
-
-`ObjectId` wraps a number in a distinct type. Its private value and `Scene`'s private vector protect identity. `checked_add` rejects counter exhaustion; IDs never wrap or get reused.
+Delete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.
 
 ## Type
 
-Continue from [Give the scene an owner](11-scene.md). [Save or recover your work](recovery.md).
+Continue from [Name objects independently of their rows](11a-identity.md). [Save or recover your work](recovery.md).
 
-### 1. `src/scene.rs`
-
-Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-use crate::mesh::Mesh;
-
-pub struct Scene {
-    pub meshes: Vec<Mesh>,
-}
-
-impl Scene {
-    pub fn demo() -> Self {
-        let near = Mesh::new(vec![
-            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
-            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
-            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],
-        ], vec![0, 1, 2]).expect("Valid near triangle");
-        let far = Mesh::new(vec![
-            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
-            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
-            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],
-        ], vec![0, 1, 2]).expect("Valid far triangle");
-        Self { meshes: vec![near, far] }
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if self.meshes.len() == 3 {
-            self.meshes.pop();
-        } else {
-            let extra = Mesh::new(vec![
-                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],
-                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],
-                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],
-            ], vec![0, 1, 2]).expect("Valid extra triangle");
-            self.meshes.push(extra);
-        }
-    }
-}
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/12-identity-01.rs"
-```
-
-### 2. `src/gpu_mesh.rs`
+### 1. `src/gpu_mesh.rs`
 
 Let the uploaded representation know whether to show selection.
 
@@ -83,7 +29,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-02.rs"
 ```
 
-### 3. `src/gpu_mesh.rs`
+### 2. `src/gpu_mesh.rs`
 
 Apply the yellow tint to an upload copy. Never overwrite the CPU mesh’s original colour.
 
@@ -103,7 +49,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-03.rs"
 ```
 
-### 4. `src/renderer.rs`
+### 3. `src/renderer.rs`
 
 Import ObjectId at the renderer boundary.
 
@@ -125,7 +71,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-fullscreen-5.rs"
 ```
 
-### 5. `src/renderer.rs`
+### 4. `src/renderer.rs`
 
 Upload each scene object without selection highlighting initially.
 
@@ -136,7 +82,7 @@ Upload each scene object without selection highlighting initially.
         format: wgpu::TextureFormat,
         scene: &Scene,
     ) -> Self {
-        let meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&device, mesh)).collect();
+        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
@@ -150,7 +96,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-fullscreen-6.rs"
 ```
 
-### 6. `src/renderer.rs`
+### 5. `src/renderer.rs`
 
 Highlight the uploaded object whose stable ID matches the selection.
 
@@ -162,7 +108,7 @@ Highlight the uploaded object whose stable ID matches the selection.
     }
 
     pub fn set_scene(&mut self, scene: &Scene) {
-        self.meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&self.device, mesh)).collect();
+        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();
     }
 
     fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
@@ -176,7 +122,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-fullscreen-7.rs"
 ```
 
-### 7. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Add Select Next and Delete to the vocabulary.
 
@@ -200,7 +146,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-window-1.rs"
 ```
 
-### 8. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Start without a selected object.
 
@@ -224,7 +170,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-window-2.rs"
 ```
 
-### 9. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Preserve valid selection, cycle by identity, and delete the selected object.
 
@@ -249,7 +195,7 @@ Replace that block with:
 --8<-- "journey/code/12-identity-window-3.rs"
 ```
 
-### 10. `src/browser.rs`
+### 9. `src/browser.rs`
 
 Report that selection follows object identity.
 
@@ -285,11 +231,11 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Select Next`, then `Delete`. The yellow object disappears. Run the identity checks below: the remaining object must keep its ID even when its row changes.
+Type Select Next. The first object turns yellow; its stored mesh colour remains pink.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Name objects without depending on their row.](../screenshots/journey/12-identity-browser.png)
+![Actual browser result: Display selection by object identity.](../screenshots/journey/12-identity-browser.png)
 
 [Verification scope](release.md).
 
@@ -302,26 +248,24 @@ cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-Selection is `Option<ObjectId>` in interaction state. When deletion removes that ID, clear selection. Camera changes preserve it.
 
-For now, uploading a selected object uses yellow display vertices while retaining its original mesh colours. A later object-data buffer will avoid that whole-mesh upload.
 
-ObjectId → scene lookup → selected display colour → uploaded mesh → yellow highlight.
+selected ObjectId → upload copy → yellow display vertices.
 
-![Deleting row zero shifts the second object into its seat while that object keeps ID 2; selection follows the ID.](../illustrations/journey-12.svg)
+![Selection names an ObjectId; upload tints only that object’s display copy.](../illustrations/journey-direct-12-identity.svg)
 
-After deleting the first object, is the object now at row zero a new object?
+Why tint a copy rather than the retained mesh?
 
-No. Its storage row moved, but its ObjectId stayed the same. A row is a current location in a vector; an ID is the name we assigned when the object entered the scene. Selection retains that name, and a deleted name is never silently reused.
+The scene keeps the authored colour. Clearing selection must recover that colour instead of replacing source data.
 
-Study estimate, including typing and experiments: 3–5 hours.
+Study estimate, including typing and experiments: 0.5–1 hours.
 
 </details>
 
 <details>
 <summary>Optional experiment</summary>
 
-Add the third triangle, select the first object and delete it. Toggle the third triangle off. Only the original far triangle should remain. Read the identity test before running it: which ID moves to row zero, and why must it keep its old value?
+Select the first object, then Delete. Add the extra triangle and toggle it off. Only the original far triangle should remain.
 
 </details>
 

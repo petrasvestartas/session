@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 139 cumulative lessons, about 162.5–311 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 144 cumulative lessons, about 158–303.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **208 proposed slots: 139 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **213 proposed slots: 144 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -60,10 +60,15 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [08 · Move the view, keep the geometry](journey/08-camera.md) | 2–3 hours | Pan, zoom and reset a flat view through camera state. |
 | [09 · Let one matrix describe the view](journey/09-matrices.md) | 2–4 hours | Rotate the flat view using a matrix, ready for the third dimension. |
 | [10 · Keep the nearest surface](journey/10-depth.md) | 2–4 hours | Draw two overlapping triangles in depth, keeping the nearer one visible even when it is drawn first. |
-| [11 · Give the scene an owner](journey/11-scene.md) | 3–5 hours | Add and remove a mesh through scene data while reusing the renderer and camera. |
-| [12 · Name objects without depending on their row](journey/12-identity.md) | 3–5 hours | Select and delete objects using stable identities, then highlight the selected object. |
-| [13 · Ask which object is under the pointer](journey/13-picking.md) | 2–4 hours | Click a visible triangle to select its stable object ID, including after camera movement. |
-| [14 · Make document changes reversible](journey/14-history.md) | 2–4 hours | Undo and redo adding or deleting an object without changing the camera or losing identity. |
+| [10a · Give geometry a validated CPU owner](journey/10a-mesh.md) | 0.75–1.25 hours | Own validated mesh values and a scene collection before uploading them. |
+| [11 · Draw the scene through GPU mesh owners](journey/11-scene.md) | 0.75–1.25 hours | Add and remove a mesh through scene data while reusing the renderer and camera. |
+| [11a · Name objects independently of their rows](journey/11a-identity.md) | 0.75–1.5 hours | Keep object identity stable when removal changes vector order. |
+| [12 · Display selection by object identity](journey/12-identity.md) | 0.5–1 hours | Select and delete objects using stable identities, then highlight the selected object. |
+| [12a · Convert screen positions back to the scene](journey/12a-coordinates.md) | 0.5–0.75 hours | Undo the camera transform before querying CPU geometry. |
+| [12b · Find the nearest triangle at a scene point](journey/12b-picking.md) | 0.75–1.5 hours | Query triangle coverage and depth without changing the scene. |
+| [13 · Select the visible object with a mouse click](journey/13-picking.md) | 0.5–1 hours | Click a visible triangle to select its stable object ID, including after camera movement. |
+| [13a · Retain reversible scene snapshots](journey/13a-history.md) | 0.75–1.5 hours | Restore scene contents without copying immutable mesh arrays or reusing IDs. |
+| [14 · Run Undo and Redo from the command line](journey/14-history.md) | 0.25–0.5 hours | Undo and redo adding or deleting an object without changing the camera or losing identity. |
 | [15 · Look through a perspective camera](journey/15-perspective.md) | 4–7 hours | View the scene in perspective and select surfaces with a ray that agrees with the camera. |
 | [16 · Walk around the model](journey/16-orbit.md) | 2–4 hours | Orbit and tilt a perspective camera while keeping its target in place. |
 | [17 · Bring a solid into the scene](journey/17-solid.md) | 3–5 hours | Create a kernel box, convert it to display data, and add it as one undoable scene object. |

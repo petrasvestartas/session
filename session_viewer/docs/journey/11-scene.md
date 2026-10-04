@@ -1,38 +1,16 @@
-# 11 · Give the scene an owner
+# 11 · Draw the scene through GPU mesh owners
 
-**Typing: 47–93 minutes.** [Estimate](typing-load.md).
+**Typing: 23–46 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+GpuMesh owns the vertex and index buffers uploaded from a borrowed Mesh. Renderer owns the uploaded list; the browser retains Scene.
 
-Move geometry out of the renderer. `Mesh` owns validated CPU vertices and indices; `Scene` owns meshes. `GpuMesh` owns an uploaded representation; `Renderer` draws those representations.
-
-An add command changes `Scene`, uploads it, then redraws. Camera commands only upload a view uniform. Neither path creates a new renderer or resets the camera.
+Example Triangle changes the CPU collection, uploads it, then redraws. Camera commands update only the view uniform.
 
 ## Type
 
-Continue from [Keep the nearest surface](10-depth.md). [Save or recover your work](recovery.md).
+Continue from [Give geometry a validated CPU owner](10a-mesh.md). [Save or recover your work](recovery.md).
 
-### 1. `src/mesh.rs`
-
-Create validated CPU mesh data. The vertex record layout is the same six floats used in the depth lesson.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/11-scene-01.rs"
-```
-
-### 2. `src/scene.rs`
-
-Move the demonstration geometry into a scene and add its third-mesh toggle.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/11-scene-02.rs"
-```
-
-### 3. `src/gpu_mesh.rs`
+### 1. `src/gpu_mesh.rs`
 
 Move mesh upload and indexed drawing into the owner of those GPU buffers.
 
@@ -42,9 +20,9 @@ Create the file and type:
 --8<-- "journey/code/11-scene-03.rs"
 ```
 
-### 4. `src/lib.rs`
+### 2. `src/lib.rs`
 
-Register the three new owners.
+Register the GPU mesh owner.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -52,6 +30,8 @@ Register the three new owners.
 ```rust
 pub mod background;
 pub mod camera;
+pub mod mesh;
+pub mod scene;
 pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
@@ -65,7 +45,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-fullscreen-1.rs"
 ```
 
-### 5. `src/renderer.rs`
+### 3. `src/renderer.rs`
 
 Own uploaded GpuMesh values and build them from Scene.
 
@@ -125,7 +105,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-fullscreen-6.rs"
 ```
 
-### 6. `src/renderer.rs`
+### 4. `src/renderer.rs`
 
 Rebuild uploaded meshes when the scene changes.
 
@@ -150,7 +130,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-fullscreen-7.rs"
 ```
 
-### 7. `src/renderer.rs`
+### 5. `src/renderer.rs`
 
 Draw each uploaded mesh through GpuMesh::draw.
 
@@ -177,7 +157,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-fullscreen-8.rs"
 ```
 
-### 8. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Import the scene owner.
 
@@ -201,7 +181,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-window-1.rs"
 ```
 
-### 9. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Create the demo scene and add Example Triangle to the vocabulary.
 
@@ -232,7 +212,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-window-2.rs"
 ```
 
-### 10. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Toggle the example object and synchronize the renderer.
 
@@ -256,7 +236,7 @@ Replace that block with:
 --8<-- "journey/code/11-scene-window-3.rs"
 ```
 
-### 11. `src/browser.rs`
+### 9. `src/browser.rs`
 
 Report the separation between scene data and drawing.
 
@@ -292,11 +272,11 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Example Triangle` twice. A green triangle appears, then disappears. Your camera stays where it was.
+Type Example Triangle. A third, green triangle appears.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Give the scene an owner.](../screenshots/journey/11-scene-browser.png)
+![Actual browser result: Draw the scene through GPU mesh owners.](../screenshots/journey/11-scene-browser.png)
 
 [Verification scope](release.md).
 
@@ -309,26 +289,24 @@ cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-`Mesh::new` returns `Result` because invalid indices must be rejected before drawing. Private fields and read-only slice accessors preserve that contract. Fixed example coordinates use `expect`; file data will need recoverable errors.
+The upload borrows validated slices and copies their bytes into buffers. Replacing those buffers leaves the CPU scene and camera owned by the caller.
 
-For this small scene, a document change replaces all mesh buffers. Later lessons update only changed objects. The extra green triangle makes add → upload → draw visible.
+Example Triangle → Scene changes → set_scene uploads → GpuMesh draws.
 
-command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list.
+![CPU Scene and Mesh values supply derived GpuMesh buffers to Renderer.](../illustrations/journey-direct-11-scene.svg)
 
-![The browser owns Scene; each Mesh supplies CPU data to a derived GpuMesh, and the renderer draws those uploaded resources.](../illustrations/journey-11.svg)
+Does uploading transfer the CPU Mesh to the renderer?
 
-Which values should survive if we recreate all GPU mesh buffers?
+No. upload borrows &Mesh; Scene keeps the original vectors while GpuMesh owns the copied GPU buffers.
 
-The Scene and its Mesh data should survive, along with camera and background state. GPU buffers are a display representation derived from those values. Rebuilding that representation must not lose the document or move the camera.
-
-Study estimate, including typing and experiments: 3–5 hours.
+Study estimate, including typing and experiments: 0.75–1.25 hours.
 
 </details>
 
 <details>
 <summary>Optional experiment</summary>
 
-Zoom Out and change the background, then toggle the third triangle twice. Predict the final image. It should be exactly the same as before those two toggles. In the command handler, locate the one branch that uploads scene data and explain why the camera branches do not need it.
+Pan Right, then submit Example Triangle twice. The scene should return to the same image without resetting the camera.
 
 </details>
 

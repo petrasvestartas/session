@@ -2063,29 +2063,26 @@
       ]
     },
     {
-      "id": "11-scene",
-      "title": "Give the scene an owner",
-      "page": "journey/11-scene.md",
+      "id": "10a-mesh",
+      "title": "Give geometry a validated CPU owner",
+      "page": "journey/10a-mesh.md",
       "hours": [
-        3,
-        5
+        0.75,
+        1.25
       ],
-      "goal": "Add and remove a mesh through scene data while reusing the renderer and camera.",
-      "trace": "command → Scene adds or removes Mesh → GpuMesh uploads → Renderer draws the current list",
-      "question": "Which values should survive if we recreate all GPU mesh buffers?",
-      "answer": "The Scene and its Mesh data should survive, along with camera and background state. GPU buffers are a display representation derived from those values. Rebuilding that representation must not lose the document or move the camera.",
-      "story": "Move geometry out of the renderer. `Mesh` owns validated CPU vertices and indices; `Scene` owns meshes. `GpuMesh` owns an uploaded representation; `Renderer` draws those representations.\n\nAn add command changes `Scene`, uploads it, then redraws. Camera commands only upload a view uniform. Neither path creates a new renderer or resets the camera.\n\n`Mesh::new` returns `Result` because invalid indices must be rejected before drawing. Private fields and read-only slice accessors preserve that contract. Fixed example coordinates use `expect`; file data will need recoverable errors.\n\nFor this small scene, a document change replaces all mesh buffers. Later lessons update only changed objects. The extra green triangle makes add → upload → draw visible.\n\n![The browser owns Scene; each Mesh supplies CPU data to a derived GpuMesh, and the renderer draws those uploaded resources.](../illustrations/journey-11.svg)",
-      "result": "Type `Example Triangle` twice. A green triangle appears, then disappears. Your camera stays where it was.",
-      "experiment": "Zoom Out and change the background, then toggle the third triangle twice. Predict the final image. It should be exactly the same as before those two toggles. In the command handler, locate the one branch that uploads scene data and explain why the camera branches do not need it.",
-      "production": "The production viewer keeps source geometry and document state separate from packed GPU data. Later lessons add stable identity, incremental synchronization, shared buffers and undo. This ownership boundary allows a GPU rebuild without rebuilding the document.",
-      "browser_status": "Scene data owns the meshes; the renderer displays them.",
-      "browser_actions": [
-        {
-          "command": "Example Triangle"
-        }
-      ],
-      "image_result": "This is the result after adding the third triangle.",
-      "frame": "journey/checks/11-scene.rs",
+      "goal": "Own validated mesh values and a scene collection before uploading them.",
+      "trace": "Mesh::new validates owned vectors → Scene retains Mesh values",
+      "question": "Why return slices rather than mutable vectors?",
+      "answer": "A borrowed slice lets upload read the values without transferring ownership or allowing invalid indices to be inserted.",
+      "story": "Mesh owns vertex and index vectors. Its constructor rejects missing vertices, incomplete triangles and nonfinite values. Scene owns a collection of those validated meshes.\n\nVec owns its allocation; a slice borrows existing elements. Result returns either the constructed Mesh or the reason it was refused. GPU upload consumes these slices in the next step.\n\n![Validated vectors become Mesh values retained by Scene.](../illustrations/journey-direct-10a-mesh.svg)",
+      "result": "Run the state checks below. Valid triangles are accepted; missing vertices, incomplete triangles and NaN values are rejected.",
+      "experiment": "In the constructor test, replace the invalid index 3 with 2. That case becomes valid, so its is_err assertion should fail. Restore 3.",
+      "production": "The viewer validates source geometry before deriving GPU data. This checkpoint establishes CPU ownership and constructor checks; the next checkpoint connects that data to drawing.",
+      "browser_status": "The nearer pink triangle wins the overlap.",
+      "browser_caption": "The browser retains the preceding depth image and command dock. Native constructor and scene-collection checks establish the new CPU behavior; browser upload is connected next.",
+      "image_same_as": "10-depth",
+      "frame": "journey/checks/10a-mesh.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
       "tests": true,
       "edits": [
         {
@@ -2101,6 +2098,40 @@
           "why": "Move the demonstration geometry into a scene and add its third-mesh toggle."
         },
         {
+          "path": "src/lib.rs",
+          "before": "pub mod background;\npub mod camera;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n",
+          "snippet": "journey/code/10a-mesh-register.rs",
+          "why": "Register the CPU mesh and scene modules."
+        }
+      ]
+    },
+    {
+      "id": "11-scene",
+      "title": "Draw the scene through GPU mesh owners",
+      "page": "journey/11-scene.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Add and remove a mesh through scene data while reusing the renderer and camera.",
+      "trace": "Example Triangle → Scene changes → set_scene uploads → GpuMesh draws",
+      "question": "Does uploading transfer the CPU Mesh to the renderer?",
+      "answer": "No. upload borrows &Mesh; Scene keeps the original vectors while GpuMesh owns the copied GPU buffers.",
+      "story": "GpuMesh owns the vertex and index buffers uploaded from a borrowed Mesh. Renderer owns the uploaded list; the browser retains Scene.\n\nExample Triangle changes the CPU collection, uploads it, then redraws. Camera commands update only the view uniform.\n\nThe upload borrows validated slices and copies their bytes into buffers. Replacing those buffers leaves the CPU scene and camera owned by the caller.\n\n![CPU Scene and Mesh values supply derived GpuMesh buffers to Renderer.](../illustrations/journey-direct-11-scene.svg)",
+      "result": "Type Example Triangle. A third, green triangle appears.",
+      "experiment": "Pan Right, then submit Example Triangle twice. The scene should return to the same image without resetting the camera.",
+      "production": "The production viewer keeps source geometry and document state separate from packed GPU data. Later lessons add stable identity, incremental synchronization, shared buffers and undo. This ownership boundary allows a GPU rebuild without rebuilding the document.",
+      "browser_status": "Scene data owns the meshes; the renderer displays them.",
+      "browser_actions": [
+        {
+          "command": "Example Triangle"
+        }
+      ],
+      "image_result": "This is the result after adding the third triangle.",
+      "frame": "journey/checks/11-scene.rs",
+      "tests": true,
+      "edits": [
+        {
           "path": "src/gpu_mesh.rs",
           "before": null,
           "snippet": "journey/code/11-scene-03.rs",
@@ -2109,8 +2140,8 @@
         {
           "path": "src/lib.rs",
           "snippet": "journey/code/11-scene-fullscreen-1.rs",
-          "before": "pub mod background;\npub mod camera;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n",
-          "why": "Register the three new owners."
+          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n",
+          "why": "Register the GPU mesh owner."
         },
         {
           "path": "src/renderer.rs",
@@ -2158,20 +2189,68 @@
       "frame_constructor": "make_renderer(device, queue, format)"
     },
     {
+      "id": "11a-identity",
+      "title": "Name objects independently of their rows",
+      "page": "journey/11a-identity.md",
+      "hours": [
+        0.75,
+        1.5
+      ],
+      "goal": "Keep object identity stable when removal changes vector order.",
+      "trace": "Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh",
+      "question": "Does moving to row zero create a new object?",
+      "answer": "No. The vector position changes; the ObjectId assigned at insertion stays the same.",
+      "story": "ObjectId names an object independently of its vector row. Scene allocates IDs, looks up objects by those names, and remembers the extra triangle by ID.\n\nThe wrapper type prevents confusing an ID with an index. checked_add returns an error before the counter can wrap and reuse a name.\n\n![An object keeps its ID when removal shifts its vector row.](../illustrations/journey-direct-11a-identity.svg)",
+      "result": "Run the state checks below. Removing the first object moves the next row without changing its ID; toggling the extra object still removes that object.",
+      "experiment": "In the removal test, compare the second object’s ID before and after deleting the first. The ID should match even though its row changes.",
+      "production": "Source identities and GPU row positions have different lifetimes. This checkpoint keeps the source name stable while the existing upload borrows each object’s mesh.",
+      "browser_status": "Scene data owns the meshes; the renderer displays them.",
+      "browser_actions": [
+        {
+          "command": "Example Triangle"
+        }
+      ],
+      "browser_caption": "The browser independently verifies the retained add/remove drawing and command dock. Native tests establish stable IDs and removal after row changes; selection display is connected next.",
+      "image_same_as": "11-scene",
+      "frame": "journey/checks/11a-identity.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "use crate::mesh::Mesh;\n\npub struct Scene {\n    pub meshes: Vec<Mesh>,\n}\n\nimpl Scene {\n    pub fn demo() -> Self {\n        let near = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid near triangle\");\n        let far = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid far triangle\");\n        Self { meshes: vec![near, far] }\n    }\n\n    pub fn toggle_extra(&mut self) {\n        if self.meshes.len() == 3 {\n            self.meshes.pop();\n        } else {\n            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n            self.meshes.push(extra);\n        }\n    }\n}\n",
+          "snippet": "journey/code/12-identity-01.rs",
+          "why": "Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&device, mesh)).collect();\n",
+          "snippet": "journey/code/11a-identity-upload-1.rs",
+          "why": "Upload the mesh borrowed from each named object."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&self.device, mesh)).collect();\n",
+          "snippet": "journey/code/11a-identity-upload-2.rs",
+          "why": "Upload the mesh borrowed from each named object."
+        }
+      ]
+    },
+    {
       "id": "12-identity",
-      "title": "Name objects without depending on their row",
+      "title": "Display selection by object identity",
       "page": "journey/12-identity.md",
       "hours": [
-        3,
-        5
+        0.5,
+        1
       ],
       "goal": "Select and delete objects using stable identities, then highlight the selected object.",
-      "trace": "ObjectId → scene lookup → selected display colour → uploaded mesh → yellow highlight",
-      "question": "After deleting the first object, is the object now at row zero a new object?",
-      "answer": "No. Its storage row moved, but its ObjectId stayed the same. A row is a current location in a vector; an ID is the name we assigned when the object entered the scene. Selection retains that name, and a deleted name is never silently reused.",
-      "story": "Give each object an ID that survives changes in vector order. Remember the extra triangle's ID, so removing an earlier object cannot make its row point at the wrong mesh.\n\n`ObjectId` wraps a number in a distinct type. Its private value and `Scene`'s private vector protect identity. `checked_add` rejects counter exhaustion; IDs never wrap or get reused.\n\nSelection is `Option<ObjectId>` in interaction state. When deletion removes that ID, clear selection. Camera changes preserve it.\n\nFor now, uploading a selected object uses yellow display vertices while retaining its original mesh colours. A later object-data buffer will avoid that whole-mesh upload.\n\n![Deleting row zero shifts the second object into its seat while that object keeps ID 2; selection follows the ID.](../illustrations/journey-12.svg)",
-      "result": "Type `Select Next`, then `Delete`. The yellow object disappears. Run the identity checks below: the remaining object must keep its ID even when its row changes.",
-      "experiment": "Add the third triangle, select the first object and delete it. Toggle the third triangle off. Only the original far triangle should remain. Read the identity test before running it: which ID moves to row zero, and why must it keep its old value?",
+      "trace": "selected ObjectId → upload copy → yellow display vertices",
+      "question": "Why tint a copy rather than the retained mesh?",
+      "answer": "The scene keeps the authored colour. Clearing selection must recover that colour instead of replacing source data.",
+      "story": "Selection stores Option<ObjectId>, so it follows the object through row changes. GpuMesh uploads a yellow copy for the selected ID while Scene retains its original colours.\n\nDelete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.\n\n![Selection names an ObjectId; upload tints only that object’s display copy.](../illustrations/journey-direct-12-identity.svg)",
+      "result": "Type Select Next. The first object turns yellow; its stored mesh colour remains pink.",
+      "experiment": "Select the first object, then Delete. Add the extra triangle and toggle it off. Only the original far triangle should remain.",
       "production": "The complete viewer distinguishes document identity, displayed object rows and source sub-elements. Picking and undo must cross those mappings explicitly. This lesson establishes the first rule: a storage index cannot serve as a permanent object name.",
       "browser_status": "Selection follows object identity, even when rows move.",
       "browser_actions": [
@@ -2183,12 +2262,6 @@
       "frame": "journey/checks/12-identity.rs",
       "tests": true,
       "edits": [
-        {
-          "path": "src/scene.rs",
-          "before": "use crate::mesh::Mesh;\n\npub struct Scene {\n    pub meshes: Vec<Mesh>,\n}\n\nimpl Scene {\n    pub fn demo() -> Self {\n        let near = Mesh::new(vec![\n            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n        ], vec![0, 1, 2]).expect(\"Valid near triangle\");\n        let far = Mesh::new(vec![\n            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n        ], vec![0, 1, 2]).expect(\"Valid far triangle\");\n        Self { meshes: vec![near, far] }\n    }\n\n    pub fn toggle_extra(&mut self) {\n        if self.meshes.len() == 3 {\n            self.meshes.pop();\n        } else {\n            let extra = Mesh::new(vec![\n                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],\n                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],\n            ], vec![0, 1, 2]).expect(\"Valid extra triangle\");\n            self.meshes.push(extra);\n        }\n    }\n}\n",
-          "snippet": "journey/code/12-identity-01.rs",
-          "why": "Replace the scene with stable object IDs and named insertion, removal and lookup operations. Keep the two existing demonstration meshes unchanged."
-        },
         {
           "path": "src/gpu_mesh.rs",
           "before": "    pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {\n",
@@ -2210,13 +2283,13 @@
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/12-identity-fullscreen-6.rs",
-          "before": "        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&device, mesh)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
+          "before": "        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
           "why": "Upload each scene object without selection highlighting initially."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/12-identity-fullscreen-7.rs",
-          "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene) {\n        self.meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&self.device, mesh)).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n",
+          "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene) {\n        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n",
           "why": "Highlight the uploaded object whose stable ID matches the selection."
         },
         {
@@ -2247,19 +2320,103 @@
       "frame_constructor": "make_renderer(device, queue, format)"
     },
     {
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "tests": true,
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Selection follows object identity, even when rows move.",
+      "browser_actions": [
+        {
+          "command": "Select Next"
+        }
+      ],
+      "id": "12a-coordinates",
+      "title": "Convert screen positions back to the scene",
+      "page": "journey/12a-coordinates.md",
+      "goal": "Undo the camera transform before querying CPU geometry.",
+      "trace": "Screen point → divide scale → reverse rotation → add scene centre",
+      "question": "Why reverse the camera before testing geometry?",
+      "answer": "The click is in the displayed view; mesh positions are in scene coordinates. The conversion puts both in the same coordinates.",
+      "story": "Divide a screen point by camera scale, reverse rotation, then add the camera centre. world_from_screen returns the corresponding scene point.\n\nA round-trip check transforms a known scene point into the view and restores it after pan, zoom and rotation.\n\n![The inverse camera restores a displayed point to scene coordinates.](../illustrations/journey-direct-12a-coordinates.svg)",
+      "result": "Run the state checks below. The new round-trip test restores a known scene point after pan, zoom and rotation.",
+      "experiment": "Trace the point [0.4, 0.0] through the native round-trip check. Undoing scale and rotation must recover both coordinates within 0.000001.",
+      "production": "Picking must compare view input with geometry in a common coordinate system. The later perspective lesson replaces this flat conversion with a ray.",
+      "browser_caption": "Chrome independently verifies the existing command and selection drawing. The new inverse conversion is checked natively; mouse selection is connected in 13.",
+      "image_same_as": "12-identity",
+      "frame": "journey/checks/12a-coordinates.rs",
+      "edits": [
+        {
+          "path": "src/camera.rs",
+          "before": "    pub fn uniform(&self) -> [f32; 16] {\n",
+          "snippet": "journey/code/13-picking-03.rs",
+          "why": "Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "#[cfg(test)]\nmod tests {\n",
+          "snippet": "journey/code/12a-coordinates-test.rs",
+          "why": "Check that pan, zoom and rotation preserve the coordinate round trip."
+        }
+      ]
+    },
+    {
+      "hours": [
+        0.75,
+        1.5
+      ],
+      "tests": true,
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Selection follows object identity, even when rows move.",
+      "browser_actions": [
+        {
+          "command": "Select Next"
+        }
+      ],
+      "id": "12b-picking",
+      "title": "Find the nearest triangle at a scene point",
+      "page": "journey/12b-picking.md",
+      "goal": "Query triangle coverage and depth without changing the scene.",
+      "trace": "Scene point → barycentric coverage → interpolated depth → nearest ObjectId",
+      "question": "Why return an ObjectId rather than a row?",
+      "answer": "Rows can move after removal. Returning the stable name lets the caller retain the same object.",
+      "story": "Test each indexed triangle with barycentric weights. Nonnegative weights with a sum at most one place the point inside it; those weights also interpolate depth. Retain the nearest covered object.\n\nThe query borrows Scene and returns Option<ObjectId>. It does not change selection. None means no triangle covers the point.\n\n![Triangle coverage and depth identify the nearest object.](../illustrations/journey-direct-12b-picking.svg)",
+      "result": "Run the state checks below. The nearer object wins the overlap; removing it reveals the far object; empty and invalid positions return None.",
+      "experiment": "In the overlap test, remove the near object before the first query. The far object should now win at the same scene point.",
+      "production": "The finished viewer uses asynchronous integer-ID GPU picking. This small-scene query establishes coverage, nearest depth and the identity returned to input.",
+      "browser_caption": "The native checkpoint calls the new query and draws its far-object result. Chrome retains typed selection until the next step connects actual clicks.",
+      "image_same_as": "12a-coordinates",
+      "frame": "journey/checks/13-picking.rs",
+      "edits": [
+        {
+          "path": "src/picking.rs",
+          "before": null,
+          "snippet": "journey/code/13-picking-04.rs",
+          "why": "Create the CPU query and tests. It reads scene data and returns identity without changing selection or GPU resources."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/13-picking-fullscreen-1.rs",
+          "before": "pub mod camera;\npub mod mesh;\npub mod scene;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
+          "why": "Register the query module."
+        }
+      ]
+    },
+    {
       "id": "13-picking",
-      "title": "Ask which object is under the pointer",
+      "title": "Select the visible object with a mouse click",
       "page": "journey/13-picking.md",
       "hours": [
-        2,
-        4
+        0.5,
+        1
       ],
       "goal": "Click a visible triangle to select its stable object ID, including after camera movement.",
-      "trace": "Browser click → canvas-relative coordinates → inverse camera → triangle coverage and depth → ObjectId → highlight",
-      "question": "Why must picking undo the camera transform before testing the stored triangles?",
-      "answer": "The click describes a place on the displayed image, while the mesh vertices describe positions in the scene. Undoing camera rotation, scale and translation brings the click into the same coordinate system as those vertices. Comparing them without that conversion would select the wrong place after moving the view.",
-      "story": "Resolve a click to the nearest covered object's ID. Convert viewport CSS pixels to canvas coordinates, map them to −1 through +1, and reverse y because browser y points downward.\n\nUndo the camera transform: divide by scale, rotate back, then add the centre. A round-trip test checks the two coordinate conversions agree.\n\nFor this flat view, test triangles on the CPU. Write a point as `a + u×(b−a) + v×(c−a)`. Coverage requires nonnegative u and v with sum at most 1. Use those weights to interpolate depth and retain the nearest hit.\n\nReturn `ObjectId`, preserving selection through row changes. Empty space returns `None`. Later GPU picking replaces this small-scene query while keeping the same input-to-identity boundary.\n\n![A browser click becomes a canvas coordinate, then a world point; triangle coverage and nearest depth produce a stable object ID.](../illustrations/journey-13.svg)",
-      "result": "Click the visible triangle, then type `Delete`. The clicked object disappears. Pan the view and try again: picking must follow the picture.",
+      "trace": "Canvas click → normalized point → inverse camera → pick → selected display",
+      "question": "Why test whether the command dock consumed the click?",
+      "answer": "Clicking or editing the dock must not also select scene geometry.",
+      "story": "Convert an unconsumed canvas click from CSS pixels to normalized screen coordinates. Reverse y, undo the camera, then ask the query for the visible ObjectId.\n\nThe command dock handles its own input first. A scene click updates selection and uploads its display colour.\n\n![An unconsumed canvas click becomes a scene point and a selected ObjectId.](../illustrations/journey-direct-13-picking.svg)",
+      "result": "Click the visible far triangle. It turns yellow.",
       "experiment": "Select the front triangle at the overlap and delete it. Click that same place again. The far triangle should now be selected with its original ID. Then move the camera and repeat: explain the coordinate conversions rather than memorising a pixel position.",
       "production": "Production picking renders integer identifiers, reads a small result asynchronously, rejects stale results and resolves the displayed row back to source identity. The conversion and ownership questions introduced here remain the same when the implementation becomes more capable.",
       "browser_status": "Click a triangle; the visible object is selected.",
@@ -2276,30 +2433,6 @@
       "tests": true,
       "frame_constructor": "make_renderer(device, queue, format)",
       "edits": [
-        {
-          "path": "src/camera.rs",
-          "before": "    pub fn uniform(&self) -> [f32; 16] {\n",
-          "snippet": "journey/code/13-picking-03.rs",
-          "why": "Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair."
-        },
-        {
-          "path": "src/picking.rs",
-          "before": null,
-          "snippet": "journey/code/13-picking-04.rs",
-          "why": "Create the CPU query and tests. It reads scene data and returns identity without changing selection or GPU resources."
-        },
-        {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/13-picking-dock-01.toml",
-          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
-          "why": "Enable the browser event bindings used by the command dock."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/13-picking-fullscreen-1.rs",
-          "before": "pub mod camera;\npub mod mesh;\npub mod scene;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Register the query module."
-        },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/13-picking-window-1.rs",
@@ -2321,49 +2454,35 @@
       ]
     },
     {
-      "id": "14-history",
-      "title": "Make document changes reversible",
-      "page": "journey/14-history.md",
+      "id": "13a-history",
+      "title": "Retain reversible scene snapshots",
+      "page": "journey/13a-history.md",
       "hours": [
-        2,
-        4
+        0.75,
+        1.5
       ],
-      "goal": "Undo and redo adding or deleting an object without changing the camera or losing identity.",
-      "trace": "Document edit → prior scene snapshot → undo or redo → restored scene → selection repair → GPU synchronization",
-      "question": "Why must restoring an old scene not reset the object-ID counter to its old value?",
-      "answer": "IDs created after that snapshot may still be remembered by a tool or earlier result. If the counter moved backward, a new object could receive one of those names. We restore the old scene contents but keep the highest counter reached, so an undo followed by a new edit cannot silently reuse an ID.",
-      "story": "Make edits reversible with scene snapshots. Undo moves the current scene to the redo stack and restores the previous one. Redo reverses that move; a new edit clears redo.\n\nObjects hold `Rc<Mesh>`, sharing immutable vertex data. Cloning a scene copies its object list and shared handles, not every vertex array. The pointer-equality test checks that sharing.\n\n`History::edit` accepts `FnOnce`: an action called once with the scene. It records the prior snapshot before applying the action. Keep the latest 64 edits.\n\nHistory restores document contents, leaving camera and background alone. Retain selection only if its ID exists in the restored scene, then upload through the normal scene-change path. Error rollback is added in lesson 17.\n\n![An edit saves the previous scene; undo and redo move snapshots between two stacks while the camera stays outside the history.](../illustrations/journey-14.svg)",
-      "result": "Type `Example Triangle`, `Undo`, then `Redo`. The added triangle disappears and returns as one document change; the camera stays fixed.",
-      "experiment": "Add the third triangle, undo that addition, then add it again. It looks similar, but the new addition must receive a new ID. Read the branching-history test and explain why. Next pan the camera, delete an object and undo: the camera should stay where you put it.",
-      "production": "The full viewer groups document operations into transactions and coordinates restoration with displayed rows and tool state. This lesson establishes reversible document changes, shared immutable data, preserved identity and the boundary between an edit and a view change.",
-      "browser_status": "Undo restores the document while the view stays put.",
+      "goal": "Restore scene contents without copying immutable mesh arrays or reusing IDs.",
+      "trace": "Edit saves Scene → undo/redo transfer snapshots → restore keeps the highest ID counter",
+      "question": "Does cloning a scene copy every vertex array?",
+      "answer": "No. Object records clone Rc<Mesh> handles. The snapshots share the same immutable mesh allocation.",
+      "story": "History retains scene snapshots before an edit. Undo and Redo transfer snapshots between two stacks; a new edit clears Redo. Keep the latest 64 edits.\n\nRc shares immutable Mesh values across snapshots. FnOnce accepts an action called once with the scene. Restoring contents preserves the highest ID counter reached.\n\n![History retains small scene snapshots that share immutable Mesh values.](../illustrations/journey-direct-13a-history.svg)",
+      "result": "Run the state checks below. Undo restores the same ID and mesh allocation; a new branch clears Redo without reusing IDs; history keeps 64 edits.",
+      "experiment": "Read the pointer-equality assertion before running the history checks. Undo should restore the original Rc allocation rather than a copied mesh.",
+      "production": "Document snapshots preserve source identity and immutable geometry owners. Camera and background remain outside document history.",
+      "browser_status": "Click a triangle; the visible object is selected.",
       "browser_actions": [
         {
-          "command": "Example Triangle"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Select Next"
-        },
-        {
-          "command": "Delete"
-        },
-        {
-          "command": "Undo"
-        },
-        {
-          "command": "Select Next"
+          "canvas": [
+            0.7,
+            0.5
+          ]
         }
       ],
-      "image_result": "The deleted third triangle has been restored, and the first object is selected.",
+      "browser_caption": "Native tests establish the snapshot, sharing and branching behavior. Chrome retains picking and typed selection until Undo/Redo commands are connected next.",
+      "image_same_as": "13-picking",
       "frame": "journey/checks/14-history.rs",
-      "tests": true,
       "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
       "edits": [
         {
           "path": "src/scene.rs",
@@ -2412,7 +2531,54 @@
           "snippet": "journey/code/14-history-fullscreen-1.rs",
           "before": "pub mod mesh;\npub mod scene;\npub mod picking;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
           "why": "Register history as a document operation, independent of the browser and GPU."
+        }
+      ]
+    },
+    {
+      "id": "14-history",
+      "title": "Run Undo and Redo from the command line",
+      "page": "journey/14-history.md",
+      "hours": [
+        0.25,
+        0.5
+      ],
+      "goal": "Undo and redo adding or deleting an object without changing the camera or losing identity.",
+      "trace": "Typed edit → History → restored Scene → selection repair → set_scene",
+      "question": "Why repair selection after restoration?",
+      "answer": "Selection stores an ID. The restored scene may not contain that ID, so retain it only when it still exists.",
+      "story": "Route Example Triangle and Delete through History::edit. Undo and Redo restore the scene, retain only valid selection, then upload the restored display.\n\nThe callback keeps camera and background outside history. A document restoration redraws with the current view.\n\n![Typed commands restore document state and synchronize its drawing.](../illustrations/journey-direct-14-history.svg)",
+      "result": "Type Example Triangle, then Undo and Redo. The third triangle disappears and returns.",
+      "experiment": "Add the third triangle, undo that addition, then add it again. It looks similar, but the new addition must receive a new ID. Read the branching-history test and explain why. Next pan the camera, delete an object and undo: the camera should stay where you put it.",
+      "production": "The full viewer groups document operations into transactions and coordinates restoration with displayed rows and tool state. This lesson establishes reversible document changes, shared immutable data, preserved identity and the boundary between an edit and a view change.",
+      "browser_status": "Undo restores the document while the view stays put.",
+      "browser_actions": [
+        {
+          "command": "Example Triangle"
         },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Delete"
+        },
+        {
+          "command": "Undo"
+        },
+        {
+          "command": "Select Next"
+        }
+      ],
+      "image_result": "The deleted third triangle has been restored, and the first object is selected.",
+      "frame": "journey/checks/14-history.rs",
+      "tests": true,
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "edits": [
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/14-history-window-1.rs",
@@ -2475,7 +2641,7 @@
       "edits": [
         {
           "path": "src/camera.rs",
-          "before": "pub struct Camera {\n    pub center: [f32; 2],\n    pub scale: f32,\n    pub angle: f32,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        self.center[0] += dx;\n        self.center[1] += dy;\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.scale = (self.scale * factor).clamp(0.1, 10.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians;\n    }\n\n    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {\n        let x = point[0] / self.scale;\n        let y = point[1] / self.scale;\n        let (sin, cos) = self.angle.sin_cos();\n        [self.center[0] + x * cos - y * sin, self.center[1] + x * sin + y * cos]\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        let a = self.scale * self.angle.cos();\n        let b = self.scale * self.angle.sin();\n        let [x, y] = self.center;\n        // WGSL matrices are uploaded column by column.\n        [\n            a, -b, 0.0, 0.0,\n            b,  a, 0.0, 0.0,\n            0.0, 0.0, 1.0, 0.0,\n            -a * x - b * y, b * x - a * y, 0.0, 1.0,\n        ]\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn panned_target_stays_at_the_screen_centre_when_zooming() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(std::f32::consts::FRAC_PI_4);\n        let m = camera.uniform();\n        let [x, y] = camera.center;\n        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);\n        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);\n    }\n\n    #[test]\n    fn zoom_stays_positive_and_bounded() {\n        let mut camera = Camera::default();\n        camera.zoom(0.0001);\n        assert_eq!(camera.scale, 0.1);\n        camera.zoom(1_000.0);\n        assert_eq!(camera.scale, 10.0);\n        camera.zoom(f32::NAN);\n        camera.zoom(-1.0);\n        assert_eq!(camera.scale, 10.0);\n    }\n}\n",
+          "before": "pub struct Camera {\n    pub center: [f32; 2],\n    pub scale: f32,\n    pub angle: f32,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        self.center[0] += dx;\n        self.center[1] += dy;\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.scale = (self.scale * factor).clamp(0.1, 10.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians;\n    }\n\n    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {\n        let x = point[0] / self.scale;\n        let y = point[1] / self.scale;\n        let (sin, cos) = self.angle.sin_cos();\n        [self.center[0] + x * cos - y * sin, self.center[1] + x * sin + y * cos]\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        let a = self.scale * self.angle.cos();\n        let b = self.scale * self.angle.sin();\n        let [x, y] = self.center;\n        // WGSL matrices are uploaded column by column.\n        [\n            a, -b, 0.0, 0.0,\n            b,  a, 0.0, 0.0,\n            0.0, 0.0, 1.0, 0.0,\n            -a * x - b * y, b * x - a * y, 0.0, 1.0,\n        ]\n    }\n}\n\n#[cfg(test)]\nmod coordinate_tests {\n    use super::Camera;\n\n    #[test]\n    fn moving_the_view_preserves_the_coordinate_round_trip() {\n        let mut camera = Camera::default();\n        camera.pan(0.1, -0.2);\n        camera.zoom(0.5);\n        camera.rotate(0.7);\n        let world = [0.4, 0.0];\n        let matrix = camera.uniform();\n        let screen = [matrix[0] * world[0] + matrix[4] * world[1] + matrix[12],\n            matrix[1] * world[0] + matrix[5] * world[1] + matrix[13]];\n        let restored = camera.world_from_screen(screen);\n        assert!((restored[0] - world[0]).abs() < 1.0e-6);\n        assert!((restored[1] - world[1]).abs() < 1.0e-6);\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn panned_target_stays_at_the_screen_centre_when_zooming() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(std::f32::consts::FRAC_PI_4);\n        let m = camera.uniform();\n        let [x, y] = camera.center;\n        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);\n        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);\n    }\n\n    #[test]\n    fn zoom_stays_positive_and_bounded() {\n        let mut camera = Camera::default();\n        camera.zoom(0.0001);\n        assert_eq!(camera.scale, 0.1);\n        camera.zoom(1_000.0);\n        assert_eq!(camera.scale, 10.0);\n        camera.zoom(f32::NAN);\n        camera.zoom(-1.0);\n        assert_eq!(camera.scale, 10.0);\n    }\n}\n",
           "snippet": "journey/code/15-perspective-02.rs",
           "why": "Replace the flat camera conversion with a perspective view and a clipped world-space ray. Retain the same pan, zoom, rotate and uniform entry points."
         },
@@ -3042,7 +3208,7 @@
         {
           "path": "Cargo.toml",
           "snippet": "journey/code/21-gestures-dock-01.toml",
-          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"DomRect\", \"PointerEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
+          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"PointerEvent\", \"MouseEvent\", \"KeyboardEvent\", \"WheelEvent\", \"FocusOptions\", \"DomRect\", \"HtmlElement\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
           "why": "Enable the browser event bindings used by the command dock."
         },
         {
