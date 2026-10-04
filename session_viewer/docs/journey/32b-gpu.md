@@ -4,8 +4,6 @@
 
 The upload counters tell us how much work happened over time. They cannot tell us how much document storage is alive now. Add a live GPU ledger that visits each geometry allocation once and every object-settings buffer separately.
 
-Its four fields are unique geometry owners, their vertex/index buffer bytes, object-settings buffers, and settings-buffer bytes. [Buffer::size](https://docs.rs/wgpu/29.0.4/wgpu/struct.Buffer.html#method.size) reports the buffer size selected at creation. The ledger excludes camera/depth/dock resources, pending staging work, driver overhead and memory pooling; it is document buffer ownership, not a driver-memory measurement.
-
 ## Type
 
 Continue from [Count shared CPU displays once](32a-cpu.md). [Save or recover your work](recovery.md).
@@ -134,6 +132,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Its four fields are unique geometry owners, their vertex/index buffer bytes, object-settings buffers, and settings-buffer bytes. [Buffer::size](https://docs.rs/wgpu/29.0.4/wgpu/struct.Buffer.html#method.size) reports the buffer size selected at creation. The ledger excludes camera/depth/dock resources, pending staging work, driver overhead and memory pooling; it is document buffer ownership, not a driver-memory measurement.
 
 The native GPU proof creates two rows sharing one three-vertex geometry. It expects one seventy-two-byte vertex buffer, one eight-byte index buffer, and two eighty-byte settings buffers. That exercises sharing and alignment with an independent known input.
 

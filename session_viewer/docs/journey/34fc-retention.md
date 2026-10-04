@@ -4,8 +4,6 @@
 
 Separate retaining raw evidence from adopting it. The strict reader rejects newer schemas; using that accepted list to prune storage would also delete newer telemetry.
 
-`retention_time` reads only a bounded version/date header. It returns a ranking timestamp without constructing a Report. A newer-format value can therefore occupy an older-report slot while remaining ineligible for a notice or typed download.
-
 ## Type
 
 Continue from [Retrieve saved failure evidence through the command line](34fb-store.md). [Save or recover your work](recovery.md).
@@ -128,6 +126,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`retention_time` reads only a bounded version/date header. It returns a ranking timestamp without constructing a Report. A newer-format value can therefore occupy an older-report slot while remaining ineligible for a notice or typed download.
 
 Read and rank older values before mutation. Keep the two newest raw strings byte for byte. If a read fails, abort rather than delete uninspected evidence. Invalid JSON or unusable headers can be pruned after a successful current write.
 

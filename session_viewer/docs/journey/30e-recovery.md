@@ -4,8 +4,6 @@
 
 Test a replacement failure after insertion starts, not only malformed bytes before mutation. Put the object-ID counter one below its limit: one insertion succeeds and the next fails.
 
-History must restore every old row and allocation while retaining the highest issued counter. IDs from failed work must not be reused. A separate malformed-replacement test preserves selection and Redo.
-
 ## Type
 
 Continue from [Choose append or replace before opening the picker](30d-bridge.md). [Save or recover your work](recovery.md).
@@ -115,6 +113,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+History must restore every old row and allocation while retaining the highest issued counter. IDs from failed work must not be reused. A separate malformed-replacement test preserves selection and Redo.
 
 Also reject placement coefficients that are finite as doubles but become infinity in the current float upload. `f64::MAX` demonstrates this boundary for direct placement and encoded files. Keep the previous placement untouched. This limits the display adapter without reducing retained source precision.
 

@@ -4,8 +4,6 @@
 
 Connect visibilitychange, freeze and resume on Document. Keep pagehide and pageshow on Window. Each event changes its own pause reason before synchronizing the heartbeat.
 
-Read Document.hidden at startup and on return. Start one timer only when the policy permits it. Repeated resume events retain the existing timer. Final closure prevents restart before deferred listener cleanup.
-
 ## Type
 
 Continue from [Keep each heartbeat pause reason separate](34gbb-suspension.md). [Save or recover your work](recovery.md).
@@ -235,7 +233,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Read Document.hidden at startup and on return. Start one timer only when the policy permits it. Repeated resume events retain the existing timer. Final closure prevents restart before deferred listener cleanup.
 
 Document and Window events → independent pause reasons → stop or retain one heartbeat timer.
 

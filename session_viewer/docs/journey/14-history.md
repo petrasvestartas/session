@@ -4,8 +4,6 @@
 
 Route Example Triangle and Delete through History::edit. Undo and Redo restore the scene, retain only valid selection, then upload the restored display.
 
-The callback keeps camera and background outside history. A document restoration redraws with the current view.
-
 ## Type
 
 Continue from [Retain reversible scene snapshots](13a-history.md). [Save or recover your work](recovery.md).
@@ -187,7 +185,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The callback keeps camera and background outside history. A document restoration redraws with the current view.
 
 Typed edit → History → restored Scene → selection repair → set_scene.
 

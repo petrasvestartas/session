@@ -2,7 +2,7 @@
 
 **Typing: 28–56 minutes.** [Estimate](typing-load.md).
 
-Source unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.
+Keep each object’s name, GUID and visibility/locking flags when its editable source is unloaded. Store these small values beside the retained display mesh.
 
 ## Type
 
@@ -122,6 +122,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Source unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.
 
 RowMetadata copies the original source GUID, name, is_visible and is_locked when Scene inserts a prepared mesh. These are owned strings and booleans, with no Rc to the kernel mesh or imported Session. The row shares an Rc<RowMetadata> across history snapshots: Move changes placement, so it does not need to copy or alter metadata. Later attribute edits will replace or copy this metadata deliberately.
 

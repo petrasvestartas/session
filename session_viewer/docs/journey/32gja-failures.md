@@ -4,8 +4,6 @@
 
 Test restoration as one transaction across two imported origins. If the second body is invalid, neither source may be restored and the captured Save must not download anything.
 
-Use missing bodies, changed versions and stale keys as rejected examples. A late reply after Close must find its source URL already released. These checks exercise the existing implementation; they add no new viewer command.
-
 ## Type
 
 Continue from [Prove restored Save keeps the source doubles](32gj-precision.md). [Save or recover your work](recovery.md).
@@ -68,7 +66,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Use missing bodies, changed versions and stale keys as rejected examples. A late reply after Close must find its source URL already released. These checks exercise the existing implementation; they add no new viewer command.
 
 Captured operation → complete body set → validate every source → all restored or none → no edit/download on failure.
 

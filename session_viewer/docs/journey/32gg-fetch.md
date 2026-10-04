@@ -2,7 +2,7 @@
 
 **Typing: 24–47 minutes.** [Estimate](typing-load.md).
 
-Enable the browser fetch, response, stream-reader and abort types. `source_fetch::fetch` uses a borrowed URL and AbortSignal, checks the HTTP status and optional length, then reads the response body as a stream. The current tutorial limit remains 4 MiB per source; it is not a measurement of browser staging or total process memory.
+Fetch source bytes with cancellation and a four-MiB limit. Reject oversized or incomplete bodies before they reach the scene.
 
 ## Type
 
@@ -85,6 +85,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Enable the browser fetch, response, stream-reader and abort types. `source_fetch::fetch` uses a borrowed URL and AbortSignal, checks the HTTP status and optional length, then reads the response body as a stream. The current tutorial limit remains 4 MiB per source; it is not a measurement of browser staging or total process memory.
 
 `JsFuture::from` lets Rust await a browser promise. `dyn_into` checks that the returned JavaScript value has the expected browser type. Each reader reply contains `done` and a byte-array `value`; `Reflect::get` reads those fields. Check remaining capacity before converting and appending a chunk.
 

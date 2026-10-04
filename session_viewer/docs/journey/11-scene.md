@@ -4,8 +4,6 @@
 
 GpuMesh owns the vertex and index buffers uploaded from a borrowed Mesh. Renderer owns the uploaded list; the browser retains Scene.
 
-Example Triangle changes the CPU collection, uploads it, then redraws. Camera commands update only the view uniform.
-
 ## Type
 
 Continue from [Give geometry a validated CPU owner](10a-mesh.md). [Save or recover your work](recovery.md).
@@ -288,6 +286,8 @@ cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Example Triangle changes the CPU collection, uploads it, then redraws. Camera commands update only the view uniform.
 
 The upload borrows validated slices and copies their bytes into buffers. Replacing those buffers leaves the CPU scene and camera owned by the caller.
 

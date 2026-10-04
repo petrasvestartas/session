@@ -7238,7 +7238,7 @@
       "trace": "Prepared source → independent row metadata → shared scene snapshots → source ownership proof",
       "question": "Why is a row’s original source GUID separate from its saved object GUID?",
       "answer": "The original source GUID locates the mesh in the imported document. The saved object GUID distinguishes duplicate imports in this viewer. Forking the saved identity must not change the original identity used to restore a released source.",
-      "story": "Source unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.\n\n![A scene row keeps metadata and its derived display independently of editable kernel owners.](../illustrations/journey-32f.svg)\n\nRowMetadata copies the original source GUID, name, is_visible and is_locked when Scene inserts a prepared mesh. These are owned strings and booleans, with no Rc to the kernel mesh or imported Session. The row shares an Rc<RowMetadata> across history snapshots: Move changes placement, so it does not need to copy or alter metadata. Later attribute edits will replace or copy this metadata deliberately.\n\nKeep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson 29; it now remains available without borrowing a kernel mesh.\n\nThis endpoint does not unload a source yet. Both source and display still exist. Visibility and locking are preserved as values; their full drawing/editing policy is taught later in the course.",
+      "story": "Keep each object’s name, GUID and visibility/locking flags when its editable source is unloaded. Store these small values beside the retained display mesh.\n\nSource unloading keeps the picture while dropping eligible editable kernel data. Before dropping any owner, give each row the small descriptive values it will still need. The display mesh, placement and local ObjectId already live on the row. Names and flags currently live inside the kernel mesh.\n\n![A scene row keeps metadata and its derived display independently of editable kernel owners.](../illustrations/journey-32f.svg)\n\nRowMetadata copies the original source GUID, name, is_visible and is_locked when Scene inserts a prepared mesh. These are owned strings and booleans, with no Rc to the kernel mesh or imported Session. The row shares an Rc<RowMetadata> across history snapshots: Move changes placement, so it does not need to copy or alter metadata. Later attribute edits will replace or copy this metadata deliberately.\n\nKeep source_guid distinct from Object.guid. Repeated imports can have the same source GUID but need different saved identities. This is the distinction introduced in lesson 29; it now remains available without borrowing a kernel mesh.\n\nThis endpoint does not unload a source yet. Both source and display still exist. Visibility and locking are preserved as values; their full drawing/editing policy is taught later in the course.",
       "result": "Run the metadata checks below. Names, GUIDs and visible/locked flags survive after the editable source owner drops; metadata must not retain that source.",
       "experiment": "Replace one row’s metadata Rc in a test with newly owned values. Predict why an older scene snapshot must keep the original values. Do not mutate a shared metadata allocation behind history.",
       "production": "Production source release retains shape/name/tree information while its editable Session is unloaded. This row boundary prepares that same lifetime distinction; release across active/history roots and guarded rehydration remain required next steps.",
@@ -7596,7 +7596,7 @@
       "trace": "Retain an owned Blob URL through imports and history, then release it with its last owner.",
       "question": "Why must URL ownership exist before validation can fail?",
       "answer": "Creating a Blob URL allocates a browser resource. If decoding or insertion fails, an action-local owner must still revoke it. A successful import shares that owner through its Origin; Close releases it only after active and history roots are gone.",
-      "story": "A version says which bytes a row expects; it does not provide a way to read them again. Add ReloadUrl, an owner of one URL created by this viewer. Its Drop implementation revokes the browser Blob URL. Native checks observe its Rc lifetime through Weak; actual browser revocation is tested after the next adapter endpoint.\n\nOrigin can retain an optional Rc<ReloadUrl>. Generated data and ordinary native load calls have no reload location and will be protected from unload. load_at accepts an already owned URL; it validates the file and adopts the location into the same Origin shared by all rows.\n\nAdd ImportAt and ReplaceAt to the editor while keeping the existing Import/Replace fixtures. The new actions hold the URL before loading, so failure drops their owner normally. History shares the Origin, keeping the reload location alive until the last relevant snapshot is gone. The browser still uses its old file adapter at this checkpoint.\n\n![Retain an owned Blob URL through imports and history, then release it with its last owner.](../illustrations/journey-32fe.svg)",
+      "story": "Keep a reload URL alive while its source is needed. Release the browser Blob URL when its last owner drops.\n\nA version says which bytes a row expects; it does not provide a way to read them again. Add ReloadUrl, an owner of one URL created by this viewer. Its Drop implementation revokes the browser Blob URL. Native checks observe its Rc lifetime through Weak; actual browser revocation is tested after the next adapter endpoint.\n\nOrigin can retain an optional Rc<ReloadUrl>. Generated data and ordinary native load calls have no reload location and will be protected from unload. load_at accepts an already owned URL; it validates the file and adopts the location into the same Origin shared by all rows.\n\nAdd ImportAt and ReplaceAt to the editor while keeping the existing Import/Replace fixtures. The new actions hold the URL before loading, so failure drops their owner normally. History shares the Origin, keeping the reload location alive until the last relevant snapshot is gone. The browser still uses its old file adapter at this checkpoint.\n\n![Retain an owned Blob URL through imports and history, then release it with its last owner.](../illustrations/journey-32fe.svg)",
       "result": "Run the location checks below. The reload location stays alive while owned and is released once after its final owner drops. File adoption is connected next.",
       "experiment": "Retain a separate Rc<ReloadUrl> in a caller scope and explain why closing the editor cannot revoke that caller’s resource yet.",
       "production": "This owner is for viewer-created Blob URLs. The later published HTTP locations have different ownership and caching rules; they must not be treated as owned Blob resources.",
@@ -7680,7 +7680,7 @@
       "trace": "Transfer the accepted File through synchronous delivery and create its URL at adoption.",
       "question": "Why not create a Blob URL as soon as the user selects a file?",
       "answer": "Its read may be cancelled, superseded or rejected before adoption. Keep the File while reading, finish the request ticket first, and create the URL only when the synchronous editor callback accepts delivery. Clear any unclaimed delivery slot afterwards.",
-      "story": "The browser already owns asynchronous file delivery through ReadGate. Add one shared delivery slot holding the accepted File only during the viewer-file dispatch. After the read finishes and its ticket is accepted, the producer places the File in this slot, dispatches, then clears any unclaimed value.\n\nThe listener validates the event payload, takes the File, creates ReloadUrl and builds ImportAt or ReplaceAt. An error creating the URL is reported through the Open history entry. A malformed file creates an owner that is dropped when editor loading fails; a stale read never creates a URL.\n\nThe slot is a Rust handoff, not a persistent cache of file bytes or kernel sources. It also prevents an unrelated external viewer-file event from manufacturing a located import without an accepted File. Later listener teardown cancels work and releases this handoff lifetime.\n\n![Transfer the accepted File through synchronous delivery and create its URL at adoption.](../illustrations/journey-32ff.svg)",
+      "story": "Pass the accepted File through one temporary delivery slot. Clear the slot after dispatch so cancelled or unclaimed files are released.\n\nThe browser already owns asynchronous file delivery through ReadGate. Add one shared delivery slot holding the accepted File only during the viewer-file dispatch. After the read finishes and its ticket is accepted, the producer places the File in this slot, dispatches, then clears any unclaimed value.\n\nThe listener validates the event payload, takes the File, creates ReloadUrl and builds ImportAt or ReplaceAt. An error creating the URL is reported through the Open history entry. A malformed file creates an owner that is dropped when editor loading fails; a stale read never creates a URL.\n\nThe slot is a Rust handoff, not a persistent cache of file bytes or kernel sources. It also prevents an unrelated external viewer-file event from manufacturing a located import without an accepted File. Later listener teardown cancels work and releases this handoff lifetime.\n\n![Transfer the accepted File through synchronous delivery and create its URL at adoption.](../illustrations/journey-32ff.svg)",
       "result": "Open `sample.pb`. Run the adoption checks below: only an accepted read may acquire its Blob URL; cancelled or stale reads must not retain one.",
       "experiment": "Remove the final delivery-slot cleanup in a scratch copy and predict what happens if no listener adopts its File. Keep the production implementation unchanged after the experiment.",
       "production": "Accepted immutable Files now have a reload path and exact byte version. Source residency can change next without inventing URLs from kernel geometry or drawing floats.",
@@ -8214,7 +8214,7 @@
       "trace": "Current keys → prepare all candidates → validate all matching roots → adopt editable owners",
       "question": "What prevents a valid first candidate from committing when a later source fails?",
       "answer": "Prepare every candidate and validate every affected row before the adoption loop. If any version, source GUID or metadata check fails, the function returns with all rows still cold and no new history entry.",
-      "story": "hydrate accepts key/byte pairs from a completed request. First check that each distinct key still matches an active cold row; a stale or duplicate key cannot start preparation. Next build every candidate and validate all matching active, Undo and Redo rows. Only after every check succeeds does `Scene` adopt the prepared source owners.\n\nAdoption changes only `EditSource`: each matching row receives the restored mesh and Source sharing one candidate `Session` and the original Origin. Keep local ID, saved GUID, metadata Rc, display Rc and model matrix exactly as they were.\n\nThis is a residency pass, not a document edit. It must not clear history, append an Undo entry or alter camera/selection. The next endpoint adds explicit ownership, precision and rejection checks. Browser fetching and command replay are not wired yet.\n\n`collect::<Result<_, _>>()` turns many candidate results into one result: an error stops collection and drops candidates already prepared. The question mark returns that error before adoption starts. `flat_map` visits rows from each active/history `Scene` without copying them. The final mutable pass replaces only editable ownership; it is not a History edit.\n\n![Validate current releases and all matching history rows before adopting any kernel candidate.](../illustrations/journey-32gb.svg)",
+      "story": "Restore unloaded sources as one transaction. Validate every reply first; one invalid reply must leave all sources unchanged.\n\nhydrate accepts key/byte pairs from a completed request. First check that each distinct key still matches an active cold row; a stale or duplicate key cannot start preparation. Next build every candidate and validate all matching active, Undo and Redo rows. Only after every check succeeds does `Scene` adopt the prepared source owners.\n\nAdoption changes only `EditSource`: each matching row receives the restored mesh and Source sharing one candidate `Session` and the original Origin. Keep local ID, saved GUID, metadata Rc, display Rc and model matrix exactly as they were.\n\nThis is a residency pass, not a document edit. It must not clear history, append an Undo entry or alter camera/selection. The next endpoint adds explicit ownership, precision and rejection checks. Browser fetching and command replay are not wired yet.\n\n`collect::<Result<_, _>>()` turns many candidate results into one result: an error stops collection and drops candidates already prepared. The question mark returns that error before adoption starts. `flat_map` visits rows from each active/history `Scene` without copying them. The final mutable pass replaces only editable ownership; it is not a History edit.\n\n![Validate current releases and all matching history rows before adopting any kernel candidate.](../illustrations/journey-32gb.svg)",
       "result": "Run the adoption checks below. A bad second candidate must restore neither source. Valid candidates restore editable owners without changing display, placement or history.",
       "experiment": "Move the adoption loop ahead of candidate validation in a scratch copy. Explain what a failure in the second origin would leave behind.",
       "production": "The production operation validates released identity before hydration. This API additionally groups the requested immutable-source candidates so one command cannot partially adopt its source batch.",
@@ -8375,7 +8375,7 @@
       "trace": "Active release keys → ReloadJob → ticket and URL strings → one accepted completion",
       "question": "Why does the asynchronous request receive URL strings instead of cloned Origins?",
       "answer": "A cloned Origin would retain its URL owner after cancellation or Close. Keep the keys in the pending job, clear them on cancellation, and let asynchronous work carry plain URL strings and a ticket. A late result then has no source ownership to revive.",
-      "story": "Add a browser-independent `ReloadJob`. It owns only one pending set of release keys, issues checked tickets and gives the caller a `Request` containing a ticket and URL strings. A new request cancels older keys before validating its own candidates. Empty requests, duplicate origins and missing locations return errors.\n\n`finish` first checks the ticket, then takes the matching keys once. `Option<Vec<ReloadKey>>` distinguishes accepted keys from obsolete work. `take` replaces the pending option with `None`; the removed owners drop when the caller finishes with them. Cancellation takes the keys without handing them to abandoned work.\n\nThe request ticket identifies this operation; each key still identifies the imported source and its release epoch. Both checks are needed. This native owner is not yet connected to fetch or a new browser command.\n\n![Give each source request its own owner](../illustrations/journey-32gf.svg)",
+      "story": "Give each source reload a ticket. Only the current ticket can complete its batch, and it can complete once.\n\nAdd a browser-independent `ReloadJob`. It owns only one pending set of release keys, issues checked tickets and gives the caller a `Request` containing a ticket and URL strings. A new request cancels older keys before validating its own candidates. Empty requests, duplicate origins and missing locations return errors.\n\n`finish` first checks the ticket, then takes the matching keys once. `Option<Vec<ReloadKey>>` distinguishes accepted keys from obsolete work. `take` replaces the pending option with `None`; the removed owners drop when the caller finishes with them. Cancellation takes the keys without handing them to abandoned work.\n\nThe request ticket identifies this operation; each key still identifies the imported source and its release epoch. Both checks are needed. This native owner is not yet connected to fetch or a new browser command.\n\n![Give each source request its own owner](../illustrations/journey-32gf.svg)",
       "result": "Run the request checks below. A reload ticket must identify one current batch and permit its completion once. Browser fetching follows next.",
       "experiment": "Keep a returned Request alive after cancelling the job. Explain why its strings cannot keep the Origin or ReloadUrl alive.",
       "production": "Production reloads carry release tokens across asynchronous work. This request owner gives the browser a distinct current-operation boundary and keeps ownership separate from immutable source identity.",
@@ -8455,7 +8455,7 @@
       "trace": "Recorded URL → fetch with AbortSignal → HTTP/length checks → bounded stream chunks",
       "question": "Why is checking only Content-Length insufficient?",
       "answer": "The header can be missing or wrong. Check it before reading when present, then enforce the same limit on every received chunk. Never append a chunk that would exceed the per-source byte budget.",
-      "story": "Enable the browser fetch, response, stream-reader and abort types. `source_fetch::fetch` uses a borrowed URL and AbortSignal, checks the HTTP status and optional length, then reads the response body as a stream. The current tutorial limit remains 4 MiB per source; it is not a measurement of browser staging or total process memory.\n\n`JsFuture::from` lets Rust await a browser promise. `dyn_into` checks that the returned JavaScript value has the expected browser type. Each reader reply contains `done` and a byte-array `value`; `Reflect::get` reads those fields. Check remaining capacity before converting and appending a chunk.\n\nOn read failure, cancel the reader and release its lock. On success, release the lock and return original bytes. Version/schema checks still belong to source preparation, before adoption. This helper is compiled here; the browser command will exercise it after the flight and delivery boundaries exist.\n\n![Read a source response within its byte limit](../illustrations/journey-32gg.svg)",
+      "story": "Fetch source bytes with cancellation and a four-MiB limit. Reject oversized or incomplete bodies before they reach the scene.\n\nEnable the browser fetch, response, stream-reader and abort types. `source_fetch::fetch` uses a borrowed URL and AbortSignal, checks the HTTP status and optional length, then reads the response body as a stream. The current tutorial limit remains 4 MiB per source; it is not a measurement of browser staging or total process memory.\n\n`JsFuture::from` lets Rust await a browser promise. `dyn_into` checks that the returned JavaScript value has the expected browser type. Each reader reply contains `done` and a byte-array `value`; `Reflect::get` reads those fields. Check remaining capacity before converting and appending a chunk.\n\nOn read failure, cancel the reader and release its lock. On success, release the lock and return original bytes. Version/schema checks still belong to source preparation, before adoption. This helper is compiled here; the browser command will exercise it after the flight and delivery boundaries exist.\n\n![Read a source response within its byte limit](../illustrations/journey-32gg.svg)",
       "result": "Run the bounded-fetch checks below. Oversized or incomplete bodies must fail before source adoption. The fetch is not a viewer command yet.",
       "experiment": "Remove the incremental limit in a scratch copy. Explain what a response without a length header could allocate before the final check.",
       "production": "Later publication lessons extend fetching to large published sources and their version policy. This immutable File/Blob path preserves exact source bytes and a bounded read for the current mesh subset.",
@@ -9173,7 +9173,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/reload-complete.cjs",
-      "story": "The reply already pairs complete bodies with the operation captured before fetching. complete now gives it one synchronous editor boundary. Hydration validates current source identity, release epoch, file version and metadata before it restores any source. A stale context returns None; a failed fetch or invalid body returns an error. Neither path replays the operation.\n\nAfter successful hydration, Some(intent) calls the explicit-target replay taught earlier. Move and Delete each create one edit transaction; Save produces the original-precision document bytes without creating history. None represents explicit Reload Sources and returns a scene result. The browser will consume these results in the next checkpoint.\n\n![Validate before replay](../illustrations/journey-32gid.svg)",
+      "story": "Restore the required sources before replaying a captured command. A failed or stale reply must perform no edit or download.\n\nThe reply already pairs complete bodies with the operation captured before fetching. complete now gives it one synchronous editor boundary. Hydration validates current source identity, release epoch, file version and metadata before it restores any source. A stale context returns None; a failed fetch or invalid body returns an error. Neither path replays the operation.\n\nAfter successful hydration, Some(intent) calls the explicit-target replay taught earlier. Move and Delete each create one edit transaction; Save produces the original-precision document bytes without creating history. None represents explicit Reload Sources and returns a scene result. The browser will consume these results in the next checkpoint.\n\n![Validate before replay](../illustrations/journey-32gid.svg)",
       "browser_caption": "Native checks complete captured cold-source Move/Delete/Save and reject stale or failed restoration. Chrome retains explicit reload until automatic command routing is connected next.",
       "edits": [
         {
@@ -9223,7 +9223,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/reload-response.cjs",
-      "story": "The browser receiver now calls complete instead of hydrating only the body. It records the command name from the captured intent before consuming the reply. Changed synchronizes the renderer; Saved downloads the bytes produced by the original-precision snapshot. A stale None does nothing. Errors use the same original command name.\n\nExplicit Reload Sources still uses None intent and keeps its existing success message. save_result converts either the browser download failure or its success into one dock message. Actual automatic commands are connected next; this checkpoint prepares their result handling.\n\n![Deliver the captured command result](../illustrations/journey-32gie.svg)",
+      "story": "Connect completed source replies to drawing and Save downloads. Report success or failure under the original command name.\n\nThe browser receiver now calls complete instead of hydrating only the body. It records the command name from the captured intent before consuming the reply. Changed synchronizes the renderer; Saved downloads the bytes produced by the original-precision snapshot. A stale None does nothing. Errors use the same original command name.\n\nExplicit Reload Sources still uses None intent and keeps its existing success message. save_result converts either the browser download failure or its success into one dock message. Actual automatic commands are connected next; this checkpoint prepares their result handling.\n\n![Deliver the captured command result](../illustrations/journey-32gie.svg)",
       "browser_caption": "Chrome checks explicit restoration through the result-aware receiver. Native tests verify captured edit and Save replies; browser command-triggered restoration follows next.",
       "edits": [
         {
@@ -9435,7 +9435,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/listener-owner.cjs",
-      "story": "A Closure owns the Rust environment used by a JavaScript callback. Listeners keeps that closure beside each successfully registered target and event name. One callback can serve the canvas, window and document. listen records a binding only after registration succeeds; if later setup fails, dropping the owner removes earlier registrations.\n\nDrop runs before Rust drops the fields. Its loop removes each handler while callback still exists, then normal field cleanup releases the closure and captured values. Registration uses passive false so the existing wheel and pointer prevention behavior can be retained during integration. The next checkpoint replaces the main viewer’s forgotten callback with this owner and adds explicit runtime disposal. This checkpoint prepares ownership; it does not yet stop the existing viewer runtime.\n\n![Listener ownership](../illustrations/journey-33.svg)",
+      "story": "Keep a JavaScript callback alive with its registered listeners. Dropping this owner removes every listener, including after partial setup failure.\n\nA Closure owns the Rust environment used by a JavaScript callback. Listeners keeps that closure beside each successfully registered target and event name. One callback can serve the canvas, window and document. listen records a binding only after registration succeeds; if later setup fails, dropping the owner removes earlier registrations.\n\nDrop runs before Rust drops the fields. Its loop removes each handler while callback still exists, then normal field cleanup releases the closure and captured values. Registration uses passive false so the existing wheel and pointer prevention behavior can be retained during integration. The next checkpoint replaces the main viewer’s forgotten callback with this owner and adds explicit runtime disposal. This checkpoint prepares ownership; it does not yet stop the existing viewer runtime.\n\n![Listener ownership](../illustrations/journey-33.svg)",
       "browser_caption": "Chrome calls the debug WebAssembly probe against real EventTargets and verifies two live calls, no post-Drop calls, and release of captured ownership. Existing editor/reload/precision/failure checks remain active; main runtime disposal follows next.",
       "edits": [
         {
@@ -9479,7 +9479,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/runtime-owner.cjs",
-      "story": "The main viewer now transfers update into Listeners and records all canvas, document and window bindings. A thread-local Option<Runtime> keeps that owner alive after run returns. install replaces any earlier owner; stop takes the current owner out of the slot and consumes it. The slot’s mutable borrow has ended before Runtime is dropped.\n\nRuntime’s Drop first cancels the read gate and abortable source flight. It then allows the listener owner to detach handlers and release the callback, editor, renderer and other captured values. Cancelling releases pending source keys even when an asynchronous task remains alive. This is ownership cleanup; it does not claim browser or driver memory is reclaimed at the same instant.\n\npagehide schedules stop through spawn_local and returns immediately. Its task runs on the next microtask so the event callback is no longer active when it is freed. Document Close retains its existing meaning and can still be followed by Open. Page exit disposes the viewer itself.\n\n![Dispose runtime ownership](../illustrations/journey-33a.svg)",
+      "story": "Keep the viewer’s callbacks alive after startup returns. Final page exit releases them; replacing the runtime releases the previous owner.\n\nThe main viewer now transfers update into Listeners and records all canvas, document and window bindings. A thread-local Option<Runtime> keeps that owner alive after run returns. install replaces any earlier owner; stop takes the current owner out of the slot and consumes it. The slot’s mutable borrow has ended before Runtime is dropped.\n\nRuntime’s Drop first cancels the read gate and abortable source flight. It then allows the listener owner to detach handlers and release the callback, editor, renderer and other captured values. Cancelling releases pending source keys even when an asynchronous task remains alive. This is ownership cleanup; it does not claim browser or driver memory is reclaimed at the same instant.\n\npagehide schedules stop through spawn_local and returns immediately. Its task runs on the next microtask so the event callback is no longer active when it is freed. Document Close retains its existing meaning and can still be followed by Open. Page exit disposes the viewer itself.\n\n![Dispose runtime ownership](../illustrations/journey-33a.svg)",
       "browser_caption": "Chrome verifies real viewer page-exit disposal, eighteen listener removals, source abort/URL release, no later submissions, ignored input/completions, and cancelled file URL adoption; ordinary document Close still permits reopening.",
       "edits": [
         {
@@ -9541,7 +9541,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/runtime-cache.cjs",
-      "story": "The [HTML lifecycle contract](https://html.spec.whatwg.org/dev/nav-history-apis.html#the-pagetransitionevent-interface) distinguishes final departure from a page that may return from the back/forward cache. A cached page reuses its existing document and scripts. Disposing its callbacks without restarting them would leave that restored viewer unable to accept commands.\n\nThe handler cancels an unfinished camera gesture, then checks the actual PageTransitionEvent. A persisted transition keeps the runtime. A final exit still schedules the disposal proved in the previous checkpoint. A plain synthetic Event has no persisted flag and retains the previous final-exit behavior. No new listener or feature control is needed.\n\n![Retain a reusable page](../illustrations/journey-33b.svg)",
+      "story": "Keep the viewer alive when the browser caches its page. Returning to that page must preserve working commands and camera control.\n\nThe [HTML lifecycle contract](https://html.spec.whatwg.org/dev/nav-history-apis.html#the-pagetransitionevent-interface) distinguishes final departure from a page that may return from the back/forward cache. A cached page reuses its existing document and scripts. Disposing its callbacks without restarting them would leave that restored viewer unable to accept commands.\n\nThe handler cancels an unfinished camera gesture, then checks the actual PageTransitionEvent. A persisted transition keeps the runtime. A final exit still schedules the disposal proved in the previous checkpoint. A plain synthetic Event has no persisted flag and retains the previous final-exit behavior. No new listener or feature control is needed.\n\n![Retain a reusable page](../illustrations/journey-33b.svg)",
       "browser_caption": "Chrome checks persisted transition handling, cancelled drag, retained state and working commands, then a real same-tab away/Back navigation. The test records whether Chrome reused the page or loaded it fresh; final-exit disposal remains verified.",
       "edits": [
         {
@@ -9620,7 +9620,7 @@
       "trace": "GPU callback → first fault recorded → input guard → deferred matching-owner disposal → visible failure",
       "question": "Why record a failure before deferring cleanup, and why check the device identity again during cleanup?",
       "answer": "The immediate signal blocks any intervening input or GPU updates. Deferred cleanup waits for the active callback to return; its identity check prevents an old device’s callback from stopping a replacement.",
-      "result": "Run the GPU-stop browser acceptance described below. Destroying the real test device must show “Cannot draw” and stop further rendering. Reloading the same page starts a fresh viewer.",
+      "result": "Run the state checks. The first GPU failure must remain unchanged when another callback reports a later failure.",
       "experiment": "Move the failure guard below panel.update and explain which GPU writes could happen before it. Then remove the identity check in stop_if and explain how an older callback could stop a new runtime.",
       "production": "Production records the first GPU failure and gates UI/uploads/rendering before further GPU work. This checkpoint establishes the stopped lifetime. Structured diagnostics, persisted reports and bounded recovery remain next.",
       "tests": true,
@@ -9674,7 +9674,7 @@
           "why": "Install the runtime with the same device identity used by its failure callbacks."
         }
       ],
-      "checks": "Chrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application."
+      "checks": "Chrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application.\n\nAdditional verification: Run the GPU-stop browser acceptance described below. Destroying the real test device must show “Cannot draw” and stop further rendering. Reloading the same page starts a fresh viewer."
     },
     {
       "id": "34b-report",
@@ -10124,7 +10124,7 @@
       "trace": "sessionStorage tab → localStorage candidates → byte/schema/shape admission → Date.parse recency → latest eligible evidence",
       "question": "Why keep tab identity separate from the new run’s storage key?",
       "answer": "The tab identity survives a reload so interruption policy can recognize its old run. A fresh storage key identifies each run independently; reusing the tab as the run key would overwrite the previous evidence.",
-      "result": "Run the storage browser acceptance in the expandable notes below. The reader must choose eligible evidence from real browser storage and retain the tab ID across reloads. Live persistence follows next.",
+      "result": "In the debug console, run `JSON.parse(window.wasmBindings.previous_storage_probe()).tab`. Reload and run it again: the tab ID stays the same.",
       "experiment": "Change selection to rank lastSeen, then compare the two saved failures whose heartbeat order disagrees with failure order. Explain which evidence should win and why. Deny browser storage and explain why current diagnostics must remain usable.",
       "production": "The production reader uses browser storage and stable tab identity. This endpoint connects the native admission/recency policy to actual storage reads. Bounded writes, live report adoption and the previous-report command follow.",
       "tests": true,
@@ -10159,7 +10159,8 @@
           "snippet": "journey/code/34f-storage-03.rs",
           "why": "Enable the pinned browser Storage bindings without changing package versions."
         }
-      ]
+      ],
+      "checks": "Additional verification: Run the storage browser acceptance in the expandable notes below. The reader must choose eligible evidence from real browser storage and retain the tab ID across reloads. Live persistence follows next."
     },
     {
       "id": "34fa-retain",
@@ -10173,7 +10174,7 @@
       "trace": "valid matching-tab report → bounded existing namespace → current run write → two older reports → release other owned keys",
       "question": "Why write the current run before pruning the older keys?",
       "answer": "A failed write must leave existing evidence intact. Only after current metadata is saved can the owner remove older values while keeping two prior reports. Deletion failures are reported rather than claimed as successful retention.",
-      "result": "Run the storage-write browser acceptance below. Writing a fourth run must leave the current run and the two newest older reports, preserving unrelated storage keys.",
+      "result": "In the debug console, run:\n\n```js\nconst report = JSON.parse(window.wasmBindings.diagnostic_snapshot());\nreport.tab = JSON.parse(window.wasmBindings.previous_storage_probe()).tab;\nwindow.wasmBindings.stored_report_probe(JSON.stringify(report));\n```\n\nBoth writes return `true` and use the same storage key.",
       "experiment": "Make setItem throw and compare all existing values before and after. Then make removal throw after a successful write; explain why returning false cannot mean the current value was rolled back.",
       "production": "Production diagnostics persist bounded metadata independently of the GPU. The course now has a tested writer; startup/current-event integration and typed previous-report download follow.",
       "tests": true,
@@ -10203,7 +10204,7 @@
           "why": "Verify repeated writes use the same key and reach actual Web Storage; this debug export is not a runtime feature control."
         }
       ],
-      "checks": "Headed Chrome reads the actual saved JSON, tests stable-key repeated writes and a fourth run reducing the set to three, retains the two newest old values, removes malformed owned values and preserves unrelated keys. Storage denial and an excessive namespace return false without mutation. These probes exercise the physical storage boundary before live report persistence is connected."
+      "checks": "Headed Chrome reads the actual saved JSON, tests stable-key repeated writes and a fourth run reducing the set to three, retains the two newest old values, removes malformed owned values and preserves unrelated keys. Storage denial and an excessive namespace return false without mutation. These probes exercise the physical storage boundary before live report persistence is connected.\n\nAdditional verification: Run the storage-write browser acceptance below. Writing a fourth run must leave the current run and the two newest older reports, preserving unrelated storage keys."
     },
     {
       "id": "34fb-store",
@@ -10217,7 +10218,7 @@
       "trace": "startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous",
       "question": "Why select previous evidence before saving the new running report?",
       "answer": "Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.",
-      "result": "After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally.",
+      "result": "Type `Diagnostic Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.",
       "experiment": "Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.",
       "production": "Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.",
       "tests": true,
@@ -10289,7 +10290,7 @@
           "why": "Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors."
         }
       ],
-      "checks": "Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits."
+      "checks": "Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.\n\nAdditional verification: After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally."
     },
     {
       "id": "34fc-retention",
@@ -10784,7 +10785,7 @@
       "trace": "final exit → revoke ticket → adapter/device resolves → refuse renderer installation",
       "question": "Why check permission before turning a rejected GPU request into an error?",
       "answer": "The page may have closed while the request was pending. That obsolete rejection must not overwrite Closed with a new failure; an active startup still reports genuine errors.",
-      "result": "Reload the viewer and type Diagnostic Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.",
+      "result": "Reload and type `Diagnostic Report`. Startup reaches `ready` with a geometry-on-screen event.",
       "experiment": "In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.",
       "production": "Pending startup is now guarded at both GPU awaits, including rejected results and a late device. Cached transitions remain usable. Browser error observation, complete loading phases and bounded GPU recovery follow.",
       "tests": true,
@@ -10832,8 +10833,122 @@
           "why": "After the device await, destroy a late device and return quietly before configuring the surface or creating resources."
         }
       ],
-      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. The focused browser proof delays actual adapter/device results; injected page transitions exercise the branches without claiming browser cache eligibility.",
+      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. The focused browser proof delays actual adapter/device results; injected page transitions exercise the branches without claiming browser cache eligibility.\n\nAdditional verification: Reload the viewer and type Diagnostic Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.",
       "image_same_as": "34gbc-authority"
+    },
+    {
+      "id": "34gc-messages",
+      "title": "Bound browser failure messages",
+      "page": "journey/34gc-messages.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Keep browser failure text readable and small enough for the existing diagnostic report.",
+      "trace": "browser detail + source position → bounded Unicode text → diagnostic message",
+      "question": "Why limit the detail and source separately?",
+      "answer": "One long source path must not consume the whole failure message. Separate budgets retain useful detail and leave space for labels and positions.",
+      "result": "Run the state checks. Long Unicode messages remain below the report limit, source positions survive, and missing details have readable labels.",
+      "experiment": "Pass an emoji message and a source URL containing both a query and fragment. Predict the retained location, then run the checks.",
+      "production": "This prepares bounded browser error text. The following step observes actual Window errors and promise rejections without serializing arbitrary objects.",
+      "tests": true,
+      "frame": "journey/checks/34gc-messages.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/startup-command.cjs",
+      "story": "Limit each failure detail to 2048 characters and its source path to 1024. Keep line and column numbers; remove source query strings and fragments.\n\nRust character iteration preserves valid Unicode. Empty details get a readable fallback. The next step connects these messages to browser events.\n\n![Bounded failure detail and source location form one readable report message.](../illustrations/journey-34gc.svg)",
+      "browser_caption": "The preceding browser behavior remains unchanged; diagnostic message formatting is checked natively.",
+      "edits": [
+        {
+          "path": "src/error_message.rs",
+          "before": null,
+          "snippet": "journey/code/34gc-messages-01.rs",
+          "why": "Bound message and source lengths while preserving Unicode and excluding source query strings."
+        },
+        {
+          "path": "src/error_message_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gc-messages-02.rs",
+          "why": "Check Unicode bounds, source positions, omitted query strings and missing-detail fallbacks."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod startup;",
+          "snippet": "journey/code/34gc-messages-03.rs",
+          "why": "Register diagnostic message formatting and its native checks."
+        }
+      ],
+      "checks": "Native formatting checks cover Unicode bounds, source locations, queries/fragments and fallbacks. Chrome retains the previous startup and lifecycle route until browser observation is connected.",
+      "image_same_as": "34gbca-startup"
+    },
+    {
+      "id": "34gca-errors",
+      "title": "Observe uncaught browser failures",
+      "page": "journey/34gca-errors.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned.",
+      "trace": "Window failure → bounded message → first-failure report and bounded history",
+      "question": "Why does a browser failure not stop the GPU runtime here?",
+      "answer": "The event proves a script or promise failed, not that the drawing device was lost. Metadata records the failure; GPU loss still stops its own runtime.",
+      "result": "In the browser console, run `Promise.reject(new Error(\"lesson check\"))`. Type `Diagnostic Report`: its first failure reads “Unhandled rejection: lesson check”.",
+      "experiment": "In the debug console, run Promise.reject(new Error(\"lesson failure\")), then type Diagnostic Report. A later failure must not replace the first one.",
+      "production": "Browser failure metadata now shares lifecycle ownership and survives device loss. Full loading phases, adapter/resource information and bounded GPU recovery follow.",
+      "tests": true,
+      "frame": "journey/checks/34gca-errors.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/errors-command.cjs",
+      "story": "Listen for Window error and unhandledrejection events in the metadata owner. Read an Error’s message safely; use a label for non-text promise reasons instead of serializing them.\n\nReuse the existing fatal-report path: retain the first failure and attempt its download once. Later failures remain in the bounded event history. The observers keep browser defaults and do not stop drawing.\n\n![Browser failures join the owned metadata path while drawing remains independent.](../illustrations/journey-34gca.svg)",
+      "browser_caption": "Actual uncaught errors and unhandled promises, bounded messages, first-failure retention, typed downloads and independent GPU ownership are checked.",
+      "edits": [
+        {
+          "path": "src/browser_errors.rs",
+          "before": null,
+          "snippet": "journey/code/34gca-errors-01.rs",
+          "why": "Read native error events and safe promise-reason values; avoid serializing objects and catch unavailable Error messages."
+        },
+        {
+          "path": "Cargo.toml",
+          "before": "\"PageTransitionEvent\",",
+          "snippet": "journey/code/34gca-errors-02.rs",
+          "why": "Enable the two browser event interfaces without changing dependency versions."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod browser_startup;",
+          "snippet": "journey/code/34gca-errors-03.rs",
+          "why": "Register browser failure observation."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "            _ => return,",
+          "snippet": "journey/code/34gca-errors-04.rs",
+          "why": "Record failures through the existing first-failure path; keep event defaults and heartbeat scheduling unchanged."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "    for name in [\"visibilitychange\", \"freeze\", \"resume\"] { listeners.listen(document.as_ref(), name)?; }",
+          "snippet": "journey/code/34gca-errors-05.rs",
+          "why": "Own both Window failure bindings beside the five existing metadata bindings, including partial-registration cleanup."
+        }
+      ],
+      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. Actual browser failures are exercised in isolated browser contexts so deliberate exceptions cannot hide unexpected main-viewer errors.\n\nAdditional verification: Reload and type Diagnostic Report. Normal startup remains Ready. The checkpoint’s browser check produces real uncaught errors and rejected promises, then verifies retained failure evidence.",
+      "image_same_as": "34gc-messages"
     }
   ]
 }

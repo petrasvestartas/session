@@ -4,8 +4,6 @@
 
 Draw the Command label after the triangle and before presenting the image. `RawInput` gives egui the available canvas size. `run_ui` calls our layout closure and returns shapes plus changed font-atlas pixels.
 
-Upload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.
-
 ## Type
 
 Continue from [Prepare the command fonts and painter](03a-fonts.md). [Save or recover your work](recovery.md).
@@ -109,6 +107,8 @@ Command: appears at the bottom of the full-window canvas. The triangle remains u
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Upload those pixels, turn the shapes into triangle jobs and update their GPU buffers. The second render pass uses `Load`, so it keeps the scene pixels already drawn. The panel uses a white frame and the production margins.
 
 `forget_lifetime` removes the pass’s compile-time link to the encoder. The pass still must end before we finish the encoder. Submit its buffers, then release textures egui no longer needs.
 

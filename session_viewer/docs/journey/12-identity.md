@@ -4,8 +4,6 @@
 
 Selection stores Option<ObjectId>, so it follows the object through row changes. GpuMesh uploads a yellow copy for the selected ID while Scene retains its original colours.
 
-Delete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.
-
 ## Type
 
 Continue from [Name objects independently of their rows](11a-identity.md). [Save or recover your work](recovery.md).
@@ -248,7 +246,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Delete removes the selected ID and clears selection. The CPU mesh is borrowed during upload; only the copied display colours change.
 
 selected ObjectId → upload copy → yellow display vertices.
 

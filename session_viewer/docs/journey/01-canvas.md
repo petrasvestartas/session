@@ -4,13 +4,9 @@
 
 Create a white canvas that fills the window and let Rust write a startup message to the hidden status element. This checks browser startup before we use the GPU.
 
-From `session_viewer`, run `npm --prefix ../session_tests run course -- init`. It supplies the dependency lock. Create `workspace/journey/src`, then type the three files below. Keep using this project throughout the course.
-
-`index.html` owns the page; `Cargo.toml` declares libraries; `src/lib.rs` supplies the browser entry point. `Result<(), JsValue>` returns either success with no value or a browser error. `?` stops at a failed window, document or element lookup.
-
-The canvas has no margin or scrolling. The hidden status keeps startup feedback out of the drawing. For unfamiliar syntax, see [values](../foundations/01-values.md) and [errors](../foundations/05-errors.md).
-
 ## Type
+
+From `session_viewer`, run `npm --prefix ../session_tests run course -- init`. It supplies the dependency lock. Create `workspace/journey/src`, then type the three files below. Keep using this project throughout the course.
 
 ### 1. `Cargo.toml`
 
@@ -65,7 +61,9 @@ The window is white. In the browser console, evaluate `document.getElementById("
 <details>
 <summary>Code explanation and diagram</summary>
 
+`index.html` owns the page; `Cargo.toml` declares libraries; `src/lib.rs` supplies the browser entry point. `Result<(), JsValue>` returns either success with no value or a browser error. `?` stops at a failed window, document or element lookup.
 
+The canvas has no margin or scrolling. The hidden status keeps startup feedback out of the drawing. For unfamiliar syntax, see [values](../foundations/01-values.md) and [errors](../foundations/05-errors.md).
 
 HTML canvas → WebAssembly entry point → hidden startup status.
 

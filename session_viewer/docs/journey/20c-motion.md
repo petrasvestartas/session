@@ -4,8 +4,6 @@
 
 Motion::action uses the canvas CSS rectangle to convert a pick to normalized screen coordinates or a drag delta to orbit angles. Reject an invalid rectangle before dividing.
 
-The method consumes Motion. Option<Action> permits invalid input to produce no editor request. Orbit changes the view while leaving document history unchanged.
-
 ## Type
 
 Continue from [Finish or cancel a drag](20b-release.md). [Save or recover your work](recovery.md).
@@ -116,7 +114,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The method consumes Motion. Option<Action> permits invalid input to produce no editor request. Orbit changes the view while leaving document history unchanged.
 
 Motion + CSS rectangle → Action → Editor → selection or view change.
 

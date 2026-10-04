@@ -4,8 +4,6 @@
 
 Restore only the sources required by a captured command: Move/Delete need the target; Save needs all active cold sources. Cancel older pending work, return immediately for warm work, or start the abortable flight with its intent.
 
-`Result<Option<Change>, String>` distinguishes an immediate change, waiting, and failure. `map(Some)` wraps an immediate result; `and_then` preserves earlier errors. Waiting leaves placement, drawing and history untouched.
-
 ## Type
 
 Continue from [Deliver restored edit and Save results to the dock](32gie-response.md). [Save or recover your work](recovery.md).
@@ -145,6 +143,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`Result<Option<Change>, String>` distinguishes an immediate change, waiting, and failure. `map(Some)` wraps an immediate result; `and_then` preserves earlier errors. Waiting leaves placement, drawing and history untouched.
 
 On completion, replay against the captured target and current placement, preserving later camera and selection changes. Save downloads only after required sources return. Zero Move or Delete without selection fetches nothing.
 

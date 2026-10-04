@@ -4,8 +4,6 @@
 
 Report import success only after `Editor::apply` commits successfully. A failed decode retains the scene and records an error instead of saying “File imported.”
 
-An asynchronous file adapter cannot borrow the callback's Panel. Dispatch `viewer-file-error` with text, then let the owning callback update history.
-
 ## Type
 
 Continue from [Download the editable document from the command line](29d-save.md). [Save or recover your work](recovery.md).
@@ -219,6 +217,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+An asynchronous file adapter cannot borrow the callback's Panel. Dispatch `viewer-file-error` with text, then let the owning callback update history.
 
 Queue oversized-file errors before reading. Immediate nested dispatch would re-enter the borrowed `FnMut` callback. After an awaited read, retain the latest-request check so stale work cannot publish an error.
 

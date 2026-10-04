@@ -4,8 +4,6 @@
 
 History retains scene snapshots before an edit. Undo and Redo transfer snapshots between two stacks; a new edit clears Redo. Keep the latest 64 edits.
 
-Rc shares immutable Mesh values across snapshots. FnOnce accepts an action called once with the scene. Restoring contents preserves the highest ID counter reached.
-
 ## Type
 
 Continue from [Select the visible object with a mouse click](13-picking.md). [Save or recover your work](recovery.md).
@@ -187,7 +185,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Rc shares immutable Mesh values across snapshots. FnOnce accepts an action called once with the scene. Restoring contents preserves the highest ID counter reached.
 
 Edit saves Scene → undo/redo transfer snapshots → restore keeps the highest ID counter.
 

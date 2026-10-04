@@ -4,8 +4,6 @@
 
 Deleting a row removes it from drawing, but Undo can bring it back. That requires an owner somewhere. Our History keeps scene snapshots whose rows clone Rc owners rather than copying mesh payloads.
 
-Add a borrowed iterator over both history branches. It lets accounting inspect the roots without cloning their owners. clear replaces History with its empty default, dropping the snapshots and their vector storage. Ordinary edits still keep history; this explicit reset will be used by document close.
-
 ## Type
 
 Continue from [Update only changed object settings](31c-incremental.md). [Save or recover your work](recovery.md).
@@ -77,6 +75,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Add a borrowed iterator over both history branches. It lets accounting inspect the roots without cloning their owners. clear replaces History with its empty default, dropping the snapshots and their vector storage. Ordinary edits still keep history; this explicit reset will be used by document close.
 
 The first test removes a row, confirms history retains its source/display values, then clears history and confirms those values are gone. The second leaves an extra object only in Redo and proves clearing both branches prevents it from returning.
 

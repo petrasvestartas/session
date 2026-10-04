@@ -4,8 +4,6 @@
 
 Give view state its own `Camera`: a centre and scale. Typed pan and zoom commands update it, then redraw with the existing geometry.
 
-The camera formula is `(position - center) * scale`. Our shader already accepts scale and offset, so supply `offset = -center * scale`. With centre 0.25 and scale 2, offset −0.5 puts world x = 0.25 at screen x = 0.
-
 ## Type
 
 Continue from [Send one view setting to every corner](07-uniforms.md). [Save or recover your work](recovery.md).
@@ -177,6 +175,8 @@ cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The camera formula is `(position - center) * scale`. Our shader already accepts scale and offset, so supply `offset = -center * scale`. With centre 0.25 and scale 2, offset −0.5 puts world x = 0.25 at screen x = 0.
 
 The browser translates a submitted command into camera changes. The renderer receives four numbers and does not know how the user chose them. Camera tests verify the centre stays fixed during zoom and reject invalid or out-of-range scale.
 

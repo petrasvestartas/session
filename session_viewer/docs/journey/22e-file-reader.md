@@ -4,8 +4,6 @@
 
 Add the hidden file input and its reader. A shared request number identifies the latest selection; await reads the selected Blob, then a custom event returns owned bytes.
 
-The reader owns no mutable Editor borrow while waiting. Its browser-event registration and Open command are connected in the next step.
-
 ## Type
 
 Continue from [Commit an import as one undoable action](22d-import.md). [Save or recover your work](recovery.md).
@@ -95,7 +93,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The reader owns no mutable Editor borrow while waiting. Its browser-event registration and Open command are connected in the next step.
 
 Selected File → request token → await array_buffer → owned byte event.
 

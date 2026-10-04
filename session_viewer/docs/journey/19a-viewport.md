@@ -4,8 +4,6 @@
 
 Viewport converts CSS size and display density to GPU pixel dimensions. Reduce both dimensions together when they exceed the device limit. Reject hidden or invalid sizes.
 
-Viewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.
-
 ## Type
 
 Continue from [Route browser input through the editor](19-actions.md). [Save or recover your work](recovery.md).
@@ -73,7 +71,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Viewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.
 
 CSS width and height × display density → proportional GPU-limit cap → Viewport.
 

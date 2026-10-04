@@ -4,8 +4,6 @@
 
 Read previous reports from browser storage. `Store` keeps a storage handle, this tab’s stable ID and the new run key. Session storage preserves the tab ID across reloads; unavailable storage uses a fresh ID without stopping startup.
 
-Scan at most 256 storage keys and 32 keys in the course namespace. Pass each candidate through bounded decoding and the recency policy. Browser `Date.parse` supplies actual timestamp interpretation.
-
 ## Type
 
 Continue from [Prove saved-run exclusions before adopting storage](34ec-proof.md). [Save or recover your work](recovery.md).
@@ -70,7 +68,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the storage browser acceptance in the expandable notes below. The reader must choose eligible evidence from real browser storage and retain the tab ID across reloads. Live persistence follows next.
+In the debug console, run `JSON.parse(window.wasmBindings.previous_storage_probe()).tab`. Reload and run it again: the tab ID stays the same.
 
 **Verified checkpoint in Chrome.**
 
@@ -86,6 +84,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Scan at most 256 storage keys and 32 keys in the course namespace. Pass each candidate through bounded decoding and the recency policy. Browser `Date.parse` supplies actual timestamp interpretation.
 
 Rank failures by first fatal time and unfinished runs by heartbeat. Reading removes nothing. This lesson introduces the reader; bounded writes and the previous-report command follow.
 
@@ -126,6 +126,8 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <summary>Viewer coverage and verification</summary>
 
 The production reader uses browser storage and stable tab identity. This endpoint connects the native admission/recency policy to actual storage reads. Bounded writes, live report adoption and the previous-report command follow.
+
+Additional verification: Run the storage browser acceptance in the expandable notes below. The reader must choose eligible evidence from real browser storage and retain the tab ID across reloads. Live persistence follows next.
 
 Headed Chrome uses real Web Storage and UTC timestamp parsing to test candidate selection, stable tab identity, independent run keys and denied storage. Current viewer reports are still not persisted at this checkpoint.
 

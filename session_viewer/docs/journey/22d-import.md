@@ -4,8 +4,6 @@
 
 Attach the retained source Session and GUID to every imported object. Prepare bytes before starting History::try_edit, then insert the whole loaded file as one document action.
 
-Rc::clone shares source ownership. Local ObjectId remains unique across imports; snapshots retain the same source allocation on Undo and Redo.
-
 ## Type
 
 Continue from [Decode and prepare the whole import](22c-decode.md). [Save or recover your work](recovery.md).
@@ -175,7 +173,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Rc::clone shares source ownership. Local ObjectId remains unique across imports; snapshots retain the same source allocation on Undo and Redo.
 
 Loaded document → one history edit → rows with source identity → display.
 

@@ -4,8 +4,6 @@
 
 Introduce `geometry()` and `source()` before making source storage optional. Both return borrowed optional owners. At this stage every row still has geometry; generated rows have no imported-session provenance.
 
-Save uses `geometry().ok_or(...)` and `?` to return a clear error if geometry is missing. It never substitutes derived float display vertices for the editable source.
-
 ## Type
 
 Continue from [Keep row metadata separate from editable geometry](32f-metadata.md). [Save or recover your work](recovery.md).
@@ -261,6 +259,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Save uses `geometry().ok_or(...)` and `?` to return a clear error if geometry is missing. It never substitutes derived float display vertices for the editable source.
 
 Accounting visits only available kernel and session owners while counting rows and displays independently. Migrate ownership checks to the same accessors; fixture `unwrap` asserts a known loaded source, while application Save returns `Result`.
 

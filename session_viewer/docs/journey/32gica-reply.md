@@ -4,8 +4,6 @@
 
 A completion must keep its captured operation beside every returned source body, or beside its failure. Reply stores an optional Intent and one Result. None describes explicit Reload Sources; Some describes captured Move, Delete or Save.
 
-Before pairing bodies and keys, the constructor checks equal lengths. zip stops when either iterator ends; without this check a missing or extra body could silently become a partial restoration. A failure retains the operation and creates no source-body pairs.
-
 ## Type
 
 Continue from [Own the intent with its pending source ticket](32gic-owner.md). [Save or recover your work](recovery.md).
@@ -77,6 +75,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Before pairing bodies and keys, the constructor checks equal lengths. zip stops when either iterator ends; without this check a missing or extra body could silently become a partial restoration. A failure retains the operation and creates no source-body pairs.
 
 This checkpoint does not change the browser flight or connect automatic commands. The next lesson gives the browser this completion value.
 

@@ -4,8 +4,6 @@
 
 Validate a report before trusting it. `valid` bounds identifiers, timestamp text and events; it requires sensible finite dimensions/timing and agreement between Failed and the retained first fatal event.
 
-The first fatal event may be older than the recent-event window. A recent fatal event still requires a retained failure. Validation must accept that distinction.
-
 ## Type
 
 Continue from [Download diagnostics through the real command line](34d-download.md). [Save or recover your work](recovery.md).
@@ -105,6 +103,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The first fatal event may be older than the recent-event window. A recent fatal event still requires a retained failure. Validation must accept that distinction.
 
 Use `while` when trimming a deserialized queue: removing one event is insufficient if its input already exceeded the limit. Repairing that queue does not validate the rest of the report. Byte limits, raw JSON fields and timestamp interpretation follow.
 

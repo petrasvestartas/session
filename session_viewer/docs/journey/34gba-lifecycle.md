@@ -4,8 +4,6 @@
 
 Own diagnostic page events independently of the GPU. Two Window listeners and an `Rc` token keep metadata active after drawing/input cleanup. They retain no renderer or document.
 
-On cached `pagehide`, record the transition and stop the heartbeat, retaining the outcome and listeners. On `pageshow`, record the return and resume one timer.
-
 ## Type
 
 Continue from [Mark a final healthy run closed](34gb-close.md). [Save or recover your work](recovery.md).
@@ -86,6 +84,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+On cached `pagehide`, record the transition and stop the heartbeat, retaining the outcome and listeners. On `pageshow`, record the return and resume one timer.
 
 On final `pagehide`, close metadata immediately, then detach listeners on the next microtask. The active Rust callback must return before its Closure drops. Compare the captured token with the current owner so old cleanup cannot stop a replacement. Take the owner out of its `RefCell` before dropping it.
 

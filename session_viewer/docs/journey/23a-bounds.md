@@ -4,8 +4,6 @@
 
 Accumulate displayed vertex coordinates into Bounds. Its centre is the midpoint of the minimum and maximum; its radius encloses the box corners.
 
-Scene::bounds returns Option<Bounds>. The first vertex starts the box; an empty scene returns None instead of invented dimensions.
-
 ## Type
 
 Continue from [Open a file through the command line](23-import.md). [Save or recover your work](recovery.md).
@@ -125,7 +123,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Scene::bounds returns Option<Bounds>. The first vertex starts the box; an empty scene returns None instead of invented dimensions.
 
 Displayed vertices → coordinate minima/maxima → centre and radius.
 

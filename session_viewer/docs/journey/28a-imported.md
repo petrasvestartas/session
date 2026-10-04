@@ -4,8 +4,6 @@
 
 Make `Loaded` carry `PreparedMesh` values and retain the source geometry behind each imported row. Preparation still finishes before the scene changes.
 
-The kernel session already owns meshes through `Rc`; clone those handles rather than copying geometry. Keep the session too, because it owns file context such as tree and document name.
-
 ## Type
 
 Continue from [Prepare a display from an owned source mesh](28-record.md). [Save or recover your work](recovery.md).
@@ -187,6 +185,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The kernel session already owns meshes through `Rc`; clone those handles rather than copying geometry. Keep the session too, because it owns file context such as tree and document name.
 
 During insertion, moving `prepared.display` transfers that field while leaving the other fields available for transfer. History wraps the whole import in one transaction.
 

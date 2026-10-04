@@ -4,8 +4,6 @@
 
 Add Projection to Camera and choose the matching matrix. Give orthographic projection the same target-plane half-height as perspective: distance × tan(30°).
 
-Projection is a small Copy enum. Inverse-matrix picking remains shared: perspective rays spread out, while orthographic rays have separate origins and parallel directions.
-
 ## Type
 
 Continue from [Run Fit through the command line](24-fit.md). [Save or recover your work](recovery.md).
@@ -168,7 +166,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Projection is a small Copy enum. Inverse-matrix picking remains shared: perspective rays spread out, while orthographic rays have separate origins and parallel directions.
 
 Projection enum → camera matrix → drawing and inverse-matrix rays.
 

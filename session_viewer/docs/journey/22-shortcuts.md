@@ -4,8 +4,6 @@
 
 Route wheel events through navigation::wheel, prevent page scrolling when zoom is handled, and keep printable keyboard input in the command dock. Focus the canvas when a pointer press starts navigation.
 
-There is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.
-
 ## Type
 
 Continue from [Convert wheel units to camera zoom](21a-wheel.md). [Save or recover your work](recovery.md).
@@ -142,7 +140,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+There is no keyboard feature map. Text-editing keys stay with the dock; Escape can cancel gesture state through the navigation route when the dock has not consumed it.
 
 Wheel → navigation_action → Editor; printable key → command dock → typed Action.
 

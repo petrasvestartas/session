@@ -4,8 +4,6 @@
 
 Prepare one owner for the command drawing. It keeps an `egui::Context` and a GPU painter. The browser constructs this owner now; the triangle stays unchanged until we connect drawing.
 
-`include_bytes!` embeds the three Noto font files in the program. Their static lifetime lets the font definitions retain them. `Arc` gives egui shared ownership of the font data; both families list the same font names. The `fonts` helper returns that configuration; `new` installs it, chooses the light theme and creates a painter using the existing device.
-
 ## Type
 
 Continue from [Give the GPU three corners](03-triangle.md). [Save or recover your work](recovery.md).
@@ -137,6 +135,8 @@ The triangle stays visible in the full window. The font and painter owner is con
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`include_bytes!` embeds the three Noto font files in the program. Their static lifetime lets the font definitions retain them. `Arc` gives egui shared ownership of the font data; both families list the same font names. The `fonts` helper returns that configuration; `new` installs it, chooses the light theme and creates a painter using the existing device.
 
 The painter records interface work on our GPU. It does not need a second canvas or HTML controls.
 

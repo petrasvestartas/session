@@ -4,8 +4,6 @@
 
 Cancel the reload before Close, another Unload Sources, Undo/Redo or replacement adoption. Open Replace also cancels at picker opening, matching the existing file-read boundary. Camera and selection remain available while a source request waits.
 
-`matches!` recognizes actions that invalidate pending work. Borrow the reload owner, cancel it before applying the document action, then end that borrow. Late delivery cannot regain the old ticket’s authority.
-
 ## Type
 
 Continue from [Restore editable sources through the command line](32gh-command.md). [Save or recover your work](recovery.md).
@@ -87,7 +85,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+`matches!` recognizes actions that invalidate pending work. Borrow the reload owner, cancel it before applying the document action, then end that borrow. Late delivery cannot regain the old ticket’s authority.
 
 Close / replacement / Undo / release → cancel flight → late result is inert.
 

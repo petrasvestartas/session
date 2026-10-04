@@ -4,8 +4,6 @@
 
 Fit an enclosing sphere using the selected projection. Perspective uses the smaller half-angle; orthographic uses the smaller half-extent.
 
-Carry Projection in an editor action. Changing it preserves camera parameters and document history; Reset View still restores the perspective default.
-
 ## Type
 
 Continue from [Build perspective and orthographic camera matrices](24a-projection.md). [Save or recover your work](recovery.md).
@@ -137,7 +135,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Carry Projection in an editor action. Changing it preserves camera parameters and document history; Reset View still restores the perspective default.
 
 Selected projection → fit opening; Action::Projection → view-only change.
 

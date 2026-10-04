@@ -4,8 +4,6 @@
 
 Mesh owns vertex and index vectors. Its constructor rejects missing vertices, incomplete triangles and nonfinite values. Scene owns a collection of those validated meshes.
 
-Vec owns its allocation; a slice borrows existing elements. Result returns either the constructed Mesh or the reason it was refused. GPU upload consumes these slices in the next step.
-
 ## Type
 
 Continue from [Keep the nearest surface](10-depth.md). [Save or recover your work](recovery.md).
@@ -82,7 +80,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Vec owns its allocation; a slice borrows existing elements. Result returns either the constructed Mesh or the reason it was refused. GPU upload consumes these slices in the next step.
 
 Mesh::new validates owned vectors → Scene retains Mesh values.
 

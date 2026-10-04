@@ -4,8 +4,6 @@
 
 Prove snapshot and load preserve the editable document before adding browser downloading.
 
-Save and reopen a triangle with a double coordinate that rounds in its display, a name, hide/lock flags and translation. Compare original source values exactly; derive display again and keep placement separate.
-
 ## Type
 
 Continue from [Reopen source geometry with its placement](29b-placements.md). [Save or recover your work](recovery.md).
@@ -68,6 +66,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Save and reopen a triangle with a double coordinate that rounds in its display, a name, hide/lock flags and translation. Compare original source values exactly; derive display again and keep placement separate.
 
 Then save duplicate imports. Reopened GUIDs must match their stored object GUIDs, including the duplicate's new identity; matrices must match too. Imported sources stay untouched.
 

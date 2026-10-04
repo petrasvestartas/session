@@ -4,8 +4,6 @@
 
 Keep the current run and two older reports. Validate the report and its matching tab ID before writing. Repeated writes reuse the current run key.
 
-Prepare the retention list, write the current value, then remove excess course-owned keys. Leave unrelated storage alone. Retention ranks heartbeat age; failure selection still ranks fatal time.
-
 ## Type
 
 Continue from [Read previous reports from real browser storage](34f-storage.md). [Save or recover your work](recovery.md).
@@ -61,7 +59,15 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the storage-write browser acceptance below. Writing a fourth run must leave the current run and the two newest older reports, preserving unrelated storage keys.
+In the debug console, run:
+
+```js
+const report = JSON.parse(window.wasmBindings.diagnostic_snapshot());
+report.tab = JSON.parse(window.wasmBindings.previous_storage_probe()).tab;
+window.wasmBindings.stored_report_probe(JSON.stringify(report));
+```
+
+Both writes return `true` and use the same storage key.
 
 **Verified checkpoint in Chrome.**
 
@@ -77,6 +83,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Prepare the retention list, write the current value, then remove excess course-owned keys. Leave unrelated storage alone. Retention ranks heartbeat age; failure selection still ranks fatal time.
 
 A failed write preserves earlier values. A later deletion failure may leave the new report already stored, so return false without claiming rollback. Refuse oversized reports or namespaces before mutation. Storage denial must never stop the viewer.
 
@@ -119,6 +127,8 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 Production diagnostics persist bounded metadata independently of the GPU. The course now has a tested writer; startup/current-event integration and typed previous-report download follow.
 
 Headed Chrome reads the actual saved JSON, tests stable-key repeated writes and a fourth run reducing the set to three, retains the two newest old values, removes malformed owned values and preserves unrelated keys. Storage denial and an excessive namespace return false without mutation. These probes exercise the physical storage boundary before live report persistence is connected.
+
+Additional verification: Run the storage-write browser acceptance below. Writing a fourth run must leave the current run and the two newest older reports, preserving unrelated storage keys.
 
 Actual Web Storage contains the saved JSON and only three retained runs after successful pruning. Chrome checks repeated keys, malformed cleanup, unrelated-key preservation and denied/excessive storage; live persistence follows next.
 

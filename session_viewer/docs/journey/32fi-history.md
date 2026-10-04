@@ -4,8 +4,6 @@
 
 Plan source unloading before mutating. Collect eligible origins across active, Undo and Redo roots; exclude any origin with a protected row. An empty plan returns an error.
 
-Issue a checked release epoch, then unload matching rows in every retained root. This changes residency, not document history, and preserves placements. Close keeps the epoch counter so reopened documents cannot reuse completion tokens.
-
 ## Type
 
 Continue from [Protect sources that cannot be unloaded faithfully](32fh-policy.md). [Save or recover your work](recovery.md).
@@ -191,6 +189,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Issue a checked release epoch, then unload matching rows in every retained root. This changes residency, not document history, and preserves placements. Close keeps the epoch counter so reopened documents cannot reuse completion tokens.
 
 Cold Move and Delete currently return reload-required errors; Save refuses missing geometry. Drawing, picking and camera use retained display state. Automatic restoration comes later.
 

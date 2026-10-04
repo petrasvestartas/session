@@ -4,8 +4,6 @@
 
 Test each indexed triangle with barycentric weights. Nonnegative weights with a sum at most one place the point inside it; those weights also interpolate depth. Retain the nearest covered object.
 
-The query borrows Scene and returns Option<ObjectId>. It does not change selection. None means no triangle covers the point.
-
 ## Type
 
 Continue from [Convert screen positions back to the scene](12a-coordinates.md). [Save or recover your work](recovery.md).
@@ -73,7 +71,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The query borrows Scene and returns Option<ObjectId>. It does not change selection. None means no triangle covers the point.
 
 Scene point → barycentric coverage → interpolated depth → nearest ObjectId.
 

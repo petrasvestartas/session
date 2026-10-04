@@ -4,8 +4,6 @@
 
 Keep the white GPU frame and separate its browser presentation into `present`. Setup requests the device and configures the surface; presentation obtains an image, calls `Renderer::draw`, then presents it.
 
-Clamp canvas dimensions to the device’s texture limit, with at least one pixel per axis. This prevents a zero-sized or oversized surface. CSS still determines the visible window area; lesson 20 handles later resizes and display density.
-
 ## Type
 
 Continue from [Paint the first GPU frame](01a-gpu.md). [Save or recover your work](recovery.md).
@@ -160,6 +158,8 @@ The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: i
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Clamp canvas dimensions to the device’s texture limit, with at least one pixel per axis. This prevents a zero-sized or oversized surface. CSS still determines the visible window area; lesson 20 handles later resizes and display density.
 
 Allow an sRGB texture view and use it for drawing. It converts linear colour values into display encoding. The triangle pipeline added next must use that same view format.
 

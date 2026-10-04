@@ -4,8 +4,6 @@
 
 Convert submitted commands and canvas clicks to Action values. Apply them through Editor, upload only when Change is Scene, then redraw from the editor camera and background.
 
-The closure captures one mutable editor. The GPU renderer keeps its derived representation separate from the document owner.
-
 ## Type
 
 Continue from [Apply document and view actions in Rust](18b-actions.md). [Save or recover your work](recovery.md).
@@ -298,7 +296,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The closure captures one mutable editor. The GPU renderer keeps its derived representation separate from the document owner.
 
 Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw.
 

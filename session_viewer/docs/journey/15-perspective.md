@@ -4,8 +4,6 @@
 
 Intersect the camera ray with each triangle. Keep the nearest hit inside the near-to-far segment and return its ObjectId.
 
-The barycentric values u and v test triangle coverage. The browser converts a canvas click to a ray, stores the selected ID, then uploads its yellow display colour.
-
 ## Type
 
 Continue from [Turn a screen point into a bounded ray](14b-ray.md). [Save or recover your work](recovery.md).
@@ -194,7 +192,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The barycentric values u and v test triangle coverage. The browser converts a canvas click to a ray, stores the selected ID, then uploads its yellow display colour.
 
 Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display.
 

@@ -4,8 +4,6 @@
 
 Look from z = 3 toward z = 0 with a 60-degree vertical field of view. The nearer turquoise triangle covers pink at their overlap.
 
-Xform calculates the view and projection in double precision. to_f32 supplies the existing GPU uniform; the shader divides clip coordinates by w. Keep aspect equal to window width divided by height.
-
 ## Type
 
 Continue from [Run Undo and Redo from the command line](14-history.md). [Save or recover your work](recovery.md).
@@ -394,7 +392,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Xform calculates the view and projection in double precision. to_f32 supplies the existing GPU uniform; the shader divides clip coordinates by w. Keep aspect equal to window width divided by height.
 
 Eye and target → view_projection → f32 uniform → GPU depth test.
 

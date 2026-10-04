@@ -4,8 +4,6 @@
 
 Replace the panel’s local `String` with `CommandLine`. The field now reads and edits `model.command`; its empty hint comes from `model.status`.
 
-`String` owns editable text. `VecDeque<String>` retains ordered history and can remove the oldest entry from the front. `Option` represents values that do not exist yet, such as an undrawn widget’s rectangle. `Default` starts strings and queues empty, flags false and optional values absent.
-
 ## Type
 
 Continue from [Lay out the command field](03a-panel.md). [Save or recover your work](recovery.md).
@@ -154,6 +152,8 @@ The empty field now shows “The field now belongs to CommandLine.” Change tha
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`String` owns editable text. `VecDeque<String>` retains ordered history and can remove the oldest entry from the front. `Option` represents values that do not exist yet, such as an undrawn widget’s rectangle. `Default` starts strings and queues empty, flags false and optional values absent.
 
 `placeholder` returns borrowed text. Its lifetime keeps that slice tied to the supplied prompt or status. Rust allows the field to borrow command mutably and status immutably because they are separate fields.
 

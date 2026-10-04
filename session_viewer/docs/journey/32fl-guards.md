@@ -4,8 +4,6 @@
 
 Add the cases that a simple active-row check would miss. A modified metadata row exists only in history, while the active original still looks eligible. Protect that entire origin. A second import of identical bytes has its own Origin and can unload independently.
 
-The epoch test forces exhaustion and verifies that no row becomes cold. It then releases, closes, reopens and releases again: the new rows receive the next epoch rather than reusing one.
-
 ## Type
 
 Continue from [Unload editable sources through the command line](32fk-command.md). [Save or recover your work](recovery.md).
@@ -59,7 +57,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The epoch test forces exhaustion and verifies that no row becomes cold. It then releases, closes, reopens and releases again: the new rows receive the next epoch rather than reusing one.
 
 Modified history origin → protection; independent origin → release; exhausted epoch → no mutation.
 

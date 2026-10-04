@@ -4,8 +4,6 @@
 
 Add typed `Unload Sources` to the existing dock vocabulary. Remember the action kind before `apply` consumes it and report success only after the residency pass and renderer synchronization.
 
-The command drops eligible editable sources while retaining display meshes and GPU allocations. Hidden inspection attributes expose source availability and epoch without adding a control.
-
 ## Type
 
 Continue from [Prove unloading preserves placed history](32fj-proof.md). [Save or recover your work](recovery.md).
@@ -133,6 +131,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The command drops eligible editable sources while retaining display meshes and GPU allocations. Hidden inspection attributes expose source availability and epoch without adding a control.
 
 Cold Move, Delete and Save currently report that reload is required. They must preserve history and never save float display approximations. Camera and picking still work; Undo/Redo retain the source's cold state. Close clears roots and releases owned URLs.
 

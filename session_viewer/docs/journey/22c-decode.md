@@ -4,8 +4,6 @@
 
 Bound byte length, decode the protobuf message, validate it, then construct one shared Session and every display mesh. Return Loaded only when the whole preparation succeeds.
 
-The ? operator stops at the first error. No scene or history is changed here, so a bad later mesh cannot leave a partial import.
-
 ## Type
 
 Continue from [Validate session identity and build a sample file](22b-session.md). [Save or recover your work](recovery.md).
@@ -177,7 +175,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The ? operator stops at the first error. No scene or history is changed here, so a bad later mesh cannot leave a partial import.
 
 Bytes → decoded record → validation → shared Session and prepared Mesh values.
 

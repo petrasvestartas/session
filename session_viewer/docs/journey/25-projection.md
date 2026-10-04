@@ -4,8 +4,6 @@
 
 Add View Perspective and View Orthographic to the command vocabulary and route them to Action::Projection. Report the active projection on the canvas after applying an action.
 
-The commands preserve target-plane scale and view parameters. Fit remains explicit; run it after switching if perspective crops nearby geometry.
-
 ## Type
 
 Continue from [Fit and change projection through the editor](24b-projection-actions.md). [Save or recover your work](recovery.md).
@@ -135,7 +133,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The commands preserve target-plane scale and view parameters. Fit remains explicit; run it after switching if perspective crops nearby geometry.
 
 Named View command → Projection value → Editor → camera matrix and reported mode.
 

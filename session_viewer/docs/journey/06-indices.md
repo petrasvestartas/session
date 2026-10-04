@@ -4,8 +4,6 @@
 
 Store four corner positions and connect them with indices: `0, 1, 2` and `0, 2, 3`. The two triangles now share corners 0 and 2.
 
-The vertex buffer answers where a corner is; the index buffer answers which corners form a triangle. Changing a shared position changes both triangles.
-
 ## Type
 
 Continue from [Let Rust supply the corners](05-vertices.md). [Save or recover your work](recovery.md).
@@ -163,6 +161,8 @@ A diamond is drawn from four vertices. Follow the six indices into those vertice
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The vertex buffer answers where a corner is; the index buffer answers which corners form a triangle. Changing a shared position changes both triangles.
 
 These indices are `u16`, so bind the index buffer as `Uint16`. Each index occupies two bytes; each position still occupies eight. `draw_indexed` chooses index entries, adds its base-vertex value, then draws the requested instances. The shader keeps its previous input layout.
 

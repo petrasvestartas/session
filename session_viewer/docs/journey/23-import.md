@@ -4,8 +4,6 @@
 
 Type Open to activate the hidden picker. Route selection through the reader and completed bytes through Action::Import in the callback that owns Editor.
 
-The callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.
-
 ## Type
 
 Continue from [Prepare asynchronous file delivery](22e-file-reader.md). [Save or recover your work](recovery.md).
@@ -198,7 +196,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.
 
 Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw.
 

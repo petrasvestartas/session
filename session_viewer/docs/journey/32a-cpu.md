@@ -4,8 +4,6 @@
 
 Count shared CPU allocations once across the scene, history and GPU-held displays. Count row records separately from distinct mesh, document and display owners.
 
-A retained session can still own geometry after a display row disappears. Visit every mesh in each unique session, then add display owners retained by GPU geometry.
-
 ## Type
 
 Continue from [Find the owners retained by history](32-history.md). [Save or recover your work](recovery.md).
@@ -143,6 +141,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+A retained session can still own geometry after a display row disappears. Visit every mesh in each unique session, then add display owners retained by GPU geometry.
 
 Use `HashSet` pointer identities from borrowed live `Rc` values without dereferencing raw pointers. Counting must not retain those owners.
 

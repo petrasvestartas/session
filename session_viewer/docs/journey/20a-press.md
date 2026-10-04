@@ -4,8 +4,6 @@
 
 Gesture remembers one pointer ID, its button and its positions. Reject a second press while that pointer is active. Each move reports the change from the previous position.
 
-Option holds one Drag or none. as_mut borrows the stored drag; filter accepts only its pointer ID. The click threshold remembers whether any movement exceeded four CSS pixels.
-
 ## Type
 
 Continue from [Resize canvas, depth and camera together](20-resize.md). [Save or recover your work](recovery.md).
@@ -83,7 +81,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Option holds one Drag or none. as_mut borrows the stored drag; filter accepts only its pointer ID. The click threshold remembers whether any movement exceeded four CSS pixels.
 
 Press → Option<Drag> → matching move → Motion::Orbit.
 

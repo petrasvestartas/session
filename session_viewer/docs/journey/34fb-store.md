@@ -4,8 +4,6 @@
 
 Persist live diagnostics and add `Diagnostic Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
 
-After an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.
-
 ## Type
 
 Continue from [Retain only three diagnostic runs](34fa-retain.md). [Save or recover your work](recovery.md).
@@ -201,7 +199,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally.
+Type `Diagnostic Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.
 
 **Verified checkpoint in Chrome.**
 
@@ -217,6 +215,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+After an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.
 
 Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
 
@@ -259,6 +259,8 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.
 
 Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.
+
+Additional verification: After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally.
 
 Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Diagnostic Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.
 

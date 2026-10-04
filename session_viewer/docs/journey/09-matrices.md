@@ -4,8 +4,6 @@
 
 Replace separate scale and offset uniforms with one matrix so the view can also rotate. The geometry and draw pipeline remain the same.
 
-Read the four columns as transformed x, y and z steps, followed by the transformed origin. A position combines them using x, y, z and a final 1.
-
 ## Type
 
 Continue from [Move the view, keep the geometry](08-camera.md). [Save or recover your work](recovery.md).
@@ -304,6 +302,8 @@ cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Read the four columns as transformed x, y and z steps, followed by the transformed origin. A position combines them using x, y, z and a final 1.
 
 For camera angle θ, use `a = scale × cos(θ)` and `b = scale × sin(θ)`. Screen coordinates become `(a×x + b×y, −b×x + a×y)` plus translation. Subtract the rotated, scaled camera centre so that centre still lands at zero.
 

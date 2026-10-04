@@ -4,8 +4,6 @@
 
 Make `Fit Selected` use one object's bounds with the same fitting policy as `Fit`.
 
-Scene finds the object by `ObjectId`. `?` returns `None` for a missing ID or empty mesh. Start bounds from its first vertex so the origin does not enlarge every box.
-
 ## Type
 
 Continue from [Run the named projection commands](25-projection.md). [Save or recover your work](recovery.md).
@@ -166,6 +164,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Scene finds the object by `ObjectId`. `?` returns `None` for a missing ID or empty mesh. Start bounds from its first vertex so the origin does not enlarge every box.
 
 Editor uses `Option::and_then` to request bounds only when selection exists, then passes them to Camera. No second fitting formula is needed.
 

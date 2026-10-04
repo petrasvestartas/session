@@ -4,8 +4,6 @@
 
 ObjectId names an object independently of its vector row. Scene allocates IDs, looks up objects by those names, and remembers the extra triangle by ID.
 
-The wrapper type prevents confusing an ID with an index. checked_add returns an error before the counter can wrap and reuse a name.
-
 ## Type
 
 Continue from [Draw the scene through GPU mesh owners](11-scene.md). [Save or recover your work](recovery.md).
@@ -129,7 +127,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The wrapper type prevents confusing an ID with an index. checked_add returns an error before the counter can wrap and reuse a name.
 
 Scene allocates ObjectId → Object retains Mesh → GPU upload borrows that mesh.
 

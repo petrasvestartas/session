@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 166 cumulative lessons, about 154.25–296 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 168 cumulative lessons, about 155.5–298.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **233 proposed slots: 166 current checkpoints and 67 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **234 proposed slots: 168 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -193,6 +193,8 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [34gbba · Connect visibility and freezing to heartbeat scheduling](journey/34gbba-browser.md) | 0.75–1.25 hours | Pause the actual diagnostic timer while any browser suspension reason remains. |
 | [34gbc · Give pending startup a revocable ticket](journey/34gbc-authority.md) | 0.5–1 hours | Prevent a waiting task from regaining startup permission after closure. |
 | [34gbca · Refuse GPU results after final page exit](journey/34gbca-startup.md) | 0.75–1.25 hours | Stop delayed adapter or device delivery from installing a renderer after final exit. |
+| [34gc · Bound browser failure messages](journey/34gc-messages.md) | 0.5–1 hours | Keep browser failure text readable and small enough for the existing diagnostic report. |
+| [34gca · Observe uncaught browser failures](journey/34gca-errors.md) | 0.75–1.25 hours | Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

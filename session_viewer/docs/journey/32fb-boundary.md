@@ -4,8 +4,6 @@
 
 Finish migrating consumers to `geometry()` and `source()`, then make Object's editable-owner fields private. Direct field access outside the row now fails to compile.
 
-Keep `PreparedMesh.geometry` mandatory: a prepared insertion requires valid geometry. Keep `GpuMesh.geometry` unchanged: it owns display buffers, not editable kernel data.
-
 ## Type
 
 Continue from [Ask whether an editable source is available](32fa-access.md). [Save or recover your work](recovery.md).
@@ -413,6 +411,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Keep `PreparedMesh.geometry` mandatory: a prepared insertion requires valid geometry. Keep `GpuMesh.geometry` unchanged: it owns display buffers, not editable kernel data.
 
 Rows retain public identity, saved GUID, metadata, model and derived mesh. Source storage can next become Loaded or Released behind its borrowed accessors without changing drawing or history placements. No source unload happens in this step.
 

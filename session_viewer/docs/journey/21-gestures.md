@@ -4,8 +4,6 @@
 
 Deliver canvas pointer events to Gesture when the command dock has not consumed them. Capture the accepted pointer so events keep arriving outside the canvas. Apply any returned action through Editor.
 
-Release capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.
-
 ## Type
 
 Continue from [Convert pointer motion to editor actions](20c-motion.md). [Save or recover your work](recovery.md).
@@ -264,7 +262,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Release capture on pointer-up. Clear gesture state on cancellation, lost capture, blur or resize; suppress the browser context menu for right-drag navigation.
 
 DOM pointer → Gesture → Motion::action → Editor → redraw.
 

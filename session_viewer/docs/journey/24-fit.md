@@ -4,8 +4,6 @@
 
 Add Fit to Action and the command vocabulary. Editor measures scene bounds and asks Camera to fit them when geometry exists.
 
-Fit returns a view change. It retains selection and document history, and reuses the current geometry buffers. An empty scene leaves the camera unchanged.
-
 ## Type
 
 Continue from [Fit the camera around the bounds](23b-fit-camera.md). [Save or recover your work](recovery.md).
@@ -167,7 +165,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Fit returns a view change. It retains selection and document history, and reuses the current geometry buffers. An empty scene leaves the camera unchanged.
 
 Typed Fit → Editor → Scene::bounds → Camera::fit → redraw.
 

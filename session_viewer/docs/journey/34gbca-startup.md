@@ -4,8 +4,6 @@
 
 Keep one temporary pagehide listener while startup awaits the GPU. Final exit revokes its shared ticket; cached transitions retain permission.
 
-Check authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed diagnostic report instead of recording a new fatal error. The listener is released when startup returns.
-
 ## Type
 
 Continue from [Give pending startup a revocable ticket](34gbc-authority.md). [Save or recover your work](recovery.md).
@@ -112,7 +110,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Reload the viewer and type Diagnostic Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.
+Reload and type `Diagnostic Report`. Startup reaches `ready` with a geometry-on-screen event.
 
 **Verified checkpoint in Chrome.**
 
@@ -129,7 +127,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Check authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed diagnostic report instead of recording a new fatal error. The listener is released when startup returns.
 
 final exit → revoke ticket → adapter/device resolves → refuse renderer installation.
 
@@ -170,6 +168,8 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 Pending startup is now guarded at both GPU awaits, including rejected results and a late device. Cached transitions remain usable. Browser error observation, complete loading phases and bounded GPU recovery follow.
 
 Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. The focused browser proof delays actual adapter/device results; injected page transitions exercise the branches without claiming browser cache eligibility.
+
+Additional verification: Reload the viewer and type Diagnostic Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.
 
 Actual delayed GPU results are tested across final and cached page transitions; normal command, camera and lifecycle checks remain connected.
 

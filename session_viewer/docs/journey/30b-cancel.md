@@ -4,8 +4,6 @@
 
 Use `Rc<RefCell<ReadGate>>` to share a ticket gate between the command callback and read tasks. Keep mutable borrows short and release them before dispatching events.
 
-A chosen file begins a ticket. Check it before reading; consume it once with `finish` after completion. Stale or cancelled tasks deliver neither bytes nor errors.
-
 ## Type
 
 Continue from [Give a pending read an explicit ticket](30a-tickets.md). [Save or recover your work](recovery.md).
@@ -346,6 +344,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+A chosen file begins a ticket. Check it before reading; consume it once with `finish` after completion. Stale or cancelled tasks deliver neither bytes nor errors.
 
 Typed `Cancel Open` revokes ownership without editing the document. It does not physically abort `File.arrayBuffer`; its eventual result is ignored.
 

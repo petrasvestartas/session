@@ -4,8 +4,6 @@
 
 Shade the grey box according to surface direction. Pass world positions from the vertex shader to the fragment shader.
 
-`dpdx` and `dpdy` estimate horizontal and vertical position changes. Their cross product gives the triangle normal; normalisation makes it unit length. Dot it with the unit world-space light direction to measure alignment.
-
 ## Type
 
 Continue from [Bring a solid into the scene](17-solid.md). [Save or recover your work](recovery.md).
@@ -99,6 +97,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`dpdx` and `dpdy` estimate horizontal and vertical position changes. Their cross product gives the triangle normal; normalisation makes it unit length. Dot it with the unit world-space light direction to measure alignment.
 
 Use `abs` for this display's two-sided lighting and retain a minimum brightness of 0.3. Multiply RGB before the existing sRGB output conversion.
 

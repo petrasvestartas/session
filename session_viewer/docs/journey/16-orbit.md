@@ -4,8 +4,6 @@
 
 Orbit around a fixed target. Camera orientation determines its right, up and forward directions; viewing distance places the eye behind the target.
 
-Use the kernel's quaternion to represent orientation. Rotate sideways around world z and tilt around the camera's current right axis. In `yaw × (pitch × orientation)`, the existing orientation is followed by tilt, then yaw. Order matters.
-
 ## Type
 
 Continue from [Pick the nearest surface through the view](15-perspective.md). [Save or recover your work](recovery.md).
@@ -275,6 +273,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Use the kernel's quaternion to represent orientation. Rotate sideways around world z and tilt around the camera's current right axis. In `yaw × (pitch × orientation)`, the existing orientation is followed by tilt, then yaw. Order matters.
 
 Normalise after updates to keep a pure rotation. The repeated-turn test checks that the resulting axes remain unit length and perpendicular.
 

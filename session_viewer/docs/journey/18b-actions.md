@@ -4,8 +4,6 @@
 
 Editor::apply handles an Action and returns the kind of drawing change. Document edits use History; camera and background changes stay outside it.
 
-Result propagates a failed add operation. After deletion or history travel, retain selection only if its ID still exists. View Reset keeps the current window aspect.
-
 ## Type
 
 Continue from [Give application state one owner](18a-editor.md). [Save or recover your work](recovery.md).
@@ -71,7 +69,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Result propagates a failed add operation. After deletion or history travel, retain selection only if its ID still exists. View Reset keeps the current window aspect.
 
 Action → Editor::apply → History for document edits → Change::Scene or Change::View.
 

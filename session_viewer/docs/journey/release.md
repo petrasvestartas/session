@@ -1,16 +1,16 @@
 # Course release: command-line checkpoints
 
-**All 166 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 168 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
 ## Lesson clarity revision
 
-Each current lesson has one focused exercise. All main explanations were reviewed; this batch shortens 49 further explanations after the earlier chapter-34 revision. Main introductions stay within 90 words, followed by typed changes and one result check. Experiments, implementation context and extended acceptance evidence remain expandable supporting notes. Every lesson links to the detailed to-do list.
+Each current lesson has one focused exercise. All main explanations were reviewed; this batch shortens 49 further explanations after the earlier chapter-34 revision. Each lesson opens with one outcome paragraph, at most 45 words, followed by typed changes and one result check. Experiments, implementation context and extended acceptance evidence remain expandable supporting notes. Every lesson links to the detailed to-do list.
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 166 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 67 remaining feature lessons.
+All 168 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 66 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -186,6 +186,18 @@ One temporary pagehide binding survives both GPU awaits. Final exit revokes its 
 The previous endpoint fails the same focused acceptance: after final exit, a delayed adapter still triggers a device request. The connected endpoint passes ten delayed-result cases: adapter/device success and actual API rejection after final exit; cached adapter/device return; final exit with unavailable metadata; and active adapter/device rejection. A mandatory startup-binding denial refuses GPU requests and retains failure diagnostics. Injected persisted transitions exercise these branches; they do not prove browser-cache eligibility.
 
 The complete command/camera, actual visibility/freezing, post-loss metadata, partial registration and final-cleanup checks also pass. Initial captures exposed test setup problems: instrumentation ran on a blank document without WebGPU, then a drawing reference was recorded before GPU completion. Blank documents are skipped; this checkpoint’s visual checker awaits submitted GPU work and a white frame containing coloured geometry before each exact drawing comparison. Snapshot settling performs no new viewer GPU calls. The cached-route listener counts include the one already-released startup binding. Earlier checkers are untouched. No phone timing, real 15-second heartbeat period or pending-request wall-clock performance is claimed.
+
+## Direct lessons and browser failures
+
+Every lesson now goes from one short outcome paragraph to Type, then Run and check. Openings contain at most 45 words. The first lesson puts its setup instructions under Type. Extended Rust explanations, diagrams, experiments and acceptance evidence stay folded. Diagnostic lessons now give an immediate learner check instead of directing the reader through the full acceptance route. The storage checks were run in Chrome; the repeated-write check explicitly sets the specimen’s tab identity before writing. All 166 previously published implementation endpoints and their browser checker fingerprints remain unchanged.
+
+Two new runnable lessons bound failure text (19–38 minutes of typing), then connect browser error observation (18–35). Both pass 141 native tests, WebAssembly, Trunk, native GPU frames and headed Chrome. Unicode detail is limited to 2048 characters and source paths to 1024; query strings and fragments are omitted while line/column positions remain. Missing details receive a readable label.
+
+The metadata owner now retains seven bindings: its previous five plus Window error and unhandledrejection. The first failure uses the existing report/download path once; later failures enter the 24-event history without replacing that first reason or triggering another automatic download. Error message getters that throw are caught. Arbitrary objects are labelled rather than serialized or coerced to text. Browser defaults remain active, and these metadata events submit no GPU work and do not stop a healthy camera.
+
+An isolated browser context exercises real timer-thrown errors and real unhandled promises, verifies the native exception notifications, reads automatic and typed report downloads, fills the event ring, rotates the actual camera, destroys the actual GPU device, then observes metadata after loss and refusal after final cleanup. Synthetic event checks separately cover Unicode/source bounds, scalar/null/undefined reasons, cyclic objects with throwing text getters and an Error with an unavailable message. The unchanged preceding endpoint records no failure for the same actual unhandled promise; the connected endpoint records Failed. Chrome prefixes actual error-event messages with “Uncaught Error:”; the initial checker assumed that prefix was absent and was corrected to retain and check the native detail. Unexpected errors in the normal capture still fail it.
+
+The complete prior startup, real visibility/freezing, command/camera, post-loss, replacement and partial-registration routes also pass with the seven-binding owner. Denying the final unhandledrejection binding removes all six earlier metadata bindings; healthy typed report retrieval remains usable. The temporary startup binding and eighteen GPU/runtime bindings retain their previous lifetime. No phone timing, real fifteen-second timer period, browser-cache eligibility or full production loading/recovery coverage is claimed.
 
 ## Reproduce
 

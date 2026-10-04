@@ -4,8 +4,6 @@
 
 Complete the previous-run policy with rejected examples. Use a fixed clock to test invalid timestamps, reversed start/heartbeat order, and a failure dated before its run.
 
-Ready and Closed must never produce interruption evidence. Compare the report before and after selection: eligibility reads its metadata without changing it.
-
 ## Type
 
 Continue from [Choose a recent failure without blaming active tabs](34eb-recency.md). [Save or recover your work](recovery.md).
@@ -83,6 +81,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Ready and Closed must never produce interruption evidence. Compare the report before and after selection: eligibility reads its metadata without changing it.
 
 This step adds the boundary checks. The browser storage reader is connected next.
 

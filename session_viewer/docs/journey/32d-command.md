@@ -4,8 +4,6 @@
 
 Expose typed `Close` through the existing dock. Cancel `ReadGate` before returning `Action::Close`, so a pending read cannot refill the closed document.
 
-Remember the action kind before `apply` consumes it. Report “Document closed” only after the scene change and renderer synchronization succeed.
-
 ## Type
 
 Continue from [Close the document without resetting the view](32c-close.md). [Save or recover your work](recovery.md).
@@ -114,6 +112,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Remember the action kind before `apply` consumes it. Report “Document closed” only after the scene change and renderer synchronization succeed.
 
 Close drops document and history owners while preserving camera, background and the GPU device. Page-exit disposal later ends the viewer itself; Close leaves it ready for another Open.
 

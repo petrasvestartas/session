@@ -4,8 +4,6 @@
 
 Choose previous failure evidence by fatal time. An old failed tab may keep updating lastSeen; its heartbeat must not make the original failure recent again.
 
-Supply timestamp parsing as a function so native tests can use a fixed clock. Reject non-finite or out-of-order times. A fatal event qualifies for two hours and ranks by its own timestamp.
-
 ## Type
 
 Continue from [Admit only supported bounded saved JSON](34ea-decode.md). [Save or recover your work](recovery.md).
@@ -77,6 +75,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Supply timestamp parsing as a function so native tests can use a fixed clock. Reject non-finite or out-of-order times. A fatal event qualifies for two hours and ranks by its own timestamp.
 
 A Running report qualifies when its heartbeat is under two hours old and belongs to this tab, or another tab inactive for more than two minutes. An active other tab, Ready run or Closed run stays quiet. Interrupted means unfinished, not proven crashed.
 

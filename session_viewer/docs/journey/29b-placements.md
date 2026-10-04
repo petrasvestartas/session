@@ -4,8 +4,6 @@
 
 Accept the saved file's separate placement records. Each must identify an existing mesh, occur once, and contain sixteen finite values with an affine final row.
 
-Share this rule through `placement::valid` for loading and scene placement. Validate before constructing `Xform`: its defaults must not silently fill a short file matrix.
-
 ## Type
 
 Continue from [Write a snapshot from the editable sources](29a-snapshot.md). [Save or recover your work](recovery.md).
@@ -264,6 +262,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Share this rule through `placement::valid` for loading and scene placement. Validate before constructing `Xform`: its defaults must not silently fill a short file matrix.
 
 `PreparedMesh` now carries a model matrix. Generated geometry starts at identity; loading copies the validated source placement; insertion retains it.
 

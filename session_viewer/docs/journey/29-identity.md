@@ -4,8 +4,6 @@
 
 Give each inserted object a stored GUID for saving. Local `ObjectId` still identifies the editor object; imported source GUID still identifies its original geometry.
 
-Prefer the geometry GUID when unused. Duplicate imports receive a new UUID without changing their original source mesh or provenance. Check even generated candidates against live objects.
-
 ## Type
 
 Continue from [Prove source ownership survives editing](28c-ownership.md). [Save or recover your work](recovery.md).
@@ -131,6 +129,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Prefer the geometry GUID when unused. Duplicate imports receive a new UUID without changing their original source mesh or provenance. Check even generated candidates against live objects.
 
 Assign identity once at insertion. History clones the stored `String`; Move and Save must not regenerate it.
 

@@ -4,8 +4,6 @@
 
 Connect both GPU error callbacks to the same `Fault`. When the first error arrives, mark the device failed immediately so the input handler cannot submit another frame.
 
-Schedule disposal on the next microtask: the active callback must return before its Rust closure is released. Compare the captured Fault allocation with the installed runtime before taking that runtime out of its slot. An old device’s callback must leave a replacement alone.
-
 ## Type
 
 Continue from [Keep the first GPU failure with its device](34-fault.md). [Save or recover your work](recovery.md).
@@ -140,7 +138,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the GPU-stop browser acceptance described below. Destroying the real test device must show “Cannot draw” and stop further rendering. Reloading the same page starts a fresh viewer.
+Run the state checks. The first GPU failure must remain unchanged when another callback reports a later failure.
 
 **Verified checkpoint in Chrome.**
 
@@ -156,6 +154,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Schedule disposal on the next microtask: the active callback must return before its Rust closure is released. Compare the captured Fault allocation with the installed runtime before taking that runtime out of its slot. An old device’s callback must leave a replacement alone.
 
 Drop then cancels pending requests and removes input listeners. The page shows “Cannot draw”. Reloading starts a new viewer; automatic recovery comes later.
 
@@ -198,6 +198,8 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 Production records the first GPU failure and gates UI/uploads/rendering before further GPU work. This checkpoint establishes the stopped lifetime. Structured diagnostics, persisted reports and bounded recovery remain next.
 
 Chrome intercepts requestDevice in the test only and calls the real GPUDevice.destroy(). It observes the real lost promise and then verifies visible device-loss feedback, disposed runtime and zero further queue writes, submissions, allocations or surface configuration for attempted keyboard, camera, resize and late event input. A normal same-tab reload creates a working viewer again. The test’s observer is not part of the tutorial application.
+
+Additional verification: Run the GPU-stop browser acceptance described below. Destroying the real test device must show “Cannot draw” and stop further rendering. Reloading the same page starts a fresh viewer.
 
 Chrome destroys a real GPUDevice, verifies visible loss feedback and disposed listeners, and observes no GPU work from subsequent input. A same-tab reload produces the final working screenshot; it does not recover unsaved edits.
 

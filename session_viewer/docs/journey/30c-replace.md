@@ -4,8 +4,6 @@
 
 Add `Action::Replace` for one reversible document replacement. First prepare the entire file with `document::load`; only then enter `History::try_edit` and replace the rows.
 
-`Scene::replace` clears objects and the demo marker, then inserts prepared objects. Keep the ID counter advancing. The transaction restores the old scene if insertion fails partway through.
-
 ## Type
 
 Continue from [Cancel reads without accepting their late result](30b-cancel.md). [Save or recover your work](recovery.md).
@@ -125,6 +123,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`Scene::replace` clears objects and the demo marker, then inserts prepared objects. Keep the ID counter advancing. The transaction restores the old scene if insertion fails partway through.
 
 Repair selection after success. Camera, projection and background remain outside document history. Undo restores the old shared owners; Redo restores the replacement objects.
 

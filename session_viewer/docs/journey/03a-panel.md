@@ -4,8 +4,6 @@
 
 Add the command field beside its label. Keep panel sizing, shared spacing and field styling in the view module so later command behaviour can reuse them.
 
-The field receives `&mut String`: egui borrows the text for this draw instead of owning a separate copy. It returns a `Response` describing the widget. The current page still supplies no keyboard events, so drawing the field does not connect typing yet.
-
 ## Type
 
 Continue from [Paint command text over the scene](03a-paint.md). [Save or recover your work](recovery.md).
@@ -165,6 +163,8 @@ The production command field appears beside Command: over the triangle. Input ha
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The field receives `&mut String`: egui borrows the text for this draw instead of owning a separate copy. It returns a `Response` describing the widget. The current page still supplies no keyboard events, so drawing the field does not connect typing yet.
 
 The panel keeps its white fill, thin top rule, Noto text and unframed field. The history expansion control arrives with its behaviour in later steps.
 

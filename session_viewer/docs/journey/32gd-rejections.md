@@ -4,8 +4,6 @@
 
 Test atomic source restoration across independent imported origins. Change the second source version and require both origins to remain cold. Then give a retained row the wrong original source GUID and require refusal.
 
-`Rc::make_mut` gives the test row its own metadata when history shares the original. This simulates row inconsistency without modifying the imported file.
-
 ## Type
 
 Continue from [Prove source restoration preserves display and history](32gc-roundtrip.md). [Save or recover your work](recovery.md).
@@ -57,6 +55,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`Rc::make_mut` gives the test row its own metadata when history shares the original. This simulates row inconsistency without modifying the imported file.
 
 Version mismatch and row-metadata mismatch are separate rejection boundaries. Validate all candidates and rows before adopting any source. The next lesson tests stale and duplicate delivery.
 

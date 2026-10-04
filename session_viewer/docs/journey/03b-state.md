@@ -4,8 +4,6 @@
 
 The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices refer to its fixed vocabulary.
 
-`Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.
-
 ## Type
 
 Continue from [Give the command field its memory](03b-memory.md). [Save or recover your work](recovery.md).
@@ -195,6 +193,8 @@ The connected field looks exactly as before. The vocabulary, inspection and care
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.
 
 Caret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.
 

@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 233 lesson slots; 166 current checkpoints have fresh build and Chrome evidence. 67 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 234 lesson slots; 168 current checkpoints have fresh build and Chrome evidence. 66 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -10,30 +10,35 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 
 ## Main task: finish a direct, step-by-step viewer course
 
+- [x] Remove the extra opening paragraph from every lesson; keep one short outcome before Type.
+- [x] Replace browser-acceptance directions with immediate learner checks in the diagnostic lessons.
 - [x] Replace accumulated command tours with one focused check in all current lessons.
 - [x] Rewrite all 18 chapter-34 explanations around the current change and its Rust concepts.
 - [x] Shorten 49 further explanations; remove stale HTML-control instructions and misplaced proof tours.
 - [x] Split the first GPU lesson into a working clear and a separate presentation step.
 - [x] Move detailed validation into expandable notes; make experiments optional.
 - [x] Put the to-do link on every lesson and in the course navigation.
+- [x] Put a Latest lesson link above every lesson and on the course index, so new tutorials are visible from an older page.
 - [x] Check the revised page layout and visible progress links in the same Chrome tab.
 - [x] Review every current main explanation against the same direct teaching style.
 - [x] Replace 100 long or generic code instructions with the exact action, in at most 25 words.
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 166 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 168 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
 - [x] Split the final 3 long checkpoints into 12 complete runnable steps; no current checkpoint exceeds one hour of estimated typing.
-- [ ] Write and verify the 67 currently planned feature lessons below.
+- [ ] Write and verify the 66 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
+
+Every lesson opens with one outcome paragraph, at most 45 words. The main page goes directly to Type, then Run and check. Keep extra explanation and acceptance evidence folded.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 166 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 168 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 166 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 168 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -401,7 +406,9 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34gbca · [Refuse GPU results after final page exit](34gbca-startup.md) — Actual delayed adapter/device success and rejection, cached return, absent metadata, denied mandatory binding and complete lifecycle route pass. Typing 15–30 minutes.
 
-- [ ] 34gc · Observe browser errors — Bound global error/rejection metadata and preserve first failure.
+- [x] 34gc · [Bound browser failure messages](34gc-messages.md) — Unicode/detail/source budgets, positions and readable fallbacks; 141 native tests, WebAssembly, GPU and Chrome pass. Typing 19–38 minutes.
+
+- [x] 34gca · [Observe uncaught browser failures](34gca-errors.md) — Real uncaught errors and rejected promises, automatic/manual downloads, bounded safe reasons, healthy camera, post-loss metadata and partial-registration cleanup pass. Typing 18–35 minutes.
 
 - [ ] 34gd · Record complete loading diagnostics — Adapter, load phases, resources and live replacements; split into manageable endpoints when authored.
 

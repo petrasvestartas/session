@@ -19,15 +19,13 @@ export function generate() {
         const paragraphs = step.story.split('\n\n');
         const diagrams = paragraphs.filter(text => text.startsWith('!['));
         const explanation = paragraphs.filter(text => !text.startsWith('!['));
-        const introduction = index === 0 ? explanation : [explanation[0]];
-        if (index && explanation[1] && [...introduction, explanation[1]].join(' ').split(/\s+/).length <= 90) {
-            introduction.push(explanation[1]);
-        }
-        const supportingExplanation = explanation.slice(introduction.length);
+        const introduction = [explanation[0]];
+        const supportingExplanation = explanation.slice(index === 0 ? 2 : 1);
         const page = [`# ${step.id.split('-')[0]} · ${step.title}`,
             `**Typing: ${typing.minutes.join('–')} minutes.** [Estimate](typing-load.md).`,
             ...(typing.minutes[1] > 60 ? ['**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.'] : []),
             ...introduction, '## Type'];
+        if (index === 0) page.push(explanation[1]);
         if (index) {
             const previous = steps[index - 1];
             page.push(`Continue from [${previous.title}](${previous.id}.md). [Save or recover your work](recovery.md).`);

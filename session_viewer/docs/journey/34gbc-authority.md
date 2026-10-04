@@ -4,8 +4,6 @@
 
 Give pending startup a shared permission flag. The task and close callback hold cloned tickets; revoking either ticket refuses every later result.
 
-A replacement gets a separate allocation. This step checks the policy natively; the next step connects it to actual GPU requests.
-
 ## Type
 
 Continue from [Connect visibility and freezing to heartbeat scheduling](34gbba-browser.md). [Save or recover your work](recovery.md).
@@ -78,7 +76,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+A replacement gets a separate allocation. This step checks the policy natively; the next step connects it to actual GPU requests.
 
 task ticket + close ticket → shared flag → delayed result refused after closure.
 

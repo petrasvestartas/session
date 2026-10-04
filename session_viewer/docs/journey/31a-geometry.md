@@ -4,8 +4,6 @@
 
 A GPU row currently owns vertices, indices and placement together. Extract the immutable part into GpuGeometry. It retains the exact CPU-display Rc<Mesh> that produced its buffers; that owner will also make identity safe when we introduce the cache.
 
-GpuMesh becomes one object’s draw state: a shared geometry owner and its own bind group. with_geometry accepts an existing geometry owner, while upload remains a convenient wrapper that creates one. The renderer still calls upload independently at this endpoint. Automatic reuse arrives next.
-
 ## Type
 
 Continue from [Keep selection out of the vertex data](31-settings.md). [Save or recover your work](recovery.md).
@@ -183,6 +181,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+GpuMesh becomes one object’s draw state: a shared geometry owner and its own bind group. with_geometry accepts an existing geometry owner, while upload remains a convenient wrapper that creates one. The renderer still calls upload independently at this endpoint. Automatic reuse arrives next.
 
 Follow the two draws. GpuMesh binds its object settings at group one, then GpuGeometry binds its vertex and index buffers. The render pass borrows both; it does not consume either.
 

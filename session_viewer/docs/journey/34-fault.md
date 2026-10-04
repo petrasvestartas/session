@@ -4,8 +4,6 @@
 
 Keep the first GPU error: later errors caused by the same loss must not overwrite its reason. This lesson adds the shared value; the next connects it to GPU callbacks.
 
-`Fault` owns an `Arc<Mutex<Option<String>>>`. `Arc::clone` shares one allocation. Locking the mutex makes checking and storing the first message one operation. `remember` returns true only to the first writer; `message` returns a copy so no lock stays held while reporting the error.
-
 ## Type
 
 Continue from [Keep a cached viewer ready for Back navigation](33b-cache.md). [Save or recover your work](recovery.md).
@@ -77,6 +75,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`Fault` owns an `Arc<Mutex<Option<String>>>`. `Arc::clone` shares one allocation. Locking the mutex makes checking and storing the first message one operation. `remember` returns true only to the first writer; `message` returns a copy so no lock stays held while reporting the error.
 
 Give a replacement device a new `Fault::default()`. `Arc::ptr_eq` compares allocations, so a late callback from the old device cannot identify the replacement as its owner. No mutex guard crosses an `.await`.
 

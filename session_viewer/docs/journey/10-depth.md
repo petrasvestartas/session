@@ -4,8 +4,6 @@
 
 Keep the nearer triangle even when the farther triangle is drawn last. Give pink depth 0.25 and turquoise depth 0.75; draw pink first.
 
-Attach a depth texture alongside colour. Clear depth to 1 and use `Less` with depth writes: a fragment passes only when it is nearer than the stored depth. Its dimensions and sample count must match the colour image.
-
 ## Type
 
 Continue from [Let one matrix describe the view](09-matrices.md). [Save or recover your work](recovery.md).
@@ -273,6 +271,8 @@ cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Attach a depth texture alongside colour. Clear depth to 1 and use `Less` with depth writes: a fragment passes only when it is nearer than the stored depth. Its dimensions and sample count must match the colour image.
 
 A vertex now contains position and colour: six `f32` values, 24 bytes. Shader locations 0 and 1 read those two groups. The vertex shader passes colour to the fragment shader.
 

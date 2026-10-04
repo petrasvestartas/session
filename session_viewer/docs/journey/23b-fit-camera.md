@@ -4,8 +4,6 @@
 
 Aim the camera at the bounds centre and back away until its enclosing sphere fits the smaller horizontal or vertical half-angle. Preserve orientation and keep a small margin.
 
-Store the measured radius on Camera. Use it for zoom limits and clipping, so small and large scenes remain navigable after fitting.
-
 ## Type
 
 Continue from [Measure the displayed scene bounds](23a-bounds.md). [Save or recover your work](recovery.md).
@@ -165,7 +163,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Store the measured radius on Camera. Use it for zoom limits and clipping, so small and large scenes remain navigable after fitting.
 
 Bounds centre/radius and aspect → camera target, distance and clipping.
 

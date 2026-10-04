@@ -4,8 +4,6 @@
 
 Replace Object’s private geometry/source fields with EditSource. Loaded owns the required kernel geometry and optional imported Source. Released owns an Origin and epoch. Generated Loaded rows have geometry but no imported Origin.
 
-Keep geometry() and source() total: they return None for Released rather than panicking or substituting a display mesh. origin() remains available in either imported state. release_epoch() distinguishes a current release from a later release cycle.
-
 ## Type
 
 Continue from [Adopt the selected file as a reloadable source](32ff-bridge.md). [Save or recover your work](recovery.md).
@@ -169,6 +167,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Keep geometry() and source() total: they return None for Released rather than panicking or substituting a display mesh. origin() remains available in either imported state. release_epoch() distinguishes a current release from a later release cycle.
 
 Scene insertion still requires PreparedMesh geometry. It captures metadata, creates the display Rc, and adopts Loaded ownership. The renderer still sees exactly the same mesh/model/id fields. At this endpoint no code unloads a row yet; existing precision, history and close tests must pass unchanged through the new representation.
 

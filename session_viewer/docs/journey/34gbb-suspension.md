@@ -4,8 +4,6 @@
 
 Give heartbeat scheduling three independent reasons to pause: hidden, frozen and cached. Clearing one reason must leave the others intact. Final closure permanently prevents resumption.
 
-The policy is ordinary Rust, without browser or GPU ownership. Native checks exercise overlapping reasons and different release orders. Browser event delivery is connected in the next step.
-
 ## Type
 
 Continue from [Own diagnostic page transitions](34gba-lifecycle.md). [Save or recover your work](recovery.md).
@@ -78,7 +76,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The policy is ordinary Rust, without browser or GPU ownership. Native checks exercise overlapping reasons and different release orders. Browser event delivery is connected in the next step.
 
 hidden + frozen + cached + final closure → one scheduling decision.
 

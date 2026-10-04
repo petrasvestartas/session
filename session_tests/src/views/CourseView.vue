@@ -1,6 +1,9 @@
 <template>
   <div class="course-page">
-    <p class="course-progress"><router-link to="/course/journey/roadmap">To-do list and progress</router-link></p>
+    <p class="course-progress">
+      <router-link to="/course/journey/roadmap">To-do list and progress</router-link>
+      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Latest lesson: {{ pages[latestLesson].title }}</router-link></template>
+    </p>
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
     </p>
@@ -39,6 +42,7 @@ const page = ref<CoursePage | null>(null);
 const missing = ref(false);
 const slug = computed(() => String(route.params.slug || ''));
 const meta = computed(() => pages[slug.value]);
+const latestLesson = Object.keys(pages).find(s => s.startsWith('journey/') && pages[s].prev && !pages[s].next);
 
 const scrollToHash = () => {
   const id = decodeURIComponent(route.hash.slice(1));

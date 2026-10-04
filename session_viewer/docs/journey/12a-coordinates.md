@@ -4,8 +4,6 @@
 
 Divide a screen point by camera scale, reverse rotation, then add the camera centre. world_from_screen returns the corresponding scene point.
 
-A round-trip check transforms a known scene point into the view and restores it after pan, zoom and rotation.
-
 ## Type
 
 Continue from [Display selection by object identity](12-identity.md). [Save or recover your work](recovery.md).
@@ -78,7 +76,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+A round-trip check transforms a known scene point into the view and restores it after pan, zoom and rotation.
 
 Screen point → divide scale → reverse rotation → add scene centre.
 

@@ -4,8 +4,6 @@
 
 Draw one pink triangle inside the white GPU frame. The shader supplies three corners; the renderer keeps one pipeline and records its draw.
 
-The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
-
 ## Type
 
 Continue from [Give browser presentation its own function](02-clear.md). [Save or recover your work](recovery.md).
@@ -128,6 +126,8 @@ A pink triangle appears on white. Change its top vertex in the shader, save, and
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The vertex shader places corners in clip space, where x and y near −1 and +1 reach the image edges. The fragment shader supplies colour. `0..3` draws three vertices; `0..1` draws one instance.
 
 A pipeline is the reusable recipe connecting these shaders to the colour target. Keep it between frames. `include_str!` embeds the WGSL text at compile time. An empty vertex-buffer list means the shader still supplies its own positions; Rust will supply geometry in lesson 05. Use the same sRGB view format as browser presentation.
 

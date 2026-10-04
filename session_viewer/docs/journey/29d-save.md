@@ -4,8 +4,6 @@
 
 Connect typed `Save` to `snapshot` and a browser download. Snapshot errors go to command history and start no download.
 
-Copy bytes into `Uint8Array`, wrap them in `Blob`, and create an object URL. A temporary hidden anchor downloads `viewer.session` and is removed; it is not a viewer feature control.
-
 ## Type
 
 Continue from [Prove the saved document reopens faithfully](29c-roundtrip.md). [Save or recover your work](recovery.md).
@@ -143,6 +141,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Copy bytes into `Uint8Array`, wrap them in `Blob`, and create an object URL. A temporary hidden anchor downloads `viewer.session` and is removed; it is not a viewer feature control.
 
 Keep the URL alive for ten seconds, then revoke it with a one-shot callback owning its `String`. If timer scheduling fails, clean up immediately and report the error.
 

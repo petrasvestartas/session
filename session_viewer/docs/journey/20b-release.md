@@ -4,8 +4,6 @@
 
 Release processes the final position, then takes the remembered drag out of Gesture. A left release picks only if the press never crossed the movement threshold. Right release may supply one final orbit delta.
 
-Cancellation clears the state without selecting. cancel_pointer checks ownership first; another pointer cannot end the active drag.
-
 ## Type
 
 Continue from [Remember the pointer that starts a drag](20a-press.md). [Save or recover your work](recovery.md).
@@ -92,7 +90,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Cancellation clears the state without selecting. cancel_pointer checks ownership first; another pointer cannot end the active drag.
 
 Release → final move → take stored Drag → click or orbit; cancel → no active drag.
 

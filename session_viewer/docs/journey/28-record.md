@@ -4,8 +4,6 @@
 
 Introduce `PreparedMesh` between source construction and scene insertion. It retains the kernel mesh and a validated derived display. The live scene still uses its earlier insertion path; the next lessons connect this boundary.
 
-`Rc` shares immutable kernel geometry. Optional `Source` records imported-session provenance; generated geometry still has a source mesh without an imported file.
-
 ## Type
 
 Continue from [Prove placement and history agree](27d-history.md). [Save or recover your work](recovery.md).
@@ -97,6 +95,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+`Rc` shares immutable kernel geometry. Optional `Source` records imported-session provenance; generated geometry still has a source mesh without an imported file.
 
 Initialise the kernel mesh's lazy GUID before sharing it, then run the display adapter. `?` rejects invalid display data before consuming an object ID or history entry.
 

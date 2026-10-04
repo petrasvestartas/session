@@ -4,8 +4,6 @@
 
 Give the GPU one instruction: clear the canvas to white. The picture will look like lesson 01, but its pixels now come from a real GPU frame.
 
-An **adapter** chooses a GPU compatible with our canvas surface. A **device** creates resources; its **queue** receives recorded work. A **surface** supplies the image that can appear in the canvas. `.await` waits for adapter/device requests while leaving the browser free.
-
 ## Type
 
 Continue from [A page that Rust can reach](01-canvas.md). [Save or recover your work](recovery.md).
@@ -81,6 +79,8 @@ The canvas stays white. Change `wgpu::Color::WHITE` to `wgpu::Color::BLACK`, sav
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+An **adapter** chooses a GPU compatible with our canvas surface. A **device** creates resources; its **queue** receives recorded work. A **surface** supplies the image that can appear in the canvas. `.await` waits for adapter/device requests while leaving the browser free.
 
 `Renderer` keeps the device and queue in a `struct`. Its `draw(&self, view)` method borrows those values and a supplied image view. The render pass borrows the encoder inside a brace-delimited scope. End that scope before `finish` consumes the encoder, then submit its commands.
 

@@ -4,8 +4,6 @@
 
 Retain a shared Session with its display meshes and source GUIDs. Validate the supported session shape and flat tree before decoding it into kernel objects.
 
-HashSet compares unique mesh GUIDs with tree row names. The specimen builder creates three named meshes and writes their protobuf bytes to sample.pb.
-
 ## Type
 
 Continue from [Validate a raw mesh record](22a-records.md). [Save or recover your work](recovery.md).
@@ -150,7 +148,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+HashSet compares unique mesh GUIDs with tree row names. The specimen builder creates three named meshes and writes their protobuf bytes to sample.pb.
 
 Source GUIDs and flat rows → validated Session shape; specimen → sample.pb.
 

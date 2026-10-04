@@ -4,8 +4,6 @@
 
 Convert an unconsumed canvas click from CSS pixels to normalized screen coordinates. Reverse y, undo the camera, then ask the query for the visible ObjectId.
 
-The command dock handles its own input first. A scene click updates selection and uploads its display colour.
-
 ## Type
 
 Continue from [Find the nearest triangle at a scene point](12b-picking.md). [Save or recover your work](recovery.md).
@@ -113,7 +111,7 @@ cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The command dock handles its own input first. A scene click updates selection and uploads its display colour.
 
 Canvas click → normalized point → inverse camera → pick → selected display.
 

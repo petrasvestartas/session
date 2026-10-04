@@ -4,8 +4,6 @@
 
 We can already type in the viewer’s own command line. Today one submitted word changes the picture. Type Background and press Enter: one boolean flips, and the existing renderer draws again.
 
-The browser owns Background beside Panel and Renderer. Panel reads the line; Background owns the choice; Renderer turns that choice into pixels. No new device or pipeline is created when you run the command.
-
 ## Type
 
 Continue from [Hand commands to the application](03d-input.md). [Save or recover your work](recovery.md).
@@ -230,6 +228,8 @@ Type `Background` twice. The first command changes the background; the second re
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The browser owns Background beside Panel and Renderer. Panel reads the line; Background owns the choice; Renderer turns that choice into pixels. No new device or pipeline is created when you run the command.
 
 `Option<String>` means a submitted line may or may not be present. Most events only move a caret or update completion. Only the recognised Background line changes the background. The match reads that result without inventing a second input path.
 

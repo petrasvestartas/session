@@ -4,8 +4,6 @@
 
 navigation::wheel converts pixels, lines or pages to CSS pixels, caps one event at 600 pixels, then returns a positive exponential zoom factor. Invalid input returns None.
 
-The stateless function borrows no editor. Its checks apply the returned Zoom through Editor and verify that camera movement stays outside document history.
-
 ## Type
 
 Continue from [Connect captured pointers to the editor](21-gestures.md). [Save or recover your work](recovery.md).
@@ -83,7 +81,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The stateless function borrows no editor. Its checks apply the returned Zoom through Editor and verify that camera movement stays outside document history.
 
 Wheel delta and units → CSS pixels → bounded exponential → Action::Zoom.
 

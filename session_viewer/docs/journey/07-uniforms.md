@@ -4,8 +4,6 @@
 
 Move the diamond by uploading one setting shared by all its vertices. Four floats describe horizontal and vertical scale and offset. The shader applies `position * scale + offset`.
 
-A uniform buffer stores the values. Its bind group connects that buffer to shader group 0, binding 0. Derive this small pipeline's layout from the shader, then use its group layout when creating the bind group.
-
 ## Type
 
 Continue from [Share a corner between triangles](06-indices.md). [Save or recover your work](recovery.md).
@@ -269,6 +267,8 @@ Change the uniform’s scale or offset, save, and compare the diamond. Its store
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+A uniform buffer stores the values. Its bind group connects that buffer to shader group 0, binding 0. Derive this small pipeline's layout from the shader, then use its group layout when creating the bind group.
 
 A WGSL `vec4<f32>` requires 16 bytes with 16-byte alignment. Four Rust floats starting at byte zero match it. Larger structures will need explicit padding checks.
 

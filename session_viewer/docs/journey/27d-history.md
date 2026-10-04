@@ -4,8 +4,6 @@
 
 The visible result is useful evidence, but a moved picture alone does not prove which data changed. These checks follow the values that future editing tools must preserve.
 
-First parse valid and invalid lines. Then start with a scaled placement. A world-axis Move must shift its world point by the exact requested offset, regardless of that existing scale. Retain an Rc handle and compare local vertices as well as world coordinates.
-
 ## Type
 
 Continue from [Move a placed object with a typed offset](27c-move.md). [Save or recover your work](recovery.md).
@@ -68,6 +66,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+First parse valid and invalid lines. Then start with a scaled placement. A world-axis Move must shift its world point by the exact requested offset, regardless of that existing scale. Retain an Rc handle and compare local vertices as well as world coordinates.
 
 Scene::place takes ownership of its Xform. Save the sixteen-value array before that call when a later assertion needs it. The array is Copy; the kernel Xform is not.
 

@@ -4,8 +4,6 @@
 
 Add typed `Open Replace`, retaining `Open` for append. Opening either picker begins a ticket and stores its operation as a `Mode` enum.
 
-The selected-file task captures that ticket and mode. `choose` reuses the pending ticket; a newer picker revokes earlier delivery before a file is chosen.
-
 ## Type
 
 Continue from [Replace a document as one reversible change](30c-replace.md). [Save or recover your work](recovery.md).
@@ -336,6 +334,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+The selected-file task captures that ticket and mode. `choose` reuses the pending ticket; a newer picker revokes earlier delivery before a file is chosen.
 
 The completion event carries a replace flag and `Uint8Array`. Validate shape and size, then translate to `Action::Import` or `Action::Replace`. Editor never receives browser values.
 

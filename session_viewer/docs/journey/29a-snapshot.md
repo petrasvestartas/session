@@ -4,8 +4,6 @@
 
 Build Save bytes from live scene objects, including generated and edited objects and excluding deleted rows.
 
-Copy each source mesh's protobuf message, preserving doubles, topology, colours, names and flags. Replace only the copy's GUID with the stored object identity. Keep geometry local and write placement separately, keyed by that same GUID; baking both would move it twice.
-
 ## Type
 
 Continue from [Give each saved object a stable identity](29-identity.md). [Save or recover your work](recovery.md).
@@ -87,6 +85,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Copy each source mesh's protobuf message, preserving doubles, topology, colours, names and flags. Replace only the copy's GUID with the stored object identity. Keep geometry local and write placement separately, keyed by that same GUID; baking both would move it twice.
 
 This snapshot writes a flat tree. Camera, selection, display arrays and history are application state and stay outside the file.
 

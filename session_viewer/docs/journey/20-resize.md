@@ -4,8 +4,6 @@
 
 Use Viewport to resize canvas pixels, the surface, depth attachment and camera aspect together. Read the current CSS rectangle and display density before drawing.
 
-The callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.
-
 ## Type
 
 Continue from [Measure a safe drawing size](19a-viewport.md). [Save or recover your work](recovery.md).
@@ -284,7 +282,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.
 
 Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw.
 

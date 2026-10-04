@@ -9,6 +9,7 @@
     </p>
     <p><router-link to="/course/journey">Start with the course route</router-link></p>
     <p><router-link to="/course/journey/roadmap">To-do list and progress: finished and remaining lessons</router-link></p>
+    <p v-if="latestLesson"><router-link :to="'/course/' + latestLesson">Latest lesson: {{ pages[latestLesson].title }}</router-link></p>
     <details v-for="g in groups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas')">
       <summary>{{ g.title }}</summary>
       <ol :class="{ plain: g.title !== 'Course' }">
@@ -22,6 +23,7 @@
 
 <script setup lang="ts">
 import { groups, pages } from 'virtual:course';
+const latestLesson = Object.keys(pages).find(s => s.startsWith('journey/') && pages[s].prev && !pages[s].next);
 </script>
 
 <style scoped>

@@ -4,8 +4,6 @@
 
 Add `precise_bytes` to the specimen builder with one coordinate that cannot survive an `f32` round trip. Keep the ordinary specimen function for existing checks.
 
-Save while sources are warm, then unload and trigger restoration through Save. Decode both actual downloads and compare the source coordinate exactly. The derived display is unsuitable evidence because it intentionally rounds to floats.
-
 ## Type
 
 Continue from [Automatically restore sources for Move, Delete and Save](32gif-auto.md). [Save or recover your work](recovery.md).
@@ -120,6 +118,8 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Save while sources are warm, then unload and trigger restoration through Save. Decode both actual downloads and compare the source coordinate exactly. The derived display is unsuitable evidence because it intentionally rounds to floats.
 
 The native and browser checks use the same uploaded specimen. They compare original coordinates and preserve the moved placement; the native test also checks Undo/Redo.
 

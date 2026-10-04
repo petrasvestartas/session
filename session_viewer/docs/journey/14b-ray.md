@@ -4,8 +4,6 @@
 
 Invert the view-projection matrix. A screen point at depths zero and one gives the near and far ends of a ray through the view.
 
-Option returns None for invalid coordinates or an inverse that cannot be computed. Normalize the direction and retain the segment length.
-
 ## Type
 
 Continue from [Draw through a perspective camera](14a-perspective.md). [Save or recover your work](recovery.md).
@@ -101,7 +99,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Option returns None for invalid coordinates or an inverse that cannot be computed. Normalize the direction and retain the segment length.
 
 Screen depth 0 and 1 → inverse view-projection → origin, direction and max_distance.
 

@@ -4,8 +4,6 @@
 
 Move the corner positions out of WGSL and into a Rust vertex buffer. Six coordinate pairs draw two triangles forming a rectangle. Shared corners are duplicated here; the next lesson removes that duplication.
 
-Describe the buffer layout explicitly: two `f32` values, eight bytes per vertex, matching shader `@location(0)`. Buffer slot and shader location are separate settings even though both are zero here.
-
 ## Type
 
 Continue from [Make a choice change the picture](04-input.md). [Save or recover your work](recovery.md).
@@ -192,6 +190,8 @@ The GPU draws a rectangle from six buffered positions. Change one corner in the 
 
 <details>
 <summary>Code explanation and diagram</summary>
+
+Describe the buffer layout explicitly: two `f32` values, eight bytes per vertex, matching shader `@location(0)`. Buffer slot and shader location are separate settings even though both are zero here.
 
 `iter().flatten()` visits each coordinate, `flat_map` converts it to bytes, and `collect` owns the resulting byte vector. Importing the `DeviceExt` trait enables `create_buffer_init`. It creates and fills GPU storage; the temporary CPU byte vector can then be dropped.
 

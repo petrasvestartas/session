@@ -4,8 +4,6 @@
 
 Define the source owners and check protobuf mesh records before building kernel objects. Accept finite coordinates, valid vertex references, triangles or quads, and object colours within the stated size limits.
 
-The validator borrows a record and returns Result<(), &str>. It inspects stored triangulation without constructing a Session or changing the scene.
-
 ## Type
 
 Continue from [Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md). [Save or recover your work](recovery.md).
@@ -100,7 +98,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+The validator borrows a record and returns Result<(), &str>. It inspects stored triangulation without constructing a Session or changing the scene.
 
 Raw proto::Mesh → validation → accepted record or error.
 

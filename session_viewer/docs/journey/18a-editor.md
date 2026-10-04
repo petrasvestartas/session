@@ -4,8 +4,6 @@
 
 Editor owns application state. Action names an input; Change tells drawing whether scene data or only the view changed.
 
-Keep History private so document edits follow one path. Default constructs an editor with the existing demonstration scene.
-
 ## Type
 
 Continue from [Read the shape through light](18-light.md). [Save or recover your work](recovery.md).
@@ -73,7 +71,7 @@ REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-
+Keep History private so document edits follow one path. Default constructs an editor with the existing demonstration scene.
 
 Editor owns scene and history beside camera, background and selection.
 
