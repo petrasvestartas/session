@@ -20,6 +20,7 @@ pub struct Input {
     right_dragged: bool,                     // a right drag cannot repeat a command
     panning: bool,                           // middle button held
     ctrl: bool,                              // Ctrl held
+    command: bool,                           // Cmd held, Ctrl's stand-in for shortcuts on a Mac
     shift: bool,                             // Shift held
     gesture: Option<&'static Gesture>,       // the left-button tool in charge
     last_cursor: (f64, f64),                 // last pointer position in pixels
@@ -50,6 +51,7 @@ impl Input {
             right_dragged: false,
             panning: false,
             ctrl: false,
+            command: false,
             shift: false,
             gesture: None,
             last_cursor: (0.0, 0.0),
@@ -67,7 +69,12 @@ impl Input {
 
     /// One key press; true when the frame must be redrawn.
     pub fn key(&mut self, state: &mut State, key: Key<&str>) -> bool {
-        super::keys::run(state, &key)
+        super::keys::run(state, &key, self.ctrl || self.command, self.shift)
+    }
+
+    /// True when this key with the held modifiers is Undo or Redo.
+    pub fn history_key(&self, key: Key<&str>) -> bool {
+        super::keys::history(&key, self.ctrl || self.command, self.shift).is_some()
     }
 
     /// One mouse or touch event; true when the frame must be redrawn.
@@ -183,6 +190,7 @@ impl Input {
             }
             WindowEvent::ModifiersChanged(mods) => {
                 self.ctrl = mods.state().control_key();
+                self.command = mods.state().super_key();
                 self.shift = mods.state().shift_key();
                 false
             }
@@ -342,6 +350,7 @@ impl Input {
         self.right_dragged = false;
         self.panning = false;
         self.ctrl = false;
+        self.command = false;
         self.shift = false;
         self.gesture = None;
         self.left_down = None;

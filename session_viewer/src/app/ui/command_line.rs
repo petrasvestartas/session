@@ -57,6 +57,10 @@ impl super::Panel for Hooks {
         STATE.with_borrow(|model| model.command_open)
     }
 
+    fn holds_history(&self) -> bool {
+        STATE.with_borrow(|model| model.command_open && !model.command.is_empty())
+    }
+
     fn hit(&self, point: egui::Pos2) -> (bool, bool) {
         STATE.with_borrow(|model| {
             let inside = |rect: Option<egui::Rect>| rect.is_some_and(|r| r.contains(point));

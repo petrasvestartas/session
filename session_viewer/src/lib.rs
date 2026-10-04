@@ -440,8 +440,13 @@ impl App {
         let (mut consumed, repaint) = ui.event(&state.window, event);
 
         // keys reach the viewer unless a text field or a menu has them; the number box from its click on
-        if matches!(event, WindowEvent::KeyboardInput { .. }) {
-            consumed = app::ui::keys_taken() || state.number_box_open();
+        if let WindowEvent::KeyboardInput { event: key, .. } = event {
+            let taken = if self.input.history_key(key.logical_key.as_ref()) {
+                app::ui::history_taken()
+            } else {
+                app::ui::keys_taken()
+            };
+            consumed = taken || state.number_box_open();
         }
 
         if repaint {

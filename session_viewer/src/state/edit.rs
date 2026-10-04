@@ -881,11 +881,16 @@ impl State {
         let Some(line) = self.features.last_command.clone() else {
             return false;
         };
-        let message = self.run_command(&line).unwrap_or_else(|error| error);
-        crate::app::feedback::status(&message);
-        crate::app::feedback::command_history(&line, &message);
-        self.touch();
+        self.run_echoed(&line);
         true
+    }
+
+    /// Run a command the keyboard or mouse started, and show it as if typed.
+    pub(crate) fn run_echoed(&mut self, line: &str) {
+        let message = self.run_command(line).unwrap_or_else(|error| error);
+        crate::app::feedback::status(&message);
+        crate::app::feedback::command_history(line, &message);
+        self.touch();
     }
 
     /// Apply a command or pass its answer to the current tool.

@@ -45,6 +45,11 @@ trait Panel {
         false
     }
 
+    /// True while Ctrl+Z belongs to its text rather than to the scene history.
+    fn holds_history(&self) -> bool {
+        self.keys_taken()
+    }
+
     /// True while Escape is its own, so the command line leaves it alone.
     fn holds_escape(&self) -> bool {
         false
@@ -83,6 +88,11 @@ fn menu_open() -> bool {
 /// True while a panel takes the keys: the command line, a layer rename, the number box or an open menu.
 pub fn keys_taken() -> bool {
     menu_open() || PANELS.iter().any(|panel| panel.keys_taken())
+}
+
+/// True while a text being typed owns Undo and Redo; an empty command line leaves them to the scene.
+pub fn history_taken() -> bool {
+    menu_open() || PANELS.iter().any(|panel| panel.holds_history())
 }
 
 /// True while another panel owns Escape, e.g. a layer rename.
