@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 170 cumulative lessons, about 157–300.75 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 172 cumulative lessons, about 158.5–303.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **236 proposed slots: 170 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **238 proposed slots: 172 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -197,6 +197,8 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [34gca · Observe uncaught browser failures](journey/34gca-errors.md) | 0.75–1.25 hours | Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned. |
 | [34gd · Retain adapter identity in the report](journey/34gd-adapter.md) | 0.75–1.25 hours | Preserve bounded adapter identity even when recent events rotate out of the report. |
 | [34gda · Read the viewer’s adapter identity](journey/34gda-browser.md) | 0.75–1.25 hours | Retain vendor and architecture from the same adapter request used for drawing. |
+| [34gdb · Retain measured loading phases](journey/34gdb-phases.md) | 0.75–1.25 hours | Keep measured load operations after their recent event messages rotate away. |
+| [34gdc · Measure GPU startup and the first frame](journey/34gdc-startup.md) | 0.75–1.25 hours | Download actual adapter, device, renderer and first completed frame timings. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

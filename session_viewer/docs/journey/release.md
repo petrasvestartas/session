@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 170 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 172 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 170 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 66 remaining feature lessons.
+All 172 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 66 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -210,6 +210,18 @@ The pinned wgpu 29.0.4 browser backend maps description while dropping native ve
 Headed Chrome verifies identity against the actual drawing device’s GPUAdapterInfo and counts exactly one adapter request. Separate synthetic fixtures cover long Unicode identity, empty fields, a throwing metadata getter, denied hook installation, an existing property descriptor and a later wrapper. Typed report downloads, event rotation, actual camera movement, GPU-loss evidence and previous-run decoding retain identity. The preceding endpoint records no identity for the same actual native request; the connected endpoint retains its four strings without another request. The complete earlier browser-error, startup cancellation, visibility/freezing, post-loss and partial-registration route also passes unchanged.
 
 These lessons complete adapter identity only. Loading phase timings, resource entries, live replacements and GPU recovery remain unchecked. The one planned diagnostics topic is now two completed adapter lessons plus its remaining loading topic, so the plan has 236 slots, 170 current checkpoints and 66 future topics. This is a teaching count, not an engineering percentage. No phone timing or complete production parity is claimed.
+
+## Retained loading phases and completed GPU startup
+
+Two direct runnable lessons retain measured load operations (27–54 minutes of typing, with their check file copied), then time actual GPU startup and completed first-frame work (23–46). Both pass 148 native tests, WebAssembly, Trunk, native GPU rendering and headed Chrome. All 170 preceding source endpoints and browser checker fingerprints remain unchanged.
+
+Each phase keeps its name, duration, byte count, sanitized source and completion time. Up to 256 phases remain outside the 24-event queue. Strict nested fields, finite nonnegative durations, bounded Unicode strings and legacy decoding are checked. The original one MiB report limit remains in force. Escaped JSON bytes can fill it before the entry limit; oldest phases are discarded and counted. Later events, first failure, adapter identity, refreshed browser context and heartbeat timestamps keep the same budget. The existing event window and retained first failure are preserved.
+
+The connected lesson measures the viewer's actual adapter request, device request and CPU renderer setup. First-frame duration starts before encoding and ends after submitted queue work completes; it includes GPU work and initial compilation rather than claiming CPU setup measures that work. Readiness follows the completed submission. The completion callback must still own the current GPU runtime and have no device fault. Exited, lost and replaced devices cannot adopt a late completion.
+
+Headed Chrome counts actual requests and queue completion calls, checks downloaded timings, holds a real completed queue promise before delivery, and proves the report stays running while held. Separate cases release normally, exit finally, destroy the real device or start a replacement runtime. Timings survive event rotation and camera commands; a first-frame phase is recorded once. Native request rejection and the complete earlier error, startup cancellation, visibility/freezing, post-loss, registration refusal and ownership routes pass. The new inherited checks wait for completed readiness; their other assertions remain unchanged. The existing 170 checkers remain unchanged.
+
+The preceding endpoint has no retained phase list; the connected endpoint records all four actual startup measurements. These are desktop correctness checks, not phone performance measurements or complete loading coverage. File read/decode/walk/upload, resource entries, manifest and live replacement diagnostics, and GPU recovery remain pending. The draft now has 238 slots, 172 current checkpoints and 66 future topics; later topics may split into short runnable lessons.
 
 ## Reproduce
 

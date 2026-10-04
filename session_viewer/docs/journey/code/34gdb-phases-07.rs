@@ -1,0 +1,1 @@
+        self.adapter = Some(info); self.trim_phases(); Ok(())

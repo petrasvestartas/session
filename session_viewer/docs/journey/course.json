@@ -11100,6 +11100,241 @@
       ],
       "checks": "Verify actual native identity, one request, exact property restoration, bounded strings, unavailable metadata, later wrapper ownership and cancelled startup. Preserve the complete preceding command/error/lifecycle route.",
       "image_same_as": "34gd-adapter"
+    },
+    {
+      "id": "34gdb-phases",
+      "title": "Retain measured loading phases",
+      "page": "journey/34gdb-phases.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Keep measured load operations after their recent event messages rotate away.",
+      "trace": "validated phase → recent event and retained list → count and byte limits → downloadable report",
+      "question": "Why check encoded bytes when strings already have character limits?",
+      "answer": "JSON escapes can use six bytes per character. The complete saved report must still fit its existing one MiB limit.",
+      "result": "Run the state checks. Loading phases survive event rotation, and oversized reports discard old measurements without losing the first failure.",
+      "experiment": "Use control characters in a source name. Their JSON escapes reach the byte limit before the 256-entry limit.",
+      "production": "This teaches retained phase data and its bounded report shape. The next lesson measures GPU startup; file read/decode/walk/upload, resources and live replacements follow.",
+      "tests": true,
+      "frame": "journey/checks/34gdb-phases.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/adapter-command.cjs",
+      "story": "Keep loading durations, byte counts and source names in a separate report list. Retain up to 256 measurements while preserving the one MiB report budget.\n\nCount discarded entries so a downloaded report reveals incomplete retention. Old reports still decode. Validate durations and source names before mutation; escaped JSON bytes, rather than character counts, determine the final budget.\n\n![Measured phases remain outside the recent-event queue and within a byte budget.](../illustrations/journey-34gdb.svg)",
+      "browser_caption": "Drawing and input retain the preceding complete route; this lesson introduces the phase model.",
+      "edits": [
+        {
+          "path": "src/load_phase.rs",
+          "before": null,
+          "snippet": "journey/code/34gdb-phases-01.rs",
+          "why": "Describe one completed load operation with duration, bytes, sanitized source and completion time."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "    adapter: Option<crate::adapter_info::AdapterInfo>,",
+          "snippet": "journey/code/34gdb-phases-02.rs",
+          "why": "Retain phases outside the recent events; old reports omit both optional fields."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "            context, events: Default::default(), failure: None, adapter: None }",
+          "snippet": "journey/code/34gdb-phases-03.rs",
+          "why": "Start with no measured phases or discarded entries."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "            && self.adapter.as_ref().is_none_or(|info| info.valid())",
+          "snippet": "journey/code/34gdb-phases-04.rs",
+          "why": "Validate retained phases and the existing one MiB report limit."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "    pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {",
+          "snippet": "journey/code/34gdb-phases-05.rs",
+          "why": "Record validated phases and count entries discarded by either retention limit."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "        self.events.push_back(event);\n        Ok(())",
+          "snippet": "journey/code/34gdb-phases-06.rs",
+          "why": "Keep phase retention within budget when later errors grow the event window."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "        self.adapter = Some(info); Ok(())",
+          "snippet": "journey/code/34gdb-phases-07.rs",
+          "why": "Account for adapter identity when retaining phase entries."
+        },
+        {
+          "path": "src/report_store.rs",
+          "before": "\"events\", \"failure\", \"adapter\"];",
+          "snippet": "journey/code/34gdb-phases-08.rs",
+          "why": "Admit only the two declared phase fields through saved-report decoding."
+        },
+        {
+          "path": "src/load_phase_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gdb-phases-09.rs",
+          "why": "Copy checks for strict decoding, Unicode limits, event rotation and escaped JSON byte retention.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod adapter_info;",
+          "snippet": "journey/code/34gdb-phases-10.rs",
+          "why": "Register load phase data and its native checks."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "    pub fn phase(&mut self, time: String, phase: crate::load_phase::Phase) -> Result<(), &'static str> {",
+          "snippet": "journey/code/34gdb-phases-11.rs",
+          "why": "Recheck phase retention when current browser context changes."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "        self.last_seen = time; Ok(())",
+          "snippet": "journey/code/34gdb-phases-12.rs",
+          "why": "Retain the encoded budget after heartbeat timestamp changes."
+        }
+      ],
+      "checks": "Native checks prove strict nested fields, legacy decoding, count limits, atomic refusal, Unicode and escaped-byte bounds with retained failure and event history.",
+      "image_same_as": "34gda-browser"
+    },
+    {
+      "id": "34gdc-startup",
+      "title": "Measure GPU startup and the first frame",
+      "page": "journey/34gdc-startup.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Download actual adapter, device, renderer and first completed frame timings.",
+      "trace": "actual adapter → actual device → renderer setup → submitted frame completes → ready report",
+      "question": "Why is present() alone insufficient to time the completed GPU frame?",
+      "answer": "It submits work without waiting for the GPU. Queue completion includes that work and initial compilation, while ownership prevents a late callback from reviving an exited run.",
+      "result": "Type `Diagnostic Report`. Its `phases` list contains adapter request, device request, renderer setup and first frame complete, each with a measured duration.",
+      "experiment": "Reload, then download another report. Timings change, while each run retains one first-frame completion measurement.",
+      "production": "This teaches actual GPU startup and completed first-frame diagnostics. File loading phases, resource timing, live replacements and bounded GPU recovery remain planned.",
+      "tests": true,
+      "frame": "journey/checks/34gdc-startup.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/phases-command.cjs",
+      "story": "Measure the actual adapter request, device request and renderer setup. Mark the first frame ready after its submitted GPU work completes.\n\nMeasure CPU renderer setup separately from first-frame GPU completion. A deferred completion must still belong to the active device; final exit, device loss or replacement cannot adopt its late result.\n\n![Startup timings lead to readiness only after current-device queue completion.](../illustrations/journey-34gdc.svg)",
+      "browser_caption": "Typed diagnostics expose measured startup timings from the actual drawing device.",
+      "edits": [
+        {
+          "path": "src/browser_phase.rs",
+          "before": null,
+          "snippet": "journey/code/34gdc-startup-01.rs",
+          "why": "Measure completed operations with the browser clock and strip private URL suffixes."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "pub fn adapter(info: crate::adapter_info::AdapterInfo) -> Result<(), JsValue> {",
+          "snippet": "journey/code/34gdc-startup-02.rs",
+          "why": "Persist measured phases without changing the run outcome."
+        },
+        {
+          "path": "src/browser_runtime.rs",
+          "before": "pub fn stop_if(fault: &crate::gpu_fault::Fault) -> bool {",
+          "snippet": "journey/code/34gdc-startup-03.rs",
+          "why": "Let deferred frame completion verify ownership of the current GPU runtime."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let probe = crate::browser_adapter::Probe::new().ok();",
+          "snippet": "journey/code/34gdc-startup-04.rs",
+          "why": "Start adapter timing before the actual request."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let adapter = adapter.map_err(|error| JsValue::from_str(&error.to_string()))?;",
+          "snippet": "journey/code/34gdc-startup-05.rs",
+          "why": "Retain adapter timing only after the existing startup guard permits adoption."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let device = adapter",
+          "snippet": "journey/code/34gdc-startup-06.rs",
+          "why": "Time device creation separately from adapter selection."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let (device, queue) = device.map_err(|error| JsValue::from_str(&error.to_string()))?;",
+          "snippet": "journey/code/34gdc-startup-07.rs",
+          "why": "Retain active device timing, including a rejected request before its fatal report."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let mut renderer = Renderer::new(",
+          "snippet": "journey/code/34gdc-startup-08.rs",
+          "why": "Start timing construction of the initial renderer and its pipeline."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    renderer.resize(Viewport { width, height });",
+          "snippet": "journey/code/34gdc-startup-09.rs",
+          "why": "Record CPU setup duration; GPU compilation latency remains part of first-frame completion."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        present(\n            &surface,",
+          "snippet": "journey/code/34gdc-startup-10.rs",
+          "why": "Start first-frame timing before encoding and submitting the real drawing."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        crate::browser_report::observe(\"milestone\", \"geometry on screen\")?;",
+          "snippet": "journey/code/34gdc-startup-11.rs",
+          "why": "Mark readiness after submitted work completes, only while this GPU runtime still owns the page."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod browser_adapter;",
+          "snippet": "journey/code/34gdc-startup-12.rs",
+          "why": "Register browser phase timing."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "        report.context = context;\n        report.record",
+          "snippet": "journey/code/34gdc-startup-13.rs",
+          "why": "Keep observed context and phase retention within the saved report budget."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "report.heartbeat(time).map_err(JsValue::from_str)?; report.context = context;",
+          "snippet": "journey/code/34gdc-startup-14.rs",
+          "why": "Recheck the byte budget when a heartbeat updates browser dimensions."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "report.close(time).map_err(JsValue::from_str)?; report.context = context;",
+          "snippet": "journey/code/34gdc-startup-15.rs",
+          "why": "Keep final context and retained measurements within the same limit."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "        report.context = context;\n        serde_json::to_string_pretty(report)",
+          "snippet": "journey/code/34gdc-startup-16.rs",
+          "why": "Apply the report budget before downloading fresh context."
+        }
+      ],
+      "checks": "Chrome checks actual request and queue calls, held first-frame completion, typed report downloads, phase retention, rejected requests and stale completion after exit, loss or runtime replacement.",
+      "image_same_as": "34gdb-phases"
     }
   ]
 }

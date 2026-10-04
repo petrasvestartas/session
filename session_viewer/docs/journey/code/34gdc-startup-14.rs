@@ -1,0 +1,1 @@
+report.heartbeat(time).map_err(JsValue::from_str)?; report.refresh_context(context);
