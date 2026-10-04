@@ -8,7 +8,7 @@ async function main() {
         for (const outcome of ['running', 'ready', 'failed']) {
             const context = await browser.newContext(), page = await context.newPage(), errors = [];
             page.on('pageerror', error => errors.push(error.message));
-            await page.route('http://127.0.0.1:8789/lifecycle-test', route => route.fulfill({contentType: 'text/html', body: '<canvas id="canvas"></canvas><div id="viewer-diagnostics" hidden><p id="viewer-diagnostics-message"></p></div><script src="/diagnostics.js"></script>'}));
+            await page.route('http://127.0.0.1:8789/lifecycle-test', route => route.fulfill({contentType: 'text/html', body: '<canvas id="canvas"></canvas><script src="/diagnostics.js"></script>'}));
             await page.route('**/diagnostics.js', route => route.fulfill({contentType: 'text/javascript', body: source}));
             await page.goto('http://127.0.0.1:8789/lifecycle-test'); await page.waitForFunction(() => !!window.viewerDiagnostics);
             await page.evaluate(outcome => {
@@ -24,7 +24,7 @@ async function main() {
             }
             if (outcome === 'ready') {
                 await page.reload(); await page.waitForFunction(() => !!window.viewerDiagnostics);
-                assert.equal(await page.locator('#viewer-diagnostics').isVisible(), false, 'A cached ready run must not create an interrupted notice');
+                assert.equal(await page.evaluate(() => new Promise(done => { const make = URL.createObjectURL; URL.createObjectURL = blob => { blob.text().then(text => done(!!JSON.parse(text).previous)); return make.call(URL, blob); }; window.viewerDiagnostics.download(); })), false, 'A cached ready run must not become an interrupted report');
             } else {
                 await page.evaluate(() => window.dispatchEvent(new PageTransitionEvent('pagehide', {persisted: false})));
                 await page.evaluate(() => window.viewerDiagnostic('milestone', 'geometry on screen'));

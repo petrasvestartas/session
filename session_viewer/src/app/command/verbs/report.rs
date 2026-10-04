@@ -4,8 +4,8 @@ use crate::app::command::{Action, Spec};
 pub const SPEC: Spec = Spec {
     arity: Some(0),
     ..Spec::new(
-        &["Diagnostic Report"],
-        "Diagnostic Report · download the latest viewer load report",
+        &["Report"],
+        "Report · download the viewer report: this run and the last failed or interrupted one",
         parse,
     )
 };
@@ -19,6 +19,6 @@ struct Report;
 impl Action for Report {
     fn run(&self, _: &mut State) -> Result<String, String> {
         crate::app::feedback::download_report();
-        Ok("Latest diagnostic report downloaded".into())
+        Ok("Report downloaded".into())
     }
 }

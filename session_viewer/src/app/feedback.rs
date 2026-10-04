@@ -260,7 +260,7 @@ pub fn phase(name: &str, started: f64, bytes: u64, source: &str) {
     );
 }
 
-/// Download the current run, including a successful load.
+/// Download the current run, with the previous failed or interrupted one inside.
 pub fn download_report() {
     #[cfg(target_arch = "wasm32")]
     {

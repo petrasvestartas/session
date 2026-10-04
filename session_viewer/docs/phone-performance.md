@@ -4,7 +4,7 @@ The supplied CODEX_PROMPT.md references another machine's review and patch. They
 
 ## Load diagnostics
 
-Type `Diagnostic Report` to download the current run, including successful loads. The error panel separately offers the latest and previous report. Reports record download decoded bytes and timing, manifest/decode/walk/upload timing, pipeline creation, first-frame submission/completion, live replacements, visibility/freeze/resume, resource transfer sizes (zero when CORS timing is unavailable), and the actual WebGPU adapter's vendor and architecture. Old failures beyond two hours no longer raise the previous-run banner.
+Type `Report` to download the current run, including successful loads; an earlier failed or interrupted run from the last two hours rides along as `previous`. The viewer shows no report banner or buttons and never downloads on its own. Reports record download decoded bytes and timing, manifest/decode/walk/upload timing, pipeline creation, first-frame submission/completion, live replacements, visibility/freeze/resume, resource transfer sizes (zero when CORS timing is unavailable), and the actual WebGPU adapter's vendor and architecture.
 
 Headed Chrome, NVIDIA Lovelace, real published 4,975,446-byte floor, local optimized viewer (2026-10-03):
 

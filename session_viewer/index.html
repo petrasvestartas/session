@@ -113,19 +113,6 @@
         padding: 8px 16px;
         margin-top: 16px;
       }
-      #viewer-diagnostics:not([hidden]) {
-        position: fixed;
-        top: 12px;
-        left: 12px;
-        right: 12px;
-        z-index: 30;
-        padding: 12px;
-        background: #fff;
-        color: #222;
-        font: 14px/1.5 system-ui;
-        box-shadow: 0 2px 8px #0004;
-      }
-      #viewer-diagnostics button { margin: 4px 8px 0 0; padding: 4px 8px; }
     </style>
     <style>
       * {
@@ -214,12 +201,6 @@
     <div id="viewer-error" role="alert" hidden>
       <p id="viewer-error-message"></p>
       <button type="button" onclick="location.reload()">Reload viewer</button>
-    </div>
-    <div id="viewer-diagnostics" role="status" hidden>
-      <p id="viewer-diagnostics-message"></p>
-      <button type="button" onclick="viewerDiagnostics.download()">Download latest report</button>
-      <button type="button" onclick="viewerDiagnostics.downloadPrevious()">Download previous report</button>
-      <button type="button" onclick="this.parentElement.hidden = true">Dismiss</button>
     </div>
     <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Click selects, Shift-click adds to selection, right drag orbits. Type Layers On in the command line to show layers. Enter executes and Escape cancels."></canvas>
     <!-- A phone keyboard opens only for an editable element: this one takes the command line's typing (app/agent.rs). Below 16px iOS zooms the page on focus. -->

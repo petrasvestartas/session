@@ -55,12 +55,9 @@ async function main() {
         }, null, {timeout: 60000});
         assert.deepEqual(errors, [], 'the initial scene must load without browser errors');
         await page.screenshot({path: `${output}/before.png`});
-        const download = page.waitForEvent('download');
         await page.evaluate(() => window.gpuProbe.devices[0].destroy());
-        const file = await download;
-        await file.saveAs(`${output}/report.json`);
         await page.locator('#viewer-error').waitFor({state: 'visible'});
-        const report = JSON.parse(await fs.readFile(`${output}/report.json`, 'utf8'));
+        const report = await page.evaluate(() => window.viewerDiagnostics.read());
         assert.match(report.failure.message, /device lost/);
         assert.equal(report.outcome, 'failed');
         assert(report.adapter);
@@ -74,16 +71,24 @@ async function main() {
             'loss must stop uploads, UI resources, surface configuration and submissions');
         await page.screenshot({path: `${output}/failed.png`});
 
+        // the failed run comes back only through the Report command, inside the new run's report
         await page.reload();
-        await page.locator('#viewer-diagnostics').waitFor({state: 'visible'});
+        await page.waitForFunction(() => {
+            const raw = document.querySelector('#canvas')?.getAttribute('data-viewer-inspection');
+            return raw && JSON.parse(raw).objects > 0;
+        }, null, {timeout: 60000});
+        const ui = JSON.parse(await page.locator('canvas').getAttribute('data-viewer-ui'));
+        const [x, y, right, bottom] = ui.controls.find(control => control.key === 'command/input').rect;
+        await page.mouse.click((x + right) / 2, (y + bottom) / 2);
+        await page.keyboard.type('Report');
         const recovered = page.waitForEvent('download');
-        await page.getByRole('button', {name: 'Download previous report', exact: true}).click();
+        await page.keyboard.press('Enter');
         await (await recovered).saveAs(`${output}/recovered.json`);
-        assert.equal(JSON.parse(await fs.readFile(`${output}/recovered.json`, 'utf8')).failure.message,
+        assert.equal(JSON.parse(await fs.readFile(`${output}/recovered.json`, 'utf8')).previous.failure.message,
             report.failure.message);
         await fs.writeFile(`${output}/result.json`, JSON.stringify({browser: browser.version(), args,
             deviceLoss: 'device.destroy()', callsAfterLoss: [], reportRecovered: true}, null, 2));
-        console.log('Device loss: GPU work stopped, report downloaded and recovered after reload.');
+        console.log('Device loss: GPU work stopped, report recovered with Report after reload.');
     } finally {
         await browser.close();
     }

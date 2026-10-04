@@ -23,7 +23,7 @@
     } catch { /* Private browsing may deny storage; downloads still work. */ }
 
     // A stale heartbeat means an interruption, not proof of a browser crash.
-    const found = reports.find(({report}) => {
+    const previous = reports.find(({report}) => {
         const clock = Date.now(), started = Date.parse(report.started), seen = Date.parse(report.lastSeen);
         if (!Number.isFinite(started) || !Number.isFinite(seen) || started > seen || seen > clock) return false;
         if (report.outcome === 'failed') {
@@ -33,8 +33,7 @@
         }
         return report.outcome === 'running' && clock - seen < 2 * 60 * 60 * 1000
             && (report.tab === tab || clock - seen > 120000);
-    });
-    const previous = found?.report;
+    })?.report;
     const report = {
         version: 1, tab, started: now(), lastSeen: now(), outcome: 'running',
         page: location.origin + location.pathname, browser: navigator.userAgent,
@@ -42,7 +41,6 @@
         viewport: [innerWidth, innerHeight], devicePixelRatio,
         storage: true, events: [], phases: [], resources: [], liveReloads: 0,
     };
-    let downloaded = false;
 
     function save() {
         report.lastSeen = now();
@@ -54,7 +52,9 @@
         catch { report.storage = false; }
     }
 
-    function download(selected = report) {
+    // The Report command is the only way out: the current run, with the earlier failed or interrupted one.
+    function download() {
+        const selected = previous ? {...report, previous} : report;
         const blob = new Blob([JSON.stringify(selected, null, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -62,13 +62,6 @@
         link.download = `session-viewer-${selected.started.replace(/[:.]/g, '-')}.json`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 10000);
-    }
-
-    function show(message) {
-        const panel = document.getElementById('viewer-diagnostics');
-        if (!panel) return;
-        document.getElementById('viewer-diagnostics-message').textContent = message;
-        panel.hidden = false;
     }
 
     window.viewerDiagnostic = (kind, message) => {
@@ -87,17 +80,8 @@
             report.outcome = 'failed';
         }
         save();
-        if (kind === 'fatal') {
-            show(report.storage ? 'A viewer error was saved. Download the report before sharing it.'
-                : 'Storage is unavailable. Download the report before closing this tab.');
-            if (!downloaded) {
-                downloaded = true;
-                // Browsers may block automatic downloads; the button remains available.
-                try { download(); } catch { /* Keep the saved report. */ }
-            }
-        }
     };
-    window.viewerDiagnostics = {download, downloadPrevious: () => previous && download(previous), read: () => JSON.parse(JSON.stringify(report))};
+    window.viewerDiagnostics = {download, read: () => JSON.parse(JSON.stringify(report))};
     addEventListener('error', event => {
         if (event.message) window.viewerDiagnostic('fatal', event.error?.stack || event.message);
     });
@@ -142,12 +126,6 @@
     setInterval(save, 15000);
     save();
 
-    // Quitting the browser, a discarded tab or sleep also stop the heartbeat, so only errors are announced, once.
-    if (previous?.outcome === 'failed' && !previous.noticed) {
-        show('A previous viewer run failed. Its report is available.');
-        previous.noticed = true;
-        try { localStorage.setItem(found.key, JSON.stringify(previous)); } catch {}
-    }
     if (!navigator.gpu) {
         window.viewerDiagnostic('fatal', isSecureContext
             ? 'WebGPU is unavailable. Check chrome://gpu and the browser setup in the documentation.'

@@ -16,7 +16,7 @@ function storage() {
 }
 
 function open(localStorage = storage(), sessionStorage = storage(), gpu = {}) {
-    const elements = {'viewer-diagnostics': {hidden: true}, 'viewer-diagnostics-message': {}};
+    const elements = {};
     const downloads = [], listeners = {};
     let blob;
     const window = {};
@@ -37,6 +37,11 @@ function open(localStorage = storage(), sessionStorage = storage(), gpu = {}) {
     return {...window, elements, downloads, listeners, localStorage, sessionStorage};
 }
 
+async function previous(page) {
+    page.viewerDiagnostics.download();
+    return JSON.parse(await page.downloads.at(-1).text()).previous;
+}
+
 test('first failure survives later errors, downloads and recovery reloads', async () => {
     const page = open();
     page.viewerDiagnostic('adapter', 'Intel Vulkan');
@@ -46,30 +51,26 @@ test('first failure survives later errors, downloads and recovery reloads', asyn
     assert.equal(report.failure.message, 'device lost');
     assert.equal(report.events.length, 24);
     assert.equal(report.adapter, 'Intel Vulkan');
-    assert.equal(page.downloads.length, 1);
-    assert.equal(JSON.parse(await page.downloads[0].text()).failure.message, 'device lost');
+    assert.equal(page.downloads.length, 0);
     page.listeners.pagehide();
     const next = open(page.localStorage, page.sessionStorage);
-    assert.equal(next.elements['viewer-diagnostics'].hidden, false);
-    next.viewerDiagnostics.downloadPrevious();
-    assert.equal(JSON.parse(await next.downloads[0].text()).failure.message, 'device lost');
+    assert.equal(next.downloads.length, 0);
+    assert.equal((await previous(next)).failure.message, 'device lost');
     next.listeners.pagehide();
     const again = open(page.localStorage, page.sessionStorage);
-    assert.equal(again.elements['viewer-diagnostics'].hidden, true);
-    again.viewerDiagnostics.downloadPrevious();
-    assert.equal(JSON.parse(await again.downloads[0].text()).failure.message, 'device lost');
+    assert.equal((await previous(again)).failure.message, 'device lost');
 });
 
-test('abrupt interruption, clean close and another live tab are not announced', () => {
+test('the report carries an abrupt interruption, not a clean close or another live tab', async () => {
     const page = open();
     assert.equal(page.viewerDiagnostics.read().page, 'https://viewer.test/');
     const other = open(page.localStorage);
-    assert.equal(other.elements['viewer-diagnostics'].hidden, true);
+    assert.equal(await previous(other), undefined);
     const restored = open(page.localStorage, page.sessionStorage);
-    assert.equal(restored.elements['viewer-diagnostics'].hidden, true);
+    assert.equal((await previous(restored)).outcome, 'running');
     const clean = open();
     clean.listeners.pagehide();
-    assert.equal(open(clean.localStorage, clean.sessionStorage).elements['viewer-diagnostics'].hidden, true);
+    assert.equal(await previous(open(clean.localStorage, clean.sessionStorage)), undefined);
     for (let i = 0; i < 10; i++) open(clean.localStorage).listeners.pagehide();
     assert.equal(Object.keys(clean.localStorage).length, 4);
 });
@@ -79,7 +80,7 @@ test('denied storage still allows a downloadable diagnostic', async () => {
     const page = open(denied, denied, undefined);
     page.listeners.unhandledrejection({reason: new Error('GPU initialization failed')});
     assert.equal(page.viewerDiagnostics.read().storage, false);
-    assert.equal(page.downloads.length, 1);
+    page.viewerDiagnostics.download();
     assert.match(await page.downloads[0].text(), /GPU initialization failed/);
 });
 
@@ -87,16 +88,16 @@ test('missing WebGPU records a useful startup error', () => {
     const page = open(storage(), storage(), null);
     assert.equal(page.viewerDiagnostics.read().webgpu, false);
     assert.match(page.viewerDiagnostics.read().failure.message, /chrome:\/\/gpu/);
-    assert.equal(page.elements['viewer-diagnostics'].hidden, false);
+    assert.equal(page.downloads.length, 0);
 });
 
-test('corrupt and older saved data cannot prevent viewer startup', () => {
+test('corrupt and older saved data cannot prevent viewer startup', async () => {
     const data = storage();
     data.setItem('session-viewer-report:broken', '{');
     data.setItem('session-viewer-report:old', JSON.stringify({lastSeen: 1, outcome: 'failed'}));
     const page = open(data);
     assert.equal(page.viewerDiagnostics.read().outcome, 'running');
-    assert.equal(page.elements['viewer-diagnostics'].hidden, true);
+    assert.equal(await previous(page), undefined);
 });
 
 
@@ -115,12 +116,12 @@ test('successful run downloads its own complete phases even after a previous fai
     assert.equal(JSON.parse(await page.downloads[0].text()).outcome, 'ready');
 });
 
-test('failed and interrupted reports from yesterday do not show a stale warning', () => {
+test('failed and interrupted reports from yesterday stay out of the report', async () => {
     for (const outcome of ['failed', 'running']) {
         const data = storage();
         data.setItem('session-viewer-report:stale', JSON.stringify({version: 1, outcome,
             started: '2020-01-01T00:00:00Z', lastSeen: '2020-01-01T00:00:00Z'}));
-        assert.equal(open(data).elements['viewer-diagnostics'].hidden, true);
+        assert.equal(await previous(open(data)), undefined);
     }
 });
 
@@ -150,8 +151,8 @@ test('late ready observations preserve final closed and failed outcomes', () => 
     }
 });
 
-test('a cached ready run does not become an interrupted startup on reload', () => {
+test('a cached ready run does not become an interrupted startup on reload', async () => {
     const page = open(); page.viewerDiagnostic('milestone', 'geometry on screen');
     page.listeners.pagehide({persisted: true}); page.listeners.pageshow({persisted: true});
-    assert.equal(open(page.localStorage, page.sessionStorage).elements['viewer-diagnostics'].hidden, true);
+    assert.equal(await previous(open(page.localStorage, page.sessionStorage)), undefined);
 });
