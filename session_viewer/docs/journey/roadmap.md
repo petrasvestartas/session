@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 232 lesson slots; 164 current checkpoints have fresh build and Chrome evidence. 68 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 233 lesson slots; 166 current checkpoints have fresh build and Chrome evidence. 67 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -22,18 +22,18 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 164 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 166 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
 - [x] Split the final 3 long checkpoints into 12 complete runnable steps; no current checkpoint exceeds one hour of estimated typing.
-- [ ] Write and verify the 68 currently planned feature lessons below.
+- [ ] Write and verify the 67 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 164 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 166 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 164 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 166 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -397,7 +397,9 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34gbba · [Connect visibility and freezing to heartbeat scheduling](34gbba-browser.md) — Genuine tab visibility, actual Chrome freezing, hidden startup, duplicate resumption, post-loss metadata and final/denied-owner guards pass. Typing 20–40 minutes.
 
-- [ ] 34gbc · Revoke pending GPU startup — Final page exit must cancel startup authority before a delayed adapter/device result installs a renderer; cached transitions retain usable authority.
+- [x] 34gbc · [Give pending startup a revocable ticket](34gbc-authority.md) — Shared revocation, permanent closure and independent allocations; 138 native tests, WebAssembly, GPU and retained Chrome route pass. Typing 14–27 minutes.
+
+- [x] 34gbca · [Refuse GPU results after final page exit](34gbca-startup.md) — Actual delayed adapter/device success and rejection, cached return, absent metadata, denied mandatory binding and complete lifecycle route pass. Typing 15–30 minutes.
 
 - [ ] 34gc · Observe browser errors — Bound global error/rejection metadata and preserve first failure.
 

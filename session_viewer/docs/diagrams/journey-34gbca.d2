@@ -1,0 +1,10 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+result: "Adapter or device result"
+check: "Check the startup ticket"
+release: "Release a late result and return"
+renderer: "Install the normal renderer"
+result -> check
+check -> release: revoked
+check -> renderer: allowed

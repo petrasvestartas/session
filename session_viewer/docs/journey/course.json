@@ -10720,6 +10720,120 @@
       ],
       "checks": "Chrome acceptance covers genuine visibility and freeze/resume separately from injected overlap orders. It checks initial hidden startup, duplicate resumption, timer-only metadata, first-failure preservation after actual device loss, final cleanup, refused late scheduling, replacement identity and partial binding failure. Native policy and common typed command/camera checks remain required.",
       "image_same_as": "34gbb-suspension"
+    },
+    {
+      "id": "34gbc-authority",
+      "title": "Give pending startup a revocable ticket",
+      "page": "journey/34gbc-authority.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Prevent a waiting task from regaining startup permission after closure.",
+      "trace": "task ticket + close ticket → shared flag → delayed result refused after closure",
+      "question": "Why clone the ticket instead of copying its boolean value?",
+      "answer": "A copied boolean would keep its old value. Rc shares the Cell, so the waiting task sees the close callback’s revocation.",
+      "result": "Run the state checks. Revocation reaches every waiting ticket, repeated closure stays revoked, and an independent replacement remains allowed.",
+      "experiment": "Revoke the device ticket instead of the owner in the first test. Predict whether the adapter ticket still permits startup, then run the checks.",
+      "production": "This prepares shared startup authority. The next checkpoint checks it after actual adapter and device awaits, independently of optional diagnostic scheduling.",
+      "tests": true,
+      "frame": "journey/checks/34gbc-authority.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/report-suspension.cjs",
+      "story": "Give pending startup a shared permission flag. The task and close callback hold cloned tickets; revoking either ticket refuses every later result.\n\nA replacement gets a separate allocation. This step checks the policy natively; the next step connects it to actual GPU requests.\n\n![The task and close callback share one revocable permission flag.](../illustrations/journey-34gbc.svg)",
+      "browser_caption": "The preceding browser behavior remains unchanged; the new shared startup authority is checked natively.",
+      "edits": [
+        {
+          "path": "src/startup.rs",
+          "before": null,
+          "snippet": "journey/code/34gbc-authority-01.rs",
+          "why": "Share startup permission between the waiting task and its close callback."
+        },
+        {
+          "path": "src/startup_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gbc-authority-02.rs",
+          "why": "Check delayed tickets, repeated closure and an independent replacement owner."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod suspension;",
+          "snippet": "journey/code/34gbc-authority-03.rs",
+          "why": "Register startup authority and its native checks."
+        }
+      ],
+      "checks": "Native tests cover shared revocation, repeated closure and independent allocations. Chrome retains the previous route until startup uses this authority.",
+      "image_same_as": "34gbba-browser"
+    },
+    {
+      "id": "34gbca-startup",
+      "title": "Refuse GPU results after final page exit",
+      "page": "journey/34gbca-startup.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Stop delayed adapter or device delivery from installing a renderer after final exit.",
+      "trace": "final exit → revoke ticket → adapter/device resolves → refuse renderer installation",
+      "question": "Why check permission before turning a rejected GPU request into an error?",
+      "answer": "The page may have closed while the request was pending. That obsolete rejection must not overwrite Closed with a new failure; an active startup still reports genuine errors.",
+      "result": "Reload the viewer and type Diagnostic Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.",
+      "experiment": "In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.",
+      "production": "Pending startup is now guarded at both GPU awaits, including rejected results and a late device. Cached transitions remain usable. Browser error observation, complete loading phases and bounded GPU recovery follow.",
+      "tests": true,
+      "frame": "journey/checks/34gbca-startup.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/startup-command.cjs",
+      "story": "Keep one temporary pagehide listener while startup awaits the GPU. Final exit revokes its shared ticket; cached transitions retain permission.\n\nCheck authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed diagnostic report instead of recording a new fatal error. The listener is released when startup returns.\n\n![Final exit revokes permission before either delayed GPU result can continue startup.](../illustrations/journey-34gbca.svg)",
+      "browser_caption": "Actual delayed GPU results are tested across final and cached page transitions; normal command, camera and lifecycle checks remain connected.",
+      "edits": [
+        {
+          "path": "src/browser_startup.rs",
+          "before": null,
+          "snippet": "journey/code/34gbca-startup-01.rs",
+          "why": "Own one temporary page-exit binding across GPU awaits, independent of optional diagnostic listeners."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod report_lifecycle;",
+          "snippet": "journey/code/34gbca-startup-02.rs",
+          "why": "Register the browser startup guard."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    crate::browser_report::start()?;",
+          "snippet": "journey/code/34gbca-startup-03.rs",
+          "why": "Keep the guard alive from startup until the runtime owns the drawing callbacks."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter",
+          "snippet": "journey/code/34gbca-startup-04.rs",
+          "why": "After the adapter await, refuse a revoked result before requesting a device or interpreting an error."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        .request_device(&wgpu::DeviceDescriptor::default())\n        .await\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;",
+          "snippet": "journey/code/34gbca-startup-05.rs",
+          "why": "After the device await, destroy a late device and return quietly before configuring the surface or creating resources."
+        }
+      ],
+      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. The focused browser proof delays actual adapter/device results; injected page transitions exercise the branches without claiming browser cache eligibility.",
+      "image_same_as": "34gbc-authority"
     }
   ]
 }

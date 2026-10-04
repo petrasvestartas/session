@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 164 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 166 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 164 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 68 remaining feature lessons.
+All 166 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 67 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -176,6 +176,16 @@ Chrome acceptance uses isolated raw DevTools targets to avoid Playwright's alway
 The connected endpoint also verifies unchanged drawing, placement, selection, camera, history and geometry counters; original fatal evidence after real device destruction; healthy/failed final cleanup; refused late scheduling; safe owner replacement; and partial Window/Document binding failure with usable typed downloads. Earlier browser assertions and fingerprints are unchanged. The first capture attempts stopped at test-context setup and automation-forced visibility. A raw-target probe established genuine transitions; the final connected capture passes the complete checks.
 
 Displayed state-check commands now select `--target host-tuple`, overriding an inherited WebAssembly build target. Both new checkpoints pass that exact native command. This changes the instructions, not the reconstructed Rust endpoints.
+
+## Pending GPU startup
+
+Two direct checkpoints introduce shared startup authority (14–27 minutes of typing), then guard actual browser startup (15–30). Both pass 138 native tests, WebAssembly, Trunk, native GPU rendering and headed Chrome. All 164 preceding source endpoints and checker fingerprints remain unchanged.
+
+One temporary pagehide binding survives both GPU awaits. Final exit revokes its shared ticket even when optional metadata registration failed; cached transitions retain permission. Each result is checked before interpreting a rejection or using the GPU. A late device is destroyed once without configuring a surface, creating drawing resources or installing a runtime. Returning successfully preserves the Closed report. The guard binding detaches when startup returns; a normal ready viewer retains five metadata and eighteen drawing/input bindings.
+
+The previous endpoint fails the same focused acceptance: after final exit, a delayed adapter still triggers a device request. The connected endpoint passes ten delayed-result cases: adapter/device success and actual API rejection after final exit; cached adapter/device return; final exit with unavailable metadata; and active adapter/device rejection. A mandatory startup-binding denial refuses GPU requests and retains failure diagnostics. Injected persisted transitions exercise these branches; they do not prove browser-cache eligibility.
+
+The complete command/camera, actual visibility/freezing, post-loss metadata, partial registration and final-cleanup checks also pass. Initial captures exposed test setup problems: instrumentation ran on a blank document without WebGPU, then a drawing reference was recorded before GPU completion. Blank documents are skipped; this checkpoint’s visual checker awaits submitted GPU work and a white frame containing coloured geometry before each exact drawing comparison. Snapshot settling performs no new viewer GPU calls. The cached-route listener counts include the one already-released startup binding. Earlier checkers are untouched. No phone timing, real 15-second heartbeat period or pending-request wall-clock performance is claimed.
 
 ## Reproduce
 
