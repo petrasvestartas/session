@@ -104,10 +104,10 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     walk_features(w, cx, e.features(), bounds);
 }
 
-/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's.
+/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's; contacts always, the rest while attributes are on.
 pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bounds: &mut AABB) {
     for feature in features {
-        if !feature.visible {
+        if !feature.visible || (!cx.attributes && feature.feature_type != "contact") {
             continue;
         }
 
@@ -251,9 +251,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
                 ElementGeometry::None => Row::thin(AABB::empty()),
             };
 
-            if cx.attributes {
-                walk_attributes(w, cx, e, &mut row.bounds);
-            }
+            walk_attributes(w, cx, e, &mut row.bounds);
 
             row
         }
@@ -301,13 +299,14 @@ mod tests {
         (up, row)
     }
 
-    /// Visible features add two ribbons and two dots to the element's own row; the hidden one adds nothing.
+    /// Visible features add two ribbons and two dots to the element's own row, the contact dot even with attributes off; the hidden one adds nothing.
     #[test]
     fn attributes_join_the_element_row() {
         let (off, row_off) = walk_element(false);
         let (on, row_on) = walk_element(true);
         assert_eq!(on.seg.ribbons.len(), off.seg.ribbons.len() + 2);
-        assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 2);
+        assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 1);
+        assert_eq!(off.glyph.dots.last().map(|d| d.instance_id), Some(4));
         assert!(on.seg.ribbons.iter().all(|r| r.instance_id == 4));
         assert_eq!(on.glyph.dots.last().map(|d| d.instance_id), Some(4));
         assert_eq!(row_off.bounds.max_point()[0], 5.0);

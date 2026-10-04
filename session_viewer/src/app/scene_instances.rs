@@ -213,7 +213,7 @@ impl Scene {
             }
             None => walk_geometry(&mut Walk::of(&mut up), &cx, definition),
         };
-        let features = self.attributes && !instance.features.is_empty();
+        let features = !instance.features.is_empty(); // contacts draw always, the rest while attributes are on
 
         if features {
             walk_features(
