@@ -98,6 +98,7 @@ const ATTRIBUTE_LINE_PX: f64 = 2.0; // twice the 1 px pen
 const ATTRIBUTE_DOT_PX: f64 = 12.0; // twice the 6 px point
 const CONTACT_COLOR: [f32; 4] = [0.9, 0.1, 0.1, 1.0 / 255.0]; // contacts fill red; alpha 1/255 tells the face shader to draw it opaque and unlit, apart from every other feature
 const CONTACT_LIFT: f64 = 0.5; // mm off both sides of the face, so neither touching element hides the fill
+const CONTACT_LINE_PX: f64 = 1.0; // the plain pen, round every contact fill
 
 /// Draw an element's visible features, thick, into its own row.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
@@ -112,11 +113,16 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
         }
 
         for outline in &feature.outlines {
-            // a contact polygon is a red fill, not a line
+            // a contact polygon is a red fill with a thin black outline on the face itself
             if feature.feature_type == "contact"
                 && let Some(fill) = walk_contact(w.arena, cx, outline)
             {
                 bounds.union_with(&fill);
+                let mut edge = outline.clone();
+                edge.linecolor = session_rust::Color::black();
+                edge.width = CONTACT_LINE_PX;
+                edge.arrowhead = Arrowhead::NONE;
+                walk_polyline(w.seg, w.lanes, &edge, cx.row);
                 continue;
             }
 
@@ -334,6 +340,6 @@ mod tests {
         assert_eq!(up.arena.idx.len(), before + 12, "two triangles per side, both sides");
         assert!(up.arena.verts.iter().rev().take(8).all(|v| v.color == CONTACT_COLOR));
         assert!(up.arena.vids.iter().rev().take(8).all(|&row| row == 7));
-        assert_eq!(up.seg.ribbons.len(), 0);
+        assert_eq!(up.seg.ribbons.len(), 4, "a black outline, one ribbon per side");
     }
 }
