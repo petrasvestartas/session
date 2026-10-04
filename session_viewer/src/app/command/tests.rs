@@ -278,7 +278,7 @@ fn project_to_plane_offers_five_planes() {
             "Project To Plane 3Point",
         ]
     );
-    assert_eq!(accept("projectt"), ("Project To Plane ".into(), false));
+    assert_eq!(accept("projectt"), ("Project To Plane".into(), true));
     assert_eq!(
         accept("Project To Plane "),
         ("Project To Plane CPlane".into(), true)
@@ -303,7 +303,7 @@ fn one_enter_runs_a_partial_verb_or_opens_its_options() {
     assert_eq!(accept("clo"), ("Close".into(), true));
     assert_eq!(accept(" clo"), ("Close".into(), true));
     assert_eq!(accept("cur"), ("Curve".into(), true));
-    assert_eq!(accept("Sn"), ("Snap ".into(), false));
+    assert_eq!(accept("Sn"), ("Snap".into(), true));
     assert_eq!(accept("Snap ne"), ("Snap Near".into(), true));
     assert_eq!(accept("Snap pe"), ("Snap Perp".into(), true));
 }
@@ -363,7 +363,7 @@ fn session_structure_verbs_parse() {
 #[test]
 fn partial_entries_accept_commands_then_options() {
     assert_eq!(completions("Element F"), vec!["Element Features"]);
-    assert_eq!(accept("Element F"), ("Element Features ".into(), false));
+    assert_eq!(accept("Element F"), ("Element Features".into(), true));
     assert_eq!(
         accept("Element Features "),
         ("Element Features On".into(), true)
@@ -377,7 +377,7 @@ fn partial_entries_accept_commands_then_options() {
         vec!["Element Features On", "Element Features Off"]
     );
     assert_eq!(option_label("Element Features Off"), "Off");
-    assert_eq!(accept("Lay"), ("Layers ".into(), false));
+    assert_eq!(accept("Lay"), ("Layers".into(), true));
     assert_eq!(accept("Layers "), ("Layers On".into(), true));
     assert_eq!(accept("Layers of"), ("Layers Off".into(), true));
     assert_eq!(accept("Lin"), ("Line".into(), true));
@@ -450,7 +450,7 @@ fn several_word_names_complete() {
         completions("clippingplane fill "),
         vec!["Clipping Plane Fill Hatch", "Clipping Plane Fill Solid"]
     );
-    assert_eq!(accept("elementf"), ("Element Features ".into(), false));
+    assert_eq!(accept("elementf"), ("Element Features".into(), true));
     assert_eq!(browse("clip")[0], "Clipping Plane");
     assert_eq!(browse("clippingplane o"), options("Clipping Plane"));
     assert_eq!(hint("clippingplane"), hint("Clipping Plane"));

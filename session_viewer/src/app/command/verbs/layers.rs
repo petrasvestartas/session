@@ -20,12 +20,10 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
 struct Layers(Option<bool>);
 
 impl Action for Layers {
-    /// Open or close the panel, then rebuild its rows.
+    /// Open or close the panel, or flip it without an option, then rebuild its rows.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        if let Some(open) = self.0 {
-            crate::app::feedback::layers_visible(open);
-            state.refresh_layers();
-        }
+        crate::app::feedback::layers_visible(self.0.unwrap_or(!crate::app::feedback::layers_open()));
+        state.refresh_layers();
 
         Ok("Layers (On Off)".into())
     }

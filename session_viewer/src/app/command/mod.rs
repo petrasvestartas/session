@@ -34,7 +34,7 @@ pub struct Spec {
     pub hint: &'static str,             // help line, empty for the generic one
     pub options: &'static [&'static str], // clickable choices
     pub arity: Option<usize>,           // exact argument count, when fixed
-    pub wait_for_option: bool,          // completing the bare verb waits for an option
+    pub wait_for_option: bool,          // completing the bare verb waits for an option it cannot run without
     pub wait_after_option: bool,        // completing verb and option waits for more
     pub parse: fn(verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String>,
 }
@@ -314,8 +314,10 @@ pub fn accept(line: &str) -> (String, bool) {
     let text = choices.first().copied().unwrap_or(line).trim();
     let words: Vec<_> = text.split_whitespace().collect();
     let typed = command_words(&words);
-    let bare_verb_waits =
-        typed.is_some_and(|(spec, count)| words.len() == count && spec.wait_for_option);
+    // a bare verb that runs without an option runs on the first Enter; one that needs a value waits for it
+    let bare_verb_waits = typed.is_some_and(|(spec, count)| {
+        words.len() == count && spec.wait_for_option && (spec.parse)(words[0], &[]).is_err()
+    });
     let option_waits = typed.is_some_and(|(spec, count)| {
         words.len() == count + 1
             && spec.wait_after_option

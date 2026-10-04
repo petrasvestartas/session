@@ -177,7 +177,7 @@ mod tests {
         assert_eq!(accept("len"), ("Length".into(), true));
         assert_eq!(accept("are"), ("Area".into(), true));
         assert_eq!(accept("vol"), ("Volume".into(), true));
-        assert_eq!(accept("Ar"), ("Arctic ".into(), false));
+        assert_eq!(accept("Ar"), ("Arctic".into(), true));
         assert_eq!(accept("Lin"), ("Line".into(), true));
         assert_eq!(
             crate::app::command::completions("m")[..2],

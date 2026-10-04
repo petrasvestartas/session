@@ -75,18 +75,17 @@ fn browsing_starts_from_the_typed_option() {
 
 #[test]
 fn up_down_cycles_command_options_and_enter_accepts() {
+    // one Enter runs a bare verb that needs no option; a space after it opens the options to browse
     for name in ["Element Features", "Layers", "Arctic", "Outline", "Snap"] {
         let context = egui::Context::default();
         context.set_fonts(fonts(BUNDLED));
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
         let mut model = CommandLine {
-            command: name.into(),
+            command: format!("{name} "),
             focus_command: true,
             ..Default::default()
         };
         frame(&context, &mut model, None);
-        assert_eq!(frame(&context, &mut model, Some(egui::Key::Enter)), None);
-        assert_eq!(model.command, format!("{name} "));
         let options = crate::app::command::options(&model.command);
         for key in [egui::Key::ArrowLeft, egui::Key::ArrowRight] {
             frame(&context, &mut model, Some(key));
