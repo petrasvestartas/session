@@ -8,7 +8,7 @@ export const docs = path.join(viewer, 'docs');
 export const site = fileURLToPath(new URL('../../', import.meta.url));
 export const work = path.join(viewer, 'workspace/journey');
 export type Files = Record<string, string>;
-export interface Edit { path: string; snippet: string; before: string | null; why: string }
+export interface Edit { path: string; snippet: string; before: string | null; why: string; copy?: boolean }
 export interface Step {
     id: string; title: string; page: string; hours: [number, number]; goal: string;
     trace: string; question: string; answer: string; edits: Edit[]; story: string;
@@ -55,7 +55,7 @@ export function addedLines(before: string, after: string): string[] {
 }
 
 export function typingLoad(step: Step) {
-    const added = step.edits.flatMap(edit => addedLines(edit.before || '', read(path.join(docs, edit.snippet))));
+    const added = step.edits.filter(edit => !edit.copy).flatMap(edit => addedLines(edit.before || '', read(path.join(docs, edit.snippet))));
     const characters = [...added.join('')].length;
     return {lines: added.length, characters, minutes: [Math.ceil(characters / 100), Math.ceil(characters / 50)]};
 }

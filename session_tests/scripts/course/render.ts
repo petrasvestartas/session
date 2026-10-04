@@ -4,7 +4,7 @@ import {createRequire} from 'node:module';
 import {course, docs, read, json, write, hash, typingLoad, expected} from './model.ts';
 import {signature} from './verify.ts';
 
-const language: Record<string, string> = {'.rs': 'rust', '.wgsl': 'wgsl', '.html': 'html', '.toml': 'toml', '.md': 'markdown', '.sh': 'sh', '.yaml': 'yaml'};
+const language: Record<string, string> = {'.rs': 'rust', '.wgsl': 'wgsl', '.html': 'html', '.toml': 'toml', '.md': 'markdown', '.sh': 'sh', '.yaml': 'yaml', '.js': 'javascript'};
 const command = 'npm --prefix ../session_tests run course --';
 const browserFingerprint = createRequire(import.meta.url)(path.join(docs, 'journey/checks/fingerprint.cjs'));
 
@@ -35,7 +35,7 @@ export function generate() {
             const lang = language[path.extname(edit.path)] || 'text';
             const fence = '`'.repeat(Math.max(3, ...[...(code + (edit.before || '')).matchAll(/^\s*(`{3,})/gm)].map(match => match[1].length + 1)));
             page.push(`### ${number + 1}. \`${edit.path}\``, edit.why);
-            if (edit.before === null) page.push('Create the file and type:');
+            if (edit.before === null) page.push(edit.copy ? 'Copy this check file:' : 'Create the file and type:');
             else if (code) page.push(`<details>\n<summary>Locate the existing block</summary>\n\n${fence}${lang}\n${edit.before.trimEnd()}\n${fence}\n\n</details>`, 'Replace that block with:');
             else page.push('Find this exact block:', `${fence}${lang}\n${edit.before.trimEnd()}\n${fence}`, 'Delete this block.');
             if (code) page.push(`${fence}${lang}\n--8<-- "${edit.snippet}"\n${fence}`);

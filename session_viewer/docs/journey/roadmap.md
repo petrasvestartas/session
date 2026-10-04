@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 234 lesson slots; 168 current checkpoints have fresh build and Chrome evidence. 66 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 236 lesson slots; 170 current checkpoints have fresh build and Chrome evidence. 66 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -25,7 +25,7 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 168 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 170 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
 - [x] Split the final 3 long checkpoints into 12 complete runnable steps; no current checkpoint exceeds one hour of estimated typing.
@@ -36,9 +36,9 @@ Every lesson opens with one outcome paragraph, at most 45 words. The main page g
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 168 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 170 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 168 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 170 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -410,7 +410,11 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34gca · [Observe uncaught browser failures](34gca-errors.md) — Real uncaught errors and rejected promises, automatic/manual downloads, bounded safe reasons, healthy camera, post-loss metadata and partial-registration cleanup pass. Typing 18–35 minutes.
 
-- [ ] 34gd · Record complete loading diagnostics — Adapter, load phases, resources and live replacements; split into manageable endpoints when authored.
+- [x] 34gd · [Retain adapter identity in the report](34gd-adapter.md) — Bounded strings, legacy decoding, strict fields, event rotation and atomic refusal; 144 native tests, WebAssembly, GPU and Chrome pass. Typing 14–28 minutes; copy the check file.
+
+- [x] 34gda · [Read the viewer’s adapter identity](34gda-browser.md) — Actual drawing-device identity, one request, descriptor restoration, unavailable metadata, replacement ownership and the complete preceding browser route pass. Typing 29–57 minutes.
+
+- [ ] 34gdb · Record complete loading diagnostics — Load phases, resource timing and live replacements; adapter identity is taught above.
 
 - [ ] 34ge · Recover from GPU loss — Retain diagnostics, bound retries and restore normal quality after conservative recovery.
 

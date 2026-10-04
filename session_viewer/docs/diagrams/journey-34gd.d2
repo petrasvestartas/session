@@ -1,0 +1,10 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Vendor, architecture, device, description"
+b: "Validate optional identity"
+c: "Retain outside the recent-event queue"
+d: "Persist the same identity after rotation"
+a -> b
+b -> c
+c -> d

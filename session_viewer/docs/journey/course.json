@@ -10949,6 +10949,157 @@
       ],
       "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. Actual browser failures are exercised in isolated browser contexts so deliberate exceptions cannot hide unexpected main-viewer errors.\n\nAdditional verification: Reload and type Diagnostic Report. Normal startup remains Ready. The checkpoint’s browser check produces real uncaught errors and rejected promises, then verifies retained failure evidence.",
       "image_same_as": "34gc-messages"
+    },
+    {
+      "id": "34gd-adapter",
+      "title": "Retain adapter identity in the report",
+      "page": "journey/34gd-adapter.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Preserve bounded adapter identity even when recent events rotate out of the report.",
+      "trace": "optional adapter strings → validated report field → saved identity survives event rotation",
+      "question": "Why is adapter identity outside the recent-event queue?",
+      "answer": "Loading, lifecycle and later errors can fill that queue. The same adapter identity must remain available in every subsequent report.",
+      "result": "Run the state checks. Adapter identity survives event rotation, while reports saved before this lesson still decode.",
+      "experiment": "Give a vendor string 256 emoji characters, then 257. The first is valid; the second is refused without changing the report.",
+      "production": "This prepares retained adapter metadata. The next lesson observes the viewer’s actual native request; load timings and resource accounting follow.",
+      "tests": true,
+      "frame": "journey/checks/34gd-adapter.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/errors-command.cjs",
+      "story": "Keep vendor, architecture, device and description in one optional report field. Later events can rotate out without losing the adapter identity.\n\nBrowser vendors can leave identity strings empty. Accept those values, bound each string to 256 characters and reject unknown nested fields. Old reports omit the new field and still decode.\n\n![Adapter identity survives beside the rotating event window.](../illustrations/journey-34gd.svg)",
+      "browser_caption": "Native checks establish the new report field; browser commands and drawing retain the preceding behavior.",
+      "edits": [
+        {
+          "path": "src/adapter_info.rs",
+          "before": null,
+          "snippet": "journey/code/34gd-adapter-01.rs",
+          "why": "Keep four bounded adapter strings without retaining a GPU object."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "    failure: Option<Event>,",
+          "snippet": "journey/code/34gd-adapter-02.rs",
+          "why": "Retain optional adapter identity separately from the recent-event queue."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "            context, events: Default::default(), failure: None }",
+          "snippet": "journey/code/34gd-adapter-03.rs",
+          "why": "Start without adapter identity; the browser will supply it after its request."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "            && self.events.len() <= 24 && self.events.iter().all(event)",
+          "snippet": "journey/code/34gd-adapter-04.rs",
+          "why": "Reject oversized adapter fields when validating a saved report."
+        },
+        {
+          "path": "src/diagnostic.rs",
+          "before": "    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }",
+          "snippet": "journey/code/34gd-adapter-05.rs",
+          "why": "Validate identity before changing the report."
+        },
+        {
+          "path": "src/report_store.rs",
+          "before": "        \"webgpu\", \"viewport\", \"canvas\", \"devicePixelRatio\", \"events\", \"failure\"];",
+          "snippet": "journey/code/34gd-adapter-06.rs",
+          "why": "Admit the optional adapter field through the existing strict decoder."
+        },
+        {
+          "path": "src/adapter_info_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gd-adapter-07.rs",
+          "why": "Copy the checks for retained identity, legacy decoding, strict fields, Unicode bounds and atomic refusal.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod diagnostic;",
+          "snippet": "journey/code/34gd-adapter-08.rs",
+          "why": "Register adapter identity and its native checks."
+        }
+      ],
+      "checks": "Native checks cover event rotation, retained first failure, legacy reports, strict nested fields, Unicode limits and atomic refusal. Browser drawing/input retain the preceding complete route.",
+      "image_same_as": "34gca-errors"
+    },
+    {
+      "id": "34gda-browser",
+      "title": "Read the viewer’s adapter identity",
+      "page": "journey/34gda-browser.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain vendor and architecture from the same adapter request used for drawing.",
+      "trace": "viewer adapter request → native identity strings → retained report → observer released",
+      "question": "Why not request another adapter just to read its identity?",
+      "answer": "A second request might choose a different adapter. Observe the exact result used for this viewer, then restore the request function.",
+      "result": "Type `Diagnostic Report`. Its `adapter` field contains vendor, architecture, device and description; a browser may leave individual strings empty.",
+      "experiment": "Download another report after several camera commands. The adapter identity stays unchanged while drawing continues.",
+      "production": "This teaches the production viewer’s same-request metadata capture with temporary ownership. Complete load phases, resource timings, live replacements and GPU recovery remain planned.",
+      "tests": true,
+      "frame": "journey/checks/34gda-browser.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/adapter-command.cjs",
+      "story": "Observe the viewer’s native adapter request, save its four identity strings, then release the observer before requesting a device. No extra adapter is requested.\n\nThe pinned wgpu browser backend exposes description but drops vendor and architecture. A small JavaScript module reads GPUAdapterInfo from that same native adapter. Rust owns the observer and report; unavailable metadata does not stop drawing.\n\n![One native adapter request supplies both wgpu and the retained report identity.](../illustrations/journey-34gda.svg)",
+      "browser_caption": "Typed reports retain identity from the actual drawing adapter without another adapter request or retained GPU owner.",
+      "edits": [
+        {
+          "path": "src/adapter_info.js",
+          "before": null,
+          "snippet": "journey/code/34gda-browser-01.js",
+          "why": "Observe the same native adapter request; retain only strings and restore the original property when released."
+        },
+        {
+          "path": "src/browser_adapter.rs",
+          "before": null,
+          "snippet": "journey/code/34gda-browser-02.rs",
+          "why": "Own the JavaScript observation across one await and release it through Drop."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "pub fn fatal(message: &str) {",
+          "snippet": "journey/code/34gda-browser-03.rs",
+          "why": "Persist validated adapter identity without changing the run outcome or event history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let adapter = instance",
+          "snippet": "journey/code/34gda-browser-04.rs",
+          "why": "Install observation immediately before the viewer requests its adapter."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let adapter = adapter.map_err(|error| JsValue::from_str(&error.to_string()))?;",
+          "snippet": "journey/code/34gda-browser-05.rs",
+          "why": "Read identity only while startup remains authorized; detach observation before requesting a device."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod browser_errors;",
+          "snippet": "journey/code/34gda-browser-06.rs",
+          "why": "Register the browser adapter bridge."
+        }
+      ],
+      "checks": "Verify actual native identity, one request, exact property restoration, bounded strings, unavailable metadata, later wrapper ownership and cancelled startup. Preserve the complete preceding command/error/lifecycle route.",
+      "image_same_as": "34gd-adapter"
     }
   ]
 }
