@@ -827,7 +827,7 @@ mod tests {
                 let dot = Polyline::new(vec![Point::new(0.5, 0.5, 0.5)]);
                 instance
                     .features
-                    .push(ElementFeature::new("contact", 0, vec![dot], "dot"));
+                    .push(ElementFeature::new("joint", 0, vec![dot], "dot")); // a feature the switch hides; contacts always draw
             }
 
             let parent = (i + 1 == n).then_some(&group);
