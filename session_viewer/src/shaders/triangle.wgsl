@@ -1,5 +1,7 @@
 // Red for faces seen from behind.
 const BACKFACE_COLOR: vec3<f32> = vec3<f32>(0.80, 0.05, 0.05);
+// Vertex alpha of a contact fill; matches CONTACT_COLOR in Rust.
+const CONTACT_ALPHA: f32 = 1.0 / 255.0;
 
 // One mesh vertex from the vertex buffers.
 struct VsIn {
@@ -49,6 +51,12 @@ fn transform_vertex(in: VsIn) -> VsOut {
     o.pos = clip;
     var color = object_color(vec4<f32>(in.color.rgb, 1.0), inst).rgb;
 
+    // a contact fill keeps its own red, opaque and unlit, whatever the object around it
+    let contact = abs(in.color.a - CONTACT_ALPHA) < 0.5 / 255.0;
+    if (contact) {
+        color = in.color.rgb;
+    }
+
     if ((inst.flags & FLAG_SELECTED) != 0u) {
         color = SELECT_COLOR;
     }
@@ -58,12 +66,12 @@ fn transform_vertex(in: VsIn) -> VsOut {
     o.normal = face_normal(inst.model, oct32_decode(in.normal));
     // negative determinant: winding is flipped
     o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
-    o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u);
+    o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u || contact);
     o.inst_id = in.inst_id;
     o.selected = inst.flags & FLAG_SELECTED;
     o.source_face = 0xffffffffu;
-    o.closed = select(1u, 0u, (inst.flags & FLAG_OPEN) != 0u);
-    o.xray = select(0u, 1u, line.opacity <= 0.0 && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u);
+    o.closed = select(1u, 0u, (inst.flags & FLAG_OPEN) != 0u || contact);
+    o.xray = select(0u, 1u, line.opacity <= 0.0 && (inst.flags & (FLAG_PRINT | FLAG_SHEET | FLAG_SINGLE)) == 0u && !contact);
     return o;
 }
 

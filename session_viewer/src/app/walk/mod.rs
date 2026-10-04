@@ -96,6 +96,8 @@ impl Row {
 
 const ATTRIBUTE_LINE_PX: f64 = 2.0; // twice the 1 px pen
 const ATTRIBUTE_DOT_PX: f64 = 12.0; // twice the 6 px point
+const CONTACT_COLOR: [f32; 4] = [0.9, 0.1, 0.1, 1.0 / 255.0]; // contacts fill red; alpha 1/255 tells the face shader to draw it opaque and unlit, apart from every other feature
+const CONTACT_LIFT: f64 = 0.5; // mm off both sides of the face, so neither touching element hides the fill
 
 /// Draw an element's visible features, thick, into its own row.
 fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
@@ -110,6 +112,14 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
         }
 
         for outline in &feature.outlines {
+            // a contact polygon is a red fill, not a line
+            if feature.feature_type == "contact"
+                && let Some(fill) = walk_contact(w.arena, cx, outline)
+            {
+                bounds.union_with(&fill);
+                continue;
+            }
+
             // Coincident contact endpoints also represent a point.
             let point = outline.get_point(0).filter(|p| {
                 outline
@@ -130,6 +140,55 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
             bounds.union_with(&r.bounds);
         }
     }
+}
+
+/// A contact polygon as red triangles just off both sides of its plane, in the row of `cx`; none for fewer than three corners.
+fn walk_contact(arena: &mut ArenaRows, cx: &WalkCx, outline: &session_rust::Polyline) -> Option<AABB> {
+    use crate::engine::gpu::faces::FaceSource;
+    use session_rust::Point;
+
+    let mut points: Vec<[f64; 3]> = outline.coords.chunks_exact(3).map(|c| [c[0], c[1], c[2]]).collect();
+    if points.len() > 1 && points.first() == points.last() {
+        points.pop();
+    }
+    if points.len() < 3 {
+        return None;
+    }
+
+    // the polygon's normal, Newell's sum
+    let mut normal = [0.0; 3];
+    for (k, a) in points.iter().enumerate() {
+        let b = points[(k + 1) % points.len()];
+        normal[0] += (a[1] - b[1]) * (a[2] + b[2]);
+        normal[1] += (a[2] - b[2]) * (a[0] + b[0]);
+        normal[2] += (a[0] - b[0]) * (a[1] + b[1]);
+    }
+    let length = (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]).sqrt();
+    if length < 1e-12 {
+        return None;
+    }
+
+    let mut bounds = AABB::empty();
+    for side in [1.0, -1.0] {
+        let lift = CONTACT_LIFT * side / length;
+        let lifted: Vec<Point> = points
+            .iter()
+            .map(|p| Point::new(p[0] + normal[0] * lift, p[1] + normal[1] * lift, p[2] + normal[2] * lift))
+            .collect();
+        let render = session_rust::Mesh::from_polylines(vec![lifted], None).to_render();
+        let base = cx.vert_base + arena.verts.len() as u32;
+        for vertex in &render.vertices {
+            bounds.union_with_point(vertex.position[0] as f64, vertex.position[1] as f64, vertex.position[2] as f64);
+            arena.verts.push(session_rust::render_mesh::RenderVertex { color: CONTACT_COLOR, ..*vertex });
+            arena.vids.push(cx.row);
+        }
+        arena.idx.extend(render.indices.iter().map(|&i| base + i));
+        let address = arena.face_sources.len() as u32;
+        arena.face_sources.push(FaceSource { parent: cx.row, face: 0 });
+        arena.face_ids.extend(std::iter::repeat_n(address, render.indices.len() / 3));
+    }
+
+    Some(bounds)
 }
 
 /// An element without geometry gets no row.
@@ -254,5 +313,28 @@ mod tests {
         assert_eq!(row_off.bounds.max_point()[0], 5.0);
         assert_eq!(row_on.bounds.max_point()[0], 100.0);
         assert_eq!(row_on.bounds.max_point()[1], 5.0);
+    }
+
+    /// A contact polygon fills red triangles on both sides of its face, in the element's own row, instead of a ribbon.
+    #[test]
+    fn contact_polygons_fill_red() {
+        let mut element = Element::new("plate");
+        element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
+        let square = Polyline::new(vec![Point::new(0.0, 0.0, 5.0), Point::new(4.0, 0.0, 5.0), Point::new(4.0, 4.0, 5.0), Point::new(0.0, 4.0, 5.0), Point::new(0.0, 0.0, 5.0)]);
+        element.add_feature(ElementFeature::new("contact", 0, vec![square], "side_side"));
+        let mut up = Upload::default();
+        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 7, attributes: true };
+        let before = {
+            let mut bare = Upload::default();
+            let mut plain = element.clone();
+            plain.set_features(vec![]);
+            walk_geometry(&mut Walk::of(&mut bare), &cx, &Geometry::Element(std::rc::Rc::new(plain)));
+            bare.arena.idx.len()
+        };
+        walk_geometry(&mut Walk::of(&mut up), &cx, &Geometry::Element(std::rc::Rc::new(element)));
+        assert_eq!(up.arena.idx.len(), before + 12, "two triangles per side, both sides");
+        assert!(up.arena.verts.iter().rev().take(8).all(|v| v.color == CONTACT_COLOR));
+        assert!(up.arena.vids.iter().rev().take(8).all(|&row| row == 7));
+        assert_eq!(up.seg.ribbons.len(), 0);
     }
 }
