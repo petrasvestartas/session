@@ -23,7 +23,7 @@
     } catch { /* Private browsing may deny storage; downloads still work. */ }
 
     // A stale heartbeat means an interruption, not proof of a browser crash.
-    const previous = reports.find(({report}) => {
+    const found = reports.find(({report}) => {
         const clock = Date.now(), started = Date.parse(report.started), seen = Date.parse(report.lastSeen);
         if (!Number.isFinite(started) || !Number.isFinite(seen) || started > seen || seen > clock) return false;
         if (report.outcome === 'failed') {
@@ -33,7 +33,8 @@
         }
         return report.outcome === 'running' && clock - seen < 2 * 60 * 60 * 1000
             && (report.tab === tab || clock - seen > 120000);
-    })?.report;
+    });
+    const previous = found?.report;
     const report = {
         version: 1, tab, started: now(), lastSeen: now(), outcome: 'running',
         page: location.origin + location.pathname, browser: navigator.userAgent,
@@ -141,7 +142,12 @@
     setInterval(save, 15000);
     save();
 
-    if (previous) show('A previous viewer run failed or was interrupted. Its report is available.');
+    // Quitting the browser, a discarded tab or sleep also stop the heartbeat, so only errors are announced, once.
+    if (previous?.outcome === 'failed' && !previous.noticed) {
+        show('A previous viewer run failed. Its report is available.');
+        previous.noticed = true;
+        try { localStorage.setItem(found.key, JSON.stringify(previous)); } catch {}
+    }
     if (!navigator.gpu) {
         window.viewerDiagnostic('fatal', isSecureContext
             ? 'WebGPU is unavailable. Check chrome://gpu and the browser setup in the documentation.'

@@ -13,8 +13,8 @@ async function main() {
         ['future heartbeat', {...base, lastSeen:iso(1000)}, false],
         ['failure after heartbeat', {...base, lastSeen:iso(-20000)}, false],
         ['active other tab', {...base, outcome:'running'}, false],
-        ['interrupted other tab', {...base, outcome:'running', lastSeen:iso(-120001)}, true],
-        ['interrupted same tab', {...base, outcome:'running', tab:'current'}, true],
+        ['interrupted other tab', {...base, outcome:'running', lastSeen:iso(-120001)}, false],
+        ['interrupted same tab', {...base, outcome:'running', tab:'current'}, false],
         ['stale interrupted tab', {...base, outcome:'running', lastSeen:iso(-7200000)}, false],
     ];
     const browser = await chromium.launch({channel:'chrome', headless:false, args:['--enable-unsafe-webgpu', '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE', '--disable-vulkan-surface', '--ozone-platform=x11']});

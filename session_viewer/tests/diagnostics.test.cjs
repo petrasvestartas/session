@@ -55,17 +55,18 @@ test('first failure survives later errors, downloads and recovery reloads', asyn
     assert.equal(JSON.parse(await next.downloads[0].text()).failure.message, 'device lost');
     next.listeners.pagehide();
     const again = open(page.localStorage, page.sessionStorage);
+    assert.equal(again.elements['viewer-diagnostics'].hidden, true);
     again.viewerDiagnostics.downloadPrevious();
     assert.equal(JSON.parse(await again.downloads[0].text()).failure.message, 'device lost');
 });
 
-test('abrupt interruption is recoverable; clean close and another live tab are not failures', () => {
+test('abrupt interruption, clean close and another live tab are not announced', () => {
     const page = open();
     assert.equal(page.viewerDiagnostics.read().page, 'https://viewer.test/');
     const other = open(page.localStorage);
     assert.equal(other.elements['viewer-diagnostics'].hidden, true);
     const restored = open(page.localStorage, page.sessionStorage);
-    assert.equal(restored.elements['viewer-diagnostics'].hidden, false);
+    assert.equal(restored.elements['viewer-diagnostics'].hidden, true);
     const clean = open();
     clean.listeners.pagehide();
     assert.equal(open(clean.localStorage, clean.sessionStorage).elements['viewer-diagnostics'].hidden, true);
