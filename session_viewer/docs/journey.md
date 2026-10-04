@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 162 cumulative lessons, about 151.5–291.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 164 cumulative lessons, about 153–293.75 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **231 proposed slots: 162 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **232 proposed slots: 164 current checkpoints and 68 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -189,6 +189,8 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [34ga · Own the periodic diagnostic heartbeat](journey/34ga-timer.md) | 1–2 hours | Schedule a real 15-second metadata heartbeat independently of GPU lifetime and cancel its callback through an owner. |
 | [34gb · Mark a final healthy run closed](journey/34gb-close.md) | 1–2 hours | Persist a healthy final exit as closed while preserving first-failure evidence and every observation. |
 | [34gba · Own diagnostic page transitions](journey/34gba-lifecycle.md) | 1–2 hours | Connect real pagehide/pageshow to independent diagnostics, cached suspension and safe final callback cleanup. |
+| [34gbb · Keep each heartbeat pause reason separate](journey/34gbb-suspension.md) | 0.75–1.25 hours | Check that clearing one pause reason cannot resume a still-suspended heartbeat. |
+| [34gbba · Connect visibility and freezing to heartbeat scheduling](journey/34gbba-browser.md) | 0.75–1.25 hours | Pause the actual diagnostic timer while any browser suspension reason remains. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

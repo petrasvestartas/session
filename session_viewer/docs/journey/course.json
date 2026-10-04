@@ -10576,6 +10576,150 @@
         }
       ],
       "checks": "Chrome has focused lifecycle acceptance plus the common real command/camera/input checks. It separately observes two metadata bindings and eighteen drawing/input bindings; it does not modify the older checkpoints’ ownership assertions. Synthetic persisted transitions prove retention and resumed scheduling, not that Chrome actually caches this GPU page. Real device.destroy proves metadata continues after GPU disposal. Healthy and failed final exits stop scheduling, remove metadata bindings once and ignore late events. Replacement before deferred cleanup retains the new owner and timer. Denied registration leaves ready drawing and a usable current download. All earlier checkpoint evidence remains independently verified."
+    },
+    {
+      "id": "34gbb-suspension",
+      "title": "Keep each heartbeat pause reason separate",
+      "page": "journey/34gbb-suspension.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Check that clearing one pause reason cannot resume a still-suspended heartbeat.",
+      "trace": "hidden + frozen + cached + final closure → one scheduling decision",
+      "question": "Why does becoming visible not always allow the heartbeat to resume?",
+      "answer": "Visibility clears only the hidden reason. A freeze or cached-page reason can still prohibit scheduling; final closure never resumes.",
+      "result": "Run the state checks. Every remaining pause reason prevents resumption, and clearing all reasons permits it. A closed policy stays closed.",
+      "experiment": "Change the first test to clear Frozen last. Predict which earlier clear remains paused, then run the checks.",
+      "production": "This prepares independent browser suspension reasons. The following step connects them to the real diagnostic timer; drawing and document ownership remain separate.",
+      "tests": true,
+      "frame": "journey/checks/34gbb-suspension.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/report-lifecycle.cjs",
+      "story": "Give heartbeat scheduling three independent reasons to pause: hidden, frozen and cached. Clearing one reason must leave the others intact. Final closure permanently prevents resumption.\n\nThe policy is ordinary Rust, without browser or GPU ownership. Native checks exercise overlapping reasons and different release orders. Browser event delivery is connected in the next step.\n\n![Each pause reason must clear before heartbeat scheduling resumes.](../illustrations/journey-34gbb.svg)",
+      "browser_caption": "This preparation step retains the preceding browser drawing and lifecycle behavior. Its new scheduling policy is tested natively.",
+      "edits": [
+        {
+          "path": "src/suspension.rs",
+          "before": null,
+          "snippet": "journey/code/34gbb-suspension-01.rs",
+          "why": "Keep hidden, frozen and cached reasons independent; final closure permanently refuses scheduling."
+        },
+        {
+          "path": "src/suspension_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gbb-suspension-02.rs",
+          "why": "Check overlapping reasons, initial hidden state, duplicate delivery and final closure that cannot resume."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod diagnostic;",
+          "snippet": "journey/code/34gbb-suspension-03.rs",
+          "why": "Register the pure policy and its native checks."
+        }
+      ],
+      "checks": "Native policy checks cover overlapping reasons in three release orders, initially hidden startup, duplicate events and final closure. Chrome independently retains the preceding page-transition route until this policy is connected.",
+      "image_same_as": "34gba-lifecycle"
+    },
+    {
+      "id": "34gbba-browser",
+      "title": "Connect visibility and freezing to heartbeat scheduling",
+      "page": "journey/34gbba-browser.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Pause the actual diagnostic timer while any browser suspension reason remains.",
+      "trace": "Document and Window events → independent pause reasons → stop or retain one heartbeat timer",
+      "question": "Why does timer synchronization happen after updating the event’s reasons?",
+      "answer": "The scheduling decision must include both the changed reason and current visibility. It must not resume between clearing cached state and discovering the document is still hidden.",
+      "result": "Switch away from the viewer tab, then return and type Diagnostic Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.",
+      "experiment": "In the debug console, dispatch Document freeze, cached Window pagehide, then Document resume. The cached reason still blocks scheduling until pageshow.",
+      "production": "Diagnostic metadata remains independent of drawing and survives device loss. This connects hidden/frozen/cached scheduling; pending GPU startup revocation, browser errors, full phases and bounded recovery follow. Scheduling requires a live lifecycle owner; denied bindings preserve manual report downloads without installing a heartbeat.",
+      "tests": true,
+      "frame": "journey/checks/34gbba-browser.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document replaced. Undo restores the previous document.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/report-suspension.cjs",
+      "story": "Connect visibilitychange, freeze and resume on Document. Keep pagehide and pageshow on Window. Each event changes its own pause reason before synchronizing the heartbeat.\n\nRead Document.hidden at startup and on return. Start one timer only when the policy permits it. Repeated resume events retain the existing timer. Final closure prevents restart before deferred listener cleanup.\n\n![Document and Window events update independent reasons before scheduling one timer.](../illustrations/journey-34gbba.svg)",
+      "browser_caption": "Actual Chrome visibility/freezing, independent reason overlap, one timer, post-loss metadata and final cleanup are verified by this checkpoint.",
+      "edits": [
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "use crate::{browser_report as report, listeners::Listeners};",
+          "snippet": "journey/code/34gbba-browser-01.rs",
+          "why": "Use the scheduling policy in the existing metadata owner."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "RefCell<Option<(Rc<()>, Listeners)>>",
+          "snippet": "journey/code/34gbba-browser-02.rs",
+          "why": "Store pause reasons beside the owned listeners and allocation token."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "|(id, _)| Rc::ptr_eq(id, token)",
+          "snippet": "journey/code/34gbba-browser-03.rs",
+          "why": "Keep replacement identity independent of scheduling state."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle))]",
+          "snippet": "journey/code/34gbba-browser-04.rs",
+          "why": "Read or update scheduling state without retaining a borrow while the timer changes."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "    let token = Rc::new(()); let guarded = Rc::clone(&token);",
+          "snippet": "journey/code/34gbba-browser-05.rs",
+          "why": "Read the initial hidden state and retain Document for later visibility observations."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "                report::stop_periodic();\n                if !cached {",
+          "snippet": "journey/code/34gbba-browser-06.rs",
+          "why": "Pause cached scheduling; close the policy permanently before final cleanup is deferred."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "                if let Err(error) = report::start_periodic() {\n                    let _ = report::observe(\"diagnostic\", &format!(\"Heartbeat unavailable: {error:?}\"));\n                }",
+          "snippet": "journey/code/34gbba-browser-07.rs",
+          "why": "On page return, clear only the cached reason and refresh actual visibility."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "            _ => {}\n        }\n    });",
+          "snippet": "journey/code/34gbba-browser-08.rs",
+          "why": "Observe Document visibility and freezing, then synchronize one timer after updating all affected reasons."
+        },
+        {
+          "path": "src/report_lifecycle.rs",
+          "before": "    ACTIVE.with(|slot| slot.replace(Some((token, listeners)))); Ok(())",
+          "snippet": "journey/code/34gbba-browser-09.rs",
+          "why": "Bind all three Document events; partial registration still cleans up through the listener owner."
+        },
+        {
+          "path": "src/browser_report.rs",
+          "before": "pub fn start_periodic() -> Result<(), JsValue> {\n    stop_periodic();",
+          "snippet": "journey/code/34gbba-browser-10.rs",
+          "why": "Refuse suspended scheduling and retain an existing timer, so repeated resume events cannot restart or duplicate it."
+        }
+      ],
+      "checks": "Chrome acceptance covers genuine visibility and freeze/resume separately from injected overlap orders. It checks initial hidden startup, duplicate resumption, timer-only metadata, first-failure preservation after actual device loss, final cleanup, refused late scheduling, replacement identity and partial binding failure. Native policy and common typed command/camera checks remain required.",
+      "image_same_as": "34gbb-suspension"
     }
   ]
 }

@@ -69,10 +69,10 @@ Run the state checks below. The new round-trip test restores a known scene point
 
 [Verification scope](release.md).
 
-Run the state checks from your project folder:
+Run the state checks on your computer from your project folder:
 
 ```sh
-cargo test --lib --locked -j4
+cargo test --lib --locked --target host-tuple -j4
 ```
 
 <details>

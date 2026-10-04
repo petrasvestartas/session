@@ -50,10 +50,10 @@ Run the unload guard checks below. A modified history row must protect its origi
 
 [Verification scope](release.md).
 
-Run the state checks from your project folder:
+Run the state checks on your computer from your project folder:
 
 ```sh
-REGEN_PROTO=0 cargo test --lib --locked -j4
+REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
 ```
 
 <details>

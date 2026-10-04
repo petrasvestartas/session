@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 162 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 164 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 162 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 69 remaining feature lessons.
+All 164 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 68 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -159,11 +159,23 @@ Two further checkpoints pass 132 native tests each, WebAssembly, Trunk, native G
 
 A separate browser owner retains two metadata bindings and an Rc allocation token independently of the eighteen drawing/input bindings. Cached pagehide records activity and pauses its interval without closing the report; pageshow resumes one interval. Final exit persists close immediately, then disposes listeners on the next microtask only if the allocation still matches. The callback returns before its own Rust Closure is released. Taking owners out of RefCell slots before dropping them avoids reentrant borrows. Denied registration cleans the partial binding, records unavailable lifecycle service, and leaves ready drawing/current downloads usable.
 
-Chrome has focused transition acceptance plus the common real command/camera/input checks; it does not alter the older optional ownership assertions. It separately observes two metadata/eighteen GPU bindings, actual device destruction, retained post-loss observations, healthy/failed final cleanup, zero late GPU work and replacement before an older cleanup microtask. Synthetic persisted transitions establish the branch, not actual browser cache eligibility. Earlier checkpoints retain independent fresh evidence. Hidden/frozen suspension reasons, pending-startup revocation, error observations, complete phases and bounded recovery remain next.
+Chrome has focused transition acceptance plus the common real command/camera/input checks; it does not alter the older optional ownership assertions. It separately observes two metadata/eighteen GPU bindings, actual device destruction, retained post-loss observations, healthy/failed final cleanup, zero late GPU work and replacement before an older cleanup microtask. Synthetic persisted transitions establish the branch, not actual browser cache eligibility. Earlier checkpoints retain independent fresh evidence. Visibility and freezing are connected below; pending-startup revocation, error observations, complete phases and bounded recovery remain next.
 
 Typing estimates are 22–44 and 26–52 minutes. An initial close capture failed an inherited command-history assertion; its checker now logs the inspector on inherited failure, with the assertion intact. The full repeat and final corrected-policy recheck pass. Its input cause remains unestablished and belongs to the pending dock audit.
 
 Production diagnostics separately corrects cached outcome loss and late-milestone overwrites in 16f01f7e. Three new regression tests failed before and all ten pass after; headed Chrome reproduces the cached failure before and passes all three lifecycle cases afterward. All ten recency cases, the full serial native suite (506 passed, 55 ignored) and WebAssembly pass. The permanent far-floor oracle actually renders all six desktop/portrait configurations: 100.0000% of visible samples remain inked. It is a visible-edge acceptance, not zero hidden-line-leak evidence or a phone timing measurement. Rendering code is unchanged by this metadata correction.
+
+## Visibility and freezing
+
+Two focused checkpoints introduce independent pause reasons (22–43 minutes of typing) and connect browser scheduling (20–40). Each passes 135 native tests, WebAssembly, Trunk, native GPU rendering and headed Chrome. All 162 preceding source endpoints remain unchanged. The policy preparation retains the preceding browser route; its next lesson connects five metadata bindings without changing the eighteen drawing/input bindings.
+
+The browser refuses scheduling while hidden, frozen, cached or finally closed. Clearing one reason cannot clear another, and duplicate resume events retain the same interval. Missing metadata ownership also refuses scheduling: partial registration and final disposal cannot leave a heartbeat running. Manual current-report downloads remain usable after denied registration; explicit replacement retains its own allocation identity.
+
+Chrome acceptance uses isolated raw DevTools targets to avoid Playwright's always-active page emulation. Real tab activation produces actual Document visibility; Chrome's lifecycle command freezes and resumes the page. The timer stays stopped during freezing and when resume leaves the page hidden, then resumes after a genuine foreground return. A reload while actually hidden installs no timer until visibility returns. Native/injected order combinations separately cover overlapping cached/frozen/hidden reasons and duplicate events. The requested period remains 15000 milliseconds, accelerated only in the proof; heartbeat callbacks issue no GPU calls. These checks do not measure phone performance, real 15-second scheduling or browser-cache eligibility.
+
+The connected endpoint also verifies unchanged drawing, placement, selection, camera, history and geometry counters; original fatal evidence after real device destruction; healthy/failed final cleanup; refused late scheduling; safe owner replacement; and partial Window/Document binding failure with usable typed downloads. Earlier browser assertions and fingerprints are unchanged. The first capture attempts stopped at test-context setup and automation-forced visibility. A raw-target probe established genuine transitions; the final connected capture passes the complete checks.
+
+Displayed state-check commands now select `--target host-tuple`, overriding an inherited WebAssembly build target. Both new checkpoints pass that exact native command. This changes the instructions, not the reconstructed Rust endpoints.
 
 ## Reproduce
 

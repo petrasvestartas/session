@@ -4832,6 +4832,62 @@
         "Fit"
       ],
       "keyboardRoundtrip": false
+    },
+    "34gbb-suspension": {
+      "source": "6230291326693a4dd74ee5af1ee915364b55d3fda65c992e4d12f37d1cd9f4f2",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "bf2dd7133ec492b63197b5eb60223e321b0b401e283b7453f5c4038eb172d6c8",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:56:50.002Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "bc7ab457ac91a98e97c1b567921e5ec4608083c6b4497b929b6905c6d9e8c58c",
+      "file": "34gbb-suspension-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "ff444ccebe5bcb42c2ccb0c6fae9d5f7545db8dc61e4cfc0bfee2902d5e2c47a",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "34gbba-browser": {
+      "source": "c531cc835bd7151b1380ffda77a2fa9821d40ce4516908b015b531eeb49e3cd7",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "11eaba7e16cff5577c5a6ff22f17e017002c9c134fb2360a890acbfafd878dd4",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T06:07:54.657Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "bc7ab457ac91a98e97c1b567921e5ec4608083c6b4497b929b6905c6d9e8c58c",
+      "file": "34gbba-browser-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "7d14afd2bb45c2feadbe52772c9506130ad95eed87e239c895a5d85cea03c4e2",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }

@@ -136,7 +136,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
       {title: '33–34a · Browser lifetime and GPU failure', first: '33-owner', last: '34a-stop'},
       {title: '34b–34d · Download the current report', first: '34b-report', last: '34d-download'},
       {title: '34e–34fc · Retrieve previous reports', first: '34e-schema', last: '34fc-retention'},
-      {title: '34g–34gba · Report activity and page exit', first: '34g-heartbeat', last: '34gba-lifecycle'},
+      {title: '34g–34gbba · Report activity and page exit', first: '34g-heartbeat', last: '34gbba-browser'},
     ];
     const lessonGroups: Group[] = [];
     let at = 0;

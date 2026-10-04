@@ -62,7 +62,7 @@ export function generate() {
                 `![Native renderer output for ${step.title.toLowerCase()}.](../screenshots/journey/${picture}.png)`,
                 '*Read directly from this checkpoint’s GPU texture. Browser controls and event delivery remain unverified until the browser check passes.*');
         }
-        if (step.tests) page.push('Run the state checks from your project folder:', `\`\`\`sh\n${buildEnv}cargo test --lib --locked -j4\n\`\`\``);
+        if (step.tests) page.push('Run the state checks on your computer from your project folder:', `\`\`\`sh\n${buildEnv}cargo test --lib --locked --target host-tuple -j4\n\`\`\``);
         page.push(`<details>\n<summary>Code explanation and diagram</summary>\n\n${supportingExplanation.join('\n\n')}\n\n${step.trace}.\n\n${diagrams.join('\n\n')}\n\n${step.question}\n\n${step.answer}\n\nStudy estimate, including typing and experiments: ${low}–${high} hours.\n\n</details>`,
             `<details>\n<summary>Optional experiment</summary>\n\n${step.experiment}\n\n</details>`,
             `<details>\n<summary>Check and save your work</summary>\n\nRestore experimental edits, then run from \`session_viewer\`:\n\n` +

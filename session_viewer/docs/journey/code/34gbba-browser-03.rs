@@ -1,0 +1,1 @@
+|(id, _, _)| Rc::ptr_eq(id, token)
