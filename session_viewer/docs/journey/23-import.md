@@ -1,66 +1,24 @@
-# 23 · Keep the document behind the picture
+# 23 · Open a file through the command line
 
-**Typing: 126–252 minutes.** [Estimate](typing-load.md).
+**Typing: 22–44 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Type Open to activate the hidden picker. Route selection through the reader and completed bytes through Action::Import in the callback that owns Editor.
 
-Import a real protobuf file while retaining its source document behind the display mesh. Type and run the small specimen builder to create the file.
-
-Read bytes, prepare the whole import, then commit it as one history edit. A malformed later mesh must leave no earlier mesh inserted. This stage supports flat triangle/quad meshes with object colours; unsupported geometry and placements return errors.
+The callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.
 
 ## Type
 
-Continue from [Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md). [Save or recover your work](recovery.md).
+Continue from [Prepare asynchronous file delivery](22e-file-reader.md). [Save or recover your work](recovery.md).
 
-### 1. `src/document.rs`
+### 1. `src/lib.rs`
 
-Decode and validate the document, then prepare every display mesh before committing an import.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/23-import-01.rs"
-```
-
-### 2. `src/specimen.rs`
-
-Build a small three-piece frame with the real kernel. This is our file specimen, not a second renderer or a new file format.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/23-import-02.rs"
-```
-
-### 3. `examples/sample.rs`
-
-Write the specimen as an actual session file. You will choose this file in the browser.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/23-import-03.rs"
-```
-
-### 4. `src/document_tests.rs`
-
-Check data preservation, whole-file undo, repeated imports and error atomicity. Broken files must fail before kernel construction or document history changes.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/23-import-04.rs"
-```
-
-### 5. `src/scene.rs`
-
-An imported display object remembers the document and source GUID it came from. Demo objects have no source document.
+Keep the reader internal now that the browser callback owns file delivery.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
-    pub mesh: Rc<Mesh>,
+pub mod file_input;
 ```
 
 </details>
@@ -68,192 +26,10 @@ An imported display object remembers the document and source GUID it came from. 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/23-import-06.rs"
+--8<-- "journey/code/23-import-reader-private.rs"
 ```
 
-### 6. `src/scene.rs`
-
-Keep the existing insertion path for demo objects.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-self.objects.push(Object { id, mesh: Rc::new(mesh) });
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-07.rs"
-```
-
-### 7. `src/scene.rs`
-
-All imported rows share one retained source session. History will wrap this entire insertion in one transaction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-08.rs"
-```
-
-### 8. `src/editor.rs`
-
-Make file import an ordinary document action.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    Pick([f32; 2]),
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-09.rs"
-```
-
-### 9. `src/editor.rs`
-
-Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            Action::AddBox => {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-10.rs"
-```
-
-### 10. `src/file_input.rs`
-
-Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/23-import-13.rs"
-```
-
-### 11. `Cargo.toml`
-
-Enable file selection, byte delivery and protobuf decoding bindings.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-
-[dependencies]
-wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "FocusOptions"] }
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-session_rust = { path = "../../../session_rust", default-features = false }
-```
-
-</details>
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/23-import-dock-01.toml"
-```
-
-### 12. `index.html`
-
-Keep the HTML page small. Feature input belongs to the command dock drawn inside the canvas.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```html
-<body>
-  <p id="status" role="status" hidden>Waiting for Rust…</p>
-  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
-</body>
-</html>
-```
-
-</details>
-
-Replace that block with:
-
-```html
---8<-- "journey/code/23-import-fullscreen-1.html"
-```
-
-### 13. `src/lib.rs`
-
-Register document parsing, the specimen and native document tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod viewport;
-pub mod gesture;
-pub mod navigation;
-#[cfg(test)]
-mod navigation_tests;
-#[cfg(test)]
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-fullscreen-2.rs"
-```
-
-### 14. `src/lib.rs`
-
-Register the browser-only file input module.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-mod browser;
-
-use wasm_bindgen::prelude::*;
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/23-import-fullscreen-3.rs"
-```
-
-### 15. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Add Open to the vocabulary.
 
@@ -277,7 +53,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-window-1.rs"
 ```
 
-### 16. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Own a shared request number for asynchronous file reads.
 
@@ -301,7 +77,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-window-2.rs"
 ```
 
-### 17. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Route file selection and completion events through the editor; Open activates the hidden file picker.
 
@@ -345,7 +121,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-window-3.rs"
 ```
 
-### 18. `src/browser.rs`
+### 5. `src/browser.rs`
 
 Report successful import as one undoable edit.
 
@@ -369,7 +145,7 @@ Replace that block with:
 --8<-- "journey/code/23-import-window-4.rs"
 ```
 
-### 19. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Register file selection and byte-completion events.
 
@@ -395,12 +171,6 @@ Replace that block with:
 
 ## Run and check
 
-After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
-
-```sh
-npm --prefix ../session_tests run course -- dependencies 23-import
-```
-
 In your project:
 
 ```sh
@@ -411,11 +181,11 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-In another terminal in `workspace/journey`, run `REGEN_PROTO=0 cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4`. Type `Open` and choose `sample.pb`. `Undo` must remove the whole import; `Redo` restores it.
+Generate sample.pb with cargo run --example sample. Type Open and choose it; one Undo removes all three orange pieces and Redo restores them.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Keep the document behind the picture.](../screenshots/journey/23-import-browser.png)
+![Actual browser result: Open a file through the command line.](../screenshots/journey/23-import-browser.png)
 
 [Verification scope](release.md).
 
@@ -428,19 +198,17 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-`Rc<Session>` shares one decoded source among rows. `Source` pairs it with a source GUID. Local `ObjectId` identifies the viewer object; GUID identifies its source mesh.
 
-Reading pauses at `await`. A completion event returns the result to the callback that owns Editor. Shared `Cell<u64>` request numbers reject stale reads without retaining a mutable editor borrow while waiting.
 
-File picker → bytes → validated session → prepared display meshes → one history transaction → GPU upload.
+Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw.
 
-![A source session stays alongside its display meshes; validation happens before the history transaction.](../illustrations/journey-23.svg)
+![The command opens a picker; completed bytes reach one editor transaction.](../illustrations/journey-direct-23-import.svg)
 
 Why do we retain the session after creating the arrays that the renderer needs?
 
 The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.
 
-Study estimate, including typing and experiments: 5–8 hours.
+Study estimate, including typing and experiments: 0.75–1.25 hours.
 
 </details>
 
@@ -470,8 +238,16 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 
 The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.
 
-The file picker imports all three orange pieces. The browser check removes the entire import with one Undo, restores it with Redo, and then chooses Isometric.
+The actual Open command imports the sample through the picker. Chrome checks whole-import Undo/Redo, malformed and oversized selections, and an older held read completing after a newer failure; the capture restores the initial imported fixture.
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 23-import
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>

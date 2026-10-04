@@ -780,10 +780,10 @@
     "23-import": {
       "source": "b338d7bdc95ddcde44b8e22b8df3a155330d32c06a051f031062ee7eccad9f26",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "193cfbcb501773546ea4e448c474c1da59b4ecce1cd74c35d1577b704f31cfda",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T01:01:09.677Z",
+      "captured": "2026-10-04T05:16:08.899Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "688869a16b77efe485fbf4a1c3934870450c69d5f62bcb80ae66d51d398cda86",
       "file": "23-import-browser.png",
@@ -813,7 +813,7 @@
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T01:01:27.407Z",
+      "captured": "2026-10-04T05:20:46.802Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "0e77f3ed30666a301b1419d87a613923ada7cb165246208b05fb71ac75d70978",
       "file": "24-fit-browser.png",
@@ -847,7 +847,7 @@
       "extraChecker": null,
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T01:01:45.888Z",
+      "captured": "2026-10-04T05:22:00.150Z",
       "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "canvas": "607bce12db1789f496826a6be850741df93d39353cbd075987800a87085d6bc4",
       "file": "25-projection-browser.png",
@@ -4542,6 +4542,294 @@
       "commands": [
         "Example Box",
         "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "22a-records": {
+      "source": "ddfde2005c488c99e3afc9b3668f6021c9ff860f6430e73169d794938acd7a94",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ea81a6f1084f4539f68a97499e6c3522f3304429cbda538f5b0b01a92dd6686c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:14:10.925Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
+      "file": "22a-records-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "a507fedbbb28dd461063f7ed0a2f4d39cd0d0ea9844266eab47bbde2a4d5017f",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Pan Right"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "22b-session": {
+      "source": "d6082f55560ec080fbf01681e7d837aa8b6e0b7c7d0eb8bbb7d89a37ef5c12ad",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ea81a6f1084f4539f68a97499e6c3522f3304429cbda538f5b0b01a92dd6686c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:14:35.093Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
+      "file": "22b-session-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "cb84c0276f3f6f6d911ea986103af75d27ad7269849873ae15980433733f84fe",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Pan Right"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "22c-decode": {
+      "source": "c11c4802cd02f04c9ff04564664e56f6fec3ed5f7aeba8f163fcdb32a3c8d86b",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ea81a6f1084f4539f68a97499e6c3522f3304429cbda538f5b0b01a92dd6686c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:14:59.540Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
+      "file": "22c-decode-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "349dbfe245d1d0b2b0b121e6b219146046655ce4a852758fa7b5a0efb621dfd3",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Pan Right"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "22d-import": {
+      "source": "5f3ff89ccee0ae17c20647376462e6fe7f9044ed48e96f06b9613e91bc3fc02f",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ea81a6f1084f4539f68a97499e6c3522f3304429cbda538f5b0b01a92dd6686c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:15:24.335Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
+      "file": "22d-import-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "ff7fda4cec5edff3d1a8d27fd9109db1574b0fd5235bd89f4b596774ae677ae0",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Pan Right"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "22e-file-reader": {
+      "source": "06f8b8df2969a5e994686862bf035bfc978ad9ab34dff44a391452f429b771b8",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "ea81a6f1084f4539f68a97499e6c3522f3304429cbda538f5b0b01a92dd6686c",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:15:49.282Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "92a823124c9c47488973429a7e2d5b66a5418d9967721dec5bd546bd5199bb91",
+      "file": "22e-file-reader-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "be52153f8d9c0144105e1dc56795f92dfba4b8c136574ffc1aee129acd5f76a2",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Pan Right"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "23a-bounds": {
+      "source": "c9ef4384de34c8025bc6e9e037acebeb1b8cc650148dcb85ca22935481f48eeb",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "193cfbcb501773546ea4e448c474c1da59b4ecce1cd74c35d1577b704f31cfda",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:20:02.790Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "688869a16b77efe485fbf4a1c3934870450c69d5f62bcb80ae66d51d398cda86",
+      "file": "23a-bounds-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "1822373157a40c4a4eeb141a29bbb2d6dc48b2404cef526b119ee9e869f14b16",
+      "commands": [
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "23b-fit-camera": {
+      "source": "476fba05f7481027b2c209ab2d95c82e91c6262a91eff2a6ab7744c318b17081",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "193cfbcb501773546ea4e448c474c1da59b4ecce1cd74c35d1577b704f31cfda",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:20:22.546Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "586bfc3908921c2df812bda4be144feb4f64f1e9aba947c2189785c03070e9a6",
+      "file": "23b-fit-camera-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "a98e026a5cfc4fdb3318f16b70e9554af17793060107715f0e567606b39cd1ed",
+      "commands": [
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "24a-projection": {
+      "source": "030dc469ce50497f033d1fdbb5311925d8f892163c1ea5a855eaf48d8747683e",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:21:10.851Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "0e77f3ed30666a301b1419d87a613923ada7cb165246208b05fb71ac75d70978",
+      "file": "24a-projection-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "58c20817249cca6c36110c8b7e8a1c1e9f080672df080df5f0dc451bae995acd",
+      "commands": [
+        "View Isometric",
+        "Pan Right",
+        "Pan Right",
+        "Pan Right",
+        "Fit"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "24b-projection-actions": {
+      "source": "64bad5649022a44f2efabda76bd924eeff3a6bd15212c316e7a70f71d204eaca",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T05:21:35.117Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "0e77f3ed30666a301b1419d87a613923ada7cb165246208b05fb71ac75d70978",
+      "file": "24b-projection-actions-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "413140700633cee9620f2a0b6b29072737f8e2c652e68f1376f0c599d9d0917c",
+      "commands": [
+        "View Isometric",
+        "Pan Right",
+        "Pan Right",
+        "Pan Right",
+        "Fit"
       ],
       "keyboardRoundtrip": false
     }

@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 222 lesson slots; 153 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 231 lesson slots; 162 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -22,24 +22,24 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 153 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 162 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
-- [ ] Split the 3 checkpoints that exceed one hour of typing into runnable steps.
+- [x] Split the final 3 long checkpoints into 12 complete runnable steps; no current checkpoint exceeds one hour of estimated typing.
 - [ ] Write and verify the 69 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 3 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 162 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 153 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 162 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
-- [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
-- [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
-- [ ] Publish each completed lesson and refresh the same existing Chrome tutorial tab, preserving the reader’s current lesson.
+- [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
+- [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
+- [x] Publish each completed lesson and refresh the same existing Chrome tutorial tab, preserving the reader’s current lesson.
 
-## Typing splits still required
+## Typing splits completed
 
 - [x] Split the former 03a panel checkpoint into font/painter ownership, text painting and field layout; each fits one hour of typing.
 - [x] Split 03b into a connected state model and the completion helpers; remove unrelated GPU formatting changes.
@@ -54,9 +54,9 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 - [x] Verify resize through bounded pixel sizing (19–37 minutes) and one canvas/surface/depth/aspect transaction (29–57). Source endpoints are unchanged; native/WebAssembly/Trunk/Chrome checks pass, including wide/tall windows and density two.
 - [x] Verify gestures through pointer memory (20–39 minutes), release/cancellation (23–46), action conversion (18–35) and browser delivery (23–46). All existing code endpoints are unchanged. Native/WebAssembly/Trunk/Chrome checks pass, including actual capture outside the canvas, release, lost capture, cancellation, blur, resize and left-click classification.
 - [x] Verify wheel normalization (25–50 minutes) and browser delivery (17–34). All existing code endpoints are unchanged. Native/WebAssembly/Trunk/Chrome checks pass, including all 26 typed letters, editing keys, first-character command focus, wheel units and prevented page scrolling.
-- [ ] [Keep the document behind the picture](23-import.md): current typing 126–252 minutes; split at complete functions and verify each new step.
-- [ ] [Find the whole scene](24-fit.md): current typing 53–105 minutes; split at complete functions and verify each new step.
-- [ ] [Choose how depth changes size](25-projection.md): current typing 58–116 minutes; split at complete functions and verify each new step.
+- [x] Split import into raw records (26–51 minutes), session identity (29–58), decoding (18–35), atomic history (28–55), asynchronous delivery (18–36) and [typed Open](23-import.md) (22–44). Native validation and held-read Chrome checks pass; all earlier source endpoints remain unchanged.
+- [x] Split camera fitting into bounds (18–36 minutes), camera calculation (23–46) and [typed Fit](24-fit.md) (18–35). Native scale/corner checks, GPU frames and wide/tall Chrome checks pass.
+- [x] Split projection into camera matrices (26–51 minutes), editor actions and mode-aware fitting (25–49), then [named commands](25-projection.md) (9–18). Native size/ray/picking tests, GPU frames and actual Chrome command round trips pass.
 
 ## Published checkpoints and current work
 
@@ -188,11 +188,23 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] 22 · [Deliver wheel input without keyboard feature shortcuts](22-shortcuts.md).
 
-- [x] 23 · [Keep the document behind the picture](23-import.md).
+- [x] 22a · [Validate a raw mesh record](22a-records.md).
+- [x] 22b · [Validate session identity and build a sample file](22b-session.md).
+- [x] 22c · [Decode and prepare the whole import](22c-decode.md).
+- [x] 22d · [Commit an import as one undoable action](22d-import.md).
+- [x] 22e · [Prepare asynchronous file delivery](22e-file-reader.md).
 
-- [x] 24 · [Find the whole scene](24-fit.md).
+- [x] 23 · [Open a file through the command line](23-import.md).
 
-- [x] 25 · [Choose how depth changes size](25-projection.md).
+- [x] 23a · [Measure the displayed scene bounds](23a-bounds.md).
+- [x] 23b · [Fit the camera around the bounds](23b-fit-camera.md).
+
+- [x] 24 · [Run Fit through the command line](24-fit.md).
+
+- [x] 24a · [Build perspective and orthographic camera matrices](24a-projection.md).
+- [x] 24b · [Fit and change projection through the editor](24b-projection-actions.md).
+
+- [x] 25 · [Run the named projection commands](25-projection.md).
 
 ## A camera and scene ready for real documents
 

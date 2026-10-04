@@ -71,9 +71,18 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [21-gestures](21-gestures.md) | 60 | 2253 | 23–46 min | 1–1.5 h | Within planning limit |
 | [21a-wheel](21a-wheel.md) | 70 | 2472 | 25–50 min | 0.75–1.5 h | Within planning limit |
 | [22-shortcuts](22-shortcuts.md) | 41 | 1685 | 17–34 min | 0.5–1 h | Within planning limit |
-| [23-import](23-import.md) | 280 | 12600 | 126–252 min | 5–8 h | Split required |
-| [24-fit](24-fit.md) | 133 | 5231 | 53–105 min | 3–5 h | Split required |
-| [25-projection](25-projection.md) | 132 | 5776 | 58–116 min | 3–5 h | Split required |
+| [22a-records](22a-records.md) | 61 | 2521 | 26–51 min | 0.75–1.25 h | Within planning limit |
+| [22b-session](22b-session.md) | 64 | 2893 | 29–58 min | 0.75–1.25 h | Within planning limit |
+| [22c-decode](22c-decode.md) | 40 | 1717 | 18–35 min | 0.75–1.25 h | Within planning limit |
+| [22d-import](22d-import.md) | 64 | 2713 | 28–55 min | 0.75–1.25 h | Within planning limit |
+| [22e-file-reader](22e-file-reader.md) | 42 | 1770 | 18–36 min | 0.75–1.25 h | Within planning limit |
+| [23-import](23-import.md) | 44 | 2156 | 22–44 min | 0.75–1.25 h | Within planning limit |
+| [23a-bounds](23a-bounds.md) | 56 | 1760 | 18–36 min | 0.75–1.25 h | Within planning limit |
+| [23b-fit-camera](23b-fit-camera.md) | 46 | 2255 | 23–46 min | 0.75–1.25 h | Within planning limit |
+| [24-fit](24-fit.md) | 42 | 1742 | 18–35 min | 0.75–1.25 h | Within planning limit |
+| [24a-projection](24a-projection.md) | 62 | 2516 | 26–51 min | 0.75–1.25 h | Within planning limit |
+| [24b-projection-actions](24b-projection-actions.md) | 49 | 2402 | 25–49 min | 0.75–1.25 h | Within planning limit |
+| [25-projection](25-projection.md) | 22 | 899 | 9–18 min | 0.25–0.5 h | Within planning limit |
 | [26-selected](26-selected.md) | 54 | 2186 | 22–44 min | 1–2 h | Within planning limit |
 | [27-placement](27-placement.md) | 53 | 2034 | 21–41 min | 1–2 h | Within planning limit |
 | [27a-world](27a-world.md) | 37 | 1885 | 19–38 min | 1–2 h | Within planning limit |
@@ -166,14 +175,15 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [34gb-close](34gb-close.md) | 47 | 2162 | 22–44 min | 1–2 h | Within planning limit |
 | [34gba-lifecycle](34gba-lifecycle.md) | 53 | 2566 | 26–52 min | 1–2 h | Within planning limit |
 
-## Work still required
+## Current lesson audit completed
 
-- [x] Count the exact source edits for all 153 current checkpoints.
-- [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
-- [ ] Split every over-limit checkpoint into meaningful runnable lessons.
+- [x] Count the exact source edits for all 162 current checkpoints.
+- [x] Refactor the long command-dock lesson into small, understandable responsibilities.
+- [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
-- [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
-- [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 222 slots are not a fixed final count.
+- [x] Verify each new endpoint in Rust and Chrome; capture its actual result.
+- [x] Update the full roadmap, navigation and recovery instructions.
+- [x] Recheck total lesson counts after splitting; the current 231 slots are not a fixed final count.
+- [ ] Apply the same direct style and typing limit to the 69 remaining feature lessons as they are written.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

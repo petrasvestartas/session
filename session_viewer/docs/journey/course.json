@@ -3521,7 +3521,13 @@
         },
         {
           "path": "src/gesture_tests.rs",
-          "before": "use crate::gesture::{Gesture, Motion};\n\n#[test]\nfn a_click_selects_but_a_left_drag_does_not() {\n    let mut input = Gesture::default();\n    assert!(input.press(1, 0, [10.0, 20.0]));\n    assert_eq!(input.release(1, [12.0, 20.0]), Some(Motion::Pick([12.0, 20.0])));\n    input.press(1, 0, [10.0, 20.0]);\n    assert_eq!(input.move_to(1, [20.0, 20.0]), None);\n    assert_eq!(input.release(1, [10.0, 20.0]), None);\n    input.press(1, 0, [10.0, 20.0]);\n    assert_eq!(input.release(1, [30.0, 20.0]), None);\n}\n\n#[test]\nfn only_the_captured_pointer_can_move_or_finish_the_gesture() {\n    let mut input = Gesture::default();\n    assert!(input.press(1, 2, [0.0, 0.0]));\n    assert!(!input.press(2, 0, [0.0, 0.0]));\n    assert_eq!(input.move_to(2, [100.0, 50.0]), None);\n    assert_eq!(input.release(2, [0.0, 0.0]), None);\n    input.cancel_pointer(2);\n    assert_eq!(input.move_to(1, [10.0, 5.0]), Some(Motion::Orbit([10.0, 5.0])));\n    assert_eq!(input.move_to(1, [30.0, 8.0]), Some(Motion::Orbit([20.0, 3.0])));\n    assert_eq!(input.release(1, [30.0, 8.0]), None);\n    assert_eq!(input.move_to(1, [40.0, 8.0]), None);\n    input.press(3, 2, [0.0, 0.0]);\n    assert_eq!(input.release(3, [5.0, 2.0]), Some(Motion::Orbit([5.0, 2.0])));\n}\n\n#[test]\nfn cancellation_never_selects_and_allows_a_fresh_press() {\n    let mut input = Gesture::default();\n    input.press(1, 0, [0.0, 0.0]);\n    input.cancel_pointer(1);\n    assert_eq!(input.release(1, [0.0, 0.0]), None);\n    assert!(input.press(2, 2, [0.0, 0.0]));\n    input.cancel();\n    assert_eq!(input.move_to(2, [20.0, 0.0]), None);\n    assert!(!input.press(1, 1, [0.0, 0.0]));\n    assert!(!input.press(1, 0, [f64::NAN, 0.0]));\n}\n\n",
+          "before": "use crate::gesture::{Gesture, Motion};\n\n",
+          "snippet": "journey/code/20c-motion-test-imports.rs",
+          "why": "Import editor actions for motion and history checks."
+        },
+        {
+          "path": "src/gesture_tests.rs",
+          "before": "    assert!(!input.press(1, 0, [f64::NAN, 0.0]));\n}\n\n",
           "snippet": "journey/code/20c-motion-tests.rs",
           "why": "Check CSS coordinate conversion and camera movement outside document history."
         }
@@ -3753,41 +3759,113 @@
       "browser_check": "journey/checks/browser/navigation.cjs"
     },
     {
-      "id": "23-import",
-      "title": "Keep the document behind the picture",
-      "page": "journey/23-import.md",
-      "hours": [
-        5,
-        8
-      ],
-      "goal": "Import a real mesh-session file, keep its source identity, and undo the whole import as one action.",
-      "trace": "File picker → bytes → validated session → prepared display meshes → one history transaction → GPU upload",
-      "question": "Why do we retain the session after creating the arrays that the renderer needs?",
-      "answer": "The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.",
-      "story": "Import a real protobuf file while retaining its source document behind the display mesh. Type and run the small specimen builder to create the file.\n\nRead bytes, prepare the whole import, then commit it as one history edit. A malformed later mesh must leave no earlier mesh inserted. This stage supports flat triangle/quad meshes with object colours; unsupported geometry and placements return errors.\n\n`Rc<Session>` shares one decoded source among rows. `Source` pairs it with a source GUID. Local `ObjectId` identifies the viewer object; GUID identifies its source mesh.\n\nReading pauses at `await`. A completion event returns the result to the callback that owns Editor. Shared `Cell<u64>` request numbers reject stale reads without retaining a mutable editor borrow while waiting.\n\n![A source session stays alongside its display meshes; validation happens before the history transaction.](../illustrations/journey-23.svg)",
-      "result": "In another terminal in `workspace/journey`, run `REGEN_PROTO=0 cargo run --example sample --locked --target x86_64-unknown-linux-gnu -j4`. Type `Open` and choose `sample.pb`. `Undo` must remove the whole import; `Redo` restores it.",
-      "experiment": "Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.",
-      "production": "The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.",
-      "image_result": "This native frame imports the generated sample.pb bytes, chooses Isometric and draws the three orange pieces alongside the original triangles. It checks a known point on the beam and the orange pixel area. The browser picker, asynchronous completion and latest-request behaviour still require a browser run.",
+      "tests": true,
+      "frame": "journey/checks/22-shortcuts.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
       "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
       "browser_actions": [
         {
-          "file": "sample.pb"
+          "command": "Example Box"
         },
         {
           "command": "View Isometric"
+        },
+        {
+          "wheel": -120
+        },
+        {
+          "command": "Pan Right"
         }
       ],
-      "frame": "journey/checks/23-import.rs",
-      "frame_constructor": "make_renderer(device, queue, format)",
-      "tests": true,
+      "browser_check": "journey/checks/browser/navigation.cjs",
+      "id": "22a-records",
+      "title": "Validate a raw mesh record",
+      "page": "journey/22a-records.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.",
+      "story": "Define the source owners and check protobuf mesh records before building kernel objects. Accept finite coordinates, valid vertex references, triangles or quads, and object colours within the stated size limits.\n\nThe validator borrows a record and returns Result<(), &str>. It inspects stored triangulation without constructing a Session or changing the scene.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22a-records.svg)",
+      "result": "Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.",
+      "question": "Why validate raw records before constructing a Session?",
+      "answer": "Invalid indices and unsupported forms should return a controlled error before kernel construction begins.",
+      "experiment": "Change one face vertex key to a missing key in the native check. Predict rejection before running it.",
+      "trace": "Raw proto::Mesh → validation → accepted record or error",
+      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
       "lock": "journey/release/23-import.lock",
+      "image_same_as": "22-shortcuts",
+      "browser_caption": "Native checks validate raw mesh records. Chrome retains the earlier wheel and command route; file delivery is connected after decoding and document ownership.",
       "edits": [
+        {
+          "path": "Cargo.toml",
+          "snippet": "journey/code/23-import-dock-01.toml",
+          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false }\n",
+          "why": "Add fixed protobuf and browser byte-reading dependencies for the import sequence."
+        },
         {
           "path": "src/document.rs",
           "before": null,
-          "snippet": "journey/code/23-import-01.rs",
-          "why": "Decode and validate the document, then prepare every display mesh before committing an import."
+          "snippet": "journey/code/22a-records-document.rs",
+          "why": "Reject unsupported mesh records before kernel construction; check finite coordinates and referenced vertex keys."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod navigation;\n",
+          "snippet": "journey/code/22a-records-register.rs",
+          "why": "Register the raw-record validator."
+        }
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/22-shortcuts.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "wheel": -120
+        },
+        {
+          "command": "Pan Right"
+        }
+      ],
+      "browser_check": "journey/checks/browser/navigation.cjs",
+      "id": "22b-session",
+      "title": "Validate session identity and build a sample file",
+      "page": "journey/22b-session.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks, then cargo run --example sample. The sample has three distinct source meshes; duplicate GUIDs are rejected.",
+      "story": "Retain a shared Session with its display meshes and source GUIDs. Validate the supported session shape and flat tree before decoding it into kernel objects.\n\nHashSet compares unique mesh GUIDs with tree row names. The specimen builder creates three named meshes and writes their protobuf bytes to sample.pb.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22b-session.svg)",
+      "result": "Run the state checks, then cargo run --example sample. The sample has three distinct source meshes; duplicate GUIDs are rejected.",
+      "question": "Why keep GUID separate from ObjectId?",
+      "answer": "GUID names a source mesh. ObjectId will name a particular viewer import, so the same source can be imported more than once.",
+      "experiment": "Change the top beam width in the specimen, write sample.pb again, then restore the original value.",
+      "trace": "Source GUIDs and flat rows → validated Session shape; specimen → sample.pb",
+      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
+      "image_same_as": "22a-records",
+      "browser_caption": "Native checks validate session GUIDs and flat rows. The example writes the real sample file; Chrome still retains the earlier input route.",
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "use std::rc::Rc;\n",
+          "snippet": "journey/code/22b-session-import.rs",
+          "why": "Import the GUID set used by session validation."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "pub fn validate_mesh",
+          "snippet": "journey/code/22b-session-validator.rs",
+          "why": "Check supported geometry, unique GUIDs and one flat tree row per mesh."
         },
         {
           "path": "src/specimen.rs",
@@ -3802,11 +3880,139 @@
           "why": "Write the specimen as an actual session file. You will choose this file in the browser."
         },
         {
+          "path": "src/lib.rs",
+          "before": "pub mod document;\n",
+          "snippet": "journey/code/22b-session-register.rs",
+          "why": "Register the specimen builder."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "\n#[cfg(test)]\nmod record_checks {\n    use super::validate_mesh;\n\n    #[test]\n    fn raw_mesh_records_are_checked_before_construction() {\n        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();\n        assert!(validate_mesh(&record).is_ok());\n        record.vertices.values_mut().next().unwrap().x = f64::NAN;\n        assert!(validate_mesh(&record).is_err());\n        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);\n        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;\n        assert!(validate_mesh(&record).is_err());\n    }\n}\n",
+          "snippet": "journey/code/22b-session-tests.rs",
+          "why": "Check that the specimen passes validation and duplicate source GUIDs are rejected."
+        }
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/22-shortcuts.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "wheel": -120
+        },
+        {
+          "command": "Pan Right"
+        }
+      ],
+      "browser_check": "journey/checks/browser/navigation.cjs",
+      "id": "22c-decode",
+      "title": "Decode and prepare the whole import",
+      "page": "journey/22c-decode.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.",
+      "story": "Bound byte length, decode the protobuf message, validate it, then construct one shared Session and every display mesh. Return Loaded only when the whole preparation succeeds.\n\nThe ? operator stops at the first error. No scene or history is changed here, so a bad later mesh cannot leave a partial import.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22c-decode.svg)",
+      "result": "Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion.",
+      "question": "Why prepare all meshes before editing the scene?",
+      "answer": "A preparation error then leaves the current scene, selection and redo branch untouched.",
+      "experiment": "Read the six malformed-record cases and predict which validation rule rejects each one.",
+      "trace": "Bytes → decoded record → validation → shared Session and prepared Mesh values",
+      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
+      "image_same_as": "22b-session",
+      "browser_caption": "Native checks exercise actual byte decoding and preparation failures. Chrome retains the earlier input route until the completed import is connected.",
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "use session_rust::{proto, Session};\n",
+          "snippet": "journey/code/22c-decode-message.rs",
+          "why": "Import the protobuf decoding trait."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "pub fn validate(message:",
+          "snippet": "journey/code/22c-decode-load.rs",
+          "why": "Decode bounded bytes and prepare every display mesh before returning a Loaded document."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "pub fn validate_mesh",
+          "snippet": "journey/code/22c-decode-private.rs",
+          "why": "Keep mesh validation private to the completed loader."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "\n#[cfg(test)]\nmod record_checks {\n    use super::validate_mesh;\n\n    #[test]\n    fn raw_mesh_records_are_checked_before_construction() {\n        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();\n        assert!(validate_mesh(&record).is_ok());\n        record.vertices.values_mut().next().unwrap().x = f64::NAN;\n        assert!(validate_mesh(&record).is_err());\n        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);\n        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;\n        assert!(validate_mesh(&record).is_err());\n    }\n}\n",
+          "snippet": "journey/code/22c-decode-remove-record-check.rs",
+          "why": "Replace the preparation-only record check with the complete loader checks."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "\n#[cfg(test)]\nmod session_checks {\n    use prost::Message;\n\n    #[test]\n    fn the_specimen_has_distinct_meshes_and_flat_rows() {\n        let mut record = session_rust::proto::Session::decode(crate::specimen::bytes().as_slice()).unwrap();\n        assert!(super::validate(&record).is_ok());\n        let meshes = &mut record.objects.as_mut().unwrap().meshes;\n        meshes[1].guid = meshes[0].guid.clone();\n        assert!(super::validate(&record).is_err());\n    }\n}\n",
+          "snippet": "journey/code/22c-decode-remove-session-check.rs",
+          "why": "Replace the preparation-only session check with byte-level loader checks."
+        },
+        {
           "path": "src/document_tests.rs",
           "before": null,
-          "snippet": "journey/code/23-import-04.rs",
-          "why": "Check data preservation, whole-file undo, repeated imports and error atomicity. Broken files must fail before kernel construction or document history changes."
+          "snippet": "journey/code/22c-decode-tests.rs",
+          "why": "Reject malformed bytes, oversize files and unsupported records before construction."
         },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod specimen;\n",
+          "snippet": "journey/code/22c-decode-register.rs",
+          "why": "Register the byte-level loader checks."
+        }
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/23-import.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "wheel": -120
+        },
+        {
+          "command": "Pan Right"
+        }
+      ],
+      "browser_check": "journey/checks/browser/navigation.cjs",
+      "id": "22d-import",
+      "title": "Commit an import as one undoable action",
+      "page": "journey/22d-import.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.",
+      "story": "Attach the retained source Session and GUID to every imported object. Prepare bytes before starting History::try_edit, then insert the whole loaded file as one document action.\n\nRc::clone shares source ownership. Local ObjectId remains unique across imports; snapshots retain the same source allocation on Undo and Redo.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22d-import.svg)",
+      "result": "Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo.",
+      "question": "Why retain Rc<Session> on imported rows?",
+      "answer": "Display arrays omit source metadata. Shared Session ownership keeps that information available without copying it into each row.",
+      "experiment": "Import the same specimen twice in the native check. Compare local IDs, source GUIDs and source allocation identity.",
+      "trace": "Loaded document → one history edit → rows with source identity → display",
+      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
+      "image_same_as": "22c-decode",
+      "browser_caption": "Native checks apply the import through Editor and render its three orange pieces. Chrome retains the previous input route until file reads are connected.",
+      "edits": [
         {
           "path": "src/scene.rs",
           "before": "    pub mesh: Rc<Mesh>,\n",
@@ -3838,16 +4044,62 @@
           "why": "Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene."
         },
         {
+          "path": "src/document_tests.rs",
+          "before": "use crate::{document, specimen};\nuse prost::Message;\nuse session_rust::proto;\n\n",
+          "snippet": "journey/code/22d-import-test-imports.rs",
+          "why": "Import editor actions and shared-owner comparison for transaction checks."
+        },
+        {
+          "path": "src/document_tests.rs",
+          "before": "#[test]\nfn malformed_and_unsupported_records_are_refused_before_construction()",
+          "snippet": "journey/code/22d-import-tests.rs",
+          "why": "Check whole-file Undo/Redo, failed import and repeated source identities."
+        }
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/23-import.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "wheel": -120
+        },
+        {
+          "command": "Pan Right"
+        }
+      ],
+      "browser_check": "journey/checks/browser/navigation.cjs",
+      "id": "22e-file-reader",
+      "title": "Prepare asynchronous file delivery",
+      "page": "journey/22e-file-reader.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.",
+      "story": "Add the hidden file input and its reader. A shared request number identifies the latest selection; await reads the selected Blob, then a custom event returns owned bytes.\n\nThe reader owns no mutable Editor borrow while waiting. Its browser-event registration and Open command are connected in the next step.\n\n![The current responsibility and its data boundary.](../illustrations/journey-direct-22e-file-reader.svg)",
+      "result": "Build and run the checkpoint. The current scene and commands remain available; file selection is connected next.",
+      "question": "Why compare the request number after await?",
+      "answer": "An older read may finish after a newer selection. Its result must not replace the current request.",
+      "experiment": "Find the post-await request comparison. Predict which read is ignored if the second selection finishes first.",
+      "trace": "Selected File → request token → await array_buffer → owned byte event",
+      "production": "Keep the source document separate from its display meshes. Later checkpoints extend supported geometry and input while retaining identity and undo boundaries.",
+      "image_same_as": "22d-import",
+      "browser_caption": "WebAssembly compilation establishes the file-reader bindings. Chrome independently retains navigation and commands. Actual chooser, completion and latest-request acceptance follow in the connected browser step.",
+      "edits": [
+        {
           "path": "src/file_input.rs",
           "before": null,
           "snippet": "journey/code/23-import-13.rs",
           "why": "Read file bytes asynchronously; reject stale request numbers and return completion to the editor callback."
-        },
-        {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/23-import-dock-01.toml",
-          "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"AddEventListenerOptions\", \"Event\", \"MouseEvent\", \"PointerEvent\", \"DomRect\", \"KeyboardEvent\", \"WheelEvent\", \"AddEventListenerOptions\", \"HtmlElement\", \"FocusOptions\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\nsession_rust = { path = \"../../../session_rust\", default-features = false }\n",
-          "why": "Enable file selection, byte delivery and protobuf decoding bindings."
         },
         {
           "path": "index.html",
@@ -3857,15 +4109,47 @@
         },
         {
           "path": "src/lib.rs",
-          "snippet": "journey/code/23-import-fullscreen-2.rs",
-          "before": "pub mod viewport;\npub mod gesture;\npub mod navigation;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\n",
-          "why": "Register document parsing, the specimen and native document tests."
+          "snippet": "journey/code/22e-file-reader-register.rs",
+          "before": "pub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n",
+          "why": "Expose the complete file-reader component while preparing its browser integration."
+        }
+      ]
+    },
+    {
+      "id": "23-import",
+      "title": "Open a file through the command line",
+      "page": "journey/23-import.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Import a real mesh-session file, keep its source identity, and undo the whole import as one action.",
+      "trace": "Open → hidden picker → latest read → viewer-file → Action::Import → upload and redraw",
+      "question": "Why do we retain the session after creating the arrays that the renderer needs?",
+      "answer": "The GPU arrays contain positions, colours and indices. They do not retain the session name, source mesh identities, tree or graph. Each imported object keeps a source reference: the complete session plus its original mesh GUID. Its local ObjectId remains separate, so opening the same file twice does not confuse selection or undo.",
+      "story": "Type Open to activate the hidden picker. Route selection through the reader and completed bytes through Action::Import in the callback that owns Editor.\n\nThe callback reports one completed import and updates the display through the existing Scene change path. The reader never holds the editor while awaiting bytes.\n\n![The command opens a picker; completed bytes reach one editor transaction.](../illustrations/journey-direct-23-import.svg)",
+      "result": "Generate sample.pb with cargo run --example sample. Type Open and choose it; one Undo removes all three orange pieces and Redo restores them.",
+      "experiment": "Change the specimen’s top beam width from 1.8 to 2.2, regenerate sample.pb, and import it. You have changed the source, not the renderer. Undo the import, restore 1.8, and regenerate. Then explain why the same source GUID may occur in two imports while their local ObjectIds must differ.",
+      "production": "The maintained viewer keeps source sessions in FileDoc and builds display data from them. Its reader also handles hierarchy, placement, CAD, points, curves and large files. This first reader intentionally refuses those cases. Future lessons extend the retained document boundary instead of trying to recover lost information from GPU buffers.",
+      "image_result": "This native frame imports the generated sample.pb bytes, chooses Isometric and draws the three orange pieces alongside the original triangles. It checks a known point on the beam and the orange pixel area. The browser picker, asynchronous completion and latest-request behaviour still require a browser run.",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
         },
         {
+          "command": "View Isometric"
+        }
+      ],
+      "frame": "journey/checks/23-import.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "tests": true,
+      "edits": [
+        {
           "path": "src/lib.rs",
-          "snippet": "journey/code/23-import-fullscreen-3.rs",
-          "before": "pub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n",
-          "why": "Register the browser-only file input module."
+          "before": "pub mod file_input;\n",
+          "snippet": "journey/code/23-import-reader-private.rs",
+          "why": "Keep the reader internal now that the browser callback owns file delivery."
         },
         {
           "path": "src/browser.rs",
@@ -3899,21 +4183,42 @@
         }
       ],
       "browser_result_status": "File imported. Undo removes the entire import.",
-      "browser_caption": "The file picker imports all three orange pieces. The browser check removes the entire import with one Undo, restores it with Redo, and then chooses Isometric."
+      "browser_caption": "The actual Open command imports the sample through the picker. Chrome checks whole-import Undo/Redo, malformed and oversized selections, and an older held read completing after a newer failure; the capture restores the initial imported fixture.",
+      "image_same_as": "22e-file-reader",
+      "browser_check": "journey/checks/browser/import.cjs"
     },
     {
-      "id": "24-fit",
-      "title": "Find the whole scene",
-      "page": "journey/24-fit.md",
-      "hours": [
-        3,
-        5
+      "tests": true,
+      "frame": "journey/checks/23-import.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "View Isometric"
+        }
       ],
-      "goal": "Frame all current objects without rotating them or changing the document.",
-      "trace": "Fit command → Editor → Scene bounds → Camera target, distance and clipping → existing Renderer",
-      "question": "Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?",
-      "answer": "Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.",
-      "story": "Make `Fit` show a scene even when its geometry is far from the origin. Scene measures vertex bounds; Camera fits them; Editor connects the two. Renderer uses the resulting matrix unchanged.\n\nEnclose the bounds box in a sphere. Fit that sphere through the smaller horizontal or vertical half-angle, so portrait windows work too. The radius and half-angle determine viewing distance.\n\nThis first sphere fit is predictable and testable. It leaves extra space around thin geometry. Later a tighter fit can project box corners without changing the command boundary.\n\n![Scene bounds and a camera fitting the enclosing sphere.](../illustrations/journey-24.svg)\n\n![The radius is opposite the half-angle in a right triangle from the eye to the sphere.](../illustrations/journey-24-fit.svg)",
+      "browser_check": "journey/checks/browser/import.cjs",
+      "id": "23a-bounds",
+      "title": "Measure the displayed scene bounds",
+      "page": "journey/23a-bounds.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.",
+      "story": "Accumulate displayed vertex coordinates into Bounds. Its centre is the midpoint of the minimum and maximum; its radius encloses the box corners.\n\nScene::bounds returns Option<Bounds>. The first vertex starts the box; an empty scene returns None instead of invented dimensions.\n\n![The current fitting responsibility and its inputs.](../illustrations/journey-direct-23a-bounds.svg)",
+      "result": "Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds.",
+      "question": "Why return None for an empty scene?",
+      "answer": "There is no geometry to frame. The caller can leave the current camera unchanged.",
+      "experiment": "Change one corner in the bounds test and calculate the midpoint before running it.",
+      "trace": "Displayed vertices → coordinate minima/maxima → centre and radius",
+      "production": "Fitting changes camera parameters, not document geometry. Later lessons add tighter corner fitting, selected bounds and camera-relative coordinates.",
+      "image_same_as": "23-import",
+      "browser_caption": "Native checks establish bounds and the empty case. Chrome retains actual file import and view commands until Fit is connected.",
       "edits": [
         {
           "path": "src/bounds.rs",
@@ -3927,6 +4232,59 @@
           "snippet": "journey/code/24-fit-03.rs",
           "why": "Accumulate displayed vertices into f64 bounds; return None for an empty scene."
         },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/24-fit-fullscreen-1.rs",
+          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\n",
+          "why": "Register the bounds module beside Camera."
+        },
+        {
+          "path": "src/fit_tests.rs",
+          "before": null,
+          "snippet": "journey/code/23a-bounds-tests.rs",
+          "why": "Check measured bounds and the empty-scene result."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/24-fit-fullscreen-2.rs",
+          "before": "#[cfg(test)]\nmod document_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
+          "why": "Register the native Fit tests."
+        }
+      ]
+    },
+    {
+      "tests": true,
+      "frame": "journey/checks/23b-fit-camera.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "View Isometric"
+        }
+      ],
+      "browser_check": "journey/checks/browser/import.cjs",
+      "id": "23b-fit-camera",
+      "title": "Fit the camera around the bounds",
+      "page": "journey/23b-fit-camera.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.",
+      "story": "Aim the camera at the bounds centre and back away until its enclosing sphere fits the smaller horizontal or vertical half-angle. Preserve orientation and keep a small margin.\n\nStore the measured radius on Camera. Use it for zoom limits and clipping, so small and large scenes remain navigable after fitting.\n\n![The current fitting responsibility and its inputs.](../illustrations/journey-direct-23b-fit-camera.svg)",
+      "result": "Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation.",
+      "question": "Why use the smaller half-angle?",
+      "answer": "That direction limits the visible space. Using only the vertical angle would crop a scene in a tall window.",
+      "experiment": "Change the 1.1 margin to 1.4, predict a smaller drawing, then restore it.",
+      "trace": "Bounds centre/radius and aspect → camera target, distance and clipping",
+      "production": "Fitting changes camera parameters, not document geometry. Later lessons add tighter corner fitting, selected bounds and camera-relative coordinates.",
+      "image_same_as": "23a-bounds",
+      "browser_caption": "Native checks fit across scale and aspect, and GPU readback renders the fitted frame. Chrome retains the earlier file and command route until Fit reaches Editor.",
+      "edits": [
         {
           "path": "src/camera.rs",
           "before": "    pub distance: f64,\n",
@@ -3958,6 +4316,28 @@
           "why": "Scale near and far clipping planes with camera distance and scene radius."
         },
         {
+          "path": "src/fit_tests.rs",
+          "before": "use crate::bounds::Bounds;\n\n#[test]\nfn bounds_measure_vertices_and_define_the_empty_case() {\n    let mut bounds = Bounds::point([-2.0, 1.0, 0.0]);\n    bounds.include([2.0, 3.0, 2.0]);\n    assert_eq!(bounds.centre(), [0.0, 2.0, 1.0]);\n    assert!((bounds.radius() - 6.0_f64.sqrt()).abs() < 1.0e-12);\n    let mut scene = crate::scene::Scene::demo();\n    assert!(scene.bounds().is_some());\n    while let Some(id) = scene.next(None) { scene.remove(id); }\n    assert!(scene.bounds().is_none());\n}\n",
+          "snippet": "journey/code/23b-fit-camera-tests.rs",
+          "why": "Check projected corners, preserved orientation and zoom after fitting."
+        }
+      ]
+    },
+    {
+      "id": "24-fit",
+      "title": "Run Fit through the command line",
+      "page": "journey/24-fit.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Frame all current objects without rotating them or changing the document.",
+      "trace": "Typed Fit → Editor → Scene::bounds → Camera::fit → redraw",
+      "question": "Why does Fit need both the scene bounds and the window shape, but no new GPU mesh?",
+      "answer": "Scene walks the displayed vertices to find a box. Camera aims at its centre and backs away until the enclosing sphere fits the smaller view angle. The window aspect decides which angle is smaller. Radius also scales zoom limits and clipping. Only the camera uniform changes; object IDs, mesh buffers and history stay as they were.",
+      "story": "Add Fit to Action and the command vocabulary. Editor measures scene bounds and asks Camera to fit them when geometry exists.\n\nFit returns a view change. It retains selection and document history, and reuses the current geometry buffers. An empty scene leaves the camera unchanged.\n\n![The Fit command connects measured bounds to the camera without a document edit.](../illustrations/journey-direct-24-fit.svg)",
+      "edits": [
+        {
           "path": "src/editor.rs",
           "before": "    ResetView,\n",
           "snippet": "journey/code/24-fit-09.rs",
@@ -3970,24 +4350,6 @@
           "why": "Fit only when scene bounds exist; preserve document history and mesh uploads."
         },
         {
-          "path": "src/fit_tests.rs",
-          "before": null,
-          "snippet": "journey/code/24-fit-13.rs",
-          "why": "Check projected corners, preserved selection, undoable import, and empty or single-point scenes."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/24-fit-fullscreen-1.rs",
-          "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\n",
-          "why": "Register the bounds module beside Camera."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/24-fit-fullscreen-2.rs",
-          "before": "#[cfg(test)]\nmod document_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
-          "why": "Register the native Fit tests."
-        },
-        {
           "path": "src/browser.rs",
           "snippet": "journey/code/24-fit-window-1.rs",
           "before": "            \"Orbit Right\",\n            \"Orbit Up\",\n            \"View Isometric\",\n            \"View Reset\",\n        ],\n    );\n",
@@ -3998,10 +4360,22 @@
           "snippet": "journey/code/24-fit-window-2.rs",
           "before": "                    \"orbit right\" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),\n                    \"orbit up\" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),\n                    \"view isometric\" => Action::Isometric,\n                    \"view reset\" => Action::ResetView,\n                    _ => return,\n                };\n",
           "why": "Route Fit through the editor action."
+        },
+        {
+          "path": "src/fit_tests.rs",
+          "before": "use crate::{bounds::Bounds, camera::Camera};\nuse session_rust::Point;\n\n",
+          "snippet": "journey/code/24-fit-test-imports.rs",
+          "why": "Import editor actions for fitting and document-history checks."
+        },
+        {
+          "path": "src/fit_tests.rs",
+          "before": "            assert!((camera.distance - distance / 1.01_f32 as f64).abs() < distance * 1.0e-10);\n        }\n    }\n}\n\n",
+          "snippet": "journey/code/24-fit-editor-tests.rs",
+          "why": "Check imported bounds, selection, history and empty or single-point scenes."
         }
       ],
       "tests": true,
-      "result": "Open `sample.pb` from lesson 23. Type `View Isometric`, `Pan Right`, then `Fit`. The whole scene returns with a margin and keeps its viewing direction.",
+      "result": "Open sample.pb, type Pan Right, then Fit. The whole scene returns with a margin while keeping its viewing direction.",
       "experiment": "Before running Fit, predict whether a tall window needs the eye farther away. Resize, fit and compare. Then temporarily change the 1.1 margin to 1.4: the scene should become smaller, not larger. Restore 1.1 when you finish.",
       "production": "Production also measures scene bounds and keeps fitting out of document history. Its corner-based fit is tighter and adds units, selection-only bounds and orthographic views. This checkpoint fits all displayed meshes and assumes ordinary coordinates that f32 can represent accurately. Very large offsets with tiny details need a later coordinate-origin strategy; fitting alone cannot restore precision lost in mesh storage. Pan commands still move by a fixed world-unit amount.",
       "frame": "journey/checks/24-fit.rs",
@@ -4029,20 +4403,52 @@
         }
       ],
       "browser_caption": "The orange frame and both triangles are centred together after three pans and Fit scene. Chrome also checks that a second Fit leaves the drawing unchanged, that Fit recovers after another pan, and that the imported file remains one undoable action.",
-      "image_result": "The native check imports the three-piece frame, chooses Isometric, pans three times, then fits. It checks every vertex against the view and verifies the visible orange beam. Browser command delivery needs the separate Chrome run."
+      "image_result": "The native check imports the three-piece frame, chooses Isometric, pans three times, then fits. It checks every vertex against the view and verifies the visible orange beam. Browser command delivery needs the separate Chrome run.",
+      "image_same_as": "23b-fit-camera"
     },
     {
-      "id": "25-projection",
-      "title": "Choose how depth changes size",
-      "page": "journey/25-projection.md",
-      "hours": [
-        3,
-        5
+      "tests": true,
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Pan Right"
+        },
+        {
+          "command": "Pan Right"
+        },
+        {
+          "command": "Pan Right"
+        },
+        {
+          "command": "Fit"
+        }
       ],
-      "goal": "Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.",
-      "trace": "projection command → Editor → Camera matrix → drawing and inverse-matrix picking",
-      "question": "Why can the same ray-picking code work in both views even though their rays have different shapes?",
-      "answer": "Camera builds the selected projection and combines it with the same view transform. Drawing uses that matrix. Picking inverts it and maps a screen point at depths 0 and 1 back into the world. Those two points define the correct ray for either matrix. Perspective rays spread out; orthographic rays are parallel. Their different origins and directions come from the matrix, not a second picking routine.",
+      "id": "24a-projection",
+      "title": "Build perspective and orthographic camera matrices",
+      "page": "journey/24a-projection.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.",
+      "story": "Add Projection to Camera and choose the matching matrix. Give orthographic projection the same target-plane half-height as perspective: distance × tan(30°).\n\nProjection is a small Copy enum. Inverse-matrix picking remains shared: perspective rays spread out, while orthographic rays have separate origins and parallel directions.\n\n![The current projection responsibility and its inputs.](../illustrations/journey-direct-24a-projection.svg)",
+      "result": "Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel.",
+      "question": "Why can one picking method support both projections?",
+      "answer": "It inverts the selected camera matrix. The resulting near and far points define the correct ray for that matrix.",
+      "experiment": "Compare the native depth test in both modes and predict which point becomes larger in perspective.",
+      "trace": "Projection enum → camera matrix → drawing and inverse-matrix rays",
+      "production": "Drawing and picking consume the same selected camera matrix. Later lessons add tighter fitting, named views and reversed depth without putting view choices into document history.",
+      "frame": "journey/checks/24a-projection.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "image_same_as": "24-fit",
+      "browser_caption": "Native checks establish projection scale and ray geometry; GPU readback draws orthographic geometry. Chrome retains the existing perspective Fit command route until mode commands are connected.",
       "edits": [
         {
           "path": "src/camera.rs",
@@ -4070,15 +4476,73 @@
         },
         {
           "path": "src/camera.rs",
-          "before": "        self.distance = self.radius * 1.1 / half_x.min(half_y).sin();\n",
-          "snippet": "journey/code/25-projection-05.rs",
-          "why": "Fit the sphere through a perspective half-angle or the smaller orthographic half-extent."
-        },
-        {
-          "path": "src/camera.rs",
           "before": "        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);\n",
           "snippet": "journey/code/25-projection-06.rs",
           "why": "Choose the projection matrix; match orthographic size at the target plane and retain visible depth in 0–1."
+        },
+        {
+          "path": "src/projection_tests.rs",
+          "before": null,
+          "snippet": "journey/code/24a-projection-tests.rs",
+          "why": "Check target-plane scale, depth-independent size and parallel picking rays."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/25-projection-fullscreen-1.rs",
+          "before": "#[cfg(test)]\nmod fit_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
+          "why": "Register the new checks without changing the production browser entry point."
+        }
+      ]
+    },
+    {
+      "tests": true,
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Pan Right"
+        },
+        {
+          "command": "Pan Right"
+        },
+        {
+          "command": "Pan Right"
+        },
+        {
+          "command": "Fit"
+        }
+      ],
+      "id": "24b-projection-actions",
+      "title": "Fit and change projection through the editor",
+      "page": "journey/24b-projection-actions.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.",
+      "story": "Fit an enclosing sphere using the selected projection. Perspective uses the smaller half-angle; orthographic uses the smaller half-extent.\n\nCarry Projection in an editor action. Changing it preserves camera parameters and document history; Reset View still restores the perspective default.\n\n![The current projection responsibility and its inputs.](../illustrations/journey-direct-24b-projection-actions.svg)",
+      "result": "Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent.",
+      "question": "Why keep projection outside document history?",
+      "answer": "It changes how the document is seen. Undo should restore geometry while retaining the current view choice.",
+      "experiment": "Read the close-orthographic picking test and predict what Reset View does to its projection choice.",
+      "trace": "Selected projection → fit opening; Action::Projection → view-only change",
+      "production": "Drawing and picking consume the same selected camera matrix. Later lessons add tighter fitting, named views and reversed depth without putting view choices into document history.",
+      "frame": "journey/checks/25-projection.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "image_same_as": "24a-projection",
+      "browser_caption": "Native checks and GPU readback establish editor mode changes, orthographic fitting and close picking. Chrome retains the previous Fit route until the named projection commands are connected.",
+      "edits": [
+        {
+          "path": "src/camera.rs",
+          "before": "        self.distance = self.radius * 1.1 / half_x.min(half_y).sin();\n",
+          "snippet": "journey/code/25-projection-05.rs",
+          "why": "Fit the sphere through a perspective half-angle or the smaller orthographic half-extent."
         },
         {
           "path": "src/editor.rs",
@@ -4094,16 +4558,31 @@
         },
         {
           "path": "src/projection_tests.rs",
-          "before": null,
-          "snippet": "journey/code/25-projection-14.rs",
-          "why": "Check target-plane scale, parallel picking rays, fitting, close selection, and document history preservation."
+          "before": "use crate::camera::{Camera, Projection};\nuse session_rust::{Point, Vector};\n\n",
+          "snippet": "journey/code/24b-projection-test-imports.rs",
+          "why": "Import bounds and editor actions for fitting, selection and history checks."
         },
         {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/25-projection-fullscreen-1.rs",
-          "before": "#[cfg(test)]\nmod fit_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
-          "why": "Register the new checks without changing the production browser entry point."
-        },
+          "path": "src/projection_tests.rs",
+          "before": "    assert!(camera.ray([-0.5, 0.0]).unwrap().direction\n        .cross(&camera.ray([0.5, 0.0]).unwrap().direction).magnitude() > 0.1);\n}\n\n",
+          "snippet": "journey/code/24b-projection-editor-tests.rs",
+          "why": "Check orthographic fitting, close selection, view history and reset."
+        }
+      ]
+    },
+    {
+      "id": "25-projection",
+      "title": "Run the named projection commands",
+      "page": "journey/25-projection.md",
+      "hours": [
+        0.25,
+        0.5
+      ],
+      "goal": "Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent.",
+      "trace": "Named View command → Projection value → Editor → camera matrix and reported mode",
+      "question": "Why can the same ray-picking code work in both views even though their rays have different shapes?",
+      "answer": "Camera builds the selected projection and combines it with the same view transform. Drawing uses that matrix. Picking inverts it and maps a screen point at depths 0 and 1 back into the world. Those two points define the correct ray for either matrix. Perspective rays spread out; orthographic rays are parallel. Their different origins and directions come from the matrix, not a second picking routine.",
+      "edits": [
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/25-projection-window-1.rs",
@@ -4130,8 +4609,8 @@
         }
       ],
       "tests": true,
-      "story": "Add orthographic projection beside perspective. Perspective makes distant objects smaller; orthographic keeps equal lengths equally sized at different depths. Orbit direction remains independent of this choice.\n\nPreserve screen size at the plane through the camera target. Perspective half-height there is `distance × tan(30°)`; give the orthographic rectangle that half-height. Geometry away from that plane changes apparent size when switching.\n\nThe depth buffer still chooses the nearest surface. Orthographic clipping may extend behind the notional eye, avoiding an eye-shaped cut when zoomed into geometry.\n\nCamera owns projection and bounds. Editor changes the choice; drawing and picking consume the resulting matrix.\n\n![Perspective rays spread from an eye; orthographic rays remain parallel.](../illustrations/journey-25.svg)",
-      "result": "Open `sample.pb`. Type `View Isometric`, `View Orthographic`, `Fit`, then `View Perspective`. The target stays fixed while depth changes the relative sizes.",
+      "story": "Add View Perspective and View Orthographic to the command vocabulary and route them to Action::Projection. Report the active projection on the canvas after applying an action.\n\nThe commands preserve target-plane scale and view parameters. Fit remains explicit; run it after switching if perspective crops nearby geometry.\n\n![Named view commands choose the camera projection through Editor.](../illustrations/journey-direct-25-projection.svg)",
+      "result": "Type View Orthographic, Fit, then View Perspective. The target stays fixed while depth changes relative sizes.",
       "experiment": "Switch modes while looking squarely at the two original triangles. Which one changes size more? Their depths differ, and neither lies on the target plane. Now orbit: the mode should stay selected while the viewing direction changes. Explain why Isometric and Orthographic are not synonyms.",
       "production": "The production camera uses this same target-plane scale relationship. Its tighter fitting, units, named views and camera-relative coordinates come next. Production also uses reversed depth for precision; this checkpoint keeps the existing 0-near/1-far depth convention. Switching modes deliberately preserves the view parameters rather than automatically refitting; run Fit if the new perspective clips or crops a nearby part.",
       "frame": "journey/checks/25-projection.rs",
@@ -4152,8 +4631,9 @@
           "command": "Fit"
         }
       ],
-      "browser_caption": "The orange frame is fitted in orthographic view; the pink Orthographic command records the active choice. Chrome checks mouse and keyboard switching, exact perspective/orthographic round trips, visible-face selection in both modes, and fitting at wide and tall viewport sizes.",
-      "image_result": "The native frame imports the orange frame, sets an isometric direction, selects orthographic projection and fits all objects. It checks projected vertex bounds, beam colour and nearest-object picking. Browser controls need their own Chrome check."
+      "browser_caption": "Chrome types the two projection commands, verifies exact round trips, selects visible faces in both modes and fits at wide and tall viewport sizes.",
+      "image_result": "The native frame imports the orange frame, sets an isometric direction, selects orthographic projection and fits all objects. It checks projected vertex bounds, beam colour and nearest-object picking. Browser controls need their own Chrome check.",
+      "image_same_as": "24b-projection-actions"
     },
     {
       "id": "26-selected",

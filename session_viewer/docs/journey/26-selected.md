@@ -8,7 +8,7 @@ Scene finds the object by `ObjectId`. `?` returns `None` for a missing ID or emp
 
 ## Type
 
-Continue from [Choose how depth changes size](25-projection.md). [Save or recover your work](recovery.md).
+Continue from [Run the named projection commands](25-projection.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/scene.rs`
 

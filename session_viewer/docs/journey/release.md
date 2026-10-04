@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 153 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 162 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Three checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+All 162 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 69 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -59,6 +59,14 @@ Preparation stages establish their new behavior with native checks and independe
 Gesture acceptance uses actual captured mouse movement outside the canvas, release, lost capture, canvas blur and viewport resize. An injected pointer-cancel event checks its browser handler. A left drag returning to its start stays unselected; an actual left click selects the box; dock-owned pointer input does not orbit. The final capture reloads the initial fixture and repeats the accepted orbit.
 
 Wheel acceptance types all 26 letters and editing keys after canvas focus, checks that none performs a feature action, and submits Pan Right from immediate typing. It compares pixel/line/page wheel delivery, actual mouse-wheel zoom and prevention of page scrolling. The final capture reloads the initial fixture and repeats its accepted wheel and typed-command actions. These checkpoints do not establish phone multi-touch, right-click command repeat or the later production navigation extensions.
+
+## Import, fit and projection typing splits
+
+The last three long checkpoints are now twelve runnable steps. Import advances through raw-record validation (26–51 minutes of typing), session identity (29–58), decoding (18–35), an atomic undoable transaction (28–55), asynchronous file delivery (18–36) and typed Open (22–44). Fit advances through scene bounds (18–36), camera calculation (23–46) and typed Fit (18–35). Projection advances through camera matrices (26–51), editor actions and mode-aware fitting (25–49), then named commands (9–18). All 153 previously published source endpoints remain byte-identical.
+
+Every step passes native, WebAssembly, Trunk and fresh Chrome checks. Preparation steps test their new behavior natively and explicitly retain the previous browser input until connection. File-delivery preparation establishes the WebAssembly bindings; its next connected step exercises actual file selection and held reads. Camera preparation uses independent GPU frames without pretending the command is already connected.
+
+Chrome opens the real chooser through typed Open, holds an older read, rejects a newer malformed or oversized file, then proves the older completion cannot replace the scene or status. Oversized files are rejected before reading. Native checks cover malformed data and atomic import history. Fit and projection checks cover wide/tall windows, repeated fitting, named projection round trips and actual face picking. The gesture-action lesson also now shows only the appended tests and changed imports rather than repeating earlier test bodies.
 
 ## What was checked
 

@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 153 cumulative lessons, about 154–295 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 162 cumulative lessons, about 151.5–291.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **222 proposed slots: 153 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **231 proposed slots: 162 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -86,9 +86,18 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [21 · Connect captured pointers to the editor](journey/21-gestures.md) | 1–1.5 hours | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. |
 | [21a · Convert wheel units to camera zoom](journey/21a-wheel.md) | 0.75–1.5 hours | Normalize pixels, lines and pages to bounded camera zoom without adding document history. |
 | [22 · Deliver wheel input without keyboard feature shortcuts](journey/22-shortcuts.md) | 0.5–1 hours | Normalize wheel input and keep every keyboard feature command in the command dock. |
-| [23 · Keep the document behind the picture](journey/23-import.md) | 5–8 hours | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. |
-| [24 · Find the whole scene](journey/24-fit.md) | 3–5 hours | Frame all current objects without rotating them or changing the document. |
-| [25 · Choose how depth changes size](journey/25-projection.md) | 3–5 hours | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. |
+| [22a · Validate a raw mesh record](journey/22a-records.md) | 0.75–1.25 hours | Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected. |
+| [22b · Validate session identity and build a sample file](journey/22b-session.md) | 0.75–1.25 hours | Run the state checks, then cargo run --example sample. The sample has three distinct source meshes; duplicate GUIDs are rejected. |
+| [22c · Decode and prepare the whole import](journey/22c-decode.md) | 0.75–1.25 hours | Run the state checks. Invalid bytes, oversized data and unsupported records are refused before scene insertion. |
+| [22d · Commit an import as one undoable action](journey/22d-import.md) | 0.75–1.25 hours | Run the state checks. One Undo removes the whole file; Redo restores its IDs and shared source; a failed import preserves selection and redo. |
+| [22e · Prepare asynchronous file delivery](journey/22e-file-reader.md) | 0.75–1.25 hours | Build and run the checkpoint. The current scene and commands remain available; file selection is connected next. |
+| [23 · Open a file through the command line](journey/23-import.md) | 0.75–1.25 hours | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. |
+| [23a · Measure the displayed scene bounds](journey/23a-bounds.md) | 0.75–1.25 hours | Run the state checks. Known corners give the expected centre and radius; a scene with no objects has no bounds. |
+| [23b · Fit the camera around the bounds](journey/23b-fit-camera.md) | 0.75–1.25 hours | Run the state checks. Every corner remains inside the view across scales and aspect ratios, and fitting preserves orientation. |
+| [24 · Run Fit through the command line](journey/24-fit.md) | 0.75–1.25 hours | Frame all current objects without rotating them or changing the document. |
+| [24a · Build perspective and orthographic camera matrices](journey/24a-projection.md) | 0.75–1.25 hours | Run the state checks. Switching preserves target-plane scale; orthographic size ignores depth and its pick rays are parallel. |
+| [24b · Fit and change projection through the editor](journey/24b-projection-actions.md) | 0.75–1.25 hours | Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent. |
+| [25 · Run the named projection commands](journey/25-projection.md) | 0.25–0.5 hours | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. |
 | [26 · Frame one object without changing its size](journey/26-selected.md) | 1–2 hours | Run Fit Selected while keeping geometry, selection and document history unchanged. |
 | [27 · Give each object a placement](journey/27-placement.md) | 1–2 hours | Keep local mesh coordinates and an independent object placement. |
 | [27a · Ask geometry questions in world coordinates](journey/27a-world.md) | 1–2 hours | Use placement for scene bounds, selected bounds and ray picking. |

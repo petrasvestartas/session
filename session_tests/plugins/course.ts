@@ -129,7 +129,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
     const subjects = [
       {title: '01–10 · Drawing and command input', first: '01-canvas', last: '10-depth'},
       {title: '10a–22 · Scene, camera and actions', first: '10a-mesh', last: '22-shortcuts'},
-      {title: '23–30e · Import, placement and saving', first: '23-import', last: '30e-recovery'},
+      {title: '22a–30e · Import, placement and saving', first: '22a-records', last: '30e-recovery'},
       {title: '31–31c · GPU geometry owners', first: '31-settings', last: '31c-incremental'},
       {title: '32–32fl · Document and source lifetime', first: '32-history', last: '32fl-guards'},
       {title: '32g–32gja · Restore sources for editing', first: '32g-keys', last: '32gja-failures'},
