@@ -8,7 +8,7 @@ Use the kernel's quaternion to represent orientation. Rotate sideways around wor
 
 ## Type
 
-Continue from [Look through a perspective camera](15-perspective.md). [Save or recover your work](recovery.md).
+Continue from [Pick the nearest surface through the view](15-perspective.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/camera.rs`
 

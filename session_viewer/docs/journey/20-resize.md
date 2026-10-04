@@ -1,91 +1,16 @@
-# 20 · Keep a changing window in proportion
+# 20 · Resize canvas, depth and camera together
 
-**Typing: 53–105 minutes.** [Estimate](typing-load.md).
+**Typing: 29–57 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Use Viewport to resize canvas pixels, the surface, depth attachment and camera aspect together. Read the current CSS rectangle and display density before drawing.
 
-Keep the GPU image and camera proportional when the window changes. CSS pixels describe layout; drawing pixels equal layout size multiplied by display density.
-
-The viewport helper caps both dimensions together at the device texture limit. `Some(size)` permits drawing; `None` means hidden or invalid measurements. Do not configure zero-sized textures.
+The callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.
 
 ## Type
 
-Continue from [Give every action the same route](19-actions.md). [Save or recover your work](recovery.md).
+Continue from [Measure a safe drawing size](19a-viewport.md). [Save or recover your work](recovery.md).
 
-### 1. `src/viewport.rs`
-
-Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/20-resize-01.rs"
-```
-
-### 2. `src/editor.rs`
-
-Reset the camera pose while retaining the current viewport proportions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                    Action::ResetView => self.camera = Camera::default(),
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-05.rs"
-```
-
-### 3. `src/editor.rs`
-
-Catch a resize bug that would otherwise return whenever the learner presses Reset view.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    #[test]
-    fn undo_changes_the_document_without_rewinding_the_view() {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-06.rs"
-```
-
-### 4. `src/lib.rs`
-
-Make the size calculation usable by browser code and Rust tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub mod picking;
-pub mod history;
-pub mod editor;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/20-resize-fullscreen-1.rs"
-```
-
-### 5. `src/renderer.rs`
+### 1. `src/renderer.rs`
 
 Keep depth texture allocation in the existing depth helper.
 
@@ -115,7 +40,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-fullscreen-8.rs"
 ```
 
-### 6. `src/renderer.rs`
+### 2. `src/renderer.rs`
 
 Recreate the depth view for the measured viewport dimensions.
 
@@ -141,7 +66,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-fullscreen-9.rs"
 ```
 
-### 7. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Import the viewport size type.
 
@@ -165,7 +90,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-window-1.rs"
 ```
 
-### 8. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Size renderer attachments from the viewport.
 
@@ -197,7 +122,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-window-2.rs"
 ```
 
-### 9. `src/browser.rs`
+### 5. `src/browser.rs`
 
 Handle initial resizing and retain the window for later resize events.
 
@@ -230,7 +155,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-window-3.rs"
 ```
 
-### 10. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Keep the event callback open for the resize path.
 
@@ -255,7 +180,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-window-4.rs"
 ```
 
-### 11. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Resize before handling input; refresh dock layout and drawing when dimensions change.
 
@@ -291,7 +216,7 @@ Replace that block with:
 --8<-- "journey/code/20-resize-window-5.rs"
 ```
 
-### 12. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Register resize events and update canvas pixels, surface configuration, attachments and camera aspect together.
 
@@ -342,11 +267,11 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Resize the browser from wide to tall. The canvas, depth image and camera must use the new dimensions; the scene must not stretch.
+Resize the browser window. Geometry keeps its proportions and continues drawing across wide and tall sizes.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Keep a changing window in proportion.](../screenshots/journey/20-resize-browser.png)
+![Actual browser result: Resize canvas, depth and camera together.](../screenshots/journey/20-resize-browser.png)
 
 [Verification scope](release.md).
 
@@ -359,26 +284,24 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-Before redraw, update canvas and surface dimensions, depth texture, and camera aspect together. Recreate textures only when size changes. The existing browser callback owns the editor and renderer and also handles resize events.
 
-Camera reset must preserve the current aspect. Its test catches a reset that would stretch the scene after resizing. Dense displays use more drawing pixels while retaining the same visible geometry size.
 
-CSS rectangle × display density → bounded pixel size → canvas and surface + depth image + camera aspect → draw.
+Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw.
 
-![One measured pixel size feeds the surface, depth attachment and camera; all three must agree before the next draw.](../illustrations/journey-20.svg)
+![One viewport updates canvas, surface, depth and camera before drawing.](../illustrations/journey-direct-20-resize.svg)
 
-Why is changing only the canvas width insufficient?
+Why resize the depth attachment with the canvas?
 
-The canvas drawing buffer, surface configuration and depth attachment must agree on their pixel dimensions. The camera also needs width divided by height so geometry keeps its proportions. Changing only one can cause a GPU validation error, a stretched view or an old blurry image scaled by CSS.
+The colour and depth attachments in one render pass must have matching dimensions.
 
-Study estimate, including typing and experiments: 3–5 hours.
+Study estimate, including typing and experiments: 1–1.5 hours.
 
 </details>
 
 <details>
 <summary>Optional experiment</summary>
 
-At density 2, predict the drawing size for a 768 × 384 CSS canvas: 1536 × 768. Now set the GPU limit in the viewport test to 1024. Both dimensions must shrink together to 1024 × 512. Run the test and explain why clamping each dimension independently would stretch the scene.
+Change the window from wide to tall, then type View Reset. The view should retain the current aspect.
 
 </details>
 
@@ -401,8 +324,16 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 
 The final viewer uses the same size agreement for every attachment, including multisampling, picking and post-processing. Later panels need element resize observation as well as window events; this lesson handles window resizing and rechecks layout on each action.
 
-The browser window has been resized. The drawing buffer, depth texture and camera aspect now follow the canvas dimensions.
+Chrome verifies wide and tall resize events, then density two with stable CSS geometry bounds. The capture restores the default viewport and initial scene after those checks.
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 20-resize
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>

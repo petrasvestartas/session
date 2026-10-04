@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 144 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 149 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Eight checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+Five checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
 
 ## Command-panel typing split
 
@@ -31,6 +31,24 @@ The two 03b model/helper checkpoints pass fresh WebAssembly, Trunk, native rende
 Four long checkpoints are now nine runnable steps: validated CPU mesh/scene owners (24–47 minutes), GPU scene drawing (23–46), stable object IDs (29–57), selection display (16–32), inverse view coordinates (10–19), triangle coverage/depth (28–56), actual canvas picking (14–27), shared history snapshots (28–55) and typed Undo/Redo (8–16). Each fits the one-hour typing limit.
 
 The first model steps have focused native checks; their browser captures explicitly describe retained drawing until input is connected. Later steps connect the actual command or mouse path. Existing application, renderer and browser behavior is unchanged. The coordinate lesson adds a native round-trip test retained through history. A redundant dependency-feature reordering was removed from picking; only manifest ordering differs in 13–20, whose fresh native, WebAssembly and Chrome checks pass. No feature binding was added or removed.
+
+## Perspective typing split
+
+The perspective checkpoint is now three focused steps: drawing (20–40 minutes of typing), converting a screen point to a bounded ray (14–28), and actual ray picking (30–59). At the perspective split, all 144 existing endpoints remained byte-identical. The two preparation checkpoints deliberately pause the old flat-coordinate canvas query while retaining typed selection; the final step restores mouse selection through the matching ray.
+
+Fresh native, WebAssembly, Trunk and Chrome checks pass. The new browser acceptance checks the visible overlap, zoom/reset aspect, then actual click selection, Delete, Undo and Redo after zooming.
+
+## Action-route typing split
+
+State ownership (14–27 minutes), Rust actions (27–53) and actual browser routing (29–57) now form three runnable steps. Native ownership, history, selection and picking checks pass; Chrome verifies typed actions, reset aspect, undo/redo, empty Delete, and selecting the box after panning.
+
+The two model checkpoints independently capture the retained lighting route until the browser adapter is connected. Reset now preserves the current aspect when the editor is introduced, using the implementation and test previously taught in resize. That fixes the earlier reset regression; all 20 and later code endpoints remain unchanged.
+
+## Resize typing split
+
+The viewport model (19–37 minutes of typing) and the connected resize transaction (29–57) are separate runnable steps. The new CPU model has density, GPU-limit and hidden-canvas tests; the following step updates canvas, surface, depth and aspect together. All existing code endpoints are unchanged at this split.
+
+Native/WebAssembly/Trunk/Chrome checks pass. Chrome acceptance changes wide/tall window sizes and emulates density two, verifies physical pixel dimensions and CSS geometry bounds, then restores the default capture view.
 
 ## What was checked
 

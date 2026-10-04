@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 144 cumulative lessons, about 158–303.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 149 cumulative lessons, about 154.5–296.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **213 proposed slots: 144 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **218 proposed slots: 149 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -69,12 +69,17 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [13 · Select the visible object with a mouse click](journey/13-picking.md) | 0.5–1 hours | Click a visible triangle to select its stable object ID, including after camera movement. |
 | [13a · Retain reversible scene snapshots](journey/13a-history.md) | 0.75–1.5 hours | Restore scene contents without copying immutable mesh arrays or reusing IDs. |
 | [14 · Run Undo and Redo from the command line](journey/14-history.md) | 0.25–0.5 hours | Undo and redo adding or deleting an object without changing the camera or losing identity. |
-| [15 · Look through a perspective camera](journey/15-perspective.md) | 4–7 hours | View the scene in perspective and select surfaces with a ray that agrees with the camera. |
+| [14a · Draw through a perspective camera](journey/14a-perspective.md) | 0.75–1.25 hours | Draw nearer geometry through a perspective view while keeping typed commands working. |
+| [14b · Turn a screen point into a bounded ray](journey/14b-ray.md) | 0.5–0.75 hours | Recover a finite ray through the near-to-far segment from a screen position. |
+| [15 · Pick the nearest surface through the view](journey/15-perspective.md) | 1–1.5 hours | View the scene in perspective and select surfaces with a ray that agrees with the camera. |
 | [16 · Walk around the model](journey/16-orbit.md) | 2–4 hours | Orbit and tilt a perspective camera while keeping its target in place. |
 | [17 · Bring a solid into the scene](journey/17-solid.md) | 3–5 hours | Create a kernel box, convert it to display data, and add it as one undoable scene object. |
 | [18 · Read the shape through light](journey/18-light.md) | 1–2 hours | Shade the box faces according to their direction, using the same mesh and renderer. |
-| [19 · Give every action the same route](journey/19-actions.md) | 3–5 hours | Move document actions into a browser-independent editor while keeping picking, undo and drawing working. |
-| [20 · Keep a changing window in proportion](journey/20-resize.md) | 3–5 hours | Resize the drawing buffer, depth attachment and camera together, including on dense displays. |
+| [18a · Give application state one owner](journey/18a-editor.md) | 0.5–0.75 hours | Own scene, selection, camera, background and history in one browser-independent value. |
+| [18b · Apply document and view actions in Rust](journey/18b-actions.md) | 1–1.5 hours | Apply actions through one editor while preserving view settings during history and reset. |
+| [19 · Route browser input through the editor](journey/19-actions.md) | 1–1.5 hours | Move document actions into a browser-independent editor while keeping picking, undo and drawing working. |
+| [19a · Measure a safe drawing size](journey/19a-viewport.md) | 0.75–1.25 hours | Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions. |
+| [20 · Resize canvas, depth and camera together](journey/20-resize.md) | 1–1.5 hours | Resize the drawing buffer, depth attachment and camera together, including on dense displays. |
 | [21 · Remember a press until it ends](journey/21-gestures.md) | 3–5 hours | Orbit with a right drag, pick with a left click, and stop safely when the pointer or window loses focus. |
 | [22 · Keep navigation on the mouse and commands in the dock](journey/22-shortcuts.md) | 2–4 hours | Normalize wheel input and keep every keyboard feature command in the command dock. |
 | [23 · Keep the document behind the picture](journey/23-import.md) | 5–8 hours | Import a real mesh-session file, keep its source identity, and undo the whole import as one action. |

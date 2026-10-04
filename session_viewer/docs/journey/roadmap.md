@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 213 lesson slots; 144 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 218 lesson slots; 149 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -22,18 +22,18 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 144 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 149 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
-- [ ] Split the 8 checkpoints that exceed one hour of typing into runnable steps.
+- [ ] Split the 5 checkpoints that exceed one hour of typing into runnable steps.
 - [ ] Write and verify the 69 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 8 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 5 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 144 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 149 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -49,9 +49,9 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 - [x] Verify the identity split: stable names (29–57 minutes) and selection display (16–32); existing code endpoints are unchanged.
 - [x] Verify the picking split: inverse coordinates (10–19 minutes), triangle query (28–56) and actual clicks (14–27). Remove dependency-feature reordering; independently recheck 13–20.
 - [x] Verify the history split: shared snapshots (28–55 minutes) and command routing (8–16); application behavior is unchanged. The earlier coordinate lesson adds a native round-trip test.
-- [ ] [Look through a perspective camera](15-perspective.md): current typing 55–109 minutes; split at complete functions and verify each new step.
-- [ ] [Give every action the same route](19-actions.md): current typing 60–120 minutes; split at complete functions and verify each new step.
-- [ ] [Keep a changing window in proportion](20-resize.md): current typing 53–105 minutes; split at complete functions and verify each new step.
+- [x] Verify the perspective split into drawing (20–40 minutes), screen rays (14–28) and actual picking (30–59). Existing endpoints are unchanged; native/WebAssembly/Trunk/Chrome checks pass, including actual click, Delete, Undo and Redo after zoom.
+- [x] Verify the action split: state owner (14–27 minutes), Rust actions (27–53) and browser routing (29–57). Move the aspect-preserving reset and its test before browser routing; all 20 and later endpoints are unchanged. Native/WebAssembly/Trunk/Chrome checks pass.
+- [x] Verify resize through bounded pixel sizing (19–37 minutes) and one canvas/surface/depth/aspect transaction (29–57). Source endpoints are unchanged; native/WebAssembly/Trunk/Chrome checks pass, including wide/tall windows and density two.
 - [ ] [Remember a press until it ends](21-gestures.md): current typing 77–153 minutes; split at complete functions and verify each new step.
 - [ ] [Keep navigation on the mouse and commands in the dock](22-shortcuts.md): current typing 42–84 minutes; split at complete functions and verify each new step.
 - [ ] [Keep the document behind the picture](23-import.md): current typing 126–252 minutes; split at complete functions and verify each new step.
@@ -158,7 +158,11 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] 14 · [Run Undo and Redo from the command line](14-history.md).
 
-- [x] 15 · [Look through a perspective camera](15-perspective.md).
+- [x] 14a · [Draw through a perspective camera](14a-perspective.md).
+
+- [x] 14b · [Turn a screen point into a bounded ray](14b-ray.md).
+
+- [x] 15 · [Pick the nearest surface through the view](15-perspective.md).
 
 - [x] 16 · [Walk around the model](16-orbit.md).
 
@@ -166,9 +170,15 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] 18 · [Read the shape through light](18-light.md).
 
-- [x] 19 · [Give every action the same route](19-actions.md).
+- [x] 18a · [Give application state one owner](18a-editor.md).
 
-- [x] 20 · [Keep a changing window in proportion](20-resize.md).
+- [x] 18b · [Apply document and view actions in Rust](18b-actions.md).
+
+- [x] 19 · [Route browser input through the editor](19-actions.md).
+
+- [x] 19a · [Measure a safe drawing size](19a-viewport.md).
+
+- [x] 20 · [Resize canvas, depth and camera together](20-resize.md).
 
 - [x] 21 · [Remember a press until it ends](21-gestures.md).
 

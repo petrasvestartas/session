@@ -532,12 +532,12 @@
     "15-perspective": {
       "source": "41f1843fa579c06419d5dc3bfe5c97948ef3d495ea22dd7556e1a34cc7e9b8d5",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "204edc046af1d420b6a72e42000c31f6fcdbe0b08ff690d6204cd5ad29dd74a8",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T02:50:23.394Z",
+      "captured": "2026-10-04T03:33:42.048Z",
       "status": "Perspective and picking use the same camera.",
-      "canvas": "6738c493e747476091e2409f96f14c327c0127a3592c1fb09b70e9c2ec98b280",
+      "canvas": "1bb896f275a39f72e31450ceeddea27c477cf62eb769629f7db913480328b078",
       "file": "15-perspective-browser.png",
       "initialViewport": {
         "width": 900,
@@ -650,12 +650,12 @@
       "keyboardRoundtrip": false
     },
     "19-actions": {
-      "source": "2452ab224cb9b72b853dd41649162a5222f9a2bee5cd44c6a094b1804a1dd996",
+      "source": "3123f6e7c0b5701c88e84fcb585c0feb3bda9d5a6ee7db0108830e27ec213a21",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "2e00311471039d4203826a4e61c0ca22a611e9c44b7fb299fae214b3b5ca78fc",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T02:50:55.511Z",
+      "captured": "2026-10-04T03:47:29.984Z",
       "status": "Every document action follows the same editor path.",
       "canvas": "5abd3092f46f2189217e764c3a84eaf371f9a2841c9cc6f34a9e0259d40f2ae1",
       "file": "19-actions-browser.png",
@@ -673,7 +673,7 @@
         "width": 900,
         "height": 760
       },
-      "bundle": "629e2734b1d12b5a469f72225d95a0800dcb70f2a501391df66418ec4384097f",
+      "bundle": "b325b42ab304fa95aa3e3d2a069666a51d8f35fe8aa9a6a75e7dcc15355a5423",
       "commands": [
         "Example Box",
         "View Isometric",
@@ -686,12 +686,12 @@
     "20-resize": {
       "source": "21ebc780a15f46b4bcba080ea1c4238378dde0ad221e1e38e349214a88bf792c",
       "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
-      "extraChecker": null,
+      "extraChecker": "e0f03b759c9023dc89f5bc83a870a08d654df73092fcb3e5ed65701e958fccdc",
       "browser": "153.0.8010.36",
       "headless": false,
-      "captured": "2026-10-04T02:51:03.781Z",
+      "captured": "2026-10-04T03:58:20.689Z",
       "status": "Canvas pixels, depth and camera resize together.",
-      "canvas": "d6fdb9aa7b095dfbede64e0d7a6a474b524a1838be44022ce04559d0024dbcf2",
+      "canvas": "72b0ac6bb8601a121993df0653e46be40d6c74416666a0cd9eea96d43f53ea73",
       "file": "20-resize-browser.png",
       "initialViewport": {
         "width": 900,
@@ -704,8 +704,8 @@
         "height": 760
       },
       "screenshotViewport": {
-        "width": 1000,
-        "height": 800
+        "width": 900,
+        "height": 760
       },
       "bundle": "8e0b739f877cc1b4ee2e4fb2184fc322ba7973a8958f0ad6b1d137be53cd556d",
       "commands": [
@@ -4267,6 +4267,158 @@
       },
       "bundle": "91d392d7611086a9342813ee9499df4cbbb4a0a4939be5e6b877bf5972304c77",
       "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "14a-perspective": {
+      "source": "1aecda27f082fa54449aabd9f7d83ab6d6cb6f3dc5f70c4bb589b94b38a9a0ef",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "204edc046af1d420b6a72e42000c31f6fcdbe0b08ff690d6204cd5ad29dd74a8",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T03:33:30.415Z",
+      "status": "Perspective drawing uses the current camera.",
+      "canvas": "6738c493e747476091e2409f96f14c327c0127a3592c1fb09b70e9c2ec98b280",
+      "file": "14a-perspective-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "ec99f6e8fb6d9deadd52f97ac54d4ce2ff7bb98183459e36ce44954913291033",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "14b-ray": {
+      "source": "96af0da58659e077d75700eb4ad845644280ad4c0f12ff0bcc8b8d3598457d46",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "204edc046af1d420b6a72e42000c31f6fcdbe0b08ff690d6204cd5ad29dd74a8",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T03:33:38.200Z",
+      "status": "Perspective drawing uses the current camera.",
+      "canvas": "6738c493e747476091e2409f96f14c327c0127a3592c1fb09b70e9c2ec98b280",
+      "file": "14b-ray-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "f13f32e65f16752c67c8dde24ed6181a9fc3b88cf4ec14e981c65636d6810195",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "18a-editor": {
+      "source": "341f3f5db3bff5449d5c4ca03783cda60fa0b11cb6876987c1d0ffadfe1d7b9f",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T03:47:09.974Z",
+      "status": "Surface direction changes brightness, not geometry.",
+      "canvas": "17c39f89dd1afa2d050e5a7e289c899d08925f400648aa265dae9de6f85a23f2",
+      "file": "18a-editor-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "703007a7578c88b370e0a0038da129b5679a80463d4efc3ade3ff41366eb1074",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "18b-actions": {
+      "source": "4571fbd1058345aa08618a686c5da6fc4dc8aabe82c53fdff46e65df409d5aa2",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": null,
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T03:47:18.044Z",
+      "status": "Surface direction changes brightness, not geometry.",
+      "canvas": "17c39f89dd1afa2d050e5a7e289c899d08925f400648aa265dae9de6f85a23f2",
+      "file": "18b-actions-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "30f7160f78bc822b7387ecf43118c21d033d5cc3c4893336bbf49a1678cb345b",
+      "commands": [
+        "Example Box",
+        "View Isometric"
+      ],
+      "keyboardRoundtrip": false
+    },
+    "19a-viewport": {
+      "source": "56e77254838a95065008aaab804de2639a912df9fc2032d943025dfc02602454",
+      "checker": "5ccb14f47b6ec805ef8fab7a99f886dc0b1fba9de75e8a4233c72fb88e211b6a",
+      "extraChecker": "2e00311471039d4203826a4e61c0ca22a611e9c44b7fb299fae214b3b5ca78fc",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-04T03:58:14.012Z",
+      "status": "Every document action follows the same editor path.",
+      "canvas": "5abd3092f46f2189217e764c3a84eaf371f9a2841c9cc6f34a9e0259d40f2ae1",
+      "file": "19a-viewport-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "a218c86f3622275a2abe7dd248174e77d9bcf630b2164d65fec421f7935067ef",
+      "commands": [
+        "Example Box",
+        "View Isometric",
+        "Select Next",
+        "Select Next",
+        "Select Next"
+      ],
       "keyboardRoundtrip": false
     }
   }

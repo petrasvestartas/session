@@ -1,41 +1,26 @@
-# 19 · Give every action the same route
+# 19 · Route browser input through the editor
 
-**Typing: 60–120 minutes.** [Estimate](typing-load.md).
+**Typing: 29–57 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Convert submitted commands and canvas clicks to Action values. Apply them through Editor, upload only when Change is Scene, then redraw from the editor camera and background.
 
-Move editing decisions from the browser callback into `Editor`. It owns scene, selection, camera, background and history, with no browser handles or GPU buffers.
-
-An `Action` enum describes requests. `Delete` carries no value; `Pan(dx, dy)` carries two numbers. Typed commands and mouse navigation translate to actions; `Editor::apply` matches and executes them.
+The closure captures one mutable editor. The GPU renderer keeps its derived representation separate from the document owner.
 
 ## Type
 
-Continue from [Read the shape through light](18-light.md). [Save or recover your work](recovery.md).
+Continue from [Apply document and view actions in Rust](18b-actions.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/editor.rs`
 
-Give document actions one owner, shared by every future input method.
-
-Create the file and type:
-
-```rust
---8<-- "journey/code/19-actions-01.rs"
-```
-
-### 2. `src/lib.rs`
-
-Make the editor available to both the browser and native checks.
+Check selection repair, redo preservation and picking through the editor’s current camera.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
-pub mod scene;
-pub mod picking;
-pub mod history;
-pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
+        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
+    }
+}
 ```
 
 </details>
@@ -43,10 +28,10 @@ pub mod renderer;
 Replace that block with:
 
 ```rust
---8<-- "journey/code/19-actions-fullscreen-1.rs"
+--8<-- "journey/code/19-actions-tests.rs"
 ```
 
-### 3. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Import the editor action types.
 
@@ -72,7 +57,7 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-1.rs"
 ```
 
-### 4. `src/browser.rs`
+### 3. `src/browser.rs`
 
 Create one editor and initialize drawing from its scene.
 
@@ -98,7 +83,7 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-2.rs"
 ```
 
-### 5. `src/browser.rs`
+### 4. `src/browser.rs`
 
 Present the editor background and camera.
 
@@ -131,7 +116,7 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-3.rs"
 ```
 
-### 6. `src/browser.rs`
+### 5. `src/browser.rs`
 
 Start converting submitted lines into actions.
 
@@ -156,7 +141,7 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-4.rs"
 ```
 
-### 7. `src/browser.rs`
+### 6. `src/browser.rs`
 
 Map commands to Action, apply through Editor, and synchronize according to Change.
 
@@ -234,7 +219,7 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-5.rs"
 ```
 
-### 8. `src/browser.rs`
+### 7. `src/browser.rs`
 
 Redraw from the editor state.
 
@@ -260,7 +245,7 @@ Replace that block with:
 --8<-- "journey/code/19-actions-window-6.rs"
 ```
 
-### 9. `src/browser.rs`
+### 8. `src/browser.rs`
 
 Report the shared action route.
 
@@ -296,11 +281,11 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Select a face, type `Delete`, then `Undo`. The editor handles both actions and restores the object without resetting the camera.
+Type Example Box, then Undo and Redo. The box disappears and returns through the editor route.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Give every action the same route.](../screenshots/journey/19-actions-browser.png)
+![Actual browser result: Route browser input through the editor.](../screenshots/journey/19-actions-browser.png)
 
 [Verification scope](release.md).
 
@@ -313,26 +298,24 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-Return a `Change` enum: a view change needs a redraw; a scene change also needs an upload. After a scene action, clear selection if its ID no longer exists.
 
-Keep this path: browser translates → editor decides → history remembers → renderer draws. Moving these rules keeps the behavior while making it testable without a browser.
 
-HTML event → Action → Editor → Change → GPU upload when needed → draw.
+Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw.
 
-![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)
+![Browser input uses the same editor route and drawing-change result.](../illustrations/journey-direct-19-actions.svg)
 
-Where should Delete be handled so commands share one document history?
+Why does Change::View skip set_scene?
 
-The command handler produces Action::Delete and calls Editor::apply. Editor owns selection, the document and history, so deletion stays one transaction and repairs selection consistently.
+The scene data did not change. Redrawing with the editor camera or background is sufficient.
 
-Study estimate, including typing and experiments: 3–5 hours.
+Study estimate, including typing and experiments: 1–1.5 hours.
 
 </details>
 
 <details>
 <summary>Optional experiment</summary>
 
-Add a box, then change the background and zoom. Undo once. Predict which of those three changes disappears. Only the box addition is a document edit; the other two belong to the view. Find the early return in apply that keeps those actions out of history.
+Pan Right, delete a selected object and Undo. The document returns while the camera stays where you put it.
 
 </details>
 
@@ -358,5 +341,13 @@ The full command system will build on this boundary. commands, keyboard input an
 The box is yellow after Select Next reaches it. commands feed the shared Editor action path.
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 19-actions
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>

@@ -54,12 +54,17 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [13-picking](13-picking.md) | 27 | 1308 | 14–27 min | 0.5–1 h | Within planning limit |
 | [13a-history](13a-history.md) | 94 | 2719 | 28–55 min | 0.75–1.5 h | Within planning limit |
 | [14-history](14-history.md) | 18 | 757 | 8–16 min | 0.25–0.5 h | Within planning limit |
-| [15-perspective](15-perspective.md) | 104 | 5432 | 55–109 min | 4–7 h | Split required |
+| [14a-perspective](14a-perspective.md) | 38 | 1984 | 20–40 min | 0.75–1.25 h | Within planning limit |
+| [14b-ray](14b-ray.md) | 32 | 1367 | 14–28 min | 0.5–0.75 h | Within planning limit |
+| [15-perspective](15-perspective.md) | 54 | 2918 | 30–59 min | 1–1.5 h | Within planning limit |
 | [16-orbit](16-orbit.md) | 61 | 2785 | 28–56 min | 2–4 h | Within planning limit |
 | [17-solid](17-solid.md) | 67 | 2667 | 27–54 min | 3–5 h | Within planning limit |
 | [18-light](18-light.md) | 9 | 529 | 6–11 min | 1–2 h | Within planning limit |
-| [19-actions](19-actions.md) | 165 | 5995 | 60–120 min | 3–5 h | Split required |
-| [20-resize](20-resize.md) | 149 | 5217 | 53–105 min | 3–5 h | Split required |
+| [18a-editor](18a-editor.md) | 59 | 1328 | 14–27 min | 0.5–0.75 h | Within planning limit |
+| [18b-actions](18b-actions.md) | 58 | 2650 | 27–53 min | 1–1.5 h | Within planning limit |
+| [19-actions](19-actions.md) | 66 | 2826 | 29–57 min | 1–1.5 h | Within planning limit |
+| [19a-viewport](19a-viewport.md) | 52 | 1838 | 19–37 min | 0.75–1.25 h | Within planning limit |
+| [20-resize](20-resize.md) | 83 | 2825 | 29–57 min | 1–1.5 h | Within planning limit |
 | [21-gestures](21-gestures.md) | 216 | 7609 | 77–153 min | 3–5 h | Split required |
 | [22-shortcuts](22-shortcuts.md) | 111 | 4157 | 42–84 min | 2–4 h | Split required |
 | [23-import](23-import.md) | 280 | 12600 | 126–252 min | 5–8 h | Split required |
@@ -159,12 +164,12 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 
 ## Work still required
 
-- [x] Count the exact source edits for all 144 current checkpoints.
+- [x] Count the exact source edits for all 149 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 213 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 218 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

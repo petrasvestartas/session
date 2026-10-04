@@ -10,7 +10,7 @@ A click waits until release. If a left press travels more than four CSS pixels, 
 
 ## Type
 
-Continue from [Keep a changing window in proportion](20-resize.md). [Save or recover your work](recovery.md).
+Continue from [Resize canvas, depth and camera together](20-resize.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/gesture.rs`
 

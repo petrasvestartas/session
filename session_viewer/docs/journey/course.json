@@ -2618,38 +2618,40 @@
       ]
     },
     {
-      "id": "15-perspective",
-      "title": "Look through a perspective camera",
-      "page": "journey/15-perspective.md",
+      "id": "14a-perspective",
+      "title": "Draw through a perspective camera",
       "hours": [
-        4,
-        7
+        0.75,
+        1.25
       ],
-      "goal": "View the scene in perspective and select surfaces with a ray that agrees with the camera.",
-      "trace": "World point → view matrix → projection → divide by w → canvas; click → inverse projection → clipped ray → object ID",
-      "question": "Why can a larger world z value now belong to the nearer triangle?",
-      "answer": "World z is a scene coordinate, not distance from the camera. This camera is at positive z and looks toward z = 0, so the triangle at z = 0.75 is nearer than the one at z = 0.25. The view and projection matrices convert those world positions into depth values for the existing Less comparison.",
-      "story": "Use a perspective camera looking from z = 3 towards z = 0, with a 60-degree vertical field of view. Farther objects appear smaller.\n\nThe view matrix puts positions relative to the eye; projection produces clip coordinates. The GPU divides by w. The existing shader matrix multiplication and `Less` depth test still work. Turquoise is now nearer from this viewpoint and wins the overlap.\n\nUse the kernel's `Point`, `Vector` and `Xform` for double-precision calculations, then `to_f32` for the existing GPU uniform. Keep camera aspect equal to window width divided by height, including after reset.\n\nPicking needs a ray: inverse-transform screen depth 0 and 1 to near and far points. Intersect that bounded segment with triangles and choose the nearest valid hit. Reject a near-zero determinant and hits outside the segment.\n\n![The eye sees a widening region between near and far planes; reversing the projection turns a clicked pixel into a segment through that region.](../illustrations/journey-15.svg)",
-      "result": "Click the turquoise triangle at the overlap, type `Delete`, then `Undo`. Repeat after `Zoom In`. Picking must agree with the perspective drawing.",
-      "experiment": "Before running, predict which triangle is closer to an eye at z = 3. Check the overlap. Then select and delete turquoise: the pink surface beneath should become selectable. Undo, zoom in, and explain why the CPU ray and GPU depth test still agree despite the changed apparent sizes.",
-      "production": "The full viewer uses this same geometry kernel, view-projection boundary and identity resolution. Its later camera adds world-up orbit, units, fit, floating origins and reversed depth for large scenes; those are extensions of the responsibilities introduced here.",
-      "browser_status": "Perspective and picking use the same camera.",
-      "frame": "journey/checks/15-perspective.rs",
+      "story": "Look from z = 3 toward z = 0 with a 60-degree vertical field of view. The nearer turquoise triangle covers pink at their overlap.\n\nXform calculates the view and projection in double precision. to_f32 supplies the existing GPU uniform; the shader divides clip coordinates by w. Keep aspect equal to window width divided by height.\n\n![A double-precision view supplies the GPU uniform and depth drawing.](../illustrations/journey-direct-14a-perspective.svg)",
+      "result": "Refresh the viewer. Turquoise covers pink at the centre of the view.",
+      "question": "Why is turquoise nearer even though its world z is larger?",
+      "answer": "The eye is at positive z and looks toward zero. The turquoise triangle at z = 0.75 is closer to that eye than pink at z = 0.25.",
+      "experiment": "Type Zoom In, then View Reset. The eye moves closer and resets; geometry positions stay unchanged.",
+      "browser_caption": "This checkpoint verifies perspective drawing and typed commands. Canvas selection is paused while the old flat-coordinate query is replaced; it returns in the ray-picking step.",
       "tests": true,
+      "page": "journey/14a-perspective.md",
+      "goal": "Draw nearer geometry through a perspective view while keeping typed commands working.",
+      "trace": "Eye and target → view_projection → f32 uniform → GPU depth test",
+      "production": "The viewer calculates camera geometry in double precision and supplies float matrices to the GPU. This step establishes perspective drawing; the next two steps restore canvas picking with a matching ray.",
+      "browser_status": "Perspective drawing uses the current camera.",
+      "frame": "journey/checks/14a-perspective.rs",
       "frame_constructor": "make_renderer(device, queue, format)",
       "lock": "journey/release/15-perspective.lock",
+      "browser_check": "journey/checks/browser/perspective.cjs",
       "edits": [
+        {
+          "path": "Cargo.toml",
+          "snippet": "journey/code/15-perspective-dock-01.toml",
+          "before": "console_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n",
+          "why": "Add the geometry kernel and browser-compatible random number support."
+        },
         {
           "path": "src/camera.rs",
           "before": "pub struct Camera {\n    pub center: [f32; 2],\n    pub scale: f32,\n    pub angle: f32,\n}\n\nimpl Default for Camera {\n    fn default() -> Self {\n        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }\n    }\n}\n\nimpl Camera {\n    pub fn pan(&mut self, dx: f32, dy: f32) {\n        self.center[0] += dx;\n        self.center[1] += dy;\n    }\n\n    pub fn zoom(&mut self, factor: f32) {\n        if factor.is_finite() && factor > 0.0 {\n            self.scale = (self.scale * factor).clamp(0.1, 10.0);\n        }\n    }\n\n    pub fn rotate(&mut self, radians: f32) {\n        self.angle += radians;\n    }\n\n    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {\n        let x = point[0] / self.scale;\n        let y = point[1] / self.scale;\n        let (sin, cos) = self.angle.sin_cos();\n        [self.center[0] + x * cos - y * sin, self.center[1] + x * sin + y * cos]\n    }\n\n    pub fn uniform(&self) -> [f32; 16] {\n        let a = self.scale * self.angle.cos();\n        let b = self.scale * self.angle.sin();\n        let [x, y] = self.center;\n        // WGSL matrices are uploaded column by column.\n        [\n            a, -b, 0.0, 0.0,\n            b,  a, 0.0, 0.0,\n            0.0, 0.0, 1.0, 0.0,\n            -a * x - b * y, b * x - a * y, 0.0, 1.0,\n        ]\n    }\n}\n\n#[cfg(test)]\nmod coordinate_tests {\n    use super::Camera;\n\n    #[test]\n    fn moving_the_view_preserves_the_coordinate_round_trip() {\n        let mut camera = Camera::default();\n        camera.pan(0.1, -0.2);\n        camera.zoom(0.5);\n        camera.rotate(0.7);\n        let world = [0.4, 0.0];\n        let matrix = camera.uniform();\n        let screen = [matrix[0] * world[0] + matrix[4] * world[1] + matrix[12],\n            matrix[1] * world[0] + matrix[5] * world[1] + matrix[13]];\n        let restored = camera.world_from_screen(screen);\n        assert!((restored[0] - world[0]).abs() < 1.0e-6);\n        assert!((restored[1] - world[1]).abs() < 1.0e-6);\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn panned_target_stays_at_the_screen_centre_when_zooming() {\n        let mut camera = Camera::default();\n        camera.pan(0.25, -0.5);\n        camera.zoom(2.0);\n        camera.rotate(std::f32::consts::FRAC_PI_4);\n        let m = camera.uniform();\n        let [x, y] = camera.center;\n        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);\n        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);\n    }\n\n    #[test]\n    fn zoom_stays_positive_and_bounded() {\n        let mut camera = Camera::default();\n        camera.zoom(0.0001);\n        assert_eq!(camera.scale, 0.1);\n        camera.zoom(1_000.0);\n        assert_eq!(camera.scale, 10.0);\n        camera.zoom(f32::NAN);\n        camera.zoom(-1.0);\n        assert_eq!(camera.scale, 10.0);\n    }\n}\n",
-          "snippet": "journey/code/15-perspective-02.rs",
-          "why": "Replace the flat camera conversion with a perspective view and a clipped world-space ray. Retain the same pan, zoom, rotate and uniform entry points."
-        },
-        {
-          "path": "src/picking.rs",
-          "before": "use crate::scene::{ObjectId, Scene};\n\npub fn pick(scene: &Scene, point: [f32; 2]) -> Option<ObjectId> {\n    let mut nearest = 1.0;\n    let mut hit = None;\n    for object in scene.objects() {\n        let vertices = object.mesh.vertices();\n        for triangle in object.mesh.indices().chunks_exact(3) {\n            let a = vertices[triangle[0] as usize];\n            let b = vertices[triangle[1] as usize];\n            let c = vertices[triangle[2] as usize];\n            if let Some(depth) = triangle_depth(point, a, b, c) {\n                if depth >= 0.0 && depth < nearest {\n                    nearest = depth;\n                    hit = Some(object.id);\n                }\n            }\n        }\n    }\n    hit\n}\n\nfn triangle_depth(p: [f32; 2], a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f32> {\n    let cross = |u: [f32; 2], v: [f32; 2]| u[0] * v[1] - u[1] * v[0];\n    let ab = [b[0] - a[0], b[1] - a[1]];\n    let ac = [c[0] - a[0], c[1] - a[1]];\n    let ap = [p[0] - a[0], p[1] - a[1]];\n    let area = cross(ab, ac);\n    if area.abs() < 1.0e-8 {\n        return None;\n    }\n    let u = cross(ap, ac) / area;\n    let v = cross(ab, ap) / area;\n    if u >= 0.0 && v >= 0.0 && u + v <= 1.0 {\n        Some((1.0 - u - v) * a[2] + u * b[2] + v * c[2])\n    } else {\n        None\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use crate::camera::Camera;\n\n    #[test]\n    fn overlap_chooses_the_visible_object_and_deletion_reveals_the_next() {\n        let mut scene = Scene::demo();\n        let near = scene.objects()[0].id;\n        let far = scene.objects()[1].id;\n        assert_eq!(pick(&scene, [0.0, 0.0]), Some(near));\n        assert_eq!(pick(&scene, [0.4, 0.0]), Some(far));\n        scene.remove(near);\n        assert_eq!(pick(&scene, [0.0, 0.0]), Some(far));\n        assert_eq!(pick(&scene, [-0.9, -0.9]), None);\n    }\n\n    #[test]\n    fn picking_follows_a_panned_zoomed_and_rotated_camera() {\n        let scene = Scene::demo();\n        let mut camera = Camera::default();\n        camera.pan(0.1, -0.2);\n        camera.zoom(0.5);\n        camera.rotate(0.7);\n        let world = [0.4, 0.0];\n        let m = camera.uniform();\n        let screen = [m[0] * world[0] + m[4] * world[1] + m[12],\n            m[1] * world[0] + m[5] * world[1] + m[13]];\n        let restored = camera.world_from_screen(screen);\n        assert!((restored[0] - world[0]).abs() < 1.0e-6);\n        assert!((restored[1] - world[1]).abs() < 1.0e-6);\n        assert_eq!(pick(&scene, restored), Some(scene.objects()[1].id));\n    }\n\n    #[test]\n    fn an_edge_on_or_invalid_triangle_cannot_be_picked() {\n        assert_eq!(triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]), None);\n        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);\n    }\n}\n",
-          "snippet": "journey/code/15-perspective-03.rs",
-          "why": "Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera."
+          "snippet": "journey/code/14a-perspective-camera.rs",
+          "why": "Give the camera an eye distance, view-projection matrix and GPU uniform. Check the transformed target stays centred."
         },
         {
           "path": "src/scene.rs",
@@ -2682,22 +2684,10 @@
           "why": "Insert the same two mesh data sets in the same order. Their identities are unchanged."
         },
         {
-          "path": "Cargo.toml",
-          "snippet": "journey/code/15-perspective-dock-01.toml",
-          "before": "console_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n\negui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n",
-          "why": "Add the geometry kernel and browser-compatible random number support."
-        },
-        {
           "path": "src/browser.rs",
           "snippet": "journey/code/15-perspective-window-1.rs",
           "before": "    let mut history = History::default();\n    let mut selected = None;\n    let mut background = Background::default();\n    let mut camera = Camera::default();\n    present(\n        &surface,\n        &renderer,\n",
           "why": "Initialize camera aspect from the canvas size."
-        },
-        {
-          "path": "src/browser.rs",
-          "snippet": "journey/code/15-perspective-window-2.rs",
-          "before": "                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));\n                    renderer.set_scene(&scene, selected);\n                }\n                \"example triangle\" => {\n",
-          "why": "Build a camera ray for the clicked screen position and pick along it."
         },
         {
           "path": "src/browser.rs",
@@ -2706,12 +2696,116 @@
           "why": "Preserve aspect when resetting the camera."
         },
         {
+          "path": "src/lib.rs",
+          "before": "pub mod picking;\n",
+          "snippet": "journey/code/14a-perspective-picking-module.rs",
+          "why": "Pause the flat picking module until the camera-ray query is introduced."
+        },
+        {
           "path": "src/browser.rs",
-          "snippet": "journey/code/15-perspective-window-4.rs",
-          "before": "    )?;\n    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.\n    click.forget();\n    report(\"Undo restores the document while the view stays put.\");\n    Ok(())\n}\n\n",
-          "why": "Report that drawing and picking share the camera."
+          "before": "                \"canvas\" => {\n                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {\n                        return;\n                    };\n                    let rect = input_canvas.get_bounding_client_rect();\n                    if rect.width() <= 0.0 || rect.height() <= 0.0 {\n                        return;\n                    }\n                    let screen = [\n                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,\n                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,\n                    ];\n                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));\n                    renderer.set_scene(&scene, selected);\n                }\n",
+          "snippet": "journey/code/14a-perspective-canvas.rs",
+          "why": "Pause canvas selection while the camera changes; typed selection still works."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    report(\"Undo restores the document while the view stays put.\");\n",
+          "snippet": "journey/code/14a-perspective-status.rs",
+          "why": "Report that perspective drawing is ready."
         }
       ]
+    },
+    {
+      "id": "14b-ray",
+      "title": "Turn a screen point into a bounded ray",
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "story": "Invert the view-projection matrix. A screen point at depths zero and one gives the near and far ends of a ray through the view.\n\nOption returns None for invalid coordinates or an inverse that cannot be computed. Normalize the direction and retain the segment length.\n\n![An inverse view-projection supplies a finite ray through the view.](../illustrations/journey-direct-14b-ray.svg)",
+      "result": "Run the state checks. A projected point lies on its recovered ray; invalid screen coordinates are rejected.",
+      "question": "Why retain max_distance beside a normalized direction?",
+      "answer": "Normalization removes length. max_distance keeps the far-plane boundary so picking can reject objects outside the visible segment.",
+      "experiment": "Change the round-trip test screen x to NaN. ray should return None; restore the valid point.",
+      "browser_caption": "The browser retains the independently captured perspective drawing. Native tests establish the new ray conversion; canvas picking is connected next.",
+      "tests": true,
+      "image_same_as": "14a-perspective",
+      "page": "journey/14b-ray.md",
+      "goal": "Recover a finite ray through the near-to-far segment from a screen position.",
+      "trace": "Screen depth 0 and 1 → inverse view-projection → origin, direction and max_distance",
+      "production": "Drawing and picking use the same view-projection transform. This step verifies the bounded ray before the next query chooses an object.",
+      "browser_status": "Perspective drawing uses the current camera.",
+      "frame": "journey/checks/14a-perspective.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_check": "journey/checks/browser/perspective.cjs",
+      "edits": [
+        {
+          "path": "src/camera.rs",
+          "before": "pub struct Camera {\n",
+          "snippet": "journey/code/14b-ray-type.rs",
+          "why": "Keep the near origin, normalized direction and segment length together."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "}\n\n#[cfg(test)]\n",
+          "snippet": "journey/code/14b-ray-method.rs",
+          "why": "Inverse-transform the screen point at both depth boundaries; reject invalid coordinates and invalid segment length."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        assert!((0.0..1.0).contains(&screen[2]));\n    }\n\n}\n",
+          "snippet": "journey/code/14b-ray-test.rs",
+          "why": "Check that a projected point lies on its recovered ray and invalid screen coordinates are rejected."
+        }
+      ]
+    },
+    {
+      "id": "15-perspective",
+      "title": "Pick the nearest surface through the view",
+      "page": "journey/15-perspective.md",
+      "hours": [
+        1,
+        1.5
+      ],
+      "goal": "View the scene in perspective and select surfaces with a ray that agrees with the camera.",
+      "trace": "Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display",
+      "question": "Why compare ray distances rather than world z?",
+      "answer": "The camera can pan, rotate and zoom. Distance along its ray describes which valid surface the viewer sees first. World z alone does not.",
+      "story": "Intersect the camera ray with each triangle. Keep the nearest hit inside the near-to-far segment and return its ObjectId.\n\nThe barycentric values u and v test triangle coverage. The browser converts a canvas click to a ray, stores the selected ID, then uploads its yellow display colour.\n\n![A canvas click selects the nearest valid ray hit by object ID.](../illustrations/journey-direct-15-perspective.svg)",
+      "result": "Click the overlap. The turquoise triangle becomes yellow.",
+      "experiment": "Type Zoom In, select the overlap, then Delete and Undo. Picking should follow the camera and history should restore the same object.",
+      "production": "The full viewer uses this same geometry kernel, view-projection boundary and identity resolution. Its later camera adds world-up orbit, units, fit, floating origins and reversed depth for large scenes; those are extensions of the responsibilities introduced here.",
+      "browser_status": "Perspective and picking use the same camera.",
+      "frame": "journey/checks/15-perspective.rs",
+      "tests": true,
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "edits": [
+        {
+          "path": "src/picking.rs",
+          "before": "use crate::scene::{ObjectId, Scene};\n\npub fn pick(scene: &Scene, point: [f32; 2]) -> Option<ObjectId> {\n    let mut nearest = 1.0;\n    let mut hit = None;\n    for object in scene.objects() {\n        let vertices = object.mesh.vertices();\n        for triangle in object.mesh.indices().chunks_exact(3) {\n            let a = vertices[triangle[0] as usize];\n            let b = vertices[triangle[1] as usize];\n            let c = vertices[triangle[2] as usize];\n            if let Some(depth) = triangle_depth(point, a, b, c) {\n                if depth >= 0.0 && depth < nearest {\n                    nearest = depth;\n                    hit = Some(object.id);\n                }\n            }\n        }\n    }\n    hit\n}\n\nfn triangle_depth(p: [f32; 2], a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f32> {\n    let cross = |u: [f32; 2], v: [f32; 2]| u[0] * v[1] - u[1] * v[0];\n    let ab = [b[0] - a[0], b[1] - a[1]];\n    let ac = [c[0] - a[0], c[1] - a[1]];\n    let ap = [p[0] - a[0], p[1] - a[1]];\n    let area = cross(ab, ac);\n    if area.abs() < 1.0e-8 {\n        return None;\n    }\n    let u = cross(ap, ac) / area;\n    let v = cross(ab, ap) / area;\n    if u >= 0.0 && v >= 0.0 && u + v <= 1.0 {\n        Some((1.0 - u - v) * a[2] + u * b[2] + v * c[2])\n    } else {\n        None\n    }\n}\n\n#[cfg(test)]\nmod tests {\n    use super::*;\n    use crate::camera::Camera;\n\n    #[test]\n    fn overlap_chooses_the_visible_object_and_deletion_reveals_the_next() {\n        let mut scene = Scene::demo();\n        let near = scene.objects()[0].id;\n        let far = scene.objects()[1].id;\n        assert_eq!(pick(&scene, [0.0, 0.0]), Some(near));\n        assert_eq!(pick(&scene, [0.4, 0.0]), Some(far));\n        scene.remove(near);\n        assert_eq!(pick(&scene, [0.0, 0.0]), Some(far));\n        assert_eq!(pick(&scene, [-0.9, -0.9]), None);\n    }\n\n    #[test]\n    fn picking_follows_a_panned_zoomed_and_rotated_camera() {\n        let scene = Scene::demo();\n        let mut camera = Camera::default();\n        camera.pan(0.1, -0.2);\n        camera.zoom(0.5);\n        camera.rotate(0.7);\n        let world = [0.4, 0.0];\n        let m = camera.uniform();\n        let screen = [m[0] * world[0] + m[4] * world[1] + m[12],\n            m[1] * world[0] + m[5] * world[1] + m[13]];\n        let restored = camera.world_from_screen(screen);\n        assert!((restored[0] - world[0]).abs() < 1.0e-6);\n        assert!((restored[1] - world[1]).abs() < 1.0e-6);\n        assert_eq!(pick(&scene, restored), Some(scene.objects()[1].id));\n    }\n\n    #[test]\n    fn an_edge_on_or_invalid_triangle_cannot_be_picked() {\n        assert_eq!(triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]), None);\n        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);\n    }\n}\n",
+          "snippet": "journey/code/15-perspective-03.rs",
+          "why": "Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod scene;\n",
+          "snippet": "journey/code/15-perspective-picking-module.rs",
+          "why": "Register the camera-ray query now that its input is available."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                \"canvas\" => return,\n",
+          "snippet": "journey/code/15-perspective-canvas-ray.rs",
+          "why": "Convert a canvas click to a camera ray and highlight its nearest valid object."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    report(\"Perspective drawing uses the current camera.\");\n",
+          "snippet": "journey/code/15-perspective-status.rs",
+          "why": "Report that perspective picking is ready."
+        }
+      ],
+      "browser_check": "journey/checks/browser/perspective.cjs"
     },
     {
       "id": "16-orbit",
@@ -2936,20 +3030,104 @@
       "browser_caption": "Compare the box with lesson 17: the same geometry now has three face brightnesses."
     },
     {
+      "id": "18a-editor",
+      "title": "Give application state one owner",
+      "page": "journey/18a-editor.md",
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "goal": "Own scene, selection, camera, background and history in one browser-independent value.",
+      "trace": "Editor owns scene and history beside camera, background and selection",
+      "story": "Editor owns application state. Action names an input; Change tells drawing whether scene data or only the view changed.\n\nKeep History private so document edits follow one path. Default constructs an editor with the existing demonstration scene.\n\n![Editor owns document and view state.](../illustrations/journey-direct-18a-editor.svg)",
+      "result": "Run the state checks. Zooming the owned camera preserves the document IDs and empty selection.",
+      "question": "Why put these values in one struct?",
+      "answer": "An input handler can borrow one editor rather than manage separate captured scene, camera, selection and history values.",
+      "experiment": "Change the ownership test to pan the camera. Its scene IDs should still match; restore the original zoom check.",
+      "production": "The application owner keeps document and view lifetimes together while history stores document changes only.",
+      "tests": true,
+      "frame": "journey/checks/18-light.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Surface direction changes brightness, not geometry.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        }
+      ],
+      "browser_caption": "Native checks establish the new state owner. Chrome independently retains the preceding lighting and typed-command path; browser routing moves into Editor in the final step.",
+      "image_same_as": "18-light",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": null,
+          "snippet": "journey/code/18a-editor-owner.rs",
+          "why": "Declare the action names, change kinds and application owner. Check a camera change keeps document identity."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/19-actions-fullscreen-1.rs",
+          "before": "pub mod scene;\npub mod picking;\npub mod history;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
+          "why": "Make the editor available to both the browser and native checks."
+        }
+      ]
+    },
+    {
+      "id": "18b-actions",
+      "title": "Apply document and view actions in Rust",
+      "page": "journey/18b-actions.md",
+      "hours": [
+        1,
+        1.5
+      ],
+      "goal": "Apply actions through one editor while preserving view settings during history and reset.",
+      "trace": "Action → Editor::apply → History for document edits → Change::Scene or Change::View",
+      "story": "Editor::apply handles an Action and returns the kind of drawing change. Document edits use History; camera and background changes stay outside it.\n\nResult propagates a failed add operation. After deletion or history travel, retain selection only if its ID still exists. View Reset keeps the current window aspect.\n\n![Actions update the editor and report the drawing change.](../illustrations/journey-direct-18b-actions.svg)",
+      "result": "Run the state checks. Undo removes the added box while keeping zoom and background; View Reset preserves the current aspect.",
+      "question": "Why return Change rather than redraw here?",
+      "answer": "The editor owns application values, not GPU objects. Its caller decides when to upload scene data and draw.",
+      "experiment": "Set camera aspect to 2.0 in the reset test. Reset distance and orientation should change while that aspect stays 2.0.",
+      "production": "Actions preserve the document/view boundary and describe the synchronization required. This checkpoint also retains aspect during reset before browser routing is introduced.",
+      "tests": true,
+      "frame": "journey/checks/19-actions.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Surface direction changes brightness, not geometry.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        }
+      ],
+      "browser_caption": "Native checks exercise the new action route and render its selected box. Chrome retains the earlier event handler and lighting result; the following step connects browser input to Editor.",
+      "image_same_as": "18a-editor",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "#[cfg(test)]\nmod tests {\n    use super::*;\n\n    #[test]\n    fn changing_the_owned_camera_keeps_document_identity() {\n        let mut editor = Editor::default();\n        let ids: Vec<_> = editor.scene.objects().iter().map(|object| object.id).collect();\n        editor.camera.zoom(2.0);\n        assert_eq!(editor.camera.distance, 1.5);\n        assert_eq!(editor.scene.objects().iter().map(|object| object.id).collect::<Vec<_>>(), ids);\n        assert!(editor.selected.is_none());\n    }\n}\n",
+          "snippet": "journey/code/18b-actions-apply.rs",
+          "why": "Implement the action route and check history preserves the view. Keep the current aspect when resetting the camera."
+        }
+      ]
+    },
+    {
       "id": "19-actions",
-      "title": "Give every action the same route",
+      "title": "Route browser input through the editor",
       "page": "journey/19-actions.md",
       "hours": [
-        3,
-        5
+        1,
+        1.5
       ],
       "goal": "Move document actions into a browser-independent editor while keeping picking, undo and drawing working.",
-      "trace": "HTML event → Action → Editor → Change → GPU upload when needed → draw",
-      "question": "Where should Delete be handled so commands share one document history?",
-      "answer": "The command handler produces Action::Delete and calls Editor::apply. Editor owns selection, the document and history, so deletion stays one transaction and repairs selection consistently.",
-      "story": "Move editing decisions from the browser callback into `Editor`. It owns scene, selection, camera, background and history, with no browser handles or GPU buffers.\n\nAn `Action` enum describes requests. `Delete` carries no value; `Pan(dx, dy)` carries two numbers. Typed commands and mouse navigation translate to actions; `Editor::apply` matches and executes them.\n\nReturn a `Change` enum: a view change needs a redraw; a scene change also needs an upload. After a scene action, clear selection if its ID no longer exists.\n\nKeep this path: browser translates → editor decides → history remembers → renderer draws. Moving these rules keeps the behavior while making it testable without a browser.\n\n![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)",
-      "result": "Select a face, type `Delete`, then `Undo`. The editor handles both actions and restores the object without resetting the camera.",
-      "experiment": "Add a box, then change the background and zoom. Undo once. Predict which of those three changes disappears. Only the box addition is a document edit; the other two belong to the view. Find the early return in apply that keeps those actions out of history.",
+      "trace": "Typed command or canvas click → Action → Editor::apply → Change → scene upload when required → draw",
+      "question": "Why does Change::View skip set_scene?",
+      "answer": "The scene data did not change. Redrawing with the editor camera or background is sufficient.",
+      "story": "Convert submitted commands and canvas clicks to Action values. Apply them through Editor, upload only when Change is Scene, then redraw from the editor camera and background.\n\nThe closure captures one mutable editor. The GPU renderer keeps its derived representation separate from the document owner.\n\n![Browser input uses the same editor route and drawing-change result.](../illustrations/journey-direct-19-actions.svg)",
+      "result": "Type Example Box, then Undo and Redo. The box disappears and returns through the editor route.",
+      "experiment": "Pan Right, delete a selected object and Undo. The document returns while the camera stays where you put it.",
       "production": "The full command system will build on this boundary. commands, keyboard input and tools request document operations through the same owner, while rendering consumes the result. More commands should add behavior here or in focused command modules, not duplicate transactions in UI handlers.",
       "browser_status": "Every document action follows the same editor path.",
       "browser_actions": [
@@ -2976,15 +3154,9 @@
       "edits": [
         {
           "path": "src/editor.rs",
-          "before": null,
-          "snippet": "journey/code/19-actions-01.rs",
-          "why": "Give document actions one owner, shared by every future input method."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/19-actions-fullscreen-1.rs",
-          "before": "pub mod scene;\npub mod picking;\npub mod history;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Make the editor available to both the browser and native checks."
+          "before": "        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);\n    }\n}\n",
+          "snippet": "journey/code/19-actions-tests.rs",
+          "why": "Check selection repair, redo preservation and picking through the editor’s current camera."
         },
         {
           "path": "src/browser.rs",
@@ -3029,23 +3201,80 @@
           "why": "Report the shared action route."
         }
       ],
-      "browser_caption": "The box is yellow after Select Next reaches it. commands feed the shared Editor action path."
+      "browser_caption": "The box is yellow after Select Next reaches it. commands feed the shared Editor action path.",
+      "image_same_as": "18b-actions",
+      "browser_check": "journey/checks/browser/editor-actions.cjs"
+    },
+    {
+      "id": "19a-viewport",
+      "title": "Measure a safe drawing size",
+      "page": "journey/19a-viewport.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Convert CSS dimensions and display density to finite, bounded GPU pixel dimensions.",
+      "trace": "CSS width and height × display density → proportional GPU-limit cap → Viewport",
+      "story": "Viewport converts CSS size and display density to GPU pixel dimensions. Reduce both dimensions together when they exceed the device limit. Reject hidden or invalid sizes.\n\nViewport is Copy, so drawing and camera setup can receive the same measured value. aspect uses the bounded pixel dimensions.\n\n![CSS dimensions and density produce a bounded pixel viewport.](../illustrations/journey-direct-19a-viewport.svg)",
+      "result": "Run the state checks. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.",
+      "question": "Why cap width and height by the same scale?",
+      "answer": "Independent caps would change their ratio and stretch the scene. A shared scale keeps proportions apart from integer rounding.",
+      "experiment": "Change the dense-display test ratio to 4.0 and lower the device limit to 1024. Predict the bounded dimensions before running the check.",
+      "production": "A camera aspect and its GPU attachments must use one bounded pixel size. This step establishes that size calculation; the next connects it to the browser and GPU.",
+      "tests": true,
+      "frame": "journey/checks/19-actions.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Every document action follows the same editor path.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Select Next"
+        }
+      ],
+      "browser_check": "journey/checks/browser/editor-actions.cjs",
+      "image_same_as": "19-actions",
+      "browser_caption": "Native tests establish bounded density-aware sizing. Chrome independently retains the editor input route and drawing; actual canvas and attachment resizing are connected next.",
+      "edits": [
+        {
+          "path": "src/viewport.rs",
+          "before": null,
+          "snippet": "journey/code/20-resize-01.rs",
+          "why": "Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies."
+        },
+        {
+          "path": "src/lib.rs",
+          "snippet": "journey/code/20-resize-fullscreen-1.rs",
+          "before": "pub mod picking;\npub mod history;\npub mod editor;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
+          "why": "Make the size calculation usable by browser code and Rust tests."
+        }
+      ]
     },
     {
       "id": "20-resize",
-      "title": "Keep a changing window in proportion",
+      "title": "Resize canvas, depth and camera together",
       "page": "journey/20-resize.md",
       "hours": [
-        3,
-        5
+        1,
+        1.5
       ],
       "goal": "Resize the drawing buffer, depth attachment and camera together, including on dense displays.",
-      "trace": "CSS rectangle × display density → bounded pixel size → canvas and surface + depth image + camera aspect → draw",
-      "question": "Why is changing only the canvas width insufficient?",
-      "answer": "The canvas drawing buffer, surface configuration and depth attachment must agree on their pixel dimensions. The camera also needs width divided by height so geometry keeps its proportions. Changing only one can cause a GPU validation error, a stretched view or an old blurry image scaled by CSS.",
-      "story": "Keep the GPU image and camera proportional when the window changes. CSS pixels describe layout; drawing pixels equal layout size multiplied by display density.\n\nThe viewport helper caps both dimensions together at the device texture limit. `Some(size)` permits drawing; `None` means hidden or invalid measurements. Do not configure zero-sized textures.\n\nBefore redraw, update canvas and surface dimensions, depth texture, and camera aspect together. Recreate textures only when size changes. The existing browser callback owns the editor and renderer and also handles resize events.\n\nCamera reset must preserve the current aspect. Its test catches a reset that would stretch the scene after resizing. Dense displays use more drawing pixels while retaining the same visible geometry size.\n\n![One measured pixel size feeds the surface, depth attachment and camera; all three must agree before the next draw.](../illustrations/journey-20.svg)",
-      "result": "Resize the browser from wide to tall. The canvas, depth image and camera must use the new dimensions; the scene must not stretch.",
-      "experiment": "At density 2, predict the drawing size for a 768 × 384 CSS canvas: 1536 × 768. Now set the GPU limit in the viewport test to 1024. Both dimensions must shrink together to 1024 × 512. Run the test and explain why clamping each dimension independently would stretch the scene.",
+      "trace": "Resize event → Viewport → canvas pixels, surface, depth and aspect → command layout → draw",
+      "question": "Why resize the depth attachment with the canvas?",
+      "answer": "The colour and depth attachments in one render pass must have matching dimensions.",
+      "story": "Use Viewport to resize canvas pixels, the surface, depth attachment and camera aspect together. Read the current CSS rectangle and display density before drawing.\n\nThe callback borrows the renderer and editor mutably. A hidden canvas returns without drawing; a changed size recreates attachments before the next frame.\n\n![One viewport updates canvas, surface, depth and camera before drawing.](../illustrations/journey-direct-20-resize.svg)",
+      "result": "Resize the browser window. Geometry keeps its proportions and continues drawing across wide and tall sizes.",
+      "experiment": "Change the window from wide to tall, then type View Reset. The view should retain the current aspect.",
       "production": "The final viewer uses the same size agreement for every attachment, including multisampling, picking and post-processing. Later panels need element resize observation as well as window events; this lesson handles window resizing and rechecks layout on each action.",
       "browser_status": "Canvas pixels, depth and camera resize together.",
       "browser_actions": [
@@ -3071,30 +3300,6 @@
       ],
       "tests": true,
       "edits": [
-        {
-          "path": "src/viewport.rs",
-          "before": null,
-          "snippet": "journey/code/20-resize-01.rs",
-          "why": "Convert layout dimensions to a safe drawing size, keeping the proportions when the GPU limit applies."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "                    Action::ResetView => self.camera = Camera::default(),\n",
-          "snippet": "journey/code/20-resize-05.rs",
-          "why": "Reset the camera pose while retaining the current viewport proportions."
-        },
-        {
-          "path": "src/editor.rs",
-          "before": "    #[test]\n    fn undo_changes_the_document_without_rewinding_the_view() {\n",
-          "snippet": "journey/code/20-resize-06.rs",
-          "why": "Catch a resize bug that would otherwise return whenever the learner presses Reset view."
-        },
-        {
-          "path": "src/lib.rs",
-          "snippet": "journey/code/20-resize-fullscreen-1.rs",
-          "before": "pub mod picking;\npub mod history;\npub mod editor;\npub mod gpu_mesh;\npub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\n",
-          "why": "Make the size calculation usable by browser code and Rust tests."
-        },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/20-resize-fullscreen-8.rs",
@@ -3144,7 +3349,8 @@
           "why": "Register resize events and update canvas pixels, surface configuration, attachments and camera aspect together."
         }
       ],
-      "browser_caption": "The browser window has been resized. The drawing buffer, depth texture and camera aspect now follow the canvas dimensions."
+      "browser_caption": "Chrome verifies wide and tall resize events, then density two with stable CSS geometry bounds. The capture restores the default viewport and initial scene after those checks.",
+      "browser_check": "journey/checks/browser/viewport.cjs"
     },
     {
       "id": "21-gestures",

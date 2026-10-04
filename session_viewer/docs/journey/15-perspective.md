@@ -1,133 +1,16 @@
-# 15 · Look through a perspective camera
+# 15 · Pick the nearest surface through the view
 
-**Typing: 55–109 minutes.** [Estimate](typing-load.md).
+**Typing: 30–59 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
+Intersect the camera ray with each triangle. Keep the nearest hit inside the near-to-far segment and return its ObjectId.
 
-Use a perspective camera looking from z = 3 towards z = 0, with a 60-degree vertical field of view. Farther objects appear smaller.
-
-The view matrix puts positions relative to the eye; projection produces clip coordinates. The GPU divides by w. The existing shader matrix multiplication and `Less` depth test still work. Turquoise is now nearer from this viewpoint and wins the overlap.
+The barycentric values u and v test triangle coverage. The browser converts a canvas click to a ray, stores the selected ID, then uploads its yellow display colour.
 
 ## Type
 
-Continue from [Run Undo and Redo from the command line](14-history.md). [Save or recover your work](recovery.md).
+Continue from [Turn a screen point into a bounded ray](14b-ray.md). [Save or recover your work](recovery.md).
 
-### 1. `src/camera.rs`
-
-Replace the flat camera conversion with a perspective view and a clipped world-space ray. Retain the same pan, zoom, rotate and uniform entry points.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-pub struct Camera {
-    pub center: [f32; 2],
-    pub scale: f32,
-    pub angle: f32,
-}
-
-impl Default for Camera {
-    fn default() -> Self {
-        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }
-    }
-}
-
-impl Camera {
-    pub fn pan(&mut self, dx: f32, dy: f32) {
-        self.center[0] += dx;
-        self.center[1] += dy;
-    }
-
-    pub fn zoom(&mut self, factor: f32) {
-        if factor.is_finite() && factor > 0.0 {
-            self.scale = (self.scale * factor).clamp(0.1, 10.0);
-        }
-    }
-
-    pub fn rotate(&mut self, radians: f32) {
-        self.angle += radians;
-    }
-
-    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {
-        let x = point[0] / self.scale;
-        let y = point[1] / self.scale;
-        let (sin, cos) = self.angle.sin_cos();
-        [self.center[0] + x * cos - y * sin, self.center[1] + x * sin + y * cos]
-    }
-
-    pub fn uniform(&self) -> [f32; 16] {
-        let a = self.scale * self.angle.cos();
-        let b = self.scale * self.angle.sin();
-        let [x, y] = self.center;
-        // WGSL matrices are uploaded column by column.
-        [
-            a, -b, 0.0, 0.0,
-            b,  a, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            -a * x - b * y, b * x - a * y, 0.0, 1.0,
-        ]
-    }
-}
-
-#[cfg(test)]
-mod coordinate_tests {
-    use super::Camera;
-
-    #[test]
-    fn moving_the_view_preserves_the_coordinate_round_trip() {
-        let mut camera = Camera::default();
-        camera.pan(0.1, -0.2);
-        camera.zoom(0.5);
-        camera.rotate(0.7);
-        let world = [0.4, 0.0];
-        let matrix = camera.uniform();
-        let screen = [matrix[0] * world[0] + matrix[4] * world[1] + matrix[12],
-            matrix[1] * world[0] + matrix[5] * world[1] + matrix[13]];
-        let restored = camera.world_from_screen(screen);
-        assert!((restored[0] - world[0]).abs() < 1.0e-6);
-        assert!((restored[1] - world[1]).abs() < 1.0e-6);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn panned_target_stays_at_the_screen_centre_when_zooming() {
-        let mut camera = Camera::default();
-        camera.pan(0.25, -0.5);
-        camera.zoom(2.0);
-        camera.rotate(std::f32::consts::FRAC_PI_4);
-        let m = camera.uniform();
-        let [x, y] = camera.center;
-        assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);
-        assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);
-    }
-
-    #[test]
-    fn zoom_stays_positive_and_bounded() {
-        let mut camera = Camera::default();
-        camera.zoom(0.0001);
-        assert_eq!(camera.scale, 0.1);
-        camera.zoom(1_000.0);
-        assert_eq!(camera.scale, 10.0);
-        camera.zoom(f32::NAN);
-        camera.zoom(-1.0);
-        assert_eq!(camera.scale, 10.0);
-    }
-}
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-02.rs"
-```
-
-### 2. `src/picking.rs`
+### 1. `src/picking.rs`
 
 Replace the flat coverage query with ray–triangle intersections and update the visibility tests for the new camera.
 
@@ -225,15 +108,15 @@ Replace that block with:
 --8<-- "journey/code/15-perspective-03.rs"
 ```
 
-### 3. `src/scene.rs`
+### 2. `src/lib.rs`
 
-Name the mesh by colour; which surface is nearer now depends on the camera.
+Register the camera-ray query now that its input is available.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
-        let near = Mesh::new(vec![
+pub mod scene;
 ```
 
 </details>
@@ -241,18 +124,18 @@ Name the mesh by colour; which surface is nearer now depends on the camera.
 Replace that block with:
 
 ```rust
---8<-- "journey/code/15-perspective-05.rs"
+--8<-- "journey/code/15-perspective-picking-module.rs"
 ```
 
-### 4. `src/scene.rs`
+### 3. `src/browser.rs`
 
-Give the other mesh a camera-independent name.
+Convert a canvas click to a camera ray and highlight its nearest valid object.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
-        let far = Mesh::new(vec![
+                "canvas" => return,
 ```
 
 </details>
@@ -260,18 +143,18 @@ Give the other mesh a camera-independent name.
 Replace that block with:
 
 ```rust
---8<-- "journey/code/15-perspective-06.rs"
+--8<-- "journey/code/15-perspective-canvas-ray.rs"
 ```
 
-### 5. `src/scene.rs`
+### 4. `src/browser.rs`
 
-Name the pink triangle in its validation error.
+Report that perspective picking is ready.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
-expect("Valid near triangle")
+    report("Perspective drawing uses the current camera.");
 ```
 
 </details>
@@ -279,178 +162,10 @@ expect("Valid near triangle")
 Replace that block with:
 
 ```rust
---8<-- "journey/code/15-perspective-07.rs"
-```
-
-### 6. `src/scene.rs`
-
-Name the turquoise triangle in its validation error.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-expect("Valid far triangle")
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-08.rs"
-```
-
-### 7. `src/scene.rs`
-
-Insert the same two mesh data sets in the same order. Their identities are unchanged.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        scene.insert(near).expect("ID available");
-        scene.insert(far).expect("ID available");
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-09.rs"
-```
-
-### 8. `Cargo.toml`
-
-Add the geometry kernel and browser-compatible random number support.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```toml
-console_error_panic_hook = "=0.1.7"
-wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-
-egui = { version = "=0.34.3", default-features = false }
-egui-wgpu = { version = "=0.34.3", default-features = false }
-```
-
-</details>
-
-Replace that block with:
-
-```toml
---8<-- "journey/code/15-perspective-dock-01.toml"
-```
-
-### 9. `src/browser.rs`
-
-Initialize camera aspect from the canvas size.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    let mut history = History::default();
-    let mut selected = None;
-    let mut background = Background::default();
-    let mut camera = Camera::default();
-    present(
-        &surface,
-        &renderer,
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-window-1.rs"
-```
-
-### 10. `src/browser.rs`
-
-Build a camera ray for the clicked screen position and pick along it.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ];
-                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-window-2.rs"
-```
-
-### 11. `src/browser.rs`
-
-Preserve aspect when resetting the camera.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "view reset" => camera = Camera::default(),
-                _ => return,
-            }
-        }
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-window-3.rs"
-```
-
-### 12. `src/browser.rs`
-
-Report that drawing and picking share the camera.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Undo restores the document while the view stays put.");
-    Ok(())
-}
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/15-perspective-window-4.rs"
+--8<-- "journey/code/15-perspective-status.rs"
 ```
 
 ## Run and check
-
-After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
-
-```sh
-npm --prefix ../session_tests run course -- dependencies 15-perspective
-```
 
 In your project:
 
@@ -462,11 +177,11 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Click the turquoise triangle at the overlap, type `Delete`, then `Undo`. Repeat after `Zoom In`. Picking must agree with the perspective drawing.
+Click the overlap. The turquoise triangle becomes yellow.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Look through a perspective camera.](../screenshots/journey/15-perspective-browser.png)
+![Actual browser result: Pick the nearest surface through the view.](../screenshots/journey/15-perspective-browser.png)
 
 [Verification scope](release.md).
 
@@ -479,26 +194,24 @@ REGEN_PROTO=0 cargo test --lib --locked -j4
 <details>
 <summary>Code explanation and diagram</summary>
 
-Use the kernel's `Point`, `Vector` and `Xform` for double-precision calculations, then `to_f32` for the existing GPU uniform. Keep camera aspect equal to window width divided by height, including after reset.
 
-Picking needs a ray: inverse-transform screen depth 0 and 1 to near and far points. Intersect that bounded segment with triangles and choose the nearest valid hit. Reject a near-zero determinant and hits outside the segment.
 
-World point → view matrix → projection → divide by w → canvas; click → inverse projection → clipped ray → object ID.
+Canvas click → Camera::ray → nearest valid triangle → ObjectId → yellow display.
 
-![The eye sees a widening region between near and far planes; reversing the projection turns a clicked pixel into a segment through that region.](../illustrations/journey-15.svg)
+![A canvas click selects the nearest valid ray hit by object ID.](../illustrations/journey-direct-15-perspective.svg)
 
-Why can a larger world z value now belong to the nearer triangle?
+Why compare ray distances rather than world z?
 
-World z is a scene coordinate, not distance from the camera. This camera is at positive z and looks toward z = 0, so the triangle at z = 0.75 is nearer than the one at z = 0.25. The view and projection matrices convert those world positions into depth values for the existing Less comparison.
+The camera can pan, rotate and zoom. Distance along its ray describes which valid surface the viewer sees first. World z alone does not.
 
-Study estimate, including typing and experiments: 4–7 hours.
+Study estimate, including typing and experiments: 1–1.5 hours.
 
 </details>
 
 <details>
 <summary>Optional experiment</summary>
 
-Before running, predict which triangle is closer to an eye at z = 3. Check the overlap. Then select and delete turquoise: the pink surface beneath should become selectable. Undo, zoom in, and explain why the CPU ray and GPU depth test still agree despite the changed apparent sizes.
+Type Zoom In, select the overlap, then Delete and Undo. Picking should follow the camera and history should restore the same object.
 
 </details>
 
@@ -524,5 +237,13 @@ The full viewer uses this same geometry kernel, view-projection boundary and ide
 
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 15-perspective
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>
