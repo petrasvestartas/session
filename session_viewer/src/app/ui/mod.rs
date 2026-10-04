@@ -221,11 +221,13 @@ impl Ui {
         input.events = events;
         batches.push(input);
         let mut draw = |root: &mut egui::Ui| {
-            // Focus before the field handles this batch, so the first typed character survives.
+            // Focus before the field handles this batch, so the first typed character survives; a shortcut letter such as F stays on the canvas.
             if !keys_taken()
                 && !state.number_box_open()
-                && root.input(|input| input.events.iter().any(|event| {
-                    matches!(event, egui::Event::Text(text) | egui::Event::Paste(text) if !text.is_empty())
+                && root.input(|input| input.events.iter().any(|event| match event {
+                    egui::Event::Text(text) => !text.is_empty() && crate::app::keys::letter(text).is_none(),
+                    egui::Event::Paste(text) => !text.is_empty(),
+                    _ => false,
                 }))
             {
                 command_line::STATE.with_borrow_mut(|model| {
