@@ -34,7 +34,7 @@ Replace that block with:
 
 ### 2. `src/browser.rs`
 
-Draw the label after the scene and before presentation.
+Create the panel and pass it into presentation.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -65,7 +65,7 @@ Replace that block with:
 
 ### 3. `src/browser.rs`
 
-Draw the label after the scene and before presentation.
+Draw the panel over the scene before presenting.
 
 <details>
 <summary>Locate the existing block</summary>

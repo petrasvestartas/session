@@ -67,7 +67,7 @@ Replace that block with:
 
 ### 5. `src/renderer.rs`
 
-The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
+Own uploaded GpuMesh values and build them from Scene.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -127,7 +127,7 @@ Replace that block with:
 
 ### 6. `src/renderer.rs`
 
-The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
+Rebuild uploaded meshes when the scene changes.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -152,7 +152,7 @@ Replace that block with:
 
 ### 7. `src/renderer.rs`
 
-The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself.
+Draw each uploaded mesh through GpuMesh::draw.
 
 <details>
 <summary>Locate the existing block</summary>

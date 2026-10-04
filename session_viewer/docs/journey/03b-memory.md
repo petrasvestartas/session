@@ -1,6 +1,6 @@
 # 03b · Give the command field its memory
 
-**Typing: 25–49 minutes.** [Estimate](typing-load.md).
+**Typing: 21–42 minutes.** [Estimate](typing-load.md).
 
 Replace the panel’s local `String` with `CommandLine`. The field now reads and edits `model.command`; its empty hint comes from `model.status`.
 

@@ -131,7 +131,7 @@ Replace that block with:
 
 ### 7. `src/renderer.rs`
 
-Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout.
+Allocate 64 bytes for sixteen f32 matrix entries.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -156,7 +156,7 @@ Replace that block with:
 
 ### 8. `src/renderer.rs`
 
-Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout.
+Upload all sixteen matrix entries before drawing.
 
 <details>
 <summary>Locate the existing block</summary>

@@ -87,7 +87,7 @@ Replace that block with:
 
 ### 5. `src/renderer.rs`
 
-Reuse the depth helper from lesson 10 with the measured Viewport dimensions.
+Keep depth texture allocation in the existing depth helper.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -117,7 +117,7 @@ Replace that block with:
 
 ### 6. `src/renderer.rs`
 
-Reuse the depth helper from lesson 10 with the measured Viewport dimensions.
+Recreate the depth view for the measured viewport dimensions.
 
 <details>
 <summary>Locate the existing block</summary>

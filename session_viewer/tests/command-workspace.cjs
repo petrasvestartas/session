@@ -4,7 +4,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const {chromium} = require('playwright');
 const root = path.resolve(__dirname,'..');
-const out = '/tmp/viewer-command-workspace';
+const out = process.env.VIEWER_COMMAND_OUTPUT || path.join(root, 'target/command-workspace');
 async function ui(page) { return JSON.parse(await page.locator('canvas').getAttribute('data-viewer-ui')); }
 async function state(page) { return JSON.parse(await page.locator('canvas').getAttribute('data-viewer-inspection')); }
 async function settle(page) { await page.waitForTimeout(250); await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))); await page.waitForFunction(()=>!JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-inspection')).pick_busy); }

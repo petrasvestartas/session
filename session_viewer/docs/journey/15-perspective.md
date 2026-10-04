@@ -245,7 +245,7 @@ Replace that block with:
 
 ### 5. `src/scene.rs`
 
-Keep the diagnostic name consistent.
+Name the pink triangle in its validation error.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -264,7 +264,7 @@ Replace that block with:
 
 ### 6. `src/scene.rs`
 
-Keep the diagnostic name consistent.
+Name the turquoise triangle in its validation error.
 
 <details>
 <summary>Locate the existing block</summary>

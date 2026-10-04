@@ -83,7 +83,7 @@ Replace that block with:
 
 ### 5. `src/browser.rs`
 
-Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock.
+Route unconsumed canvas input through navigation_action.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -108,7 +108,7 @@ Replace that block with:
 
 ### 6. `src/browser.rs`
 
-Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock.
+Retain the shared callback and dispatch wheel or pointer navigation.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -136,7 +136,7 @@ Replace that block with:
 
 ### 7. `src/browser.rs`
 
-Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock.
+Focus the canvas and capture accepted pointer presses; cancel if either operation fails.
 
 <details>
 <summary>Locate the existing block</summary>

@@ -12,7 +12,7 @@ Continue from [Let Rust supply the corners](05-vertices.md). [Save or recover yo
 
 ### 1. `src/renderer.rs`
 
-Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
+Define four diamond corners and six indices; retain an index buffer.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -45,7 +45,7 @@ Replace that block with:
 
 ### 2. `src/renderer.rs`
 
-Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
+Upload the indices as native-endian u16 bytes.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -69,7 +69,7 @@ Replace that block with:
 
 ### 3. `src/renderer.rs`
 
-Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
+Retain the index buffer in Renderer.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -94,7 +94,7 @@ Replace that block with:
 
 ### 4. `src/renderer.rs`
 
-Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify.
+Bind the u16 index buffer and draw its six entries.
 
 <details>
 <summary>Locate the existing block</summary>

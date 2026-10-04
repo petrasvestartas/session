@@ -12,13 +12,7 @@ thread_local! { pub(crate) static STATE: RefCell<CommandLine> = RefCell::default
 
 /// Add a line to the history, keeping the last 200.
 pub(crate) fn remember(line: String) {
-    STATE.with_borrow_mut(|model| {
-        if model.history.len() == 200 {
-            model.history.pop_front();
-        }
-
-        model.history.push_back(line);
-    });
+    STATE.with_borrow_mut(|model| model.remember(line));
 }
 
 /// The command line, registered in PANELS.
@@ -52,10 +46,6 @@ impl super::Panel for Hooks {
     fn fill(&self, state: &mut State) {
         STATE.with_borrow_mut(|model| {
             model.drawing_prompt = state.drawing_prompt();
-            model.drawing_options = &[];
-            model.drawing_chosen = state.drawing_chosen();
-            model.snap_bar = false;
-            model.snap_modes = state.features.snap.modes;
         });
     }
 
@@ -105,18 +95,6 @@ impl crate::command_dock::Commands for Commands {
         crate::app::command::choosing_option(line)
     }
 
-    fn draws(&self, line: &str) -> bool {
-        crate::app::command::draws(line)
-    }
-
-    fn options(&self, _: &str) -> &'static [&'static str] {
-        &[]
-    }
-
-    fn option_label<'a>(&self, line: &'a str) -> &'a str {
-        crate::app::command::option_label(line)
-    }
-
     fn accept(&self, line: &str) -> (String, bool) {
         crate::app::command::accept(line)
     }
@@ -142,7 +120,6 @@ fn draw(
         controls,
         &mut out.command,
         &Commands,
-        &crate::app::snap::MODES,
         !super::menu_open() && !super::escape_held(),
     );
     if focus {

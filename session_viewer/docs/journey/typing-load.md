@@ -19,10 +19,25 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [03a-fonts](03a-fonts.md) | 82 | 2963 | 30–60 min | 1–2 h | Within planning limit |
 | [03a-paint](03a-paint.md) | 44 | 2428 | 25–49 min | 1–2 h | Within planning limit |
 | [03a-panel](03a-panel.md) | 76 | 2963 | 30–60 min | 1–2 h | Within planning limit |
-| [03b-memory](03b-memory.md) | 46 | 2423 | 25–49 min | 1–2 h | Within planning limit |
-| [03b-state](03b-state.md) | 83 | 2738 | 28–55 min | 1–2 h | Within planning limit |
-| [03c-layout](03c-layout.md) | 630 | 26979 | 270–540 min | 8–12 h | Split required |
-| [03d-input](03d-input.md) | 149 | 6795 | 68–136 min | 5–8 h | Split required |
+| [03b-memory](03b-memory.md) | 42 | 2084 | 21–42 min | 1–2 h | Within planning limit |
+| [03b-state](03b-state.md) | 82 | 2650 | 27–53 min | 1–2 h | Within planning limit |
+| [03c-history](03c-history.md) | 44 | 2146 | 22–43 min | 0.5–1 h | Within planning limit |
+| [03ca-typing](03ca-typing.md) | 42 | 1950 | 20–39 min | 0.5–1 h | Within planning limit |
+| [03cb-submit](03cb-submit.md) | 30 | 1303 | 14–27 min | 0.5–0.75 h | Within planning limit |
+| [03cc-edit](03cc-edit.md) | 26 | 1389 | 14–28 min | 0.5–0.75 h | Within planning limit |
+| [03cd-vocabulary](03cd-vocabulary.md) | 46 | 1807 | 19–37 min | 0.5–1 h | Within planning limit |
+| [03ce-complete](03ce-complete.md) | 49 | 2133 | 22–43 min | 0.5–1 h | Within planning limit |
+| [03cf-accept](03cf-accept.md) | 70 | 2817 | 29–57 min | 0.75–1.25 h | Within planning limit |
+| [03cg-keys](03cg-keys.md) | 71 | 2298 | 23–46 min | 0.5–1.25 h | Within planning limit |
+| [03ch-popup](03ch-popup.md) | 54 | 2625 | 27–53 min | 0.75–1.25 h | Within planning limit |
+| [03ci-browse](03ci-browse.md) | 63 | 2223 | 23–45 min | 0.5–1 h | Within planning limit |
+| [03cj-prepare](03cj-prepare.md) | 18 | 1087 | 11–22 min | 0.5–0.75 h | Within planning limit |
+| [03ck-rects](03ck-rects.md) | 41 | 1994 | 20–40 min | 0.5–1 h | Within planning limit |
+| [03ck-pointer](03ck-pointer.md) | 37 | 2528 | 26–51 min | 0.5–1.25 h | Within planning limit |
+| [03cl-wheel](03cl-wheel.md) | 56 | 2455 | 25–50 min | 0.5–1.25 h | Within planning limit |
+| [03c-layout](03c-layout.md) | 88 | 2877 | 29–58 min | 0.75–1.25 h | Within planning limit |
+| [03cn-handoff](03cn-handoff.md) | 60 | 2826 | 29–57 min | 0.75–1.25 h | Within planning limit |
+| [03d-input](03d-input.md) | 60 | 2166 | 22–44 min | 0.5–1 h | Within planning limit |
 | [04-input](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | Within planning limit |
 | [05-vertices](05-vertices.md) | 26 | 1115 | 12–23 min | 1–2 h | Within planning limit |
 | [06-indices](06-indices.md) | 14 | 737 | 8–15 min | 1–2 h | Within planning limit |
@@ -130,7 +145,7 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [34ec-proof](34ec-proof.md) | 19 | 1264 | 13–26 min | 1–2 h | Within planning limit |
 | [34f-storage](34f-storage.md) | 52 | 2021 | 21–41 min | 1–2 h | Within planning limit |
 | [34fa-retain](34fa-retain.md) | 31 | 1754 | 18–36 min | 1–2 h | Within planning limit |
-| [34fb-store](34fb-store.md) | 45 | 2440 | 25–49 min | 1–2 h | Within planning limit |
+| [34fb-store](34fb-store.md) | 45 | 2460 | 25–50 min | 1–2 h | Within planning limit |
 | [34fc-retention](34fc-retention.md) | 45 | 2547 | 26–51 min | 1–2 h | Within planning limit |
 | [34g-heartbeat](34g-heartbeat.md) | 36 | 1643 | 17–33 min | 1–2 h | Within planning limit |
 | [34ga-timer](34ga-timer.md) | 41 | 1574 | 16–32 min | 1–2 h | Within planning limit |
@@ -139,12 +154,12 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 
 ## Work still required
 
-- [x] Count the exact source edits for all 124 current checkpoints.
+- [x] Count the exact source edits for all 139 current checkpoints.
 - [ ] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [ ] Split every over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [ ] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [ ] Update the full roadmap, navigation and recovery instructions.
-- [ ] Recheck total lesson counts after splitting; the current 193 slots are not a fixed final count.
+- [ ] Recheck total lesson counts after splitting; the current 208 slots are not a fixed final count.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

@@ -1,6 +1,6 @@
 # 34fb · Retrieve saved failure evidence through the command line
 
-**Typing: 25–49 minutes.** [Estimate](typing-load.md).
+**Typing: 25–50 minutes.** [Estimate](typing-load.md).
 
 Persist live diagnostics and add `Diagnostic Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
 
@@ -178,7 +178,7 @@ Expose the existing drawn status in the same diagnostic inspector so Chrome can 
 <summary>Locate the existing block</summary>
 
 ```rust
-            "controls": controls, "command": self.model.command, "history": self.model.history,
+        serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
 ```
 
 </details>
@@ -186,7 +186,7 @@ Expose the existing drawn status in the same diagnostic inspector so Chrome can 
 Replace that block with:
 
 ```rust
---8<-- "journey/code/34fb-store-09.rs"
+--8<-- "journey/code/34fb-store-direct-status.rs"
 ```
 
 ## Run and check

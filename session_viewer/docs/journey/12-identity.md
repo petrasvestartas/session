@@ -105,7 +105,7 @@ Replace that block with:
 
 ### 4. `src/renderer.rs`
 
-Use the identity type at the renderer’s scene synchronization boundary.
+Import ObjectId at the renderer boundary.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -127,7 +127,7 @@ Replace that block with:
 
 ### 5. `src/renderer.rs`
 
-Use the identity type at the renderer’s scene synchronization boundary.
+Upload each scene object without selection highlighting initially.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -152,7 +152,7 @@ Replace that block with:
 
 ### 6. `src/renderer.rs`
 
-Use the identity type at the renderer’s scene synchronization boundary.
+Highlight the uploaded object whose stable ID matches the selection.
 
 <details>
 <summary>Locate the existing block</summary>

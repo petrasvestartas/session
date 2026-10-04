@@ -22,7 +22,7 @@ Create the file and type:
 
 ### 2. `src/renderer.rs`
 
-Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame.
+Create and retain the triangle shader pipeline.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -58,7 +58,7 @@ Replace that block with:
 
 ### 3. `src/renderer.rs`
 
-Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame.
+Bind the pipeline and draw its three vertices.
 
 <details>
 <summary>Locate the existing block</summary>

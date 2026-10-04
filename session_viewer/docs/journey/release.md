@@ -1,16 +1,16 @@
 # Course release: command-line checkpoints
 
-**All 124 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the seven early dock steps, from font setup through keyboard input. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 139 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
 ## Lesson clarity revision
 
-Each current lesson has one focused exercise. All main explanations were reviewed; this batch shortens 49 further explanations after the earlier chapter-34 revision. Main explanations stay under 200 words. Experiments, implementation context and extended acceptance evidence remain expandable supporting notes. Every lesson links to the detailed to-do list.
+Each current lesson has one focused exercise. All main explanations were reviewed; this batch shortens 49 further explanations after the earlier chapter-34 revision. Main introductions stay within 90 words, followed by typed changes and one result check. Experiments, implementation context and extended acceptance evidence remain expandable supporting notes. Every lesson links to the detailed to-do list.
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-Fourteen checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
+Twelve checkpoints still exceed one hour of typing and need meaningful splits. Short explanations alone do not make those long code listings finished lessons. The roadmap lists each one and its estimate.
 
 ## Command-panel typing split
 
@@ -22,9 +22,9 @@ Four affected endpoints passed fresh WebAssembly, Trunk, native rendering/state 
 
 One hundred long or generic code instructions now name their exact change in at most 25 words. The main explanations still teach the Rust needed for the step; detailed checks remain expandable.
 
-The former 03b required 74–148 minutes of typing. Two complete endpoints now connect the model immediately (25–49 minutes), then prepare the vocabulary, inspection and caret helpers (28–55). Existing GPU code is kept without unnecessary formatting changes. All 122 other existing source endpoints remain byte-identical.
+The dock is now taught through separate working steps: history, immediate typing, submission, editing, Help, inline completion, acceptance, key handling, suggestions, browsing, prepared output, control bounds, pointer ownership, wheel browsing, shared layout and application handoff. Each of the 17 new steps has 11–58 minutes of estimated typing, a focused result check, a white diagram and its own build and Chrome evidence. The production dock is split into the same functions; interactive lessons retain exact shared-source parity.
 
-Both endpoints pass fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome. Native checks cover retained text/history, borrowed hint priorities, actual egui inspection bounds and JSON, Unicode prefixes and stored caret ranges. Chrome verifies the changed model hint and exact scene preservation, then an unchanged full frame after the helpers. These stages still have no keyboard event handling.
+The two 03b model/helper checkpoints pass fresh WebAssembly, Trunk, native rendering/state checks and visible Chrome. Native checks cover retained text/history, borrowed hint priorities, actual egui inspection bounds and JSON, Unicode prefixes and stored caret ranges. Chrome verifies the changed model hint and exact scene preservation, then an unchanged full frame after the helpers. These two preparation stages have no keyboard event handling; immediate typing begins in 03ca.
 
 ## What was checked
 
@@ -65,7 +65,7 @@ The initial browser viewport is 900 × 760 CSS pixels at display density 1. The 
 
 The full-window white canvas starts in lesson 01; GPU sizing starts in lesson 02. The first two screenshots intentionally look alike: lesson 02 replaces the CSS-only background with a verified GPU clear. Each is captured from its own bundle. Lesson 10 gives the depth image matching dimensions before the first draw. Lesson 20 adds resizing after startup and display-density handling. Earlier checkpoints should be reloaded after changing the window size.
 
-The early dock stages have different purposes: 03a draws the styling, 03b adds the model, 03c draws production history/layout, and 03d connects keyboard input. Their captions state when input becomes usable. Native GPU images are separate evidence and are never labelled browser screenshots.
+The early dock stages have different purposes: 03a draws the styling, 03b adds the model, 03ca connects immediate typing, and the following small steps add submission, completion, pointer input and application handoff. Their captions state when input becomes usable. Native GPU images are separate evidence and are never labelled browser screenshots.
 
 ## Fixed inputs and remaining scope
 

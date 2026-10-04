@@ -1,95 +1,16 @@
-# 03d · Type into the real command dock
+# 03d · Hand commands to the application
 
-**Typing: 68–136 minutes.** [Estimate](typing-load.md).
+**Typing: 22–44 minutes.** [Estimate](typing-load.md).
 
-**Splitting required:** this verified checkpoint exceeds the one-hour typing target. Smaller runnable lessons are still being prepared.
-
-Translate browser keys into egui events so the real dock accepts `Help` and Enter. A printable key first requests text focus, then supplies its text. Clicking the drawing releases focus. This preserves the first letter and creates no keyboard feature shortcuts.
-
-Follow `KeyboardEvent → egui Text → CommandLine → layout`. Enter returns a submitted line; the vocabulary handles it and appends its answer. A consumed event belongs to the dock, so navigation must ignore it.
+Listen on the canvas and hand events to Panel.update. Prepare the dock again after input, then paint one frame. Typing after a scene click focuses the field immediately.
 
 ## Type
 
-Continue from [Draw completion and history](03c-layout.md). [Save or recover your work](recovery.md).
+Continue from [Return accepted application commands](03cn-handoff.md). [Save or recover your work](recovery.md).
 
-### 1. `src/panel.rs`
+### 1. `src/browser.rs`
 
-Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            top: f32::INFINITY,
-            context,
-            model: CommandLine {
-                command_expanded: true,
-                history: ["Command history lives here.".into()].into(),
-                ..Default::default()
-            },
-            painter: egui_wgpu::Renderer::new(&renderer.device, format, Default::default()),
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03d-input-scale-1.rs"
-```
-
-### 2. `src/panel.rs`
-
-Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-    pub fn update(
-        &mut self,
-        _event: Option<&web_sys::Event>,
-        canvas: &web_sys::HtmlCanvasElement,
-    ) -> Result<Option<String>, JsValue> {
-        let rect = canvas.get_bounding_client_rect();
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03d-input-scale-2.rs"
-```
-
-### 3. `src/panel.rs`
-
-Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            focused: true,
-            ..Default::default()
-        };
-        self.screen.size_in_pixels = [canvas.width(), canvas.height()];
-        self.screen.pixels_per_point = canvas.width() as f32 / size.x;
-        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point =
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03d-input-scale-3.rs"
-```
-
-### 4. `src/browser.rs`
-
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
+Import the retained Closure type.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -97,9 +18,6 @@ Connect this checkpoint to the existing owners. The event callback retains Panel
 ```rust
 use crate::renderer::Renderer;
 use wasm_bindgen::{JsCast, JsValue};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
 ```
 
 </details>
@@ -107,23 +25,20 @@ pub fn report(message: &str) {
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03d-input-window-1.rs"
+--8<-- "journey/code/03d-input-direct-01.rs"
 ```
 
-### 5. `src/browser.rs`
+### 2. `src/browser.rs`
 
-Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page.
+Keep canvas acquisition ready for canvas-owned input.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    panel.update(None, &canvas)?;
-    present(&surface, &renderer, &mut panel)?;
-    report("The real dock lays out history and the command field.");
-    Ok(())
-}
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas").ok_or("Missing canvas")?.dyn_into()?;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
 ```
 
 </details>
@@ -131,7 +46,230 @@ Connect this checkpoint to the existing owners. The event callback retains Panel
 Replace that block with:
 
 ```rust
---8<-- "journey/code/03d-input-window-2.rs"
+--8<-- "journey/code/03d-input-direct-02.rs"
+```
+
+### 3. `src/browser.rs`
+
+Keep GPU setup with the final browser event owner.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    });
+    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-03.rs"
+```
+
+### 4. `src/browser.rs`
+
+Remove the intermediate event callback setup.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {
+        compatible_surface: Some(&surface),
+        ..Default::default()
+    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())
+        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;
+    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-04.rs"
+```
+
+### 5. `src/browser.rs`
+
+Keep surface configuration before the canvas input owner.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    canvas.set_height(height);
+    let mut config = surface.get_default_config(&adapter, width, height)
+        .ok_or("No compatible surface format")?;
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-05.rs"
+```
+
+### 6. `src/browser.rs`
+
+Handle command update errors in the canvas callback.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    let input_canvas = canvas.clone();
+    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        if let Err(error) = panel.update(Some(&event), &input_canvas) {
+            report(&format!("Cannot read command: {error:?}"));
+        }
+        if let Err(error) = panel.update(None, &input_canvas) {
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-06.rs"
+```
+
+### 7. `src/browser.rs`
+
+Stop the callback after a layout failure.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+            report(&format!("Cannot lay out commands: {error:?}"));
+        }
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-07.rs"
+```
+
+### 8. `src/browser.rs`
+
+Present after preparing the final command layout.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+        }
+        {
+            if let Err(error) = present(&surface, &renderer, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        }
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-08.rs"
+```
+
+### 9. `src/browser.rs`
+
+Register drawing and keyboard events on the canvas.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    });
+    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
+        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    }
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-09.rs"
+```
+
+### 10. `src/browser.rs`
+
+Retain the wheel callback for the page lifetime.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options("wheel", redraw.as_ref().unchecked_ref(), &options)?;
+    redraw.forget();
+    report("Panel returns accepted application commands.");
+    Ok(())
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-10.rs"
+```
+
+### 11. `src/browser.rs`
+
+Give surface presentation its complete function.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+
+fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {
+    let frame = match surface.get_current_texture() {
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-11.rs"
+```
+
+### 12. `src/browser.rs`
+
+Return a useful error when the surface is unavailable.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        other => return Err(JsValue::from_str(&format!("Surface unavailable: {other:?}"))),
+    };
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03d-input-direct-12.rs"
 ```
 
 ## Run and check
@@ -146,37 +284,35 @@ CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Help` and press Enter. The field clears and one reply appears in history. Click the canvas and type again: the first character must reach the command field.
+Click the scene, type Help and press Enter. One answer appears in the real dock.
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Type into the real command dock.](../screenshots/journey/03d-input-browser.png)
+![Actual browser result: Hand commands to the application.](../screenshots/journey/03d-input-browser.png)
 
 [Verification scope](release.md).
 
 <details>
 <summary>Code explanation and diagram</summary>
 
-The second layout receives no event: it draws the cleared field and new answer. `FullOutput.append` retains earlier texture uploads with the latest shapes.
 
-`Result<Option<String>, JsValue>` means an error, no submission, or one submitted line. `dyn_ref` borrows a matching event type. The `move` callback keeps its owners alive; canvas `tabindex` enables browser focus.
 
-Browser → Panel → CommandLine → layout → existing GPU.
+Return accepted commands while keeping editing inside Panel.
 
-![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)
+![Hand commands to the application](../illustrations/journey-direct-03d-input.svg)
 
-Why do we lay out again without replaying the event?
+Why prepare again before painting?
 
-Submitting a line changes the field and history after the first layout. An empty-input update draws that new state while processing the key exactly once.
+Input can change layout or history; the final frame must show the updated model.
 
-Study estimate, including typing and experiments: 5–8 hours.
+Study estimate, including typing and experiments: 0.5–1 hours.
 
 </details>
 
 <details>
 <summary>Optional experiment</summary>
 
-Type an unknown word and press Enter. The dock should explain that it is unknown while leaving the triangle unchanged. Type Help again. Explain why input and document changes are separate.
+Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.
 
 </details>
 
@@ -197,10 +333,18 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <details>
 <summary>Viewer coverage and verification</summary>
 
-This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.
+This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.
 
-Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.
+
 
 [Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 03d-input
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
 
 </details>

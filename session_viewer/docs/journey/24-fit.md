@@ -186,7 +186,7 @@ Create the file and type:
 
 ### 11. `src/lib.rs`
 
-Register the bounds module beside the camera. It owns numbers, not GPU resources.
+Register the bounds module beside Camera.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -209,7 +209,7 @@ Replace that block with:
 
 ### 12. `src/lib.rs`
 
-Register the bounds module beside the camera. It owns numbers, not GPU resources.
+Register the native Fit tests.
 
 <details>
 <summary>Locate the existing block</summary>

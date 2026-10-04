@@ -208,7 +208,7 @@ Replace that block with:
 
 ### 13. `src/lib.rs`
 
-Register the reader, specimen and native checks.
+Register document parsing, the specimen and native document tests.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -232,7 +232,7 @@ Replace that block with:
 
 ### 14. `src/lib.rs`
 
-Register the reader, specimen and native checks.
+Register the browser-only file input module.
 
 <details>
 <summary>Locate the existing block</summary>

@@ -50,7 +50,7 @@ Replace that block with:
 
 ### 3. `src/renderer.rs`
 
-Retain the uniform for uploads and the bind group for draws.
+Retain the uniform buffer and bind group.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -74,7 +74,7 @@ Replace that block with:
 
 ### 4. `src/renderer.rs`
 
-Retain the uniform for uploads and the bind group for draws.
+Allocate the uniform buffer and bind it at the shader’s resource slot.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -102,7 +102,7 @@ Replace that block with:
 
 ### 5. `src/renderer.rs`
 
-Retain the uniform for uploads and the bind group for draws.
+Bind the view settings before drawing.
 
 <details>
 <summary>Locate the existing block</summary>

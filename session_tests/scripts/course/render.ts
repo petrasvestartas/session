@@ -82,10 +82,23 @@ export function generate() {
         .matchAll(/^- \[(?:x| )\] \d+[a-z]* · /gm)].length;
     if (planned < steps.length) throw Error('Roadmap must include every available lesson');
     const roadmap = path.join(docs, 'journey/roadmap.md');
+    const verified = steps.filter(step => {
+        const proof = browser[step.id];
+        return proof?.source === signature(step.id)
+            && proof.checker === hash(read(path.join(docs, 'capture_journey.cjs')))
+            && (!step.browser_check || proof.extraChecker === browserFingerprint(step.browser_check));
+    }).length;
+    const progress = verified === steps.length
+        ? `${steps.length} current checkpoints have fresh build and Chrome evidence.`
+        : `${steps.length} current checkpoints; ${verified} have fresh build and Chrome evidence; ${steps.length - verified} are being rechecked.`;
     write(roadmap, read(roadmap)
-        .replace(/\*\*Draft plan: \d+ lesson slots; \d+ current checkpoints have fresh build and Chrome evidence\.(?: \d+ planned lessons remain\.)?\*\*/,
-            `**Draft plan: ${planned} lesson slots; ${steps.length} current checkpoints have fresh build and Chrome evidence. ${planned - steps.length} planned lessons remain.**`)
+        .replace(/^\*\*Draft plan:[^\n]*?\*\*/m,
+            `**Draft plan: ${planned} lesson slots; ${progress} ${planned - steps.length} planned lessons remain.**`)
         .replace(/all \d+ current checkpoints/g, `all ${steps.length} current checkpoints`));
+    const release = path.join(docs, 'journey/release.md');
+    write(release, read(release).replace(/^\*\*[^\n]*?\*\*/m, verified === steps.length
+        ? `**All ${steps.length} current checkpoints build and pass their scripted checks in visible Chrome ${json(capture).browser}.**`
+        : `**${verified} of ${steps.length} current checkpoints have fresh build and Chrome evidence. The changed endpoints are being rechecked.**`));
     const table = ['| Lesson | Time | Working result |', '| --- | --- | --- |',
         ...steps.map((step, i) => `| [${step.id.split('-')[0]} · ${step.title}](${step.page}) | ${step.hours.join('–')} hours | ${step.goal} |`)];
     write(overview, read(overview)

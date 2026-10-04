@@ -145,13 +145,13 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/03-triangle-fullscreen-2.rs",
           "before": "pub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {\n        Self { device, queue }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView) {\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n",
-          "why": "Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame."
+          "why": "Create and retain the triangle shader pipeline."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/03-triangle-fullscreen-3.rs",
           "before": "                })],\n                ..Default::default()\n            });\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n",
-          "why": "Keep the compiled drawing recipe beside the device and queue. It will be reused for every frame."
+          "why": "Bind the pipeline and draw its three vertices."
         },
         {
           "path": "src/browser.rs",
@@ -262,13 +262,13 @@
           "path": "src/browser.rs",
           "before": "    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let _panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer)?;\n    report(\"Three corners became a triangle.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n",
           "snippet": "journey/code/03a-paint-02.rs",
-          "why": "Draw the label after the scene and before presentation."
+          "why": "Create the panel and pass it into presentation."
         },
         {
           "path": "src/browser.rs",
           "before": "        ..Default::default()\n    });\n    renderer.draw(&view);\n    frame.present();\n    Ok(())\n}\n",
           "snippet": "journey/code/03a-paint-03.rs",
-          "why": "Draw the label after the scene and before presentation."
+          "why": "Draw the panel over the scene before presenting."
         }
       ],
       "browser_check": "journey/checks/browser/03a-paint.cjs"
@@ -297,19 +297,19 @@
           "path": "src/panel.rs",
           "before": "use crate::command_dock::theme;\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n}\n\nimpl Panel {\n",
           "snippet": "journey/code/03a-panel-01.rs",
-          "why": "Own the field text and draw it beside the label."
+          "why": "Own the field text in Panel and import its layout helpers."
         },
         {
           "path": "src/panel.rs",
           "before": "        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n",
           "snippet": "journey/code/03a-panel-02.rs",
-          "why": "Own the field text and draw it beside the label."
+          "why": "Initialize empty text and limit input to one layout pass."
         },
         {
           "path": "src/panel.rs",
           "before": "            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            egui::Panel::bottom(\"command-line-collapsed\").exact_size(30.0)\n                .frame(egui::Frame::new().fill(egui::Color32::WHITE)\n                    .inner_margin(egui::Margin::symmetric(6, 4)))\n                .show_inside(root, |ui| {\n                ui.label(\"Command:\");\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n",
           "snippet": "journey/code/03a-panel-03.rs",
-          "why": "Own the field text and draw it beside the label."
+          "why": "Lay out the command label, field and history fold control."
         },
         {
           "path": "src/command_dock/theme.rs",
@@ -395,7 +395,7 @@
       "goal": "Give the upcoming layout a vocabulary contract and caret helpers.",
       "page": "journey/03b-state.md",
       "trace": "Commands contract → optional inspection → character-based caret positions",
-      "story": "The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices can refer to its fixed vocabulary; `option_label` borrows from the supplied line.\n\n`Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.\n\nCaret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.\n\nThese helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.\n\n![The layout receives application rules and text helpers.](../illustrations/journey-03b-state.svg)",
+      "story": "The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices refer to its fixed vocabulary.\n\n`Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.\n\nCaret positions count characters rather than UTF-8 bytes: `é🙂x` has three scalar values. The helpers load a field’s stored egui state, change its range and store it back. An absent field state is left alone. `spelled` counts the displayed completion prefix while ignoring typed spaces.\n\nThese helpers are preparation for the following layout and input lessons. They add no controls or keyboard handling; the picture stays the same.\n\n![The layout receives application rules and text helpers.](../illustrations/journey-03b-state.svg)",
       "question": "Why does the caret helper use chars().count()?",
       "answer": "String::len counts UTF-8 bytes. egui caret ranges use character indices, so é🙂x needs position 3 rather than its byte length.",
       "result": "The connected field looks exactly as before. The vocabulary, inspection and caret helpers are ready for the following layout and input lessons.",
@@ -408,13 +408,13 @@
           "path": "Cargo.toml",
           "before": "\n[dependencies]\nwasm-bindgen = \"=0.2.128\"\nweb-sys = { version = \"=0.3.105\", features = [\"Window\", \"Document\", \"Element\", \"HtmlCanvasElement\", \"EventTarget\", \"Event\"] }\nconsole_error_panic_hook = \"=0.1.7\"\nwasm-bindgen-futures = \"=0.4.78\"\nwgpu = \"=29.0.4\"\n",
           "snippet": "journey/code/03b-state-01.toml",
-          "why": "Enable serialization and the browser bindings used by the dock."
+          "why": "Enable the browser event, canvas geometry and focus bindings."
         },
         {
           "path": "Cargo.toml",
           "before": "egui = { version = \"=0.34.3\", default-features = false }\negui-wgpu = { version = \"=0.34.3\", default-features = false }\n\n[dev-dependencies]\npollster = \"=0.4.0\"\nlog = \"=0.4.34\"\n",
           "snippet": "journey/code/03b-state-02.toml",
-          "why": "Enable serialization and the browser bindings used by the dock."
+          "why": "Add serde serialization and JSON inspection dependencies."
         },
         {
           "path": "src/command_dock/mod.rs",
@@ -424,7 +424,7 @@
         },
         {
           "path": "src/command_dock/mod.rs",
-          "before": "    pub(crate) agent_edit: Option<bool>,             // phone keyboard set the text, true on delete\n}\n\n/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.\npub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {\n    if !prompt.is_empty() {\n",
+          "before": "    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete\n}\n\n/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.\npub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {\n    if !prompt.is_empty() {\n",
           "snippet": "journey/code/03b-state-04.rs",
           "why": "Record actual widget bounds only when inspection is enabled."
         },
@@ -433,6 +433,18 @@
           "before": "    \"Type a command\"\n}\n",
           "snippet": "journey/code/03b-state-05.rs",
           "why": "Add character-based caret and prefix helpers for the dock."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03b-state-direct-03.rs",
+          "before": "    }\n}\n",
+          "why": "Keep the helper declarations separated by a blank line."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03b-state-direct-04.rs",
+          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n",
+          "why": "Import the module name for the following shared helper calls."
         }
       ],
       "lock": "journey/release/03b-state.lock",
@@ -442,100 +454,1116 @@
       "frame": "journey/checks/03b-state-frame.rs"
     },
     {
-      "id": "03c-layout",
-      "title": "Draw completion and history",
+      "id": "03c-history",
+      "title": "Draw retained command history",
+      "page": "journey/03c-history.md",
       "hours": [
-        8,
-        12
+        0.5,
+        1
       ],
-      "goal": "Lay out the production command dock from its model.",
-      "page": "journey/03c-layout.md",
-      "trace": "Browser → Panel → CommandLine → layout → existing GPU",
-      "story": "Draw the dock's history, command field and completion list from `CommandLine`. A preloaded history sentence makes the expanded layout visible. Browser keyboard events arrive in the next lesson.\n\nFollow one path first: Enter takes the line from the model and returns it to the caller. Then read completion: `browse` moves through suggestions, and `inline_suffix` selects the suggested ending so the next letter can replace it.\n\n`Commands` is a trait listing the vocabulary operations the dock needs. The application implements it; layout can request suggestions without owning a document or camera. `&mut` lends the existing model to layout for updates. The return value requests canvas focus when editing ends.\n\n![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03c.svg)",
-      "question": "Who decides which commands exist?",
-      "answer": "The application’s Commands implementation supplies names and completion choices. The dock edits and displays text, then returns a submitted line. It does not create geometry.",
-      "result": "The dock now draws its field, completion and history from the model. Resize the window: the dock should remain attached to the bottom of the drawing.",
-      "experiment": "Set command_expanded to false, run, and compare the folded panel. Restore true. The history remains in memory even when its layout is hidden.",
-      "production": "This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.",
-      "browser_status": "The real dock lays out history and the command field.",
-      "browser_caption": "Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.",
+      "goal": "Draw retained history above the field.",
+      "trace": "Draw retained history above the field",
+      "story": "Draw each retained String above the command field. ScrollArea borrows the entries; the model keeps them after drawing.\n\n![Draw retained command history](../illustrations/journey-direct-03c-history.svg)",
+      "result": "The history sentence appears above the field.",
+      "question": "Does drawing move the retained strings?",
+      "answer": "No. The loop borrows each entry.",
+      "experiment": "Change the initial history sentence and rebuild. The new sentence should appear above the field. Restore the original sentence afterward.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "The history panel is drawn.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
       "edits": [
         {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03c-history-direct-01.rs",
+          "before": "    present(&surface, &renderer, &mut panel)?;\n    report(\"The command model owns the text and history.\");\n    Ok(())\n",
+          "why": "Report that history is drawn."
+        },
+        {
           "path": "src/command_dock/mod.rs",
-          "snippet": "journey/code/03c-layout-dock-06.rs",
-          "before": "    });\n}\n\n/// Put the caret at the end of the field.\npub(crate) fn command_cursor_end(context: &egui::Context, id: egui::Id, command: &str) {\n    let end = command.chars().count();\n",
-          "why": "Keep command text, history and completion state together. The application supplies vocabulary through Commands; this component owns editing and drawing."
+          "snippet": "journey/code/03c-history-direct-02.rs",
+          "before": "    }\n}\n\n",
+          "why": "Draw retained history and its divider."
         },
         {
           "path": "src/panel.rs",
-          "before": "use crate::command_dock::{CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n\npub struct Panel {\n    context: egui::Context,\n    painter: egui_wgpu::Renderer,\n    model: CommandLine,\n}\n\nimpl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n        context.set_fonts(theme::fonts([\n            include_bytes!(\"../assets/text/NotoSans-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols2-Regular.subset.ttf\"),\n            include_bytes!(\"../assets/text/NotoSansSymbols-Regular.subset.ttf\"),\n        ]));\n        context.set_theme(egui::Theme::Light);\n        context.set_visuals(theme::visuals());\n        // One layout pass prevents a future text event from being replayed.\n        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());\n        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter, model: CommandLine {\n            status: \"The field now belongs to CommandLine.\".into(),\n            ..Default::default()\n        } }\n    }\n\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };\n        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n            ..Default::default()\n        };\n        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, false), 0.0, false);\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n            });\n        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n        for (id, delta) in &output.textures_delta.set {\n            self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);\n        }\n        let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);\n        let mut encoder = renderer.device.create_command_encoder(&Default::default());\n        let mut buffers = self.painter.update_buffers(\n            &renderer.device, &renderer.queue, &mut encoder, &jobs, &screen,\n        );\n        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n            label: Some(\"command panel\"),\n            color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                view: target, resolve_target: None, depth_slice: None,\n                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },\n            })],\n            ..Default::default()\n        });\n        self.painter.render(&mut pass.forget_lifetime(), &jobs, &screen);\n        buffers.push(encoder.finish());\n        renderer.queue.submit(buffers);\n        for id in output.textures_delta.free { self.painter.free_texture(&id); }\n    }\n}\n",
+          "snippet": "journey/code/03c-history-direct-03.rs",
+          "before": "        Self { context, painter, model: CommandLine {\n            status: \"The field now belongs to CommandLine.\".into(),\n            ..Default::default()\n",
+          "why": "Start with expanded history and one retained sentence."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-history-direct-04.rs",
+          "before": "        let output = self.context.run_ui(input, |root| {\n            view::panel(root, false, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n",
+          "why": "Choose panel height from the expanded state."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-history-direct-05.rs",
+          "before": "                view::prepare(ui);\n                ui.horizontal(|ui| {\n",
+          "why": "Draw history before laying out the field."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-history-direct-06.rs",
+          "before": "                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, false), 0.0, false);\n                    let _ = ui.button(\"+\").on_hover_text(\"Collapse or expand history\");\n                });\n",
+          "why": "Use the expanded state for the hint and fold symbol."
+        }
+      ]
+    },
+    {
+      "id": "03ca-typing",
+      "title": "Type directly into the command field",
+      "page": "journey/03ca-typing.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Send the first printable key directly into the field.",
+      "trace": "Send the first printable key directly into the field",
+      "story": "Focus the field before sending the first Text event. Panel owns the event queue; mem::take leaves it empty after drawing.\n\n![Type directly into the command field](../illustrations/journey-direct-03ca-typing.svg)",
+      "result": "Click the scene and type G. G appears immediately in the command field.",
+      "question": "Why focus before Text?",
+      "answer": "The editor needs focus when egui processes the first character.",
+      "experiment": "Click the triangle and type xyz without clicking the field. All three letters should appear in order.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Typing goes directly into the command field.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ca-typing-direct-01.rs",
+          "before": "    present(&surface, &renderer, &mut panel)?;\n    report(\"The history panel is drawn.\");\n    Ok(())\n",
+          "why": "Retain the panel in keyboard callbacks; redraw and inspect accepted input."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ca-typing-direct-02.rs",
+          "before": "    model: CommandLine,\n}\n",
+          "why": "Store pending egui events in Panel."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ca-typing-direct-03.rs",
+          "before": "        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter, model: CommandLine {\n            command_expanded: true,\n",
+          "why": "Initialize the empty event queue."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ca-typing-direct-04.rs",
+          "before": "\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n",
+          "why": "Focus before queuing printable text or Backspace; expose the current text."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ca-typing-direct-05.rs",
+          "before": "        let input = egui::RawInput {\n            screen_rect: Some(egui::Rect::from_min_size(\n",
+          "why": "Move queued events into the frame once."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ca-typing-direct-06.rs",
+          "before": "                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, false);\n                    let _ = ui.button(if self.model.command_expanded { \"–\" } else { \"+\" }).on_hover_text(\"Collapse or expand history\");\n",
+          "why": "Draw the field with its current input focus."
+        }
+      ]
+    },
+    {
+      "id": "03cb-submit",
+      "title": "Submit command text once",
+      "page": "journey/03cb-submit.md",
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "goal": "Clear submitted text and retain one history entry.",
+      "trace": "Clear submitted text and retain one history entry",
+      "story": "Consume Enter before drawing the field. take_command moves a nonblank String out and leaves an empty String. remember retains at most 200 entries.\n\n![Submit command text once](../illustrations/journey-direct-03cb-submit.svg)",
+      "result": "Type Help and press Enter. One entry appears and the field clears. Empty Enter adds nothing.",
+      "question": "Why take rather than clone the String?",
+      "answer": "Submission transfers its ownership once and clears the source.",
+      "experiment": "Submit Help twice. Two entries should appear; pressing Enter with an empty field should add none.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Enter submits the owned command text.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cb-submit-direct-01.rs",
+          "before": "            }\n        }\n",
+          "why": "Expose the actual retained history to browser inspection."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cb-submit-direct-02.rs",
+          "before": "    redraw.forget();\n    report(\"Typing goes directly into the command field.\");\n    Ok(())\n",
+          "why": "Report that Enter submits text."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cb-submit-direct-03.rs",
+          "before": "        );\n    }\n}\n",
+          "why": "Take nonblank owned text and retain at most 200 history entries."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cb-submit-direct-04.rs",
+          "before": "\n    pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {\n",
+          "why": "Expose the model’s retained history by reference."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cb-submit-direct-05.rs",
+          "before": "        let down = event.type_() == \"keydown\";\n        let input = if key == \"Backspace\" {\n            egui::Event::Key {\n",
+          "why": "Recognize Enter as an editing key."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cb-submit-direct-06.rs",
+          "before": "            egui::Event::Key {\n                key: egui::Key::Backspace, physical_key: None,\n                pressed: down, repeat: event.repeat(), modifiers: Default::default(),\n",
+          "why": "Queue the corresponding Enter or Backspace event."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cb-submit-direct-07.rs",
+          "before": "                view::prepare(ui);\n                command_dock::history(ui, &self.model, &mut None);\n",
+          "why": "Consume Enter once; retain the submitted line and answer."
+        }
+      ]
+    },
+    {
+      "id": "03cc-edit",
+      "title": "Edit the command text",
+      "page": "journey/03cc-edit.md",
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "goal": "Keep text selection, deletion and Escape in the field.",
+      "trace": "Keep text selection, deletion and Escape in the field",
+      "story": "Translate modifiers and editing keys into egui events. Ctrl+A selects text; Backspace deletes it; Escape clears and closes the field.\n\n![Edit the command text](../illustrations/journey-direct-03cc-edit.svg)",
+      "result": "Type abc, press Ctrl+A, type x, then Escape. The field clears.",
+      "question": "Why skip text when Ctrl or Alt is held?",
+      "answer": "Those keys modify an editing action rather than insert ordinary text.",
+      "experiment": "Type abc, press Backspace once, then Enter. History should contain ab. Escape should clear any unfinished text.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Editing stays in the command field.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cc-edit-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"Enter submits the owned command text.\");\n    Ok(())\n",
+          "why": "Report that editing stays in the field."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cc-edit-direct-02.rs",
+          "before": "        self.history.push_back(line);\n    }\n}\n",
+          "why": "Separate the model helpers with a blank line."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cc-edit-direct-03.rs",
+          "before": "    pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {\n        if event.ctrl_key() || event.alt_key() || event.meta_key() { return false; }\n        let key = event.key();\n        let down = event.type_() == \"keydown\";\n        let input = if key == \"Backspace\" || key == \"Enter\" {\n            egui::Event::Key {\n                key: if key == \"Enter\" { egui::Key::Enter } else { egui::Key::Backspace }, physical_key: None,\n                pressed: down, repeat: event.repeat(), modifiers: Default::default(),\n            }\n        } else if down && key.chars().count() == 1 {\n            egui::Event::Text(key)\n        } else { return false; };\n        self.context.memory_mut(|memory| memory.request_focus(egui::Id::new(\"command-input\")));\n        self.model.command_open = true;\n        self.events.push(input);\n        event.prevent_default();\n",
+          "why": "Translate modifiers and named editing keys; ignore composing text."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cc-edit-direct-04.rs",
+          "before": "                }\n                command_dock::history(ui, &self.model, &mut None);\n",
+          "why": "Consume Escape, clear text and surrender field focus."
+        }
+      ],
+      "image_same_as": "03cb-submit"
+    },
+    {
+      "id": "03cd-vocabulary",
+      "title": "Recognize Help",
+      "page": "journey/03cd-vocabulary.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Connect known names and useful unknown-command replies.",
+      "trace": "Connect known names and useful unknown-command replies",
+      "story": "Commands borrows a fixed vocabulary. The adapter normalizes spacing and case; Help lists its names. Unknown input receives a useful reply.\n\n![Recognize Help](../illustrations/journey-direct-03cd-vocabulary.svg)",
+      "result": "Type Help and press Enter. History shows Help as the available command.",
+      "question": "Why keep vocabulary in an adapter?",
+      "answer": "The dock can edit text without knowing any scene types.",
+      "experiment": "Submit lowercase help, then an unknown name. Help should still list the vocabulary; the unknown name should receive an error reply.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Help recognizes the command vocabulary.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-01.rs",
+          "before": "    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer, &mut panel)?;\n",
+          "why": "Supply Help as the initial application vocabulary."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-02.rs",
+          "before": "    redraw.forget();\n    report(\"Editing stays in the command field.\");\n    Ok(())\n",
+          "why": "Report that Help is recognized."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-03.rs",
+          "before": "use crate::command_dock::{self, CommandLine, placeholder, theme, view};\nuse crate::renderer::Renderer;\n",
+          "why": "Import the vocabulary trait methods."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-04.rs",
+          "before": "\npub struct Panel {\n",
+          "why": "Normalize names, find completions and answer Help or unknown input."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-05.rs",
+          "before": "pub struct Panel {\n    context: egui::Context,\n",
+          "why": "Store the vocabulary adapter in Panel."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-06.rs",
+          "before": "impl Panel {\n    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {\n        let context = egui::Context::default();\n",
+          "why": "Accept a static vocabulary in the constructor."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-07.rs",
+          "before": "        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { context, painter, events: Vec::new(), model: CommandLine {\n            command_expanded: true,\n",
+          "why": "Initialize the supplied vocabulary."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cd-vocabulary-direct-08.rs",
+          "before": "                    if let Some(line) = self.model.take_command() {\n                        self.model.status = \"Command submitted.\".into();\n                        self.model.remember(format!(\"> {line}\\n{}\", self.model.status));\n                    }\n",
+          "why": "Answer the submitted line through the vocabulary adapter."
+        }
+      ]
+    },
+    {
+      "id": "03ce-complete",
+      "title": "Complete a command name",
+      "page": "journey/03ce-complete.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Select only the suggested suffix while retaining typed text.",
+      "trace": "Select only the suggested suffix while retaining typed text",
+      "story": "After the field changes, find a matching command name. Replace the text and select only the suggested suffix, so the next letter replaces that suffix.\n\n![Complete a command name](../illustrations/journey-direct-03ce-complete.svg)",
+      "result": "Type He. The field shows Help with the suggested ending selected. Backspace leaves He.",
+      "question": "Why count characters instead of bytes?",
+      "answer": "egui caret positions use characters; UTF-8 characters can occupy several bytes.",
+      "experiment": "Type He, then x. The selected lp should be replaced by x, leaving Hex with no matching completion.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "The field completes known names.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ce-complete-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"Help recognizes the command vocabulary.\");\n    Ok(())\n",
+          "why": "Report that inline completion is connected."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03ce-complete-direct-02.rs",
+          "before": "        self.history.push_back(line);\n    }\n}\n\n",
+          "why": "Match names after changes and select only the suggested suffix."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ce-complete-direct-03.rs",
+          "before": "                    ui.label(\"Command:\");\n                    view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);\n                    let _ = ui.button(if self.model.command_expanded { \"–\" } else { \"+\" }).on_hover_text(\"Collapse or expand history\");\n",
+          "why": "Keep the field response and refresh completion after editing."
+        }
+      ]
+    },
+    {
+      "id": "03cf-accept",
+      "title": "Accept or cancel a completion",
+      "page": "journey/03cf-accept.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Use Tab, Enter and Escape without losing input ownership.",
+      "trace": "Use Tab, Enter and Escape without losing input ownership",
+      "story": "Read Enter and Tab before the field. finish accepts a completion, submits a nonblank command, or cancels with Escape.\n\n![Accept or cancel a completion](../illustrations/journey-direct-03cf-accept.svg)",
+      "result": "Type He, then Tab. Help gains a trailing space. Escape clears it.",
+      "question": "Why consume Enter once?",
+      "answer": "The field and command dispatcher must not both submit the same event.",
+      "experiment": "Type He and press Tab. Check that history stays unchanged until you press Enter.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Tab accepts the completion.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cf-accept-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"The field completes known names.\");\n    Ok(())\n",
+          "why": "Report that Tab accepts completion."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cf-accept-direct-02.rs",
+          "before": "\npub(crate) fn refresh(\n",
+          "why": "Retain the editing-key results for this frame."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cf-accept-direct-03.rs",
+          "before": "        model.completion_prefix.clone_from(&model.command);\n    }\n}\n\n",
+          "why": "Accept completion, submit Enter or cancel Escape once."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cf-accept-direct-04.rs",
+          "before": "                view::prepare(ui);\n                if ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)) {\n                    if let Some(line) = self.model.take_command() {\n                        self.commands.reply(&mut self.model, &line);\n                    }\n                }\n                if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {\n                    self.model.command.clear();\n                    self.model.command_open = false;\n                    ui.memory_mut(|memory| memory.surrender_focus(egui::Id::new(\"command-input\")));\n                }\n                command_dock::history(ui, &self.model, &mut None);\n",
+          "why": "Consume Enter and Tab before the field handles input."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cf-accept-direct-05.rs",
+          "before": "                    let response = view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);\n                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, ui.input(|input| input.key_pressed(egui::Key::Backspace) || input.key_pressed(egui::Key::Delete)));\n                    let _ = ui.button(if self.model.command_expanded { \"–\" } else { \"+\" }).on_hover_text(\"Collapse or expand history\");\n",
+          "why": "Route completion and submission through finish."
+        }
+      ]
+    },
+    {
+      "id": "03cg-keys",
+      "title": "Read editing keys before the field",
+      "page": "journey/03cg-keys.md",
+      "hours": [
+        0.5,
+        1.25
+      ],
+      "goal": "Consume command editing once and restore field focus.",
+      "trace": "Consume command editing once and restore field focus",
+      "story": "Move key handling into keys. Restore focus before text editing; suffix_space keeps a space inside a multiword completion rather than replacing the remaining name.\n\n![Read editing keys before the field](../illustrations/journey-direct-03cg-keys.svg)",
+      "result": "Type He, press Tab, then Enter. The command is submitted once.",
+      "question": "Why restore focus before drawing the field?",
+      "answer": "The field must own input when it handles queued events.",
+      "experiment": "Submit Help, then press Enter again without typing. Only the first Enter should create a history entry.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Editing keys are handled before the field.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cg-keys-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"Tab accepts the completion.\");\n    Ok(())\n",
+          "why": "Report that editing keys are read first."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cg-keys-direct-02.rs",
+          "before": "\npub(crate) fn refresh(\n",
+          "why": "Handle a space inside the selected suffix; centralize editing and focus keys."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cg-keys-direct-03.rs",
+          "before": "        if text {\n            self.context.memory_mut(|memory| memory.request_focus(egui::Id::new(\"command-input\")));\n",
+          "why": "Restore field focus before accepting the first text event."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cg-keys-direct-04.rs",
+          "before": "                view::prepare(ui);\n                let keys = command_dock::Keys {\n                    enter: ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)),\n                    tab: ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Tab)),\n                    deletes: ui.input(|input| input.key_pressed(egui::Key::Backspace) || input.key_pressed(egui::Key::Delete)),\n                    ..Default::default()\n                };\n                command_dock::history(ui, &self.model, &mut None);\n",
+          "why": "Remove the replaced inline key collection."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cg-keys-direct-05.rs",
+          "before": "                    let id = egui::Id::new(\"command-input\");\n                    let response = view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);\n",
+          "why": "Read the editing keys before drawing the field."
+        }
+      ]
+    },
+    {
+      "id": "03ch-popup",
+      "title": "Show matching commands",
+      "page": "journey/03ch-popup.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw the matching names above the field.",
+      "trace": "Draw the matching names above the field",
+      "story": "Draw matching names above the field. A scroll area bounds the list, and the model remembers its actual rectangle. Pointer selection is connected later.\n\n![Show matching commands](../illustrations/journey-direct-03ch-popup.svg)",
+      "result": "Type He. Help appears above the field as a suggestion.",
+      "question": "Why store the drawn rectangle?",
+      "answer": "Later pointer handling needs the actual layout bounds.",
+      "experiment": "Clear the field and type Z. The Help suggestion should disappear because the prefix no longer matches.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Matching commands appear above the field.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ch-popup-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"Editing keys are handled before the field.\");\n    Ok(())\n",
+          "why": "Report that matching commands are drawn."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03ch-popup-direct-02.rs",
+          "before": "\npub(crate) fn finish(\n",
+          "why": "Draw matching names in a bounded popup and remember its rectangle."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ch-popup-direct-03.rs",
+          "before": "        };\n        let output = self.context.run_ui(input, |root| {\n",
+          "why": "Clear the previous popup rectangle before layout."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ch-popup-direct-04.rs",
+          "before": "                    let mut line = None;\n                    let complete = keys.tab.then(|| self.commands.completions(&self.model.completion_prefix).first().copied()).flatten();\n                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);\n",
+          "why": "Draw current matches; preserve Tab acceptance."
+        }
+      ]
+    },
+    {
+      "id": "03ci-browse",
+      "title": "Browse matching names",
+      "page": "journey/03ci-browse.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Move through matching command names without changing the scene.",
+      "trace": "Move through matching command names without changing the scene",
+      "story": "Use the original typed prefix while browsing matches. Arrow keys wrap the highlighted index; the selected suffix remains replaceable.\n\n![Browse matching names](../illustrations/journey-direct-03ci-browse.svg)",
+      "result": "Press ArrowDown in the empty field. Help appears. Escape clears it.",
+      "question": "Why retain the prefix while browsing?",
+      "answer": "The chosen suggestion must not become a new search filter.",
+      "experiment": "Press ArrowDown twice in the empty field. The one-item list should wrap to Help without submitting it.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Arrow keys browse matching commands.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ci-browse-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"Matching commands appear above the field.\");\n    Ok(())\n",
+          "why": "Report that arrow browsing is connected."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03ci-browse-direct-02.rs",
+          "before": "\npub(crate) fn finish(\n",
+          "why": "Wrap the match index and retain the original typed prefix."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ci-browse-direct-03.rs",
+          "before": "                    let mut line = None;\n                    let choices = self.commands.completions(&self.model.completion_prefix);\n                    let complete = if self.model.completion_visible && !choices.is_empty() { command_dock::popup(ui, &mut self.model, &mut None, &choices, &response, 0) } else { None };\n                    let complete = complete.or_else(|| keys.tab.then(|| choices.first().copied()).flatten());\n                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);\n",
+          "why": "Use browse for arrow keys, Tab and popup choices."
+        }
+      ]
+    },
+    {
+      "id": "03cj-prepare",
+      "title": "Prepare the dock before painting",
+      "page": "journey/03cj-prepare.md",
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "goal": "Keep UI output owned until one GPU submission.",
+      "trace": "Keep UI output owned until one GPU submission",
+      "story": "Prepare UI output before painting. Append any additional layout output so changed font textures survive until the single GPU submission.\n\n![Prepare the dock before painting](../illustrations/journey-direct-03cj-prepare.svg)",
+      "result": "Type Help. Text and the triangle remain visible after repeated key events.",
+      "question": "Why append output before painting?",
+      "answer": "Another layout may add texture changes that the renderer still needs.",
+      "experiment": "Type and delete Help repeatedly. The triangle and command text should remain visible throughout.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "The prepared dock is painted once.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cj-prepare-direct-01.rs",
+          "before": "    redraw.forget();\n    report(\"Arrow keys browse matching commands.\");\n    Ok(())\n",
+          "why": "Report that prepared UI is painted once."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-02.rs",
+          "before": "    events: Vec<egui::Event>,\n}\n",
+          "why": "Own prepared output and the screen descriptor."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-03.rs",
+          "before": "        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { commands: Commands(commands), context, painter, events: Vec::new(), model: CommandLine {\n            command_expanded: true,\n",
+          "why": "Initialize pending output and screen size."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-04.rs",
+          "before": "\n    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        let size = [target.texture().width(), target.texture().height()];\n        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };\n        let input = egui::RawInput {\n",
+          "why": "Move input and layout into prepare."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-05.rs",
+          "before": "            screen_rect: Some(egui::Rect::from_min_size(\n                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),\n            )),\n",
+          "why": "Convert physical dimensions into egui points."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-06.rs",
+          "before": "        });\n        // The font atlas is a texture: upload its changed pixels before drawing the letters.\n",
+          "why": "Append prepared output; take it once for GPU painting."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-07.rs",
+          "before": "        let mut buffers = self.painter.update_buffers(\n            &renderer.device, &renderer.queue, &mut encoder, &jobs, &screen,\n        );\n",
+          "why": "Use the retained screen descriptor when uploading UI buffers."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cj-prepare-direct-08.rs",
+          "before": "        });\n        self.painter.render(&mut pass.forget_lifetime(), &jobs, &screen);\n        buffers.push(encoder.finish());\n",
+          "why": "Use the same screen descriptor when painting UI."
+        }
+      ],
+      "image_same_as": "03ci-browse"
+    },
+    {
+      "id": "03ck-rects",
+      "title": "Remember where the dock is drawn",
+      "page": "journey/03ck-rects.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Record actual widget bounds for mouse ownership.",
+      "trace": "Record actual widget bounds for mouse ownership",
+      "story": "Record the real field and collapse-control rectangles. The inspector reads these bounds from egui responses rather than guessing their positions.\n\n![Remember where the dock is drawn](../illustrations/journey-direct-03ck-rects.svg)",
+      "result": "Type He. The field and suggestion remain correctly placed above the history.",
+      "question": "Why use response rectangles?",
+      "answer": "They reflect the actual layout and scale used for this frame.",
+      "experiment": "Compare the inspector’s command/input rectangle with the visible field. Its bounds should describe the drawn widget.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "The dock records its actual rectangles.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ck-rects-direct-01.rs",
+          "before": "            }\n            if let Err(error) = input_canvas.set_attribute(\"data-command\", panel.command()) {\n",
+          "why": "Expose actual dock state and rectangles for inspection."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ck-rects-direct-02.rs",
+          "before": "    redraw.forget();\n    report(\"The prepared dock is painted once.\");\n    Ok(())\n",
+          "why": "Report that drawn bounds are recorded."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03ck-rects-direct-03.rs",
+          "before": "    false\n}\n\n",
+          "why": "Record the fold control and toggle expanded history on click."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-04.rs",
+          "before": "    commands: Commands,\n    context: egui::Context,\n",
+          "why": "Store current control bounds and the panel’s top edge."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-05.rs",
+          "before": "        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { commands: Commands(commands), context, painter, events: Vec::new(), output: None,\n            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {\n",
+          "why": "Initialize inspection storage and the top edge."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-06.rs",
+          "before": "\n    fn prepare(&mut self) {\n",
+          "why": "Serialize actual widget bounds, text, history and focus."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-07.rs",
+          "before": "        self.model.completion_rect = None;\n        let output = self.context.run_ui(input, |root| {\n",
+          "why": "Start a fresh control list for each layout."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-08.rs",
+          "before": "        let output = self.context.run_ui(input, |root| {\n            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n",
+          "why": "Keep the panel response to read its drawn bounds."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-09.rs",
+          "before": "                view::prepare(ui);\n                command_dock::history(ui, &self.model, &mut None);\n                ui.horizontal(|ui| {\n",
+          "why": "Collect controls while drawing history."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-10.rs",
+          "before": "                    let response = view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);\n                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);\n",
+          "why": "Record the actual field rectangle."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-11.rs",
+          "before": "                    let mut line = None;\n                    let complete = command_dock::browse(ui, &mut self.model, &mut None, &self.commands, &response, &keys, id);\n                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);\n",
+          "why": "Collect controls while drawing suggestions."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-12.rs",
+          "before": "                    if let Some(line) = line { if line != \"Escape\" { self.commands.reply(&mut self.model, &line); } }\n                    let _ = ui.button(if self.model.command_expanded { \"–\" } else { \"+\" }).on_hover_text(\"Collapse or expand history\");\n                });\n",
+          "why": "Draw the recorded fold control."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-13.rs",
+          "before": "            });\n        });\n",
+          "why": "Retain the panel’s top edge for pointer ownership."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-rects-direct-14.rs",
+          "before": "        self.prepare();\n        let Some(output) = self.output.take() else { return; };\n",
+          "why": "Prepare the updated layout before painting."
+        }
+      ],
+      "image_same_as": "03cj-prepare"
+    },
+    {
+      "id": "03ck-pointer",
+      "title": "Click the command dock",
+      "page": "journey/03ck-pointer.md",
+      "hours": [
+        0.5,
+        1.25
+      ],
+      "goal": "Use pointer ownership to edit, choose a name and fold history.",
+      "trace": "Use pointer ownership to edit, choose a name and fold history",
+      "story": "Translate mouse positions into canvas coordinates. Keep a press owned until release or cancellation. collapse changes layout while retained history stays in the model.\n\n![Click the command dock](../illustrations/journey-direct-03ck-pointer.svg)",
+      "result": "Click the history fold control. History folds away; click again to restore it.",
+      "question": "Why retain pointer ownership?",
+      "answer": "A drag must stay with the widget even after leaving its rectangle.",
+      "experiment": "Press the history fold control, drag outside it, and release. The cancelled click should leave history expanded.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "The mouse operates the command dock.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ck-pointer-direct-01.rs",
+          "before": "    let input_canvas = canvas.clone();\n    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {\n        if panel.key(&event) {\n            if let Err(error) = present(&surface, &renderer, &mut panel) {\n",
+          "why": "Dispatch keyboard and pointer events through one retained callback."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ck-pointer-direct-02.rs",
+          "before": "    });\n    for name in [\"keydown\", \"keyup\"] {\n        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;\n",
+          "why": "Register pointer press, movement, release and cancellation."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03ck-pointer-direct-03.rs",
+          "before": "    redraw.forget();\n    report(\"The dock records its actual rectangles.\");\n    Ok(())\n",
+          "why": "Report that mouse input is connected."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-pointer-direct-04.rs",
+          "before": "    commands: Commands,\n    top: f32,\n",
+          "why": "Retain pointer ownership between press and release."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-pointer-direct-05.rs",
+          "before": "        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { commands: Commands(commands), top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,\n            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {\n",
+          "why": "Initialize pointer ownership."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-pointer-direct-06.rs",
+          "before": "\n    pub fn inspect(&self) -> String {\n",
+          "why": "Translate canvas coordinates, preserve drag ownership and release cancelled buttons."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03ck-pointer-owned-inspection.rs",
+          "before": "            \"top\": self.top, \"focused\": self.context.egui_wants_keyboard_input(),\n",
+          "why": "Expose pointer ownership so cancellation can be checked against the actual event handler."
+        }
+      ]
+    },
+    {
+      "id": "03cl-wheel",
+      "title": "Scroll through command names",
+      "page": "journey/03cl-wheel.md",
+      "hours": [
+        0.5,
+        1.25
+      ],
+      "goal": "Keep scrolling over the dock inside the command list.",
+      "trace": "Keep scrolling over the dock inside the command list",
+      "story": "Queue wheel input with the pointer position. Consume scrolling over the field or previous suggestion rectangle before it can reach the scene.\n\n![Scroll through command names](../illustrations/journey-direct-03cl-wheel.svg)",
+      "result": "Move the mouse over the field and scroll. Help is selected in the command list.",
+      "question": "Why remember the previous popup rectangle?",
+      "answer": "Input arrives before this frame draws the new popup.",
+      "experiment": "Scroll in both directions over the empty field. The one-item list should wrap to Help without submitting it.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Scrolling selects a command name.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cl-wheel-direct-01.rs",
+          "before": "        if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { panel.key(key); }\n        if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() { panel.pointer(pointer, &input_canvas); }\n",
+          "why": "Dispatch wheel events to Panel."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cl-wheel-direct-02.rs",
+          "before": "    }\n    redraw.forget();\n",
+          "why": "Register wheel input with preventDefault enabled."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cl-wheel-direct-03.rs",
+          "before": "    redraw.forget();\n    report(\"The mouse operates the command dock.\");\n    Ok(())\n",
+          "why": "Report that scrolling selects command names."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cl-wheel-direct-04.rs",
+          "before": "\npub(crate) fn suffix_space(ui: &egui::Ui, model: &mut CommandLine, id: egui::Id, focused: bool) {\n",
+          "why": "Consume wheel movement over the field or previous popup."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cl-wheel-direct-05.rs",
+          "before": "    }\n    let focused = ui.memory(|memory| memory.has_focus(id));\n",
+          "why": "Focus the field when scrolling its command names."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03cl-wheel-direct-06.rs",
+          "before": "    let focused = ui.memory(|memory| memory.has_focus(id));\n    let browse = if focused {\n        ui.input_mut(|input| {\n",
+          "why": "Give wheel browsing priority over arrow browsing."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cl-wheel-direct-07.rs",
+          "before": "\n    pub fn inspect(&self) -> String {\n",
+          "why": "Queue wheel units and deltas at the canvas pointer position."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cl-wheel-direct-08.rs",
+          "before": "        };\n        self.model.completion_rect = None;\n        self.controls = Some(Vec::new());\n",
+          "why": "Take the previous popup rectangle before drawing."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cl-wheel-direct-09.rs",
+          "before": "                    let id = egui::Id::new(\"command-input\");\n                    let keys = command_dock::keys(ui, &mut self.model, None, id);\n                    let response = view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);\n",
+          "why": "Pass previous popup bounds to key and wheel handling."
+        }
+      ],
+      "image_same_as": "03ck-pointer"
+    },
+    {
+      "id": "03c-layout",
+      "title": "Share the production dock layout",
+      "page": "journey/03c-layout.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Connect the existing row and history to one shared layout.",
+      "trace": "Connect the existing row and history to one shared layout",
+      "story": "Put the already connected helpers into one row and layout. The same command_dock source now draws both this lesson and the production viewer.\n\n![Share the production dock layout](../illustrations/journey-direct-03c-layout.svg)",
+      "result": "Type Help and press Enter. The shared dock clears the field and adds one answer.",
+      "question": "Does sharing the layout give it ownership of the scene?",
+      "answer": "No. It edits the model and returns an accepted command to its caller.",
+      "experiment": "Submit Help, fold history, then expand it. The retained answer should return.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "The shared production dock is drawn.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
           "snippet": "journey/code/03c-layout-direct-01.rs",
-          "why": "Implement the application vocabulary and keep the model and prepared layout output in Panel."
+          "before": "    redraw.forget();\n    report(\"Scrolling selects a command name.\");\n    Ok(())\n",
+          "why": "Report that the shared production layout is connected."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "snippet": "journey/code/03c-layout-direct-04.rs",
+          "before": "        ui.ctx().request_repaint();\n    }\n}\n",
+          "why": "Combine the connected field, history and controls into row and draw."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-layout-direct-05.rs",
+          "before": "use crate::command_dock::{self, CommandLine, Commands as _, placeholder, theme, view};\nuse crate::renderer::Renderer;\n",
+          "why": "Remove imports now owned by the shared layout."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-layout-direct-06.rs",
+          "before": "        };\n        let previous = self.model.completion_rect.take();\n        self.controls = Some(Vec::new());\n",
+          "why": "Remove inline setup handled by command_dock::draw."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-layout-direct-07.rs",
+          "before": "        self.controls = Some(Vec::new());\n        let output = self.context.run_ui(input, |root| {\n",
+          "why": "Retain an accepted command for this layout."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-layout-direct-08.rs",
+          "before": "        let output = self.context.run_ui(input, |root| {\n            let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {\n                view::prepare(ui);\n                command_dock::history(ui, &self.model, &mut self.controls);\n                ui.horizontal(|ui| {\n                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));\n                    ui.label(\"Command:\");\n                    let id = egui::Id::new(\"command-input\");\n                    let keys = command_dock::keys(ui, &mut self.model, previous, id);\n                    let response = view::field(ui, &mut self.model.command, placeholder(\"\", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);\n                    self.model.command_rect = Some(response.rect);\n                    command_dock::record(&mut self.controls, \"command/input\", \"Command\", &response);\n                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);\n                    let mut line = None;\n                    let complete = command_dock::browse(ui, &mut self.model, &mut self.controls, &self.commands, &response, &keys, id);\n                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);\n                    if let Some(line) = line { if line != \"Escape\" { self.commands.reply(&mut self.model, &line); } }\n                    command_dock::collapse(ui, &mut self.model, &mut self.controls);\n                });\n            });\n            self.top = panel.response.rect.top() - 4.0;\n        });\n",
+          "why": "Call the same command_dock layout as production."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03c-layout-direct-09.rs",
+          "before": "        });\n        if let Some(previous) = self.output.as_mut() { previous.append(output); }\n",
+          "why": "Read the drawn top edge and answer accepted commands."
+        }
+      ],
+      "image_same_as": "03cl-wheel"
+    },
+    {
+      "id": "03cn-handoff",
+      "title": "Return accepted application commands",
+      "page": "journey/03cn-handoff.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Keep editing local and return accepted names to the caller.",
+      "trace": "Keep editing local and return accepted names to the caller",
+      "story": "Panel.update prepares input and returns an accepted application name. Help and unknown-command replies stay local; the caller will handle scene actions.\n\n![Return accepted application commands](../illustrations/journey-direct-03cn-handoff.svg)",
+      "result": "Type Help and press Enter. The field clears and exactly one answer appears.",
+      "question": "Why return Option<String>?",
+      "answer": "Most input edits the field; only an accepted application command needs dispatch.",
+      "experiment": "Submit an unknown name. The dock should answer locally and leave the triangle unchanged.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
+      "browser_status": "Panel returns accepted application commands.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "edits": [
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cn-handoff-direct-01.rs",
+          "before": "    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &[\"Help\"]);\n    present(&surface, &renderer, &mut panel)?;\n",
+          "why": "Prepare the initial dock before presenting."
         },
         {
           "path": "src/browser.rs",
-          "before": "    let window = web_sys::window().ok_or(\"No browser window\")?;\n    let document = window.document().ok_or(\"No document\")?;\n    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n        backends: wgpu::Backends::BROWSER_WEBGPU,\n        flags: Default::default(),\n",
-          "snippet": "journey/code/03c-layout-direct-02.rs",
-          "why": "Rewrap the existing canvas lookup; browser setup behavior stays unchanged."
+          "snippet": "journey/code/03cn-handoff-direct-02.rs",
+          "before": "    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { panel.key(key); }\n        if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() { panel.wheel(wheel, &input_canvas); }\n        if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() { panel.pointer(pointer, &input_canvas); }\n        {\n",
+          "why": "Use Panel.update for input and the final layout pass."
         },
         {
           "path": "src/browser.rs",
-          "before": "        backend_options: Default::default(),\n        display: None,\n    });\n    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {\n        compatible_surface: Some(&surface),\n        ..Default::default()\n    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())\n        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n    let limit = device.limits().max_texture_dimension_2d;\n    let width = (window.inner_width()?.as_f64().ok_or(\"No window width\")? as u32).clamp(1, limit);\n    let height = (window.inner_height()?.as_f64().ok_or(\"No window height\")? as u32).clamp(1, limit);\n    canvas.set_width(width);\n    canvas.set_height(height);\n    let mut config = surface.get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n    config.view_formats = vec![config.format.add_srgb_suffix()];\n    surface.configure(&device, &config);\n    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());\n    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());\n    present(&surface, &renderer, &mut panel)?;\n    report(\"The command model owns the text and history.\");\n    Ok(())\n}\n\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n        wgpu::CurrentSurfaceTexture::Success(frame)\n        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => return Err(JsValue::from_str(&format!(\"Surface unavailable: {other:?}\"))),\n    };\n    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {\n        format: Some(frame.texture.format().add_srgb_suffix()),\n",
-          "snippet": "journey/code/03c-layout-direct-03.rs",
-          "why": "Initialize the Help vocabulary and lay out the dock before presentation."
+          "snippet": "journey/code/03cn-handoff-direct-03.rs",
+          "before": "            }\n            if let Err(error) = input_canvas.set_attribute(\"data-command-ui\", &panel.inspect()) {\n                report(&format!(\"Cannot inspect dock: {error:?}\"));\n            }\n            if let Err(error) = input_canvas.set_attribute(\"data-command\", panel.command()) {\n                report(&format!(\"Cannot inspect text: {error:?}\"));\n            }\n            if let Err(error) = input_canvas.set_attribute(\"data-history\", &serde_json::to_string(panel.history()).unwrap()) {\n                report(&format!(\"Cannot inspect history: {error:?}\"));\n            }\n        }\n",
+          "why": "Remove inspection writes now handled inside update."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03cn-handoff-direct-04.rs",
+          "before": "    redraw.forget();\n    report(\"The shared production dock is drawn.\");\n    Ok(())\n",
+          "why": "Report that Panel returns application commands."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-05.rs",
+          "before": "\nimpl Commands {\n    fn reply(&self, model: &mut CommandLine, line: &str) {\n        let line = self.canonical(line);\n        let message = if line.eq_ignore_ascii_case(\"Help\") { self.0.join(\" · \") }\n            else { \"Unknown command. Type Help.\".into() };\n        model.status = message;\n        model.remember(format!(\"> {line}\\n{}\", model.status));\n    }\n}\n\npub struct Panel {\n",
+          "why": "Remove replies now handled by Panel.update."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-06.rs",
+          "before": "    commands: Commands,\n    pointer_owned: bool,\n",
+          "why": "Expose whether the dock consumed this event."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-07.rs",
+          "before": "        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());\n        Self { commands: Commands(commands), pointer_owned: false, top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,\n            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {\n",
+          "why": "Initialize event consumption."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-08.rs",
+          "before": "            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {\n            command_expanded: true,\n            history: [\"Command history lives here.\".into()].into(),\n            ..Default::default()\n",
+          "why": "Start with folded history and focus the command field."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-09.rs",
+          "before": "\n    fn prepare(&mut self) {\n        let size = self.screen.size_in_pixels;\n",
+          "why": "Answer local commands; return accepted application names from update."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-10.rs",
+          "before": "        let size = self.screen.size_in_pixels;\n        let input = egui::RawInput {\n            focused: true,\n",
+          "why": "Allow prepare to set viewport input scale."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-11.rs",
+          "before": "        };\n        self.controls = Some(Vec::new());\n",
+          "why": "Supply the physical pixel scale to egui."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-12.rs",
+          "before": "        }\n        if let Some(line) = line { if line != \"Escape\" { self.commands.reply(&mut self.model, &line); } }\n        if let Some(previous) = self.output.as_mut() { previous.append(output); }\n",
+          "why": "Move command answers out of prepare."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-13.rs",
+          "before": "        else { self.output = Some(output); }\n    }\n",
+          "why": "Return the accepted line from prepare."
+        },
+        {
+          "path": "src/panel.rs",
+          "snippet": "journey/code/03cn-handoff-direct-14.rs",
+          "before": "    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {\n        self.screen.size_in_pixels = [target.texture().width(), target.texture().height()];\n        self.prepare();\n        self.prepare();\n        let Some(output) = self.output.take() else { return; };\n",
+          "why": "Paint prepared output without replaying input."
         }
       ]
     },
     {
       "id": "03d-input",
-      "title": "Type into the real command dock",
-      "hours": [
-        5,
-        8
-      ],
-      "goal": "Send browser events to the dock and submit Help.",
+      "title": "Hand commands to the application",
       "page": "journey/03d-input.md",
-      "trace": "Browser → Panel → CommandLine → layout → existing GPU",
-      "story": "Translate browser keys into egui events so the real dock accepts `Help` and Enter. A printable key first requests text focus, then supplies its text. Clicking the drawing releases focus. This preserves the first letter and creates no keyboard feature shortcuts.\n\nFollow `KeyboardEvent → egui Text → CommandLine → layout`. Enter returns a submitted line; the vocabulary handles it and appends its answer. A consumed event belongs to the dock, so navigation must ignore it.\n\nThe second layout receives no event: it draws the cleared field and new answer. `FullOutput.append` retains earlier texture uploads with the latest shapes.\n\n`Result<Option<String>, JsValue>` means an error, no submission, or one submitted line. `dyn_ref` borrows a matching event type. The `move` callback keeps its owners alive; canvas `tabindex` enables browser focus.\n\n![Browser → Panel → CommandLine → layout → existing GPU.](../illustrations/journey-03d.svg)",
-      "question": "Why do we lay out again without replaying the event?",
-      "answer": "Submitting a line changes the field and history after the first layout. An empty-input update draws that new state while processing the key exactly once.",
-      "result": "Type `Help` and press Enter. The field clears and one reply appears in history. Click the canvas and type again: the first character must reach the command field.",
-      "experiment": "Type an unknown word and press Enter. The dock should explain that it is unknown while leaving the triangle unchanged. Type Help again. Explain why input and document changes are separate.",
-      "production": "This is the production command dock and styling. Its vocabulary grows with the course; the scene renderer stays independent of text editing.",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Return accepted commands while keeping editing inside Panel.",
+      "trace": "Return accepted commands while keeping editing inside Panel",
+      "story": "Listen on the canvas and hand events to Panel.update. Prepare the dock again after input, then paint one frame. Typing after a scene click focuses the field immediately.\n\n![Hand commands to the application](../illustrations/journey-direct-03d-input.svg)",
+      "result": "Click the scene, type Help and press Enter. One answer appears in the real dock.",
+      "question": "Why prepare again before painting?",
+      "answer": "Input can change layout or history; the final frame must show the updated model.",
+      "experiment": "Click the scene between two Help submissions. Each submission should add one answer without requiring a field click.",
+      "production": "This step connects one responsibility of the production command dock. Scene commands are added in the following lessons.",
       "browser_status": "Type Help in the command field and press Enter.",
-      "browser_caption": "Actual Chrome capture of this checkpoint. The result described above distinguishes drawing-only stages from connected input.",
+      "browser_check": "journey/checks/browser/dock-steps.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
       "edits": [
         {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03d-input-scale-1.rs",
-          "before": "            top: f32::INFINITY,\n            context,\n            model: CommandLine {\n                command_expanded: true,\n                history: [\"Command history lives here.\".into()].into(),\n                ..Default::default()\n            },\n            painter: egui_wgpu::Renderer::new(&renderer.device, format, Default::default()),\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03d-input-scale-2.rs",
-          "before": "\n    pub fn update(\n        &mut self,\n        _event: Option<&web_sys::Event>,\n        canvas: &web_sys::HtmlCanvasElement,\n    ) -> Result<Option<String>, JsValue> {\n        let rect = canvas.get_bounding_client_rect();\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
-        },
-        {
-          "path": "src/panel.rs",
-          "snippet": "journey/code/03d-input-scale-3.rs",
-          "before": "            focused: true,\n            ..Default::default()\n        };\n        self.screen.size_in_pixels = [canvas.width(), canvas.height()];\n        self.screen.pixels_per_point = canvas.width() as f32 / size.x;\n        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point =\n",
-          "why": "Keep one Panel alive beside the Renderer. Read the layout, input and painting paths separately; they communicate through the stored model and FullOutput."
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-01.rs",
+          "before": "use crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue};\n\n",
+          "why": "Import the retained Closure type."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/03d-input-window-1.rs",
-          "before": "use crate::renderer::Renderer;\nuse wasm_bindgen::{JsCast, JsValue};\n\npub fn report(message: &str) {\n    if let Some(document) = web_sys::window().and_then(|window| window.document()) {\n",
-          "why": "Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page."
+          "snippet": "journey/code/03d-input-direct-02.rs",
+          "before": "    let canvas: web_sys::HtmlCanvasElement = document\n        .get_element_by_id(\"canvas\").ok_or(\"Missing canvas\")?.dyn_into()?;\n    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {\n",
+          "why": "Keep canvas acquisition ready for canvas-owned input."
         },
         {
           "path": "src/browser.rs",
-          "snippet": "journey/code/03d-input-window-2.rs",
-          "before": "    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &[\"Help\"]);\n    panel.update(None, &canvas)?;\n    present(&surface, &renderer, &mut panel)?;\n    report(\"The real dock lays out history and the command field.\");\n    Ok(())\n}\n\n",
-          "why": "Connect this checkpoint to the existing owners. The event callback retains Panel and Renderer for the lifetime of the page."
+          "snippet": "journey/code/03d-input-direct-03.rs",
+          "before": "    });\n    let surface = instance.create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))\n        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n",
+          "why": "Keep GPU setup with the final browser event owner."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-04.rs",
+          "before": "        .map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let adapter = instance.request_adapter(&wgpu::RequestAdapterOptions {\n        compatible_surface: Some(&surface),\n        ..Default::default()\n    }).await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor::default())\n        .await.map_err(|error| JsValue::from_str(&error.to_string()))?;\n    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));\n",
+          "why": "Remove the intermediate event callback setup."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-05.rs",
+          "before": "    canvas.set_height(height);\n    let mut config = surface.get_default_config(&adapter, width, height)\n        .ok_or(\"No compatible surface format\")?;\n",
+          "why": "Keep surface configuration before the canvas input owner."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-06.rs",
+          "before": "    let input_canvas = canvas.clone();\n    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        if let Err(error) = panel.update(Some(&event), &input_canvas) {\n            report(&format!(\"Cannot read command: {error:?}\"));\n        }\n        if let Err(error) = panel.update(None, &input_canvas) {\n",
+          "why": "Handle command update errors in the canvas callback."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-07.rs",
+          "before": "            report(&format!(\"Cannot lay out commands: {error:?}\"));\n        }\n",
+          "why": "Stop the callback after a layout failure."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-08.rs",
+          "before": "        }\n        {\n            if let Err(error) = present(&surface, &renderer, &mut panel) {\n                report(&format!(\"Cannot redraw: {error:?}\"));\n            }\n        }\n",
+          "why": "Present after preparing the final command layout."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-09.rs",
+          "before": "    });\n    for name in [\"keydown\", \"keyup\", \"pointerdown\", \"pointermove\", \"pointerup\", \"pointercancel\"] {\n        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;\n    }\n",
+          "why": "Register drawing and keyboard events on the canvas."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-10.rs",
+          "before": "    options.set_passive(false);\n    canvas.add_event_listener_with_callback_and_add_event_listener_options(\"wheel\", redraw.as_ref().unchecked_ref(), &options)?;\n    redraw.forget();\n    report(\"Panel returns accepted application commands.\");\n    Ok(())\n",
+          "why": "Retain the wheel callback for the page lifetime."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-11.rs",
+          "before": "\nfn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {\n    let frame = match surface.get_current_texture() {\n",
+          "why": "Give surface presentation its complete function."
+        },
+        {
+          "path": "src/browser.rs",
+          "snippet": "journey/code/03d-input-direct-12.rs",
+          "before": "        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,\n        other => return Err(JsValue::from_str(&format!(\"Surface unavailable: {other:?}\"))),\n    };\n",
+          "why": "Return a useful error when the surface is unavailable."
         }
-      ]
+      ],
+      "image_same_as": "03cn-handoff"
     },
     {
       "id": "04-input",
@@ -566,13 +1594,13 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/04-input-fullscreen-6.rs",
           "before": "        Self { device, queue, pipeline }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView) {\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n",
-          "why": "The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice."
+          "why": "Borrow Background in draw and read its RGB value."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/04-input-fullscreen-7.rs",
           "before": "                    resolve_target: None,\n                    ops: wgpu::Operations {\n                        load: wgpu::LoadOp::Clear(wgpu::Color {\n                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,\n                        }),\n                        store: wgpu::StoreOp::Store,\n                    },\n",
-          "why": "The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice."
+          "why": "Clear the render target with that RGB value."
         },
         {
           "path": "src/browser.rs",
@@ -633,25 +1661,25 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/05-vertices-fullscreen-2.rs",
           "before": "pub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n    pipeline: wgpu::RenderPipeline,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
-          "why": "Add the six positions above the renderer. Each consecutive group of three forms one triangle."
+          "why": "Define six positions and upload their vertex buffer."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/05-vertices-fullscreen-3.rs",
           "before": "                module: &shader,\n                entry_point: Some(\"vertex\"),\n                compilation_options: Default::default(),\n                buffers: &[],\n            },\n            fragment: Some(wgpu::FragmentState {\n                module: &shader,\n",
-          "why": "Add the six positions above the renderer. Each consecutive group of three forms one triangle."
+          "why": "Describe two f32 coordinates at each eight-byte vertex."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/05-vertices-fullscreen-4.rs",
           "before": "            multiview_mask: None,\n            cache: None,\n        });\n        Self { device, queue, pipeline }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {\n",
-          "why": "Add the six positions above the renderer. Each consecutive group of three forms one triangle."
+          "why": "Retain the uploaded vertex buffer in Renderer."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/05-vertices-fullscreen-5.rs",
           "before": "                ..Default::default()\n            });\n            pass.set_pipeline(&self.pipeline);\n            pass.draw(0..3, 0..1);\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n",
-          "why": "Add the six positions above the renderer. Each consecutive group of three forms one triangle."
+          "why": "Bind the vertex buffer and draw all six positions."
         },
         {
           "path": "src/browser.rs",
@@ -684,25 +1712,25 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/06-indices-fullscreen-2.rs",
           "before": "use wgpu::util::DeviceExt;\n\nconst POSITIONS: [[f32; 2]; 6] = [\n    [-0.6, -0.5], [0.6, -0.5], [0.6, 0.6],\n    [-0.6, -0.5], [0.6, 0.6], [-0.6, 0.6],\n];\n\npub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n    pipeline: wgpu::RenderPipeline,\n    vertices: wgpu::Buffer,\n}\n\nimpl Renderer {\n",
-          "why": "Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify."
+          "why": "Define four diamond corners and six indices; retain an index buffer."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/06-indices-fullscreen-3.rs",
           "before": "            contents: &bytes,\n            usage: wgpu::BufferUsages::VERTEX,\n        });\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
-          "why": "Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify."
+          "why": "Upload the indices as native-endian u16 bytes."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/06-indices-fullscreen-4.rs",
           "before": "            multiview_mask: None,\n            cache: None,\n        });\n        Self { device, queue, pipeline, vertices }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {\n",
-          "why": "Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify."
+          "why": "Retain the index buffer in Renderer."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/06-indices-fullscreen-5.rs",
           "before": "            });\n            pass.set_pipeline(&self.pipeline);\n            pass.set_vertex_buffer(0, self.vertices.slice(..));\n            pass.draw(0..POSITIONS.len() as u32, 0..1);\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n",
-          "why": "Replace the positions and add their connections. The diamond makes the four distinct corners easy to identify."
+          "why": "Bind the u16 index buffer and draw its six entries."
         },
         {
           "path": "src/browser.rs",
@@ -748,19 +1776,19 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/07-uniforms-fullscreen-6.rs",
           "before": "    pipeline: wgpu::RenderPipeline,\n    vertices: wgpu::Buffer,\n    indices: wgpu::Buffer,\n}\n\nimpl Renderer {\n",
-          "why": "Retain the uniform for uploads and the bind group for draws."
+          "why": "Retain the uniform buffer and bind group."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/07-uniforms-fullscreen-7.rs",
           "before": "            multiview_mask: None,\n            cache: None,\n        });\n        Self { device, queue, pipeline, vertices, indices }\n    }\n\n    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {\n        let [r, g, b] = background.rgb();\n        let mut encoder = self.device.create_command_encoder(&Default::default());\n        {\n",
-          "why": "Retain the uniform for uploads and the bind group for draws."
+          "why": "Allocate the uniform buffer and bind it at the shader’s resource slot."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/07-uniforms-fullscreen-8.rs",
           "before": "                ..Default::default()\n            });\n            pass.set_pipeline(&self.pipeline);\n            pass.set_vertex_buffer(0, self.vertices.slice(..));\n            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);\n            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);\n",
-          "why": "Retain the uniform for uploads and the bind group for draws."
+          "why": "Bind the view settings before drawing."
         },
         {
           "path": "src/browser.rs",
@@ -924,13 +1952,13 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/09-matrices-fullscreen-5.rs",
           "before": "        });\n        let uniform = device.create_buffer(&wgpu::BufferDescriptor {\n            label: Some(\"view transform\"),\n            size: 16,\n            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,\n            mapped_at_creation: false,\n        });\n",
-          "why": "Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout."
+          "why": "Allocate 64 bytes for sixteen f32 matrix entries."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/09-matrices-fullscreen-6.rs",
           "before": "        &self,\n        view: &wgpu::TextureView,\n        background: &crate::background::Background,\n        transform: &[f32; 4],\n    ) {\n        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();\n        self.queue.write_buffer(&self.uniform, 0, &bytes);\n",
-          "why": "Allocate enough space for all sixteen floats. A smaller buffer would violate the shader binding layout."
+          "why": "Upload all sixteen matrix entries before drawing."
         },
         {
           "path": "src/browser.rs",
@@ -988,37 +2016,37 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/10-depth-fullscreen-3.rs",
           "before": "use wgpu::util::DeviceExt;\n\nconst POSITIONS: [[f32; 2]; 4] = [\n    [-0.6, 0.0], [0.0, -0.6], [0.6, 0.0], [0.0, 0.6],\n];\nconst INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];\n\npub struct Renderer {\n    pub device: wgpu::Device,\n",
-          "why": "Replace the flat diamond with two coloured triangles at different depths."
+          "why": "Define two coloured triangles with different Z coordinates."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/10-depth-fullscreen-4.rs",
           "before": "    indices: wgpu::Buffer,\n    uniform: wgpu::Buffer,\n    view_group: wgpu::BindGroup,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {\n        let bytes: Vec<u8> = POSITIONS.iter().flatten()\n            .flat_map(|value| value.to_ne_bytes()).collect();\n        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"rectangle positions\"),\n",
-          "why": "Replace the flat diamond with two coloured triangles at different depths."
+          "why": "Retain a depth view and upload position/color vertex records."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/10-depth-fullscreen-5.rs",
           "before": "                entry_point: Some(\"vertex\"),\n                compilation_options: Default::default(),\n                buffers: &[wgpu::VertexBufferLayout {\n                    array_stride: 8,\n                    step_mode: wgpu::VertexStepMode::Vertex,\n                    attributes: &wgpu::vertex_attr_array![0 => Float32x2],\n                }],\n            },\n            fragment: Some(wgpu::FragmentState {\n",
-          "why": "Replace the flat diamond with two coloured triangles at different depths."
+          "why": "Describe the two Float32x3 attributes in each 24-byte vertex."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/10-depth-fullscreen-6.rs",
           "before": "                targets: &[Some(format.into())],\n            }),\n            primitive: Default::default(),\n            depth_stencil: None,\n            multisample: Default::default(),\n            multiview_mask: None,\n            cache: None,\n",
-          "why": "Replace the flat diamond with two coloured triangles at different depths."
+          "why": "Enable depth writes and the Less comparison."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/10-depth-fullscreen-7.rs",
           "before": "                resource: uniform.as_entire_binding(),\n            }],\n        });\n        Self { device, queue, pipeline, vertices, indices, uniform, view_group }\n    }\n\n    pub fn draw(\n",
-          "why": "Replace the flat diamond with two coloured triangles at different depths."
+          "why": "Create and retain the Depth32Float texture view."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/10-depth-fullscreen-8.rs",
           "before": "            // The pass borrows the encoder. This scope ends that borrow before finish takes it.\n            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {\n                label: Some(\"canvas\"),\n                color_attachments: &[Some(wgpu::RenderPassColorAttachment {\n                    view,\n                    depth_slice: None,\n",
-          "why": "Replace the flat diamond with two coloured triangles at different depths."
+          "why": "Attach the depth view and clear it to 1.0 for each frame."
         },
         {
           "path": "src/browser.rs",
@@ -1088,19 +2116,19 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/11-scene-fullscreen-6.rs",
           "before": "use wgpu::util::DeviceExt;\n\n// Each vertex stores x, y, z, then red, green and blue.\nconst VERTICES: [[f32; 6]; 6] = [\n    [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],\n    [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],\n    [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],\n    [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],\n    [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],\n    [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],\n];\nconst INDICES: [u16; 6] = [0, 1, 2, 3, 4, 5];\n\npub struct Renderer {\n    pub device: wgpu::Device,\n    pub queue: wgpu::Queue,\n    pipeline: wgpu::RenderPipeline,\n    vertices: wgpu::Buffer,\n    indices: wgpu::Buffer,\n    uniform: wgpu::Buffer,\n    view_group: wgpu::BindGroup,\n    depth: wgpu::TextureView,\n}\n\nimpl Renderer {\n    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {\n        let bytes: Vec<u8> = VERTICES.iter().flatten()\n            .flat_map(|value| value.to_ne_bytes()).collect();\n        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"rectangle positions\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::VERTEX,\n        });\n        let bytes: Vec<u8> = INDICES.iter().flat_map(|index| index.to_ne_bytes()).collect();\n        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {\n            label: Some(\"diamond indices\"),\n            contents: &bytes,\n            usage: wgpu::BufferUsages::INDEX,\n        });\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
-          "why": "The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself."
+          "why": "Own uploaded GpuMesh values and build them from Scene."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/11-scene-fullscreen-7.rs",
           "before": "            }],\n        });\n        let depth = Self::depth(&device, 640, 480);\n        Self { device, queue, pipeline, vertices, indices, uniform, view_group, depth }\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n",
-          "why": "The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself."
+          "why": "Rebuild uploaded meshes when the scene changes."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/11-scene-fullscreen-8.rs",
           "before": "            });\n            pass.set_pipeline(&self.pipeline);\n            pass.set_bind_group(0, &self.view_group, &[]);\n            pass.set_vertex_buffer(0, self.vertices.slice(..));\n            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);\n            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);\n        }\n        self.queue.submit([encoder.finish()]);\n    }\n",
-          "why": "The renderer now asks GpuMesh to upload data, so it no longer needs DeviceExt itself."
+          "why": "Draw each uploaded mesh through GpuMesh::draw."
         },
         {
           "path": "src/browser.rs",
@@ -1177,19 +2205,19 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/12-identity-fullscreen-5.rs",
           "before": "use crate::{gpu_mesh::GpuMesh, scene::Scene};\n\npub struct Renderer {\n    pub device: wgpu::Device,\n",
-          "why": "Use the identity type at the renderer’s scene synchronization boundary."
+          "why": "Import ObjectId at the renderer boundary."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/12-identity-fullscreen-6.rs",
           "before": "        format: wgpu::TextureFormat,\n        scene: &Scene,\n    ) -> Self {\n        let meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&device, mesh)).collect();\n        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"triangle\"),\n            source: wgpu::ShaderSource::Wgsl(include_str!(\"triangle.wgsl\").into()),\n",
-          "why": "Use the identity type at the renderer’s scene synchronization boundary."
+          "why": "Upload each scene object without selection highlighting initially."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/12-identity-fullscreen-7.rs",
           "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene) {\n        self.meshes = scene.meshes.iter().map(|mesh| GpuMesh::upload(&self.device, mesh)).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n",
-          "why": "Use the identity type at the renderer’s scene synchronization boundary."
+          "why": "Highlight the uploaded object whose stable ID matches the selection."
         },
         {
           "path": "src/browser.rs",
@@ -1473,13 +2501,13 @@
           "path": "src/scene.rs",
           "before": "expect(\"Valid near triangle\")",
           "snippet": "journey/code/15-perspective-07.rs",
-          "why": "Keep the diagnostic name consistent."
+          "why": "Name the pink triangle in its validation error."
         },
         {
           "path": "src/scene.rs",
           "before": "expect(\"Valid far triangle\")",
           "snippet": "journey/code/15-perspective-08.rs",
-          "why": "Keep the diagnostic name consistent."
+          "why": "Name the turquoise triangle in its validation error."
         },
         {
           "path": "src/scene.rs",
@@ -1751,8 +2779,8 @@
       ],
       "goal": "Move document actions into a browser-independent editor while keeping picking, undo and drawing working.",
       "trace": "HTML event → Action → Editor → Change → GPU upload when needed → draw",
-      "question": "Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?",
-      "answer": "The keyboard handler should produce Action::Delete and pass it to Editor::apply. The editor already owns selection, the document and history. Reusing that action gives the shortcut the same transaction and selection repair as the command; the keyboard handler should not remove scene objects itself.",
+      "question": "Where should Delete be handled so commands share one document history?",
+      "answer": "The command handler produces Action::Delete and calls Editor::apply. Editor owns selection, the document and history, so deletion stays one transaction and repairs selection consistently.",
       "story": "Move editing decisions from the browser callback into `Editor`. It owns scene, selection, camera, background and history, with no browser handles or GPU buffers.\n\nAn `Action` enum describes requests. `Delete` carries no value; `Pan(dx, dy)` carries two numbers. Typed commands and mouse navigation translate to actions; `Editor::apply` matches and executes them.\n\nReturn a `Change` enum: a view change needs a redraw; a scene change also needs an upload. After a scene action, clear selection if its ID no longer exists.\n\nKeep this path: browser translates → editor decides → history remembers → renderer draws. Moving these rules keeps the behavior while making it testable without a browser.\n\n![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)",
       "result": "Select a face, type `Delete`, then `Undo`. The editor handles both actions and restores the object without resetting the camera.",
       "experiment": "Add a box, then change the background and zoom. Undo once. Predict which of those three changes disappears. Only the box addition is a document edit; the other two belong to the view. Find the early return in apply that keeps those actions out of history.",
@@ -1905,13 +2933,13 @@
           "path": "src/renderer.rs",
           "snippet": "journey/code/20-resize-fullscreen-8.rs",
           "before": "        Self { device, queue, pipeline, meshes, uniform, view_group, depth }\n    }\n\n    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {\n        self.meshes = scene.objects().iter().map(|object| {\n            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))\n        }).collect();\n    }\n\n    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {\n        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {\n            label: Some(\"opaque depth\"),\n",
-          "why": "Reuse the depth helper from lesson 10 with the measured Viewport dimensions."
+          "why": "Keep depth texture allocation in the existing depth helper."
         },
         {
           "path": "src/renderer.rs",
           "snippet": "journey/code/20-resize-fullscreen-9.rs",
           "before": "        depth_texture.create_view(&Default::default())\n    }\n\n    pub fn resize(&mut self, width: u32, height: u32) {\n        self.depth = Self::depth(&self.device, width, height);\n    }\n\n    pub fn draw(\n",
-          "why": "Reuse the depth helper from lesson 10 with the measured Viewport dimensions."
+          "why": "Recreate the depth view for the measured viewport dimensions."
         },
         {
           "path": "src/browser.rs",
@@ -2132,19 +3160,19 @@
           "path": "src/browser.rs",
           "snippet": "journey/code/22-shortcuts-window-1.rs",
           "before": "            };\n            Some(action)\n        } else if !panel.consumed {\n            pointer_action(&event, &pointer_canvas, &mut gesture)\n        } else {\n            None\n        };\n",
-          "why": "Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock."
+          "why": "Route unconsumed canvas input through navigation_action."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/22-shortcuts-window-2.rs",
           "before": "    window.add_event_listener_with_callback(\"blur\", update.as_ref().unchecked_ref())?;\n    // Both event sources retain this one callback for the lifetime of the page.\n    update.forget();\n    report(\"Right-drag to orbit. Left-click to select. A cancelled drag stops immediately.\");\n    Ok(())\n}\n\nfn pointer_action(\n    event: &web_sys::Event,\n    canvas: &web_sys::HtmlCanvasElement,\n",
-          "why": "Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock."
+          "why": "Retain the shared callback and dispatch wheel or pointer navigation."
         },
         {
           "path": "src/browser.rs",
           "snippet": "journey/code/22-shortcuts-window-3.rs",
           "before": "        \"pointerdown\" => {\n            if pointer.is_primary() && gesture.press(id, pointer.button(), position) {\n                event.prevent_default();\n                if canvas.set_pointer_capture(id).is_err() {\n                    gesture.cancel();\n                }\n            }\n",
-          "why": "Route wheel and pointer events through navigation. Leave keyboard feature commands with the dock."
+          "why": "Focus the canvas and capture accepted pointer presses; cancel if either operation fails."
         }
       ],
       "image_result": "The helper adds the box, chooses Isometric, applies a −120-pixel wheel input, then the same Pan Right action used by the command. Pixel checks verify the resulting face; browser checks verify wheel delivery and typing ownership.",
@@ -2257,13 +3285,13 @@
           "path": "src/lib.rs",
           "snippet": "journey/code/23-import-fullscreen-2.rs",
           "before": "pub mod viewport;\npub mod gesture;\npub mod navigation;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\n",
-          "why": "Register the reader, specimen and native checks."
+          "why": "Register document parsing, the specimen and native document tests."
         },
         {
           "path": "src/lib.rs",
           "snippet": "journey/code/23-import-fullscreen-3.rs",
           "before": "pub mod renderer;\n#[cfg(target_arch = \"wasm32\")]\nmod browser;\n\nuse wasm_bindgen::prelude::*;\n\n",
-          "why": "Register the reader, specimen and native checks."
+          "why": "Register the browser-only file input module."
         },
         {
           "path": "src/browser.rs",
@@ -2377,13 +3405,13 @@
           "path": "src/lib.rs",
           "snippet": "journey/code/24-fit-fullscreen-1.rs",
           "before": "pub mod background;\npub mod camera;\npub mod mesh;\npub mod scene;\npub mod picking;\n",
-          "why": "Register the bounds module beside the camera. It owns numbers, not GPU resources."
+          "why": "Register the bounds module beside Camera."
         },
         {
           "path": "src/lib.rs",
           "snippet": "journey/code/24-fit-fullscreen-2.rs",
           "before": "#[cfg(test)]\nmod document_tests;\n#[cfg(test)]\nmod navigation_tests;\n#[cfg(test)]\nmod gesture_tests;\n",
-          "why": "Register the bounds module beside the camera. It owns numbers, not GPU resources."
+          "why": "Register the native Fit tests."
         },
         {
           "path": "src/browser.rs",
@@ -2482,7 +3510,7 @@
           "path": "src/editor.rs",
           "before": "    Fit,\n",
           "snippet": "journey/code/25-projection-07.rs",
-          "why": "An action carries the requested projection. One route serves both commands and any future keyboard shortcut."
+          "why": "Carry the requested projection in Action for the named view commands."
         },
         {
           "path": "src/editor.rs",
@@ -8202,8 +9230,8 @@
         },
         {
           "path": "src/panel.rs",
-          "before": "            \"controls\": controls, \"command\": self.model.command, \"history\": self.model.history,",
-          "snippet": "journey/code/34fb-store-09.rs",
+          "before": "        serde_json::json!({\"controls\": self.controls, \"command\": self.model.command, \"history\": self.model.history,",
+          "snippet": "journey/code/34fb-store-direct-status.rs",
           "why": "Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors."
         }
       ],

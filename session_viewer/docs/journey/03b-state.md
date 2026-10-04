@@ -1,8 +1,8 @@
 # 03b · Prepare the dock completion helpers
 
-**Typing: 28–55 minutes.** [Estimate](typing-load.md).
+**Typing: 27–53 minutes.** [Estimate](typing-load.md).
 
-The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices can refer to its fixed vocabulary; `option_label` borrows from the supplied line.
+The upcoming dock layout needs command names without knowing our scene types. `Commands` defines the methods the application will supply. Static string slices refer to its fixed vocabulary.
 
 `Control` stores an inspection key, label and rectangle. `record` appends actual egui response bounds through a mutable borrow. If inspection is absent, let-else returns immediately. `serde::Serialize` lets the inspector describe the record as JSON.
 
@@ -12,7 +12,7 @@ Continue from [Give the command field its memory](03b-memory.md). [Save or recov
 
 ### 1. `Cargo.toml`
 
-Enable serialization and the browser bindings used by the dock.
+Enable the browser event, canvas geometry and focus bindings.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -37,7 +37,7 @@ Replace that block with:
 
 ### 2. `Cargo.toml`
 
-Enable serialization and the browser bindings used by the dock.
+Add serde serialization and JSON inspection dependencies.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -91,7 +91,7 @@ Record actual widget bounds only when inspection is enabled.
 <summary>Locate the existing block</summary>
 
 ```rust
-    pub(crate) agent_edit: Option<bool>,             // phone keyboard set the text, true on delete
+    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
 }
 
 /// The grey text of the empty field: the prompt, else the last answer when the history is folded away.
@@ -125,6 +125,46 @@ Replace that block with:
 
 ```rust
 --8<-- "journey/code/03b-state-05.rs"
+```
+
+### 6. `src/command_dock/mod.rs`
+
+Keep the helper declarations separated by a blank line.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    }
+}
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03b-state-direct-03.rs"
+```
+
+### 7. `src/panel.rs`
+
+Import the module name for the following shared helper calls.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+use crate::command_dock::{CommandLine, placeholder, theme, view};
+use crate::renderer::Renderer;
+```
+
+</details>
+
+Replace that block with:
+
+```rust
+--8<-- "journey/code/03b-state-direct-04.rs"
 ```
 
 ## Run and check

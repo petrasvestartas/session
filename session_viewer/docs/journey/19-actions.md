@@ -321,9 +321,9 @@ HTML event → Action → Editor → Change → GPU upload when needed → draw.
 
 ![Typed commands and canvas picking become Action; Editor chooses a redraw or scene upload.](../illustrations/journey-19.svg)
 
-Where should a future Delete keyboard shortcut go so it behaves exactly like the Delete command?
+Where should Delete be handled so commands share one document history?
 
-The keyboard handler should produce Action::Delete and pass it to Editor::apply. The editor already owns selection, the document and history. Reusing that action gives the shortcut the same transaction and selection repair as the command; the keyboard handler should not remove scene objects itself.
+The command handler produces Action::Delete and calls Editor::apply. Editor owns selection, the document and history, so deletion stays one transaction and repairs selection consistently.
 
 Study estimate, including typing and experiments: 3–5 hours.
 

@@ -1,4 +1,4 @@
-    pub(crate) agent_edit: Option<bool>,             // phone keyboard set the text, true on delete
+    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
 }
 
 /// One clickable control and where it was drawn, for browser tests.

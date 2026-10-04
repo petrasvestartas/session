@@ -8,7 +8,7 @@ The browser owns Background beside Panel and Renderer. Panel reads the line; Bac
 
 ## Type
 
-Continue from [Type into the real command dock](03d-input.md). [Save or recover your work](recovery.md).
+Continue from [Hand commands to the application](03d-input.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/background.rs`
 
@@ -43,7 +43,7 @@ Replace that block with:
 
 ### 3. `src/renderer.rs`
 
-The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
+Borrow Background in draw and read its RGB value.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -68,7 +68,7 @@ Replace that block with:
 
 ### 4. `src/renderer.rs`
 
-The renderer now reads a background passed by its caller. & borrows it for this call; drawing does not take ownership or change the choice.
+Clear the render target with that RGB value.
 
 <details>
 <summary>Locate the existing block</summary>

@@ -44,7 +44,7 @@ Replace that block with:
 
 ### 2. `src/renderer.rs`
 
-Add the six positions above the renderer. Each consecutive group of three forms one triangle.
+Define six positions and upload their vertex buffer.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -73,7 +73,7 @@ Replace that block with:
 
 ### 3. `src/renderer.rs`
 
-Add the six positions above the renderer. Each consecutive group of three forms one triangle.
+Describe two f32 coordinates at each eight-byte vertex.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -98,7 +98,7 @@ Replace that block with:
 
 ### 4. `src/renderer.rs`
 
-Add the six positions above the renderer. Each consecutive group of three forms one triangle.
+Retain the uploaded vertex buffer in Renderer.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -123,7 +123,7 @@ Replace that block with:
 
 ### 5. `src/renderer.rs`
 
-Add the six positions above the renderer. Each consecutive group of three forms one triangle.
+Bind the vertex buffer and draw all six positions.
 
 <details>
 <summary>Locate the existing block</summary>

@@ -41,7 +41,7 @@ Replace that block with:
 
 ### 2. `src/renderer.rs`
 
-Replace the flat diamond with two coloured triangles at different depths.
+Define two coloured triangles with different Z coordinates.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -68,7 +68,7 @@ Replace that block with:
 
 ### 3. `src/renderer.rs`
 
-Replace the flat diamond with two coloured triangles at different depths.
+Retain a depth view and upload position/color vertex records.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -97,7 +97,7 @@ Replace that block with:
 
 ### 4. `src/renderer.rs`
 
-Replace the flat diamond with two coloured triangles at different depths.
+Describe the two Float32x3 attributes in each 24-byte vertex.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -124,7 +124,7 @@ Replace that block with:
 
 ### 5. `src/renderer.rs`
 
-Replace the flat diamond with two coloured triangles at different depths.
+Enable depth writes and the Less comparison.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -149,7 +149,7 @@ Replace that block with:
 
 ### 6. `src/renderer.rs`
 
-Replace the flat diamond with two coloured triangles at different depths.
+Create and retain the Depth32Float texture view.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -174,7 +174,7 @@ Replace that block with:
 
 ### 7. `src/renderer.rs`
 
-Replace the flat diamond with two coloured triangles at different depths.
+Attach the depth view and clear it to 1.0 for each frame.
 
 <details>
 <summary>Locate the existing block</summary>

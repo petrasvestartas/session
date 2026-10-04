@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 193 lesson slots; 124 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The seven early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 208 lesson slots; 139 current checkpoints have fresh build and Chrome evidence. 69 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -19,18 +19,21 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Check the revised page layout and visible progress links in the same Chrome tab.
 - [x] Review every current main explanation against the same direct teaching style.
 - [x] Replace 100 long or generic code instructions with the exact action, in at most 25 words.
-- [x] Apply a direct page layout to all 124 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Replace 48 further repeated instructions with the specific action at each edit.
+- [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
+- [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
+- [x] Apply a direct page layout to all 139 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
-- [ ] Split the 14 checkpoints that exceed one hour of typing into runnable steps.
+- [ ] Split the 12 checkpoints that exceed one hour of typing into runnable steps.
 - [ ] Write and verify the 69 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 14 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds 12 current checkpoints over the conservative planning limit. Their build/browser checks remain valid, but they still need splitting before the course meets this teaching requirement. The proposed total will change.
 
-- [x] Audit the added/changed code in all 124 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 139 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [ ] Split every over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [ ] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -40,8 +43,8 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] Split the former 03a panel checkpoint into font/painter ownership, text painting and field layout; each fits one hour of typing.
 - [x] Split 03b into a connected state model and the completion helpers; remove unrelated GPU formatting changes.
-- [ ] [Draw completion and history](03c-layout.md): current typing 270–540 minutes; split at complete functions and verify each new step.
-- [ ] [Type into the real command dock](03d-input.md): current typing 68–136 minutes; split at complete functions and verify each new step.
+- [x] Split 03c into history, typing, submission, editing, vocabulary, completion, input ownership, preparation and shared layout.
+- [x] Split 03d into accepted-command handoff and canvas event delivery. Every new dock step fits one hour of typing.
 - [ ] [Give the scene an owner](11-scene.md): current typing 47–93 minutes; split at complete functions and verify each new step.
 - [ ] [Name objects without depending on their row](12-identity.md): current typing 42–83 minutes; split at complete functions and verify each new step.
 - [ ] [Ask which object is under the pointer](13-picking.md): current typing 47–93 minutes; split at complete functions and verify each new step.
@@ -89,9 +92,39 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 - [x] 03b · [Prepare the dock completion helpers](03b-state.md).
 
-- [x] 03c · [Draw completion and history](03c-layout.md).
+- [x] 03c · [Draw retained command history](03c-history.md).
 
-- [x] 03d · [Type into the real command dock](03d-input.md).
+- [x] 03ca · [Type directly into the command field](03ca-typing.md).
+
+- [x] 03cb · [Submit command text once](03cb-submit.md).
+
+- [x] 03cc · [Edit the command text](03cc-edit.md).
+
+- [x] 03cd · [Recognize Help](03cd-vocabulary.md).
+
+- [x] 03ce · [Complete a command name](03ce-complete.md).
+
+- [x] 03cf · [Accept or cancel a completion](03cf-accept.md).
+
+- [x] 03cg · [Read editing keys before the field](03cg-keys.md).
+
+- [x] 03ch · [Show matching commands](03ch-popup.md).
+
+- [x] 03ci · [Browse matching names](03ci-browse.md).
+
+- [x] 03cj · [Prepare the dock before painting](03cj-prepare.md).
+
+- [x] 03ck · [Remember where the dock is drawn](03ck-rects.md).
+
+- [x] 03ck · [Click the command dock](03ck-pointer.md).
+
+- [x] 03cl · [Scroll through command names](03cl-wheel.md).
+
+- [x] 03c · [Share the production dock layout](03c-layout.md).
+
+- [x] 03cn · [Return accepted application commands](03cn-handoff.md).
+
+- [x] 03d · [Hand commands to the application](03d-input.md).
 
 - [x] 04 · [Make a choice change the picture](04-input.md).
 

@@ -128,7 +128,7 @@ Replace that block with:
 
 ### 7. `src/editor.rs`
 
-An action carries the requested projection. One route serves both commands and any future keyboard shortcut.
+Carry the requested projection in Action for the named view commands.
 
 <details>
 <summary>Locate the existing block</summary>

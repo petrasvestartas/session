@@ -12,7 +12,7 @@ Continue from [Paint command text over the scene](03a-paint.md). [Save or recove
 
 ### 1. `src/panel.rs`
 
-Own the field text and draw it beside the label.
+Own the field text in Panel and import its layout helpers.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -39,7 +39,7 @@ Replace that block with:
 
 ### 2. `src/panel.rs`
 
-Own the field text and draw it beside the label.
+Initialize empty text and limit input to one layout pass.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -64,7 +64,7 @@ Replace that block with:
 
 ### 3. `src/panel.rs`
 
-Own the field text and draw it beside the label.
+Lay out the command label, field and history fold control.
 
 <details>
 <summary>Locate the existing block</summary>

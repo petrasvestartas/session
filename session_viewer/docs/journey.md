@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 124 cumulative lessons, about 166–313 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 139 cumulative lessons, about 162.5–311 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **193 proposed slots: 124 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **208 proposed slots: 139 current checkpoints and 69 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -36,8 +36,23 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [03a · Lay out the command field](journey/03a-panel.md) | 1–2 hours | Draw the production command field beside its label. |
 | [03b · Give the command field its memory](journey/03b-memory.md) | 1–2 hours | Store the field text and history in one owned model. |
 | [03b · Prepare the dock completion helpers](journey/03b-state.md) | 1–2 hours | Give the upcoming layout a vocabulary contract and caret helpers. |
-| [03c · Draw completion and history](journey/03c-layout.md) | 8–12 hours | Lay out the production command dock from its model. |
-| [03d · Type into the real command dock](journey/03d-input.md) | 5–8 hours | Send browser events to the dock and submit Help. |
+| [03c · Draw retained command history](journey/03c-history.md) | 0.5–1 hours | Draw retained history above the field. |
+| [03ca · Type directly into the command field](journey/03ca-typing.md) | 0.5–1 hours | Send the first printable key directly into the field. |
+| [03cb · Submit command text once](journey/03cb-submit.md) | 0.5–0.75 hours | Clear submitted text and retain one history entry. |
+| [03cc · Edit the command text](journey/03cc-edit.md) | 0.5–0.75 hours | Keep text selection, deletion and Escape in the field. |
+| [03cd · Recognize Help](journey/03cd-vocabulary.md) | 0.5–1 hours | Connect known names and useful unknown-command replies. |
+| [03ce · Complete a command name](journey/03ce-complete.md) | 0.5–1 hours | Select only the suggested suffix while retaining typed text. |
+| [03cf · Accept or cancel a completion](journey/03cf-accept.md) | 0.75–1.25 hours | Use Tab, Enter and Escape without losing input ownership. |
+| [03cg · Read editing keys before the field](journey/03cg-keys.md) | 0.5–1.25 hours | Consume command editing once and restore field focus. |
+| [03ch · Show matching commands](journey/03ch-popup.md) | 0.75–1.25 hours | Draw the matching names above the field. |
+| [03ci · Browse matching names](journey/03ci-browse.md) | 0.5–1 hours | Move through matching command names without changing the scene. |
+| [03cj · Prepare the dock before painting](journey/03cj-prepare.md) | 0.5–0.75 hours | Keep UI output owned until one GPU submission. |
+| [03ck · Remember where the dock is drawn](journey/03ck-rects.md) | 0.5–1 hours | Record actual widget bounds for mouse ownership. |
+| [03ck · Click the command dock](journey/03ck-pointer.md) | 0.5–1.25 hours | Use pointer ownership to edit, choose a name and fold history. |
+| [03cl · Scroll through command names](journey/03cl-wheel.md) | 0.5–1.25 hours | Keep scrolling over the dock inside the command list. |
+| [03c · Share the production dock layout](journey/03c-layout.md) | 0.75–1.25 hours | Connect the existing row and history to one shared layout. |
+| [03cn · Return accepted application commands](journey/03cn-handoff.md) | 0.75–1.25 hours | Keep editing local and return accepted names to the caller. |
+| [03d · Hand commands to the application](journey/03d-input.md) | 0.5–1 hours | Return accepted commands while keeping editing inside Panel. |
 | [04 · Make a choice change the picture](journey/04-input.md) | 1–2 hours | Use a command to switch backgrounds without changing the triangle. |
 | [05 · Let Rust supply the corners](journey/05-vertices.md) | 1–2 hours | Draw a rectangle from six positions stored in a GPU buffer. |
 | [06 · Share a corner between triangles](journey/06-indices.md) | 1–2 hours | Draw a diamond from four positions and six small index numbers. |
