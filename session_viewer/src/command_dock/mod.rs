@@ -511,7 +511,10 @@ pub(crate) fn row(
     escape_allowed: bool,
 ) -> bool {
     let mut focus_canvas = false;
-    ui.horizontal(|ui| {
+    // as tall as the field, so the label and the typed text share one centre line
+    let size = egui::vec2(ui.available_width(), 22.0);
+    let layout = egui::Layout::left_to_right(egui::Align::Center);
+    ui.allocate_ui_with_layout(size, layout, |ui| {
         ui.set_max_width((ui.available_width() - 26.0).max(80.0));
         ui.label("Command:");
         let id = egui::Id::new("command-input");
