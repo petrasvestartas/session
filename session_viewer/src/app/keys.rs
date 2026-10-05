@@ -1,7 +1,7 @@
 use crate::State;
 use winit::keyboard::{Key, NamedKey};
 
-/// Enter completes a command; Escape cancels it; Ctrl+Z and Ctrl+Y step the history; F fits. Feature requests are typed commands.
+/// Enter completes a command; Escape cancels it; Ctrl+Z and Ctrl+Y step the history; F fits, H hides, S shows. Feature requests are typed commands.
 pub fn run(state: &mut State, key: &Key<&str>, shortcut: bool, shift: bool) -> bool {
     let typed = match key {
         Key::Character(text) if !shortcut => letter(text),
@@ -18,10 +18,12 @@ pub fn run(state: &mut State, key: &Key<&str>, shortcut: bool, shift: bool) -> b
     true
 }
 
-/// The command a letter typed on the canvas runs instead of opening the command line: F fits the selection, or everything.
+/// The command a letter typed on the canvas runs instead of opening the command line: F fits the selection, or everything; H hides the selection; S shows everything.
 pub fn letter(text: &str) -> Option<&'static str> {
     match text {
         "f" | "F" => Some("Fit"),
+        "h" | "H" => Some("Hide"),
+        "s" | "S" => Some("Show"),
         _ => None,
     }
 }
@@ -58,9 +60,11 @@ mod tests {
     }
 
     #[test]
-    fn f_fits() {
+    fn f_fits_h_hides_s_shows() {
         assert_eq!(super::letter("f"), Some("Fit"));
         assert_eq!(super::letter("F"), Some("Fit"));
+        assert_eq!(super::letter("h"), Some("Hide"));
+        assert_eq!(super::letter("S"), Some("Show"));
         assert_eq!(super::letter("g"), None);
     }
 }
