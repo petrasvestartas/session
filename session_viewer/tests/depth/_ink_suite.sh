@@ -94,8 +94,8 @@ check brep_probe_flipped env BREP_PROBE_FLIPPED=1 "$B/mk_brep_probe" "$OUT/brep_
 check orbit_ok python3 tests/depth/_orbit_check.py "$B/selftest" "$OUT/brep_ok.pb" "$OUT/orbit_ok"
 check orbit_flipped python3 tests/depth/_orbit_check.py "$B/selftest" "$OUT/brep_flipped.pb" "$OUT/orbit_flipped" --compare "$OUT/orbit_ok"
 
-# Six cameras. VIEWER_ORBIT turns from the view VIEWER_VIEW sets, so none of them combines the
-# two; the near-edge-on camera is an orbit alone from the default iso camera. `tilt` is
+# Six cameras. VIEWER_VIEW is applied after VIEWER_ORBIT and replaces it, so a "tilted top"
+# renders byte for byte identical to top; the near-edge-on camera is an orbit alone. `tilt` is
 # 0.60 degrees off straight down - the harness logs eye (3017.605, -56.110, 6479.761) mm
 # against target (3050, 0, 278.5) mm, an elevation of 89.40 degrees. A unit is 0.005 rad and
 # the pitch is applied to the iso camera's 30 degrees of elevation, so 207.35 units is 89.40:

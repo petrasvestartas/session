@@ -7,7 +7,7 @@ use crate::camera::{Camera, View};
 use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::now_ms;
 use crate::engine::text::{TextLabel, TextPlacement};
-use session_rust::{AABB, Session, Xform};
+use session_rust::{Session, Xform};
 use std::rc::Rc;
 
 /// Background color.
@@ -83,6 +83,11 @@ fn assets_root(manifest: &str, man: &Manifest) -> std::path::PathBuf {
 fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
     let mut camera = Camera::new();
     camera.fit(&gpu.bounds, aspect);
+    // VIEWER_ORBIT=dx,dy in mouse pixels
+    if let Ok(o) = std::env::var("VIEWER_ORBIT") {
+        let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
+        camera.orbit(it.next().unwrap_or(0.0), it.next().unwrap_or(0.0));
+    }
     // VIEWER_ORTHO=1 for orthographic
     if std::env::var("VIEWER_ORTHO").is_ok() {
         camera.toggle_projection();
@@ -96,20 +101,6 @@ fn camera_from_env(gpu: &Gpu, aspect: f64) -> Camera {
             "right" => View::Right,
             _ => View::Iso,
         });
-    }
-    // VIEWER_ORBIT=dx,dy in mouse pixels, from the view VIEWER_VIEW set
-    if let Ok(o) = std::env::var("VIEWER_ORBIT") {
-        let mut it = o.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
-        camera.orbit(it.next().unwrap_or(0.0), it.next().unwrap_or(0.0));
-    }
-    // VIEWER_BOUNDS=x0,y0,z0,x1,y1,z1 fits that box in mm once the view is set, so frames of different scenes share one camera
-    if let Ok(value) = std::env::var("VIEWER_BOUNDS") {
-        let v: Vec<f64> = value.split(',').filter_map(|v| v.trim().parse().ok()).collect();
-        assert!(v.len() == 6, "VIEWER_BOUNDS needs six numbers: x0,y0,z0,x1,y1,z1");
-        let mut bounds = AABB::empty();
-        bounds.union_with_point(v[0], v[1], v[2]);
-        bounds.union_with_point(v[3], v[4], v[5]);
-        camera.fit(&bounds, aspect);
     }
     // VIEWER_ZOOM=N wheel steps, negative zooms out
     if let Ok(z) = std::env::var("VIEWER_ZOOM") {
@@ -268,42 +259,6 @@ fn report_drag(ms: &[f64], tiers: &[u8]) {
     }
 }
 
-/// A caption fixed at the top left and a nameplate per labelled scene point, read from a notes file.
-fn notes(path: &str) -> Vec<TextLabel> {
-    let bytes = std::fs::read(path).unwrap_or_else(|e| panic!("cannot read notes {path}: {e}"));
-    let json: serde_json::Value =
-        serde_json::from_slice(&bytes).unwrap_or_else(|e| panic!("cannot parse notes {path}: {e}"));
-    let label = |id: u32, text: &str, font_size: f32, color: [u8; 4], placement| TextLabel {
-        id,
-        object: None,
-        text: text.to_string(),
-        font_size,
-        line_height: font_size * 1.35,
-        color,
-        placement,
-        clip: None,
-    };
-    let mut labels = Vec::new();
-
-    if let Some(caption) = json["caption"].as_str() {
-        labels.push(label(1, caption, 20.0, [20, 20, 20, 255], TextPlacement::Screen { left: 18.0, top: 14.0 }));
-    }
-
-    for (i, note) in json["labels"].as_array().into_iter().flatten().enumerate() {
-        let text = note["text"].as_str().expect("a note needs its text");
-        let at: Vec<f64> = note["at"].as_array().expect("a note needs at").iter().filter_map(|v| v.as_f64()).collect();
-        assert!(at.len() == 3, "a note's at needs three numbers: {text}");
-        let placement = TextPlacement::Nameplate {
-            world: [at[0], at[1], at[2]],
-            padding: [6.0, 3.0],
-            rounded: true,
-        };
-        labels.push(label(i as u32 + 2, text, 14.0, [255, 255, 255, 255], placement));
-    }
-
-    labels
-}
-
 /// Forty labels fixed on screen; with `mixed`, forty nameplates and forty anchors in the scene too.
 fn bench_labels(gpu: &Gpu, mixed: bool) -> Vec<TextLabel> {
     let b = &gpu.bounds;
@@ -410,16 +365,6 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
         crate::app::clipping::verify_solids();
     }
 
-    // VIEWER_PLANE_SIZE=mm sizes every plane's square and normal, as View Plane Size does
-    if let Ok(value) = std::env::var("VIEWER_PLANE_SIZE") {
-        let size: f64 = value.parse().expect("VIEWER_PLANE_SIZE must be a number of mm");
-        crate::app::walk::frames::set_plane_size(size);
-    }
-
-    // VIEWER_FEATURES=1 draws every element's features, as Element Features On does
-    scene.attributes = std::env::var_os("VIEWER_FEATURES").is_some();
-    // VIEWER_SHEETS=0 keeps a flat file a scene: its pens stay in pixels instead of a 1 mm drawing pen
-    scene.flat_sheets = std::env::var("VIEWER_SHEETS").as_deref() != Ok("0");
     load_files(&mut scene, &mut gpu, files);
     gpu.set_clip_planes(&middle_planes(&gpu.bounds, planes));
     gpu.find_solids(|row| scene.solid_faces(row));
@@ -439,10 +384,6 @@ pub fn render_scene(files: &[SceneFile], w: u32, h: u32, out: &str) -> String {
     if let Ok(kind) = std::env::var("VIEWER_LABELS") {
         let labels = bench_labels(&gpu, kind == "mixed");
         gpu.text.set_labels(labels).expect("bench labels");
-    }
-    // VIEWER_NOTES=path.json adds a caption and nameplates: {"caption": text, "labels": [{"text": text, "at": [x, y, z]}]}
-    if let Ok(path) = std::env::var("VIEWER_NOTES") {
-        gpu.text.set_labels(notes(&path)).expect("notes");
     }
 
     // VIEWER_FRAMES=N times N frames first
