@@ -50,7 +50,7 @@ fn head_row(segment: &CylinderSegment) -> VectorRow {
 }
 
 /// Heads on the ribbons from `first` on: a vector row per headed end, that end marked so the ribbon stops under it; the row flags.
-fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: Arrowhead) -> u32 {
+pub(super) fn push_heads(seg: &mut SegRows, lanes: &mut LaneRows, first: usize, arrowhead: Arrowhead) -> u32 {
     let (start, end) = match arrowhead {
         Arrowhead::NONE => return 0,
         Arrowhead::START => (true, false),

@@ -489,10 +489,11 @@ fn view_commands_replace_viewport_shortcuts() {
     assert_eq!(parsed("View Side"), parsed("View Right"));
     assert_eq!(parsed("View Outline Off"), Ok("Show(Outline, Some(false))".into()));
     assert!(completions("View ").contains(&"View Show Edges"));
-    for line in ["View", "View Top extra", "View Outline maybe", "View Point Size 0", "View Point Size NaN"] {
+    for line in ["View", "View Top extra", "View Outline maybe", "View Point Size 0", "View Point Size NaN", "View Plane Size 0", "View Plane Size -5"] {
         assert!(parse(line).is_err(), "{line}");
     }
     assert!(parse("View Point Size 1.5").is_ok());
+    assert_eq!(parsed("View Plane Size 250"), Ok("PlaneSize(250.0)".into()));
 }
 
 #[test]

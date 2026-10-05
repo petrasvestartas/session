@@ -11,56 +11,16 @@ pub struct DeviceSetup {
     pub failure: Arc<std::sync::Mutex<Option<String>>>, // first GPU error, read each frame
 }
 
+/// The APIs the instance opens: WebGPU in the browser, native APIs otherwise.
+const BACKENDS: wgpu::Backends = if cfg!(target_arch = "wasm32") {
+    wgpu::Backends::BROWSER_WEBGPU
+} else {
+    wgpu::Backends::PRIMARY
+};
+
 /// Open the GPU: instance, surface, adapter, device, surface config.
 pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Result<DeviceSetup> {
-    // WebGPU in the browser, native APIs otherwise
-    let backends = if cfg!(target_arch = "wasm32") {
-        wgpu::Backends::BROWSER_WEBGPU
-    } else {
-        wgpu::Backends::PRIMARY
-    };
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-
-    // the window's drawing surface, if there is a window
-    let surface = match &window {
-        Some(w) => Some(instance.create_surface(w.clone())?),
-        None => None,
-    };
-
-    // browser picks the GPU; native prefers the low-power one
-    let default_power = if cfg!(target_arch = "wasm32") {
-        wgpu::PowerPreference::None
-    } else {
-        wgpu::PowerPreference::LowPower
-    };
-    // `?gpu=high` asks for the fast GPU
-    let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
-        wgpu::PowerPreference::HighPerformance
-    } else {
-        default_power
-    };
-    let options = |power_preference| wgpu::RequestAdapterOptions {
-        power_preference,
-        compatible_surface: surface.as_ref(),
-        force_fallback_adapter: false,
-    };
-    // the GPU: named, else preferred, else default
-    let adapter = match named_adapter(&instance, backends).await {
-        Some(named) => named,
-        None => match instance.request_adapter(&options(preferred)).await {
-            Ok(adapter) => adapter,
-            Err(_) if preferred != default_power => {
-                instance.request_adapter(&options(default_power)).await?
-            }
-            Err(error) => return Err(error.into()),
-        },
-    };
+    let (surface, adapter) = surface_and_adapter(window.as_ref()).await?;
     let info = adapter.get_info();
     crate::app::feedback::diagnostic("adapter", &format!("{info:?}"));
     log::info!(
@@ -172,6 +132,84 @@ pub async fn open(window: Option<Arc<Window>>, size: (u32, u32)) -> anyhow::Resu
         device_type: info.device_type,
         failure,
     })
+}
+
+/// A fresh instance of the backends.
+fn new_instance() -> wgpu::Instance {
+    wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: BACKENDS,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    })
+}
+
+/// The window's drawing surface and the GPU to draw it; natively without a window, the process's shared adapter.
+async fn surface_and_adapter(
+    window: Option<&Arc<Window>>,
+) -> anyhow::Result<(Option<wgpu::Surface<'static>>, wgpu::Adapter)> {
+    #[cfg(not(target_arch = "wasm32"))]
+    if window.is_none() {
+        return Ok((None, shared_adapter()?));
+    }
+
+    let instance = new_instance();
+    let surface = match window {
+        Some(w) => Some(instance.create_surface(w.clone())?),
+        None => None,
+    };
+    let adapter = choose_adapter(&instance, surface.as_ref()).await?;
+    Ok((surface, adapter))
+}
+
+/// Natively, the adapter every headless GPU of the process opens its device on, chosen once from one instance the adapter keeps alive.
+/// The Vulkan loader unloads the drivers without a device while it enumerates adapters, without the lock its object-naming calls take,
+/// so an instance enumerating while another thread's device names an object crashes inside libvulkan: parallel GPU tests did.
+#[cfg(not(target_arch = "wasm32"))]
+fn shared_adapter() -> anyhow::Result<wgpu::Adapter> {
+    static SHARED: std::sync::OnceLock<Result<wgpu::Adapter, String>> = std::sync::OnceLock::new();
+
+    SHARED
+        .get_or_init(|| {
+            pollster::block_on(choose_adapter(&new_instance(), None)).map_err(|error| error.to_string())
+        })
+        .clone()
+        .map_err(anyhow::Error::msg)
+}
+
+/// The GPU: named by `VIEWER_ADAPTER`, else the preferred power, else the default.
+async fn choose_adapter(
+    instance: &wgpu::Instance,
+    surface: Option<&wgpu::Surface<'static>>,
+) -> anyhow::Result<wgpu::Adapter> {
+    // browser picks the GPU; native prefers the low-power one
+    let default_power = if cfg!(target_arch = "wasm32") {
+        wgpu::PowerPreference::None
+    } else {
+        wgpu::PowerPreference::LowPower
+    };
+    // `?gpu=high` asks for the fast GPU
+    let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
+        wgpu::PowerPreference::HighPerformance
+    } else {
+        default_power
+    };
+    let options = |power_preference| wgpu::RequestAdapterOptions {
+        power_preference,
+        compatible_surface: surface,
+        force_fallback_adapter: false,
+    };
+
+    if let Some(named) = named_adapter(instance, BACKENDS).await {
+        return Ok(named);
+    }
+
+    match instance.request_adapter(&options(preferred)).await {
+        Ok(adapter) => Ok(adapter),
+        Err(_) if preferred != default_power => Ok(instance.request_adapter(&options(default_power)).await?),
+        Err(error) => Err(error.into()),
+    }
 }
 
 /// Pick the native GPU named by `VIEWER_ADAPTER`, if any.

@@ -1026,6 +1026,17 @@ impl State {
 }
 
 impl State {
+    /// View Plane Size <mm>: every plane drawn again as a square of that half side with a normal arrow as long.
+    pub fn set_plane_size(&mut self, size: f64) {
+        crate::app::walk::frames::set_plane_size(size);
+
+        if !self.scene.rewalk_editable(&mut self.gpu) {
+            self.resume_after(hydrate::Resume::Rewalk);
+        }
+
+        self.touch();
+    }
+
     /// Element Features On|Off: draw the features inside each element; `None` toggles.
     pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
         let show = value.unwrap_or(!self.scene.attributes);

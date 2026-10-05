@@ -8,7 +8,7 @@ pub const SPEC: Spec = Spec {
         "View Bottom", "View Isometric", "View Reset", "View Perspective", "View Orthographic",
         "View Show Edges", "View Hide Edges", "View Show Lines", "View Hide Lines",
         "View Show Points", "View Hide Points", "View Outline", "View Outline On", "View Outline Off",
-        "View Lighting", "View Backfaces", "View Xray", "View Point Size", "View Names",
+        "View Lighting", "View Backfaces", "View Xray", "View Point Size", "View Plane Size", "View Names",
         "View Hide Selected", "View Show All",
     ],
     wait_for_option: true,
@@ -26,6 +26,7 @@ enum Change {
     Show(Setting, Option<bool>),
     Xray(Option<bool>),
     PointSize(f32),
+    PlaneSize(f64),
     Names,
     HideSelected,
     ShowAll,
@@ -63,6 +64,11 @@ fn parse(_: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
                 if !size.is_finite() || size <= 0.0 { return Err("View Point Size needs a positive number".into()); }
                 Change::PointSize(size)
             }
+            Some("plane") if rest.len() == 3 && rest[1].eq_ignore_ascii_case("size") => {
+                let size: f64 = rest[2].parse().map_err(|_| "View Plane Size needs a positive number of mm")?;
+                if !size.is_finite() || size <= 0.0 { return Err("View Plane Size needs a positive number of mm".into()); }
+                Change::PlaneSize(size)
+            }
             _ => return Err("Choose a View direction or display setting".into()),
         },
     };
@@ -98,6 +104,7 @@ impl Action for Change {
                 if value.is_none_or(|on| on != (state.gpu.view.opacity == 0.0)) { state.toggle_xray(); }
             }
             Self::PointSize(size) => state.set_cloud_size(size),
+            Self::PlaneSize(size) => state.set_plane_size(size),
             Self::Names => state.toggle_selected_names(),
             Self::HideSelected => state.hide_selected(),
             Self::ShowAll => state.show_all(),

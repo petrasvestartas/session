@@ -226,7 +226,7 @@ pub fn walk_geometry(w: &mut Walk, cx: &WalkCx, geom: &Geometry) -> Row {
         Geometry::Polyline(pl) => walk_polyline(w.seg, w.lanes, pl, cx.row),
         Geometry::NurbsCurve(c) => walk_nurbscurve(w.seg, w.lanes, c, cx.row),
         Geometry::Plane(p) if plane::is_clipping(p) => plane::walk(w.seg, p, cx.row),
-        Geometry::Plane(p) => walk_plane(w.seg, p, cx.row),
+        Geometry::Plane(p) => walk_plane(w.seg, w.lanes, p, cx.row),
         Geometry::OBB(b) => walk_obb(w.seg, b, cx.row),
         Geometry::Point(p) => walk_point(w.glyph, p, cx.row),
         Geometry::PointCloud(pc) => walk_cloud(w.cloud, pc, cx),
