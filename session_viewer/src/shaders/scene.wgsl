@@ -77,6 +77,51 @@ const MM_TO_M: f32 = 0.001;
 // Thinnest lines never fade below this alpha.
 const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
+// Depth layers for coplanar fills, nearer as they rise; 0 is every other face.
+const LAYER_CONTACT: u32 = 1u;
+// One layer's pull toward the eye, relative to reverse-Z depth: 2^-16, eight times the ink tolerance.
+const LAYER_STEP: f32 = 1.5258789e-5;
+// One layer's pull in pixels of the face's own depth slope; covers the rasterizer's sub-pixel snapping.
+const LAYER_SLOPE: f32 = 0.25;
+// No layer pulls further than this share of its depth, so an edge-on face cannot leap forward.
+const LAYER_CLAMP: f32 = 1.0e-3;
+
+// Largest depth change per pixel across the plane through `world` with unit normal `n`; 0 when it cannot be measured.
+fn depth_slope(world: vec3<f32>, n: vec3<f32>) -> f32 {
+    let u = normalize(cross(n, select(vec3<f32>(1.0, 0.0, 0.0), vec3<f32>(0.0, 1.0, 0.0), abs(n.x) > 0.9)));
+    let v = cross(n, u);
+    let reach = select(length(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - world), line.ortho_h, line.ortho_h > 0.0) * 0.01;
+    let c0 = mvp * vec4<f32>(world, 1.0);
+    let cu = mvp * vec4<f32>(world + u * reach, 1.0);
+    let cv = mvp * vec4<f32>(world + v * reach, 1.0);
+
+    if (c0.w <= 0.0 || cu.w <= 0.0 || cv.w <= 0.0) {
+        return 0.0;
+    }
+
+    let px = vec2<f32>(line.vp_w, line.vp_h) * 0.5;
+    let p0 = vec3<f32>(c0.xy / c0.w * px, c0.z / c0.w);
+    let du = vec3<f32>(cu.xy / cu.w * px, cu.z / cu.w) - p0;
+    let dv = vec3<f32>(cv.xy / cv.w * px, cv.z / cv.w) - p0;
+    let det = du.x * dv.y - du.y * dv.x;
+
+    if (abs(det) < 1e-12) {
+        return 0.0;
+    }
+
+    let gx = (du.z * dv.y - dv.z * du.y) / det;
+    let gy = (du.x * dv.z - dv.x * du.z) / det;
+    return max(abs(gx), abs(gy));
+}
+
+// `clip` of a vertex at `world` on a face with unit normal `n`, drawn `layer` steps in front of coplanar faces below it:
+// depth moves along the view ray, the pixel does not.
+fn depth_layer(clip: vec4<f32>, world: vec3<f32>, n: vec3<f32>, layer: u32) -> vec4<f32> {
+    let z = abs(clip.z / clip.w);
+    let pull = min(LAYER_STEP * z + LAYER_SLOPE * depth_slope(world, n), LAYER_CLAMP * z) * f32(layer);
+    return vec4<f32>(clip.xy, clip.z + pull * clip.w, clip.w);
+}
+
 // A point of object `i` in scene space.
 fn place(i: u32, p: vec3<f32>) -> vec3<f32> {
     return (instances[i].model * vec4<f32>(p, 1.0)).xyz + translations[i].xyz;

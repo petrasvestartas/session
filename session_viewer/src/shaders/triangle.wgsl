@@ -64,6 +64,11 @@ fn transform_vertex(in: VsIn) -> VsOut {
     o.color = color;
     o.world_pos = world;
     o.normal = face_normal(inst.model, oct32_decode(in.normal));
+
+    if (contact && clip.w > 0.0 && dot(o.normal, o.normal) > 1e-12) {
+        o.pos = depth_layer(clip, world, normalize(o.normal), LAYER_CONTACT);
+    }
+
     // negative determinant: winding is flipped
     o.mirrored = select(0u, 1u, dot(inst.model[0].xyz, cross(inst.model[1].xyz, inst.model[2].xyz)) < 0.0);
     o.print = select(0.0, 1.0, (inst.flags & FLAG_PRINT) != 0u || contact);
