@@ -74,6 +74,7 @@ pub struct Scene {
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
     pub selected: Option<u32>,                           // selected object row
     pub attributes: bool,                                // element features drawn
+    pub flat_sheets: bool,                               // a flat file is judged a drawing sheet with 1 mm pens
     order: Vec<Rc<str>>,                                 // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
     feet: Vec<Footprint>, // lane rows of each row
@@ -150,6 +151,7 @@ impl Scene {
             edge_colors: HashMap::new(),
             selected: None,
             attributes: false,
+            flat_sheets: true,
             order: Vec::new(),
             owners: Vec::new(),
             feet: Vec::new(),
@@ -539,8 +541,8 @@ impl Scene {
         let extent = file_extent(&self.tables, &from);
         self.tables.bounds.union_with(&extent);
 
-        // a flat file is a drawing sheet, unless it was drawn here
-        let sheet = if self.created_doc != Some(index) {
+        // a flat file is a drawing sheet, unless it was drawn here or sheets are off
+        let sheet = if self.flat_sheets && self.created_doc != Some(index) {
             planar_band(&self.tables, &from, &place)
         } else {
             None
