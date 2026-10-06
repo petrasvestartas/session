@@ -1036,6 +1036,19 @@ mod egui_tests_25 {
 
 impl State {
     /// L: open or close the layers panel.
+    /// Expand every layer panel row that has children.
+    pub fn expand_layers(&mut self) {
+        let hierarchy = &mut self.features.hierarchy;
+
+        for index in 0..hierarchy.nodes.len() {
+            if hierarchy.nodes[index].end > index + 1 {
+                hierarchy.open.insert(index);
+            }
+        }
+
+        self.touch();
+    }
+
     pub fn toggle_layers_panel(&mut self) {
         let open = !crate::app::feedback::layers_open();
         crate::app::feedback::layers_visible(open);

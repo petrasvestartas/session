@@ -391,7 +391,7 @@ fn partial_entries_accept_commands_then_options() {
     assert_eq!(browse("la")[0], "Layers");
     assert_eq!(browse("la").len(), completions("").len());
     assert_eq!(browse("forgot"), completions(""));
-    assert_eq!(browse("Layers o"), vec!["Layers On", "Layers Off"]);
+    assert_eq!(browse("Layers o"), vec!["Layers On", "Layers Off", "Layers All"]);
 }
 
 /// A several-word name parses with or without its spaces, in any case.
@@ -463,7 +463,7 @@ fn several_word_names_complete() {
 #[test]
 fn discovery_and_layer_options_are_case_insensitive() {
     assert_eq!(completions("la"), vec!["Layers"]);
-    assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off"]);
+    assert_eq!(completions("Layers "), vec!["Layers On", "Layers Off", "Layers All"]);
     assert!(completions("").contains(&"Controls"));
     assert_eq!(parsed("Layers OFF"), Ok("Layers(Some(false))".into()));
     assert_eq!(
