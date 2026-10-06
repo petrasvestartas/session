@@ -129,6 +129,7 @@ pub struct Ui {
     agent_value: String, // last text taken from the hidden input; register:phone
     #[cfg(target_arch = "wasm32")] // register:phone
     field: Option<&'static str>, // the field the hidden input fed last frame, None for the command line; register:phone
+    startup: Option<String>, // the page's ?cmd= command lines, separated by ';', run once on the first frame
 }
 
 impl Ui {
@@ -170,11 +171,22 @@ impl Ui {
             agent_value: String::new(), // register:phone
             #[cfg(target_arch = "wasm32")] // register:phone
             field: None, // register:phone
+            #[cfg(target_arch = "wasm32")]
+            startup: crate::app::route::query("cmd"),
+            #[cfg(not(target_arch = "wasm32"))]
+            startup: None,
         }
     }
 
     /// Lay out and draw the panels; true when the frame must be redrawn.
     pub fn frame(&mut self, state: &mut State) -> bool {
+        // the page's ?cmd= lines, as if typed: a link or a screenshot opens the viewer in that state
+        if let Some(commands) = self.startup.take() {
+            for line in commands.split(';').map(str::trim).filter(|line| !line.is_empty()) {
+                self.run_line(state, line);
+            }
+        }
+
         let mut input = self.input.take_egui_input(&state.window);
         // layout in CSS pixels
         let logical = state.logical_size();

@@ -6,12 +6,12 @@ const FLOOR: u32 = 44u; // floor vertices; axis vertices follow
 
 // Floor line color.
 const GREY: vec3<f32> = vec3<f32>(0.55, 0.55, 0.55);
-// X axis color.
-const RED: vec3<f32> = vec3<f32>(0.85, 0.30, 0.30);
-// Y axis color.
-const GREEN: vec3<f32> = vec3<f32>(0.30, 0.70, 0.30);
-// Z axis color.
-const BLUE: vec3<f32> = vec3<f32>(0.30, 0.45, 0.85);
+// X axis color: pink #E8478B.
+const RED: vec3<f32> = vec3<f32>(0.910, 0.278, 0.545);
+// Y axis color: yellow-green #9ACD32.
+const GREEN: vec3<f32> = vec3<f32>(0.604, 0.804, 0.196);
+// Z axis color: Block Research Group blue #2196EA.
+const BLUE: vec3<f32> = vec3<f32>(0.129, 0.588, 0.918);
 
 // One grid vertex.
 struct VsOut {
