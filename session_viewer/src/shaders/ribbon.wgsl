@@ -245,7 +245,8 @@ fn neighbor_visible(seg: StrokeSegment) -> bool {
 // rather than adding a fixed physical gap that would overwhelm a tiny model.
 fn sag_terms(w: vec3<f32>, c: vec4<f32>, sag: f32) -> vec2<f32> {
     let toward = toward_eye(w);
-    let eye_distance = length(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - w);
+    // an orthographic view has no eye, only a direction: its stand-in point lies 1e9 away and would make the slack metres wide
+    let eye_distance = select(length(vec3<f32>(line.eye_x, line.eye_y, line.eye_z) - w), 0.0, line.ortho_h > 0.0);
     let roundoff = max(length(w), eye_distance) * DEPTH_REL_TOL;
     let rise = max(sag, roundoff);
 

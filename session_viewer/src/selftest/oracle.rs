@@ -620,3 +620,51 @@ fn offscreen_stroke_axes_keep_their_visible_width() {
         }
     }
 }
+
+/// One solid in front of another: the edges of the one behind are hidden by the front faces,
+/// as BReps and as meshes.
+#[test]
+fn edges_behind_another_solid_stay_hidden() {
+    if pollster::block_on(Gpu::new_headless(8, 8)).is_err() {
+        eprintln!("no GPU adapter; skipped");
+        return;
+    }
+
+    for mesh in [false, true] {
+        for msaa in [1, 4] {
+            let mut session = Session::new("two boxes");
+            let front = BRep::create_box(1000.0, 1000.0, 1000.0);
+            let back = BRep::create_box(300.0, 300.0, 300.0);
+            let back_id = back.guid().to_string();
+
+            if mesh {
+                let (front, back) = (front.mesh(), back.mesh());
+                let id = back.guid().to_string();
+                session.add_mesh(front, None);
+                session.add_mesh(back, None);
+                session.set_xform(&id, Xform::translation(0.0, 1200.0, 0.0));
+            } else {
+                session.add_brep(front, None);
+                session.add_brep(back, None);
+                session.set_xform(&back_id, Xform::translation(0.0, 1200.0, 0.0));
+            }
+
+            let size = (640, 400);
+            let (oracle, rgba) = render_configured(session, size, |camera, _| {
+                camera.set_view(crate::camera::View::Front);
+                camera.update_position();
+            }, |gpu| {
+                gpu.view.show_grid = false;
+                gpu.view.show_outlines = false;
+                gpu.view.markers = false;
+                gpu.view.lit = false;
+                gpu.view.opacity = 1.0;
+                gpu.view.msaa_forced = Some(msaa);
+            });
+            let verdict = oracle.judge(&rgba, (0.0, 0.0, f64::from(size.0), f64::from(size.1)));
+            println!("mesh {mesh}, MSAA{msaa}: {} / {} visible, {} / {} hidden leaks", verdict.inked, verdict.visible, verdict.leaked, verdict.hidden);
+            assert!(verdict.hidden > 100, "the back box must lie behind the front one");
+            assert!(verdict.leaked <= 5.max(verdict.hidden / 50), "{} / {} hidden samples leak", verdict.leaked, verdict.hidden);
+        }
+    }
+}
