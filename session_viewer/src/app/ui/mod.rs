@@ -180,8 +180,10 @@ impl Ui {
 
     /// Lay out and draw the panels; true when the frame must be redrawn.
     pub fn frame(&mut self, state: &mut State) -> bool {
-        // the page's ?cmd= lines, as if typed: a link or a screenshot opens the viewer in that state
-        if let Some(commands) = self.startup.take() {
+        // the page's ?cmd= lines, as if typed, once the scene is on screen (or never will be): a link or a screenshot opens the viewer in that state
+        let ready = state.gpu.performance.geometry_shown() || state.gpu.performance.frames > STARTUP_FRAMES;
+
+        if ready && let Some(commands) = self.startup.take() {
             for line in commands.split(';').map(str::trim).filter(|line| !line.is_empty()) {
                 self.run_line(state, line);
             }
@@ -335,6 +337,9 @@ impl Ui {
         }
     }
 }
+
+/// Frames the page's ?cmd= lines wait for geometry before they run anyway.
+const STARTUP_FRAMES: u64 = 600;
 
 /// A rectangle as `[left, top, right, bottom]` for browser tests, null when there is none.
 fn corners(rect: Option<egui::Rect>) -> serde_json::Value {

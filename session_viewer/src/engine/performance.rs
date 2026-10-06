@@ -62,6 +62,11 @@ impl Performance {
         }
     }
 
+    /// True once a frame with geometry was drawn.
+    pub fn geometry_shown(&self) -> bool {
+        self.shown
+    }
+
     /// Mark the first frame and the first with geometry; names the mark due once the GPU is done.
     pub fn mark_startup(&mut self, geometry: bool) -> Option<&'static str> {
         let first = self.frames == 0;
