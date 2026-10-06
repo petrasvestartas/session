@@ -70,7 +70,10 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
     bounds
 }
 
-/// The four edges of the plane's square and its normal from the origin, headed: the face it bounds and the side it faces.
+/// The length of a plane's x and y axes over plane_size(), inside its square.
+const AXIS: f64 = 0.6;
+
+/// The four edges of the plane's square, its x and y axes from the origin, and its normal, headed: the face it bounds, its frame and the side it faces.
 pub fn walk_plane(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Plane, row: u32) -> Row {
     let (o, x, y) = (pl.origin(), pl.x_axis(), pl.y_axis());
     let z = pl.z_axis();
@@ -81,13 +84,16 @@ pub fn walk_plane(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Plane, row: u32)
         corner(&o, &x, &y, [1.0, -1.0]),
         [o[0] as f32, o[1] as f32, o[2] as f32],
         [0, 1, 2].map(|k| (o[k] + z[k] * plane_size()) as f32),
+        [0, 1, 2].map(|k| (o[k] + x[k] * plane_size() * AXIS) as f32),
+        [0, 1, 2].map(|k| (o[k] + y[k] * plane_size() * AXIS) as f32),
     ];
     let pen = Pen {
         row,
         radius: encode_width(pl.width),
         color: pack_rgba(pl.linecolor.to_f32()),
     };
-    let bounds = push_loop(seg, &c, &[[0, 1], [1, 2], [2, 3], [3, 0], [4, 5]], &pen);
+    // the normal last: the one headed segment
+    let bounds = push_loop(seg, &c, &[[0, 1], [1, 2], [2, 3], [3, 0], [4, 6], [4, 7], [4, 5]], &pen);
     let normal = seg.ribbons.len() - 1;
     Row {
         flags: push_heads(seg, lanes, normal, Arrowhead::END),
@@ -112,7 +118,7 @@ mod tests {
     use crate::engine::gpu::Instance;
     use crate::engine::gpu::vectors::{VectorRow, VectorRows};
 
-    /// A plane is its square and its normal, the normal headed at its tip, both plane_size() from the origin.
+    /// A plane is its square, its x and y axes AXIS of plane_size() long, and its normal, headed at its tip, plane_size() from the origin.
     #[test]
     fn plane_draws_its_square_and_a_headed_normal() {
         let mut seg = SegRows::default();
@@ -121,8 +127,10 @@ mod tests {
         let heads = lanes.get::<VectorRows>().map_or(Vec::new(), |v| v.rows.clone());
         let size = plane_size() as f32;
 
-        assert_eq!(seg.ribbons.len(), 5);
-        assert_eq!((seg.ribbons[4].p0, seg.ribbons[4].p1), ([0.0, 0.0, 0.0], [0.0, 0.0, size]));
+        assert_eq!(seg.ribbons.len(), 7);
+        assert_eq!((seg.ribbons[4].p0, seg.ribbons[4].p1), ([0.0, 0.0, 0.0], [(plane_size() * AXIS) as f32, 0.0, 0.0]));
+        assert_eq!((seg.ribbons[5].p0, seg.ribbons[5].p1), ([0.0, 0.0, 0.0], [0.0, (plane_size() * AXIS) as f32, 0.0]));
+        assert_eq!((seg.ribbons[6].p0, seg.ribbons[6].p1), ([0.0, 0.0, 0.0], [0.0, 0.0, size]));
         assert_eq!(heads.len(), 1);
         assert_eq!((heads[0].end, heads[0].heads), ([0.0, 0.0, size], VectorRow::HEAD_END | VectorRow::HEAD_ONLY));
         assert_eq!(row.flags, Instance::FLAG_HEADS);
