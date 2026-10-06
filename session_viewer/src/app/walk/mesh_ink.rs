@@ -3,7 +3,7 @@ use super::mesh::{COPLANAR_DOT, CREASE_COS, Lap, WIREFRAME_BLACK_MIN};
 use super::mesh_topology::{MeshTopo, SlotMap};
 use crate::app::knobs;
 use crate::engine::gpu::glyphs::GlyphRows;
-use crate::engine::gpu::segments::SegRows;
+use crate::engine::gpu::segments::{SILHOUETTE_SAG, SegRows};
 use crate::engine::gpu::{CylinderSegment, GlyphPoint};
 use session_rust::Mesh;
 use session_rust::mesh::ColorMode;
@@ -108,6 +108,8 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
     let w = m.widths();
     let black_wire = topo.edges.len() >= WIREFRAME_BLACK_MIN; // dense mesh: black edges
     ink.seg.pipes.reserve(topo.edges.len());
+    ink.seg.pipe_ids.resize(ink.seg.pipes.len(), u32::MAX);
+    ink.seg.pipe_sags.resize(ink.seg.pipes.len(), 0.0);
 
     for (i, (a, b, col)) in topo.edges.iter().enumerate() {
         let (na, nb) = edge_normals(topo, i);
@@ -125,13 +127,13 @@ fn push_pipes(ink: &mut Ink, m: &Mesh, topo: &MeshTopo, cx: &InkCx) {
             continue;
         }
 
-        if cx.smooth && !smooth_feature(topo, i, (na, nb)) {
-            continue;
-        }
+        // a smooth edge: drawn only where it is the silhouette
+        let silhouette = cx.smooth && !smooth_feature(topo, i, (na, nb));
 
         ink.seg
             .pipe_ids
             .push(if cx.smooth { u32::MAX } else { i as u32 }); // edge id for picking
+        ink.seg.pipe_sags.push(if silhouette { SILHOUETTE_SAG } else { 0.0 });
         ink.seg.pipes.push(CylinderSegment {
             p0: cx.vpos[cx.slots.slot(*a)],
             radius: encode_width(width_at(w, i)),
@@ -284,6 +286,7 @@ fn reversed_normal(n: [f64; 3]) -> [f64; 3] {
 
 #[cfg(test)]
 mod tests {
+    use crate::engine::gpu::segments::is_silhouette;
     use super::*;
     use crate::app::walk::WalkCx;
     use crate::app::walk::mesh::{MeshCx, MeshOpts, walk_mesh};
@@ -291,7 +294,8 @@ mod tests {
     use session_rust::Point;
 
     /// How many pipes one mesh pushes when walked under `opts`.
-    fn walk_pipes(mesh: &Mesh, opts: &MeshOpts) -> usize {
+    /// The ink pipes and the silhouette pipes of one mesh walked with opts.
+    fn walk_pipes(mesh: &Mesh, opts: &MeshOpts) -> (usize, usize) {
         let mut arena = ArenaRows::default();
         let mut segments = SegRows::default();
         let mut glyphs = GlyphRows::default();
@@ -306,7 +310,8 @@ mod tests {
             attributes: false,
         };
         walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
-        segments.pipes.len()
+        let silhouettes = segments.pipe_sags.iter().filter(|sag| is_silhouette(**sag)).count();
+        (segments.pipes.len() - silhouettes, silhouettes)
     }
 
     /// A slightly bulged 3x3 quad grid: 24 edges, 12 on the border.
@@ -380,12 +385,13 @@ mod tests {
         }
     }
 
-    /// A smooth mesh draws only borders and creases.
+    /// A smooth mesh inks only borders and creases; its other edges are drawn only where they are its silhouette.
     #[test]
     fn smooth_mesh_inks_borders_and_creases_only() {
         let grid = bulged_grid();
-        assert_eq!(walk_pipes(&grid, &MeshOpts::OBJECT), 24);
-        assert_eq!(walk_pipes(&grid, &MeshOpts::SURFACE), 12);
-        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::SURFACE), 7);
+        assert_eq!(walk_pipes(&grid, &MeshOpts::OBJECT), (24, 0));
+        assert_eq!(walk_pipes(&grid, &MeshOpts::SURFACE).0, 12);
+        assert!(walk_pipes(&grid, &MeshOpts::SURFACE).1 > 0);
+        assert_eq!(walk_pipes(&folded_pair(), &MeshOpts::SURFACE).0, 7);
     }
 }

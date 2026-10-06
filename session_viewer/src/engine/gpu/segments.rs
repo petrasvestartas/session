@@ -30,6 +30,15 @@ pub struct CylinderSegment {
 
 const _: () = assert!(std::mem::size_of::<CylinderSegment>() == 40);
 
+/// The sag of a pipe drawn only where it is a silhouette, where the two faces beside it face
+/// opposite ways to the camera: the sign bit set on a zero slack; ribbon.wgsl reads the bit.
+pub const SILHOUETTE_SAG: f32 = -0.0;
+
+/// True for the sag of a pipe drawn only where it is a silhouette.
+pub fn is_silhouette(sag: f32) -> bool {
+    sag.is_sign_negative()
+}
+
 /// One batch of segments added to a sheet.
 pub struct SegDraw {
     pub instance: u32, // object row of the sheet

@@ -2,10 +2,11 @@ use session_rust::Mesh;
 use session_rust::brep::{BRep, BRepOrientation};
 
 use super::curves::turning_degrees;
+use super::mesh::COPLANAR_DOT;
 use super::encode::{Pen, pack_facing};
 use crate::app::knobs;
 use crate::engine::gpu::CylinderSegment;
-use crate::engine::gpu::segments::SegRows;
+use crate::engine::gpu::segments::{SILHOUETTE_SAG, SegRows};
 use session_rust::AABB;
 
 /// Degrees of turning one display chord of a curved edge may span: how round a circle looks
@@ -623,13 +624,60 @@ impl<'a> EdgePen<'a> {
 
     /// Facing word of one pipe; unknown when ambiguous.
     fn facing(&self, chain: &EdgeChain, a: [f64; 3], b: [f64; 3]) -> u32 {
-        let (first, second) = self.facing_pair(chain, a, b);
+        self.facing_word(self.facing_pair(chain, a, b))
+    }
 
+    /// Facing word of two normals, kept when recording.
+    fn facing_word(&self, (first, second): FacingPair) -> u32 {
         if let Some(normals) = &self.normals {
             normals.borrow_mut().push((first, second));
         }
 
         pack_facing(first.as_ref(), second.as_ref())
+    }
+
+    /// Every inner edge of a curved face, between two of its triangles that are not coplanar, as a
+    /// pipe drawn only where it is the face's silhouette: one triangle beside it faces the camera
+    /// and the other faces away. Planar faces and the face boundaries add none.
+    pub fn push_silhouette_pipes(&self, seg: &mut SegRows, bounds: &mut AABB) {
+        seg.pipe_ids.resize(seg.pipes.len(), u32::MAX);
+        seg.pipe_sags.resize(seg.pipes.len(), 0.0);
+
+        for (face, facets) in self.facets.iter().enumerate() {
+            let mut edges: Vec<_> = facets.iter().collect();
+            edges.sort_unstable_by_key(|(edge, _)| **edge);
+
+            for (edge, pair) in edges {
+                let (Some(n0), Some(n1)) = (pair.normals[0], pair.normals[1]) else {
+                    continue;
+                };
+
+                if pair.count != 2 || n0[0] * n1[0] + n0[1] * n1[1] + n0[2] * n1[2] >= COPLANAR_DOT {
+                    continue;
+                }
+
+                let p0 = super::curves::render_position(edge[0].map(f64::from_bits));
+                let p1 = super::curves::render_position(edge[1].map(f64::from_bits));
+
+                if p0 == p1 || !p0.into_iter().chain(p1).all(f32::is_finite) {
+                    continue;
+                }
+
+                bounds.union_with_point(p0[0] as f64, p0[1] as f64, p0[2] as f64);
+                bounds.union_with_point(p1[0] as f64, p1[1] as f64, p1[2] as f64);
+                let pair = (scaled_normal(Some(n0), self.signs[face]), scaled_normal(Some(n1), self.signs[face]));
+                seg.pipes.push(CylinderSegment {
+                    p0,
+                    radius: self.pen.radius,
+                    p1,
+                    instance_id: self.pen.row,
+                    color: self.pen.color,
+                    facing: self.facing_word(pair),
+                });
+                seg.pipe_ids.push(u32::MAX);
+                seg.pipe_sags.push(SILHOUETTE_SAG);
+            }
+        }
     }
 
     /// Outward normals of the faces beside one pipe; none when ambiguous.

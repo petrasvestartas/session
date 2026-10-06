@@ -181,6 +181,7 @@ fn walk_brep_fresh(
             arena,
             &boundary_vertices,
         );
+        ep.push_silhouette_pipes(ink.seg, &mut row.bounds);
         lap.mark("edges");
         normals = ep.take_normals();
     }
@@ -343,6 +344,7 @@ pub fn walk_surface(arena: &mut ArenaRows, ink: &mut Ink, s: &NurbsSurface, cx: 
 
 #[cfg(test)]
 mod tests {
+    use crate::engine::gpu::segments::is_silhouette;
     use super::*;
     use crate::app::walk::brep_edges::edge_chains;
     use crate::engine::gpu::Instance;
@@ -381,7 +383,8 @@ mod tests {
         let brep = &scene.objects.breps[0];
         let (arena, seg, glyph, _) = walked(brep);
         assert!(seg.ribbons.is_empty() && glyph.spheres.is_empty());
-        assert_eq!(arena.surface_boundaries.len(), seg.pipes.len());
+        let edge_pipes = seg.pipe_sags.iter().filter(|sag| !is_silhouette(**sag)).count();
+        assert_eq!(arena.surface_boundaries.len(), edge_pipes);
         let curves: Vec<Vec<_>> = brep
             .m_edges
             .iter()
@@ -470,7 +473,9 @@ mod tests {
             assert!((l - 1.0).abs() < 1e-3, "normal {n:?}");
         }
 
-        assert_eq!(seg.pipes.len(), segments);
+        let silhouettes = seg.pipe_sags.iter().filter(|sag| is_silhouette(**sag)).count();
+        assert_eq!(seg.pipes.len() - silhouettes, segments);
+        assert!(silhouettes > 0, "the curved side has silhouette pipes");
         assert!(seg.ribbons.is_empty());
         assert!(glyph.spheres.is_empty());
         assert_ne!(row.flags & Instance::FLAG_SMOOTH, 0);

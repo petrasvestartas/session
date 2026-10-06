@@ -12,7 +12,7 @@ struct StrokeSegment {
     facing: u32, // packed normals of the two faces beside it
     previous: u32, // row of the segment before it, none, or HEAD_MARK
     next: u32, // row of the segment after it, none, or HEAD_MARK
-    sag: f32, // how far the stroke rises off the faces beside it, mm; the hidden-line test's slack
+    sag: f32, // how far the stroke rises off the faces beside it, mm; the hidden-line test's slack; its sign bit marks a silhouette-only segment
 }
 
 // Neighbour code of an end under an arrowhead, drawn by the vector lane; matches HEAD_MARK in Rust.
@@ -223,8 +223,32 @@ fn corner_of(k: u32) -> u32 {
 // True in the color pass: back edges show faint through translucent faces; set by the vertex entry points.
 var<private> through_faces: bool = false;
 
-// True when the segment is drawn: a face beside it faces the camera, or the faces are glass.
+// True for a segment drawn only where it is a silhouette: its sag's sign bit; matches SILHOUETTE_SAG in Rust.
+fn silhouette_only(seg: StrokeSegment) -> bool {
+    return (bitcast<u32>(seg.sag) & 0x80000000u) != 0u;
+}
+
+// True where the two faces beside a segment face opposite ways to the camera: the outline of a curved face.
+fn on_silhouette(seg: StrokeSegment) -> bool {
+    if (seg.facing == FACING_UNKNOWN) {
+        return false;
+    }
+
+    let inst = instances[seg.instance_id];
+    let p0 = place(seg.instance_id, vec3<f32>(seg.p0x, seg.p0y, seg.p0z));
+    let p1 = place(seg.instance_id, vec3<f32>(seg.p1x, seg.p1y, seg.p1z));
+    let n0 = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
+    let n1 = face_normal(inst.model, oct16_decode(seg.facing >> 16u));
+    let to_eye = toward_eye((p0 + p1) * 0.5);
+    return dot(n0, to_eye) * dot(n1, to_eye) <= 0.0;
+}
+
+// True when the segment is drawn: a face beside it faces the camera, or the faces are glass; a silhouette segment only on the silhouette.
 fn neighbor_visible(seg: StrokeSegment) -> bool {
+    if (silhouette_only(seg)) {
+        return on_silhouette(seg);
+    }
+
     let inst = instances[seg.instance_id];
     let glass = through_faces && line.opacity < 1.0; // hidden ink fades to 1 - opacity, never pops
 
@@ -432,7 +456,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
         return dead_vertex();
     }
     // the stroke's rise off its faces, as the farther end sees it
-    let sag = max(sag_terms(w0, c0, seg.sag), sag_terms(w1, c1, seg.sag));
+    let sag = max(sag_terms(w0, c0, abs(seg.sag)), sag_terms(w1, c1, abs(seg.sag)));
 
     // one triangle in front of both ends hides it all: no fragment need ask
     if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w, sag)) {
