@@ -34,10 +34,10 @@ impl Draw {
         }
         let mut points = Vec::new();
         for word in words {
-            let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
-                return Err("use world coordinates x,y,z separated by spaces".into());
+            let Some(point) = coords::absolute(word) else {
+                return Err("use coordinates x,y,z separated by spaces".into());
             };
-            points.push([x, y, z.unwrap_or(0.0)]);
+            points.push(point);
         }
 
         if !self.points.contains(&points.len()) {

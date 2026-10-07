@@ -377,6 +377,7 @@ impl Input {
             ElementState::Pressed => {
                 let mut closed = false;
                 closed |= state.close_number_box(); // a press in the scene closes the number box; register:editing
+                state.drop_released_drag(); // a flick still waiting for its pick is dropped
                 self.left_down = Some(self.last_cursor);
                 self.dragged = false;
                 // a running command that draws with the button, e.g. a lasso

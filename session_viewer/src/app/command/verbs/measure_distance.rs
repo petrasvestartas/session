@@ -22,12 +22,12 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let mut points = Vec::with_capacity(2);
 
     for word in rest {
-        let Some(typed) = coords::parse(word) else {
+        if coords::parse(word).is_none() {
             return Err(format!("`{word}` is not a point; {USAGE}"));
-        };
+        }
 
-        if let coords::Typed::Absolute { x, y, z } = typed {
-            points.push([x, y, z.unwrap_or(0.0)]);
+        if let Some(point) = coords::absolute(word) {
+            points.push(point);
         }
     }
 

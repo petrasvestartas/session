@@ -31,10 +31,30 @@ const MAX_ROW_WIRES: usize = 4_096;
 
 /// A left drag that started on an object: a pick asks what the press landed on, then it follows.
 pub struct ObjectDrag {
-    down: (f64, f64),       // where the press landed, device pixels
-    cursor: (f64, f64),     // where the pointer is now
-    moving: Option<Moving>, // the grabbed objects, once the pick answered
-    missed: bool,           // the press landed on nothing that moves
+    down: (f64, f64),               // where the press landed, device pixels
+    cursor: (f64, f64),             // where the pointer is now
+    moving: Option<Moving>,         // the grabbed objects, once the pick answered
+    missed: bool,                   // the press landed on nothing that moves
+    released: Option<(bool, bool)>, // let go before the pick answered: Shift and Ctrl then
+}
+
+/// What a drag does once its pick answers.
+#[derive(Debug, PartialEq)]
+enum Answered {
+    Follow,                             // a hit while held: the objects follow the pointer
+    Move,                               // a hit after the release: move by the whole drag
+    Rectangle,                          // a miss while held: a selection rectangle follows
+    Select { shift: bool, ctrl: bool }, // a miss after the release: select by the rectangle
+}
+
+/// The outcome for a pick that hit something movable or not, the drag held or let go with these keys.
+fn answered(hit: bool, released: Option<(bool, bool)>) -> Answered {
+    match (hit, released) {
+        (true, None) => Answered::Follow,
+        (true, Some(_)) => Answered::Move,
+        (false, None) => Answered::Rectangle,
+        (false, Some((shift, ctrl))) => Answered::Select { shift, ctrl },
+    }
 }
 
 /// The objects a drag moves and where their grab point is.
@@ -99,6 +119,7 @@ impl State {
             cursor: at,
             moving: None,
             missed: false,
+            released: None,
         });
         self.probe_drag(down);
         true
@@ -157,17 +178,56 @@ impl State {
 
         drag.moving = pick.and_then(|pick| self.grab(pick.row, drag.down));
         drag.missed = drag.moving.is_none();
-        let cursor = drag.cursor;
-
-        if drag.missed {
-            let down = drag.down;
-            self.features.object_drag = Some(drag);
-            return self.start_box(down, cursor);
-        }
-
+        let (down, cursor) = (drag.down, drag.cursor);
+        let outcome = answered(!drag.missed, drag.released);
         self.features.object_drag = Some(drag);
-        self.follow(cursor); // the pointer is already past the slop
-        true
+
+        match outcome {
+            // the pointer is already past the slop
+            Answered::Follow => {
+                self.follow(cursor);
+                true
+            }
+            // a flick already let go: the objects move by the whole drag at once
+            Answered::Move => {
+                self.follow(cursor);
+                self.end_object_drag()
+            }
+            Answered::Rectangle => self.start_box(down, cursor),
+            // a flick already let go: the rectangle selects at once, with the keys held then
+            Answered::Select { shift, ctrl } => {
+                self.features.object_drag = None;
+                self.start_box(down, cursor);
+                self.finish_box(shift, ctrl)
+            }
+        }
+    }
+
+    /// Ask again for the pick of a flick let go before it answered, when something else took the pick.
+    pub(super) fn resume_released_drag(&mut self) {
+        let pending = self
+            .features
+            .object_drag
+            .as_ref()
+            .filter(|drag| drag.released.is_some() && drag.moving.is_none() && !drag.missed);
+
+        if let Some(down) = pending.map(|drag| drag.down)
+            && !self.gpu.pick.busy()
+        {
+            self.probe_drag(down);
+        }
+    }
+
+    /// A new press drops a flick still waiting for its pick.
+    pub(crate) fn drop_released_drag(&mut self) {
+        if self
+            .features
+            .object_drag
+            .as_ref()
+            .is_some_and(|drag| drag.released.is_some())
+        {
+            self.cancel_object_drag();
+        }
     }
 
     /// Select `row` unless it is part of the selection, and hold the selection at the press.
@@ -323,8 +383,12 @@ impl State {
                 return self.end_box();
             }
 
-            // a flick released before the pick answered moves nothing
-            self.gpu.pick.cancel();
+            // a flick let go before the pick answered finishes when it does, as a move or a rectangle
+            let keys = (self.shift_held, self.ctrl_held);
+            self.features.object_drag = Some(ObjectDrag {
+                released: Some(keys),
+                ..drag
+            });
             return false;
         };
         self.show(&moving, &moving.base);
@@ -572,6 +636,23 @@ fn offset(from: &Point, to: &Point) -> Xform {
 
 #[cfg(test)]
 mod tests {
+    use super::{Answered, answered};
+
+    /// A flick let go before its pick answered still moves what it hit, or selects by its rectangle with the keys held then.
+    #[test]
+    fn a_flick_finishes_when_its_pick_answers() {
+        assert_eq!(answered(true, None), Answered::Follow);
+        assert_eq!(answered(true, Some((false, false))), Answered::Move);
+        assert_eq!(answered(false, None), Answered::Rectangle);
+        assert_eq!(
+            answered(false, Some((true, false))),
+            Answered::Select {
+                shift: true,
+                ctrl: false
+            }
+        );
+    }
+
     use super::*;
 
     /// The ground, except for views close to level.

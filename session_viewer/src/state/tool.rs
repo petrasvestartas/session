@@ -325,9 +325,10 @@ impl State {
         }
 
         Some(format!(
-            "{}: {} · click or type x,y,z · Snap {} · Esc cancels",
+            "{}: {} · click or type {} · Snap {} · Esc cancels",
             tool.name(),
             tool.prompt(&draft.points),
+            coords::hint(),
             if self.features.snap.enabled {
                 "On"
             } else {

@@ -71,10 +71,9 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
 
 /// One typed world point, finite and within ±1e12.
 fn world_point(word: &str) -> Result<[f64; 3], String> {
-    let Some(coords::Typed::Absolute { x, y, z }) = coords::parse(word) else {
-        return Err(format!("`{word}` is not a world point; use x,y,z"));
+    let Some(point) = coords::absolute(word) else {
+        return Err(format!("`{word}` is not a point; use x,y,z"));
     };
-    let point = [x, y, z.unwrap_or(0.0)];
 
     if point.iter().any(|v| !v.is_finite() || v.abs() > 1e12) {
         return Err("coordinates must be finite and within ±1e12".into());

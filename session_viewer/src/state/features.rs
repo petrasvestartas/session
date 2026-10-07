@@ -43,7 +43,8 @@ pub(super) const BEFORE_PICKS: &[fn(&mut State)] = &[
 
 /// Feature work on every frame, once the pick answers are applied.
 pub(super) const AFTER_PICKS: &[fn(&mut State)] = &[
-    State::purge_idle, // register:hydrate
+    State::purge_idle,           // register:hydrate
+    State::resume_released_drag, // register:editing
 ];
 
 /// Features that take a pick answer before the selection does, in this order.

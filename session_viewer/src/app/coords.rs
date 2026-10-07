@@ -1,4 +1,21 @@
+use crate::app::cplane::CPlane;
 use session_rust::{Point, Vector};
+use std::cell::Cell;
+
+thread_local! {
+    /// The fixed construction plane typed coordinates are measured in; None in View mode, where they are world coordinates.
+    static PLANE: Cell<Option<CPlane>> = const { Cell::new(None) };
+}
+
+/// Fix the plane typed coordinates are measured in, None for world coordinates.
+pub fn set_plane(plane: Option<CPlane>) {
+    PLANE.with(|cell| cell.set(plane));
+}
+
+/// The fixed construction plane typed coordinates are measured in, if any.
+pub fn plane() -> Option<CPlane> {
+    PLANE.with(Cell::get)
+}
 
 /// A typed coordinate, not yet placed in the world.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -9,8 +26,93 @@ pub enum Typed {
     Distance(f64),                               // `5` along the current direction
 }
 
-/// Parse coordinate text; None when it is not a coordinate.
+/// How the prompt names typed points: `x,y,z`, or plane coordinates while a construction plane is fixed.
+pub fn hint() -> &'static str {
+    match plane() {
+        Some(_) => "plane x,y,z (w for world)",
+        None => "x,y,z",
+    }
+}
+
+/// Parse coordinate text, a leading `w` included; None when it is not a coordinate.
 pub fn parse(text: &str) -> Option<Typed> {
+    parse_world(text).map(|(typed, _)| typed)
+}
+
+/// Parse coordinate text and say whether a leading `w` asks for world coordinates, e.g. `w500,0,0` or `w@0,0,100`.
+pub fn parse_world(text: &str) -> Option<(Typed, bool)> {
+    let text = text.trim();
+
+    match text.strip_prefix(['w', 'W']) {
+        Some(rest) => Some((parse_plain(rest)?, true)),
+        None => Some((parse_plain(text)?, false)),
+    }
+}
+
+/// A typed absolute point in the world: measured in the fixed construction plane, in world coordinates in View mode or after `w`.
+pub fn absolute(text: &str) -> Option<[f64; 3]> {
+    let (Typed::Absolute { x, y, z }, world) = parse_world(text)? else {
+        return None;
+    };
+    let uvw = [x, y, z.unwrap_or(0.0)];
+
+    match plane().filter(|_| !world) {
+        Some(plane) => {
+            let p = plane.world(uvw);
+            Some([p[0], p[1], p[2]])
+        }
+        None => Some(uvw),
+    }
+}
+
+/// A typed offset in the world: along the fixed construction plane's axes, along the world axes in View mode or after `w`.
+pub fn offset(uvw: [f64; 3], world: bool) -> [f64; 3] {
+    match plane().filter(|_| !world) {
+        Some(plane) => {
+            let (o, p) = (plane.origin(), plane.world(uvw));
+            [p[0] - o[0], p[1] - o[1], p[2] - o[2]]
+        }
+        None => uvw,
+    }
+}
+
+/// A typed coordinate as a point: in the fixed construction plane's coordinates from its origin, else as `resolve` places it on the drawing plane.
+pub fn place(
+    typed: Typed,
+    world: bool,
+    x_axis: &Vector,
+    y_axis: &Vector,
+    previous: Option<&Point>,
+    along: Option<&Vector>,
+) -> Option<Point> {
+    let Some(plane) = plane().filter(|_| !world) else {
+        // world coordinates; a fixed plane's axes do not apply after `w`
+        let (x, y) = match world && plane().is_some() {
+            true => CPlane::Xy.axes(),
+            false => (x_axis.clone(), y_axis.clone()),
+        };
+        return resolve(typed, &Point::new(0.0, 0.0, 0.0), &x, &y, previous, along);
+    };
+    // `base` plus an offset in plane coordinates
+    let moved = |base: &Point, uvw: [f64; 3]| {
+        let d = offset(uvw, false);
+        Point::new(base[0] + d[0], base[1] + d[1], base[2] + d[2])
+    };
+
+    match typed {
+        Typed::Absolute { x, y, z } => Some(plane.world([x, y, z.unwrap_or(0.0)])),
+        Typed::Relative { x, y, z } => Some(moved(previous?, [x, y, z.unwrap_or(0.0)])),
+        Typed::Polar { distance, degrees } => {
+            let r = degrees.to_radians();
+            let base = previous.cloned().unwrap_or_else(|| plane.origin());
+            Some(moved(&base, [distance * r.cos(), distance * r.sin(), 0.0]))
+        }
+        Typed::Distance(_) => resolve(typed, &plane.origin(), x_axis, y_axis, previous, along),
+    }
+}
+
+/// Parse coordinate text without the world prefix.
+fn parse_plain(text: &str) -> Option<Typed> {
     let text = text.trim();
 
     if text.is_empty() {
@@ -200,5 +302,65 @@ mod tests {
         let (o, x, y) = plane();
         let p = resolve(parse("1000000.001,0,0").unwrap(), &o, &x, &y, None, None).unwrap();
         assert_eq!(p[0], 1_000_000.001);
+    }
+
+    /// On a fixed tilted plane typed points are plane coordinates from its origin; `w` and View mode mean world.
+    #[test]
+    fn typed_points_follow_a_fixed_construction_plane() {
+        let tilted = CPlane::from_3_points(
+            &Point::new(0.0, 0.0, 0.0),
+            &Point::new(1000.0, 0.0, 1000.0),
+            &Point::new(0.0, 1000.0, 0.0),
+        )
+        .unwrap();
+        let near = |p: [f64; 3], q: [f64; 3]| (0..3).all(|k| (p[k] - q[k]).abs() < 1e-9);
+        let h = std::f64::consts::FRAC_1_SQRT_2 * 1000.0;
+        let (_, x, y) = plane();
+        let at = |text: &str, previous: Option<&Point>| {
+            let (typed, world) = parse_world(text).unwrap();
+            let p = place(typed, world, &x, &y, previous, None).unwrap();
+            [p[0], p[1], p[2]]
+        };
+
+        // View mode: world, as before
+        set_plane(None);
+        assert_eq!(absolute("1000,0,0"), Some([1000.0, 0.0, 0.0]));
+        assert!(near(at("1000,0,0", None), [1000.0, 0.0, 0.0]));
+
+        set_plane(Some(tilted));
+        assert_eq!(hint(), "plane x,y,z (w for world)");
+        assert!(
+            near(absolute("1000,0,0").unwrap(), [h, 0.0, h]),
+            "along the plane's x axis"
+        );
+        assert!(
+            near(absolute("0,0,1000").unwrap(), [-h, 0.0, h]),
+            "z is the plane's normal"
+        );
+        assert_eq!(
+            absolute("w1000,0,0"),
+            Some([1000.0, 0.0, 0.0]),
+            "w is world"
+        );
+        assert!(near(at("1000,0,0", None), [h, 0.0, h]));
+        assert!(near(at("w1000,0,0", None), [1000.0, 0.0, 0.0]));
+        let start = Point::new(h, 0.0, h);
+        assert!(
+            near(at("@0,500", Some(&start)), [h, 500.0, h]),
+            "relative along the plane's y"
+        );
+        assert!(
+            near(at("1000<90", Some(&start)), [h, 1000.0, h]),
+            "polar in the plane"
+        );
+        assert!(
+            near(at("w@0,0,100", Some(&start)), [h, 0.0, h + 100.0]),
+            "w relative is world"
+        );
+        assert!(
+            near(offset([1000.0, 0.0, 0.0], false), [h, 0.0, h])
+                && offset([1.0, 2.0, 3.0], true) == [1.0, 2.0, 3.0]
+        );
+        set_plane(None);
     }
 }

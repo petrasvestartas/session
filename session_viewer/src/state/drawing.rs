@@ -195,6 +195,7 @@ impl State {
     /// Fix the construction plane, or None to follow the view again; the grid moves onto it and a running draft lands on it.
     pub(crate) fn set_construction_plane(&mut self, plane: Option<CPlane>) {
         self.features.construction_plane = plane;
+        coords::set_plane(plane); // typed points are measured in it
         let shown = plane.unwrap_or(CPlane::Xy);
         self.gpu.backdrop.set_grid_frame(&self.gpu.ctx, shown.matrix());
         self.camera.grid = plane.map(|plane| {
@@ -296,15 +297,15 @@ impl State {
         // check every word before adding any
         let draft = self.features.draft.as_ref().unwrap();
 
-        // typed points of a 3 Point plane, in world coordinates
+        // typed points of a 3 Point plane, measured like any typed point: in the current plane, world after `w`
         if draft.plane_points.is_some() {
             let mut answer = Ok(self.drawing_prompt());
             for word in text.split_whitespace() {
-                let p = coords::parse(word)
-                    .and_then(|typed| {
+                let p = coords::parse_world(word)
+                    .and_then(|(typed, world)| {
                         let (x, y) = CPlane::Xy.axes();
                         let last = self.features.draft.as_ref()?.plane_points.as_ref()?.last().cloned();
-                        coords::resolve(typed, &Point::new(0.0, 0.0, 0.0), &x, &y, last.as_ref(), None)
+                        coords::place(typed, world, &x, &y, last.as_ref(), None)
                     })
                     .ok_or("Use x,y,z or @dx,dy,dz for the plane's points")?;
                 answer = self.take_plane_point(p);
@@ -315,7 +316,8 @@ impl State {
         let mut points = draft.points.clone();
         let (x, y) = draft.plane.axes();
         for word in text.split_whitespace() {
-            let typed = coords::parse(word).ok_or("Use x,y,z, @dx,dy,dz, or distance<angle")?;
+            let (typed, world) =
+                coords::parse_world(word).ok_or("Use x,y,z, @dx,dy,dz, or distance<angle")?;
             // the direction from the last point to the cursor
             let along = points.last().zip(draft.hover.as_ref()).and_then(|(p, h)| {
                 let delta = Vector::new(h[0] - p[0], h[1] - p[1], h[2] - p[2]);
@@ -324,14 +326,8 @@ impl State {
                 (length > 1e-12)
                     .then(|| Vector::new(delta[0] / length, delta[1] / length, delta[2] / length))
             });
-            let p = coords::resolve(
-                typed,
-                &Point::new(0.0, 0.0, 0.0),
-                &x,
-                &y,
-                points.last(),
-                along.as_ref(),
-            )
+            // in the fixed construction plane's coordinates, world after `w` or in View mode
+            let p = coords::place(typed, world, &x, &y, points.last(), along.as_ref())
             .ok_or("This coordinate needs a previous point or a cursor direction")?;
             if (0..3).any(|i| !p[i].is_finite() || p[i].abs() > 1e12) {
                 return Err("Coordinates must be finite and within ±1e12".into());
@@ -419,7 +415,7 @@ impl State {
         if let Some(points) = &draft.plane_points {
             let what = ["Plane origin", "Point on the plane's x axis", "Point on the plane's y side"]
                 [points.len().min(2)];
-            return format!("{what} · click or type x,y,z · Esc cancels");
+            return format!("{what} · click or type {} · Esc cancels", coords::hint());
         }
 
         if let Some(prompt) = self.tool_prompt() {
@@ -434,8 +430,9 @@ impl State {
                 .min(draft.prompts.len().saturating_sub(1)),
         ) {
             return format!(
-                "{}: {prompt} · click or type x,y,z · Snap {} · Esc cancels",
+                "{}: {prompt} · click or type {} · Snap {} · Esc cancels",
                 crate::app::command::canonical(&draft.verb),
+                coords::hint(),
                 if self.features.snap.enabled {
                     "On"
                 } else {
@@ -457,8 +454,9 @@ impl State {
                 String::new()
             };
             return format!(
-                "Polyline {}: {point} · click or type x,y,z{sides} · Esc cancels",
-                draft.construction
+                "Polyline {}: {point} · click or type {}{sides} · Esc cancels",
+                draft.construction,
+                coords::hint()
             );
         }
         let point = if draft.points.is_empty() {
@@ -472,8 +470,9 @@ impl State {
             ""
         };
         format!(
-            "{}: {point} · click or type x,y,z · Snap {}{finish} · Esc cancels",
+            "{}: {point} · click or type {} · Snap {}{finish} · Esc cancels",
             crate::app::command::canonical(&draft.verb),
+            coords::hint(),
             if self.features.snap.enabled {
                 "On"
             } else {

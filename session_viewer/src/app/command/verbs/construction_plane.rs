@@ -52,9 +52,9 @@ fn three_points(rest: &[&str]) -> Result<Box<dyn Action>, String> {
 
     let points = rest
         .iter()
-        .map(|word| match coords::parse(word) {
-            Some(coords::Typed::Absolute { x, y, z }) => Ok(Point::new(x, y, z.unwrap_or(0.0))),
-            _ => Err("Construction Plane 3 Point takes three x,y,z points".to_string()),
+        .map(|word| match coords::absolute(word) {
+            Some([x, y, z]) => Ok(Point::new(x, y, z)),
+            None => Err("Construction Plane 3 Point takes three x,y,z points".to_string()),
         })
         .collect::<Result<Vec<_>, _>>()?;
     let [origin, on_x, in_plane] = points.as_slice() else {

@@ -21,9 +21,9 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
 
     let points = rest
         .iter()
-        .map(|word| match coords::parse(word) {
-            Some(coords::Typed::Absolute { x, y, z }) => Ok([x, y, z.unwrap_or(0.0)]),
-            _ => Err(
+        .map(|word| match coords::absolute(word) {
+            Some(point) => Ok(point),
+            None => Err(
                 "Orient 3 Points takes six x,y,z points: three references, then three targets"
                     .to_string(),
             ),

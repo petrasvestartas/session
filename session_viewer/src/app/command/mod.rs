@@ -343,21 +343,21 @@ pub fn offset(words: &[&str]) -> Result<[f64; 3], String> {
     } else {
         words.join(",").replacen("@,", "@", 1)
     };
-    let Some(typed) = coords::parse(&text) else {
+    let Some((typed, world)) = coords::parse_world(&text) else {
         return Err(format!("`{joined}` is not an offset; try `Move 10 0 0`"));
     };
-
-    match typed {
+    // along the fixed construction plane's axes, the world's in View mode or after `w`
+    let uvw = match typed {
         coords::Typed::Absolute { x, y, z } | coords::Typed::Relative { x, y, z } => {
-            Ok([x, y, z.unwrap_or(0.0)])
+            [x, y, z.unwrap_or(0.0)]
         }
         coords::Typed::Polar { distance, degrees } => {
-            // polar in the world XY plane
             let r = degrees.to_radians();
-            Ok([distance * r.cos(), distance * r.sin(), 0.0])
+            [distance * r.cos(), distance * r.sin(), 0.0]
         }
-        coords::Typed::Distance(d) => Ok([d, 0.0, 0.0]), // a bare number moves along x
-    }
+        coords::Typed::Distance(d) => [d, 0.0, 0.0], // a bare number moves along x
+    };
+    Ok(coords::offset(uvw, world))
 }
 
 /// An axis letter and a number.

@@ -39,9 +39,9 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let points = rest
         .iter()
         .skip(1)
-        .map(|word| match coords::parse(word) {
-            Some(coords::Typed::Absolute { x, y, z }) => Ok([x, y, z.unwrap_or(0.0)]),
-            _ => Err(format!("`{word}` is not a world point; use x,y,z")),
+        .map(|word| match coords::absolute(word) {
+            Some(point) => Ok(point),
+            None => Err(format!("`{word}` is not a point; use x,y,z")),
         })
         .collect::<Result<Vec<_>, _>>()?;
 

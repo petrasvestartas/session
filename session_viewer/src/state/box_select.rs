@@ -47,14 +47,19 @@ impl State {
 
     /// Let go: select what the rectangle takes; Shift adds to the selection, Ctrl takes out of it.
     pub(crate) fn end_box(&mut self) -> bool {
+        self.finish_box(self.shift_held, self.ctrl_held)
+    }
+
+    /// Select what the rectangle takes with these keys, e.g. those held when a flick was let go.
+    pub(crate) fn finish_box(&mut self, shift: bool, ctrl: bool) -> bool {
         let Some(box_) = self.features.box_select.take() else {
             return false;
         };
         let region = Region::rectangle(box_.down, box_.cursor);
         let found = selecting::found(self, &region, box_.reach());
         let count = found.len();
-        let remove = self.ctrl_held;
-        let total = selecting::apply(self, found, self.shift_held && !remove, remove);
+        let remove = ctrl;
+        let total = selecting::apply(self, found, shift && !remove, remove);
         let how = match box_.reach() {
             Reach::Window => "inside",
             Reach::Crossing => "touched",
