@@ -297,6 +297,11 @@ impl Ui {
         let repaint = changed || self.context.has_requested_repaint();
         output.pixels_per_point = state.gpu.config.width as f32 / logical[0].max(1.0) as f32;
 
+        // the part of the canvas the layer panel and the command dock leave free, where Fit frames
+        let right = layers::STATE.with_borrow(|model| model.panel_left).map_or(logical[0], f64::from);
+        let bottom = command_line::STATE.with_borrow(|model| model.dock_top).map_or(logical[1], f64::from);
+        state.view_frame = [0.0, 0.0, (right / logical[0].max(1.0)).clamp(0.2, 1.0), (bottom / logical[1].max(1.0)).clamp(0.2, 1.0)];
+
         if let Some(ui) = state.gpu.ui.as_mut() {
             ui.prepare(
                 &state.gpu.ctx,

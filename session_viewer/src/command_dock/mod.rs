@@ -19,6 +19,7 @@ pub struct CommandLine {
     pub(crate) command: String,                     // text in the command field
     pub(crate) drawing_prompt: String,              // prompt while drawing
     pub(crate) focus_command: bool,                 // give the field focus next frame
+    pub(crate) dock_top: Option<f32>,               // the dock's top edge in CSS px, for fitting above it
     pub(crate) status: String,                      // status line text
     pub(crate) history: VecDeque<String>,           // past commands and answers
     pub(crate) command_expanded: bool,              // history shown above the field
@@ -557,6 +558,7 @@ pub fn draw(
     let mut focus_canvas = false;
     let panel = view::panel(root, model.command_expanded, 0.0).show_inside(root, |ui| {
         view::prepare(ui);
+        model.dock_top = Some(ui.max_rect().top());
         history(ui, model, controls);
         focus_canvas = row(
             ui,

@@ -369,6 +369,11 @@ impl Camera {
 
     /// Frame a box: look at its center, back off until it fits.
     pub fn fit(&mut self, bounds: &AABB, aspect: f64) {
+        self.fit_in(bounds, aspect, [0.0, 0.0, 1.0, 1.0]);
+    }
+
+    /// Frame a box in the part of the canvas the panels leave free, `frame` its left, top, right and bottom as fractions of the canvas: the box fits that part and sits in its middle.
+    pub fn fit_in(&mut self, bounds: &AABB, aspect: f64, frame: [f64; 4]) {
         if !bounds.is_valid() {
             return;
         }
@@ -381,7 +386,8 @@ impl Camera {
         // half the view angle, sideways and up
         let half_fov_y = FOVY_DEG.to_radians() * 0.5;
         let half_fov_x = (aspect * half_fov_y.tan()).atan();
-        let (tx, ty) = (half_fov_x.tan(), half_fov_y.tan());
+        let (full_x, full_y) = (half_fov_x.tan(), half_fov_y.tan());
+        let (tx, ty) = (full_x * (frame[2] - frame[0]), full_y * (frame[3] - frame[1]));
 
         let fwd = self.orientation.rotate_vector(Vector::y_axis());
         let up = self.orientation.rotate_vector(Vector::z_axis());
@@ -404,7 +410,33 @@ impl Camera {
 
         self.distance = (distance * 1.05).max(1.0e-6); // 5% margin
         self.scene_extent = extent; // farthest corner from the target
-        self.update_position();
+
+        // slide the view so the box sits in the middle of the free part, not of the canvas;
+        // in perspective the slide moves near corners more, so back off until every one is in
+        let centre = self.target;
+        for _ in 0..40 {
+            let across = (frame[0] + frame[2] - 1.0) * self.distance * full_x;
+            let down = (frame[1] + frame[3] - 1.0) * self.distance * full_y;
+            for k in 0..3 {
+                self.target[k] = centre[k] - right[k] * across + up[k] * down;
+            }
+            self.update_position();
+            if self.frames(bounds, aspect, frame) {
+                break;
+            }
+            self.distance *= 1.02;
+        }
+    }
+
+    /// True when every corner of the box projects inside `frame`.
+    fn frames(&self, bounds: &AABB, aspect: f64, frame: [f64; 4]) -> bool {
+        let o = self.origin();
+        let projection = self.view_proj(aspect);
+        bounds.corners().iter().all(|c| {
+            let p = projection.transform_point(&Point::new(c[0] - o[0], c[1] - o[1], c[2] - o[2]));
+            let (x, y) = ((p[0] + 1.0) / 2.0, (1.0 - p[1]) / 2.0);
+            x >= frame[0] - 1e-9 && x <= frame[2] + 1e-9 && y >= frame[1] - 1e-9 && y <= frame[3] + 1e-9
+        })
     }
 
     /// The eight box corners in meters, relative to the target.
@@ -540,6 +572,23 @@ mod tests {
                 front - rear > rear.abs() * 1.9073486e-6,
                 "distance {distance}: hidden ink falls within float tolerance"
             );
+        }
+    }
+
+    #[test]
+    fn fit_in_frames_the_box_in_the_free_part_of_the_canvas() {
+        for perspective in [true, false] {
+            let mut cam = Camera::new();
+            cam.perspective = perspective;
+            let bounds = AABB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(4000.0, 1000.0, 300.0)], 0.0);
+            // a panel over the right 40 %, a dock under the bottom 10 %
+            cam.fit_in(&bounds, 1.6, [0.0, 0.0, 0.6, 0.9]);
+            let o = cam.origin();
+            for c in bounds.corners() {
+                let p = cam.view_proj(1.6).transform_point(&Point::new(c[0] - o[0], c[1] - o[1], c[2] - o[2]));
+                assert!(p[0] >= -1.0 && p[0] <= 0.2 + 1e-9, "x {} beside the panel", p[0]);
+                assert!(p[1] >= -0.8 - 1e-9 && p[1] <= 1.0, "y {} above the dock", p[1]);
+            }
         }
     }
 

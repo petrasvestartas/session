@@ -14,6 +14,7 @@ pub(crate) struct Layers {
     pub(crate) graph_open: bool,         // graph table unfolded
     pub(crate) renaming: Option<Rename>, // a layer name edited in its row
     layers_collapsed: bool,              // layers panel folded to its title
+    pub(crate) panel_left: Option<f32>,  // the open panel's left edge in CSS px, for fitting beside it
     keyboard_rects: Vec<egui::Rect>,     // a layer name field or an item opening one
 }
 
@@ -89,6 +90,7 @@ fn draw(
 ) {
     let action = &mut out.action;
     model.keyboard_rects.clear();
+    model.panel_left = None;
 
     if !model.layers_open {
         return;
@@ -121,6 +123,7 @@ fn draw(
     .resizable(!collapsed)
     .show_inside(root, |ui| {
         ui.set_min_width(ui.available_width());
+        model.panel_left = Some(ui.max_rect().left());
         let collapse = ui
             .button(if collapsed { "+" } else { "–" })
             .on_hover_text("Collapse or expand panel");

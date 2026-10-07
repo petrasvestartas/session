@@ -41,6 +41,7 @@ pub struct State {
     pub window: Arc<Window>,                // the winit window on the canvas
     pub gpu: Gpu,                           // device, buffers, pipelines
     pub camera: Camera,                     // the view
+    pub view_frame: [f64; 4],               // the canvas part the panels leave free: left, top, right, bottom in fractions
     load_camera: crate::camera::CameraPose, // the view before loading started
     pub scene: Scene,                       // the loaded documents
     pub needs_frame: bool,                  // draw again on the next redraw
@@ -74,6 +75,7 @@ impl State {
         Ok(Self {
             window,
             gpu,
+            view_frame: [0.0, 0.0, 1.0, 1.0],
             load_camera: camera.pose(),
             camera,
             scene,
@@ -185,7 +187,7 @@ impl State {
         self.refresh_bounds();
         let b = &self.gpu.bounds;
         log::info!("fit: bounds {} aspect {:.3}", b.str(), self.aspect());
-        self.camera.fit(&self.gpu.bounds, self.aspect());
+        self.camera.fit_in(&self.gpu.bounds, self.aspect(), self.view_frame);
         self.touch();
     }
 
@@ -208,7 +210,7 @@ impl State {
             b.str(),
             self.aspect()
         );
-        self.camera.fit(&b, self.aspect());
+        self.camera.fit_in(&b, self.aspect(), self.view_frame);
         self.camera.grow_extent(&self.gpu.bounds);
         self.touch();
     }
@@ -562,6 +564,9 @@ impl State {
         }
 
         let now_ms = now_ms();
+        let wheeling = self.gpu.performance.wheeling(now_ms);
+        let interacting = self.interacting || wheeling;
+        self.gpu.performance.interacting = interacting;
         self.camera.grow_extent(&self.gpu.bounds);
         let origin = self.camera.origin();
         // the point GPU rows are measured from
@@ -581,7 +586,7 @@ impl State {
             || self.gpu.view.spin
             || self.gpu.ambient_pending()
             || self.gpu.visibility_pending()
-            || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
+            || (self.gpu.performance.rough() && !interacting); // redraw reasons
 
         let mut dropped = false;
         let mut waiting = false;
@@ -590,7 +595,6 @@ impl State {
         if self.dirty && !waiting {
             let gap = now_ms - self.last_frame_ms; // time since the last frame
             self.last_frame_ms = now_ms;
-            self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
 
             // Slow navigation already uses temporary ink/outline tiers. Keep the chosen
@@ -619,6 +623,7 @@ impl State {
 
         // reasons to draw again; a drag frame is redrawn in full once the drag ends
         self.needs_frame |= dropped
+            || wheeling
             || rebase.pending
             || self.gpu.pick.busy()
             || self.gpu.view.perf
