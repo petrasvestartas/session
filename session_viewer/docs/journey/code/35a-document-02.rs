@@ -1,0 +1,1 @@
+        let mut scene = Self { objects: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };

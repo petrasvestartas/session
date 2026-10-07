@@ -12014,6 +12014,463 @@
           "why": "Cap recovered device density while preserving normal high-DPI drawing."
         }
       ]
+    },
+    {
+      "id": "35-stroke",
+      "title": "Prepare a stroke without changing its source",
+      "page": "journey/35-stroke.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Prepare finite line endpoints, colour and screen width while retaining the original kernel line.",
+      "trace": "kernel Line → source owner → display record → checked packed bytes → later GPU lane",
+      "question": "Why retain the original line after packing its endpoints into floats?",
+      "answer": "Display floats cannot preserve exact coordinates or source metadata. Editing and saving must continue to use the original kernel line.",
+      "result": "Run the native checks. The packed record is 44 bytes; exact source coordinates, GUID and colour remain available.",
+      "experiment": "Prepare the same shared line twice and drop one prepared owner. Both used the same source; the other owner still retains it.",
+      "production": "The drawing is unchanged in this preparation step. The next stroke lessons connect this record to screen-space extrusion and a GPU lane; joins, depth visibility and picking follow.",
+      "tests": true,
+      "frame": "journey/checks/34ge-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Prepare one line for display while keeping its original kernel owner. Store two finite endpoints, colour and a width measured in screen pixels.\n\nPacking changes display precision only. Invalid coordinates or widths fail before GPU allocation. A zero-length line remains a valid source; the later shader suppresses its empty stroke. Width zero, negative or nonfinite uses the default pen, matching production.\n\n![Source precision stays with the kernel; display values belong to the stroke record.](../illustrations/journey-35.svg)",
+      "browser_caption": "Chrome repeats the verified recovery route while stroke preparation adds no drawing or input behavior.",
+      "checks": "Native tests check packed layout, exact source ownership/precision, width defaults and display-range rejection. Native GPU and Chrome preserve the preceding endpoint.",
+      "image_same_as": "34geb-reload",
+      "edits": [
+        {
+          "path": "src/stroke.rs",
+          "before": null,
+          "snippet": "journey/code/35-stroke-01.rs",
+          "why": "Keep exact kernel ownership separate from a checked packed display record."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod mesh;",
+          "snippet": "journey/code/35-stroke-02.rs",
+          "why": "Register stroke preparation and its checks."
+        },
+        {
+          "path": "src/stroke_tests.rs",
+          "before": null,
+          "snippet": "journey/code/35-stroke-03.rs",
+          "why": "Copy source ownership, packed layout and invalid-display checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "35a-document",
+      "title": "Retain line owners in document history",
+      "page": "journey/35a-document.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Give prepared lines stable document IDs, history ownership and world-space bounds.",
+      "trace": "prepared line → scene row → shared source history → placed bounds → complete Close",
+      "question": "Why share a line source across history snapshots?",
+      "answer": "A placement edit changes the row’s transform, not its exact source line. Undo can restore placement while retaining the same kernel owner.",
+      "result": "Run the checks. Line IDs stay distinct from mesh IDs, bounds include placed endpoints, and Close releases active and historical line sources.",
+      "experiment": "Move a line row, Undo and Redo, then Close. The kernel owner remains shared until both the scene and history release it.",
+      "production": "Stroke drawing and input follow. Saving remains limited to the earlier mesh subset until the later complete geometry loader; it rejects a scene containing lines rather than silently losing them.",
+      "tests": true,
+      "frame": "journey/checks/34ge-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Keep line rows beside the existing mesh rows. Give both tables IDs from the same checked sequence and clone only shared kernel owners into history.\n\nInclude original placed endpoints in scene bounds. Clear both tables on Close or replacement. The existing mesh-only snapshot rejects new line rows explicitly; complete mixed-geometry saving is taught with the later loader.\n\n![Line rows share exact sources while history keeps separate placement values.](../illustrations/journey-35a.svg)",
+      "browser_caption": "Chrome repeats the preceding recovery route. No new stroke is drawn until the later GPU lesson.",
+      "checks": "Native checks cover shared IDs, world bounds, exact history placement, owner release and refusal of incomplete snapshots.",
+      "image_same_as": "35-stroke",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "#[derive(Clone)]\npub struct Scene {",
+          "snippet": "journey/code/35a-document-01.rs",
+          "why": "Retain exact line owners and apply placement before display conversion."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };",
+          "snippet": "journey/code/35a-document-02.rs",
+          "why": "Start the demo with no line rows."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        bounds\n    }\n\n    pub fn selected_bounds",
+          "snippet": "journey/code/35a-document-03.rs",
+          "why": "Include original placed line endpoints in Fit’s world bounds."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn objects(&self) -> &[Object] {",
+          "snippet": "journey/code/35a-document-04.rs",
+          "why": "Use the same checked ID sequence while keeping line placement separate from kernel geometry."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn clear(&mut self) {\n        self.objects = Vec::new();",
+          "snippet": "journey/code/35a-document-05.rs",
+          "why": "Release line rows on Close and replacement."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {",
+          "snippet": "journey/code/35a-document-06.rs",
+          "why": "Reject incomplete saves while the loader still supports only meshes."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod scene;",
+          "snippet": "journey/code/35a-document-07.rs",
+          "why": "Register mixed row ownership checks."
+        },
+        {
+          "path": "src/line_scene_tests.rs",
+          "before": null,
+          "snippet": "journey/code/35a-document-08.rs",
+          "why": "Copy mixed IDs, placement, history and release checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "35b-extrude",
+      "title": "Extrude a stroke in screen pixels",
+      "page": "journey/35b-extrude.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Expand a projected segment into two triangles with a width that survives camera zoom.",
+      "trace": "world endpoints → near clipping → pixel direction → perpendicular extrusion → edge coverage",
+      "question": "Why multiply a screen offset by the endpoint’s clip w?",
+      "answer": "Perspective division would otherwise shrink that offset with distance. Multiplying by w keeps its final projected width constant.",
+      "result": "Run the GPU check. The real drawing device validates the stroke shader; its visible lane is connected next.",
+      "experiment": "Trace the six corners: they form two triangles. The width divides by viewport pixels and multiplies by clip w before perspective division.",
+      "production": "This introduces readable isolated strokes. The next step supplies GPU buffers; joins, arrowheads and detailed hidden-line rules are later lessons.",
+      "tests": true,
+      "frame": "journey/checks/35b-extrude.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Project both endpoints, clip a crossing segment to the near plane, then expand perpendicular to its direction in pixels. Multiplying the offset by clip w preserves width through perspective division.\n\nSuppress a segment with no projected length. Linear screen interpolation carries edge distance to the fragment stage, which fades only the last pixel. Device density converts the CSS pen width into physical pixels.\n\n![Screen-space extrusion preserves width after perspective division.](../illustrations/journey-35b.svg)",
+      "browser_caption": "Chrome preserves the preceding route while the GPU fixture validates the new shader. The next lesson draws it.",
+      "checks": "The native GPU fixture validates the actual WGSL module on the drawing device. Existing native tests and Chrome remain unchanged; pixel-width acceptance follows with the lane.",
+      "image_same_as": "35a-document",
+      "edits": [
+        {
+          "path": "src/stroke.wgsl",
+          "before": null,
+          "snippet": "journey/code/35b-extrude-01.wgsl",
+          "why": "Extrude in physical pixels and interpolate coverage in screen space."
+        },
+        {
+          "path": "src/stroke.rs",
+          "before": "use std::rc::Rc;",
+          "snippet": "journey/code/35b-extrude-02.rs",
+          "why": "Expose the same shader text to the lane and its GPU check."
+        }
+      ]
+    },
+    {
+      "id": "35c-lane",
+      "title": "Create the shared stroke pipeline",
+      "page": "journey/35c-lane.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Create one pipeline and view uniform for a batch of stroke instances.",
+      "trace": "checked shader → instance layout → shared view binding → alpha coverage → depth-tested lane",
+      "question": "Why use six generated vertices and one instance record per segment?",
+      "answer": "Every segment uses the same two-triangle shape. Its endpoints and style change per instance, so no separate mesh or pipeline is needed for each line.",
+      "result": "Run the GPU fixture. The actual device validates the shared pipeline, 44-byte instance layout and 80-byte view uniform.",
+      "experiment": "Match each vertex attribute’s offset to the packed record from lesson 35. Positions occupy the first 24 bytes; colour and width follow.",
+      "production": "The lane is created once and starts empty. Buffer synchronization and visible drawing are connected next.",
+      "tests": true,
+      "frame": "journey/checks/35c-lane.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Create a shared stroke pipeline with an instance record for each segment. The shader generates six corners; the batch supplies endpoints, colour and width.\n\nUse alpha blending for the shader’s edge coverage and the existing depth format without writing stroke depth. A separate view binding holds the matrix, viewport and density. Allocate segment buffers only when the lane receives data.\n\n![One pipeline and one view binding serve every segment instance.](../illustrations/journey-35c.svg)",
+      "browser_caption": "The actual native drawing device validates the pipeline; Chrome keeps the preceding behavior until synchronization is connected.",
+      "checks": "The native GPU fixture constructs the actual pipeline under a validation scope. Existing native tests and Chrome keep the preceding route.",
+      "image_same_as": "35b-extrude",
+      "edits": [
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": null,
+          "snippet": "journey/code/35c-lane-01.rs",
+          "why": "Create one depth-tested instanced lane with alpha coverage and its own view binding."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod stroke;",
+          "snippet": "journey/code/35c-lane-02.rs",
+          "why": "Register the shared GPU lane."
+        }
+      ]
+    },
+    {
+      "id": "35ca-sync",
+      "title": "Upload changed stroke instances only",
+      "page": "journey/35ca-sync.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes.",
+      "trace": "checked packed strokes → changed bytes → one GPU buffer → view-only updates → six vertices per instance",
+      "question": "Why compare packed data before replacing the vertex buffer?",
+      "answer": "Camera and unrelated mesh edits do not change stroke endpoints or style. Reusing the buffer avoids uploading the same data on every interaction.",
+      "result": "Run the GPU fixture. Twenty-four real renders preserve measured pen width across zoom, both projections and densities one and two.",
+      "experiment": "Synchronize the same stroke twice, then update only its view. Its vertex upload counter must remain one; clearing the lane releases its buffer.",
+      "production": "The lane renders real instances here. The following lesson connects it to the document renderer and browser events.",
+      "tests": true,
+      "frame": "journey/checks/35ca-sync.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Upload a stroke batch only when its checked packed bytes change. Keep camera, viewport and density in the shared uniform instead of rebuilding segment vertices.\n\nAn empty batch drops its buffer. Invalid data leaves the existing batch unchanged. Native GPU renders measure anti-aliased width in linear colour space and verify buffer reuse, exact payload accounting and release.\n\n![View changes reuse the existing segment buffer.](../illustrations/journey-35ca.svg)",
+      "browser_caption": "Native GPU renders verify the actual lane; Chrome preserves the preceding viewer while document wiring follows.",
+      "checks": "Twenty-four native GPU renders measure widths 1/3/9 across zoom, projection and density. Buffer reuse, finite input refusal and empty-buffer release also pass; browser-visible strokes follow next.",
+      "image_same_as": "35c-lane",
+      "edits": [
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "impl Lane {\n    pub fn new",
+          "snippet": "journey/code/35ca-sync-01.rs",
+          "why": "Keep segment uploads separate from camera uniforms and release empty batches."
+        }
+      ]
+    },
+    {
+      "id": "35cb-render",
+      "title": "Connect the stroke lane to the document renderer",
+      "page": "journey/35cb-render.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw document strokes with shared depth, correct device density and complete Close accounting.",
+      "trace": "scene line owners → unchanged-data reuse → shared drawing pass → density-aware view → buffer release",
+      "question": "Why does the renderer receive packed strokes rather than kernel owners?",
+      "answer": "The document owns editable sources and history. GPU display data can survive source release without keeping those kernel owners alive.",
+      "result": "The native fixture draws a real source line with the existing meshes and verifies line buffer accounting. Browser command insertion follows next.",
+      "experiment": "Close the line-bearing document in the GPU fixture. Its kernel weak owner expires and stroke buffer usage returns to zero.",
+      "production": "The shared drawing pass and resource lifetime are connected here. The next endpoint exposes an Example Line command and checks actual browser pixels.",
+      "tests": true,
+      "frame": "journey/checks/35cb-render.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Synchronize placed line records when the scene changes, then draw their shared lane in the existing depth pass. Camera changes update uniforms while vertex data stays resident.\n\nPass the effective browser density through recovery’s existing cap. Report line rows and buffer usage separately from the earlier mesh counters. Closing clears line owners, history and GPU instances; the renderer retains no kernel line handle.\n\n![Document owners prepare display records for one shared drawing pass.](../illustrations/journey-35cb.svg)",
+      "browser_caption": "Native rendering now includes a prepared line; Chrome keeps the preceding scene until the following input lesson adds the command.",
+      "checks": "The native fixture draws mixed geometry and proves source release, view-only reuse, payload counts and empty-buffer release. Twenty-four width renders remain; browser-visible input follows.",
+      "edits": [
+        {
+          "path": "src/renderer.rs",
+          "before": "    depth: wgpu::TextureView,",
+          "snippet": "journey/code/35cb-render-01.rs",
+          "why": "Retain one stroke lane and the physical view dimensions."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),",
+          "snippet": "journey/code/35cb-render-02.rs",
+          "why": "Create the shared lane with the actual drawing device."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            settings_bytes: 0, uniform, view_group, depth };",
+          "snippet": "journey/code/35cb-render-03.rs",
+          "why": "Initialize native view size and default density."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn resize(&mut self, size: crate::viewport::Viewport) {",
+          "snippet": "journey/code/35cb-render-04.rs",
+          "why": "Keep physical viewport dimensions beside the shared depth texture."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {",
+          "snippet": "journey/code/35cb-render-05.rs",
+          "why": "Reuse unchanged strokes and expose exact instance-buffer accounting."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 80 + self.settings_bytes as u64",
+          "snippet": "journey/code/35cb-render-06.rs",
+          "why": "Include stroke payloads in measured scene upload bytes."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.queue.write_buffer(&self.uniform, 0, &bytes);",
+          "snippet": "journey/code/35cb-render-07.rs",
+          "why": "Update camera and density separately from segment vertices."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            for mesh in &self.meshes {\n                mesh.draw(&mut pass);\n            }",
+          "snippet": "journey/code/35cb-render-08.rs",
+          "why": "Use the same scene depth when drawing the stroke batch."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let Some(size) = Viewport::from_css(",
+          "snippet": "journey/code/35cb-render-09.rs",
+          "why": "Use recovery’s effective density for both canvas size and stroke width."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        crate::browser_recovery::density(window.device_pixel_ratio()),",
+          "snippet": "journey/code/35cb-render-10.rs",
+          "why": "Size the canvas with the same effective density."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "pub fn gpu<'a>",
+          "snippet": "journey/code/35cb-render-11.rs",
+          "why": "Count line rows, distinct kernel owners and allocated row capacity."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn lines(&self) -> &[LineObject] { &self.lines }",
+          "snippet": "journey/code/35cb-render-12.rs",
+          "why": "Expose actual line table capacity for CPU accounting."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        let row = self.lines.iter_mut().find(|row| row.id == id).ok_or(\"Line not found\")?;\n        row.model = model; Ok(())",
+          "snippet": "journey/code/35cb-render-13.rs",
+          "why": "Reject unrenderable placed endpoints before changing document state."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-selected-id\",",
+          "snippet": "journey/code/35cb-render-14.rs",
+          "why": "Expose the actual new resource counters beside the existing inspector values."
+        }
+      ]
+    },
+    {
+      "id": "35d-input",
+      "title": "Insert a line through the real command dock",
+      "page": "journey/35d-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Insert an editable line as one undoable command and prove its width in actual browser pixels.",
+      "trace": "Example Line → prepared source → one history transaction → stroke batch → camera-only reuse",
+      "question": "Why does line insertion go through Editor instead of directly changing the GPU buffer?",
+      "answer": "The document must own identity, original coordinates and Undo. The renderer follows accepted document changes and never becomes the editable authority.",
+      "result": "Close the document, type Example Line, then zoom. The horizontal stroke remains five CSS pixels wide.",
+      "experiment": "Undo the line, Redo it, then Close. Inspect actual live line and GPU counters before and after each command.",
+      "production": "This checkpoint exposes one line example. Full line picking, visibility, interactive construction and mixed-document loading follow in their respective chapters.",
+      "tests": true,
+      "frame": "journey/checks/35d-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Register Example Line in the existing dock and dispatch an Editor action. Prepare the kernel line before committing one history transaction. The line retains its original endpoints and style.\n\nChrome checks real width at densities one and two in both projections, unchanged vertex uploads during zoom, document Undo/Redo and complete Close. Saving lines remains an explicit error until mixed-geometry serialization is taught.\n\n![Commands change the document; camera input reuses its line buffer.](../illustrations/journey-35d.svg)",
+      "browser_caption": "Chrome draws a real five-pixel source line after command insertion and verifies zoom, density, Undo/Redo and Close.",
+      "checks": "Native tests cover command history, shared sources and Close. Actual headed Chrome measures stroke pixels in both projections at two densities; zoom reuses the vertex buffer.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    AddBox,",
+          "snippet": "journey/code/35d-input-01.rs",
+          "why": "Add a document action for the example line."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddBox => {",
+          "snippet": "journey/code/35d-input-02.rs",
+          "why": "Prepare the original line, then commit insertion through existing history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Example Box\",",
+          "snippet": "journey/code/35d-input-03.rs",
+          "why": "Expose the new action through the actual command list."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"example box\" => Action::AddBox,",
+          "snippet": "journey/code/35d-input-04.rs",
+          "why": "Dispatch accepted input to the editor instead of directly to GPU data."
+        },
+        {
+          "path": "src/stroke_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/35d-input-05.rs",
+          "why": "Copy the source lifetime and undoable command checks.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod stroke;",
+          "snippet": "journey/code/35d-input-06.rs",
+          "why": "Register the command checks."
+        }
+      ]
     }
   ]
 }

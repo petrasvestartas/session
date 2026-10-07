@@ -1,0 +1,12 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "One checked stroke shader"
+b: "44-byte per-instance record"
+c: "80-byte shared view uniform"
+d: "Shared pipeline: alpha coverage and read-only depth"
+e: "Next: upload only changed segment data"
+a -> d
+b -> d
+c -> d
+d -> e

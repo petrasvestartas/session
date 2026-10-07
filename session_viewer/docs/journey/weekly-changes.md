@@ -1,6 +1,6 @@
 # Viewer changes to carry into the course
 
-This review covers the viewer commits from September 28 through October 7, 2026. The latest review starts at the previous tutorial publication, `d1c3e7c0`, and includes `dc6e65f9` plus the October 7 follow-up fixes in `8ff4f71a`. It describes source changes; unfinished lessons still need implementation and acceptance checks.
+This review covers the viewer commits from September 28 through October 7, 2026. The latest review starts at the previous tutorial publication, `d1c3e7c0`, and includes `dc6e65f9` plus the October 7 follow-up fixes in `8ff4f71a`. The continuation also includes the later October 7 child-feature visibility commit `3ba67b1d` and Wood export change `8bcd5dd`. It describes source changes; unfinished lessons still need implementation and acceptance checks.
 
 | Change | What the learner must understand | Tutorial destination |
 | --- | --- | --- |
@@ -57,6 +57,7 @@ The October 7 checkout includes these production changes. Their later feature le
 | [Ground-grid depth range](https://github.com/petrasvestartas/session/commit/96df6983) | Cover both scene bounds and the ground grid's farthest corner in perspective and orthographic depth ranges. A small scene must not clip the distant grid. | 24–25 projection; 41 grid; 94 visual comparison |
 | [Fit around visible panels](https://github.com/petrasvestartas/session/commit/839c97f6), [centre in the free canvas](https://github.com/petrasvestartas/session/commit/924839bd) | Record the usable canvas rectangle and shift the projection, keeping the camera target on the geometry. Opening or closing Layers moves the projected centre immediately. Fit uses that space in both projections; rays and cursor-centred zoom account for the same shift. | 24–26 fitting; 52 tree; 54 layout; 94 visual comparison |
 | [Opposite isometric view](https://github.com/petrasvestartas/session/commit/dc6e65f9) | Add View Isometric Back to discovery and parsing. Turn half a revolution from the original isometric view while retaining its elevation and orthographic projection. Check both opposite corners. | 47 commands; 54 navigation; 94 visual comparison |
+| [Child element feature layers](https://github.com/petrasvestartas/session/commit/3ba67b1d), [Wood cutter ownership](https://github.com/petrasvestartas/wood/commit/8bcd5dd) | A cutter is the element’s child layer, rather than an outline copy attached to the element it cuts. Element Features On/Off switches child element rows under an element; sibling elements under a group remain ordinary geometry. Teach tree ownership and verify visibility through both the command and layer panel. | 52 nested tree; 53 layer visibility; 92 element features |
 
 The temporary documentation-renderer options introduced in 69251c83 were removed in 89335c4c. Teach the maintained headless adapter ownership rather than the removed option surface.
 

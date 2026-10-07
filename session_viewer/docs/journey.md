@@ -2,15 +2,15 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 183 cumulative lessons, about 164–313.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 190 cumulative lessons, about 169–321.75 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **247 proposed slots: 183 current checkpoints and 64 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **253 proposed slots: 190 current checkpoints and 63 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
 The white canvas fills the browser window from lesson 01. The runtime shows your drawing and the command dock; lesson titles and explanations stay in this documentation.
 
-**One-hour typing target:** the [typing-load audit](journey/typing-load.md) separates actual code changes from reading and experiments. Fifteen existing checkpoints still need splitting; working builds alone do not make those long sections finished lessons.
+**One-hour typing target:** the [typing-load audit](journey/typing-load.md) separates actual code changes from reading and experiments. All current checkpoints fit the one-hour typing limit. Remaining chapters must meet the same limit as they are written.
 
 Each lesson now follows one change: explain the needed Rust, type the code, then run one focused check. Experiments and detailed verification notes expand when you need them. The [to-do list and progress](journey/roadmap.md) is also linked at the top of every lesson.
 
@@ -210,6 +210,13 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [34ge · Keep the document outside the GPU runtime](journey/34ge-owner.md) | 0.5–1 hours | Give GPU runtimes shared access to a separately owned CPU document. |
 | [34gea · Permit one conservative recovery reload](journey/34gea-policy.md) | 0.25–0.5 hours | Allow one device-loss recovery reload and retain reduced quality until an ordinary reload. |
 | [34geb · Recover once at reduced canvas density](journey/34geb-reload.md) | 0.75–1.25 hours | Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload. |
+| [35 · Prepare a stroke without changing its source](journey/35-stroke.md) | 0.5–1 hours | Prepare finite line endpoints, colour and screen width while retaining the original kernel line. |
+| [35a · Retain line owners in document history](journey/35a-document.md) | 0.75–1.25 hours | Give prepared lines stable document IDs, history ownership and world-space bounds. |
+| [35b · Extrude a stroke in screen pixels](journey/35b-extrude.md) | 0.75–1.25 hours | Expand a projected segment into two triangles with a width that survives camera zoom. |
+| [35c · Create the shared stroke pipeline](journey/35c-lane.md) | 0.75–1.25 hours | Create one pipeline and view uniform for a batch of stroke instances. |
+| [35ca · Upload changed stroke instances only](journey/35ca-sync.md) | 0.75–1.25 hours | Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes. |
+| [35cb · Connect the stroke lane to the document renderer](journey/35cb-render.md) | 0.75–1.25 hours | Draw document strokes with shared depth, correct device density and complete Close accounting. |
+| [35d · Insert a line through the real command dock](journey/35d-input.md) | 0.75–1.25 hours | Insert an editable line as one undoable command and prove its width in actual browser pixels. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

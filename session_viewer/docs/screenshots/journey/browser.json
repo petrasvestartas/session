@@ -5425,6 +5425,206 @@
       "bundle": "4b1a547515f24d0c4b1338dfd8f956c3c9564019aee12a7f9dd75f620c0ec43b",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "35-stroke": {
+      "source": "4173f61de16cfd69c96bf4b1962cb1ad1c0fdf58bdafd44cee30f4b881f30470",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "5df70a77f558ef1ec364be6fcdb4e984505997cf591743600a11f024741e3dc9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:24:15.683Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f63fee40fadb6af5d8b674e2a610c59e00afaf12f92d9a484d7b6e14623a7187",
+      "file": "35-stroke-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "95448c1f28c0e54aea819a0f2e573f8de2767651378e74cd238e2c33b743e5f6",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "35a-document": {
+      "source": "16350345c643b96528b6851df8d9ab0868e3bd3ec420722d87e3eb630b9d8e02",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "5df70a77f558ef1ec364be6fcdb4e984505997cf591743600a11f024741e3dc9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:24:27.197Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f63fee40fadb6af5d8b674e2a610c59e00afaf12f92d9a484d7b6e14623a7187",
+      "file": "35a-document-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "8ce6c8e8cac5f4560ff567ffa5f7441c63e57ee16e5ebe6ccdc06be3bb39e883",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "35b-extrude": {
+      "source": "21e301f2799dc72dabd94463a2796bbf6a027a4a68409ba302a93aed15572b32",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "5df70a77f558ef1ec364be6fcdb4e984505997cf591743600a11f024741e3dc9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:24:38.442Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f63fee40fadb6af5d8b674e2a610c59e00afaf12f92d9a484d7b6e14623a7187",
+      "file": "35b-extrude-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "802a75d0ad02a459c86d7bbcc3692d647d6b48c9069c87a6173d78e92565f0a4",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "35c-lane": {
+      "source": "4f3d4ff5d45c9a26896a4a552dcfc38060a6a295821040b961616d89a40c3a41",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "5df70a77f558ef1ec364be6fcdb4e984505997cf591743600a11f024741e3dc9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:24:49.726Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f63fee40fadb6af5d8b674e2a610c59e00afaf12f92d9a484d7b6e14623a7187",
+      "file": "35c-lane-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "5bc49499d5943d9136d1a999190d123072ec2637d31b1339905468be6a011b3c",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "35ca-sync": {
+      "source": "afb63bddf61853c2e2cd9fff2032ccae985cd7388ccd8edaddbca2ff9090cef3",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "5df70a77f558ef1ec364be6fcdb4e984505997cf591743600a11f024741e3dc9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:25:00.778Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f63fee40fadb6af5d8b674e2a610c59e00afaf12f92d9a484d7b6e14623a7187",
+      "file": "35ca-sync-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "541439ee0c5a8de20c2c9fc481729f12afa35a912719a62c63c886970bbd60db",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "35cb-render": {
+      "source": "e7720d5d910ed06ce29c02b67599a8f982f247c29870a513db6d2472b7d60c58",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "5df70a77f558ef1ec364be6fcdb4e984505997cf591743600a11f024741e3dc9",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:25:12.326Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f63fee40fadb6af5d8b674e2a610c59e00afaf12f92d9a484d7b6e14623a7187",
+      "file": "35cb-render-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "3debcf2c0a9659d2e0b3315a9490172f2be6f521480864d6a4d224dec28affaa",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "35d-input": {
+      "source": "4b4eedea2b9d5791a4c7d17456d2394a5ce3f19d7209be4629d6ca732486ee8f",
+      "checker": "6c66758c332502045704ecc3cc62b5d3e57f9c0824ddc0f048af6c74c95d2b6e",
+      "extraChecker": "e6e872eaf694e17afe3722446250790babfc4ea9decad2f55455f1ce5bb132cc",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-07T13:25:33.847Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "0293a94592b76d4f5536106f56371ac8b9867e1c3da2f8afacb98db1901f1774",
+      "file": "35d-input-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "7c6136607aa24eb5504076a2e55fae96ab2fed34f3db5d7e8348ae2db32ec5a1",
+      "commands": [
+        "Close",
+        "Example Line",
+        "View Reset"
+      ],
+      "keyboardRoundtrip": false
     }
   }
 }

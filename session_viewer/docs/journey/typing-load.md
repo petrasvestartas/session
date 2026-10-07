@@ -195,17 +195,24 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [34ge-owner](34ge-owner.md) | 24 | 1291 | 13–26 min | 0.5–1 h | Within planning limit |
 | [34gea-policy](34gea-policy.md) | 15 | 447 | 5–9 min | 0.25–0.5 h | Within planning limit |
 | [34geb-reload](34geb-reload.md) | 40 | 2000 | 20–40 min | 0.75–1.25 h | Within planning limit |
+| [35-stroke](35-stroke.md) | 33 | 1339 | 14–27 min | 0.5–1 h | Within planning limit |
+| [35a-document](35a-document.md) | 52 | 2128 | 22–43 min | 0.75–1.25 h | Within planning limit |
+| [35b-extrude](35b-extrude.md) | 44 | 1971 | 20–40 min | 0.75–1.25 h | Within planning limit |
+| [35c-lane](35c-lane.md) | 42 | 2400 | 24–48 min | 0.75–1.25 h | Within planning limit |
+| [35ca-sync](35ca-sync.md) | 37 | 1789 | 18–36 min | 0.75–1.25 h | Within planning limit |
+| [35cb-render](35cb-render.md) | 47 | 2409 | 25–49 min | 0.75–1.25 h | Within planning limit |
+| [35d-input](35d-input.md) | 15 | 664 | 7–14 min | 0.75–1.25 h | Within planning limit |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 183 current checkpoints.
+- [x] Count the exact source edits for all 190 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [x] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [x] Update the full roadmap, navigation and recovery instructions.
-- [x] Recheck total lesson counts after splitting; the current 247 slots are not a fixed final count.
-- [ ] Apply the same direct style and typing limit to the 64 remaining feature lessons as they are written.
+- [x] Recheck total lesson counts after splitting; the current 253 slots are not a fixed final count.
+- [ ] Apply the same direct style and typing limit to the 63 remaining feature lessons as they are written.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)
 

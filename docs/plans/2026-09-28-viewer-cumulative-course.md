@@ -1,6 +1,14 @@
 # Viewer course — resume memory
 
-## Latest continuation — October 7, 2026
+## Stroke continuation — October 7, 2026
+
+Do not stop after this publication: the user asked to finish ALL tutorials. There are now 190 verified authored endpoints, 253 planned slots and 63 future destinations. The course is still incomplete. Seven stroke checkpoints, 35 through 35d, preserve kernel Line ownership and precision, pack 44-byte display records, retain independent line rows/placements/history, extrude constant CSS width with near clipping, create one shared GPU pipeline and reuse changed-data buffers. The renderer shares mesh depth, uses recovery's effective DPR, counts line rows/unique sources/capacity and actual instance buffers separately, and releases line resources on Close. Example Line is one actual undoable dock action. Save explicitly refuses line-bearing documents until mixed-geometry serialization; picking and visibility remain later responsibilities.
+
+Native 24-case pixel checks cover width1/3/9, both projections, two zooms and DPR1/2. Actual headed Chrome measures width5 at both densities/projections, checks camera-only vertex reuse, command Undo/Redo, nonfatal Save refusal and complete Close. All190 native/WASM/optimizedTrunk and Chrome signatures are current; all typing estimates <=60minutes. All444 D2 illustrations are generated; nine authoring tests and strict Vue build pass. See course-stroke-* receipts in /home/petras/viewer_review_work. The earlier telemetry publication and concurrent feature pushes, including both follow-on Pages deployments, are ALL successful in course-telemetry-publication.json.
+
+Preserved concurrent Session3ba67b1d, Wood8bcd5dd and rootccdbe65 implement child-layer element features. The ongoing Wood variable-beam edits in src/joinery_solver/wood_elements, examples/elements and docs/elements belong to another author; preserve them. Frozen destination.json and workspace/journey remain unchanged. Next36 must complete source-preserving connected strokes and arrowheads (split source records, shader, GPU wiring and commands within typing limits), then37points and ALL later chapters through97. Keep the same visible Chrome review tab, bundle8781, docs8788 and owned Xvfb:92 alive. Never equate a current batch with completion.
+
+## Prior telemetry continuation — October 7, 2026
 
 The user explicitly asked to finish ALL remaining tutorials and keep working, after being told that 175 were published and 68 feature destinations remained. Do not stop at another batch or treat publication as completion. The course now has **183 authored and verified endpoints**, **247 planned slots** and **64 remaining feature destinations**. Extra splits preserve the original scope. Keep `destination.json` frozen and the learner’s `workspace/journey` untouched.
 

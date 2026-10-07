@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 247 lesson slots; 183 current checkpoints have fresh build and Chrome evidence. 64 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 253 lesson slots; 190 current checkpoints have fresh build and Chrome evidence. 63 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -38,7 +38,7 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records which of the 175 checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 183 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 190 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -444,7 +444,19 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 Strokes, markers, clouds and normals: reference 04b, 04c, 04d, 05, 09. Cloud streaming comes later.
 
-- [ ] 35 · Draw readable thick lines — give a stroke width in screen pixels.
+- [x] 35 · [Prepare a stroke without changing its source](35-stroke.md) — Packed finite endpoints, colour, screen width and exact source ownership; native, optimized WebAssembly and headed Chrome checks pass.
+
+- [x] 35a · [Retain line owners in document history](35a-document.md) — IDs, exact source ownership, placed bounds, clear and snapshot policy; native, optimized WebAssembly and headed Chrome checks pass.
+
+- [x] 35b · [Extrude a stroke in screen pixels](35b-extrude.md) — Constant screen width, near clipping, degenerate projections and edge coverage; native, optimized WebAssembly and headed Chrome checks pass.
+
+- [x] 35c · [Create the shared stroke pipeline](35c-lane.md) — Real instance layout, view binding, alpha coverage and depth format; native, optimized WebAssembly and headed Chrome checks pass.
+
+- [x] 35ca · [Upload changed stroke instances only](35ca-sync.md) — Exact payload counts, buffer reuse, empty release and real pixel-width checks; native, optimized WebAssembly and headed Chrome checks pass.
+
+- [x] 35cb · [Connect the stroke lane to the document renderer](35cb-render.md) — Shared depth, effective density, line accounting and complete Close; native, optimized WebAssembly and headed Chrome checks pass.
+
+- [x] 35d · [Insert a line through the real command dock](35d-input.md) — Actual pixels, density, camera reuse and undoable input; native, optimized WebAssembly and headed Chrome checks pass.
 
 - [ ] 36 · Join strokes and draw arrowheads — keep the line owner through generated triangles.
 

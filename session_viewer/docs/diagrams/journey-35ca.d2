@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Checked packed stroke records"
+b: "Changed bytes?"
+c: "Initialize one instance buffer"
+d: "Reuse existing buffer"
+e: "Matrix, viewport and density update only the view uniform"
+f: "Draw six vertices per instance"
+a -> b
+b -> c: changed
+b -> d: unchanged
+c -> e
+d -> e
+e -> f

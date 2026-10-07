@@ -1,0 +1,1 @@
+            settings_bytes: 0, uniform, view_group, depth, strokes, size: [640, 480], density: 1.0 };
