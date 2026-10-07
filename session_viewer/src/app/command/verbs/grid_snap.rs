@@ -6,7 +6,7 @@ pub const SPEC: Spec = Spec {
     options: &["Grid Snap On", "Grid Snap Off"],
     ..Spec::new(
         &["Grid Snap"],
-        "Grid Snap (On Off) or a spacing: a point off every object lands on the grid of the construction plane, 100 mm apart at start · Example: Grid Snap 50",
+        "Grid Snap (On Off) or a spacing: a point off every object lands on the grid of the construction plane, 1000 apart at start like the ground grid's cells · Example: Grid Snap 50",
         parse,
     )
 };

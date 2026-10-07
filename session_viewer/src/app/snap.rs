@@ -35,8 +35,8 @@ pub struct Snapping {
     pub grid_step: f64, // the grid's spacing for that, mm
 }
 
-/// The grid snap spacing at start, mm: a tenth of the ground grid's cell.
-pub const GRID_STEP: f64 = 100.0;
+/// The grid snap spacing at start, mm: the ground grid's cell, STEP in grid.wgsl.
+pub const GRID_STEP: f64 = 1000.0;
 
 impl Default for Snapping {
     fn default() -> Self {
