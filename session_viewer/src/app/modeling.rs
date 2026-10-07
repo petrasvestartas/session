@@ -40,7 +40,20 @@ impl Scene {
         geometries: Vec<Geometry>,
         label: &str,
     ) -> Result<Vec<(usize, String)>, String> {
-        if geometries.is_empty() {
+        let items = geometries
+            .into_iter()
+            .map(|geometry| (geometry, Vec::new()))
+            .collect();
+        self.create_with_attributes(items, label)
+    }
+
+    /// Add geometries to the current layer as one undo step, each with its attributes in an `attributes` group under it; each (document, guid) comes back.
+    pub(crate) fn create_with_attributes(
+        &mut self,
+        items: Vec<(Geometry, Vec<Geometry>)>,
+        label: &str,
+    ) -> Result<Vec<(usize, String)>, String> {
+        if items.is_empty() {
             return Err("nothing to create".into());
         }
 
@@ -81,9 +94,9 @@ impl Scene {
         let name = parent.borrow().name.clone();
         let back = super::layers::frame(session, &place, &name);
         session.begin(label);
-        let mut nodes = Vec::with_capacity(geometries.len());
+        let mut nodes = Vec::with_capacity(items.len());
 
-        for geometry in &geometries {
+        for (geometry, attributes) in &items {
             let Some(node) = super::layers::add(session, geometry, &parent, true) else {
                 continue;
             };
@@ -92,6 +105,15 @@ impl Scene {
             if let Some(back) = &back {
                 let guid = node.borrow().name.clone();
                 super::layers::place(session, &guid, back, &Xform::identity());
+            }
+
+            // the attributes ride on the object's placement
+            if !attributes.is_empty() {
+                let group = session.add_group_with("attributes", Some(&node));
+
+                for attribute in attributes {
+                    super::layers::add(session, attribute, &group, true);
+                }
             }
 
             nodes.push(node);

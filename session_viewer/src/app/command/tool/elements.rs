@@ -1,0 +1,208 @@
+//! What the Element commands share: the picked curves and points in world space, and adding a wood
+//! element with its hidden base plane under `attributes`, as wood's sync_attributes writes it.
+
+use crate::State;
+use crate::app::command::tool::typed_number;
+use session_rust::{Color, Geometry, Plane, Point, Polyline};
+use std::rc::Rc;
+use wood::WoodElement;
+
+/// The picked polylines and lines, in pick order and world space; anything else is skipped.
+pub fn picked_polylines(state: &State) -> Vec<Polyline> {
+    let mut out = Vec::new();
+
+    for row in state.ordered_rows() {
+        let (Some(geometry), Some(place)) =
+            (state.scene.geometry(row), state.scene.placement_of(row))
+        else {
+            continue;
+        };
+
+        match geometry {
+            Geometry::Polyline(polyline) => out.push(polyline.transformed(&place)),
+            Geometry::Line(line) => {
+                let line = line.transformed(&place);
+                out.push(Polyline::new(vec![line.start(), line.end()]));
+            }
+            _ => {}
+        }
+    }
+
+    out
+}
+
+/// The picked points and planes as world planes, in pick order: a point gives the world xy plane there.
+pub fn picked_planes(state: &State) -> Vec<Plane> {
+    let mut out = Vec::new();
+
+    for row in state.ordered_rows() {
+        let (Some(geometry), Some(place)) =
+            (state.scene.geometry(row), state.scene.placement_of(row))
+        else {
+            continue;
+        };
+
+        match geometry {
+            Geometry::Point(point) => {
+                let at: Point = point.transformed(&place);
+                out.push(Plane::new(
+                    at,
+                    session_rust::Vector::x_axis(),
+                    session_rust::Vector::y_axis(),
+                ));
+            }
+            Geometry::Plane(plane) => out.push(plane.transformed(&place)),
+            _ => {}
+        }
+    }
+
+    out
+}
+
+/// The closed polylines among the picked curves, in pick order.
+pub fn picked_loops(state: &State) -> Vec<Polyline> {
+    picked_polylines(state)
+        .into_iter()
+        .filter(|polyline| polyline.is_closed() && polyline.point_count() >= 4)
+        .collect()
+}
+
+/// The positive lengths typed after the verb, the defaults for the ones left out.
+pub fn lengths<const N: usize>(
+    rest: &[&str],
+    defaults: [f64; N],
+    usage: &str,
+) -> Result<[f64; N], String> {
+    if rest.len() > N {
+        return Err(format!("Too many numbers · {usage}"));
+    }
+
+    let mut values = defaults;
+
+    for (value, word) in values.iter_mut().zip(rest) {
+        *value = typed_number(word)
+            .filter(|value| *value > 0.0)
+            .ok_or_else(|| format!("`{word}` is not a positive length · {usage}"))?;
+    }
+
+    Ok(values)
+}
+
+/// The element's base plane as wood writes it: hidden, black, named base_plane.
+fn base_plane<T: WoodElement>(element: &T) -> Vec<Geometry> {
+    let Some(mut plane) = element.base_plane() else {
+        return Vec::new();
+    };
+
+    plane.name = "base_plane".into();
+    plane.is_visible = false;
+    plane.linecolor = Color::black();
+
+    vec![Geometry::Plane(Rc::new(plane))]
+}
+
+/// Each element as a kernel Element with its base plane, ready for Scene::create_with_attributes.
+pub fn items<T: WoodElement>(elements: &[T]) -> Vec<(Geometry, Vec<Geometry>)> {
+    elements
+        .iter()
+        .map(|element| {
+            (
+                Geometry::Element(Rc::new(element.to_element())),
+                base_plane(element),
+            )
+        })
+        .collect()
+}
+
+/// Add the elements to the current layer as one undo step, each with its base plane, select them and say so.
+pub fn create<T: WoodElement>(
+    state: &mut State,
+    elements: Vec<T>,
+    what: &str,
+) -> Result<String, String> {
+    let made = state
+        .scene
+        .create_with_attributes(items(&elements), &format!("Element {what}"))?;
+    state.after_history();
+    let rows = made
+        .iter()
+        .filter_map(|(doc, guid)| state.scene.row_of(*doc, guid))
+        .collect();
+    state.select_rows(rows, false);
+    let noun = match elements.len() {
+        1 => what.to_ascii_lowercase(),
+        count => format!("{count} {}s", what.to_ascii_lowercase()),
+    };
+
+    Ok(format!("Created {noun} · Undo removes it"))
+}
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use crate::app::scene::Scene;
+    use session_rust::Point;
+    use wood::Plate;
+
+    /// A closed square of side at z.
+    pub fn square(side: f64, z: f64) -> Polyline {
+        let corners = [
+            (0.0, 0.0),
+            (side, 0.0),
+            (side, side),
+            (0.0, side),
+            (0.0, 0.0),
+        ];
+        Polyline::new(corners.iter().map(|&(x, y)| Point::new(x, y, z)).collect())
+    }
+
+    /// Lengths default when left out and refuse anything but a positive number.
+    #[test]
+    fn lengths_default_and_refuse() {
+        assert_eq!(lengths(&[], [40.0], "usage"), Ok([40.0]));
+        assert_eq!(lengths(&["12"], [1.0, 2.0], "usage"), Ok([12.0, 2.0]));
+        assert!(lengths(&["0"], [1.0], "usage").is_err());
+        assert!(lengths(&["-3"], [1.0], "usage").is_err());
+        assert!(lengths(&["x"], [1.0], "usage").is_err());
+        assert!(lengths(&["1", "2"], [1.0], "usage").is_err());
+    }
+
+    /// An element lands on the layer with its hidden base plane under `attributes`, one undo step for both.
+    #[test]
+    fn an_element_comes_with_its_hidden_base_plane() {
+        let mut scene = Scene::new();
+        let made = scene
+            .create_with_attributes(
+                items(&[Plate::from_outline(&square(600.0, 0.0), 40.0, "plate")]),
+                "Element Plate",
+            )
+            .unwrap();
+        assert_eq!(made.len(), 1);
+        scene.sync();
+        let element = scene.row_of(made[0].0, &made[0].1).unwrap();
+        let plane = (0..scene.row_count() as u32)
+            .find(|&row| matches!(scene.geometry(row), Some(Geometry::Plane(_))))
+            .unwrap();
+        let (doc, guid) = scene.identity_of(plane).unwrap();
+
+        assert!(
+            matches!(scene.geometry(element), Some(Geometry::Element(e)) if e.element_type == "Plate")
+        );
+        assert_eq!(
+            scene.parent_of(doc, &guid).unwrap().borrow().name,
+            "attributes"
+        );
+        assert!(
+            scene.hidden_rows().contains(&plane),
+            "the base plane starts hidden"
+        );
+        assert!(crate::app::layers::under_element(&scene, plane) && !scene.selectable(plane));
+        assert!(scene.undo());
+        scene.sync();
+        assert_eq!(
+            scene.object_count(),
+            0,
+            "one undo takes the element and its plane"
+        );
+    }
+}

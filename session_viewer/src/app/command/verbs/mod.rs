@@ -47,6 +47,12 @@ verbs! {
     opacity,                 // register:opacity
     arrowhead,               // register:arrowhead
     attributes,              // register:attributes
+    element_plate,           // register:element_plate
+    element_beam,            // register:element_beam
+    element_column,          // register:element_column
+    element_block,           // register:element_block
+    element_beam_variable,   // register:element_beam_variable
+    element_support,         // register:element_support
     snap,                    // register:snap
     arctic,                  // register:arctic
     outline,                 // register:outline

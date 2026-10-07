@@ -32,6 +32,10 @@ jobs:
       # (C++/Python kernels, data) are dead weight for this job.
       - name: Checkout session_rust submodule
         run: git submodule update --init --depth 1 session_rust
+      # The viewer builds wood's element classes from ../wood/rust, where the superproject keeps wood;
+      # only that folder comes down, at the tip of main.
+      - name: Checkout wood's Rust crate beside session
+        run: git clone --depth 1 --filter=blob:none --sparse https://github.com/petrasvestartas/wood ../wood && git -C ../wood sparse-checkout set rust
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
       - uses: Swatinem/rust-cache@v2

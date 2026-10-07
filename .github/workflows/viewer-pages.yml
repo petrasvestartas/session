@@ -46,6 +46,10 @@ jobs:
       # descriptions; the other submodules are dead weight for this job.
       - name: Checkout the submodules the site needs
         run: git submodule update --init --depth 1 session_rust session_proto session_cpp
+      # The viewer builds wood's element classes from ../wood/rust, where the superproject keeps wood;
+      # only that folder comes down, at the tip of main.
+      - name: Checkout wood's Rust crate beside session
+        run: git clone --depth 1 --filter=blob:none --sparse https://github.com/petrasvestartas/wood ../wood && git -C ../wood sparse-checkout set rust
       - name: Add wasm target
         run: rustup target add wasm32-unknown-unknown
       - name: Install trunk

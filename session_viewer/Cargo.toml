@@ -8,6 +8,9 @@ crate-type = ["cdylib", "rlib"]  # rlib so examples/selftest.rs can link the cra
 
 [dependencies]
 session_rust = { path = "../session_rust", default-features = false } # no mini-tests in the wasm
+# Wood's element classes over the kernel Element, beside session as the superproject lays them out;
+# viewer-check and viewer-pages clone wood/rust there (sparse, shallow) before building.
+wood = { path = "../../wood/rust" }
 anyhow = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml_ng = "0.10"

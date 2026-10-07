@@ -5,6 +5,7 @@ pub mod gather; // register:gather
 mod options; // register:gather
 pub mod shape; // register:shape
 pub mod surfacing; // register:surfacing
+pub mod elements; // register:elements
 
 /// What a tool wants after a point or a word.
 #[derive(Debug, PartialEq)]
