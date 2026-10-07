@@ -313,16 +313,8 @@ impl Tool for ElementTool {
             );
         }
 
-        let values = match self.params.is_empty() {
-            true => String::new(),
-            false => format!(" · {} · type a value to change it", self.values()),
-        };
-
-        format!(
-            "pick {} ({} picked){values} · Enter creates",
-            self.recipe.picks,
-            self.picked.len()
-        )
+        // the values are options to click in the command line; the prompt names the picks
+        format!("pick {} ({} picked)", self.recipe.picks, self.picked.len())
     }
 
     fn options(&self) -> &'static [(&'static str, &'static str)] {
@@ -333,7 +325,7 @@ impl Tool for ElementTool {
     fn buttons(&self) -> Vec<(String, String)> {
         let values = self.params.iter().map(|param| {
             (
-                format!("{} {}", param.name, param.value),
+                format!("{}={}", param.name, param.value),
                 param.name.to_string(),
             )
         });
@@ -478,13 +470,13 @@ pub mod tests {
             (300.0, 100.0),
             "after Width the next number is Height"
         );
-        assert!(tool.prompt(&[]).contains("Width 300 · Height 100"));
+        assert!(tool.prompt(&[]).contains("(0 picked)"));
         assert!(tool.take("Depth").is_err() && tool.take("-5").is_err());
         let labels: Vec<String> = tool.buttons().into_iter().map(|(label, _)| label).collect();
         assert_eq!(
             labels,
-            ["Width 300", "Height 100", "Create", "Cancel"],
-            "a button per value"
+            ["Width=300", "Height=100", "Create", "Cancel"],
+            "an option per value"
         );
         assert_eq!(tool.buttons()[1].1, "Height", "a click asks for that value");
         let mut bare = ElementTool::new(&BEAM, Vec::new());
