@@ -245,6 +245,7 @@ fn on_silhouette(seg: StrokeSegment) -> bool {
 
 // True when the segment is drawn: a face beside it faces the camera, or the faces are glass; a silhouette segment only on the silhouette.
 fn neighbor_visible(seg: StrokeSegment) -> bool {
+    if (seg.color == 0x01000000u) { return true; }
     if (silhouette_only(seg)) {
         return on_silhouette(seg);
     }
@@ -426,8 +427,14 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
         return dead_vertex();
     }
 
-    let c0 = mvp * vec4<f32>(w0, 1.0);
-    let c1 = mvp * vec4<f32>(w1, 1.0);
+    var c0 = mvp * vec4<f32>(w0, 1.0);
+    var c1 = mvp * vec4<f32>(w1, 1.0);
+    let contact = seg.color == 0x01000000u;
+    if (contact && seg.facing != FACING_UNKNOWN) {
+        let normal = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
+        c0 = depth_layer(c0, w0, normal, LAYER_CONTACT);
+        c1 = depth_layer(c1, w1, normal, LAYER_CONTACT);
+    }
     let at_end1 = corner >= 2u;
     let side = select(-1.0, 1.0, (corner & 1u) == 1u);
 
@@ -481,6 +488,9 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
 
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
+    }
+    if (contact) {
+        color = vec4<f32>(0.0, 0.0, 0.0, 1.0);
     }
 
     o.color = color;

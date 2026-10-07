@@ -1,10 +1,11 @@
 // Hold GPU completion deliberately: this checks frame coalescing, not phone speed.
 const assert = require('node:assert/strict');
+const path = require('node:path');
 const {chromium} = require('playwright');
 (async () => {
     const browser = await chromium.launch({channel:'chrome',headless:false,args:['--enable-unsafe-webgpu','--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE','--disable-vulkan-surface','--ozone-platform=x11']});
     try {
-        for (const gesture of ['mouse-orbit', 'touch-orbit', 'touch-pan-pinch', 'touch-cancel']) {
+        for (const gesture of ['mouse-orbit', 'wheel-zoom', 'touch-orbit', 'touch-pan-pinch', 'touch-cancel']) {
             const matrices = [];
             for (const held of [false, true]) {
                 const page = await browser.newPage({viewport:{width:412,height:915},deviceScaleFactor:2.625,isMobile:true,hasTouch:true});
@@ -20,24 +21,29 @@ const {chromium} = require('playwright');
                     GPUQueue.prototype.submit = function(...args) {gate.submissions++;return submit.apply(this,args);};
                     gate.release = () => {gate.hold=false;gate.waiters.splice(0).forEach(resolve=>resolve());};
                 });
+                await page.route('**/view_live.yaml', route => route.fulfill({contentType:'application/yaml', body:'name: Navigation pacing\nitems:\n  - file: floor.pb\n'}));
+                await page.route('**/floor.pb', route => route.fulfill({path:path.join(__dirname,'fixtures/timber-floor.pb')}));
                 await page.goto((process.env.VIEWER_URL||'http://127.0.0.1:8770/')+'?live=off&scene=view_live&notify=off&inspect=1');
                 await page.waitForFunction(()=>window.viewerDiagnostics?.read().outcome==='ready',null,{timeout:90000});
+                await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas')?.getAttribute('data-viewer-inspection')||'{}').objects===529,null,{timeout:90000});
                 await page.waitForTimeout(1200);
                 const before = await snapshot(page);
                 const cdp = await page.context().newCDPSession(page);
                 await page.evaluate(value=>{testGpuGate.hold=value;testGpuGate.submissions=0;},held);
                 const two = gesture==='touch-pan-pinch';
                 const touch = (type,i) => cdp.send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'||type==='touchCancel'?[]:two?[{id:1,x:130-i*.5,y:400+i},{id:2,x:250+i*2,y:400+i}]:[{id:1,x:190+i*3,y:400+i}]});
-                if (gesture==='mouse-orbit') {await page.mouse.move(190,400);await page.mouse.down({button:'right'});}
+                if (gesture==='wheel-zoom') await page.mouse.move(190,400);
+                else if (gesture==='mouse-orbit') {await page.mouse.move(190,400);await page.mouse.down({button:'right'});}
                 else await touch('touchStart',0);
                 for (let i=1;i<=24;i++) {
-                    if (gesture==='mouse-orbit') await page.mouse.move(190+i*3,400+i);
+                    if (gesture==='wheel-zoom') await page.mouse.wheel(0,-20);
+                    else if (gesture==='mouse-orbit') await page.mouse.move(190+i*3,400+i);
                     else await touch('touchMove',i);
                     await page.waitForTimeout(25);
                     if (i===2 && held) await page.waitForTimeout(120);
                 }
                 if (gesture==='mouse-orbit') await page.mouse.up({button:'right'});
-                else await touch(gesture==='touch-cancel'?'touchCancel':'touchEnd',24);
+                else if (gesture!=='wheel-zoom') await touch(gesture==='touch-cancel'?'touchCancel':'touchEnd',24);
                 await page.waitForTimeout(250);
                 if (held) {
                     const blocked = await page.evaluate(()=>({submissions:testGpuGate.submissions,waiters:testGpuGate.waiters.length}));
@@ -45,6 +51,7 @@ const {chromium} = require('playwright');
                     await page.waitForFunction(()=>testGpuGate.waiters.length>0,null,{timeout:5000});
                     await page.evaluate(()=>testGpuGate.release());
                 }
+                await page.waitForFunction(()=>JSON.parse(document.querySelector('canvas')?.getAttribute('data-viewer-inspection')||'{}').objects===529,null,{timeout:90000});
                 await page.waitForTimeout(1200);
                 const after = await snapshot(page);
                 assert(after.frames>before.frames,'completion must wake the pending camera without another input');

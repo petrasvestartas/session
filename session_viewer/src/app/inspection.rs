@@ -69,6 +69,9 @@ pub fn publish(state: &State) {
         "text_labels": text_labels(state),
         "wasm_capacity_bytes": crate::engine::performance::heap_mb() * 1_048_576.0,
     });
+    snapshot["interacting"] = serde_json::json!(state.gpu.performance.interacting);
+    snapshot["navigation_tier"] = serde_json::json!(state.gpu.performance.drag_tier());
+    snapshot["rough"] = serde_json::json!(state.gpu.performance.rough());
     snapshot["opacity"] = serde_json::json!(state.gpu.view.opacity);
     snapshot["element_features"] = serde_json::json!(state.scene.attributes);
     snapshot["selected_rows"] = serde_json::json!(state.selected_rows());

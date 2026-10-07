@@ -172,7 +172,8 @@ fn shared_adapter() -> anyhow::Result<wgpu::Adapter> {
 
     SHARED
         .get_or_init(|| {
-            pollster::block_on(choose_adapter(&new_instance(), None)).map_err(|error| error.to_string())
+            pollster::block_on(choose_adapter(&new_instance(), None))
+                .map_err(|error| error.to_string())
         })
         .clone()
         .map_err(anyhow::Error::msg)
@@ -183,17 +184,11 @@ async fn choose_adapter(
     instance: &wgpu::Instance,
     surface: Option<&wgpu::Surface<'static>>,
 ) -> anyhow::Result<wgpu::Adapter> {
-    // browser picks the GPU; native prefers the low-power one
-    let default_power = if cfg!(target_arch = "wasm32") {
-        wgpu::PowerPreference::None
-    } else {
-        wgpu::PowerPreference::LowPower
-    };
-    // `?gpu=high` asks for the fast GPU
-    let preferred = if super::view::knob("VIEWER_GPU", "gpu").as_deref() == Some("high") {
-        wgpu::PowerPreference::HighPerformance
-    } else {
-        default_power
+    let preferred = match super::view::knob("VIEWER_GPU", "gpu").as_deref() {
+        Some("low") => wgpu::PowerPreference::LowPower,
+        Some("default") => wgpu::PowerPreference::None,
+        Some("high") => wgpu::PowerPreference::HighPerformance,
+        _ => default_power(),
     };
     let options = |power_preference| wgpu::RequestAdapterOptions {
         power_preference,
@@ -207,9 +202,23 @@ async fn choose_adapter(
 
     match instance.request_adapter(&options(preferred)).await {
         Ok(adapter) => Ok(adapter),
-        Err(_) if preferred != default_power => Ok(instance.request_adapter(&options(default_power)).await?),
+        Err(_) if preferred != wgpu::PowerPreference::None => Ok(instance
+            .request_adapter(&options(wgpu::PowerPreference::None))
+            .await?),
         Err(error) => Err(error.into()),
     }
+}
+
+fn default_power() -> wgpu::PowerPreference {
+    #[cfg(target_arch = "wasm32")]
+    if web_sys::window()
+        .and_then(|window| window.navigator().user_agent().ok())
+        .is_some_and(|agent| agent.contains("Firefox/"))
+    {
+        // High-power requests failed the Firefox full-floor startup check.
+        return wgpu::PowerPreference::LowPower;
+    }
+    wgpu::PowerPreference::HighPerformance
 }
 
 /// Pick the native GPU named by `VIEWER_ADAPTER`, if any.

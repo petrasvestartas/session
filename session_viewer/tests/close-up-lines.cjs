@@ -16,7 +16,14 @@ async function command(page, text) {
     await page.keyboard.press('Control+a');
     await page.keyboard.type(text);
     await page.keyboard.press('Enter');
-    await page.waitForFunction(text => JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-ui')).history.at(-1)?.startsWith(`> ${text}\n`), text);
+    try {
+        await page.waitForFunction(text => JSON.parse(document.querySelector('canvas').getAttribute('data-viewer-ui')).history.at(-1)?.startsWith(`> ${text}\n`), text);
+    } catch (error) {
+        console.error('Command timeout', text, await ui(page));
+        fs.mkdirSync('target/course-checks', {recursive:true});
+        await page.screenshot({path:'target/course-checks/close-up-command-failure.png'});
+        throw error;
+    }
     await settle(page);
 }
 const dot = (a,b) => a.reduce((n,x,i) => n + x*b[i],0);
@@ -83,6 +90,7 @@ function judge(s, pixels, bounds) {
             await page.mouse.down({button:'right'});await page.mouse.move(500,400+dy,{steps:6});
             await page.mouse.up({button:'right'});await page.keyboard.up('Control');await settle(page);
         }
+        if(process.env.ARCTIC==='1') await command(page,'Arctic On');
         await aim();
         const proofs=[];
         for(const opacity of [.95,1]) {

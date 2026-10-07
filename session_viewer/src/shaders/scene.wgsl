@@ -79,12 +79,12 @@ const HAIRLINE_MIN_ALPHA: f32 = 0.5;
 
 // Depth layers for coplanar fills, nearer as they rise; 0 is every other face.
 const LAYER_CONTACT: u32 = 1u;
-// One layer's pull toward the eye, relative to reverse-Z depth: 2^-16, eight times the ink tolerance.
-const LAYER_STEP: f32 = 1.5258789e-5;
+// Four float32 depth steps; no world-space displacement.
+const LAYER_STEP: f32 = 4.7683716e-7;
 // One layer's pull in pixels of the face's own depth slope; covers the rasterizer's sub-pixel snapping.
-const LAYER_SLOPE: f32 = 0.25;
+const LAYER_SLOPE: f32 = 0.125;
 // No layer pulls further than this share of its depth, so an edge-on face cannot leap forward.
-const LAYER_CLAMP: f32 = 1.0e-3;
+const LAYER_CLAMP: f32 = 1.0e-4;
 
 // Largest depth change per pixel across the plane through `world` with unit normal `n`; 0 when it cannot be measured.
 fn depth_slope(world: vec3<f32>, n: vec3<f32>) -> f32 {

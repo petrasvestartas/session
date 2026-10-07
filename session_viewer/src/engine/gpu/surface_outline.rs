@@ -60,7 +60,6 @@ struct Alpha {
 struct FaceCoverage {
     layout: wgpu::BindGroupLayout, // the face pass's triangle id texture
     fraction: Pipeline,            // share of face samples, straight into the one-sample mask
-    with_edges: Pipeline,          // face samples inside a mask pass, before the edges
     group: Option<(wgpu::TextureView, wgpu::BindGroup)>, // the texture it binds
 }
 
@@ -73,9 +72,6 @@ pub struct MaskKey {
     pub faces: u64,       // face selection change count
     pub size: (u32, u32), // canvas size, px
     pub samples: u32,     // MSAA samples
-    pub edges: bool,      // edges shown
-    pub rough: bool,      // edges tested against planes alone, in a slow drag; register:tiles
-    pub pen: u32,         // pen width bits
 }
 
 /// Which surfaces the outline goes around.
@@ -226,45 +222,6 @@ impl SurfaceOutline {
     /// Record that the mask was drawn for `key`.
     pub fn mark_valid(&mut self, key: MaskKey) {
         self.valid_for = Some(key);
-    }
-
-    /// The mask as a render target, resolving MSAA into `resolved`.
-    fn attachment(&self) -> Option<wgpu::RenderPassColorAttachment<'_>> {
-        let mask = self.mask.as_ref()?;
-        Some(wgpu::RenderPassColorAttachment {
-            view: mask.multisampled.as_ref().unwrap_or(&mask.resolved),
-            resolve_target: if mask.multisampled.is_some() {
-                Some(&mask.resolved)
-            } else {
-                None
-            },
-            depth_slice: None,
-            ops: wgpu::Operations {
-                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                store: mask.store(),
-            },
-        })
-    }
-
-    /// Open one pass that writes both masks at once.
-    pub fn begin_masks<'a>(
-        solid: &'a Self,
-        selected: &'a Self,
-        encoder: &'a mut wgpu::CommandEncoder,
-        targets: &'a Targets,
-    ) -> wgpu::RenderPass<'a> {
-        encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("visible coverage masks"),
-            color_attachments: &[solid.attachment(), selected.attachment()],
-            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                view: &targets.depth,
-                depth_ops: None,
-                stencil_ops: None,
-            }),
-            timestamp_writes: None,
-            occlusion_query_set: None,
-            multiview_mask: None,
-        })
     }
 
     /// Remember whether object `row` is selected.
@@ -434,7 +391,8 @@ impl SurfaceOutline {
                 format: wgpu::TextureFormat::R8Unorm, // one byte per pixel
                 samples: 1,
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT
-                    | wgpu::TextureUsages::TEXTURE_BINDING,
+                    | wgpu::TextureUsages::TEXTURE_BINDING
+                    | if cfg!(test) { wgpu::TextureUsages::COPY_SRC } else { wgpu::TextureUsages::empty() },
             };
             let texture = Attachment::new(ctx, "selection outline alpha", &spec);
             let group = resource_group(
@@ -555,22 +513,6 @@ impl SurfaceOutline {
             ],
         );
         faces.group = Some((targets.gradient.view.clone(), group));
-    }
-
-    /// Faces into an open mask pass from the triangle ids; returns the draw count.
-    pub fn draw_faces(&self, pass: &mut wgpu::RenderPass<'_>) -> u32 {
-        let Some(FaceCoverage {
-            with_edges,
-            group: Some((_, group)),
-            ..
-        }) = &self.faces
-        else {
-            return 0;
-        };
-        pass.set_pipeline(with_edges);
-        pass.set_bind_group(0, group, &[]);
-        pass.draw(0..3, 0..1);
-        1
     }
 
     /// Faces straight into the one-sample mask from the triangle ids; returns the draw count.
@@ -846,23 +788,9 @@ fn face_coverage(ctx: &GpuCtx, samples: u32) -> FaceCoverage {
             .with("face coverage", "fs_fraction")
             .depth(DepthMode::Detached),
     );
-    // inside a mask pass: the scene depth is attached, and at 4x every sample is written
-    let entry = if samples > 1 {
-        "fs_samples"
-    } else {
-        "fs_fraction"
-    };
-    let with_edges = build(
-        ctx,
-        mask(samples),
-        &base
-            .with("face coverage beside edges", entry)
-            .depth(DepthMode::Always),
-    );
     FaceCoverage {
         layout,
         fraction,
-        with_edges,
         group: None,
     }
 }
@@ -918,7 +846,7 @@ impl super::lane::Lane for Outline {
 
 impl Pass for Outline {
     /// Redraw the masks only when something changed, then search them into the alpha texture.
-    fn after_faces(&mut self, g: &mut Gpu, encoder: &mut wgpu::CommandEncoder, f: &Frame) -> u32 {
+    fn after_faces(&mut self, g: &mut Gpu, encoder: &mut wgpu::CommandEncoder, _f: &Frame) -> u32 {
         let size = (g.config.width, g.config.height);
         // no outlines in x-ray
         let faces = g.view.show_outlines && g.view.opacity > 0.0 && g.live_faces() > 0;
@@ -939,9 +867,6 @@ impl Pass for Outline {
             faces: g.arena.source_faces.revision(),
             size,
             samples: g.targets.samples,
-            edges: g.view.show_mesh_edges && f.tier < 2,
-            rough: f.rough, // register:tiles
-            pen: g.view.thickness_px.to_bits(),
         };
         let stale =
             (solid && !self.solid.is_valid(&key)) || (selected && !self.selection.is_valid(&key));
@@ -951,40 +876,16 @@ impl Pass for Outline {
             self.solid.bind_faces(&g.ctx, &g.targets);
             g.each_pass(|pass, g| pass.bind_masks(g));
             let b = g.frame.binds(&g.objects.group);
-            // edges widen the mask, except in a slow drag
-            let ink = g.frame.binds(g.objects.ink_group());
-            let edges = key.edges && g.live_pipes() > 0;
 
-            if solid && selected {
-                // one pass writes both masks
-                let mut pass =
-                    SurfaceOutline::begin_masks(&self.solid, &self.selection, encoder, &g.targets);
-                draws += g.arena.draw_masks(&mut pass, &b);
-                draws += g.arena.source_faces.draw_masks(&mut pass, &b);
-                for other in &g.passes {
-                    draws += other.in_masks(g, &mut pass, &b, true);
-                }
-
-                if edges {
-                    draws += g.segments.draw_masks(&mut pass, &ink);
-                }
-            } else if solid && edges {
-                // faces from the face pass's triangle ids, then the edges over them
-                let mut pass = self.solid.begin_mask(encoder, &g.targets);
-                draws += self.solid.draw_faces(&mut pass);
-                draws += g.segments.draw_solid_mask(&mut pass, &ink);
-            } else if solid {
+            if solid {
                 draws += self.solid.encode_faces(encoder);
-            } else if selected {
+            }
+            if selected {
                 let mut pass = self.selection.begin_mask(encoder, &g.targets);
                 draws += g.arena.draw_selection_mask(&mut pass, &b);
                 draws += g.arena.source_faces.draw_mask(&mut pass, &b);
                 for other in &g.passes {
                     draws += other.in_masks(g, &mut pass, &b, false);
-                }
-
-                if edges {
-                    draws += g.segments.draw_selection_mask(&mut pass, &ink);
                 }
             }
             g.mark(encoder, "masks"); // register:gtao

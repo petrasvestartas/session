@@ -6,8 +6,11 @@ pub struct Performance {
     pub frames: u64,       // frames so far
     pub draws: u32,        // draw calls in the last frame
     pub interacting: bool, // a drag or pinch is in progress
+    wheel_until: f64,      // end of the current wheel burst, ms
+    wheel_pending: bool,   // a wheel pose has not been drawn yet
     dragged: bool,         // the last frame was a drag frame too
     recent: Vec<f64>,      // the last drag frame times, ms, oldest first
+    tier_age: f64,         // timed drag duration at this tier, ms
     tier: u8,              // quality given up while dragging; kept for the next drag
     rough: bool,           // the last frame was drawn at a tier
     slow_run: u32,         // slow top-tier drag frames in a row
@@ -31,6 +34,9 @@ const TIER_UP_MS: f64 = 33.0;
 /// A median drag frame faster than this takes the last tier back.
 const TIER_DOWN_MS: f64 = 20.0;
 
+/// Wait before probing a more expensive tier again.
+const TIER_RETRY_MS: f64 = 1000.0;
+
 /// Tiers: 1 tests ink against planes alone, 2 also drops edge outlines.
 pub const TOP_TIER: u8 = 2;
 
@@ -51,8 +57,11 @@ impl Performance {
             frames: 0,
             draws: 0,
             interacting: false,
+            wheel_until: f64::NEG_INFINITY,
+            wheel_pending: false,
             dragged: false,
             recent: Vec::with_capacity(TIER_WINDOW + 1),
+            tier_age: 0.0,
             tier: 0,
             rough: false,
             slow_run: 0,
@@ -108,6 +117,20 @@ impl Performance {
         if self.interacting { self.tier } else { 0 }
     }
 
+    pub fn wheel(&mut self, now: f64) {
+        self.wheel_until = now + 200.0;
+        self.wheel_pending = true;
+    }
+
+    pub fn wheeling(&self, now: f64) -> bool {
+        self.wheel_pending || now < self.wheel_until
+    }
+
+    pub fn cancel_wheel(&mut self) {
+        self.wheel_until = f64::NEG_INFINITY;
+        self.wheel_pending = false;
+    }
+
     /// Hold the drag tier at `tier` for a bench; the next drag learns its own again.
     pub fn force_tier(&mut self, tier: u8) {
         self.tier = tier.min(TOP_TIER);
@@ -126,6 +149,7 @@ impl Performance {
 
     /// Record one frame; logs once a second when `perf` is on.
     pub fn frame(&mut self, draws: u32, objects: u32, now: f64, perf: bool) {
+        self.wheel_pending = false;
         let dt = now - self.prev_frame;
         self.prev_frame = now;
         self.frames += 1;
@@ -171,6 +195,7 @@ impl Performance {
             return;
         }
 
+        self.tier_age += dt;
         self.recent.push(dt);
 
         if self.recent.len() > TIER_WINDOW {
@@ -203,9 +228,11 @@ impl Performance {
 
         if slow > TIER_UP_MS && self.tier < TOP_TIER {
             self.tier += 1;
+            self.tier_age = 0.0;
             self.recent.clear();
-        } else if fast < TIER_DOWN_MS && self.tier > 0 {
+        } else if fast < TIER_DOWN_MS && self.tier > 0 && self.tier_age >= TIER_RETRY_MS {
             self.tier -= 1;
+            self.tier_age = 0.0;
             self.recent.clear();
         }
     }
@@ -318,6 +345,27 @@ pub fn perf_line(text: &str) {
 mod tests {
     use super::*;
 
+    #[test]
+    fn wheel_bursts_wait_for_a_frame_then_expire_and_cancel() {
+        let mut perf = Performance::new();
+        assert!(!perf.wheeling(0.0));
+        perf.force_tier(1);
+        perf.wheel(100.0);
+        assert!(perf.wheeling(299.0));
+        perf.wheel(250.0);
+        assert!(perf.wheeling(449.0));
+        assert!(perf.wheeling(450.0), "a busy GPU has not drawn this wheel pose yet");
+        perf.frame(1, 1, 450.0, false);
+        assert!(!perf.wheeling(450.0));
+        perf.interacting = perf.wheeling(450.0);
+        assert_eq!(perf.drag_tier(), 0);
+        perf.force_tier(1);
+        assert_eq!(perf.drag_tier(), 1);
+        perf.wheel(500.0);
+        perf.cancel_wheel();
+        assert!(!perf.wheeling(501.0));
+    }
+
     /// Feed `count` frames `step_ms` apart; true if a slow run fired.
     fn frames(perf: &mut Performance, count: u32, step_ms: f64, interacting: bool) -> bool {
         perf.interacting = interacting;
@@ -370,7 +418,7 @@ mod tests {
         );
         frames(&mut perf, 3, 16.7, true);
         assert_eq!(perf.drag_tier(), 1, "fast frames take a tier back");
-        frames(&mut perf, 3, 16.7, true);
+        frames(&mut perf, 60, 16.7, true);
         assert_eq!(perf.drag_tier(), 0);
         // very slow frames decide sooner
         frames(&mut perf, 1, 16.7, false);
@@ -386,6 +434,25 @@ mod tests {
         assert_eq!(perf.drag_tier(), 1, "one long frame may be a pause");
         frames(&mut perf, 1, 400.0, true);
         assert_eq!(perf.drag_tier(), 2, "two 400 ms frames are enough");
+    }
+
+    #[test]
+    fn cheaper_frames_do_not_immediately_retry_expensive_navigation() {
+        let mut perf = Performance::new();
+        frames(&mut perf, 4, 40.0, true);
+        assert_eq!(perf.drag_tier(), 1);
+        frames(&mut perf, 60, 12.0, true);
+        assert_eq!(perf.drag_tier(), 1, "cheap frames are not evidence that full detail is cheap");
+        frames(&mut perf, 1, 16.7, false);
+        assert_eq!(perf.drag_tier(), 0, "stopping immediately restores full detail");
+        frames(&mut perf, 1, 12.0, true);
+        assert_eq!(perf.drag_tier(), 1, "a new gesture reuses the learned tier");
+        frames(&mut perf, 24, 12.0, true);
+        assert_eq!(perf.drag_tier(), 0, "retry full detail after one second of timed motion");
+        frames(&mut perf, 3, 40.0, true);
+        assert_eq!(perf.drag_tier(), 1, "a slow retry returns to cheaper frames");
+        frames(&mut perf, 30, 12.0, true);
+        assert_eq!(perf.drag_tier(), 1);
     }
 
     #[test]

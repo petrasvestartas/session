@@ -564,6 +564,9 @@ impl State {
         }
 
         let now_ms = now_ms();
+        let wheeling = self.gpu.performance.wheeling(now_ms);
+        let interacting = self.interacting || wheeling;
+        self.gpu.performance.interacting = interacting;
         self.camera.grow_extent(&self.gpu.bounds);
         let origin = self.camera.origin();
         // the point GPU rows are measured from
@@ -583,7 +586,7 @@ impl State {
             || self.gpu.view.spin
             || self.gpu.ambient_pending()
             || self.gpu.visibility_pending()
-            || (self.gpu.performance.rough() && !self.interacting); // redraw reasons
+            || (self.gpu.performance.rough() && !interacting); // redraw reasons
 
         let mut dropped = false;
         let mut waiting = false;
@@ -592,7 +595,6 @@ impl State {
         if self.dirty && !waiting {
             let gap = now_ms - self.last_frame_ms; // time since the last frame
             self.last_frame_ms = now_ms;
-            self.gpu.performance.interacting = self.interacting;
             let drawn = self.gpu.present(&input); // encode time, None when the frame was dropped
 
             // Slow navigation already uses temporary ink/outline tiers. Keep the chosen
@@ -621,6 +623,7 @@ impl State {
 
         // reasons to draw again; a drag frame is redrawn in full once the drag ends
         self.needs_frame |= dropped
+            || wheeling
             || rebase.pending
             || self.gpu.pick.busy()
             || self.gpu.view.perf

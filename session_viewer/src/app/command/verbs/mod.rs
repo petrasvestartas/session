@@ -87,6 +87,8 @@ verbs! {
     project_to_plane,        // register:project_to_plane
     measure_distance,        // register:measure_distance
     length,                  // register:length
+    bounding_box,
+    length_bounding_box,
     area,                    // register:area
     volume,                  // register:volume
     add_group,               // register:add_group

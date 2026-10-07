@@ -107,3 +107,24 @@ On a large local scene, open the panel and repeatedly hide/show a group. Index s
 **Why not rewrite every old lesson?** Its checkpoint is reproducible. Change a lesson when teaching or measured behavior improves, then regenerate and verify that checkpoint.
 
 **Does a memory limit prevent every crash?** No. It bounds the resource it names. Source geometry, history, GPU allocations and browser overhead need separate accounting.
+
+## Full-floor rotation and wheel zoom
+
+Camera movement must not rebuild source geometry. The maintained viewer coalesces input while GPU work is pending, then draws the latest camera pose. Chrome and native builds request high-performance graphics by default. Firefox retains the lower-power preference: on the local Firefox 157 full-floor check, requesting high performance repeatedly lost the driver connection while the same navigation passed at lower power. `?gpu=low`, `?gpu=high` and `?gpu=default` override the preference; default leaves adapter choice to the browser. These are preferences, not a guarantee of a particular adapter. Type `Report` to inspect the actual adapter.
+
+Wheel events now enter the same temporary navigation policy as orbit and pinch. Each nonzero wheel event extends a 200 ms burst. A wheel pose queued behind busy GPU work remains pending until a frame draws it, even if that interval expires. Slow frames can temporarily use plane-based ink visibility and omit outlines; after the burst ends the viewer redraws with exact visibility and returns to idle. Canvas resolution and MSAA remain unchanged. A window blur or lost-pointer event cancels the wheel burst.
+
+A cheaper navigation frame does not prove that full detail is cheap. After changing tiers, the policy waits for one second of timed movement before testing a more expensive tier. Idle time does not count. This bounds repeated expensive retries while still allowing detail to recover when the view becomes cheaper; the final resting frame remains full quality.
+
+An October 7 local native test on Intel RPL-S graphics rendered the 529-object timber-floor fixture at 1200×800, opacity 0.95, for 30 orbit frames: full-quality median 94.4 ms (11 fps), temporary tier 1 median 21.9 ms (46 fps). The ink pass dominated full-quality cost. These measurements describe this local fixture and hardware, not the user's Lenovo. The browser regression separately verifies real wheel input, learned temporary tiers, full-quality restoration and no idle loop; it deliberately advances the timing clock to exercise the policy and is not a speed benchmark.
+
+The actual `wood/examples/templates_vault_4_dome.cpp` output is a second fixture: 800 voussoirs and 2320 contacts. The same local Intel adapter, dimensions, opacity and 30-frame orbit sweep produced these native readback measurements:
+
+| Scene | Earlier full-quality baseline | Current automatic navigation |
+| --- | ---: | ---: |
+| Timber floor, 529 objects | 94.4 ms / 11 fps | 40.9 ms / 24 fps |
+| Vault dome, 800 objects | 42.5 ms / 24 fps | 21.2 ms / 47 fps |
+
+The dome entered tier 1 at frame 4, about 156 ms after its first slow frame. The floor reached tier 1 at frame 3 and tier 2 at frame 6. An earlier dome run without the retry interval repeatedly returned to exact visibility and had a 37.2 ms median despite 12.4 ms temporary frames. These separate runs show why cheap-frame timing alone should not immediately restore the expensive navigation path. They are local observations, include GPU readback and temporarily trade ink visibility detail for responsiveness; they do not establish Lenovo or browser frame rates. The actual Chrome checks verify queued input, full-quality restoration and idle for both fixtures.
+
+The final default Firefox 157 configuration separately passes the same full-floor wheel and orbit checks, full-quality restoration and idle. As in Chrome’s policy regression, the test advances the timing clock to exercise temporary tiers; it does not measure Firefox frame rates.

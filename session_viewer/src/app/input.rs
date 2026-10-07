@@ -185,6 +185,10 @@ impl Input {
                     MouseScrollDelta::LineDelta(_, y) => *y,
                     MouseScrollDelta::PixelDelta(p) => p.y as f32 / 100.0,
                 };
+                if amount == 0.0 {
+                    return false;
+                }
+                state.gpu.performance.wheel(crate::engine::performance::now_ms());
                 state.camera.zoom_at(amount, self.last_cursor, viewport);
                 true
             }
@@ -198,6 +202,7 @@ impl Input {
                 self.cancel();
                 state.cancel_gesture(); // register:editing
                 state.interacting = false;
+                state.gpu.performance.cancel_wheel();
                 true
             }
             WindowEvent::Touch(t) => {

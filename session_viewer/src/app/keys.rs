@@ -10,6 +10,7 @@ pub fn run(state: &mut State, key: &Key<&str>, shortcut: bool, shift: bool) -> b
     match key {
         Key::Named(NamedKey::Escape) => state.escape(),
         Key::Named(NamedKey::Enter) => state.enter(),
+        Key::Named(NamedKey::Delete) if !shortcut => state.run_echoed("Delete"),
         _ => match history(key, shortcut, shift).or(typed) {
             Some(line) => state.run_echoed(line),
             None => return false,

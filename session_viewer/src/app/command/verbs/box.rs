@@ -6,6 +6,7 @@ use session_rust::{BRep, Geometry, Mesh, Point, Xform};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec {
+    aliases: &["bo"],
     options: &["Box Brep", "Box Mesh"],
     ..Spec::new(
         &["Box"],

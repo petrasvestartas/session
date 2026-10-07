@@ -195,6 +195,7 @@ impl ApplicationHandler<Msg> for App {
             Msg::CancelPointer => {
                 state.cancel_gesture(); // register:editing
                 self.input.cancel();
+                state.gpu.performance.cancel_wheel();
                 state.touch();
             }
             Msg::Agent(event) => self.agent_keys(event), // register:phone

@@ -114,14 +114,20 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
         for outline in &feature.outlines {
             // a contact polygon is a red fill with a thin black outline on the face itself
             if feature.feature_type == "contact"
-                && let Some(fill) = walk_contact(w.arena, cx, outline)
+                && let Some((fill, normal)) = walk_contact(w.arena, cx, outline)
             {
                 bounds.union_with(&fill);
                 let mut edge = outline.clone();
                 edge.linecolor = session_rust::Color::black();
                 edge.width = CONTACT_LINE_PX;
                 edge.arrowhead = Arrowhead::NONE;
+                let first = w.seg.ribbons.len();
                 walk_polyline(w.seg, w.lanes, &edge, cx.row);
+                let facing = encode::pack_facing(Some(&normal.map(f64::from)), None);
+                for segment in &mut w.seg.ribbons[first..] {
+                    segment.color = 0x0100_0000; // contact boundary, independent of layer colour
+                    segment.facing = facing;
+                }
                 continue;
             }
 
@@ -148,7 +154,7 @@ pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bou
 }
 
 /// A contact polygon as red triangles on its plane, in the row of `cx`; the face shader draws them a depth layer in front. None without area.
-fn walk_contact(arena: &mut ArenaRows, cx: &WalkCx, outline: &session_rust::Polyline) -> Option<AABB> {
+fn walk_contact(arena: &mut ArenaRows, cx: &WalkCx, outline: &session_rust::Polyline) -> Option<(AABB, [f32; 3])> {
     use crate::engine::gpu::faces::FaceSource;
     use session_rust::Point;
 
@@ -188,7 +194,7 @@ fn walk_contact(arena: &mut ArenaRows, cx: &WalkCx, outline: &session_rust::Poly
     arena.face_sources.push(FaceSource { parent: cx.row, face: 0 });
     arena.face_ids.extend(std::iter::repeat_n(address, render.indices.len() / 3));
 
-    Some(bounds)
+    Some((bounds, normal))
 }
 
 /// An element without geometry gets no row.
@@ -335,6 +341,7 @@ mod tests {
         assert!(up.arena.verts.iter().rev().take(4).all(|v| v.color == CONTACT_COLOR));
         assert!(up.arena.vids.iter().rev().take(4).all(|&row| row == 7));
         assert_eq!(up.seg.ribbons.len(), 4, "a black outline, one ribbon per side");
+        assert!(up.seg.ribbons.iter().all(|edge| edge.color == 0x0100_0000 && edge.facing != encode::FACING_UNKNOWN));
     }
 
     /// A contact lying on its face shows exactly the red of the same contact over a lower face: the depth layer wins at every angle without moving it.
@@ -358,13 +365,20 @@ mod tests {
             let mut scene = Scene::new();
             scene.add_file(FileDoc { name: "plate".into(), session: Rc::new(source), place: Xform::identity(), point_px: 0.0, display_only: false });
             scene.upload_to(gpu);
+            gpu.set_object_color(0, false, Some([0, 0, 255]));
+            gpu.set_object_color(0, true, Some([0, 255, 0]));
             let mut camera = Camera::new();
             camera.perspective = perspective;
             camera.fit(&session_rust::AABB::from_points(&[Point::new(-5.0, -5.0, -5.0), Point::new(5.0, 5.0, 5.0)], 0.0), 1.0);
             camera.orbit(orbit.0, orbit.1);
             let rebase = gpu.rebase_anchor(&camera.origin(), camera.distance_world(), 0.0);
             let input = FrameInput { view_proj: camera.view_proj_anchored(1.0, &rebase.anchor), clear: wgpu::Color::WHITE, now_ms: 0.0 };
-            let red = gpu.render_offscreen(&input).chunks_exact(4).filter(|p| p[0] > 180 && p[1] < 140 && p[2] < 140).count();
+            let pixels = gpu.render_offscreen(&input);
+            let red = pixels.chunks_exact(4).filter(|p| p[0] > 180 && p[1] < 140 && p[2] < 140).count();
+            if red > 100 && camera.position[2] / camera.unit.to_meters() > 5.0 {
+                let black = pixels.chunks_exact(4).filter(|p| p[..3].iter().all(|c| *c < 180)).count();
+                assert!(black > 20, "Contact boundaries stay black under a colored layer: {black}; top={top}, orbit={orbit:?}, perspective={perspective}");
+            }
             (red, camera.position[2] / camera.unit.to_meters())
         };
 

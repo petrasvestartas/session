@@ -100,7 +100,7 @@ fn draw(
     let width = if collapsed {
         32.0
     } else {
-        (root.available_width() * 0.25).clamp(180.0, 310.0)
+        (root.available_width() / 3.0).clamp(240.0, 413.33334)
     };
     egui::Panel::right(if collapsed {
         "session-layers-collapsed"
@@ -111,7 +111,7 @@ fn draw(
     .size_range(if collapsed {
         32.0..=32.0
     } else {
-        180.0..=360.0
+        240.0..=480.0
     })
     .show_separator_line(false)
     .frame(
