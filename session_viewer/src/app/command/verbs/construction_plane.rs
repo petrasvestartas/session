@@ -39,6 +39,7 @@ fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
             return three_points(&rest[2..]);
         }
         "3point" => return three_points(&rest[1..]),
+        "" => return Ok(Box::new(ChoosePlane)),
         _ => return Err(format!("Choose a plane · {usage}")),
     };
     Ok(Box::new(SetPlane(plane)))
@@ -130,6 +131,77 @@ impl Tool for PickPlane {
     }
 }
 
+/// The plane chosen from the options in the prompt.
+#[derive(Debug, Clone)]
+struct ChoosePlane;
+
+impl Action for ChoosePlane {
+    /// Show the choices.
+    fn run(&self, state: &mut State) -> Result<String, String> {
+        state.open_tool(Box::new(self.clone()))
+    }
+}
+
+impl Tool for ChoosePlane {
+    fn name(&self) -> &'static str {
+        NAME
+    }
+
+    fn prompt(&self, _points: &[Point]) -> String {
+        "choose the plane the grid lies on and points land on".into()
+    }
+
+    /// The planes as words to click; 3 Point runs its own command.
+    fn buttons(&self) -> Vec<(String, String)> {
+        [
+            ("XY", "XY"),
+            ("XZ", "XZ"),
+            ("YZ", "YZ"),
+            ("3 Point", "Construction Plane 3 Point"),
+            ("View", "View"),
+            ("Cancel", "Escape"),
+        ]
+        .into_iter()
+        .map(|(label, line)| (label.to_string(), line.to_string()))
+        .collect()
+    }
+
+    fn asks_points(&self) -> bool {
+        false
+    }
+
+    /// A preset or View sets the plane; any other word is left to the commands.
+    fn word(
+        &mut self,
+        state: &mut State,
+        word: &str,
+        _points: &[Point],
+        _plane: &Plane,
+    ) -> Option<Result<Next, String>> {
+        let plane = match word.to_ascii_lowercase().as_str() {
+            "xy" => Some(CPlane::Xy),
+            "xz" => Some(CPlane::Xz),
+            "yz" => Some(CPlane::Yz),
+            "view" => None,
+            _ => return None,
+        };
+        Some(SetPlane(plane).run(state).map(Next::Done))
+    }
+
+    fn placed(
+        &mut self,
+        _state: &mut State,
+        _points: &[Point],
+        _plane: &Plane,
+    ) -> Result<Next, String> {
+        Err("Choose XY, XZ, YZ, 3 Point or View".into())
+    }
+
+    fn enter(&mut self, _state: &mut State, _points: &[Point]) -> Result<Next, String> {
+        Ok(Next::Done(format!("{NAME} unchanged")))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::app::command::parse;
@@ -143,11 +215,11 @@ mod tests {
             "Construction Plane View",
             "Construction Plane 3 Point",
             "Construction Plane 3 Point 0,0,0 1000,0,1000 0,1000,0",
+            "Construction Plane",
         ] {
             assert!(parse(line).is_ok(), "{line}");
         }
         for line in [
-            "Construction Plane",
             "Construction Plane ZZ",
             "Construction Plane 3 Point 0,0,0 1,1,1 2,2,2",
             "Construction Plane 3 Point 0,0,0 1,0,0",
