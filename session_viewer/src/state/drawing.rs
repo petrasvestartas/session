@@ -434,7 +434,18 @@ impl State {
                 &d,
             )
         });
-        draft.snapped = hit.as_ref().map(|s| s.kind);
+        // off every object, Grid Snap rounds the plane point to the grid
+        let grid = self.features.snap.grid && hit.is_none() && free.is_some();
+        let free = match grid {
+            true => {
+                free.map(|p| snap::on_grid(&p, &draft.plane.normal(), self.features.snap.grid_step))
+            }
+            false => free,
+        };
+        draft.snapped = hit
+            .as_ref()
+            .map(|s| s.kind)
+            .or(grid.then_some(SnapKind::Grid));
         draft.hover = hit.map(|s| s.point).or(free);
         self.features.draft = Some(draft);
 
@@ -525,7 +536,12 @@ impl State {
 
     /// The running command's buttons beside the command line, values included: (label, line it runs); "" is Enter.
     pub fn tool_buttons(&self) -> Vec<(String, String)> {
-        match self.features.draft.as_ref().and_then(|draft| draft.tool.as_ref()) {
+        match self
+            .features
+            .draft
+            .as_ref()
+            .and_then(|draft| draft.tool.as_ref())
+        {
             Some(tool) => tool.buttons(),
             None => self
                 .drawing_options()

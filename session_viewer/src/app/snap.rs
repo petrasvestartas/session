@@ -16,6 +16,7 @@ pub enum SnapKind {
     Center, // centre of a shape
     Perp,   // foot of the perpendicular from the last point
     Near,   // nearest point on a segment
+    Grid,   // a grid point on the construction plane
 }
 
 pub const END: u8 = 1; // ends and vertices
@@ -27,10 +28,15 @@ pub const DEFAULT: u8 = END | NEAR | MID | CENTER; // modes on at start
 
 /// The snap switch, its kinds and its toolbar.
 pub struct Snapping {
-    pub enabled: bool, // snap to points while drawing
-    pub modes: u8,     // kinds switched on, the bits above
-    pub bar: bool,     // toolbar under the command line
+    pub enabled: bool,  // snap to points while drawing
+    pub modes: u8,      // kinds switched on, the bits above
+    pub bar: bool,      // toolbar under the command line
+    pub grid: bool,     // a point off every object lands on the grid
+    pub grid_step: f64, // the grid's spacing for that, mm
 }
+
+/// The grid snap spacing at start, mm: a tenth of the ground grid's cell.
+pub const GRID_STEP: f64 = 100.0;
 
 impl Default for Snapping {
     fn default() -> Self {
@@ -38,8 +44,23 @@ impl Default for Snapping {
             enabled: true,
             modes: DEFAULT,
             bar: false,
+            grid: true,
+            grid_step: GRID_STEP,
         }
     }
+}
+
+/// The point on the grid: its coordinates along the plane rounded to whole steps, its height off the plane kept.
+pub fn on_grid(point: &Point, normal: &Vector, step: f64) -> Point {
+    let mut coords = [point[0], point[1], point[2]];
+
+    for (k, value) in coords.iter_mut().enumerate() {
+        if normal[k].abs() < 0.5 {
+            *value = (*value / step).round() * step;
+        }
+    }
+
+    Point::new(coords[0], coords[1], coords[2])
 }
 
 /// The toolbar buttons, by label and mode bit.
@@ -60,6 +81,7 @@ impl SnapKind {
             SnapKind::Center => CENTER,
             SnapKind::Perp => PERP,
             SnapKind::Near => NEAR,
+            SnapKind::Grid => 0,
         }
     }
 }

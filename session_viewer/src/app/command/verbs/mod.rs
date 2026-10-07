@@ -54,6 +54,7 @@ verbs! {
     element_beam_variable,   // register:element_beam_variable
     element_support,         // register:element_support
     snap,                    // register:snap
+    grid_snap,               // register:grid_snap
     arctic,                  // register:arctic
     outline,                 // register:outline
     object,                  // register:object
