@@ -171,31 +171,30 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
 
 /// What hangs under an element, its `attributes` and its `features` groups among them: the rows Element Features shows and hides.
 pub fn feature_rows(scene: &Scene) -> Vec<u32> {
-    let element = |doc: usize, node: &Node| {
-        scene
-            .row_of(doc, &node.borrow().name)
-            .is_some_and(|row| matches!(scene.geometry(row), Some(Geometry::Element(_))))
-    };
-
     (0..scene.row_count() as u32)
-        .filter(|&row| {
-            let Some((doc, guid)) = scene.identity_of(row) else {
-                return false;
-            };
-            let mut parent = scene.parent_of(doc, &guid);
-
-            // up the tree until an element or the root
-            while let Some(node) = parent {
-                if element(doc, &node) {
-                    return true;
-                }
-
-                parent = node.borrow().parent();
-            }
-
-            false
-        })
+        .filter(|&row| under_element(scene, row))
         .collect()
+}
+
+/// True when the row hangs under an element: an attribute or a feature of it, shown or hidden, never edited.
+pub fn under_element(scene: &Scene, row: u32) -> bool {
+    let Some((doc, guid)) = scene.identity_of(row) else {
+        return false;
+    };
+    let mut parent = scene.parent_of(doc, &guid);
+
+    // up the tree until an element or the root
+    while let Some(node) = parent {
+        let host = scene.row_of(doc, &node.borrow().name);
+
+        if host.is_some_and(|host| matches!(scene.geometry(host), Some(Geometry::Element(_)))) {
+            return true;
+        }
+
+        parent = node.borrow().parent();
+    }
+
+    false
 }
 
 impl Scene {
@@ -1423,6 +1422,16 @@ mod tests {
             .map(|row| scene.object_name(row))
             .collect();
         assert_eq!(names, vec!["base_plane", "cutter"]);
+        let rows = feature_rows(&scene);
+        assert!(
+            rows.iter().all(|&row| !scene.selectable(row)),
+            "attributes and features are never edited"
+        );
+        assert!(
+            (0..scene.row_count() as u32)
+                .filter(|row| !rows.contains(row))
+                .all(|row| scene.selectable(row))
+        );
     }
 
     /// A group under an object keeps its name when copied or moved.
