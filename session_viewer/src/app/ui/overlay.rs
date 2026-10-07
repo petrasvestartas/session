@@ -34,6 +34,7 @@ pub(super) fn drawing(painter: &egui::Painter, drawing: &(Vec<(f64, f64)>, Strin
 pub(super) fn marks(painter: &egui::Painter, state: &crate::State, scale: f32) {
     let mut marks = state.tool_marks();
     marks = marks.or_else(|| state.mark_overlay()); // register:annotate
+    marks = marks.or_else(|| state.box_overlay()); // register:box_select
 
     if let Some(marks) = &marks {
         tool_marks(painter, marks, scale);
@@ -47,6 +48,16 @@ pub(super) fn tool_marks(
     scale: f32,
 ) {
     let at = |p: &(f64, f64)| egui::pos2(p.0 as f32 / scale, p.1 as f32 / scale);
+
+    if let (Some([r, g, b, a]), Some(stroke)) = (marks.fill, marks.strokes.first()) {
+        let points: Vec<egui::Pos2> = stroke.points.iter().map(at).collect();
+        let wash = egui::Color32::from_rgba_unmultiplied(r, g, b, a);
+        painter.add(egui::Shape::convex_polygon(
+            points,
+            wash,
+            egui::Stroke::NONE,
+        ));
+    }
 
     for stroke in &marks.strokes {
         let points: Vec<egui::Pos2> = stroke.points.iter().map(at).collect();

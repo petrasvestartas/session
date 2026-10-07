@@ -55,6 +55,7 @@ verbs! {
     element_support,         // register:element_support
     snap,                    // register:snap
     grid_snap,               // register:grid_snap
+    construction_plane,      // register:construction_plane
     arctic,                  // register:arctic
     outline,                 // register:outline
     object,                  // register:object
@@ -63,6 +64,7 @@ verbs! {
     controls,                // register:controls
     select_lasso,            // register:select_lasso
     select_by_name,          // register:select_by_name
+    select_all,              // register:select_all
     select_small,            // register:select_small
     clipping_plane,          // register:clipping_plane
     r#box,                   // register:box

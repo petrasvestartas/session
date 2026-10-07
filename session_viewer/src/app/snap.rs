@@ -1,3 +1,4 @@
+use crate::app::cplane::CPlane;
 use crate::app::selection::Controls;
 use session_rust::{AABB, Geometry, NurbsCurve, NurbsSurface, Point, Vector, Xform};
 
@@ -51,16 +52,9 @@ impl Default for Snapping {
 }
 
 /// The point on the grid: its coordinates along the plane rounded to whole steps, its height off the plane kept.
-pub fn on_grid(point: &Point, normal: &Vector, step: f64) -> Point {
-    let mut coords = [point[0], point[1], point[2]];
-
-    for (k, value) in coords.iter_mut().enumerate() {
-        if normal[k].abs() < 0.5 {
-            *value = (*value / step).round() * step;
-        }
-    }
-
-    Point::new(coords[0], coords[1], coords[2])
+pub fn on_grid(point: &Point, plane: CPlane, step: f64) -> Point {
+    let [u, v, w] = plane.local(point);
+    plane.world([(u / step).round() * step, (v / step).round() * step, w])
 }
 
 /// The toolbar buttons, by label and mode bit.

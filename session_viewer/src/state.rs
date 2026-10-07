@@ -10,6 +10,7 @@ use crate::engine::gpu::{FrameInput, Gpu, Pick};
 use crate::engine::performance::{heap_mb, now_ms};
 mod clipping; // register:clipping
 mod cloud_query; // register:cloud_query
+mod box_select; // register:box_select
 mod drag; // register:drag
 mod drawing; // register:drawing
 pub mod edit; // register:edit
@@ -56,6 +57,8 @@ pub struct State {
     requested: PickMode,                    // what the pending pick looks for
     pub(crate) additive_selection: bool,    // Shift held: add to the selection
     pub(crate) snap_rotation: bool,         // Shift held: the gumball turns by 90 degree steps
+    pub(crate) shift_held: bool,            // Shift held: a selection rectangle adds
+    pub(crate) ctrl_held: bool,             // Ctrl held: a selection rectangle takes out
     selection_order: Vec<u32>,              // selected rows in pick order
     highlighted: Vec<u32>,                  // rows highlighted, when several are selected
     pub selection_radius_css: f64,          // click tolerance in CSS pixels
@@ -92,6 +95,8 @@ impl State {
             requested: PickMode::Object,
             additive_selection: false,
             snap_rotation: false,
+            shift_held: false,
+            ctrl_held: false,
             selection_order: Vec::new(),
             highlighted: Vec::new(),
             selection_radius_css: 6.0,

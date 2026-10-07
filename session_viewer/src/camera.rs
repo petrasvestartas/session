@@ -50,6 +50,7 @@ pub struct Camera {
     pub unit: Unit,              // the scene file unit
     pub scene_extent: f64,       // scene radius in meters, keeps the far plane wide
     pub frame: [f64; 4], // the canvas part the panels leave free: left, top, right, bottom in fractions
+    pub grid: Option<[f64; 3]>, // a construction plane's grid centre, scene units; None for the ground grid
 }
 
 /// The part of the camera the user chose: where it looks from and at.
@@ -93,6 +94,7 @@ impl Camera {
             unit: Unit::Millimeters,
             scene_extent: 0.0,
             frame: [0.0, 0.0, 1.0, 1.0],
+            grid: None,
         };
 
         cam.update_position();
@@ -290,10 +292,18 @@ impl Camera {
 
     /// How far round the target the depth range must reach, in meters: the scene, and the ground grid's farthest corner, so neither is clipped.
     fn depth_reach(&self) -> f64 {
-        let half = GRID_HALF * self.unit.to_meters();
+        let s = self.unit.to_meters();
+        let half = GRID_HALF * s;
         let x = self.target[0].abs() + half;
         let y = self.target[1].abs() + half;
-        let grid = (x * x + y * y + self.target[2] * self.target[2]).sqrt();
+        let grid = match self.grid {
+            None => (x * x + y * y + self.target[2] * self.target[2]).sqrt(),
+            // a grid on a construction plane, turned any way about its centre
+            Some(c) => {
+                let d = [0, 1, 2].map(|k| self.target[k] - c[k] * s);
+                (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt() + half * 2.0_f64.sqrt()
+            }
+        };
         let scene = if self.scene_extent > 0.0 {
             self.scene_extent
         } else {
@@ -390,9 +400,10 @@ impl Camera {
 
     /// Reset to a fresh default camera.
     pub fn reset(&mut self) {
-        let frame = self.frame;
+        let (frame, grid) = (self.frame, self.grid);
         *self = Camera::new();
         self.frame = frame;
+        self.grid = grid;
     }
 
     /// Frame a box: look at its center, back off until it fits the free part of the canvas.

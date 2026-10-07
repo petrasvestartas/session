@@ -28,12 +28,13 @@ pub(crate) struct Draft {
     pub(super) then: Option<String>, // a `select` draft runs this line once objects are picked
     pub(super) group: Vec<(u32, Xform)>, // rows a tool previews and their placements
     pub(super) moved: bool,  // those rows show a preview
+    plane_points: Option<Vec<Point>>, // `3 Point` picking a construction plane mid-draw: origin, x axis, y side
 }
 
 impl Draft {
     /// Nothing placed yet, points landing on `plane`.
     pub(super) fn new(verb: &str, prefix: &str, plane: CPlane) -> Self {
-        let (x, y) = axes(plane);
+        let (x, y) = plane.axes();
         Self {
             verb: verb.into(),
             draw: None,
@@ -44,7 +45,7 @@ impl Draft {
             sides: 6,
             points: Vec::new(),
             plane,
-            frame: Plane::new(Point::new(0.0, 0.0, 0.0), x, y),
+            frame: Plane::new(plane.origin(), x, y),
             targets: None,
             hover: None,
             snapped: None,
@@ -52,7 +53,20 @@ impl Draft {
             then: None,
             group: Vec::new(),
             moved: false,
+            plane_points: None,
         }
+    }
+
+    /// Points now land on `plane`.
+    fn land_on(&mut self, plane: CPlane) {
+        let (x, y) = plane.axes();
+        self.plane = plane;
+        self.frame = Plane::new(plane.origin(), x, y);
+    }
+
+    /// True while clicks place points, not pick objects.
+    fn places_points(&self) -> bool {
+        self.then.is_none() && self.tool.as_ref().is_none_or(|tool| tool.asks_points())
     }
 }
 
@@ -107,6 +121,11 @@ impl State {
             }
         }
         self.features.draft.as_ref()?; // not drawing: not ours
+
+        // XY, XZ, YZ or 3 Point switches the construction plane
+        if let Some(result) = self.plane_word(&words) {
+            return Some(result);
+        }
 
         // a tool or an object pick takes its own words
         if let Some(result) = self.tool_command(text) {
@@ -166,9 +185,89 @@ impl State {
         self.drawing_prompt()
     }
 
-    /// The construction plane the camera faces most.
+    /// The construction plane points land on: the fixed one, else the one the camera faces most.
     pub(super) fn facing(&self) -> CPlane {
-        CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()))
+        self.features.construction_plane.unwrap_or_else(|| {
+            CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()))
+        })
+    }
+
+    /// Fix the construction plane, or None to follow the view again; the grid moves onto it and a running draft lands on it.
+    pub(crate) fn set_construction_plane(&mut self, plane: Option<CPlane>) {
+        self.features.construction_plane = plane;
+        let shown = plane.unwrap_or(CPlane::Xy);
+        self.gpu.backdrop.set_grid_frame(&self.gpu.ctx, shown.matrix());
+        self.camera.grid = plane.map(|plane| {
+            let o = plane.origin();
+            [o[0], o[1], o[2]]
+        });
+        let facing = self.facing();
+
+        if let Some(draft) = self.features.draft.as_mut() {
+            draft.land_on(facing);
+        }
+
+        self.touch();
+    }
+
+    /// The construction plane as the inspection snapshot shows it: mode, origin and axes.
+    pub(crate) fn construction_plane_status(&self) -> serde_json::Value {
+        let plane = self.facing();
+        let (x, y) = plane.axes();
+        let o = plane.origin();
+        let mode = match self.features.construction_plane {
+            None => "View",
+            Some(CPlane::Xy) => "XY",
+            Some(CPlane::Xz) => "XZ",
+            Some(CPlane::Yz) => "YZ",
+            Some(CPlane::Frame { .. }) => "3 Point",
+        };
+        serde_json::json!({
+            "mode": mode,
+            "origin": [o[0], o[1], o[2]],
+            "x": [x[0], x[1], x[2]],
+            "y": [y[0], y[1], y[2]],
+        })
+    }
+
+    /// `XY`, `XZ`, `YZ` or `3 Point` while placing points: the plane changes without leaving the command.
+    fn plane_word(&mut self, words: &[&str]) -> Option<Result<String, String>> {
+        let draft = self.features.draft.as_mut()?;
+
+        if !draft.places_points() {
+            return None;
+        }
+
+        let word = words.concat().to_ascii_lowercase();
+        let preset = match word.as_str() {
+            "xy" => CPlane::Xy,
+            "xz" => CPlane::Xz,
+            "yz" => CPlane::Yz,
+            "3point" => {
+                draft.plane_points = Some(Vec::new());
+                return Some(Ok(self.drawing_prompt()));
+            }
+            _ => return None,
+        };
+        self.set_construction_plane(Some(preset));
+        Some(Ok(self.drawing_prompt()))
+    }
+
+    /// One point of a `3 Point` plane picked mid-draw; the third sets the plane and drawing goes on.
+    fn take_plane_point(&mut self, point: Point) -> Result<String, String> {
+        let draft = self.features.draft.as_mut().unwrap();
+        let points = draft.plane_points.get_or_insert_with(Vec::new);
+        points.push(point);
+
+        if points.len() < 3 {
+            return Ok(self.drawing_prompt());
+        }
+
+        let picked = draft.plane_points.take().unwrap();
+        let plane = CPlane::from_3_points(&picked[0], &picked[1], &picked[2])
+            .ok_or("The three points are in line; pick them again")?;
+        self.set_construction_plane(Some(plane));
+        Ok(self.drawing_prompt())
     }
 
     /// Join the draft back to its first point and finish it.
@@ -196,8 +295,25 @@ impl State {
     pub(super) fn accept_coordinates(&mut self, text: &str) -> Result<String, String> {
         // check every word before adding any
         let draft = self.features.draft.as_ref().unwrap();
+
+        // typed points of a 3 Point plane, in world coordinates
+        if draft.plane_points.is_some() {
+            let mut answer = Ok(self.drawing_prompt());
+            for word in text.split_whitespace() {
+                let p = coords::parse(word)
+                    .and_then(|typed| {
+                        let (x, y) = CPlane::Xy.axes();
+                        let last = self.features.draft.as_ref()?.plane_points.as_ref()?.last().cloned();
+                        coords::resolve(typed, &Point::new(0.0, 0.0, 0.0), &x, &y, last.as_ref(), None)
+                    })
+                    .ok_or("Use x,y,z or @dx,dy,dz for the plane's points")?;
+                answer = self.take_plane_point(p);
+            }
+            return answer;
+        }
+
         let mut points = draft.points.clone();
-        let (x, y) = axes(draft.plane);
+        let (x, y) = draft.plane.axes();
         for word in text.split_whitespace() {
             let typed = coords::parse(word).ok_or("Use x,y,z, @dx,dy,dz, or distance<angle")?;
             // the direction from the last point to the cursor
@@ -298,6 +414,13 @@ impl State {
         let Some(draft) = &self.features.draft else {
             return String::new();
         };
+
+        // a 3 Point plane picked mid-draw
+        if let Some(points) = &draft.plane_points {
+            let what = ["Plane origin", "Point on the plane's x axis", "Point on the plane's y side"]
+                [points.len().min(2)];
+            return format!("{what} · click or type x,y,z · Esc cancels");
+        }
 
         if let Some(prompt) = self.tool_prompt() {
             return prompt;
@@ -429,7 +552,7 @@ impl State {
         // otherwise, where the cursor ray meets the plane
         let free = ray.and_then(|(p, d)| {
             draft.plane.hit(
-                draft.points.last().unwrap_or(&Point::new(0.0, 0.0, 0.0)),
+                &draft.points.last().cloned().unwrap_or_else(|| draft.plane.origin()),
                 &p,
                 &d,
             )
@@ -438,7 +561,7 @@ impl State {
         let grid = self.features.snap.grid && hit.is_none() && free.is_some();
         let free = match grid {
             true => {
-                free.map(|p| snap::on_grid(&p, &draft.plane.normal(), self.features.snap.grid_step))
+                free.map(|p| snap::on_grid(&p, draft.plane, self.features.snap.grid_step))
             }
             false => free,
         };
@@ -483,6 +606,12 @@ impl State {
             self.status("Point is outside the construction plane");
             return true;
         };
+        // a point of a 3 Point plane, not of the shape
+        if draft.plane_points.is_some() {
+            let message = self.take_plane_point(p).unwrap_or_else(|e| e);
+            self.status(&message);
+            return true;
+        }
         if draft.points.len() >= crate::app::modeling::MAX_POINTS {
             self.status("Too many points");
             return true;
@@ -536,19 +665,28 @@ impl State {
 
     /// The running command's buttons beside the command line, values included: (label, line it runs); "" is Enter.
     pub fn tool_buttons(&self) -> Vec<(String, String)> {
-        match self
-            .features
-            .draft
-            .as_ref()
-            .and_then(|draft| draft.tool.as_ref())
-        {
+        let Some(draft) = self.features.draft.as_ref() else {
+            return Vec::new();
+        };
+        let mut buttons: Vec<(String, String)> = match &draft.tool {
             Some(tool) => tool.buttons(),
             None => self
                 .drawing_options()
                 .iter()
                 .map(|(label, line)| (label.to_string(), line.to_string()))
                 .collect(),
+        };
+
+        // while placing points the construction plane is one click away
+        if draft.places_points()
+            && draft.plane_points.is_none()
+            && draft.verb != crate::app::command::verbs::construction_plane::NAME
+        {
+            let planes = ["XY", "XZ", "YZ", "3 Point"].map(|word| (word.to_string(), word.to_string()));
+            buttons.splice(0..0, planes);
         }
+
+        buttons
     }
 
     /// Buttons under the command line while drawing: (label, line it runs); "" is Enter.
@@ -573,11 +711,7 @@ const OWN: u32 = u32::MAX; // owner of the draft's own snaps
 
 /// The two axes of a construction plane; x × y faces the viewer in Top, Front and Right.
 pub(super) fn axes(plane: CPlane) -> (Vector, Vector) {
-    match plane {
-        CPlane::Xy => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
-        CPlane::Xz => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
-        CPlane::Yz => (Vector::new(0.0, 1.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
-    }
+    plane.axes()
 }
 
 impl Draft {
@@ -634,6 +768,37 @@ fn construction_points(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_draft_switches_to_a_tilted_plane_and_draws_on_it() {
+        let mut draft = Draft::new("polyline", "polyline", CPlane::Xy);
+        assert!(draft.places_points());
+        let tilted = CPlane::from_3_points(
+            &Point::new(0.0, 0.0, 0.0),
+            &Point::new(1000.0, 0.0, 1000.0),
+            &Point::new(0.0, 1000.0, 0.0),
+        )
+        .unwrap();
+        draft.land_on(tilted);
+        assert_eq!(draft.plane, tilted);
+        let (x, _) = tilted.axes();
+        assert!((draft.frame.x_axis()[0] - x[0]).abs() < 1e-12 && (draft.frame.x_axis()[2] - x[2]).abs() < 1e-12);
+        // a ray straight down lands on the tilted plane, z rising with x
+        let hit = draft
+            .plane
+            .hit(&draft.plane.origin(), &Point::new(500.0, 200.0, 9000.0), &Vector::new(0.0, 0.0, -1.0))
+            .unwrap();
+        assert!((hit[2] - 500.0).abs() < 1e-9);
+        // a rectangle on it keeps its corners on the plane
+        let corners = [tilted.world([0.0, 0.0, 0.0]), tilted.world([300.0, 200.0, 0.0])];
+        let rectangle = construction_points("rectangle", tilted, 6, &corners).unwrap();
+        assert_eq!(rectangle.len(), 5);
+        for p in &rectangle {
+            assert!(tilted.local(p)[2].abs() < 1e-9, "on the plane");
+        }
+        let far = tilted.local(&rectangle[2]);
+        assert!((far[0] - 300.0).abs() < 1e-9 && (far[1] - 200.0).abs() < 1e-9);
+    }
 
     #[test]
     fn rectangle_and_polygon_follow_the_construction_plane() {

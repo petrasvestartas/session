@@ -83,8 +83,10 @@ impl Targets {
 impl State {
     /// A plain press dragged past the click slop: ask the GPU what the press landed on.
     pub(crate) fn start_object_drag(&mut self, down: (f64, f64), at: (f64, f64)) -> bool {
-        // F10 control points keep the left button
-        if matches!(self.selection, SelectionMode::Controls { .. })
+        // F10 control points keep the left button; Shift or Ctrl draws a selection rectangle
+        if self.shift_held
+            || self.ctrl_held
+            || matches!(self.selection, SelectionMode::Controls { .. })
             || self.drafting() // register:commands
             || self.features.pending_split.is_some() // register:split
             || self.selection_tool != SelectionTool::Object
@@ -122,6 +124,11 @@ impl State {
         };
         drag.cursor = cursor;
 
+        // a press on nothing that moves draws a selection rectangle instead
+        if drag.missed {
+            return self.drag_box(cursor);
+        }
+
         // a redraw now would cancel the pick; a pick something else cancelled is asked again
         if drag.moving.is_none() {
             let (down, lost) = (drag.down, !drag.missed && !self.gpu.pick.busy());
@@ -151,6 +158,13 @@ impl State {
         drag.moving = pick.and_then(|pick| self.grab(pick.row, drag.down));
         drag.missed = drag.moving.is_none();
         let cursor = drag.cursor;
+
+        if drag.missed {
+            let down = drag.down;
+            self.features.object_drag = Some(drag);
+            return self.start_box(down, cursor);
+        }
+
         self.features.object_drag = Some(drag);
         self.follow(cursor); // the pointer is already past the slop
         true
@@ -304,11 +318,13 @@ impl State {
             return false;
         };
         let Some(moving) = drag.moving else {
-            // a flick released before the pick answered moves nothing
-            if !drag.missed {
-                self.gpu.pick.cancel();
+            // a press on nothing that moves selected by a rectangle
+            if drag.missed {
+                return self.end_box();
             }
 
+            // a flick released before the pick answered moves nothing
+            self.gpu.pick.cancel();
             return false;
         };
         self.show(&moving, &moving.base);
@@ -327,6 +343,8 @@ impl State {
 
     /// Drop a drag that will never be released; everything goes back.
     pub(super) fn cancel_object_drag(&mut self) {
+        self.features.box_select = None;
+
         let Some(drag) = self.features.object_drag.take() else {
             return;
         };

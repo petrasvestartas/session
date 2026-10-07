@@ -90,6 +90,7 @@ pub fn publish(state: &State) {
     snapshot["number_box"] = number_box(state); // register:editing
     snapshot["undo_depth"] = undo_depth(state); // register:document
     snapshot["snap_enabled"] = serde_json::json!(state.features.snap.enabled); // register:editing
+    snapshot["construction_plane"] = state.construction_plane_status(); // register:construction_plane
     snapshot["snap_modes"] = serde_json::json!(state.features.snap.modes); // register:editing
     snapshot["snap_bar"] = serde_json::json!(state.features.snap.bar); // register:editing
     snapshot["ssao"] = serde_json::json!(state.gpu.view.ssao);

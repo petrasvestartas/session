@@ -1,6 +1,7 @@
 mod control; // register:control-drag
 mod gizmo; // register:gizmo-drag
 mod object; // register:object-drag
+mod box_select; // register:box-select
 
 use crate::State;
 
@@ -18,6 +19,7 @@ pub const GESTURES: &[&Gesture] = &[
     &control::GESTURE, // register:control-drag
     &gizmo::GESTURE,   // register:gizmo-drag
     &object::GESTURE,  // register:object-drag
+    &box_select::GESTURE, // register:box-select
 ];
 
 /// The first tool that takes a press at `at`.
@@ -40,18 +42,18 @@ pub fn start(state: &mut State, down: (f64, f64), at: (f64, f64)) -> Option<&'st
 mod tests {
     use super::*;
 
-    /// Controls, then handles, then objects; a finger never starts an object drag.
+    /// Controls, then handles, then objects, then the selection rectangle; a finger never starts an object drag.
     #[test]
-    fn gestures_are_tried_control_then_gizmo_then_object() {
+    fn gestures_are_tried_control_then_gizmo_then_object_then_box() {
         let names: Vec<_> = GESTURES.iter().map(|gesture| gesture.name).collect();
-        assert_eq!(names, ["control", "gizmo", "object"]);
+        assert_eq!(names, ["control", "gizmo", "object", "box"]);
         let pressed: Vec<_> = GESTURES.iter().map(|g| g.press.is_some()).collect();
         assert_eq!(
             pressed,
-            [true, true, false],
-            "object drags start only past the slop"
+            [true, true, false, false],
+            "object drags and rectangles start only past the slop"
         );
         let started: Vec<_> = GESTURES.iter().map(|g| g.start.is_some()).collect();
-        assert_eq!(started, [false, false, true]);
+        assert_eq!(started, [false, false, true, true]);
     }
 }

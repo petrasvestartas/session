@@ -160,7 +160,10 @@ fn bare_transform_verbs_start_picking() {
     assert_eq!(accept("Rot"), ("Rotate".into(), true));
     assert_eq!(accept("Rotate "), ("Rotate x ".into(), false));
     assert_eq!(accept("ori"), ("Orient 3 Points".into(), true));
-    assert_eq!(completions("Co"), vec!["Cone", "Controls", "Copy"]);
+    assert_eq!(
+        completions("Co"),
+        vec!["Cone", "Construction Plane", "Controls", "Copy"]
+    );
     assert_eq!(name_of("m 10 0 0"), "Move");
 }
 

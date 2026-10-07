@@ -1,4 +1,5 @@
 use super::State;
+use super::box_select; // register:box_select
 use super::drag; // register:object_drag
 use super::drawing; // register:drawing
 use super::edit; // register:gizmo_drag
@@ -24,8 +25,10 @@ pub(crate) struct Features {
     pub(crate) gizmo: Option<Gizmo>,  // register:gizmo
     pub(super) dragging: Option<edit::GizmoDrag>, // register:gizmo_drag
     pub(super) object_drag: Option<drag::ObjectDrag>, // register:object_drag
+    pub(super) box_select: Option<box_select::BoxSelect>, // register:box_select
     pub(crate) draft: Option<drawing::Draft>, // register:drawing
     pub(crate) snap: Snapping,        // register:snap
+    pub(crate) construction_plane: Option<crate::app::cplane::CPlane>, // fixed construction plane, None follows the view; register:construction_plane
     pub(crate) mark: Option<Mark>,    // register:measure
     pub(super) hierarchy: Hierarchy,  // register:hierarchy
     pub(super) pending_split: Option<splitting::Pending>, // register:split

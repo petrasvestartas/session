@@ -63,8 +63,9 @@ impl Action for GridSnap {
 #[cfg(test)]
 mod tests {
     use crate::app::command::parse;
+    use crate::app::cplane::CPlane;
     use crate::app::snap::on_grid;
-    use session_rust::{Point, Vector};
+    use session_rust::Point;
 
     /// The plane coordinates round to the step, the height stays.
     #[test]
@@ -75,17 +76,19 @@ mod tests {
                 && parse("Grid Snap 25").is_ok()
         );
         assert!(parse("Grid Snap -1").is_err() && parse("Grid Snap maybe").is_err());
-        let p = on_grid(
-            &Point::new(149.0, 51.0, 33.3),
-            &Vector::new(0.0, 0.0, 1.0),
-            100.0,
-        );
+        let p = on_grid(&Point::new(149.0, 51.0, 33.3), CPlane::Xy, 100.0);
         assert_eq!([p[0], p[1], p[2]], [100.0, 100.0, 33.3]);
-        let side = on_grid(
-            &Point::new(149.0, 51.0, 33.3),
-            &Vector::new(1.0, 0.0, 0.0),
-            10.0,
-        );
+        let side = on_grid(&Point::new(149.0, 51.0, 33.3), CPlane::Yz, 10.0);
         assert_eq!([side[0], side[1], side[2]], [149.0, 50.0, 30.0]);
+        // on a tilted plane the grid counts along the plane's own axes from its origin
+        let tilted = CPlane::from_3_points(
+            &Point::new(10.0, 0.0, 0.0),
+            &Point::new(10.0, 1.0, 1.0),
+            &Point::new(9.0, 0.0, 0.0),
+        )
+        .unwrap();
+        let p = on_grid(&tilted.world([1490.0, 520.0, 7.0]), tilted, 1000.0);
+        let [u, v, w] = tilted.local(&p);
+        assert!((u - 1000.0).abs() < 1e-9 && (v - 1000.0).abs() < 1e-9 && (w - 7.0).abs() < 1e-9);
     }
 }

@@ -1,7 +1,7 @@
 use crate::State;
 use winit::keyboard::{Key, NamedKey};
 
-/// Enter completes a command; Escape cancels it; Ctrl+Z and Ctrl+Y step the history; F fits, H hides, S shows. Feature requests are typed commands.
+/// Enter completes a command; Escape cancels it; Ctrl+Z and Ctrl+Y step the history, Ctrl+A selects all; F fits, H hides, S shows. Feature requests are typed commands.
 pub fn run(state: &mut State, key: &Key<&str>, shortcut: bool, shift: bool) -> bool {
     let typed = match key {
         Key::Character(text) if !shortcut => letter(text),
@@ -29,7 +29,7 @@ pub fn letter(text: &str) -> Option<&'static str> {
     }
 }
 
-/// The history command a key runs: Ctrl+Z undoes, Ctrl+Y and Ctrl+Shift+Z redo; Cmd counts as Ctrl.
+/// The command a Ctrl shortcut runs, which a text field holding typed text keeps for itself: Ctrl+Z undoes, Ctrl+Y and Ctrl+Shift+Z redo, Ctrl+A selects all; Cmd counts as Ctrl.
 pub fn history(key: &Key<&str>, shortcut: bool, shift: bool) -> Option<&'static str> {
     let Key::Character(text) = key else {
         return None;
@@ -42,6 +42,7 @@ pub fn history(key: &Key<&str>, shortcut: bool, shift: bool) -> Option<&'static 
         "z" if shift => Some("Redo"),
         "z" => Some("Undo"),
         "y" => Some("Redo"),
+        "a" => Some("Select All"),
         _ => None,
     }
 }
@@ -58,6 +59,11 @@ mod tests {
         assert_eq!(history(&Key::Character("y"), true, false), Some("Redo"));
         assert_eq!(history(&Key::Character("z"), false, false), None);
         assert_eq!(history(&Key::Character("x"), true, false), None);
+        assert_eq!(
+            history(&Key::Character("a"), true, false),
+            Some("Select All")
+        );
+        assert_eq!(history(&Key::Character("a"), false, false), None);
     }
 
     #[test]

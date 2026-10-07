@@ -13,6 +13,16 @@ const GREEN: vec3<f32> = vec3<f32>(0.604, 0.804, 0.196);
 // Z axis color: Block Research Group blue #2196EA.
 const BLUE: vec3<f32> = vec3<f32>(0.129, 0.588, 0.918);
 
+// The construction plane the grid lies on: its axes and origin, the world frame by default.
+struct GridFrame {
+    x: vec4<f32>,
+    y: vec4<f32>,
+    z: vec4<f32>,
+    origin: vec4<f32>,
+}
+
+@group(2) @binding(0) var<uniform> grid_frame: GridFrame;
+
 // One grid vertex.
 struct VsOut {
     @builtin(position) pos: vec4<f32>, // clip position
@@ -52,9 +62,11 @@ fn vs_main(@builtin(vertex_index) vid: u32) -> VsOut {
         }
     }
 
+    // the plane's coordinates to world
+    let world = grid_frame.origin.xyz + wp.x * grid_frame.x.xyz + wp.y * grid_frame.y.xyz + wp.z * grid_frame.z.xyz;
     var o: VsOut;
     // world to clip, relative to the scene origin
-    o.pos = mvp * vec4<f32>(wp - line.anchor, 1.0);
+    o.pos = mvp * vec4<f32>(world - line.anchor, 1.0);
     o.color = c;
     return o;
 }

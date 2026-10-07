@@ -1,14 +1,95 @@
 use session_rust::{Point, Vector};
 
-/// A construction plane through two world axes.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+/// A construction plane: one of the world planes, or a frame anywhere in space.
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CPlane {
     Xy, // ground, normal z
     Yz, // normal x
     Xz, // normal y
+    Frame {
+        origin: [f64; 3], // where its grid is centred
+        x: [f64; 3],      // its unit x axis
+        y: [f64; 3],      // its unit y axis, square to x
+    },
 }
 
 impl CPlane {
+    /// The plane through `origin`, its x axis toward `on_x`, `in_plane` on its positive y side; None when the three points are in line.
+    pub fn from_3_points(origin: &Point, on_x: &Point, in_plane: &Point) -> Option<Self> {
+        let x = unit(sub(on_x, origin))?;
+        let z = unit(cross(x, sub(in_plane, origin)))?;
+        let y = cross(z, x);
+
+        Some(CPlane::Frame {
+            origin: [origin[0], origin[1], origin[2]],
+            x,
+            y,
+        })
+    }
+
+    /// The point its grid is centred on: the world origin for a world plane.
+    pub fn origin(self) -> Point {
+        match self {
+            CPlane::Frame { origin, .. } => Point::new(origin[0], origin[1], origin[2]),
+            _ => Point::new(0.0, 0.0, 0.0),
+        }
+    }
+
+    /// Its two in-plane axes; x × y faces the viewer in Top, Front and Right.
+    pub fn axes(self) -> (Vector, Vector) {
+        match self {
+            CPlane::Xy => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
+            CPlane::Xz => (Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
+            CPlane::Yz => (Vector::new(0.0, 1.0, 0.0), Vector::new(0.0, 0.0, 1.0)),
+            CPlane::Frame { x, y, .. } => {
+                (Vector::new(x[0], x[1], x[2]), Vector::new(y[0], y[1], y[2]))
+            }
+        }
+    }
+
+    /// The grid's frame as a column-major matrix: x, y, x × y and the origin.
+    pub fn matrix(self) -> [f32; 16] {
+        let (x, y) = self.axes();
+        let z = cross([x[0], x[1], x[2]], [y[0], y[1], y[2]]);
+        let o = self.origin();
+        [
+            x[0] as f32,
+            x[1] as f32,
+            x[2] as f32,
+            0.0,
+            y[0] as f32,
+            y[1] as f32,
+            y[2] as f32,
+            0.0,
+            z[0] as f32,
+            z[1] as f32,
+            z[2] as f32,
+            0.0,
+            o[0] as f32,
+            o[1] as f32,
+            o[2] as f32,
+            1.0,
+        ]
+    }
+
+    /// `point` in plane coordinates: along x, along y, height off the plane.
+    pub fn local(self, point: &Point) -> [f64; 3] {
+        let (x, y) = self.axes();
+        let z = cross([x[0], x[1], x[2]], [y[0], y[1], y[2]]);
+        let d = sub(point, &self.origin());
+        let dot = |a: [f64; 3]| a[0] * d[0] + a[1] * d[1] + a[2] * d[2];
+        [dot([x[0], x[1], x[2]]), dot([y[0], y[1], y[2]]), dot(z)]
+    }
+
+    /// The world point at plane coordinates `uvw`.
+    pub fn world(self, uvw: [f64; 3]) -> Point {
+        let (x, y) = self.axes();
+        let z = cross([x[0], x[1], x[2]], [y[0], y[1], y[2]]);
+        let o = self.origin();
+        let at = |k: usize| o[k] + uvw[0] * x[k] + uvw[1] * y[k] + uvw[2] * z[k];
+        Point::new(at(0), at(1), at(2))
+    }
+
     /// The plane the view faces most directly.
     pub fn facing(forward: &Vector) -> Self {
         let (x, y, z) = (forward[0].abs(), forward[1].abs(), forward[2].abs());
@@ -28,6 +109,10 @@ impl CPlane {
             CPlane::Xy => Vector::new(0.0, 0.0, 1.0),
             CPlane::Yz => Vector::new(1.0, 0.0, 0.0),
             CPlane::Xz => Vector::new(0.0, 1.0, 0.0),
+            CPlane::Frame { x, y, .. } => {
+                let z = cross(x, y);
+                Vector::new(z[0], z[1], z[2])
+            }
         }
     }
 
@@ -55,6 +140,26 @@ impl CPlane {
             from[2] + direction[2] * t,
         ))
     }
+}
+
+/// `a - b` as an array.
+fn sub(a: &Point, b: &Point) -> [f64; 3] {
+    [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
+}
+
+/// The cross product of two arrays.
+fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] {
+    [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    ]
+}
+
+/// `v` scaled to length 1; None for a zero vector.
+fn unit(v: [f64; 3]) -> Option<[f64; 3]> {
+    let length = (v[0] * v[0] + v[1] * v[1] + v[2] * v[2]).sqrt();
+    (length > 1e-9).then(|| [v[0] / length, v[1] / length, v[2] / length])
 }
 
 #[cfg(test)]
@@ -110,6 +215,57 @@ mod tests {
                 .is_none(),
             "pointing away"
         );
+    }
+
+    /// Three points give an orthonormal, right-handed frame with the third point on its positive y side.
+    #[test]
+    fn three_points_make_a_frame() {
+        let plane = CPlane::from_3_points(
+            &Point::new(0.0, 0.0, 0.0),
+            &Point::new(1000.0, 0.0, 1000.0),
+            &Point::new(0.0, 1000.0, 0.0),
+        )
+        .expect("a frame");
+        let (x, y) = plane.axes();
+        let z = plane.normal();
+        let dot = |a: &Vector, b: &Vector| a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+        assert!((dot(&x, &x) - 1.0).abs() < 1e-12 && (dot(&y, &y) - 1.0).abs() < 1e-12);
+        assert!(
+            dot(&x, &y).abs() < 1e-12 && dot(&x, &z).abs() < 1e-12 && dot(&y, &z).abs() < 1e-12
+        );
+        assert!(
+            (x[0] - x[2]).abs() < 1e-12 && x[1].abs() < 1e-12,
+            "x along (1, 0, 1)"
+        );
+        assert!(
+            plane.local(&Point::new(0.0, 1000.0, 0.0))[1] > 0.0,
+            "the third point on +y"
+        );
+        assert!(z[2] > 0.0, "x then y turns up");
+        let back = plane.world(plane.local(&Point::new(3.0, -4.0, 5.0)));
+        assert!(
+            (back[0] - 3.0).abs() < 1e-9
+                && (back[1] + 4.0).abs() < 1e-9
+                && (back[2] - 5.0).abs() < 1e-9
+        );
+        assert!(
+            CPlane::from_3_points(
+                &Point::new(0.0, 0.0, 0.0),
+                &Point::new(1.0, 1.0, 1.0),
+                &Point::new(2.0, 2.0, 2.0)
+            )
+            .is_none(),
+            "in line"
+        );
+        // a ray down onto the tilted plane lands on it
+        let hit = plane
+            .hit(
+                &plane.origin(),
+                &Point::new(200.0, 300.0, 5000.0),
+                &Vector::new(0.0, 0.0, -1.0),
+            )
+            .expect("a hit");
+        assert!(plane.local(&hit)[2].abs() < 1e-9);
     }
 
     /// f64 keeps a millimetre a kilometre away.

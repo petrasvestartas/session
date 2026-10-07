@@ -256,6 +256,7 @@ impl State {
             }],
             marks: points,
             label: Some((middle, mark.label.clone())),
+            fill: None,
         })
     }
 

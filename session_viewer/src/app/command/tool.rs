@@ -156,6 +156,7 @@ pub struct Overlay {
     pub strokes: Vec<Stroke>,                // lines
     pub marks: Vec<(f64, f64)>,              // small squares, device pixels
     pub label: Option<((f64, f64), String)>, // text beside a point
+    pub fill: Option<[u8; 4]>,               // a faint RGBA wash inside the first stroke, a convex loop
 }
 
 /// The move that takes `from` to `to`.

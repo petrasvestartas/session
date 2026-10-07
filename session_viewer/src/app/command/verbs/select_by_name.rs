@@ -78,7 +78,7 @@ mod tests {
         assert_eq!(accept("Select By Name"), ("Select By Name ".into(), false));
         assert_eq!(accept("Select By Name "), ("Select By Name ".into(), false));
         assert_eq!(accept("selectbyname"), ("Select By Name ".into(), false));
-        assert_eq!(accept("sel"), ("Select By Name ".into(), false));
+        assert_eq!(accept("selectb"), ("Select By Name ".into(), false));
         assert!(parse("Select By Name").is_err());
         assert!(parse("Select By Name \"\"").is_err());
         let text = |line: &str| parse(line).map(|action| format!("{action:?}"));

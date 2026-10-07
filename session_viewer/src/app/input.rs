@@ -25,7 +25,7 @@ pub struct Input {
     gesture: Option<&'static Gesture>,       // the left-button tool in charge
     last_cursor: (f64, f64),                 // last pointer position in pixels
     left_down: Option<(f64, f64)>,           // where the left button went down
-    plain: bool,             // that press had no Ctrl or Shift and may still start a tool
+    plain: bool,             // that press may still start a tool by dragging
     dragged: bool,           // that press, or the editing finger, left its slop
     touch: Touches,          // camera finger gestures
     touch_edit: Option<u64>, // finger running a tool
@@ -72,7 +72,7 @@ impl Input {
         super::keys::run(state, &key, self.ctrl || self.command, self.shift)
     }
 
-    /// True when this key with the held modifiers is Undo or Redo.
+    /// True when this key with the held modifiers is a Ctrl shortcut: Undo, Redo or Select All.
     pub fn history_key(&self, key: Key<&str>) -> bool {
         super::keys::history(&key, self.ctrl || self.command, self.shift).is_some()
     }
@@ -197,6 +197,8 @@ impl Input {
                 self.command = mods.state().super_key();
                 self.shift = mods.state().shift_key();
                 state.snap_rotation = self.shift; // Shift turns the gumball by quarter turns
+                state.shift_held = self.shift; // a selection rectangle adds
+                state.ctrl_held = self.ctrl; // a selection rectangle takes out
                 false
             }
             WindowEvent::Focused(false) => {
@@ -388,9 +390,10 @@ impl Input {
                 // while drawing, a press is only a click
                 let mut drawing = false;
                 drawing |= state.drafting(); // register:commands
-                self.plain = !self.ctrl && !self.shift && !drawing;
+                self.plain = !drawing;
 
-                if self.plain {
+                // handles and control points take only an unmodified press
+                if self.plain && !self.ctrl && !self.shift {
                     self.gesture = gesture::press(state, self.last_cursor, MOUSE_REACH);
                 }
 
