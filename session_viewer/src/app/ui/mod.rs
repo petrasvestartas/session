@@ -129,7 +129,7 @@ pub struct Ui {
     agent_value: String, // last text taken from the hidden input; register:phone
     #[cfg(target_arch = "wasm32")] // register:phone
     field: Option<&'static str>, // the field the hidden input fed last frame, None for the command line; register:phone
-    startup: Option<String>, // the page's ?cmd= command lines, separated by ';', run once on the first frame
+    startup: Option<String>, // the page's ?cmd= command lines still to run, separated by ';', one a frame
 }
 
 impl Ui {
@@ -183,9 +183,15 @@ impl Ui {
         // the page's ?cmd= lines, as if typed, once the scene is on screen (or never will be): a link or a screenshot opens the viewer in that state
         let ready = state.gpu.performance.geometry_shown() || state.gpu.performance.frames > STARTUP_FRAMES;
 
+        // one line a frame, so a panel a line opens is laid out before the next line, such as Fit, reads it
         if ready && let Some(commands) = self.startup.take() {
-            for line in commands.split(';').map(str::trim).filter(|line| !line.is_empty()) {
-                self.run_line(state, line);
+            let (line, rest) = commands.split_once(';').unwrap_or((&commands, ""));
+            if !line.trim().is_empty() {
+                self.run_line(state, line.trim());
+            }
+            if !rest.trim().is_empty() {
+                self.startup = Some(rest.to_owned());
+                self.context.request_repaint();
             }
         }
 
