@@ -34,7 +34,7 @@ module.exports = async (original, helpers) => {
         const ready = () => page.waitForFunction(() => window.wasmBindings?.runtime_running?.()
             && JSON.parse(window.wasmBindings.diagnostic_snapshot()).outcome === 'ready');
         const typed = async () => {
-            const file = page.waitForEvent('download'); await helpers.command(page, 'Diagnostic Report');
+            const file = page.waitForEvent('download'); await helpers.command(page, 'Report');
             return JSON.parse(await fs.readFile(await (await file).path(), 'utf8'));
         };
         const names = ['adapter request', 'device request', 'renderer setup', 'first frame complete'];

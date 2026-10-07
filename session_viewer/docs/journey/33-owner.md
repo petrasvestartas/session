@@ -1,6 +1,6 @@
 # 33 · Own browser listeners instead of forgetting callbacks
 
-**Typing: 21–41 minutes.** [Estimate](typing-load.md).
+**Typing: 20–40 minutes.** [Estimate](typing-load.md).
 
 Keep a JavaScript callback alive with its registered listeners. Dropping this owner removes every listener, including after partial setup failure.
 

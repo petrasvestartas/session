@@ -36,6 +36,7 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [03ck-pointer](03ck-pointer.md) | 37 | 2528 | 26–51 min | 0.5–1.25 h | Within planning limit |
 | [03cl-wheel](03cl-wheel.md) | 56 | 2455 | 25–50 min | 0.5–1.25 h | Within planning limit |
 | [03c-layout](03c-layout.md) | 88 | 2877 | 29–58 min | 0.75–1.25 h | Within planning limit |
+| [03co-align](03co-align.md) | 6 | 416 | 5–9 min | 0.25–0.5 h | Within planning limit |
 | [03cn-handoff](03cn-handoff.md) | 60 | 2826 | 29–57 min | 0.75–1.25 h | Within planning limit |
 | [03d-input](03d-input.md) | 60 | 2166 | 22–44 min | 0.5–1 h | Within planning limit |
 | [04-input](04-input.md) | 38 | 1188 | 12–24 min | 1–2 h | Within planning limit |
@@ -84,6 +85,7 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [24b-projection-actions](24b-projection-actions.md) | 49 | 2402 | 25–49 min | 0.75–1.25 h | Within planning limit |
 | [25-projection](25-projection.md) | 22 | 899 | 9–18 min | 0.25–0.5 h | Within planning limit |
 | [26-selected](26-selected.md) | 54 | 2186 | 22–44 min | 1–2 h | Within planning limit |
+| [26a-keys](26a-keys.md) | 44 | 1890 | 19–38 min | 0.5–1 h | Within planning limit |
 | [27-placement](27-placement.md) | 53 | 2034 | 21–41 min | 1–2 h | Within planning limit |
 | [27a-world](27a-world.md) | 37 | 1885 | 19–38 min | 1–2 h | Within planning limit |
 | [27b-model](27b-model.md) | 30 | 1611 | 17–33 min | 1–2 h | Within planning limit |
@@ -153,29 +155,29 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [32gif-auto](32gif-auto.md) | 36 | 2412 | 25–49 min | 1–2 h | Within planning limit |
 | [32gj-precision](32gj-precision.md) | 33 | 1876 | 19–38 min | 1–2 h | Within planning limit |
 | [32gja-failures](32gja-failures.md) | 40 | 1951 | 20–40 min | 1–2 h | Within planning limit |
-| [33-owner](33-owner.md) | 51 | 2003 | 21–41 min | 1–2 h | Within planning limit |
-| [33a-runtime](33a-runtime.md) | 50 | 1872 | 19–38 min | 1–2 h | Within planning limit |
+| [33-owner](33-owner.md) | 50 | 1978 | 20–40 min | 1–2 h | Within planning limit |
+| [33a-runtime](33a-runtime.md) | 49 | 1847 | 19–37 min | 1–2 h | Within planning limit |
 | [33b-cache](33b-cache.md) | 3 | 202 | 3–5 min | 1–2 h | Within planning limit |
 | [34-fault](34-fault.md) | 50 | 1874 | 19–38 min | 1–2 h | Within planning limit |
 | [34a-stop](34a-stop.md) | 28 | 1468 | 15–30 min | 1–2 h | Within planning limit |
 | [34b-report](34b-report.md) | 65 | 2413 | 25–49 min | 1–2 h | Within planning limit |
 | [34ba-events](34ba-events.md) | 60 | 2995 | 30–60 min | 1–2 h | Within planning limit |
-| [34c-browser](34c-browser.md) | 51 | 2369 | 24–48 min | 1–2 h | Within planning limit |
-| [34d-download](34d-download.md) | 26 | 1255 | 13–26 min | 1–2 h | Within planning limit |
+| [34c-browser](34c-browser.md) | 51 | 2341 | 24–47 min | 1–2 h | Within planning limit |
+| [34d-download](34d-download.md) | 26 | 1233 | 13–25 min | 1–2 h | Within planning limit |
 | [34e-schema](34e-schema.md) | 52 | 2998 | 30–60 min | 1–2 h | Within planning limit |
 | [34ea-decode](34ea-decode.md) | 47 | 2629 | 27–53 min | 1–2 h | Within planning limit |
 | [34eb-recency](34eb-recency.md) | 45 | 2450 | 25–49 min | 1–2 h | Within planning limit |
 | [34ec-proof](34ec-proof.md) | 19 | 1264 | 13–26 min | 1–2 h | Within planning limit |
-| [34f-storage](34f-storage.md) | 52 | 2021 | 21–41 min | 1–2 h | Within planning limit |
-| [34fa-retain](34fa-retain.md) | 31 | 1754 | 18–36 min | 1–2 h | Within planning limit |
-| [34fb-store](34fb-store.md) | 45 | 2460 | 25–50 min | 1–2 h | Within planning limit |
+| [34f-storage](34f-storage.md) | 51 | 1996 | 20–40 min | 1–2 h | Within planning limit |
+| [34fa-retain](34fa-retain.md) | 30 | 1729 | 18–35 min | 1–2 h | Within planning limit |
+| [34fb-store](34fb-store.md) | 45 | 2366 | 24–48 min | 1–2 h | Within planning limit |
 | [34fc-retention](34fc-retention.md) | 45 | 2547 | 26–51 min | 1–2 h | Within planning limit |
-| [34g-heartbeat](34g-heartbeat.md) | 36 | 1643 | 17–33 min | 1–2 h | Within planning limit |
-| [34ga-timer](34ga-timer.md) | 41 | 1574 | 16–32 min | 1–2 h | Within planning limit |
-| [34gb-close](34gb-close.md) | 47 | 2162 | 22–44 min | 1–2 h | Within planning limit |
-| [34gba-lifecycle](34gba-lifecycle.md) | 53 | 2566 | 26–52 min | 1–2 h | Within planning limit |
+| [34g-heartbeat](34g-heartbeat.md) | 36 | 1615 | 17–33 min | 1–2 h | Within planning limit |
+| [34ga-timer](34ga-timer.md) | 41 | 1518 | 16–31 min | 1–2 h | Within planning limit |
+| [34gb-close](34gb-close.md) | 47 | 2106 | 22–43 min | 1–2 h | Within planning limit |
+| [34gba-lifecycle](34gba-lifecycle.md) | 52 | 2485 | 25–50 min | 1–2 h | Within planning limit |
 | [34gbb-suspension](34gbb-suspension.md) | 65 | 2103 | 22–43 min | 0.75–1.25 h | Within planning limit |
-| [34gbba-browser](34gbba-browser.md) | 35 | 1971 | 20–40 min | 0.75–1.25 h | Within planning limit |
+| [34gbba-browser](34gbba-browser.md) | 35 | 1943 | 20–39 min | 0.75–1.25 h | Within planning limit |
 | [34gbc-authority](34gbc-authority.md) | 45 | 1343 | 14–27 min | 0.5–1 h | Within planning limit |
 | [34gbca-startup](34gbca-startup.md) | 38 | 1491 | 15–30 min | 0.75–1.25 h | Within planning limit |
 | [34gc-messages](34gc-messages.md) | 42 | 1889 | 19–38 min | 0.5–1 h | Within planning limit |
@@ -184,17 +186,18 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [34gda-browser](34gda-browser.md) | 66 | 2801 | 29–57 min | 0.75–1.25 h | Within planning limit |
 | [34gdb-phases](34gdb-phases.md) | 61 | 2671 | 27–54 min | 0.75–1.25 h | Within planning limit |
 | [34gdc-startup](34gdc-startup.md) | 43 | 2257 | 23–46 min | 0.75–1.25 h | Within planning limit |
+| [34gdd-read](34gdd-read.md) | 5 | 332 | 4–7 min | 0.25–0.5 h | Within planning limit |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 172 current checkpoints.
+- [x] Count the exact source edits for all 175 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [x] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [x] Update the full roadmap, navigation and recovery instructions.
-- [x] Recheck total lesson counts after splitting; the current 238 slots are not a fixed final count.
-- [ ] Apply the same direct style and typing limit to the 66 remaining feature lessons as they are written.
+- [x] Recheck total lesson counts after splitting; the current 243 slots are not a fixed final count.
+- [ ] Apply the same direct style and typing limit to the 68 remaining feature lessons as they are written.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)
 

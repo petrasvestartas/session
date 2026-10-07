@@ -73,7 +73,7 @@ module.exports = async (original, helpers) => {
                 });
                 assert.deepEqual(report.adapter, actualDevice, 'Identity belongs to the actual drawing device');
             }
-            const typed = await download('Diagnostic Report');
+            const typed = await download('Report');
             assert.deepEqual(typed.adapter, report.adapter);
             const camera = await page.locator('canvas').getAttribute('data-camera-matrix');
             await helpers.command(page, 'Orbit Right');
@@ -93,7 +93,7 @@ module.exports = async (original, helpers) => {
                 assert.deepEqual(failed.adapter, report.adapter);
                 assert.deepEqual((await snapshot()).adapter, report.adapter);
                 await page.reload(); await ready();
-                assert.deepEqual((await download('Diagnostic Report Previous')).adapter, report.adapter, 'Previous-run decoding retains identity');
+                assert.deepEqual((await download('Report Previous')).adapter, report.adapter, 'Previous-run decoding retains identity');
             }
             console.log(`${helpers.step.id}: adapter identity ${scenario} passed`);
         }

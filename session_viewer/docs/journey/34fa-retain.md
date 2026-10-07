@@ -1,6 +1,6 @@
 # 34fa · Retain only three diagnostic runs
 
-**Typing: 18–36 minutes.** [Estimate](typing-load.md).
+**Typing: 18–35 minutes.** [Estimate](typing-load.md).
 
 Keep the current run and two older reports. Validate the report and its matching tab ID before writing. Repeated writes reuse the current run key.
 

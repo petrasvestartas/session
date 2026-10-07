@@ -78,7 +78,7 @@ module.exports = async (page, helpers) => {
     assert(denied.events.some(event => event.message.includes('Heartbeat unavailable')));
     assert.equal((await probe()).entries.length, 0);
     const download = page.waitForEvent('download', {predicate: file => file.suggestedFilename() === 'viewer-diagnostic.json'});
-    await helpers.command(page, 'Diagnostic Report');
+    await helpers.command(page, 'Report');
     const usable = JSON.parse(await fs.readFile(await (await download).path(), 'utf8'));
     assert.equal(usable.outcome, 'ready'); assert.equal(usable.failure, null);
     await page.reload(); await ready();

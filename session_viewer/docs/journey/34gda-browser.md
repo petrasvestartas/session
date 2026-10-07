@@ -116,7 +116,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Diagnostic Report`. Its `adapter` field contains vendor, architecture, device and description; a browser may leave individual strings empty.
+Type `Report`. Its `adapter` field contains vendor, architecture, device and description; a browser may leave individual strings empty.
 
 **Verified checkpoint in Chrome.**
 

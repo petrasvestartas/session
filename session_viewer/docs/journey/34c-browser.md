@@ -1,6 +1,6 @@
 # 34c · Read live diagnostic context outside the GPU runtime
 
-**Typing: 24–48 minutes.** [Estimate](typing-load.md).
+**Typing: 24–47 minutes.** [Estimate](typing-load.md).
 
 Populate the report from the page before requesting a GPU. One thread-local `RefCell<Option<Report>>` owns metadata independently of the drawing runtime. `RefCell` checks short shared/mutable borrows at runtime.
 

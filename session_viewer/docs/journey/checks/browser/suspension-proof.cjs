@@ -25,6 +25,12 @@ module.exports = async (original, helpers) => {
         await page.activate(); await page.send('Page.navigate', {url: original.url()});
         await wait(() => window.wasmBindings?.runtime_running?.() && document.querySelector('canvas')?.hasAttribute('data-command-ui'));
         await wait(() => !document.hidden);
+        await page.send('Input.dispatchMouseEvent', {type: 'mouseMoved', x: 4, y: 4});
+        await wait(() => {
+            const canvas = document.querySelector('canvas');
+            const matrix = JSON.parse(canvas.getAttribute('data-camera-matrix'));
+            return Math.abs(matrix[0] * canvas.width / canvas.height - matrix[5]) < 1e-9;
+        });
         assert.equal((await summary()).activeMetadata, 5); assert.equal((await active()).length, 1);
         const image = await drawing(), editor = await state();
 

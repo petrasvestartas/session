@@ -1,6 +1,6 @@
 # 34gba · Own diagnostic page transitions
 
-**Typing: 26–52 minutes.** [Estimate](typing-load.md).
+**Typing: 25–50 minutes.** [Estimate](typing-load.md).
 
 Own diagnostic page events independently of the GPU. Two Window listeners and an `Rc` token keep metadata active after drawing/input cleanup. They retain no renderer or document.
 
@@ -68,7 +68,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Diagnostic Report`: the transitions are recorded and the healthy outcome stays Ready.
+In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Report`: the transitions are recorded and the healthy outcome stays Ready.
 
 **Verified checkpoint in Chrome.**
 

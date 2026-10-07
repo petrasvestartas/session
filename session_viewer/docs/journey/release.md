@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 172 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Keyboard feature shortcuts are absent.
+**All 175 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 172 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 66 remaining feature lessons.
+All 175 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 68 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -70,7 +70,7 @@ Chrome opens the real chooser through typed Open, holds an older read, rejects a
 
 ## What was checked
 
-- Every displayed checkpoint reconstructs, builds for WebAssembly, and produces a Trunk browser bundle. Native state tests and GPU readbacks run where applicable.
+- Every displayed checkpoint reconstructs, builds for WebAssembly, and produces an optimized Trunk browser bundle. Native state tests and GPU readbacks run where applicable.
 - Source completion and automatic-command acceptance checkpoints finish with 111 native checks. Complete body pairs, current origins/epochs and file versions are validated before captured Move/Delete/Save replay. Visible Chrome holds actual source responses, changes selection and camera, checks original-target replay and one-step Undo, verifies a single Save download without consuming Undo, supersedes older pending edits, and rejects late replies after Cancel Reload, Undo and Close. Chrome also compares the actual warm and restored Save downloads with a source double that cannot survive an f32 round trip. Combined HTTP/length/body/read/network/type/version failures preserve drawing, placement, selection, camera, source residency and GPU counters; a second-source failure installs neither source and downloads nothing. Native missing-body/stale/duplicate-key checks and held-reply source URL release complete this bounded restoration acceptance.
 - Browser-lifetime checkpoints retain the 111 inherited native checks and add actual WebAssembly/Chrome ownership proofs: two real EventTargets stop invoking a dropped callback and its captured Rc is released; the main viewer removes eighteen listeners on deferred page exit, cancels held source/file authority, releases source URLs and submits no further frames for old input or completions. These checks establish owned lifetime and cancellation, not instantaneous browser/driver memory reclamation. Document Close keeps the viewer available for Open. Cached-transition checks cancel unfinished gestures while retaining state, drawing and usable commands. A real same-tab away/Back run loaded a fresh document on this Chrome; persisted event checks establish the retained-runtime behavior separately, without claiming actual browser cache eligibility.
 - The first-failure signal checkpoint passes 114 native tests, including competing callback writers, shared clone identity and independent replacement-device state. Chrome verifies inherited input/loading/lifetime behavior; actual GPU-loss callback integration, stopped submissions and recovery are still the following lessons.
@@ -101,7 +101,7 @@ The scene comparison excludes the command strip. When a key opens completion ove
 
 ## Screenshot evidence
 
-Each lesson includes its own Chrome capture from the reconstructed browser bundle. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, including their local helper dependencies, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
+Each lesson includes its own Chrome capture from the reconstructed optimized release browser bundle. The verifier uses `trunk build --release` and refuses stored web evidence without that flag. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, including their local helper dependencies, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
 
 The initial browser viewport is 900 × 760 CSS pixels at display density 1. The evidence records that viewport, the canvas bounds and the final screenshot viewport. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
 
@@ -125,7 +125,7 @@ The original production destination remains fingerprinted separately. Browser di
 
 The production viewer separately passed a Chrome device-loss check: stop GPU work, attempt a diagnostic download, and recover the report on reload. The reported Firefox QueueId driver crash has not been reproduced or proven fixed. A web application cannot guarantee a dump when the browser process itself crashes.
 
-## Saved diagnostic report admission and recency
+## Saved report admission and recency
 
 Four further checkpoints prepare browser storage. They pass 120, 122, 123 and 125 native tests respectively, plus WebAssembly, Trunk, native GPU frames and headed Chrome. Typed validation bounds metadata and observations and requires consistent failure/outcome state. JSON decoding limits input to one MiB before parsing and rejects unsupported top-level fields. Recency uses the first fatal timestamp for failed runs and a separate heartbeat policy for interrupted running tabs; invalid chronology, active other tabs and healthy/closed runs are excluded. Policy evaluation does not mutate a report.
 
@@ -135,7 +135,7 @@ The native tests use a deterministic timestamp parser. Actual browser Date.parse
 
 Three further checkpoints retain the 125 inherited native state tests and pass WebAssembly, Trunk, native GPU frames and actual headed Chrome. The browser-only store uses stable sessionStorage tab identity and a separate key for each run. Reads examine at most 256 keys and 32 owned candidates through the bounded decoder and real Date.parse policy. Successful writes retain the current run and two newest valid older reports, remove malformed owned values and preserve unrelated keys. Larger namespaces refuse writing; quota failures preserve existing evidence and removal failures return false without claiming rollback.
 
-The final endpoint selects previous metadata before writing its own running report, persists ready/fatal observations independently of GPU disposal, shows failed/interrupted notices in the actual dock and accepts Diagnostic Report Previous. Chrome destroys a real device, reads the actual stored failure, reloads the same test page and downloads unchanged previous JSON from a healthy run. Stable tab/new key, three-report bounds, scene/history invariants, download URL release, quiet healthy/active-other-tab cases and denied-storage current downloads pass. There are no new HTML feature controls. Heartbeat/lifecycle/error observations and full load/adapter/resource telemetry remain upcoming; diagnostics do not restore unsaved edits.
+The final endpoint selects previous metadata before writing its own running report, persists ready/fatal observations independently of GPU disposal, shows failed/interrupted notices in the actual dock and accepts Report Previous. Chrome destroys a real device, reads the actual stored failure, reloads the same test page and downloads unchanged previous JSON from a healthy run. Stable tab/new key, three-report bounds, scene/history invariants, download URL release, quiet healthy/active-other-tab cases and denied-storage current downloads pass. There are no new HTML feature controls. Heartbeat/lifecycle/error observations and full load/adapter/resource telemetry remain upcoming; diagnostics do not restore unsaved edits.
 
 The three typing estimates are 21–41, 18–36 and 25–49 minutes. An initial live test incorrectly assumed the inspector exported status; the final lesson exposes the existing drawn status for acceptance, then passes all checks. One recheck also failed an inherited command-clear assertion; an unchanged confirmation run and the final live run passed. Its cause was not established, and the assertion was not weakened.
 
@@ -221,7 +221,17 @@ The connected lesson measures the viewer's actual adapter request, device reques
 
 Headed Chrome counts actual requests and queue completion calls, checks downloaded timings, holds a real completed queue promise before delivery, and proves the report stays running while held. Separate cases release normally, exit finally, destroy the real device or start a replacement runtime. Timings survive event rotation and camera commands; a first-frame phase is recorded once. Native request rejection and the complete earlier error, startup cancellation, visibility/freezing, post-loss, registration refusal and ownership routes pass. The new inherited checks wait for completed readiness; their other assertions remain unchanged. The existing 170 checkers remain unchanged.
 
-The preceding endpoint has no retained phase list; the connected endpoint records all four actual startup measurements. These are desktop correctness checks, not phone performance measurements or complete loading coverage. File read/decode/walk/upload, resource entries, manifest and live replacement diagnostics, and GPU recovery remain pending. The draft now has 238 slots, 172 current checkpoints and 66 future topics; later topics may split into short runnable lessons.
+The preceding endpoint has no retained phase list; the connected endpoint records all four actual startup measurements. These are desktop correctness checks, not phone performance measurements or complete loading coverage. File read/decode/walk/upload, resource entries, manifest and live replacement diagnostics, and GPU recovery remain pending. That earlier publication had 238 slots, 172 checkpoints and 66 future topics; the current counts are stated above.
+
+## October 7 maintenance
+
+Three new checkpoints align the command row and retain its edge, teach canvas F and platform Undo/Redo, and measure accepted selected-file reads. [Command input](command-line.md) teaches H/S/F, Delete and history shortcuts for the production viewer, explains the two bounding-box commands, and gives an AI-assistant prompt that names the actual learner project and its checks. The reviewed production changes and remaining teaching destinations are listed in [weekly changes](weekly-changes.md).
+
+The course verifier now builds optimized Trunk bundles and refuses stored web evidence without `--release`. Console probes in the lifetime and diagnostic lessons are exported in optimized builds too; their experiments must work in both build modes. The affected source endpoints were rebuilt rather than relabelled as fresh.
+
+Some initial desktop captures received unscripted keyboard events while temporary Chrome windows had focus. An event trace reproduced an extra key after a successful command. Subsequent captures run in headed Chrome on an isolated X11 display with actual hardware WebGPU; the existing visible tutorial review tab stays on the user's desktop. Assertions remain unchanged, and the capture helper waits for the actual egui focus signal. Individual evidence records retain their source, checker, bundle, browser and timestamp. A raw lifecycle target also exposed an initial inspector value recorded before camera sizing. Its test now sends a real mouse movement and waits for the inspected projection to match the canvas before taking the baseline; subsequent state and pixel assertions are unchanged.
+
+Production navigation tests include the full timber floor and the current vault-dome example. Native GPU checks cover curved/flat Arctic silhouettes and contact depth with black boundaries. Local timings and the Firefox adapter preference exception are documented in [performance patterns](../performance-patterns.md); they do not establish Lenovo frame rates. The cumulative course still has 68 planned feature lessons and has not reached final production parity.
 
 ## Reproduce
 

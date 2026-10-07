@@ -1365,6 +1365,49 @@
       "image_same_as": "03cl-wheel"
     },
     {
+      "id": "03co-align",
+      "title": "Align and measure the command row",
+      "page": "journey/03co-align.md",
+      "hours": [
+        0.25,
+        0.5
+      ],
+      "goal": "Align label and field text, and record the dock edge for later fitting.",
+      "trace": "22 px row → centred layout → drawn dock edge → future usable viewport",
+      "question": "Why record the dock edge while drawing instead of assuming a fixed footer height?",
+      "answer": "The current layout knows the actual edge. Later fitting can use that value when history or other panels change the visible canvas.",
+      "result": "Type Help, then click the drawing. The Command label and field text share a centre line; the dock retains its current top edge.",
+      "experiment": "Temporarily change the row height, redraw, then restore 22 px. Compare the label and typed text.",
+      "production": "This implements the current production row alignment and dock-top measurement. Fitting around panels is taught later.",
+      "browser_status": "The shared production dock is drawn.",
+      "browser_check": "journey/checks/browser/dock-alignment.cjs",
+      "frame": "journey/checks/03b-state-frame.rs",
+      "image_same_as": "03c-layout",
+      "story": "Give the shared row the field’s height and centre its children vertically. Store the drawn dock edge on the existing model.\n\nThe row still returns accepted commands to its caller. The new optional edge is layout metadata, not scene state. Later fitting uses it to keep geometry above the dock.\n\n![The shared layout centres text and retains the actual dock edge.](../illustrations/journey-03co.svg)",
+      "browser_caption": "Chrome checks the inherited command route and compares actual label and field ink after dismissing the caret.",
+      "checks": "Visible Chrome verifies command input, completion, history, ownership and preserved scene pixels, then checks label and field text positions.",
+      "edits": [
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "    let mut focus_canvas = false;\n    ui.horizontal(|ui| {\n",
+          "snippet": "journey/code/03co-align-01.rs",
+          "why": "Use the field height and centre the row’s children."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "    pub(crate) focus_command: bool,                 // give the field focus next frame\n",
+          "snippet": "journey/code/03co-align-02.rs",
+          "why": "Keep the actual dock edge as optional layout metadata."
+        },
+        {
+          "path": "src/command_dock/mod.rs",
+          "before": "        view::prepare(ui);\n        history(ui, model, controls);\n",
+          "snippet": "journey/code/03co-align-03.rs",
+          "why": "Record the dock edge from the current drawn rectangle."
+        }
+      ]
+    },
+    {
       "id": "03cn-handoff",
       "title": "Return accepted application commands",
       "page": "journey/03cn-handoff.md",
@@ -4712,6 +4755,90 @@
           "before": null,
           "snippet": "journey/code/26-selected-07.rs",
           "why": "Check both projection modes, selection, shared mesh identity, history and the empty-selection case."
+        }
+      ]
+    },
+    {
+      "id": "26a-keys",
+      "title": "Fit and step history from the keyboard",
+      "page": "journey/26a-keys.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions.",
+      "trace": "keyboard press → text ownership → existing command → editor action → redraw",
+      "question": "Why must Ctrl+Z stay with a nonempty focused command field?",
+      "answer": "It edits the text being typed. Document history must change only when that text does not own the shortcut.",
+      "result": "Select an object, click the canvas, then press F. Ctrl+Z undoes a document edit; Ctrl+Y or Ctrl+Shift+Z redoes it. Use Cmd on macOS.",
+      "experiment": "Focus the command field and type F. It remains text. Type a word, then press Ctrl+Z: document history must stay unchanged.",
+      "production": "This carries the October 4 F and history shortcuts into the course. H/S hide and show arrive with visibility policies in chapter 53. Existing named commands and mouse navigation remain available.",
+      "tests": true,
+      "frame": "journey/checks/26-selected.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_actions": [
+        {
+          "command": "Example Box"
+        },
+        {
+          "command": "View Isometric"
+        },
+        {
+          "command": "Select Next"
+        },
+        {
+          "command": "Fit Selected"
+        }
+      ],
+      "browser_check": "journey/checks/browser/shortcuts.cjs",
+      "story": "Classify a key before the panel can focus on its printable letter. F belongs to the unfocused canvas. History keys belong to the document when no nonempty focused text field owns them.\n\nBoth Ctrl and Cmd use the same policy. Ignore repeated, composing and Alt-modified events. Echo the existing command and reuse the normal action route, preserving one history transaction.\n\n![Keyboard ownership decides whether a press edits text or requests an existing action.](../illustrations/journey-26a.svg)",
+      "browser_caption": "Actual keyboard input checks selected and whole-scene fitting, Undo/Redo, platform modifiers and command-text ownership.",
+      "checks": "Native key policy checks and Chrome exercise actual keys, text editing, camera-only Fit and exact document history round trips.",
+      "image_same_as": "26-selected",
+      "edits": [
+        {
+          "path": "src/shortcuts.rs",
+          "before": null,
+          "snippet": "journey/code/26a-keys-01.rs",
+          "why": "Classify canvas Fit and available history keys without owning browser or document state."
+        },
+        {
+          "path": "src/panel.rs",
+          "before": "    pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {",
+          "snippet": "journey/code/26a-keys-02.rs",
+          "why": "Use current text focus and content to decide shortcut ownership."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        let line = match panel.update(Some(&event), &input_canvas) {\n            Ok(line) => line,\n            Err(error) => {\n                report(&format!(\"Cannot read command: {error:?}\"));\n                return;\n            }\n        };",
+          "snippet": "journey/code/26a-keys-03.rs",
+          "why": "Echo an accepted shortcut through the same command route before the panel consumes typing."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"fit\" => Action::Fit,",
+          "snippet": "journey/code/26a-keys-04.rs",
+          "why": "Make canvas F fit the selection when present; otherwise fit the whole scene."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod navigation;",
+          "snippet": "journey/code/26a-keys-05.rs",
+          "why": "Register the shared shortcut policy."
+        },
+        {
+          "path": "src/shortcuts_tests.rs",
+          "before": null,
+          "snippet": "journey/code/26a-keys-tests.rs",
+          "why": "Copy the modifier and text-ownership checks.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod shortcuts;",
+          "snippet": "journey/code/26a-keys-06.rs",
+          "why": "Register the native checks."
         }
       ]
     },
@@ -9496,7 +9623,7 @@
         },
         {
           "path": "src/browser.rs",
-          "before": "    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let line",
+          "before": "    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        let shortcut",
           "snippet": "journey/code/33a-runtime-03.rs",
           "why": "Retain cancellation handles outside the moving callback. Defer page-exit disposal until the active callback has returned."
         },
@@ -9846,13 +9973,13 @@
         1,
         2
       ],
-      "goal": "Download a current ready-run report with Diagnostic Report and attempt one independent first-failure download after GPU disposal.",
-      "trace": "first scene presented → ready report → typed Diagnostic Report → JSON Blob → actual download → delayed URL cleanup",
+      "goal": "Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal.",
+      "trace": "first scene presented → ready report → typed Report → JSON Blob → actual download → delayed URL cleanup",
       "question": "Why can the failed viewer download a report after GPU input and drawing have stopped?",
       "answer": "The independent report owns metadata only. JSON serialization and the existing Blob/anchor download need no GPU resources, so disposal can stop the renderer without destroying its evidence.",
-      "result": "Type `Diagnostic Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.",
+      "result": "Type `Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.",
       "experiment": "Keep the report inside the GPU Runtime and explain why the fatal download would lose it. Then compare the actual document Save and diagnostic downloads and explain why they cannot be used interchangeably.",
-      "production": "Production exposes Diagnostic Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.",
+      "production": "Production exposes Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.",
       "tests": true,
       "frame": "journey/checks/34d-download.rs",
       "frame_constructor": "make_renderer(device, queue, format)",
@@ -9864,7 +9991,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/diagnostic-download.cjs",
-      "story": "Add `Diagnostic Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.\n\nFinish serializing before clicking the temporary download anchor. This releases the report’s `RefCell` borrow before browser behavior can call back into Rust. The existing download owner revokes its Blob URL after ten seconds.\n\nA GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.\n\n![Command and fatal report downloads](../illustrations/journey-34d.svg)",
+      "story": "Add `Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.\n\nFinish serializing before clicking the temporary download anchor. This releases the report’s `RefCell` borrow before browser behavior can call back into Rust. The existing download owner revokes its Blob URL after ten seconds.\n\nA GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.\n\n![Command and fatal report downloads](../illustrations/journey-34d.svg)",
       "browser_caption": "Chrome reads actual typed ready-report and real GPU-loss/startup-failure JSON downloads, checks scene/history/camera/GPU invariants and late-input blocking, then reloads the same test page for its final working picture.",
       "edits": [
         {
@@ -9881,7 +10008,7 @@
         },
         {
           "path": "src/browser_report.rs",
-          "before": "#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen)]",
+          "before": "#[wasm_bindgen::prelude::wasm_bindgen]",
           "snippet": "journey/code/34d-download-03.rs",
           "why": "Download a current metadata snapshot and attempt one automatic download for the first fatal observation."
         },
@@ -9916,11 +10043,11 @@
           "why": "Capture startup failure after diagnostic initialization, even when no GPU runtime could be installed."
         }
       ],
-      "checks": "Chrome types Diagnostic Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer."
+      "checks": "Chrome types Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer."
     },
     {
       "id": "34e-schema",
-      "title": "Check the bounded shape of a diagnostic report",
+      "title": "Check the bounded shape of a report",
       "page": "journey/34e-schema.md",
       "hours": [
         1,
@@ -10215,10 +10342,10 @@
         2
       ],
       "goal": "Persist current diagnostics independently of GPU lifetime and retrieve eligible previous evidence with a typed command.",
-      "trace": "startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous",
+      "trace": "startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous",
       "question": "Why select previous evidence before saving the new running report?",
       "answer": "Selection must examine earlier runs. The new run would otherwise look like a same-tab interrupted candidate before startup finishes. Keep its metadata separate and preserve the selected previous report even after the current run becomes ready.",
-      "result": "Type `Diagnostic Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.",
+      "result": "Type `Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.",
       "experiment": "Move previous selection after the initial current write and inspect the false same-tab interruption candidate. Then deny storage and explain why successful current downloads must remain separate from persistence.",
       "production": "Production keeps saved diagnostics independently of GPU lifetime. The cumulative course now connects bounded persistence and typed previous-report retrieval. Heartbeat/lifecycle/error observations, complete load/adapter/resource telemetry and bounded GPU recovery still follow; unsaved scene restoration is not claimed.",
       "tests": true,
@@ -10232,8 +10359,8 @@
         }
       ],
       "browser_check": "journey/checks/browser/live-storage.cjs",
-      "story": "Persist live diagnostics and add `Diagnostic Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.\n\nAfter an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.\n\nShow eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.\n\n![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)",
-      "browser_caption": "Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Diagnostic Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.",
+      "story": "Persist live diagnostics and add `Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.\n\nAfter an observation, clone the report and end its `RefCell` borrow before storage or download work. Ready/fatal updates use the same bounded writer; storage errors leave current drawing and downloads available.\n\nShow eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.\n\n![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)",
+      "browser_caption": "Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.",
       "edits": [
         {
           "path": "src/browser_report.rs",
@@ -10267,7 +10394,7 @@
         },
         {
           "path": "src/browser.rs",
-          "before": "            \"Diagnostic Report\",",
+          "before": "            \"Report\",",
           "snippet": "journey/code/34fb-store-06.rs",
           "why": "Expose previous-report retrieval as a named command in the actual dock."
         },
@@ -10279,7 +10406,7 @@
         },
         {
           "path": "src/browser.rs",
-          "before": "            } else if line == \"diagnostic report\" {\n                let result = crate::browser_report::download().map(|()| \"Diagnostic report downloaded.\".to_owned())",
+          "before": "            } else if line == \"report\" {\n                let result = crate::browser_report::download().map(|()| \"Diagnostic report downloaded.\".to_owned())",
           "snippet": "journey/code/34fb-store-08.rs",
           "why": "Dispatch current and previous JSON downloads without changing document history or the stopped-runtime failure guard."
         },
@@ -10290,7 +10417,7 @@
           "why": "Expose the existing drawn status in the same diagnostic inspector so Chrome can verify the initial notice and command errors."
         }
       ],
-      "checks": "Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.\n\nAdditional verification: After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally."
+      "checks": "Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.\n\nAdditional verification: After the browser acceptance saves a real GPU failure, reload its test page and type `Report Previous`. The download must retain that failure while the new viewer draws normally."
     },
     {
       "id": "34fc-retention",
@@ -10354,7 +10481,7 @@
       "trace": "real UTC/context → bounded heartbeat update → release report borrow → bounded metadata persistence",
       "question": "Why must a heartbeat not append a fatal event or rewrite the first failure time?",
       "answer": "A heartbeat proves recent observation of a page, not a new failure. Rewriting failure time would recreate the stale-warning bug, while synthetic heartbeat events would rotate meaningful observations out of the recent window.",
-      "result": "In the debug console, call `window.wasmBindings.heartbeat()`. Download `Diagnostic Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.",
+      "result": "In the debug console, call `window.wasmBindings.heartbeat()`. Download `Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.",
       "experiment": "Implement heartbeat through record(\"fatal\", ...), then predict which failure/outcome assertion fails. Implement it as a recent observation instead and explain why frequent beats would evict useful events.",
       "production": "Production updates saved heartbeat on its periodic timer. The course now defines the metadata-only operation; owned periodic scheduling, lifecycle/error observers, detailed load telemetry and bounded recovery follow.",
       "tests": true,
@@ -10410,7 +10537,7 @@
       "trace": "metadata startup → Timer owns native handle and Closure → heartbeat persists metadata → clear interval before callback release",
       "question": "Why must clearing the interval happen before dropping its Rust Closure?",
       "answer": "JavaScript holds the callback function while the interval is registered. Dropping the Rust environment first could leave a callback that invokes released state. The owner clears the native interval in Drop before field cleanup releases the closure.",
-      "result": "Download `Diagnostic Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.",
+      "result": "Download `Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.",
       "experiment": "Call start_periodic twice and inspect the cleared handles. Make registration throw and explain why the previous owner must not remain running. Never drop the owner from inside its own active callback.",
       "production": "Production periodically saves diagnostics. The course now has explicit callback ownership and real scheduled persistence independent of GPU loss. Automatic lifecycle/error observations, full load telemetry and bounded recovery follow.",
       "tests": true,
@@ -10540,7 +10667,7 @@
       "trace": "owned metadata listeners → cached pause or final close → deferred matching-owner disposal → cached pageshow resumes one timer",
       "question": "Why does deferred final cleanup compare allocation identity before stopping metadata?",
       "answer": "An earlier pagehide may have queued cleanup before a replacement installs its listeners and timer. The old allocation token must not match the replacement; otherwise the old task could stop the new diagnostic lifetime.",
-      "result": "In the debug console, run `window.dispatchEvent(new PageTransitionEvent(\"pagehide\", {persisted: true}))`, then the same for `\"pageshow\"`. Download `Diagnostic Report`: the transitions are recorded and the healthy outcome stays Ready.",
+      "result": "In the debug console, run `window.dispatchEvent(new PageTransitionEvent(\"pagehide\", {persisted: true}))`, then the same for `\"pageshow\"`. Download `Report`: the transitions are recorded and the healthy outcome stays Ready.",
       "experiment": "Dispatch persisted pagehide/pageshow and compare them with a final pagehide. Replace metadata ownership before queued cleanup and explain why the earlier token cannot stop it.",
       "production": "The course now records actual page transitions independently of GPU loss and owns final cleanup. Visibility/freeze/error observations, full phase telemetry and bounded recovery remain next. Pending GPU startup must still be revoked before late renderer installation; this checkpoint verifies already-started and failed runtime transitions.",
       "tests": true,
@@ -10641,7 +10768,7 @@
       "trace": "Document and Window events → independent pause reasons → stop or retain one heartbeat timer",
       "question": "Why does timer synchronization happen after updating the event’s reasons?",
       "answer": "The scheduling decision must include both the changed reason and current visibility. It must not resume between clearing cached state and discovering the document is still hidden.",
-      "result": "Switch away from the viewer tab, then return and type Diagnostic Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.",
+      "result": "Switch away from the viewer tab, then return and type Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.",
       "experiment": "In the debug console, dispatch Document freeze, cached Window pagehide, then Document resume. The cached reason still blocks scheduling until pageshow.",
       "production": "Diagnostic metadata remains independent of drawing and survives device loss. This connects hidden/frozen/cached scheduling; pending GPU startup revocation, browser errors, full phases and bounded recovery follow. Scheduling requires a live lifecycle owner; denied bindings preserve manual report downloads without installing a heartbeat.",
       "tests": true,
@@ -10678,7 +10805,7 @@
         },
         {
           "path": "src/report_lifecycle.rs",
-          "before": "#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle))]",
+          "before": "#[wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle)]",
           "snippet": "journey/code/34gbba-browser-04.rs",
           "why": "Read or update scheduling state without retaining a borrow while the timer changes."
         },
@@ -10785,7 +10912,7 @@
       "trace": "final exit → revoke ticket → adapter/device resolves → refuse renderer installation",
       "question": "Why check permission before turning a rejected GPU request into an error?",
       "answer": "The page may have closed while the request was pending. That obsolete rejection must not overwrite Closed with a new failure; an active startup still reports genuine errors.",
-      "result": "Reload and type `Diagnostic Report`. Startup reaches `ready` with a geometry-on-screen event.",
+      "result": "Reload and type `Report`. Startup reaches `ready` with a geometry-on-screen event.",
       "experiment": "In the debug build, compare the guard’s one temporary binding with the five metadata bindings. After Ready, only metadata and runtime bindings remain.",
       "production": "Pending startup is now guarded at both GPU awaits, including rejected results and a late device. Cached transitions remain usable. Browser error observation, complete loading phases and bounded GPU recovery follow.",
       "tests": true,
@@ -10799,7 +10926,7 @@
         }
       ],
       "browser_check": "journey/checks/browser/startup-command.cjs",
-      "story": "Keep one temporary pagehide listener while startup awaits the GPU. Final exit revokes its shared ticket; cached transitions retain permission.\n\nCheck authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed diagnostic report instead of recording a new fatal error. The listener is released when startup returns.\n\n![Final exit revokes permission before either delayed GPU result can continue startup.](../illustrations/journey-34gbca.svg)",
+      "story": "Keep one temporary pagehide listener while startup awaits the GPU. Final exit revokes its shared ticket; cached transitions retain permission.\n\nCheck authority after each await, before interpreting errors or using the result. Destroy a device delivered after revocation. Returning successfully preserves the closed report instead of recording a new fatal error. The listener is released when startup returns.\n\n![Final exit revokes permission before either delayed GPU result can continue startup.](../illustrations/journey-34gbca.svg)",
       "browser_caption": "Actual delayed GPU results are tested across final and cached page transitions; normal command, camera and lifecycle checks remain connected.",
       "edits": [
         {
@@ -10833,7 +10960,7 @@
           "why": "After the device await, destroy a late device and return quietly before configuring the surface or creating resources."
         }
       ],
-      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. The focused browser proof delays actual adapter/device results; injected page transitions exercise the branches without claiming browser cache eligibility.\n\nAdditional verification: Reload the viewer and type Diagnostic Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.",
+      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. The focused browser proof delays actual adapter/device results; injected page transitions exercise the branches without claiming browser cache eligibility.\n\nAdditional verification: Reload the viewer and type Report. Normal startup still reaches Ready. The checkpoint’s browser check holds real GPU results across cached and final page transitions.",
       "image_same_as": "34gbc-authority"
     },
     {
@@ -10844,7 +10971,7 @@
         0.5,
         1
       ],
-      "goal": "Keep browser failure text readable and small enough for the existing diagnostic report.",
+      "goal": "Keep browser failure text readable and small enough for the existing report.",
       "trace": "browser detail + source position → bounded Unicode text → diagnostic message",
       "question": "Why limit the detail and source separately?",
       "answer": "One long source path must not consume the whole failure message. Separate budgets retain useful detail and leave space for labels and positions.",
@@ -10899,8 +11026,8 @@
       "trace": "Window failure → bounded message → first-failure report and bounded history",
       "question": "Why does a browser failure not stop the GPU runtime here?",
       "answer": "The event proves a script or promise failed, not that the drawing device was lost. Metadata records the failure; GPU loss still stops its own runtime.",
-      "result": "In the browser console, run `Promise.reject(new Error(\"lesson check\"))`. Type `Diagnostic Report`: its first failure reads “Unhandled rejection: lesson check”.",
-      "experiment": "In the debug console, run Promise.reject(new Error(\"lesson failure\")), then type Diagnostic Report. A later failure must not replace the first one.",
+      "result": "In the browser console, run `Promise.reject(new Error(\"lesson check\"))`. Type `Report`: its first failure reads “Unhandled rejection: lesson check”.",
+      "experiment": "In the debug console, run Promise.reject(new Error(\"lesson failure\")), then type Report. A later failure must not replace the first one.",
       "production": "Browser failure metadata now shares lifecycle ownership and survives device loss. Full loading phases, adapter/resource information and bounded GPU recovery follow.",
       "tests": true,
       "frame": "journey/checks/34gca-errors.rs",
@@ -10947,7 +11074,7 @@
           "why": "Own both Window failure bindings beside the five existing metadata bindings, including partial-registration cleanup."
         }
       ],
-      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. Actual browser failures are exercised in isolated browser contexts so deliberate exceptions cannot hide unexpected main-viewer errors.\n\nAdditional verification: Reload and type Diagnostic Report. Normal startup remains Ready. The checkpoint’s browser check produces real uncaught errors and rejected promises, then verifies retained failure evidence.",
+      "checks": "Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. Actual browser failures are exercised in isolated browser contexts so deliberate exceptions cannot hide unexpected main-viewer errors.\n\nAdditional verification: Reload and type Report. Normal startup remains Ready. The checkpoint’s browser check produces real uncaught errors and rejected promises, then verifies retained failure evidence.",
       "image_same_as": "34gc-messages"
     },
     {
@@ -11044,7 +11171,7 @@
       "trace": "viewer adapter request → native identity strings → retained report → observer released",
       "question": "Why not request another adapter just to read its identity?",
       "answer": "A second request might choose a different adapter. Observe the exact result used for this viewer, then restore the request function.",
-      "result": "Type `Diagnostic Report`. Its `adapter` field contains vendor, architecture, device and description; a browser may leave individual strings empty.",
+      "result": "Type `Report`. Its `adapter` field contains vendor, architecture, device and description; a browser may leave individual strings empty.",
       "experiment": "Download another report after several camera commands. The adapter identity stays unchanged while drawing continues.",
       "production": "This teaches the production viewer’s same-request metadata capture with temporary ownership. Complete load phases, resource timings, live replacements and GPU recovery remain planned.",
       "tests": true,
@@ -11219,7 +11346,7 @@
       "trace": "actual adapter → actual device → renderer setup → submitted frame completes → ready report",
       "question": "Why is present() alone insufficient to time the completed GPU frame?",
       "answer": "It submits work without waiting for the GPU. Queue completion includes that work and initial compilation, while ownership prevents a late callback from reviving an exited run.",
-      "result": "Type `Diagnostic Report`. Its `phases` list contains adapter request, device request, renderer setup and first frame complete, each with a measured duration.",
+      "result": "Type `Report`. Its `phases` list contains adapter request, device request, renderer setup and first frame complete, each with a measured duration.",
       "experiment": "Reload, then download another report. Timings change, while each run retains one first-frame completion measurement.",
       "production": "This teaches actual GPU startup and completed first-frame diagnostics. File loading phases, resource timing, live replacements and bounded GPU recovery remain planned.",
       "tests": true,
@@ -11335,6 +11462,45 @@
       ],
       "checks": "Chrome checks actual request and queue calls, held first-frame completion, typed report downloads, phase retention, rejected requests and stale completion after exit, loss or runtime replacement.",
       "image_same_as": "34gdb-phases"
+    },
+    {
+      "id": "34gdd-read",
+      "title": "Measure the selected file read",
+      "page": "journey/34gdd-read.md",
+      "hours": [
+        0.25,
+        0.5
+      ],
+      "goal": "Retain the duration and byte count of the selected file’s actual read.",
+      "trace": "selected file → actual read promise → current ticket → retained phase → diagnostic download",
+      "question": "Why accept the read ticket before recording its duration?",
+      "answer": "Cancelled and superseded reads may still complete. Only the current ticket can append a measurement or deliver a file to this run.",
+      "result": "Open a file, then type `Report`. Its phases list includes `file read`, the read duration, actual bytes and filename.",
+      "experiment": "Cancel a pending Open. Its late read must add neither a file nor a measurement.",
+      "production": "This measures actual selected-file reads, including current failures. Decode, display preparation, GPU upload, network resources and live replacement measurements follow.",
+      "tests": true,
+      "frame": "journey/checks/34gdc-startup.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/file-read-phases.cjs",
+      "story": "Start the browser clock immediately before `File.array_buffer()`. After the await, accept the existing ticket before measuring or delivering anything.\n\nRead the returned buffer’s length on success; rejected reads record zero bytes. The phase keeps a bounded filename with query and fragment suffixes removed. Recording diagnostics leaves the existing import transaction unchanged.\n\n![Only the current read ticket can retain a completed measurement.](../illustrations/journey-34gdd.svg)",
+      "browser_caption": "Chrome holds actual file reads to verify measured success, failure, cancellation, replacement and final exit; typed reports expose the retained values.",
+      "checks": "Held actual File.arrayBuffer promises verify clock boundaries, actual byte counts, sanitized names, quiet late completions, rejected reads, downloaded JSON and unchanged Undo/Redo behavior.",
+      "image_same_as": "34gdc-startup",
+      "edits": [
+        {
+          "path": "src/file_input.rs",
+          "before": "        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;\n        let accepted = request.borrow_mut().finish(id);\n        if !accepted { return; }",
+          "snippet": "journey/code/34gdd-read-01.rs",
+          "why": "Measure an actual completed read only after its ticket is accepted."
+        }
+      ]
     }
   ]
 }

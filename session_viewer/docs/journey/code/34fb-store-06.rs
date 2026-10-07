@@ -1,2 +1,2 @@
-            "Diagnostic Report",
-            "Diagnostic Report Previous",
+            "Report",
+            "Report Previous",

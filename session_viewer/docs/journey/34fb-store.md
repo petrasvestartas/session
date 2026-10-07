@@ -1,8 +1,8 @@
 # 34fb · Retrieve saved failure evidence through the command line
 
-**Typing: 25–50 minutes.** [Estimate](typing-load.md).
+**Typing: 24–48 minutes.** [Estimate](typing-load.md).
 
-Persist live diagnostics and add `Diagnostic Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
+Persist live diagnostics and add `Report Previous`. At startup, select earlier evidence before writing the new Running report. Cache the chosen previous metadata separately so current writes cannot erase it.
 
 ## Type
 
@@ -117,7 +117,7 @@ Expose previous-report retrieval as a named command in the actual dock.
 <summary>Locate the existing block</summary>
 
 ```rust
-            "Diagnostic Report",
+            "Report",
 ```
 
 </details>
@@ -156,7 +156,7 @@ Dispatch current and previous JSON downloads without changing document history o
 <summary>Locate the existing block</summary>
 
 ```rust
-            } else if line == "diagnostic report" {
+            } else if line == "report" {
                 let result = crate::browser_report::download().map(|()| "Diagnostic report downloaded.".to_owned())
 ```
 
@@ -199,7 +199,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Diagnostic Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.
+Type `Report`, reload, then type it again. The reports have different `started` timestamps and the same `tab` ID.
 
 **Verified checkpoint in Chrome.**
 
@@ -220,7 +220,7 @@ After an observation, clone the report and end its `RefCell` borrow before stora
 
 Show eligible failure/interruption feedback in the existing dock. The previous-report command downloads the cached JSON; missing evidence gives a command error. GPU disposal leaves this metadata alive. Diagnostics do not restore unsaved document edits.
 
-startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Diagnostic Report Previous.
+startup selects previous → current running/ready/fatal metadata persists → healthy reload → dock notice → Report Previous.
 
 ![Persist independently and retrieve through the dock](../illustrations/journey-34fb.svg)
 
@@ -260,9 +260,9 @@ Production keeps saved diagnostics independently of GPU lifetime. The cumulative
 
 Headed Chrome destroys a real GPU device, reads the actual saved failure, reloads the same test page, and downloads that unchanged previous failure from a healthy run. It checks stable tab identity, distinct run keys, three-report retention, preserved scene/history and delayed download URL cleanup. It also proves healthy and active-other-tab values stay quiet and denied storage still permits current-report downloads. Diagnostics do not restore unsaved document edits.
 
-Additional verification: After the browser acceptance saves a real GPU failure, reload its test page and type `Diagnostic Report Previous`. The download must retain that failure while the new viewer draws normally.
+Additional verification: After the browser acceptance saves a real GPU failure, reload its test page and type `Report Previous`. The download must retain that failure while the new viewer draws normally.
 
-Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Diagnostic Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.
+Chrome destroys an actual GPU device, recovers persisted metadata after a same-page reload and downloads it through Report Previous. Scene/history, stable tab/new run keys, retention, URL release, quiet exclusions and denied-storage current downloads are checked.
 
 [Full validation scope](release.md).
 

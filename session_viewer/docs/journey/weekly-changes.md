@@ -1,6 +1,6 @@
 # Viewer changes to carry into the course
 
-This review covers the viewer commits from September 28 through October 3, 2026, plus the current command-input work. It describes the source changes; the unfinished lessons below still need implementation and acceptance checks.
+This review covers the viewer commits from September 28 through October 7, 2026. The latest review starts at the previous tutorial publication, `d1c3e7c0`, and includes `dc6e65f9` plus the October 7 follow-up fixes in `8ff4f71a`. It describes source changes; unfinished lessons still need implementation and acceptance checks.
 
 | Change | What the learner must understand | Tutorial destination |
 | --- | --- | --- |
@@ -37,4 +37,41 @@ The local protobuf checkout currently predates the kernel's committed visibility
 - [x] Diagnose and fix current close-up line loss with a geometric oracle and browser views: eight native view/sample combinations and 24 Chrome zoom views pass.
 - [ ] Verify the attributes and opacity defaults in the completed rendering chapters.
 
+## Changes since the last tutorial session
+
+The October 7 checkout includes these production changes. Their later feature lessons must reproduce the current behavior. Refresh dependency evidence for the newer Rust kernel. The authored dock row now matches production’s text alignment; diagnostics are typed as Report; the existing simple command adapter already runs valid bare commands on the first Enter. Later chapters must also teach the production parser’s required-argument behavior.
+
+| Production change | What the learner must implement and check | Tutorial destination |
+| --- | --- | --- |
+| [Report command only](https://github.com/petrasvestartas/session/commit/7df81c4e) | Keep diagnostic retrieval in the command route and available after GPU failure; remove the old report banner and feature buttons. | 34 reports and recovery; 47 command routing |
+| [Aligned command text](https://github.com/petrasvestartas/session/commit/8cb156bb), [one Enter submission](https://github.com/petrasvestartas/session/commit/fcea9884) | Use one text centre line. Run a bare verb on its first Enter when its default is valid; wait only when a required argument is missing. Preserve typed history and completion ownership. | 03 dock; 47 command routing |
+| [Undo/Redo shortcuts](https://github.com/petrasvestartas/session/commit/8c7ddbb1), [F fits selection](https://github.com/petrasvestartas/session/commit/fdd0556b), [H hides and S shows](https://github.com/petrasvestartas/session/commit/0ec01f4d) | Teach H/S/F on an unfocused canvas and platform Undo/Redo shortcuts, as approved on October 7. Keep those letters as ordinary text while the command field owns typing; retain mouse navigation and typed equivalents. | 45 selection; 47 input ownership; 53 visibility; 54 navigation |
+| [Independent red contacts](https://github.com/petrasvestartas/session/commit/396b9b93), [always drawn](https://github.com/petrasvestartas/session/commit/7a3752e4), [black contact outlines](https://github.com/petrasvestartas/session/commit/8e97b09a) | Contact faces draw red with a black boundary even when Element Features is off. Toggle a joint marker, rather than a contact, when checking the feature setting. | 90 element features; 93 face presentation |
+| [Contacts lie on their face](https://github.com/petrasvestartas/session/commit/4b4a91eb) | Use the contact depth layer to resolve coplanar drawing. Preserve source coordinates; remove the old 0.5 mm artificial lift. | 39 visibility; 86 finite triangles; 90 contacts |
+| [Plane square and normal](https://github.com/petrasvestartas/session/commit/879771a4), [local x/y axes](https://github.com/petrasvestartas/session/commit/5b4cf1dd) | Draw four square edges, two interior frame axes and a headed normal. View Plane Size changes the half-side and normal length. Headless rendering shares one GPU adapter. | 35 strokes; 36 arrows; 77 construction planes; 97 acceptance |
+| [Orthographic hidden ink](https://github.com/petrasvestartas/session/commit/6f9e4e4e) | Parallel views must use the orthographic eye direction when deciding which neighbouring faces hide a stroke. Check visible and hidden samples independently. | 39 visibility; 86 finite triangles; 94 visual comparison |
+| [Curved silhouettes](https://github.com/petrasvestartas/session/commit/d1c5ddc9) | Retain adjacent face normals for smooth mesh edges and inner curved BRep facets. Draw a silhouette pipe only when those faces face opposite ways toward the camera. Its sag sign bit marks that policy; geometric slack uses the magnitude. Preserve boundary IDs and per-row placement. | 35 strokes; 38 sampling; 39 visibility; 56 BRep boundaries; 69a reuse |
+| [Grid colours and URL commands](https://github.com/petrasvestartas/session/commit/e6462aee), [Layers All](https://github.com/petrasvestartas/session/commit/ae419cc9), [wait for loaded geometry](https://github.com/petrasvestartas/session/commit/a60d2598) | Use the current BRG axis colours. A ?cmd= URL runs each command once after the scene is on screen, so Layers All opens and expands the loaded tree. Test delayed scene loading and normal command entry. | 47 commands; 52 nested tree; 53 layers; 64 publication |
+| [Kernel geometry additions](https://github.com/petrasvestartas/session/commit/60f6b03b), [unused methods removed](https://github.com/petrasvestartas/session/commit/03331123), [tree/feature copy corrections](https://github.com/petrasvestartas/session/commit/d2cd9d43) | Use the current kernel APIs for geometry and preserve feature GUIDs across copies. Verify graft, merge, flatten and get_branch on nested trees. | 28 source ownership; 52 nested tree; 55–63 geometry |
+| [Revision manifest publication](https://github.com/petrasvestartas/session/commit/28596ba0) | Republishing a manifest already pointing inside pb/revisions keeps that publication directory. Check the manifest and actual decoded source identity. | 64–68 publication and streaming |
+| [Ground-grid depth range](https://github.com/petrasvestartas/session/commit/96df6983) | Cover both scene bounds and the ground grid's farthest corner in perspective and orthographic depth ranges. A small scene must not clip the distant grid. | 24–25 projection; 41 grid; 94 visual comparison |
+| [Fit around visible panels](https://github.com/petrasvestartas/session/commit/839c97f6), [centre in the free canvas](https://github.com/petrasvestartas/session/commit/924839bd) | Record the usable canvas rectangle and shift the projection, keeping the camera target on the geometry. Opening or closing Layers moves the projected centre immediately. Fit uses that space in both projections; rays and cursor-centred zoom account for the same shift. | 24–26 fitting; 52 tree; 54 layout; 94 visual comparison |
+| [Opposite isometric view](https://github.com/petrasvestartas/session/commit/dc6e65f9) | Add View Isometric Back to discovery and parsing. Turn half a revolution from the original isometric view while retaining its elevation and orthographic projection. Check both opposite corners. | 47 commands; 54 navigation; 94 visual comparison |
+
+The temporary documentation-renderer options introduced in 69251c83 were removed in 89335c4c. Teach the maintained headless adapter ownership rather than the removed option surface.
+
+- [x] Fast-forward the superproject and Session to their latest remote commits without overwriting local edits.
+- [x] Update clean kernel dependencies to the versions recorded by Session.
+- [x] Review source diffs and map every newer viewer behavior to the course destination.
+- [x] Rebuild and recapture all 175 dependency-affected checkpoints with optimized bundles and matching native/browser fingerprints.
+- [ ] Teach and verify the pending feature destinations in this table.
+
+`destination.json` remains the frozen reference inventory. These reviewed changes extend its acceptance contract; they do not silently replace its hashes or constitute final parity.
+
 [Return to the complete lesson checklist](roadmap.md).
+
+October 7 follow-up: teach Delete beside selection history, and BoundingBox / Length BoundingBox in the measurement chapter. Check the wider Layers panel when teaching layout and usable Fit space. Surface outlines must use faces rather than widened edge coverage; contacts need a small depth-only bias with independent black boundaries. Keep both timber-floor and vault-dome scenes in navigation evidence. [Command input](command-line.md) now includes an example AI-assistant pointer with exact lesson paths and preservation constraints.
+
+`2e091a9e` runs URL startup commands one line per frame and explicitly schedules the next frame after consumed commands. Teach the retained command queue and its event-loop ownership in the startup command chapter.
+
+Local Firefox 157 validation: an empty viewer initializes, but high-performance full-floor loading repeatedly drops the driver connection, including at MSAA 1. Lower-power rotation and wheel input pass with temporary tiers, full-quality restoration and idle. Preserve that default for Firefox while requesting high performance on Chrome/native; explicit low/high/default options remain available. This is local compatibility evidence, not a Lenovo measurement.

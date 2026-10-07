@@ -37,6 +37,7 @@ async function focusCommand(page) {
     const box = await page.locator('canvas').boundingBox();
     const [left, top, right, bottom] = control.rect;
     await page.mouse.click(box.x + (left + right) / 2, box.y + (top + bottom) / 2);
+    await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).focused);
 }
 
 async function command(page, line) {

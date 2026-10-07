@@ -1,6 +1,6 @@
 # 34gb · Mark a final healthy run closed
 
-**Typing: 22–44 minutes.** [Estimate](typing-load.md).
+**Typing: 22–43 minutes.** [Estimate](typing-load.md).
 
 Mark a healthy run Closed when it finally ends. Keep Failed and its original fatal reason. A cached page has not ended and must not call this operation.
 

@@ -1,6 +1,6 @@
 # 33a · Dispose the viewer without leaving pending work alive
 
-**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+**Typing: 19–37 minutes.** [Estimate](typing-load.md).
 
 Keep the viewer’s callbacks alive after startup returns. Final page exit releases them; replacing the runtime releases the previous owner.
 
@@ -46,7 +46,7 @@ Retain cancellation handles outside the moving callback. Defer page-exit disposa
 
 ```rust
     let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line
+        let shortcut
 ```
 
 </details>

@@ -14,7 +14,7 @@ module.exports = async (page, helpers) => {
     await page.reload(); await ready();
     assert.equal(await previous(), null);
     let downloads = 0; const count = () => downloads++; page.on('download', count);
-    await command(page, 'Diagnostic Report Previous');
+    await command(page, 'Report Previous');
     assert.match((await ui()).status, /No previous report/); assert.equal(downloads, 0); page.off('download', count);
     for (const outcome of ['ready', 'running']) {
         await page.evaluate(({prefix, outcome}) => {
@@ -57,7 +57,7 @@ module.exports = async (page, helpers) => {
         URL.revokeObjectURL = function (url) { window.__previousRevoked.push(url); return revoke.call(URL, url); };
     });
     const file = page.waitForEvent('download', {predicate:file => file.suggestedFilename() === 'viewer-diagnostic-previous.json'});
-    await command(page, 'Diagnostic Report Previous'); assert.deepEqual(await parse(await file), failed);
+    await command(page, 'Report Previous'); assert.deepEqual(await parse(await file), failed);
     assert.deepEqual(await state(), moved); await command(page, 'Undo');
     assert.equal((await state())['data-row-placements'], original['data-row-placements']);
     await command(page, 'Redo'); assert.equal((await state())['data-row-placements'], moved['data-row-placements']);
@@ -72,7 +72,7 @@ module.exports = async (page, helpers) => {
     await page.evaluate(() => sessionStorage.setItem('__denyDiagnosticStorage', '1'));
     await page.reload(); await ready(); assert.equal(await previous(), null);
     const deniedFile = page.waitForEvent('download', {predicate:file => file.suggestedFilename() === 'viewer-diagnostic.json'});
-    await command(page, 'Diagnostic Report'); const denied = await parse(await deniedFile);
+    await command(page, 'Report'); const denied = await parse(await deniedFile);
     assert.equal(denied.outcome, 'ready'); assert.equal(denied.failure, null);
     await page.reload(); await ready(); await choose();
     for (const line of ['Select Next', 'Move 0.35,0,0.25', 'Move 0.25,0,0.15', 'Move 0,-0.5,0', 'View Isometric',

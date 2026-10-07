@@ -80,7 +80,7 @@ module.exports = async (page, helpers) => {
     assert.equal(await page.evaluate(() => window.wasmBindings.report_lifecycle_running()), false);
     assert.equal((await probe()).activeMetadata, 0); assert.equal((await probe()).removedMetadata, 1);
     const download = page.waitForEvent('download', {predicate: file => file.suggestedFilename() === 'viewer-diagnostic.json'});
-    await helpers.command(page, 'Diagnostic Report');
+    await helpers.command(page, 'Report');
     const usable = JSON.parse(await fs.readFile(await (await download).path(), 'utf8'));
     assert.equal(usable.outcome, 'ready'); assert.equal(usable.failure, null);
     await page.reload(); await ready(); await proof();

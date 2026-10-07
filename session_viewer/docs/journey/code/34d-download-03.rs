@@ -8,4 +8,4 @@ pub fn fatal(message: &str) {
     if observe("fatal", message).is_ok() && first { let _ = download(); }
 }
 
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen)]
+#[wasm_bindgen::prelude::wasm_bindgen]

@@ -6,7 +6,7 @@ A mesh describes a shape. A placement describes where one use of that shape belo
 
 ## Type
 
-Continue from [Frame one object without changing its size](26-selected.md). [Save or recover your work](recovery.md).
+Continue from [Fit and step history from the keyboard](26a-keys.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/scene.rs`
 

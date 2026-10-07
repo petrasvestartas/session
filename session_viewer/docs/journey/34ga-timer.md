@@ -1,6 +1,6 @@
 # 34ga · Own the periodic diagnostic heartbeat
 
-**Typing: 16–32 minutes.** [Estimate](typing-load.md).
+**Typing: 16–31 minutes.** [Estimate](typing-load.md).
 
 Own the browser interval and its Rust closure together. `Timer` stores the Window, native handle and Closure. Drop clears the interval before releasing the callback environment.
 
@@ -109,7 +109,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Download `Diagnostic Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.
+Download `Report`, wait at least 15 seconds, then download it again. lastSeen should advance without adding an event. The timer updates metadata only.
 
 **Verified checkpoint in Chrome.**
 

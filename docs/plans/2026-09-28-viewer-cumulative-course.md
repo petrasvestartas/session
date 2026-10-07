@@ -1,4 +1,33 @@
-# Viewer course — resume memory, 2026-09-28
+# Viewer course — resume memory
+
+## Current state — October 7, 2026
+
+Recovered the latest foreground session from `/home/petras/.codex/sessions/2026/10/03/rollout-2026-10-03T10-53-56-01a100f8-50ef-7743-a789-608e309290cd.jsonl`: 172 published checkpoints through 34gdc-startup at Session d1c3e7c0. The current course has 175 authored checkpoints, adding 03co-align, 26a-keys and 34gdd-read. The full course remains incomplete: 68 planned feature destinations remain. Keep `destination.json` frozen; never reduce its inventory or claim final parity from the current checkpoint count.
+
+The user explicitly approved teaching H/S/F and Undo/Redo shortcuts, superseding the historical command-only rule. Production shortcut and Delete instructions are in command-line.md; 26a implements canvas F and Ctrl/Cmd history with text ownership. H/S require the later hidden-object model. The guide also gives exact paths and a copyable AI-assistant request: check the actual learner project, not only a reconstructed reference. Preserve `session_viewer/workspace/journey`.
+
+Production fixes are published as Session **8ff4f71a**, superproject **dd137522**. Delete uses the existing undoable selection action; BoundingBox creates one world-axis wire box, and Length BoundingBox reports X/Y/Z extents. Layers is one third wider. Arctic silhouettes use face coverage so curved and flat outlines have consistent width. Contacts retain source coordinates, with a small tested depth bias and independent black boundaries. Wheel/orbit navigation uses temporary detail, restores full quality on rest and avoids repeated quality oscillation. Chrome/native request high performance; local Firefox 157 needs the low-power default for full-floor loading. Explicit GPU overrides remain. No Lenovo timing or adapter was supplied.
+
+Production validation: 519 native tests passed, 57 ignored; six explicit outline GPU cases and the contact GPU check passed. Optimized Trunk, actual headed Chrome keys/full-floor/vault-dome/pacing/close-up/recovery and default Firefox floor checks passed. The actual vault example fixture has 800 voussoirs and 2,320 contacts; Wood source was not changed. Local native dome navigation improved from 37.2 to 21.2 ms median, floor to 40.9 ms. These are separate local runs, not Lenovo measurements. Production source proof is `/home/petras/viewer_review_work/viewer-final-tested-source.json`. All production CI is terminal success: viewer-check 37599484207, primary Pages 37599484348, Session mini 37599483942 and follow-on Pages 37601344819.
+
+Concurrent commits preserved: Session 924839bd centres projection in free canvas and dc6e65f9 adds View Isometric Back; Wood 34ca0c3f contains independent documentation/images. weekly-changes.md maps every intervening behavior to its teaching destination. Root and dependencies are clean except this owned Session documentation batch. Use REGEN_PROTO=0; preserve recorded kernel bindings and all independent work.
+
+## Current course verification and publication
+
+The verifier now builds **optimized Trunk** and rejects stored web commands lacking --release. All 175 Rust/WASM/native GPU/state/release bundle records are current. Actual optimized verification found a real teaching defect: 13 canonical snippets gated listener/report console exports on debug_assertions. Removed those gates and updated two exact replacement anchors; rebuilt all 32 affected endpoints, 33-owner through 34gdd-read. Never bypass this by enabling debug assertions or relabelling old evidence.
+
+Desktop Chrome initially received extra unscripted keyboard input; an event trace proved an extra g after scripted Help had submitted and cleared. This was not a queued-input implementation defect. The focus helper now confirms the existing focus signal. Twenty repeated checks pass on an owned isolated X11 display :92, as do floor navigation and device loss. Its actual WebGPU report identifies NVIDIA Lovelace hardware. The separate SAME visible tutorial review tab stays on the desktop.
+
+All **175** endpoints now have current native/WASM/optimized Trunk/GPU/state and headed Chrome records. The final audit also checks common/local checker fingerprints, actual bundle index hashes, headed mode, screenshots and typing estimates; all pass. All 429 D2 illustrations reproduce exactly. Nine authoring tests pass after the final helper edits. The final strict Vue build also passes; receipt: `/home/petras/viewer_review_work/course-oct7-complete-checks.log`.
+
+Raw Chrome lifecycle targets additionally exposed an initial camera inspector value written before viewport sizing. The suspension/startup/error checks now send a real mouse movement and wait for the inspected projection to match the canvas before taking the invariant baseline. Their subsequent state/pixel assertions remain unchanged. All affected checks pass, including genuine visibility and freeze/resume. Initial failure logs are preserved in course-oct7-attempt1/attempt2-*; final evidence is current. No production source changed during these corrections: all 283 production fingerprints still match the published tested batch.
+
+This note belongs to the verified course publication batch titled `viewer: teach current shortcuts and verify 175 optimized checkpoints`. The exact commit and deployment receipt are discoverable in git history and `/home/petras/viewer_review_work/course-oct7-publication.json`. Publish only named owned paths, push Session then the superproject pointer, and watch ALL new workflows including both Pages runs; do not treat an initial Pages success as proof the follow-on run finished. Use inline author Petras Vestartas, no AI coauthor, viewer:/superproject: titles. Fetch/pull with fetch.recurseSubmodules=false and preserve concurrent commits. pushmono is absent; use explicit equivalent pushes. Keep the learner project and frozen destination.json unchanged.
+
+
+Preview services: docs8788, course bundles8781, production8770. BrowserAct session viewer-course-resume owns the review tab, currently 34gdc-startup; read its live route before reload. Leave it open. All captures are finished and the owned isolated Xvfb is stopped. The final same-tab reload preserved 34gdc-startup and confirmed all three new lesson links. One heavy job at a time, max six jobs/6 GiB/10 minutes per command, REGEN_PROTO=0. Publish verified batches with review links; the original complete-course objective continues with the 68 unchecked destinations in roadmap.md, next CPU-decode/GPU/resource telemetry and recovery.
+
+The sections below are historical. Current source, evidence and user instructions take precedence.
 
 ## Foreground transfer — 2026-10-03
 

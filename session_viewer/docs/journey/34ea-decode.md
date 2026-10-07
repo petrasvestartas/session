@@ -6,7 +6,7 @@ Admit saved JSON through one boundary. First reject input above one MiB. Then in
 
 ## Type
 
-Continue from [Check the bounded shape of a diagnostic report](34e-schema.md). [Save or recover your work](recovery.md).
+Continue from [Check the bounded shape of a report](34e-schema.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/report_store.rs`
 

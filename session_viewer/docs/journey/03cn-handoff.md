@@ -6,7 +6,7 @@ Panel.update prepares input and returns an accepted application name. Help and u
 
 ## Type
 
-Continue from [Share the production dock layout](03c-layout.md). [Save or recover your work](recovery.md).
+Continue from [Align and measure the command row](03co-align.md). [Save or recover your work](recovery.md).
 
 ### 1. `src/browser.rs`
 

@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 172 cumulative lessons, about 158.5–303.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 175 cumulative lessons, about 159.5–305.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **238 proposed slots: 172 current checkpoints and 66 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **243 proposed slots: 175 current checkpoints and 68 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -51,6 +51,7 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [03ck · Click the command dock](journey/03ck-pointer.md) | 0.5–1.25 hours | Use pointer ownership to edit, choose a name and fold history. |
 | [03cl · Scroll through command names](journey/03cl-wheel.md) | 0.5–1.25 hours | Keep scrolling over the dock inside the command list. |
 | [03c · Share the production dock layout](journey/03c-layout.md) | 0.75–1.25 hours | Connect the existing row and history to one shared layout. |
+| [03co · Align and measure the command row](journey/03co-align.md) | 0.25–0.5 hours | Align label and field text, and record the dock edge for later fitting. |
 | [03cn · Return accepted application commands](journey/03cn-handoff.md) | 0.75–1.25 hours | Keep editing local and return accepted names to the caller. |
 | [03d · Hand commands to the application](journey/03d-input.md) | 0.5–1 hours | Return accepted commands while keeping editing inside Panel. |
 | [04 · Make a choice change the picture](journey/04-input.md) | 1–2 hours | Use a command to switch backgrounds without changing the triangle. |
@@ -99,6 +100,7 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [24b · Fit and change projection through the editor](journey/24b-projection-actions.md) | 0.75–1.25 hours | Run the state checks. Orthographic fitting contains every corner in tall and wide views; close picking and document Undo keep the chosen view coherent. |
 | [25 · Run the named projection commands](journey/25-projection.md) | 0.25–0.5 hours | Switch between perspective and orthographic views while keeping fitting, zoom and picking coherent. |
 | [26 · Frame one object without changing its size](journey/26-selected.md) | 1–2 hours | Run Fit Selected while keeping geometry, selection and document history unchanged. |
+| [26a · Fit and step history from the keyboard](journey/26a-keys.md) | 0.5–1 hours | Let canvas F fit the selection and platform shortcuts run Undo or Redo through existing actions. |
 | [27 · Give each object a placement](journey/27-placement.md) | 1–2 hours | Keep local mesh coordinates and an independent object placement. |
 | [27a · Ask geometry questions in world coordinates](journey/27a-world.md) | 1–2 hours | Use placement for scene bounds, selected bounds and ray picking. |
 | [27b · Apply object placement on the GPU](journey/27b-model.md) | 1–2 hours | Send a separate model matrix for each draw while retaining local vertex buffers. |
@@ -176,8 +178,8 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [34b · Describe a viewer run without keeping its document](journey/34b-report.md) | 1–2 hours | Define owned diagnostic context and a serializable run outcome, without retaining scene or GPU owners. |
 | [34ba · Keep recent events without losing the first failure](journey/34ba-events.md) | 1–2 hours | Bound diagnostic observations while keeping the original failure independently of recent event rotation. |
 | [34c · Read live diagnostic context outside the GPU runtime](journey/34c-browser.md) | 1–2 hours | Start a bounded page report and read real browser context independently of the renderer’s lifetime. |
-| [34d · Download diagnostics through the real command line](journey/34d-download.md) | 1–2 hours | Download a current ready-run report with Diagnostic Report and attempt one independent first-failure download after GPU disposal. |
-| [34e · Check the bounded shape of a diagnostic report](journey/34e-schema.md) | 1–2 hours | Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. |
+| [34d · Download diagnostics through the real command line](journey/34d-download.md) | 1–2 hours | Download a current ready-run report with Report and attempt one independent first-failure download after GPU disposal. |
+| [34e · Check the bounded shape of a report](journey/34e-schema.md) | 1–2 hours | Validate a typed report’s limits and failure/outcome invariants before the later storage decoder adopts it. |
 | [34ea · Admit only supported bounded saved JSON](journey/34ea-decode.md) | 1–2 hours | Reject oversized, malformed or unsupported saved JSON before it can become a diagnostic candidate. |
 | [34eb · Choose a recent failure without blaming active tabs](journey/34eb-recency.md) | 1–2 hours | Select recent failed or interrupted runs using actual failure time, valid chronology and tab identity. |
 | [34ec · Prove saved-run exclusions before adopting storage](journey/34ec-proof.md) | 1–2 hours | Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download. |
@@ -193,12 +195,13 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [34gbba · Connect visibility and freezing to heartbeat scheduling](journey/34gbba-browser.md) | 0.75–1.25 hours | Pause the actual diagnostic timer while any browser suspension reason remains. |
 | [34gbc · Give pending startup a revocable ticket](journey/34gbc-authority.md) | 0.5–1 hours | Prevent a waiting task from regaining startup permission after closure. |
 | [34gbca · Refuse GPU results after final page exit](journey/34gbca-startup.md) | 0.75–1.25 hours | Stop delayed adapter or device delivery from installing a renderer after final exit. |
-| [34gc · Bound browser failure messages](journey/34gc-messages.md) | 0.5–1 hours | Keep browser failure text readable and small enough for the existing diagnostic report. |
+| [34gc · Bound browser failure messages](journey/34gc-messages.md) | 0.5–1 hours | Keep browser failure text readable and small enough for the existing report. |
 | [34gca · Observe uncaught browser failures](journey/34gca-errors.md) | 0.75–1.25 hours | Retain the first uncaught browser failure while later events remain bounded and drawing stays independently owned. |
 | [34gd · Retain adapter identity in the report](journey/34gd-adapter.md) | 0.75–1.25 hours | Preserve bounded adapter identity even when recent events rotate out of the report. |
 | [34gda · Read the viewer’s adapter identity](journey/34gda-browser.md) | 0.75–1.25 hours | Retain vendor and architecture from the same adapter request used for drawing. |
 | [34gdb · Retain measured loading phases](journey/34gdb-phases.md) | 0.75–1.25 hours | Keep measured load operations after their recent event messages rotate away. |
 | [34gdc · Measure GPU startup and the first frame](journey/34gdc-startup.md) | 0.75–1.25 hours | Download actual adapter, device, renderer and first completed frame timings. |
+| [34gdd · Measure the selected file read](journey/34gdd-read.md) | 0.25–0.5 hours | Retain the duration and byte count of the selected file’s actual read. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

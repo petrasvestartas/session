@@ -1,6 +1,6 @@
 # 34f · Read previous reports from real browser storage
 
-**Typing: 21–41 minutes.** [Estimate](typing-load.md).
+**Typing: 20–40 minutes.** [Estimate](typing-load.md).
 
 Read previous reports from browser storage. `Store` keeps a storage handle, this tab’s stable ID and the new run key. Session storage preserves the tab ID across reloads; unavailable storage uses a fresh ID without stopping startup.
 

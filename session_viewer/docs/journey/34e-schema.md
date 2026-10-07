@@ -1,4 +1,4 @@
-# 34e · Check the bounded shape of a diagnostic report
+# 34e · Check the bounded shape of a report
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 
@@ -91,7 +91,7 @@ Run the report-policy checks below. Invalid dimensions, excess events or inconsi
 
 **Verified checkpoint in Chrome.**
 
-![Actual browser result: Check the bounded shape of a diagnostic report.](../screenshots/journey/34e-schema-browser.png)
+![Actual browser result: Check the bounded shape of a report.](../screenshots/journey/34e-schema-browser.png)
 
 [Verification scope](release.md).
 

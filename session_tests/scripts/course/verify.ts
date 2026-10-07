@@ -55,7 +55,8 @@ export function verify(ids: string[], stored = false) {
             assert.equal(record?.source, signature(id), `${id}: build evidence is stale or missing`);
             assert(record.commands.every((command: {returncode: number}) => command.returncode === 0));
             assert(record.commands.some((command: {name: string}) => command.name === `${id}-wasm`));
-            assert(record.commands.some((command: {name: string}) => command.name === `${id}-web`));
+            assert(record.commands.some((command: {name: string; args: string[]}) =>
+                command.name === `${id}-web` && command.args.includes('--release')), `${id}: web bundle must be optimized`);
             if (step.tests) assert(record.commands.some((command: {name: string}) => command.name === `${id}-tests`));
             if (id !== '01-canvas') assert(record.pixels);
             if (id === '04-input') assert(record.roundtrip);
@@ -71,7 +72,7 @@ export function verify(ids: string[], stored = false) {
         const record: any = {source: signature(id), commands: [], browser: 'not verified'};
         record.commands.push(runCommand(`${id}-wasm`, ['cargo', 'build', '--lib', '--locked', '--target', 'wasm32-unknown-unknown', '-j4'], target));
         if (step.tests) record.commands.push(runCommand(`${id}-tests`, ['cargo', 'test', '--lib', '--locked', '--target', native, '-j4'], target));
-        record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--public-url', './'], target));
+        record.commands.push(runCommand(`${id}-web`, ['trunk', 'build', '--release', '--public-url', './'], target));
         const bundle = path.join(evidence, id, 'dist');
         fs.rmSync(bundle, {recursive: true, force: true});
         fs.mkdirSync(path.dirname(bundle), {recursive: true});

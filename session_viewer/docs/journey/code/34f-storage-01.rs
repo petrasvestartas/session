@@ -40,7 +40,6 @@ impl Store {
     }
 }
 
-#[cfg(debug_assertions)]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn previous_storage_probe() -> String {
     let store = Store::open();

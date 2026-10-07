@@ -8,13 +8,13 @@ fn current(token: &Rc<()>) -> bool {
     ACTIVE.with(|slot| slot.borrow().as_ref().is_some_and(|(id, _)| Rc::ptr_eq(id, token)))
 }
 
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle))]
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle)]
 pub fn stop() -> bool {
     let owner = ACTIVE.with(|slot| slot.borrow_mut().take());
     let active = owner.is_some(); report::stop_periodic(); drop(owner); active
 }
 
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen(js_name = install_report_lifecycle))]
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = install_report_lifecycle)]
 pub fn install() -> Result<(), JsValue> {
     stop(); let window = web_sys::window().ok_or("No browser window")?;
     let token = Rc::new(()); let guarded = Rc::clone(&token);
@@ -44,6 +44,5 @@ pub fn install() -> Result<(), JsValue> {
     ACTIVE.with(|slot| slot.replace(Some((token, listeners)))); Ok(())
 }
 
-#[cfg(debug_assertions)]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn report_lifecycle_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }

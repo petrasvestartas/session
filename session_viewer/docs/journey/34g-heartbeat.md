@@ -87,7 +87,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-In the debug console, call `window.wasmBindings.heartbeat()`. Download `Diagnostic Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
+In the debug console, call `window.wasmBindings.heartbeat()`. Download `Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
 
 **Verified checkpoint in Chrome.**
 

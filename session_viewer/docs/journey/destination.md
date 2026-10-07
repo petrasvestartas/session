@@ -22,6 +22,10 @@ The completed course must also teach these current requirements:
 - Congruent BReps within one document reuse a prepared display walk after rigid placement. Replay preserves row/edge identities, normals and facing data; mirrors and different shapes remain distinct. Recordings end with document preparation, and a translated full circle keeps the same display chord count.
 - Lines remain readable at close zoom and shallow viewing angles. A passing ordinary-distance screenshot is insufficient for this check.
 
+The [October 7 commit review](weekly-changes.md#changes-since-the-last-tutorial-session) also requires coplanar red contacts with black boundaries independent of Element Features, plane frame axes and a headed normal, orthographic hidden-line correctness, curved-face silhouettes, BRG grid colours, grid depth covering its farthest corner in both projections, Layers All and URL commands delivered once after geometry loads. The removed temporary documentation-renderer options are excluded. Teach the restored H/S/F and platform Undo/Redo shortcuts, approved on October 7, while command-field text retains keyboard ownership.
+
+Fit and Fit Selected must use the canvas rectangle left visible by the layer panel and command dock. Chrome and native navigation request high-performance graphics by default; Firefox retains the stable lower-power preference, with explicit low/high/default overrides, and wheel bursts use temporary interaction tiers while retaining queued input, restoring full quality and returning to idle. Expensive tier retries wait for one second of timed movement so fast temporary frames do not repeatedly reintroduce slow exact visibility.
+
 These changes extend the frozen inventory below. Their cumulative teaching and browser checks remain tracked in the course work; listing a requirement does not mark it complete.
 
 ## Feature destinations
@@ -106,3 +110,7 @@ All cases below still need an acceptance run for the completed new course. Exist
 Every feature above has cumulative lessons, every checkpoint builds and runs, and the final project passes the behavior and visual comparisons. Any source changes must be explained and evaluated against the reference. A smaller demonstration is an early milestone, never the final acceptance target.
 
 The machine-readable `destination.json` records each source hash and its course owner. `npm --prefix ../session_tests run course -- structure` fails if a current source file is missing, changed or unmapped. Review an intentional change before updating the reference; never regenerate the baseline merely to silence the check.
+
+The October 7 viewer requests also cover the canvas Delete key using the existing selection deletion transaction, an undoable `BoundingBox` wire object and read-only `Length BoundingBox` world X/Y/Z lengths. The default expanded Layers panel is one third wider. Flat meshes and curved CAD surfaces share one face-based outline width; edge pens do not grow the surface mask. Contact polygons remain on their authored plane with a small depth-only bias and black boundaries even under a layer color. Performance evidence must include the actual `wood/examples/templates_vault_4_dome.cpp` output alongside the full timber floor. The course explains how to point an AI assistant at the canonical lesson, owned learner files and validation result.
+
+The projection centres immediately in the space beside the Layers panel and above the dock, including when panels open or close. Preserve the geometry target and use that same projection shift for picking rays and cursor-centred zoom. `View Isometric Back` looks from the opposite corner with the original isometric elevation.

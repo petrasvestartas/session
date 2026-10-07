@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 238 lesson slots; 172 current checkpoints have fresh build and Chrome evidence. 66 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 243 lesson slots; 175 current checkpoints have fresh build and Chrome evidence. 68 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -25,20 +25,20 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 172 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 175 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
 - [x] Split the final 3 long checkpoints into 12 complete runnable steps; no current checkpoint exceeds one hour of estimated typing.
-- [ ] Write and verify the 66 currently planned feature lessons below.
+- [ ] Write and verify the 68 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Every lesson opens with one outcome paragraph, at most 45 words. The main page goes directly to Type, then Run and check. Keep extra explanation and acceptance evidence folded.
 
 Each lesson should answer: what changes, what Rust is needed, what to type, and what one check proves it works. Each code instruction names its exact action in at most 25 words. Keep the small concepts that explain the code; put extended test evidence in supporting notes. Split by a useful responsibility, and connect it as soon as its dependencies exist.
 
-**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. All 172 checkpoints build and have current Chrome evidence. Future topics will be split when necessary.
+**Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records which of the 175 checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 172 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 175 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -72,9 +72,9 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 - [x] Production attributes/features default off and opacity 0.95 verified in Chrome.
 - [x] Drawing options and snapping use typed commands; broader command-workspace regression passed.
 - [x] Production phone edge, loading and navigation corrections accepted: appearance correct, loading faster and rotation smooth; the numerical phone loading target remains unmeasured.
-- [ ] Replace remaining production failure/recovery HTML buttons with the command-only flow; preserve usable report retrieval when the GPU stops. The runnable course checkpoints already reject feature buttons.
+- [ ] Teach the latest production Report command and absence of failure/recovery feature buttons; preserve usable report retrieval when the GPU stops. The runnable course checkpoints already reject feature buttons.
 - [ ] Complete remaining production robustness: adjacent-face ownership, idle tap/selection preparation and fewer ribbon variants. Teach and verify these in the rendering/performance chapters; CPU restructuring remains conditional on phone diagnostics.
-- [x] Revise 03d and 22 for immediate typing and command-only keyboard features; recheck 23–26.
+- [x] Revise 03d and 22 for immediate typing and command routing; recheck 23–26. F/history shortcuts now start in 26a, with H/S later.
 - [x] Refresh all changed earlier endpoints and their screenshot evidence.
 - [x] [Review this week’s commits](weekly-changes.md) and map visibility, locking, tree colors and curve sampling to lessons.
 - [x] [Fix missing ink at close zoom and sharp angles](line-visibility.md); geometric oracle and Chrome zoom checks pass. Teach this in the later rendering chapters.
@@ -127,6 +127,8 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 - [x] 03cl · [Scroll through command names](03cl-wheel.md).
 
 - [x] 03c · [Share the production dock layout](03c-layout.md).
+
+- [x] 03co · [Align and measure the command row](03co-align.md). Rust, WebAssembly, native GPU and headed Chrome checks pass. Typing 5–9 minutes.
 
 - [x] 03cn · [Return accepted application commands](03cn-handoff.md).
 
@@ -217,6 +219,8 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 26 · [Frame one object without changing its size](26-selected.md) — camera-only fitting and model coordinates; Rust, WebAssembly, GPU and Chrome checks passed.
+
+- [x] 26a · [Fit and step history from the keyboard](26a-keys.md) — F and Ctrl/Cmd Undo/Redo with text ownership; native, WASM, Trunk, GPU and Chrome checks pass. H/S follow with visibility.
 
 - [x] 27 · [Give each object a placement](27-placement.md) — local vertices, identity initialization and affine validation.
 
@@ -374,7 +378,7 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34d · [Download diagnostics through the real command line](34d-download.md) — Typed actual JSON download, ready milestone, real GPU-loss and rejected-startup reports; history/state/counters/late-input and download URL release checks pass.
 
-- [x] 34e · [Check the bounded shape of a diagnostic report](34e-schema.md) — Typed metadata/events/failure validation; native, WebAssembly, GPU and Chrome checks pass.
+- [x] 34e · [Check the bounded shape of a report](34e-schema.md) — Typed metadata/events/failure validation; native, WebAssembly, GPU and Chrome checks pass.
 
 - [x] 34ea · [Admit only supported bounded saved JSON](34ea-decode.md) — Byte/schema admission; native, WebAssembly, GPU and Chrome checks pass.
 
@@ -418,7 +422,13 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34gdc · [Measure GPU startup and the first frame](34gdc-startup.md) — Actual adapter/device/renderer timings, delayed completion, exited/lost/replaced device guards and the complete preceding browser route pass. Typing 23–46 minutes.
 
-- [ ] 34gdd · Record file loading and resource diagnostics — File read/decode/walk/upload, resource timing and live replacements; adapter and GPU startup are taught above.
+- [x] 34gdd · [Measure the selected file read](34gdd-read.md) — Current read success/failure timings, byte counts, cancellation and superseded-ticket guards. Native, WASM, Trunk, GPU and Chrome checks pass.
+
+- [ ] 34gde · Measure document decoding and display preparation — Decode, validation, kernel construction and display walk CPU phases.
+
+- [ ] 34gdf · Measure completed GPU uploads — Separate CPU upload preparation from actual drawing-device completion.
+
+- [ ] 34gdg · Record resource and live replacement diagnostics — Network resource timing, bounded URL identity and accepted live revisions.
 
 - [ ] 34ge · Recover from GPU loss — Retain diagnostics, bound retries and restore normal quality after conservative recovery.
 
@@ -466,7 +476,7 @@ Picking, source controls, history, editing, egui, snapping and panels: reference
 
 - [ ] 52 · Expand a nested session tree — make each row lead back to its source.
 
-- [ ] 53 · Control layers and visibility — keep the tree, selection and drawing in agreement.
+- [ ] 53 · Control layers and visibility — keep the tree, selection and drawing in agreement; teach the undoable canvas Delete binding; implement canvas H to Hide the selection and S to Show all, preserving command text ownership.
 
 - [ ] 54 · Complete browser navigation — test touch, focus changes, pointer cancellation and high DPI.
 
@@ -490,7 +500,7 @@ CAD contract, shared boundaries, trimming, normals, source presentation and text
 
 - [ ] 62 · Place labels in the scene — keep source text, size and alignment meaningful.
 
-- [ ] 63 · Draw one selected silhouette — avoid outlines on internal tessellation edges.
+- [ ] 63 · Draw one selected silhouette — avoid outlines on internal tessellation edges; give curved and flat faces the same silhouette width, independent of their edge pens.
 
 ## Large documents and shared geometry
 
@@ -513,6 +523,8 @@ Publication, byte ranges, accounting, instancing and sheets: reference 04d, 13, 
 - [ ] 70 · Keep nested instance transforms correct — apply placement once at each level.
 
 - [ ] 71 · Open a drawing sheet — batch its display while loading entity metadata on demand.
+
+The measurement follow-ups must implement `BoundingBox` and `Length BoundingBox` on selected rows, including placed elements, flat extents, an undoable created wire box and read-only X/Y/Z values. The contact follow-ups must retain original world coordinates, use a small tested depth bias and keep boundary ink black under layer colors.
 
 ## The existing modelling toolbox
 
@@ -560,7 +572,7 @@ Finite visibility, clipping, ambient occlusion, outline modes, features and opac
 
 - [ ] 90 · Add ambient and contact shading — tune against fixed reference scenes.
 
-- [ ] 91 · Connect Arctic and Outline modes — keep presentation settings out of geometry.
+- [ ] 91 · Connect Arctic and Outline modes — keep presentation settings out of geometry; retain curved silhouettes and a consistent CSS pixel outline radius.
 
 - [ ] 92 · Show element features and interactions — make the first interaction argument own its attached geometry.
 

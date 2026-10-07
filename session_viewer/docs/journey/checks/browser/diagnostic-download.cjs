@@ -19,7 +19,7 @@ module.exports = async (page, helpers) => {
         URL.revokeObjectURL = function (url) { window.__reportRevoked.push(url); return revoke.call(URL, url); };
     });
     const downloaded = page.waitForEvent('download', {predicate:file => file.suggestedFilename() === 'viewer-diagnostic.json'});
-    await command(page, 'Diagnostic Report'); const readyReport = await parse(await downloaded);
+    await command(page, 'Report'); const readyReport = await parse(await downloaded);
     assert.equal(readyReport.outcome, 'ready'); assert.equal(readyReport.failure, null);
     assert(readyReport.events.some(event => event.kind === 'milestone' && event.message === 'geometry on screen'));
     assert.deepEqual(await state(), moved, 'Diagnostic command leaves placement, selection, camera and geometry GPU counters unchanged');
@@ -34,7 +34,7 @@ module.exports = async (page, helpers) => {
     await page.waitForFunction(() => window.wasmBindings.runtime_running() === false && document.getElementById('status')?.textContent.includes('device lost'));
     assert.equal(failedReport.outcome, 'failed'); assert.match(failedReport.failure.message, /WebGPU device lost/);
     assert.equal(failedReport.page, readyReport.page); assert.equal(failedReport.started, readyReport.started);
-    await page.keyboard.type('Diagnostic Report'); await page.keyboard.press('Enter'); await page.mouse.wheel(0, 200);
+    await page.keyboard.type('Report'); await page.keyboard.press('Enter'); await page.mouse.wheel(0, 200);
     await page.evaluate(() => { window.dispatchEvent(new Event('resize')); window.dispatchEvent(new Event('viewer-file')); });
     await page.waitForTimeout(150); assert.equal(auto.length, previousCount + 1);
     assert.deepEqual(await page.evaluate(() => window.__lossProbe.calls), []);

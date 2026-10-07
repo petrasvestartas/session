@@ -102,7 +102,7 @@ module.exports = async (page, helpers) => {
     assert.equal((await probe()).activeMetadata, 0); assert.equal((await probe()).removedMetadata, 1);
     assert.equal((await probe()).intervals.length, 0);
     const download = page.waitForEvent('download', {predicate: file => file.suggestedFilename() === 'viewer-diagnostic.json'});
-    await helpers.command(page, 'Diagnostic Report');
+    await helpers.command(page, 'Report');
     const usable = JSON.parse(await fs.readFile(await (await download).path(), 'utf8'));
     assert.equal(usable.outcome, 'ready'); assert.equal(usable.failure, null);
     await page.evaluate(() => sessionStorage.setItem('__denySuspensionBinding', '1'));
@@ -113,7 +113,7 @@ module.exports = async (page, helpers) => {
     assert.equal((await probe()).activeMetadata, 0); assert.equal((await probe()).removedMetadata, 4);
     assert.equal((await probe()).intervals.length, 0);
     const current = page.waitForEvent('download', {predicate: file => file.suggestedFilename() === 'viewer-diagnostic.json'});
-    await helpers.command(page, 'Diagnostic Report');
+    await helpers.command(page, 'Report');
     assert.equal(JSON.parse(await fs.readFile(await (await current).path(), 'utf8')).outcome, 'ready');
     await page.reload(); await ready(); await proof();
     console.log(`${helpers.step.id}: cached pause/resume, five metadata/eighteen GPU bindings plus one released startup binding, real post-loss observations, healthy/failed final cleanup, matching-owner guard and registration-denied download passed`);

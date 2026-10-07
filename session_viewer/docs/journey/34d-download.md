@@ -1,8 +1,8 @@
 # 34d · Download diagnostics through the real command line
 
-**Typing: 13–26 minutes.** [Estimate](typing-load.md).
+**Typing: 13–25 minutes.** [Estimate](typing-load.md).
 
-Add `Diagnostic Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.
+Add `Report` to the command dock. It downloads the current metadata as `viewer-diagnostic.json`. The first presented scene records a geometry-on-screen milestone and marks a healthy run Ready.
 
 ## Type
 
@@ -55,7 +55,7 @@ Download a current metadata snapshot and attempt one automatic download for the 
 <summary>Locate the existing block</summary>
 
 ```rust
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen)]
+#[wasm_bindgen::prelude::wasm_bindgen]
 ```
 
 </details>
@@ -176,7 +176,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Diagnostic Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
+Type `Report` and open `viewer-diagnostic.json`. A drawn scene should have outcome `ready` and a geometry-on-screen event. The document and Undo history stay unchanged.
 
 **Verified checkpoint in Chrome.**
 
@@ -197,7 +197,7 @@ Finish serializing before clicking the temporary download anchor. This releases 
 
 A GPU failure first stops its matching runtime, then records the fatal reason and attempts one report download. Startup failures are recorded too when metadata initialization succeeded. Browsers may block automatic downloads; storing a report for later retrieval comes next. `Save` still writes the editable document and neither download consumes Undo.
 
-first scene presented → ready report → typed Diagnostic Report → JSON Blob → actual download → delayed URL cleanup.
+first scene presented → ready report → typed Report → JSON Blob → actual download → delayed URL cleanup.
 
 ![Command and fatal report downloads](../illustrations/journey-34d.svg)
 
@@ -233,9 +233,9 @@ Source comparison leaves your project untouched. [Save and recovery instructions
 <details>
 <summary>Viewer coverage and verification</summary>
 
-Production exposes Diagnostic Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.
+Production exposes Report through the command dock and attempts an automatic first-failure report download. This endpoint establishes current/fatal downloads. Persisted reports, detailed adapter/load/resource telemetry and bounded automatic recovery remain future work.
 
-Chrome types Diagnostic Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer.
+Chrome types Report and reads the actual JSON download. It verifies ready context and milestone timing, unchanged placement/camera/history/GPU counters, then confirms Move Undo still works. It destroys the real GPUDevice, captures the actual failed download, checks the first reason, unchanged message after repeated input and no further GPU work. A startup adapter rejection produces a failed report without a runtime. Normal same-tab reload restarts the working viewer.
 
 Chrome reads actual typed ready-report and real GPU-loss/startup-failure JSON downloads, checks scene/history/camera/GPU invariants and late-input blocking, then reloads the same test page for its final working picture.
 

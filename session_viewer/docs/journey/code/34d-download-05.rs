@@ -1,3 +1,3 @@
             "Save",
-            "Diagnostic Report",
+            "Report",
             "Example Box",

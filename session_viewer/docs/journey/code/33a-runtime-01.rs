@@ -24,6 +24,5 @@ pub fn stop() -> bool {
     ACTIVE.with(|slot| slot.borrow_mut().take()).is_some()
 }
 
-#[cfg(debug_assertions)]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn runtime_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }

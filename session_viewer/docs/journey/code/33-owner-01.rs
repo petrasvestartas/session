@@ -27,7 +27,6 @@ impl Drop for Listeners {
     }
 }
 
-#[cfg(debug_assertions)]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn listener_probe() -> Result<Vec<u32>, JsValue> {
     use std::{cell::Cell, rc::Rc};

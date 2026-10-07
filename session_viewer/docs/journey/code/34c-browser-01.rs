@@ -35,7 +35,7 @@ pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
     })
 }
 
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen)]
+#[wasm_bindgen::prelude::wasm_bindgen]
 pub fn diagnostic_snapshot() -> Result<String, JsValue> {
     let context = context()?;
     REPORT.with(|slot| {

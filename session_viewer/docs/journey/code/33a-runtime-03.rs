@@ -5,4 +5,4 @@
             wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
             return;
         }
-        let line
+        let shortcut

@@ -1,0 +1,12 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Selected file starts its read"
+b: "Await the actual ArrayBuffer"
+c: "Accept the current read ticket"
+d: "Retain duration, bytes and filename"
+e: "Cancelled or superseded reads stay quiet"
+a -> b
+b -> c
+c -> d: current
+c -> e: stale

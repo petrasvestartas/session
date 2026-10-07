@@ -1,6 +1,6 @@
 # 34gbba · Connect visibility and freezing to heartbeat scheduling
 
-**Typing: 20–40 minutes.** [Estimate](typing-load.md).
+**Typing: 20–39 minutes.** [Estimate](typing-load.md).
 
 Connect visibilitychange, freeze and resume on Document. Keep pagehide and pageshow on Window. Each event changes its own pause reason before synchronizing the heartbeat.
 
@@ -73,7 +73,7 @@ Read or update scheduling state without retaining a borrow while the timer chang
 <summary>Locate the existing block</summary>
 
 ```rust
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle))]
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle)]
 ```
 
 </details>
@@ -216,7 +216,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Switch away from the viewer tab, then return and type Diagnostic Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.
+Switch away from the viewer tab, then return and type Report. Its lifecycle entries show hidden and visible, while the healthy outcome remains Ready.
 
 **Verified checkpoint in Chrome.**
 

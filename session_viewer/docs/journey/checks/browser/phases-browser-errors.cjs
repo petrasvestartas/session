@@ -78,7 +78,7 @@ module.exports = async (original, helpers) => {
             assert.equal(current.events.at(-1).message, 'Browser error: later failure 34');
             assert.equal(downloads.length, count, 'Later failures do not trigger another automatic download');
             assert.deepEqual(await state(), before);
-            const manual = page.waitForEvent('download'); await helpers.command(page, 'Diagnostic Report');
+            const manual = page.waitForEvent('download'); await helpers.command(page, 'Report');
             assert.deepEqual((await readDownload(await manual)).failure, report.failure);
             await helpers.command(page, 'Orbit Right');
             assert.notDeepEqual((await state()).attributes['data-camera-matrix'], before.attributes['data-camera-matrix']);

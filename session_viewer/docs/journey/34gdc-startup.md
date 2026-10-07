@@ -318,7 +318,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Type `Diagnostic Report`. Its `phases` list contains adapter request, device request, renderer setup and first frame complete, each with a measured duration.
+Type `Report`. Its `phases` list contains adapter request, device request, renderer setup and first frame complete, each with a measured duration.
 
 **Verified checkpoint in Chrome.**
 

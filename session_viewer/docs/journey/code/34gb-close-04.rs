@@ -1,4 +1,4 @@
-#[cfg_attr(debug_assertions, wasm_bindgen::prelude::wasm_bindgen)]
+#[wasm_bindgen::prelude::wasm_bindgen]
 pub fn close_report() -> Result<(), JsValue> {
     let context = context()?; let time = js_sys::Date::new_0().to_iso_string().into();
     REPORT.with(|slot| {

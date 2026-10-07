@@ -106,7 +106,7 @@ REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-In the browser console, run `Promise.reject(new Error("lesson check"))`. Type `Diagnostic Report`: its first failure reads “Unhandled rejection: lesson check”.
+In the browser console, run `Promise.reject(new Error("lesson check"))`. Type `Report`: its first failure reads “Unhandled rejection: lesson check”.
 
 **Verified checkpoint in Chrome.**
 
@@ -140,7 +140,7 @@ Study estimate, including typing and experiments: 0.75–1.25 hours.
 <details>
 <summary>Optional experiment</summary>
 
-In the debug console, run Promise.reject(new Error("lesson failure")), then type Diagnostic Report. A later failure must not replace the first one.
+In the debug console, run Promise.reject(new Error("lesson failure")), then type Report. A later failure must not replace the first one.
 
 </details>
 
@@ -165,7 +165,7 @@ Browser failure metadata now shares lifecycle ownership and survives device loss
 
 Fresh native, WebAssembly, Trunk, GPU and Chrome checks are required. Actual browser failures are exercised in isolated browser contexts so deliberate exceptions cannot hide unexpected main-viewer errors.
 
-Additional verification: Reload and type Diagnostic Report. Normal startup remains Ready. The checkpoint’s browser check produces real uncaught errors and rejected promises, then verifies retained failure evidence.
+Additional verification: Reload and type Report. Normal startup remains Ready. The checkpoint’s browser check produces real uncaught errors and rejected promises, then verifies retained failure evidence.
 
 Actual uncaught errors and unhandled promises, bounded messages, first-failure retention, typed downloads and independent GPU ownership are checked.
 
