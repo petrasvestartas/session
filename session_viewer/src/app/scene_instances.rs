@@ -1,5 +1,5 @@
 use super::rows::{FREE, Footprint, GEOMETRY, SINK};
-use super::sync::{Work, baked};
+use super::sync::Work;
 use super::{Scene, placement};
 use crate::app::walk::{Row, Walk, WalkCx, is_drawable, walk_features, walk_geometry};
 use crate::engine::gpu::glyphs::GlyphPoint;
@@ -431,9 +431,8 @@ impl Scene {
             return None;
         }
 
-        let under = item.in_tree && item.node.as_ref().is_some_and(baked);
         let definition = instance.and_then(|i| session.definition_lookup.get(&i.definition_guid));
-        let wanted = definition.is_some_and(is_drawable) && !under;
+        let wanted = definition.is_some_and(is_drawable);
 
         // the same guid as another kind of object: to_instance or explode swapped it
         if let Some(row) = row

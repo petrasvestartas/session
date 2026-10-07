@@ -307,7 +307,7 @@ fn replace_in_place_or_via_grave() {
     assert_eq!(scene.spans.span(scene.feet[curve as usize]), after);
 }
 
-/// Deleting a parent draws its children at their own transform and frees baked features.
+/// Deleting a parent draws its children at their own transform.
 #[test]
 fn removing_a_parent_draws_children_like_a_rewalk() {
     let mut scene = scene();
@@ -316,11 +316,7 @@ fn removing_a_parent_draws_children_like_a_rewalk() {
     let count = scene.object_count();
     assert!(scene.delete_row(element));
     check(&mut scene);
-    assert_eq!(
-        scene.object_count(),
-        count,
-        "the baked polyline takes the element's place"
-    );
+    assert_eq!(scene.object_count(), count - 1, "the element's row goes");
     assert!(scene.delete_row(parent));
     check(&mut scene);
     assert!(scene.undo());
@@ -354,23 +350,6 @@ fn layer_steps_walk_no_tree() {
     check(&mut scene);
     assert!(scene.undo());
     check(&mut scene);
-
-    // a layer renamed to `attributes` bakes what it holds; undo frees it
-    let other = scene
-        .docs
-        .iter()
-        .position(|file| file.name == "other")
-        .unwrap();
-    let count = scene.object_count();
-    scene.rename_layer(other, "inbox", "attributes").unwrap();
-    check(&mut scene);
-    assert_eq!(scene.object_count(), count - 1);
-    assert!(scene.undo());
-    check(&mut scene);
-    assert_eq!(scene.object_count(), count);
-    assert!(scene.redo());
-    check(&mut scene);
-    assert_eq!(scene.object_count(), count - 1);
 }
 
 /// A flat drawing's new flat line takes the sheet flag and pens; a 3D point and `Created` do not.

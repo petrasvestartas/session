@@ -174,23 +174,6 @@ fn check(session: &Session, node: Node, guid: &str) -> Option<(Node, bool)> {
 
 pub(crate) use super::tree_key;
 
-/// True when an ancestor below the root is an `attributes` group: the object is drawn by its element.
-pub(super) fn baked(node: &Node) -> bool {
-    let mut current = node.borrow().parent();
-
-    while let Some(ancestor) = current {
-        let parent = ancestor.borrow().parent();
-
-        if parent.is_some() && ancestor.borrow().name == "attributes" {
-            return true;
-        }
-
-        current = parent;
-    }
-
-    false
-}
-
 impl Scene {
     /// True while an edit's notes wait for a sync.
     pub(crate) fn has_pending(&self) -> bool {
@@ -299,8 +282,7 @@ impl Scene {
 
         let session = Rc::clone(&self.docs[item.doc].session);
         let geometry = session.lookup.get(item.guid.as_ref());
-        let under = item.in_tree && item.node.as_ref().is_some_and(baked);
-        let wanted = geometry.is_some_and(is_drawable) && !under;
+        let wanted = geometry.is_some_and(is_drawable);
         let row = self
             .guid_to_row
             .get(&(item.doc, Rc::clone(&item.guid)))

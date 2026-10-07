@@ -169,19 +169,31 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     rows
 }
 
-/// The element features: rows of elements that hang under another element as its child layers.
+/// What hangs under an element, its `attributes` and its `features` groups among them: the rows Element Features shows and hides.
 pub fn feature_rows(scene: &Scene) -> Vec<u32> {
-    let element = |row: u32| matches!(scene.geometry(row), Some(Geometry::Element(_)));
+    let element = |doc: usize, node: &Node| {
+        scene
+            .row_of(doc, &node.borrow().name)
+            .is_some_and(|row| matches!(scene.geometry(row), Some(Geometry::Element(_))))
+    };
 
     (0..scene.row_count() as u32)
         .filter(|&row| {
             let Some((doc, guid)) = scene.identity_of(row) else {
                 return false;
             };
-            let host = scene
-                .parent_of(doc, &guid)
-                .and_then(|parent| scene.row_of(doc, &parent.borrow().name));
-            element(row) && host.is_some_and(element)
+            let mut parent = scene.parent_of(doc, &guid);
+
+            // up the tree until an element or the root
+            while let Some(node) = parent {
+                if element(doc, &node) {
+                    return true;
+                }
+
+                parent = node.borrow().parent();
+            }
+
+            false
         })
         .collect()
 }
@@ -1379,10 +1391,10 @@ mod tests {
         assert!(scene.duplicate_layer(0, "site").is_err());
     }
 
-    /// Elements under an element are its features; elements under a group are not.
+    /// Whatever hangs under an element, through its `attributes` and `features` groups, is its features; elements under a group are not.
     #[test]
     fn elements_under_an_element_are_its_features() {
-        use session_rust::{Element, Mesh};
+        use session_rust::{Element, Mesh, Plane};
         let element = |name: &str| {
             let mut element = Element::new(name);
             element.set_geometry(Mesh::create_box(1.0, 1.0, 1.0));
@@ -1391,7 +1403,12 @@ mod tests {
         let mut session = Session::new("column");
         let walls = session.add_group("walls");
         let column = session.add_element(element("column"), Some(&walls));
-        session.add_element(element("cutter"), Some(&column));
+        let features = session.add_group_with("features", Some(&column));
+        session.add_element(element("cutter"), Some(&features));
+        let attributes = session.add_group_with("attributes", Some(&column));
+        let mut base = Plane::default();
+        base.name = "base_plane".into();
+        session.add_plane(base, Some(&attributes));
         session.add_element(element("support"), Some(&walls));
         let mut scene = Scene::new();
         scene.add_file(FileDoc {
@@ -1405,10 +1422,10 @@ mod tests {
             .into_iter()
             .map(|row| scene.object_name(row))
             .collect();
-        assert_eq!(names, vec!["cutter"]);
+        assert_eq!(names, vec!["base_plane", "cutter"]);
     }
 
-    /// A group under an object keeps its name when copied or moved, so `attributes` get no rows.
+    /// A group under an object keeps its name when copied or moved.
     #[test]
     fn a_group_under_an_object_keeps_its_name_through_duplicate_and_move() {
         let mut session = Session::new("site");
@@ -1461,12 +1478,12 @@ mod tests {
             });
         }
 
-        assert_eq!(fresh.object_count(), 2, "beams only, no attributes");
+        assert_eq!(fresh.object_count(), 4, "the beams and their attributes");
     }
 
-    /// A name several layers share picks none of them; a duplicate keeps `attributes` baked.
+    /// A name several layers share picks none of them; a duplicate keeps its `attributes` group.
     #[test]
-    fn a_shared_layer_name_is_refused_and_attributes_stay_baked() {
+    fn a_shared_layer_name_is_refused_and_attributes_are_copied() {
         let mut session = Session::new("site");
 
         // one group per element holding it and its `attributes`, as element files do
@@ -1500,7 +1517,7 @@ mod tests {
             point_px: 0.0,
             display_only: false,
         });
-        assert_eq!(fresh.object_count(), 3, "elements only, no attributes");
+        assert_eq!(fresh.object_count(), 6, "the elements and their attributes");
     }
 
     /// Change Object Layer moves the node and keeps the world placement.

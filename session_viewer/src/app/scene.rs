@@ -465,7 +465,6 @@ impl Scene {
         self.order.reserve(count);
         self.guid_to_row.reserve(count);
 
-        let baked = baked_attributes(&session);
         let tree_colors = node_colors(&session); // a colour panel or saved override stays on top
         let order = session.order();
         let mut placed: HashMap<&str, u32> = HashMap::with_capacity(count); // guid to row, for the node cache
@@ -476,7 +475,7 @@ impl Scene {
                 continue;
             };
 
-            if !is_drawable(geom) || baked.contains(guid.as_str()) {
+            if !is_drawable(geom) {
                 continue;
             }
 
@@ -749,31 +748,6 @@ fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform
         Some(local) => place * local,
         None => place.clone(),
     }
-}
-
-/// Guids under an `attributes` group; they get no row. The root is named after the session, never a group.
-fn baked_attributes(session: &Session) -> HashSet<String> {
-    let mut out = HashSet::new();
-    let mut stack: Vec<_> = session
-        .tree
-        .root()
-        .into_iter()
-        .flat_map(|root| root.borrow().children())
-        .map(|n| (n, false))
-        .collect();
-
-    while let Some((node, inside)) = stack.pop() {
-        let node = node.borrow();
-        let inside = inside || node.name == "attributes";
-
-        if inside && session.lookup.contains_key(&node.name) {
-            out.insert(node.name.clone());
-        }
-
-        stack.extend(node.children().into_iter().map(|c| (c, inside)));
-    }
-
-    out
 }
 
 /// The display colour of every object whose tree node, or the nearest group above it, carries one.
@@ -1408,35 +1382,6 @@ impl Scene {
         }
 
         None
-    }
-}
-
-#[cfg(test)]
-mod document_tests {
-    use super::tests::file;
-    use super::*;
-    use session_rust::Point;
-
-    /// Baked attribute copies never get a row.
-    #[test]
-    fn baked_attributes_never_get_a_row() {
-        use session_rust::{Element, Mesh, Polyline};
-
-        let mut element = Element::new("beam");
-        element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
-        let mut source = Session::new("attributes");
-        source.add_element(element, None);
-        let group = source.add_group("attributes");
-        let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
-        source.add_polyline(axis, Some(&group));
-        assert_eq!(source.lookup.len(), 2);
-        let mut scene = Scene::new();
-        scene.add_file(file("beam", Rc::new(source), false));
-        assert_eq!(scene.object_count(), 1);
-
-        scene.attributes = true;
-        scene.rewalk_cpu();
-        assert_eq!(scene.object_count(), 1);
     }
 }
 
