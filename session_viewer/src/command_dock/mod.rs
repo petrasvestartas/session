@@ -430,9 +430,8 @@ pub(crate) fn browse(
     } else {
         None
     };
-    if !commands.choosing_option(&model.completion_prefix) {
-        complete = popup(ui, model, controls, &choices, response, keys.browse).or(complete);
-    }
+    // the list shows the verbs, or the options of the verb typed
+    complete = popup(ui, model, controls, &choices, response, keys.browse).or(complete);
     complete
 }
 
@@ -463,12 +462,16 @@ pub(crate) fn finish(
             .take_command()
             .unwrap_or_else(|| std::mem::take(&mut model.command));
         let (text, run) = commands.accept(&line);
+        // a verb waiting for one of many options opens their list
+        let waits = !run && commands.choosing_option(&text);
         if run {
             *command = Some(text);
         } else {
+            model.completion_prefix.clone_from(&text);
+            model.completion = 0;
             model.command = text;
         }
-        model.completion_visible = false;
+        model.completion_visible = waits;
         model.inline_suffix = false;
         model.focus_command = true;
     }

@@ -1,6 +1,7 @@
 use crate::State;
 use session_rust::{Plane, Point, Xform};
 pub mod cut; // register:cut
+pub mod choices;
 pub mod elements;
 pub mod gather; // register:gather
 mod options; // register:gather
@@ -34,6 +35,11 @@ pub trait Tool: std::fmt::Debug {
             .iter()
             .map(|(label, line)| (label.to_string(), line.to_string()))
             .collect()
+    }
+
+    /// True when a command typed while it runs replaces it, as a chooser of options is.
+    fn yields(&self) -> bool {
+        false
     }
 
     /// The option button shown as chosen, if any.

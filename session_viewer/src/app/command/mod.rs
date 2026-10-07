@@ -315,8 +315,12 @@ pub fn accept(line: &str) -> (String, bool) {
     let words: Vec<_> = text.split_whitespace().collect();
     let typed = command_words(&words);
     // a bare verb that runs without an option runs on the first Enter; one that needs a value waits for it
+    // a short list of options runs the bare verb, which shows them in the prompt; text, a value or a long list waits
     let bare_verb_waits = typed.is_some_and(|(spec, count)| {
-        words.len() == count && spec.wait_for_option && (spec.parse)(words[0], &[]).is_err()
+        words.len() == count
+            && spec.wait_for_option
+            && (spec.parse)(words[0], &[]).is_err()
+            && (spec.options.is_empty() || spec.options.len() > MAX_PROMPT_CHOICES)
     });
     let option_waits = typed.is_some_and(|(spec, count)| {
         words.len() == count + 1
@@ -332,6 +336,17 @@ pub fn accept(line: &str) -> (String, bool) {
     } else {
         (text.to_owned(), true)
     }
+}
+
+/// The most options a bare verb shows as words in the prompt; more wait in the completion list.
+pub const MAX_PROMPT_CHOICES: usize = 10;
+
+/// The canonical name and options of a bare verb that cannot run without one of them.
+pub fn choices(line: &str) -> Option<(&'static str, &'static [&'static str])> {
+    let words: Vec<_> = line.split_whitespace().collect();
+    let (spec, count) = command_words(&words)?;
+    let short = !spec.options.is_empty() && spec.options.len() <= MAX_PROMPT_CHOICES;
+    (words.len() == count && short).then_some((spec.names[0], spec.options))
 }
 
 /// A move offset from `10 0 0`, `@10,0` or `10<45`.

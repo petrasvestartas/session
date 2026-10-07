@@ -304,6 +304,15 @@ impl State {
     }
 
     /// The prompt of a running tool or object pick.
+    /// True when the running tool gives way to a typed command.
+    pub(super) fn tool_yields(&self) -> bool {
+        self.features
+            .draft
+            .as_ref()
+            .and_then(|draft| draft.tool.as_ref())
+            .is_some_and(|tool| tool.yields())
+    }
+
     pub(super) fn tool_prompt(&self) -> Option<String> {
         let draft = self.features.draft.as_ref()?;
 

@@ -904,9 +904,21 @@ impl State {
         if let Some(result) = self.drawing_command(line) {
             return result;
         }
-        let action = crate::app::command::parse(line)?;
+        let action = match crate::app::command::parse(line) {
+            Ok(action) => action,
+            // a bare command that needs an option offers its options in the prompt
+            Err(error) => match crate::app::command::choices(line) {
+                Some((verb, options)) => {
+                    return self.open_tool(Box::new(
+                        crate::app::command::tool::choices::Choices::new(verb, options),
+                    ));
+                }
+                None => return Err(error),
+            },
+        };
 
-        if !action.keeps_draft() {
+        // a chooser gives way to the command chosen from it
+        if !action.keeps_draft() || self.tool_yields() {
             self.cancel_drawing();
         }
 
