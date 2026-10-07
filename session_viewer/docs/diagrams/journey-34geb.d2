@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Current device lost"
+b: "Stop GPU work and save failed report"
+c: "One recovery navigation"
+d: "Adopt device scale at most one"
+e: "Clean recovery query; previous report available"
+f: "Second loss stays failed"
+g: "Ordinary reload restores normal density"
+a -> b
+b -> c
+c -> d
+d -> e
+e -> f
+e -> g

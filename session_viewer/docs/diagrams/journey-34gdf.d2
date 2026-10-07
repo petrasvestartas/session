@@ -1,0 +1,14 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Committed scene change"
+b: "CPU buffer preparation and payload bytes"
+c: "Submit a drawing-queue fence"
+d: "Actual queue completion"
+e: "Current healthy device retains timing"
+f: "Retired device stays quiet"
+a -> b
+b -> c
+c -> d
+d -> e: current
+d -> f: stale

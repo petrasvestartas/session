@@ -1,0 +1,1 @@
+    let mut editor = shared.borrow_mut();

@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 175 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
+**All 183 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 175 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 68 remaining feature lessons.
+All 183 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 64 remaining feature lessons.
 
 ## Command-panel typing split
 
@@ -232,6 +232,16 @@ The course verifier now builds optimized Trunk bundles and refuses stored web ev
 Some initial desktop captures received unscripted keyboard events while temporary Chrome windows had focus. An event trace reproduced an extra key after a successful command. Subsequent captures run in headed Chrome on an isolated X11 display with actual hardware WebGPU; the existing visible tutorial review tab stays on the user's desktop. Assertions remain unchanged, and the capture helper waits for the actual egui focus signal. Individual evidence records retain their source, checker, bundle, browser and timestamp. A raw lifecycle target also exposed an initial inspector value recorded before camera sizing. Its test now sends a real mouse movement and waits for the inspected projection to match the canvas before taking the baseline; subsequent state and pixel assertions are unchanged.
 
 Production navigation tests include the full timber floor and the current vault-dome example. Native GPU checks cover curved/flat Arctic silhouettes and contact depth with black boundaries. Local timings and the Firefox adapter preference exception are documented in [performance patterns](../performance-patterns.md); they do not establish Lenovo frame rates. The cumulative course still has 68 planned feature lessons and has not reached final production parity.
+
+## CPU, network and recovery checkpoints — October 7
+
+Eight new runnable lessons measure CPU operations, document preparation, GPU upload readiness and accepted source fetches; identify accepted file hashes; separate CPU document ownership; and teach one conservative recovery reload. Each fits 5–43 minutes of typing. The final endpoint passes 158 native checks, optimized WebAssembly/Trunk, its native GPU fixture and headed Chrome.
+
+Chrome checks actual HTTP Resource Timing, body bytes, credential/query/fragment removal, cancellation, superseded tickets and rejected requests. Held drawing-queue promises verify readiness only after actual completion, with quiet callbacks after exit, loss or replacement. File adoption and restored sources report their real SHA-256 only after acceptance.
+
+Recovery follows production: save and download the failed report before one page reload, draw at device scale at most one, clean the temporary URL parameter and make the old diagnostic available through `Report Previous`. A second loss remains failed; an ordinary reload restores normal density. Chrome verifies this with real device destruction at DPR two. A page reload discards unsaved edits; URL scene loading and live replacement remain in chapter 66.
+
+All 183 current endpoints have fresh optimized build, native GPU/state and headed Chrome evidence. All 437 D2 diagrams reproduce exactly. The course still has 64 planned feature destinations; final production comparison and retirement of the old reference remain pending.
 
 ## Reproduce
 

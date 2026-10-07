@@ -11501,6 +11501,519 @@
           "why": "Measure an actual completed read only after its ticket is accepted."
         }
       ]
+    },
+    {
+      "id": "34gde-measure",
+      "title": "Measure a completed CPU operation",
+      "page": "journey/34gde-measure.md",
+      "hours": [
+        0.5,
+        0.75
+      ],
+      "goal": "Measure CPU work without changing its success or failure.",
+      "trace": "clock → operation result → valid duration → metadata observer → original result",
+      "question": "Why return the operation result even when its clock is invalid?",
+      "answer": "Timing is diagnostic. A backwards or unavailable clock must never turn a successful edit into a failure.",
+      "result": "Run the checks. Success and failure both keep their original result while valid clocks record one completed phase.",
+      "experiment": "Give the test clock a backwards pair of samples. The result stays unchanged and the observer stays quiet.",
+      "production": "This portable measurement boundary prepares the document phases in the next lesson.",
+      "tests": true,
+      "frame": "journey/checks/34gdc-startup.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/file-read-phases.cjs",
+      "story": "Wrap one synchronous operation with two clock samples. Pass only completed metadata to an observer and return the original result.\n\nThe observer receives no document or source handle. Invalid clock values suppress diagnostics while the operation keeps its normal outcome. Native tests inject the clock; the browser uses its existing performance clock.\n\n![A clock surrounds the operation; diagnostics cannot replace its result.](../illustrations/journey-34gde.svg)",
+      "browser_caption": "Chrome keeps the existing file-read and import behavior while the portable timing boundary is introduced.",
+      "checks": "Native tests check success, failure, exact boundaries and invalid clocks. Chrome repeats the real selected-file read checks.",
+      "image_same_as": "34gdd-read",
+      "edits": [
+        {
+          "path": "src/load_measure.rs",
+          "before": null,
+          "snippet": "journey/code/34gde-measure-01.rs",
+          "why": "Keep timing metadata separate from the operation’s owned data and result."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod report_recency;",
+          "snippet": "journey/code/34gde-measure-02.rs",
+          "why": "Register the portable clock boundary and its tests."
+        },
+        {
+          "path": "src/load_measure_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gde-measure-03.rs",
+          "why": "Copy deterministic checks for the clock boundary.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "34gdea-import",
+      "title": "Measure each document preparation phase",
+      "page": "journey/34gdea-import.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Record decode, validation, kernel construction and display preparation at their actual boundaries.",
+      "trace": "protobuf bytes → decode → validation → kernel → display walk → atomic scene adoption",
+      "question": "Why stop measuring after a failed phase?",
+      "answer": "The later work never ran. Recording it would invent a duration and hide where the import stopped.",
+      "result": "Open a file and type `Report`. Four CPU phases appear after its file-read phase, in their execution order.",
+      "experiment": "Open a corrupt protobuf. Its report adds only `decode failed`; the drawing and Undo history remain unchanged.",
+      "production": "CPU preparation is measured here. Drawing-device uploads and completion are separate work in the next lesson.",
+      "tests": true,
+      "frame": "journey/checks/34gdc-startup.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/document-phases.cjs",
+      "story": "Measure the four operations that turn bytes into a prepared document. A failed operation records its own phase and returns before later work starts.\n\nKeep scene adoption outside preparation. The existing editor transaction still commits only a fully prepared document. Input byte counts describe the file size; they are not resident memory measurements.\n\n![Preparation completes before the editor adopts the document.](../illustrations/journey-34gdea.svg)",
+      "browser_caption": "Chrome imports actual protobuf bytes, downloads the measured phases and rejects a corrupt file without changing the scene.",
+      "checks": "Native checks verify phase order, early failure, precision and display conversion failures. Chrome checks real imports, report downloads, invalid bytes and Undo/Redo.",
+      "image_same_as": "34gde-measure",
+      "edits": [
+        {
+          "path": "src/document.rs",
+          "before": "pub fn load_at(bytes: &[u8], location: Option<Rc<crate::reload_url::ReloadUrl>>) -> Result<Loaded, &'static str> {\n    let message = decode(bytes)?;\n    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;\n    let origin = Rc::new(origin);\n    let document = Rc::new(Session::from_proto(message).map_err(|_| \"Cannot construct session\")?);\n    let mut meshes = Vec::new();\n    for mesh in document.objects.meshes.iter() {\n        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;\n        prepared.model = document.xforms.get(mesh.guid()).cloned().unwrap_or_else(session_rust::Xform::identity);\n        prepared.source = Some(Source {\n            document: Rc::clone(&document), guid: mesh.guid().to_owned(), origin: Rc::clone(&origin),\n        });\n        meshes.push(prepared);\n    }\n    Ok(Loaded { document, meshes })\n}\n\nfn decode(bytes: &[u8]) -> Result<proto::Session, &'static str> {\n    if bytes.len() > MAX_BYTES { return Err(\"This checkpoint accepts files up to 4 MiB\"); }\n    let message = proto::Session::decode(bytes).map_err(|_| \"Invalid session protobuf\")?;\n    validate(&message)?;\n    Ok(message)\n}\n",
+          "snippet": "journey/code/34gdea-import-01.rs",
+          "why": "Measure real preparation before committing any document state."
+        },
+        {
+          "path": "src/browser_phase.rs",
+          "before": "pub fn finish(name: &str, started: f64, bytes: u64, source: &str) {",
+          "snippet": "journey/code/34gdea-import-02.rs",
+          "why": "Store completed CPU samples without taking another end timestamp."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod document;",
+          "snippet": "journey/code/34gdea-import-03.rs",
+          "why": "Register document phase checks."
+        },
+        {
+          "path": "src/document_phase_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gdea-import-04.rs",
+          "why": "Copy checks for phase ordering, early failure and unchanged source precision.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "34gdf-upload",
+      "title": "Measure upload preparation and GPU completion",
+      "page": "journey/34gdf-upload.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Distinguish CPU buffer preparation from completion on the drawing queue.",
+      "trace": "scene change → uploaded payload counter → CPU preparation → queue fence → current-device completion",
+      "question": "Does queue completion measure only the upload?",
+      "answer": "No. It includes earlier queued work and callback delivery. Report it separately from CPU preparation rather than calling it an isolated transfer speed.",
+      "result": "Open a file and type `Report`. The document phases are followed by `upload preparation` and `GPU upload ready`.",
+      "experiment": "Undo and Redo the import. Reused geometry avoids another vertex upload; only changed object settings are counted.",
+      "production": "This measures scene buffer preparation and a completion fence on the actual drawing device. Camera frames are not scene uploads.",
+      "tests": true,
+      "frame": "journey/checks/34gdf-upload.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/upload-phases.cjs",
+      "story": "Measure scene synchronization on the CPU, then fence the drawing queue. Append completion only while the same healthy device still owns the page.\n\nCount initialized vertex, index and object-setting bytes, plus later settings writes. Exclude allocation padding and camera uniforms. Queue completion includes prior queued work; it is not an isolated upload benchmark.\n\n![CPU preparation and drawing-queue completion are separate measurements.](../illustrations/journey-34gdf.svg)",
+      "browser_caption": "Chrome holds the actual drawing queue’s completion promise, checks measured bytes, and discards completion from exited, lost or replaced runtimes.",
+      "checks": "The native GPU fixture checks exact upload counters and reuse. Chrome checks real queue calls, delayed completion, typed reports, invalid imports and stale callbacks.",
+      "image_same_as": "34gdea-import",
+      "edits": [
+        {
+          "path": "src/geometry_cache.rs",
+          "before": "    pub uploads: usize,",
+          "snippet": "journey/code/34gdf-upload-01.rs",
+          "why": "Count actual geometry payload, independently of resident buffer sizes."
+        },
+        {
+          "path": "src/geometry_cache.rs",
+          "before": "        self.uploads += 1;",
+          "snippet": "journey/code/34gdf-upload-02.rs",
+          "why": "Advance only when a new geometry buffer is initialized."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn stats(&self) -> [usize; 4] {",
+          "snippet": "journey/code/34gdf-upload-03.rs",
+          "why": "Include initialized object settings and subsequent writes, excluding camera uniforms."
+        },
+        {
+          "path": "src/browser_upload.rs",
+          "before": null,
+          "snippet": "journey/code/34gdf-upload-04.rs",
+          "why": "Fence the drawing queue and reject completion from a retired or failed device."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser_phase;",
+          "snippet": "journey/code/34gdf-upload-05.rs",
+          "why": "Register the browser-only queue boundary."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                Ok(Some(Change::Scene)) => {\n                    renderer.set_scene(&editor.scene, editor.selected);",
+          "snippet": "journey/code/34gdf-upload-06.rs",
+          "why": "Measure successful scene synchronization after the editor transaction commits."
+        }
+      ]
+    },
+    {
+      "id": "34gdg-network",
+      "title": "Measure accepted source fetches",
+      "page": "journey/34gdg-network.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain real fetch and Resource Timing measurements only for the accepted reload ticket.",
+      "trace": "source URL → bounded body read → completed samples → accepted ticket → safe report identity",
+      "question": "Why collect measurements locally until the reload ticket is accepted?",
+      "answer": "An aborted or superseded fetch can still settle. Its measurements must not enter the current report.",
+      "result": "Open a file, type `Unload Sources`, then `Reload Sources` and `Report`. The accepted fetch adds its duration and actual body bytes.",
+      "experiment": "Cancel a pending Reload Sources. Its late response must add no fetch phase.",
+      "production": "The same timing boundary supports HTTP resources; browser Resource Timing may omit private cross-origin sizes. Zero transfer bytes means unavailable or cached, not an empty document.",
+      "tests": true,
+      "frame": "journey/checks/34gdf-upload.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/network-phases.cjs",
+      "story": "Time each actual source fetch, including its bounded body read. Keep the samples in the task until the reload ticket is accepted.\n\nUse the browser’s Resource Timing entry when available. Strip credentials, query and fragment from URL identities. Fetch duration includes body consumption; Resource Timing has its own network boundaries and may report zero transfer bytes.\n\n![Only accepted network work contributes retained measurements.](../illustrations/journey-34gdg.svg)",
+      "browser_caption": "Chrome fetches a real HTTP specimen, compares the browser’s Resource Timing entry and discards a cancelled response.",
+      "checks": "Native/WASM/GPU checks preserve existing behavior. Chrome checks actual HTTP timing, exact body bytes, safe URLs, rejection and cancellation.",
+      "image_same_as": "34gdf-upload",
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "\"Performance\", \"Event\"",
+          "snippet": "journey/code/34gdg-network-01.rs",
+          "why": "Enable the browser’s native network timing entry."
+        },
+        {
+          "path": "src/browser_network.rs",
+          "before": null,
+          "snippet": "journey/code/34gdg-network-02.rs",
+          "why": "Collect actual body and browser-network measurements without retaining source owners."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod source_fetch;",
+          "snippet": "journey/code/34gdg-network-03.rs",
+          "why": "Register network measurement and safe URL handling."
+        },
+        {
+          "path": "src/browser_reload.rs",
+          "before": "        let result: Result<Vec<Vec<u8>>, String> = async {\n            let mut values = Vec::new();\n            for url in request.urls { values.push(crate::source_fetch::fetch(&url, &signal).await?); }\n            Ok(values)\n        }.await;\n        let Some((keys, intent)) = shared.borrow_mut().finish(request.ticket, result.is_err()) else { return; };",
+          "snippet": "journey/code/34gdg-network-04.rs",
+          "why": "Retain measured fetch phases only after the existing ticket accepts the task."
+        }
+      ]
+    },
+    {
+      "id": "34gdga-revision",
+      "title": "Record accepted file revisions",
+      "page": "journey/34gdga-revision.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Identify accepted source versions without recording rejected or stale documents.",
+      "trace": "prepared document → successful editor transaction → source hash → bounded revision event",
+      "question": "Why record the version after the scene transaction succeeds?",
+      "answer": "A readable file can still fail validation or lose its ticket. Its bytes are not an accepted document revision.",
+      "result": "Open a file and type `Report`. Each distinct accepted file version has a SHA-256 revision event.",
+      "experiment": "Reopen identical bytes and then a corrupt file. The valid adoption reports its hash; the rejected file adds no revision.",
+      "production": "This identifies accepted file content, not edit-history revisions. Later live HTTP replacement uses the same adoption boundary.",
+      "tests": true,
+      "frame": "journey/checks/34gdf-upload.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/revision-phases.cjs",
+      "story": "Read version hashes from the adopted scene and retain one event per distinct source version. Hash strings carry no document ownership.\n\nRun this only after successful file adoption or accepted source restoration. A failed validation, cancelled ticket or stale reply adds no accepted revision. Ordinary camera and object edits are not new file versions.\n\n![Record file identity after the scene accepts it.](../illustrations/journey-34gdga.svg)",
+      "browser_caption": "Chrome compares accepted events with the actual file SHA-256 and checks failed adoption, source reload, Undo and Redo.",
+      "checks": "Native checks deduplicate source versions without retaining them. Chrome checks exact accepted hashes, failed adoption and source restoration.",
+      "image_same_as": "34gdg-network",
+      "edits": [
+        {
+          "path": "src/revision.rs",
+          "before": null,
+          "snippet": "journey/code/34gdga-revision-01.rs",
+          "why": "Collect only bounded hash strings from the accepted scene."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod document;",
+          "snippet": "journey/code/34gdga-revision-02.rs",
+          "why": "Register accepted content identity."
+        },
+        {
+          "path": "src/browser_phase.rs",
+          "before": "pub fn completed(phase: crate::load_measure::Completed<'_>, source: &str) {",
+          "snippet": "journey/code/34gdga-revision-03.rs",
+          "why": "Record each accepted version as a bounded event."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    } else if event.type_() == \"viewer-file\" {\n                        let message = if replacement",
+          "snippet": "journey/code/34gdga-revision-04.rs",
+          "why": "Observe versions only after successful file adoption."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {\n                        renderer.set_scene(&editor.scene, editor.selected);",
+          "snippet": "journey/code/34gdga-revision-05.rs",
+          "why": "Measure restored display synchronization and identify accepted source versions."
+        }
+      ]
+    },
+    {
+      "id": "34ge-owner",
+      "title": "Keep the document outside the GPU runtime",
+      "page": "journey/34ge-owner.md",
+      "hours": [
+        0.5,
+        1
+      ],
+      "goal": "Give GPU runtimes shared access to a separately owned CPU document.",
+      "trace": "CPU editor owner → drawing runtime → shared event access → GPU teardown → retained document",
+      "question": "Why retain the editor rather than serialize a recovery snapshot?",
+      "answer": "The editor already owns exact geometry, selection, camera and Undo/Redo history. Reusing it preserves those states without lossy display reconstruction.",
+      "result": "The viewer behaves as before. The GPU fixture tears down and recreates a renderer while retaining the edited document and history.",
+      "experiment": "Run the GPU check and inspect the weak owner assertions: dropping a renderer releases its GPU geometry while the document remains alive.",
+      "production": "The document remains independent of GPU resources. Production’s automatic recovery reload is taught next; page reloads discard unsaved editor state.",
+      "tests": true,
+      "frame": "journey/checks/34ge-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/revision-phases.cjs",
+      "story": "Move the editor into a shared CPU owner before constructing the drawing runtime. Borrow it for startup and for each synchronous browser event.\n\nA renderer owns GPU resources; it does not own document authority. Recovery can later reuse this CPU owner after listeners and the failed renderer are dropped. Ordinary runtime shutdown still releases the owner when no recovery retains it.\n\n![The document and GPU resources have different owners.](../illustrations/journey-34ge.svg)",
+      "browser_caption": "Chrome repeats actual imports, accepted revisions, cancelled fetches and queue ownership checks with the document stored outside the drawing closure.",
+      "checks": "The native GPU fixture proves document/history survival and release of retired GPU owners. Chrome repeats the full preceding telemetry route.",
+      "image_same_as": "34gdga-revision",
+      "edits": [
+        {
+          "path": "src/drawing_document.rs",
+          "before": null,
+          "snippet": "journey/code/34ge-owner-01.rs",
+          "why": "Give CPU document state an owner independent of a device or renderer."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod editor;",
+          "snippet": "journey/code/34ge-owner-02.rs",
+          "why": "Register the independent document owner."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "pub async fn run() -> Result<(), JsValue> {",
+          "snippet": "journey/code/34ge-owner-03.rs",
+          "why": "Allow a drawing runtime to use an existing CPU document."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let mut editor = Editor::default();",
+          "snippet": "journey/code/34ge-owner-04.rs",
+          "why": "Borrow the retained editor during startup."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    let active_fault = fault.clone();\n    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {\n        if active_fault.message().is_some() { return; }",
+          "snippet": "journey/code/34ge-owner-05.rs",
+          "why": "End the startup borrow before the event closure borrows the same editor."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault);",
+          "snippet": "journey/code/34ge-owner-06.rs",
+          "why": "Retain document authority beside the runtime’s cancellation owners."
+        },
+        {
+          "path": "src/browser_runtime.rs",
+          "before": "    fault: crate::gpu_fault::Fault,",
+          "snippet": "journey/code/34ge-owner-07.rs",
+          "why": "Keep a CPU owner available to an authorized recovery path."
+        },
+        {
+          "path": "src/browser_runtime.rs",
+          "before": "pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared, fault: crate::gpu_fault::Fault) {\n    ACTIVE.with(|slot| slot.replace(Some(Runtime { _listeners: listeners, request, reload, fault })));\n}",
+          "snippet": "journey/code/34ge-owner-08.rs",
+          "why": "Only the current drawing device can obtain the retained CPU document."
+        }
+      ]
+    },
+    {
+      "id": "34gea-policy",
+      "title": "Permit one conservative recovery reload",
+      "page": "journey/34gea-policy.md",
+      "hours": [
+        0.25,
+        0.5
+      ],
+      "goal": "Allow one device-loss recovery reload and retain reduced quality until an ordinary reload.",
+      "trace": "device loss → one reload request → adopted recovery → reduced quality → next ordinary reload",
+      "question": "Why refuse another recovery when the page is already reduced?",
+      "answer": "Repeated losses can otherwise create an endless reload loop. A recovered run keeps its diagnostic and reports a second loss without another automatic reload.",
+      "result": "Run the policy checks. Normal runs permit one device-loss reload; recovered runs refuse another.",
+      "experiment": "Request recovery for a validation error, then for device loss. Only the device-loss request is accepted.",
+      "production": "This follows production’s one-reload recovery policy. Reduced quality lasts until the next ordinary reload; it does not preserve unsaved editor state across a page reload.",
+      "tests": true,
+      "frame": "journey/checks/34ge-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/revision-phases.cjs",
+      "story": "Permit recovery only for device loss and only once. A recovered page starts with reduced quality and refuses another automatic reload.\n\nThe policy contains no browser or document handles. Native checks exercise normal, pending and recovered runs. The next lesson connects this decision to the actual URL, saved diagnostic and canvas density.\n\n![A recovered run cannot start another automatic reload.](../illustrations/journey-34gea.svg)",
+      "browser_caption": "Chrome repeats the preceding telemetry route while the one-reload policy is introduced.",
+      "checks": "Native checks reject unrelated errors, duplicate requests and repeated recovery; a fresh policy restores normal quality.",
+      "image_same_as": "34ge-owner",
+      "edits": [
+        {
+          "path": "src/recovery.rs",
+          "before": null,
+          "snippet": "journey/code/34gea-policy-01.rs",
+          "why": "Permit one recovery only for a normal run that lost its device."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod drawing_document;",
+          "snippet": "journey/code/34gea-policy-02.rs",
+          "why": "Register the one-reload policy and its tests."
+        },
+        {
+          "path": "src/recovery_tests.rs",
+          "before": null,
+          "snippet": "journey/code/34gea-policy-03.rs",
+          "why": "Copy normal, duplicate, recovered and fresh-run checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "34geb-reload",
+      "title": "Recover once at reduced canvas density",
+      "page": "journey/34geb-reload.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Save device-loss diagnostics, reload once and draw conservatively until the next ordinary reload.",
+      "trace": "current device loss → saved report → recovery URL → reduced drawing → clean URL → ordinary reload",
+      "question": "Why save the failure before replacing the page URL?",
+      "answer": "The old page cannot report after navigation. Persisting and downloading first keeps the original device-loss reason available in the recovered run.",
+      "result": "A real device loss triggers one reload. The recovered canvas uses device scale at most one; `Report Previous` downloads the failed run.",
+      "experiment": "Lose the recovered device again. It reports failure without another reload. Reload normally to restore the original canvas density.",
+      "production": "This matches the production recovery reload and quality lifetime. Antialiasing is already off in this endpoint; the later multisample renderer must also disable it during recovery.",
+      "tests": true,
+      "frame": "journey/checks/34ge-owner.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "File imported. Undo removes the entire import.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        }
+      ],
+      "browser_check": "journey/checks/browser/recovery-browser.cjs",
+      "story": "Save the current failure before navigating. Carry a bounded reason through the recovery URL, adopt reduced quality, then remove that temporary parameter.\n\nCap the recovered canvas at device scale one. A second loss stays failed; an ordinary reload starts normal quality again. Page navigation discards unsaved edits. The URL-based scene loader introduced later reloads its published source.\n\n![The failed report survives one conservative page reload.](../illustrations/journey-34geb.svg)",
+      "browser_caption": "Chrome destroys real drawing devices, verifies one reload, downloads the original diagnostic, refuses a second reload and restores normal density.",
+      "checks": "Native policy and GPU checks pass. Chrome verifies actual device loss, preserved URL parameters, DPR two-to-one reduction, previous diagnostics, terminal second loss and ordinary reload.",
+      "image_same_as": "34gea-policy",
+      "edits": [
+        {
+          "path": "Cargo.toml",
+          "before": "\"Location\", \"Navigator\"",
+          "snippet": "journey/code/34geb-reload-01.rs",
+          "why": "Enable recovery URL cleanup through the browser history API."
+        },
+        {
+          "path": "src/browser_recovery.rs",
+          "before": null,
+          "snippet": "journey/code/34geb-reload-02.rs",
+          "why": "Adopt one conservative reload and retain all other URL parameters."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "#[cfg(target_arch = \"wasm32\")]\nmod browser;",
+          "snippet": "journey/code/34geb-reload-03.rs",
+          "why": "Register browser recovery policy and navigation."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            crate::browser_report::fatal(&message);\n            report(&format!(\"Cannot draw: {message}\"));",
+          "snippet": "journey/code/34geb-reload-04.rs",
+          "why": "Persist and download the failed run before requesting its recovery reload."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    crate::browser_report::start()?;",
+          "snippet": "journey/code/34geb-reload-05.rs",
+          "why": "Adopt reduced quality before beginning the new drawing run."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    if let Some(message) = crate::browser_report::previous_notice() { panel.result(message); }",
+          "snippet": "journey/code/34geb-reload-06.rs",
+          "why": "Keep the recovery reason visible in the real command dock."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    report(\"Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.\");",
+          "snippet": "journey/code/34geb-reload-07.rs",
+          "why": "Report conservative recovery without changing the normal startup instruction."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        window.device_pixel_ratio(),",
+          "snippet": "journey/code/34geb-reload-08.rs",
+          "why": "Cap recovered device density while preserving normal high-DPI drawing."
+        }
+      ]
     }
   ]
 }

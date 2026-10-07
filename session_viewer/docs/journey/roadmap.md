@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 243 lesson slots; 175 current checkpoints have fresh build and Chrome evidence. 68 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 247 lesson slots; 183 current checkpoints have fresh build and Chrome evidence. 64 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -25,11 +25,11 @@ Each future lesson will get its own typing estimate, architecture diagram, exper
 - [x] Replace 48 further repeated instructions with the specific action at each edit.
 - [x] Give all 17 new dock steps a concrete optional exercise and a diagram of their actual data or event flow.
 - [x] Remove two formatting-only typing steps; put their spacing in the first declarations.
-- [x] Apply a direct page layout to all 175 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
+- [x] Apply a direct page layout to all 183 lessons: short introduction, typed changes and one result check; fold extended explanations, experiments and verification notes.
 - [x] Remove repeated goal/trace banners and separate explanation/save sections; keep the first lesson’s setup visible.
 - [x] Split command-state ownership into two short endpoints, connecting the field immediately and removing unrelated GPU reformatting.
 - [x] Split the final 3 long checkpoints into 12 complete runnable steps; no current checkpoint exceeds one hour of estimated typing.
-- [ ] Write and verify the 68 currently planned feature lessons below.
+- [ ] Write and verify the 64 currently planned feature lessons below.
 - [ ] Verify the final course against the complete production viewer, then retire the old reference course.
 
 Every lesson opens with one outcome paragraph, at most 45 words. The main page goes directly to Type, then Run and check. Keep extra explanation and acceptance evidence folded.
@@ -38,7 +38,7 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records which of the 175 checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 175 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 183 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -424,13 +424,21 @@ Camera, identity, loading and browser shell: reference 02, 03, 12, 14.
 
 - [x] 34gdd · [Measure the selected file read](34gdd-read.md) — Current read success/failure timings, byte counts, cancellation and superseded-ticket guards. Native, WASM, Trunk, GPU and Chrome checks pass.
 
-- [ ] 34gde · Measure document decoding and display preparation — Decode, validation, kernel construction and display walk CPU phases.
+- [x] 34gde · [Measure a completed CPU operation](34gde-measure.md) — Exact clock boundaries and nonfatal timing; native, optimized WASM, GPU and headed Chrome pass.
 
-- [ ] 34gdf · Measure completed GPU uploads — Separate CPU upload preparation from actual drawing-device completion.
+- [x] 34gdea · [Measure each document preparation phase](34gdea-import.md) — Decode, validation, kernel and display walk timings; early failure and atomic adoption pass in native and Chrome.
 
-- [ ] 34gdg · Record resource and live replacement diagnostics — Network resource timing, bounded URL identity and accepted live revisions.
+- [x] 34gdf · [Measure upload preparation and GPU completion](34gdf-upload.md) — Exact payload counters, actual queue fences and retired-device guards pass in native and Chrome.
 
-- [ ] 34ge · Recover from GPU loss — Retain diagnostics, bound retries and restore normal quality after conservative recovery.
+- [x] 34gdg · [Measure accepted source fetches](34gdg-network.md) — Actual fetch and Resource Timing, safe URL identity and accepted-ticket guards; native, optimized WASM, GPU and headed Chrome pass.
+
+- [x] 34gdga · [Record accepted file revisions](34gdga-revision.md) — Actual source SHA-256 after atomic adoption; native, optimized WASM, GPU and headed Chrome pass.
+
+- [x] 34ge · [Keep the document outside the GPU runtime](34ge-owner.md) — Independent CPU authority and GPU teardown; native, optimized WASM, GPU and headed Chrome pass.
+
+- [x] 34gea · [Permit one conservative recovery reload](34gea-policy.md) — Bound recovery to one reload; native, optimized WASM, GPU and headed Chrome pass.
+
+- [x] 34geb · [Recover once at reduced canvas density](34geb-reload.md) — Retain diagnostics, adopt reduced quality and restore normal density on an ordinary reload; native, optimized WASM, GPU and headed Chrome pass.
 
 ## Geometry beyond solid triangles
 
@@ -510,7 +518,7 @@ Publication, byte ranges, accounting, instancing and sheets: reference 04d, 13, 
 
 - [ ] 65 · Pick a cloud point — recover its original identity from the displayed subset.
 
-- [ ] 66 · Publish a scene with metadata — separate the small index from large geometry blocks.
+- [ ] 66 · Publish a scene with metadata — separate the small index from large geometry blocks; load URL scenes and accept live replacements with measured revision identity.
 
 - [ ] 67 · Read only needed byte ranges — handle cancellation and failed partial reads.
 

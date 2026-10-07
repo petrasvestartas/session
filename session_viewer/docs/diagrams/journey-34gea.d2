@@ -1,0 +1,14 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "GPU failure"
+b: "Device lost in normal run?"
+c: "One recovery reload"
+d: "Adopt reduced quality"
+e: "Second loss reports failure"
+f: "Ordinary reload restores normal quality"
+a -> b
+b -> c: yes
+c -> d
+d -> e
+d -> f

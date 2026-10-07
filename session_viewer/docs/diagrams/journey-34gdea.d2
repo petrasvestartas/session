@@ -1,0 +1,20 @@
+vars: {
+  d2-config: {
+    layout-engine: elk
+    pad: 20
+    theme-id: 0
+  }
+}
+style.fill: "#ffffff"
+direction: down
+bytes: Selected file bytes
+decode: Decode protobuf
+validation: Validate accepted geometry
+kernel: Construct kernel document
+display: Walk prepared meshes
+adoption: Commit complete scene
+bytes -> decode
+decode -> validation
+validation -> kernel
+kernel -> display
+display -> adoption

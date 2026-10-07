@@ -1,0 +1,1 @@
+        crate::browser_recovery::density(window.device_pixel_ratio()),

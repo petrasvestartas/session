@@ -187,17 +187,25 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [34gdb-phases](34gdb-phases.md) | 61 | 2671 | 27–54 min | 0.75–1.25 h | Within planning limit |
 | [34gdc-startup](34gdc-startup.md) | 43 | 2257 | 23–46 min | 0.75–1.25 h | Within planning limit |
 | [34gdd-read](34gdd-read.md) | 5 | 332 | 4–7 min | 0.25–0.5 h | Within planning limit |
+| [34gde-measure](34gde-measure.md) | 33 | 1075 | 11–22 min | 0.5–0.75 h | Within planning limit |
+| [34gdea-import](34gdea-import.md) | 46 | 2146 | 22–43 min | 0.75–1.25 h | Within planning limit |
+| [34gdf-upload](34gdf-upload.md) | 28 | 1282 | 13–26 min | 0.5–1 h | Within planning limit |
+| [34gdg-network](34gdg-network.md) | 41 | 2118 | 22–43 min | 0.75–1.25 h | Within planning limit |
+| [34gdga-revision](34gdga-revision.md) | 34 | 1738 | 18–35 min | 0.5–1 h | Within planning limit |
+| [34ge-owner](34ge-owner.md) | 24 | 1291 | 13–26 min | 0.5–1 h | Within planning limit |
+| [34gea-policy](34gea-policy.md) | 15 | 447 | 5–9 min | 0.25–0.5 h | Within planning limit |
+| [34geb-reload](34geb-reload.md) | 40 | 2000 | 20–40 min | 0.75–1.25 h | Within planning limit |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 175 current checkpoints.
+- [x] Count the exact source edits for all 183 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [x] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [x] Update the full roadmap, navigation and recovery instructions.
-- [x] Recheck total lesson counts after splitting; the current 243 slots are not a fixed final count.
-- [ ] Apply the same direct style and typing limit to the 68 remaining feature lessons as they are written.
+- [x] Recheck total lesson counts after splitting; the current 247 slots are not a fixed final count.
+- [ ] Apply the same direct style and typing limit to the 64 remaining feature lessons as they are written.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)
 
