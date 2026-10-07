@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 190 cumulative lessons, about 169–321.75 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 200 cumulative lessons, about 176.5–334.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **253 proposed slots: 190 current checkpoints and 63 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **262 proposed slots: 200 current checkpoints and 62 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -217,6 +217,16 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [35ca · Upload changed stroke instances only](journey/35ca-sync.md) | 0.75–1.25 hours | Synchronize a stroke batch, draw it and retain vertex buffers through camera-only changes. |
 | [35cb · Connect the stroke lane to the document renderer](journey/35cb-render.md) | 0.75–1.25 hours | Draw document strokes with shared depth, correct device density and complete Close accounting. |
 | [35d · Insert a line through the real command dock](journey/35d-input.md) | 0.75–1.25 hours | Insert an editable line as one undoable command and prove its width in actual browser pixels. |
+| [36 · Retain connected source geometry](journey/36-chain.md) | 0.75–1.25 hours | Retain exact line or polyline owners while preparing checked shared display points. |
+| [36a · Link adjacent spans and headed ends](journey/36a-links.md) | 0.75–1.25 hours | Link every nonzero span to its neighbours and identify free ends carrying arrowheads. |
+| [36b · Project neighbours for bounded stroke joins](journey/36b-join.md) | 0.75–1.25 hours | Calculate a shared bounded cross-section from projected neighbour directions. |
+| [36ba · Extrude the joined stroke body](journey/36ba-body.md) | 0.75–1.25 hours | Build joined stroke vertices and analytic coverage from the prepared projected cross-sections. |
+| [36bb · Extrude free-end arrowheads](journey/36bb-heads.md) | 0.75–1.25 hours | Draw flagged arrowheads with stable screen dimensions and limit their share of short spans. |
+| [36c · Share instance drawing with connected strokes](journey/36c-lane.md) | 0.75–1.25 hours | Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout. |
+| [36d · Retain connected paths in document history](journey/36d-document.md) | 0.75–1.25 hours | Retain exact connected source owners as independent document rows and history values. |
+| [36db · Place original connected coordinates and count shared owners](journey/36db-placement.md) | 0.75–1.25 hours | Place original path coordinates before display conversion and count shared source/display owners once. |
+| [36da · Draw connected document rows](journey/36da-render.md) | 0.75–1.25 hours | Synchronize placed connected paths into one shared lane and release every instance on Close. |
+| [36e · Insert connected paths and arrow examples](journey/36e-input.md) | 0.75–1.25 hours | Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

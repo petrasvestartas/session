@@ -1,0 +1,1 @@
+depth, strokes, paths, size: [640, 480]

@@ -12471,6 +12471,738 @@
           "why": "Register the command checks."
         }
       ]
+    },
+    {
+      "id": "36-chain",
+      "title": "Retain connected source geometry",
+      "page": "journey/36-chain.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain exact line or polyline owners while preparing checked shared display points.",
+      "trace": "original owner → checked display points → repeated-point removal → shared display cache",
+      "question": "Why are repeated display points removed without changing the source polyline?",
+      "answer": "A zero-length projected span has no direction for extrusion. Display preparation can omit it while saving and editing retain the original coordinates.",
+      "result": "Run the exact-source checks. Display conversion retains the original kernel coordinates and owner.",
+      "experiment": "Prepare a polyline with repeated points and clone its prepared value. The display points are shared, and the original coordinates remain unchanged.",
+      "production": "This checkpoint prepares original source ownership and display points. Neighbour records, arrow flags and GPU drawing follow.",
+      "tests": true,
+      "frame": "journey/checks/36-chain.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Retain an Rc owner for a line or polyline, then prepare checked display points. Consecutive repeated points add no span; the original coordinates remain intact.\n\nKeep a shared display-point cache beside the exact source. Cloning document history can share both values without rounding coordinates in the kernel object. Neighbour and head records follow next.\n\n![The source remains authoritative while display points are checked.](../illustrations/journey-36.svg)",
+      "browser_caption": "Chrome still draws the existing line example. Connected records are checked natively before their GPU pipeline is introduced.",
+      "checks": "Native checks prove original source ownership, precision, shared display points and invalid input refusal. Existing actual Chrome stroke checks remain; connected drawing follows.",
+      "edits": [
+        {
+          "path": "src/chain.rs",
+          "before": null,
+          "snippet": "journey/code/36-chain-01.rs",
+          "why": "Retain exact source geometry while deriving finite neighbour and head records."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod stroke;",
+          "snippet": "journey/code/36-chain-02.rs",
+          "why": "Register connected geometry and its checks."
+        },
+        {
+          "path": "src/chain_tests.rs",
+          "before": null,
+          "snippet": "journey/code/36-chain-03.rs",
+          "why": "Copy source precision, links, degeneracy and packed-head checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "35d-input"
+    },
+    {
+      "id": "36a-links",
+      "title": "Link adjacent spans and headed ends",
+      "page": "journey/36a-links.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Link every nonzero span to its neighbours and identify free ends carrying arrowheads.",
+      "trace": "shared display points → previous/current/next → closed wraparound → headed free spans → 72-byte payload",
+      "question": "Why are repeated display points removed without changing the source polyline?",
+      "answer": "A zero-length projected span has no direction for extrusion. Display preparation can omit it while saving and editing retain the original coordinates.",
+      "result": "Run neighbour checks. A closed chain wraps both ends and suppresses free arrowheads; an open chain uses its first and last nonzero spans.",
+      "experiment": "Inspect a closed triangle and an open headed chain. Verify their source coordinates survive repeated-point removal exactly.",
+      "production": "Connected records are complete here. The projected join shader, arrowheads and browser drawing follow.",
+      "tests": true,
+      "frame": "journey/checks/36a-links.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Turn adjacent display points into connected span records. Repeated display points already have no span; the source still retains them.\n\nClosed paths wrap their neighbour references and suppress free-end arrows. Open paths carry head flags only at their first and last nonzero spans. Pack each record into an explicit 72-byte instance layout.\n\n![Neighbours and free-end flags describe one connected source path.](../illustrations/journey-36a.svg)",
+      "browser_caption": "Chrome retains the existing real line example while native tests verify connected instance records.",
+      "checks": "Native tests prove closed wraparound, repeated-point handling, free-end head flags and exact 72-byte packing. Connected GPU pixels follow.",
+      "edits": [
+        {
+          "path": "src/chain.rs",
+          "before": "        Ok(Self { source, points: Rc::new(points), colour, width, heads })\n    }\n\n}\n",
+          "snippet": "journey/code/36a-links-01.rs",
+          "why": "Describe neighbours and heads without modifying the original source."
+        },
+        {
+          "path": "src/chain_link_tests.rs",
+          "before": null,
+          "snippet": "journey/code/36a-links-02.rs",
+          "why": "Copy closed-neighbour and headed-span checks.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod chain;",
+          "snippet": "journey/code/36a-links-03.rs",
+          "why": "Register the connected span checks."
+        }
+      ],
+      "image_same_as": "36-chain"
+    },
+    {
+      "id": "36b-join",
+      "title": "Project neighbours for bounded stroke joins",
+      "page": "journey/36b-join.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Calculate a shared bounded cross-section from projected neighbour directions.",
+      "trace": "project adjacent points → reject hidden or zero spans → bisector → bounded cross-section",
+      "question": "Why bound the join when two projected spans nearly reverse?",
+      "answer": "Their bisector becomes unstable as the directions oppose. A bounded cross-section avoids unbounded spikes; later visibility checks still use the original source spans.",
+      "result": "The actual drawing device validates the WGSL helper module. Vertex drawing follows next.",
+      "experiment": "Compare previous/current and current/next directions at a shared endpoint. Both segments must agree on the cross-section.",
+      "production": "This checkpoint introduces connected projection helpers. The following endpoint wires their bounded cross-sections into real vertices.",
+      "tests": true,
+      "frame": "journey/checks/36b-join.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Project adjacent points before calculating their shared joint cross-section. Bound near-reversal joins so an unstable bisector cannot create an unbounded spike.\n\nA hidden neighbour or zero-length projected span falls back to the current segment normal. Vertex extrusion and analytic fragment coverage follow next.\n\n![Projected directions define one bounded cross-section.](../illustrations/journey-36b.svg)",
+      "browser_caption": "Chrome retains the existing verified line while the connected shader is introduced.",
+      "checks": "The actual drawing device validates the complete helper module. Vertex extrusion and connected GPU pixels follow separately.",
+      "edits": [
+        {
+          "path": "src/chain.wgsl",
+          "before": null,
+          "snippet": "journey/code/36b-join-01.wgsl",
+          "why": "Share bounded projected joins while retaining near clipping and edge coverage."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "use std::rc::Rc;",
+          "snippet": "journey/code/36b-join-02.rs",
+          "why": "Expose the actual connected shader source."
+        }
+      ],
+      "image_same_as": "36-chain"
+    },
+    {
+      "id": "36ba-body",
+      "title": "Extrude the joined stroke body",
+      "page": "journey/36ba-body.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Build joined stroke vertices and analytic coverage from the prepared projected cross-sections.",
+      "trace": "clip endpoint → bounded join offset → clip w scaling → shared raster edge → analytic coverage",
+      "question": "Why bound the join when two projected spans nearly reverse?",
+      "answer": "Their bisector becomes unstable as the directions oppose. A bounded cross-section avoids unbounded spikes; later visibility checks still use the original source spans.",
+      "result": "The actual drawing device validates the complete joined-body shader. Real connected instance drawing follows after arrowhead extrusion.",
+      "experiment": "Trace both triangles meeting at a shared path point. Their end cross-section comes from the same projected neighbours.",
+      "production": "Connected-body extrusion is complete here. Arrowheads, the instance pipeline and browser drawing follow.",
+      "tests": true,
+      "frame": "journey/checks/36ba-body.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Clip each span before dividing by w, then offset its ends along their shared bounded cross-sections. Convert physical-pixel offsets back into clip coordinates using w.\n\nThe triangles of adjacent spans meet along their common endpoint section. Fragment coverage measures distance from the span in screen pixels, retaining constant width under camera changes.\n\n![Shared endpoint sections meet along one raster edge.](../illustrations/journey-36ba.svg)",
+      "browser_caption": "Chrome retains the existing verified line while the connected shader is introduced.",
+      "checks": "The real native drawing device validates the joined vertex and fragment entry points. Connected body turn and pixel checks follow at the pipeline endpoint.",
+      "edits": [
+        {
+          "path": "src/chain.wgsl",
+          "before": "    return bisector / max(dot(bisector, normal), 0.25);\n}\n",
+          "snippet": "journey/code/36ba-body-01.wgsl",
+          "why": "Clip before projection, meet bounded endpoint sections and cover the stroke analytically."
+        }
+      ],
+      "image_same_as": "36b-join"
+    },
+    {
+      "id": "36bb-heads",
+      "title": "Extrude free-end arrowheads",
+      "page": "journey/36bb-heads.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw flagged arrowheads with stable screen dimensions and limit their share of short spans.",
+      "trace": "free-end head flags → projected shaft → bounded head length → split shaft/head seam → triangular coverage",
+      "question": "Why must a clipped end lose its arrowhead?",
+      "answer": "The clipped endpoint is a new display boundary rather than the original source tip. A head there would claim a direction and endpoint the document never contained.",
+      "result": "The actual drawing device validates the headed stroke shader. Connected instance rendering follows next.",
+      "experiment": "Follow Start and End flags through the three six-vertex parts. A closed chain or a near-clipped end must not produce a free arrowhead.",
+      "production": "Shader extrusion now covers joined bodies and free-end heads. The following endpoint connects its complete 72-byte instance layout and pixel checks.",
+      "tests": true,
+      "frame": "journey/checks/36bb-heads.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Use the source head flags at free endpoints and suppress a head when clipping removes its tip. Limit the head length so short arrows retain a shaft.\n\nDraw the body and each head as separate six-vertex parts. Cut the shaft at the head base, and use triangular fragment coverage without blending the same interior twice.\n\n![Flagged original ends own screen-sized triangular heads.](../illustrations/journey-36bb.svg)",
+      "browser_caption": "Chrome retains the existing verified line while the connected shader is introduced.",
+      "checks": "The actual native drawing device validates the headed vertex and fragment entry points. Turn, head flag, short-arrow and opacity pixels follow with the connected pipeline.",
+      "edits": [
+        {
+          "path": "src/chain.wgsl",
+          "before": "    @location(4) @interpolate(flat) half_width: f32,\n}",
+          "snippet": "journey/code/36bb-heads-01.wgsl",
+          "why": "Carry head shape separately from body coverage."
+        },
+        {
+          "path": "src/chain.wgsl",
+          "before": "    let corner = corners[index]; let half_width = width * view.density * 0.5;\n    var position = select(a, b, corner.x > 0.5);",
+          "snippet": "journey/code/36bb-heads-02.wgsl",
+          "why": "Shape real free-end heads and partition their shaft at the base."
+        },
+        {
+          "path": "src/chain.wgsl",
+          "before": "    return Output(position, colour, screen(position), screen(a), direction, half_width);",
+          "snippet": "journey/code/36bb-heads-03.wgsl",
+          "why": "Identify body fragments independently of head triangles."
+        },
+        {
+          "path": "src/chain.wgsl",
+          "before": "    let distance = dot(input.pixel - input.origin, perpendicular(input.direction));\n    let coverage = clamp(input.half_width + 0.5 - abs(distance), 0.0, 1.0);",
+          "snippet": "journey/code/36bb-heads-04.wgsl",
+          "why": "Cover triangle edges while preserving a continuous, singly blended shaft seam."
+        }
+      ],
+      "image_same_as": "36ba-body"
+    },
+    {
+      "id": "36c-lane",
+      "title": "Share instance drawing with connected strokes",
+      "page": "journey/36c-lane.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Reuse the stroke lane lifetime and view code with the connected 72-byte instance layout.",
+      "trace": "checked connected records → one changed-data buffer → same view uniform → 18 vertices → complete release",
+      "question": "Why reuse the same lane rather than copying its upload and lifetime code?",
+      "answer": "Both formats need identical changed-data reuse, queue writes and Close release. Their shader, attributes, stride and vertex count are the differences.",
+      "result": "Run native GPU checks. Connected turns and headed ends draw with the same density and upload policy as the original stroke lane.",
+      "experiment": "Synchronize a connected batch twice and change only the camera. Its instance buffer and upload count must remain unchanged.",
+      "production": "Both stroke formats now render on actual GPU instances. Document placement and connected browser commands follow.",
+      "tests": true,
+      "frame": "journey/checks/36c-lane.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Parameterize the existing lane by shader, attributes, byte stride and vertex count. Keep its view uniform, changed-data reuse and release policy shared.\n\nValidate connected endpoints, neighbours and head flags before changing buffers. Real GPU checks draw turns and all arrowhead options, inspect alpha at the join and retain original line width checks.\n\n![The two layouts share one upload and lifetime implementation.](../illustrations/journey-36c.svg)",
+      "browser_caption": "Chrome retains the existing verified line while the connected shader is introduced.",
+      "checks": "Native GPU pixels check joined alpha coverage, all headed ends, stable original widths, actual payload accounting, invalid records and empty release. Connected browser rows follow next.",
+      "edits": [
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "    data: Vec<u8>,",
+          "snippet": "journey/code/36c-lane-01.rs",
+          "why": "Keep format-specific layout beside the shared lane resources."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "        u32::try_from(data.len() / 44).map_err(|_| \"Too many stroke instances\")?;",
+          "snippet": "journey/code/36c-lane-02.rs",
+          "why": "Validate each connected record, then reuse the same changed-byte transaction."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "        pass.set_vertex_buffer(0, vertices.slice(..)); pass.draw(0..6, 0..(self.data.len() / 44) as u32);",
+          "snippet": "journey/code/36c-lane-03.rs",
+          "why": "Draw the correct number of vertices for either instance format."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "        [self.data.len() as u64 / 44, self.vertices.as_ref().map_or(0, wgpu::Buffer::size)]",
+          "snippet": "journey/code/36c-lane-04.rs",
+          "why": "Count actual instances from their format-specific stride."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {",
+          "snippet": "journey/code/36c-lane-05.rs",
+          "why": "Construct either layout using one pipeline and view implementation."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "            label: Some(\"stroke\"), source: wgpu::ShaderSource::Wgsl(crate::stroke::SHADER.into()),",
+          "snippet": "journey/code/36c-lane-06.rs",
+          "why": "Use the actual shader belonging to this instance layout."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "                buffers: &[wgpu::VertexBufferLayout { array_stride: 44, step_mode: wgpu::VertexStepMode::Instance,\n                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32] }],",
+          "snippet": "journey/code/36c-lane-07.rs",
+          "why": "Bind the exact attributes and byte stride."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "        Self { pipeline, uniform, group, vertices: None, data: Vec::new(), uploads: 0, uploaded_bytes: 0 }",
+          "snippet": "journey/code/36c-lane-08.rs",
+          "why": "Retain both layout parameters for synchronized draw and accounting."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "        use wgpu::util::DeviceExt;\n        let mut data = Vec::new();",
+          "snippet": "journey/code/36c-lane-09.rs",
+          "why": "Keep the buffer initialization trait at the method that uses it."
+        }
+      ],
+      "image_same_as": "36bb-heads"
+    },
+    {
+      "id": "36d-document",
+      "title": "Retain connected paths in document history",
+      "page": "journey/36d-document.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain exact connected source owners as independent document rows and history values.",
+      "trace": "prepared source → checked row ID and saved GUID → shared history owners → complete Close",
+      "question": "Why transform original coordinates before converting placed endpoints to f32?",
+      "answer": "The model can magnify rounding error. Bounds and editing use original doubles; the display conversion belongs after the world placement.",
+      "result": "Run native identity and history checks. Connected rows keep their original source coordinates and disappear after complete Close.",
+      "experiment": "Insert the same prepared source twice. The document rows need distinct saved GUIDs while both retain the same immutable kernel source.",
+      "production": "Connected source rows and history ownership are complete here. Precise placement/accounting and renderer wiring follow next.",
+      "tests": true,
+      "frame": "journey/checks/36d-document.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Give each connected path a checked object identity and saved GUID beside its exact source. Keep connected rows independent of mesh and single-line tables.\n\nHistory shares immutable source and display owners. Close drops both active and history roots; saving connected rows remains an explicit error until mixed-geometry serialization.\n\n![Connected rows and history retain their original sources.](../illustrations/journey-36d.svg)",
+      "browser_caption": "Chrome retains the existing verified line while the connected shader is introduced.",
+      "checks": "Native checks prove distinct document identities, original precision, history retention and complete source release. Precise placement and resource ledgers follow.",
+      "edits": [
+        {
+          "path": "src/chain.rs",
+          "before": "impl Source {\n    pub fn coordinates",
+          "snippet": "journey/code/36d-document-01.rs",
+          "why": "Expose the original identity and allocation for document ownership accounting."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "#[derive(Clone)]\npub struct Scene {",
+          "snippet": "journey/code/36d-document-02.rs",
+          "why": "Place original source points before producing connected world display spans."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "objects: Vec::new(), lines: Vec::new(),",
+          "snippet": "journey/code/36d-document-03.rs",
+          "why": "Initialize the connected row table independently of mesh and line tables."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        bounds\n    }",
+          "snippet": "journey/code/36d-document-04.rs",
+          "why": "Include all original placed path points in world bounds."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn lines(&self)",
+          "snippet": "journey/code/36d-document-05.rs",
+          "why": "Allocate distinct saved identities and validate complete placement before changing a row."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn clear(&mut self) {",
+          "snippet": "journey/code/36d-document-06.rs",
+          "why": "Drop connected row capacity along with the rest of the document."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    if !scene.lines().is_empty() {",
+          "snippet": "journey/code/36d-document-07.rs",
+          "why": "Refuse unsupported mixed saving rather than silently omitting connected geometry."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod chain;",
+          "snippet": "journey/code/36d-document-09.rs",
+          "why": "Register the precise path-document checks."
+        },
+        {
+          "path": "src/path_document_tests.rs",
+          "before": null,
+          "snippet": "journey/code/36d-document-10.rs",
+          "why": "Copy precise placement, original identity, sharing and release checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "36c-lane"
+    },
+    {
+      "id": "36db-placement",
+      "title": "Place original connected coordinates and count shared owners",
+      "page": "journey/36db-placement.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Place original path coordinates before display conversion and count shared source/display owners once.",
+      "trace": "source doubles → checked model → placed double bounds → final f32 records → distinct allocation ledgers",
+      "question": "Why transform original coordinates before converting placed endpoints to f32?",
+      "answer": "The model can magnify rounding error. Bounds and editing use original doubles; the display conversion belongs after the world placement.",
+      "result": "Run precise placement and accounting checks. Invalid models leave the row unchanged and Close clears every ledger.",
+      "experiment": "Apply a large translation to the precise source. Its world bounds use the original double coordinates, and Undo/Redo retain the same owner.",
+      "production": "Connected rows now retain precise placement and truthful row/cache ledgers. Renderer wiring follows next.",
+      "tests": true,
+      "frame": "journey/checks/36db-placement.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Transform original path coordinates before preparing final display spans. Validate every placed point before changing the row model.\n\nCount row capacity and distinct shared display buffers across the active scene and both history branches. These ledgers cover path rows and display coordinates; full kernel payload and driver overhead remain outside their scope.\n\n![Original coordinates produce precise world bounds before the final display conversion.](../illustrations/journey-36db.svg)",
+      "browser_caption": "Chrome retains the existing verified line while the connected shader is introduced.",
+      "checks": "Native tests cover precise placed bounds, atomic invalid-placement refusal, shared source/cache accounting, Undo/Redo and complete Close.",
+      "edits": [
+        {
+          "path": "src/chain.rs",
+          "before": "    pub fn coordinates",
+          "snippet": "journey/code/36db-placement-01.rs",
+          "why": "Identify source allocations separately for each kernel type."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "impl PathObject {",
+          "snippet": "journey/code/36db-placement-02.rs",
+          "why": "Convert placed original doubles to display records only at the drawing boundary."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn lines(&self)",
+          "snippet": "journey/code/36db-placement-03.rs",
+          "why": "Validate every placed point before committing the row model."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "pub fn lines<'a>",
+          "snippet": "journey/code/36db-placement-04.rs",
+          "why": "Count row capacity and shared display buffers once across active and history roots."
+        },
+        {
+          "path": "src/path_placement_tests.rs",
+          "before": null,
+          "snippet": "journey/code/36db-placement-05.rs",
+          "why": "Copy precise world placement, sharing, atomic refusal and release checks.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod chain;",
+          "snippet": "journey/code/36db-placement-06.rs",
+          "why": "Register precise placement and accounting checks."
+        }
+      ],
+      "image_same_as": "36d-document"
+    },
+    {
+      "id": "36da-render",
+      "title": "Draw connected document rows",
+      "page": "journey/36da-render.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Synchronize placed connected paths into one shared lane and release every instance on Close.",
+      "trace": "accepted document paths → placed connected records → changed-data lane → shared depth pass → complete resource release",
+      "question": "Why does a camera change leave connected vertex uploads unchanged?",
+      "answer": "The accepted world endpoints and styles have not changed. Projection, viewport and display density live in the shared view uniform.",
+      "result": "Run mixed-document GPU checks. Connected paths draw beside meshes and lines; Close clears all live path and instance resources.",
+      "experiment": "Synchronize unchanged paths and then zoom. The connected upload count must stay unchanged; closing drops its buffer.",
+      "production": "Actual document-connected GPU drawing is complete here. The following endpoint registers connected examples in the real command dock and checks browser pixels.",
+      "tests": true,
+      "frame": "journey/checks/36da-render.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Line"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/stroke-input.cjs",
+      "story": "Prepare world connected records when accepted document state changes. Draw them through the same depth pass as meshes and independent single strokes.\n\nKeep camera and density in the shared view uniform, count actual connected payloads separately, and discard empty buffers on Close. GPU values retain no kernel path owner.\n\n![Placed paths synchronize once while camera changes reuse their instances.](../illustrations/journey-36da.svg)",
+      "browser_caption": "Native rendering includes a connected source path; real browser insertion follows next.",
+      "checks": "Native mixed geometry draws a real connected source path. Weak owner, row/cache ledgers, exact instance allocation, view-only reuse and complete Close are verified.",
+      "edits": [
+        {
+          "path": "src/renderer.rs",
+          "before": "    strokes: crate::stroke_gpu::Lane,",
+          "snippet": "journey/code/36da-render-01.rs",
+          "why": "Retain one connected lane beside the independent stroke batch."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let strokes = crate::stroke_gpu::Lane::new(&device, format);",
+          "snippet": "journey/code/36da-render-02.rs",
+          "why": "Create the connected pipeline with the actual drawing device and target format."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "depth, strokes, size: [640, 480]",
+          "snippet": "journey/code/36da-render-03.rs",
+          "why": "Retain the connected lane in renderer ownership."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {",
+          "snippet": "journey/code/36da-render-04.rs",
+          "why": "Reuse checked connected instances and expose their actual allocation counters."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            + self.strokes.uploaded_bytes",
+          "snippet": "journey/code/36da-render-05.rs",
+          "why": "Include initialized connected payloads in upload phase measurements."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.strokes.view(&self.queue, transform, self.size, self.density);",
+          "snippet": "journey/code/36da-render-06.rs",
+          "why": "Update camera uniforms independently of connected segment bytes."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            self.strokes.draw(&mut pass);",
+          "snippet": "journey/code/36da-render-07.rs",
+          "why": "Draw connected bodies and heads in the existing shared depth pass."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-stroke-usage\",",
+          "snippet": "journey/code/36da-render-08.rs",
+          "why": "Inspect real path resources without changing the earlier mesh and line counter meanings."
+        }
+      ]
+    },
+    {
+      "id": "36e-input",
+      "title": "Insert connected paths and arrow examples",
+      "page": "journey/36e-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels.",
+      "trace": "accepted dock command → original source → one history transaction → connected lane → pixel and release checks",
+      "question": "Why are connected examples inserted as original geometry rather than disconnected display spans?",
+      "answer": "Their source retains identity, original coordinates and arrowhead policy. Display spans can be rebuilt while Undo and future editing still operate on one document object.",
+      "result": "Close, type Example Polyline, then zoom. Type Example Arrow to add a source line with heads at both original endpoints.",
+      "experiment": "Undo and Redo each example. Camera changes reuse vertex uploads, and Close clears both the connected GPU buffer and document owners.",
+      "production": "Connected rendering, source ownership and example commands are complete. General interactive curve construction, picking, visibility and mixed-document saving remain in their planned chapters.",
+      "tests": true,
+      "frame": "journey/checks/36e-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Polyline"
+        },
+        {
+          "command": "Example Arrow"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/path-input.cjs",
+      "story": "Register Example Polyline and Example Arrow in the existing command dock. Prepare the original geometry before accepting one undoable insertion.\n\nChrome checks actual join alpha, headed area, camera-only buffer reuse, high-DPI rendering, Undo/Redo and complete Close. The examples remain source-backed paths, ready for later visibility, picking and editing.\n\n![One document action inserts one connected original source.](../illustrations/journey-36e.svg)",
+      "browser_caption": "Actual Chrome draws a joined polyline and both original arrow tips from real command insertion.",
+      "checks": "Native command checks prove one-step history, original Line/Polyline kinds, stable identity and complete Close. Headed Chrome checks join alpha, real arrow pixels, zoom/projection reuse and DPR1/2.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    AddLine,",
+          "snippet": "journey/code/36e-input-01.rs",
+          "why": "Expose connected examples as document actions."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddLine => {",
+          "snippet": "journey/code/36e-input-02.rs",
+          "why": "Prepare the original path or headed line before accepting one history transaction."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Example Line\",",
+          "snippet": "journey/code/36e-input-03.rs",
+          "why": "Expose the two source-backed examples in actual dock completion and Help."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"example line\" => Action::AddLine,",
+          "snippet": "journey/code/36e-input-04.rs",
+          "why": "Dispatch accepted input through the editor."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod chain;",
+          "snippet": "journey/code/36e-input-05.rs",
+          "why": "Register the undoable source-kind checks."
+        },
+        {
+          "path": "src/path_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/36e-input-06.rs",
+          "why": "Copy source-kind, one-step Undo/Redo, identity and Close checks.",
+          "copy": true
+        }
+      ]
     }
   ]
 }

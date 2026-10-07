@@ -1,0 +1,1 @@
+    if !scene.lines().is_empty() || !scene.paths().is_empty() {

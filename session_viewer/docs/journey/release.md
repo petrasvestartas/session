@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 190 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
+**All 200 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 

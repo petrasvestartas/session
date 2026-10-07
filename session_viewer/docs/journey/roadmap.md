@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 253 lesson slots; 190 current checkpoints have fresh build and Chrome evidence. 63 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 262 lesson slots; 200 current checkpoints have fresh build and Chrome evidence. 62 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -38,7 +38,7 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records which of the 175 checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 190 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 200 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -458,7 +458,25 @@ Strokes, markers, clouds and normals: reference 04b, 04c, 04d, 05, 09. Cloud str
 
 - [x] 35d · [Insert a line through the real command dock](35d-input.md) — Actual pixels, density, camera reuse and undoable input; native, optimized WebAssembly and headed Chrome checks pass.
 
-- [ ] 36 · Join strokes and draw arrowheads — keep the line owner through generated triangles.
+- [x] 36 · [Retain connected source geometry](36-chain.md) — Exact line/polyline owners and shared checked display points.
+
+- [x] 36a · [Link adjacent spans and headed ends](36a-links.md) — Closed wraparound, neighbour records and head flags.
+
+- [x] 36b · [Project neighbours for bounded stroke joins](36b-join.md) — Checked projected directions and bounded shared cross-sections.
+
+- [x] 36ba · [Extrude the joined stroke body](36ba-body.md) — Shared endpoint raster edges, near clipping and analytic coverage.
+
+- [x] 36bb · [Extrude free-end arrowheads](36bb-heads.md) — Original tip flags, bounded screen length and partitioned coverage.
+
+- [x] 36c · [Share instance drawing with connected strokes](36c-lane.md) — Actual connected pixels, alpha joins, headed ends and shared buffer policy.
+
+- [x] 36d · [Retain connected paths in document history](36d-document.md) — Original sources, distinct row identities and complete Close.
+
+- [x] 36db · [Place original connected coordinates and count shared owners](36db-placement.md) — Precise world bounds, atomic validation and actual row/cache ledgers.
+
+- [x] 36da · [Draw connected document rows](36da-render.md) — Shared depth, unchanged-data reuse and complete resource release.
+
+- [x] 36e · [Insert connected paths and arrow examples](36e-input.md) — Actual dock commands, alpha joins, arrows, history and Close.
 
 - [ ] 37 · Draw points and control markers — size them on screen and retain their source IDs.
 

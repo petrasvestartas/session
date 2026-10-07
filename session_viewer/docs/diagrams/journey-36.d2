@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Original Line or Polyline Rc owner"
+b: "Checked display points; skip repeated neighbours"
+c: "Previous / current / next endpoints"
+d: "Free ends carry Start / End / Both head flags"
+e: "Closed chain wraps and has no free heads"
+f: "72-byte connected segment records"
+a -> b
+b -> c
+c -> d
+c -> e
+d -> f
+e -> f

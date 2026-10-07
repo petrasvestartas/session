@@ -202,17 +202,27 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [35ca-sync](35ca-sync.md) | 37 | 1789 | 18–36 min | 0.75–1.25 h | Within planning limit |
 | [35cb-render](35cb-render.md) | 47 | 2409 | 25–49 min | 0.75–1.25 h | Within planning limit |
 | [35d-input](35d-input.md) | 15 | 664 | 7–14 min | 0.75–1.25 h | Within planning limit |
+| [36-chain](36-chain.md) | 53 | 2190 | 22–44 min | 0.75–1.25 h | Within planning limit |
+| [36a-links](36a-links.md) | 27 | 1200 | 12–24 min | 0.75–1.25 h | Within planning limit |
+| [36b-join](36b-join.md) | 23 | 1225 | 13–25 min | 0.75–1.25 h | Within planning limit |
+| [36ba-body](36ba-body.md) | 34 | 2045 | 21–41 min | 0.75–1.25 h | Within planning limit |
+| [36bb-heads](36bb-heads.md) | 33 | 2017 | 21–41 min | 0.75–1.25 h | Within planning limit |
+| [36c-lane](36c-lane.md) | 42 | 2456 | 25–50 min | 0.75–1.25 h | Within planning limit |
+| [36d-document](36d-document.md) | 41 | 1903 | 20–39 min | 0.75–1.25 h | Within planning limit |
+| [36db-placement](36db-placement.md) | 38 | 1782 | 18–36 min | 0.75–1.25 h | Within planning limit |
+| [36da-render](36da-render.md) | 20 | 1194 | 12–24 min | 0.75–1.25 h | Within planning limit |
+| [36e-input](36e-input.md) | 26 | 1391 | 14–28 min | 0.75–1.25 h | Within planning limit |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 190 current checkpoints.
+- [x] Count the exact source edits for all 200 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [x] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [x] Update the full roadmap, navigation and recovery instructions.
-- [x] Recheck total lesson counts after splitting; the current 253 slots are not a fixed final count.
-- [ ] Apply the same direct style and typing limit to the 63 remaining feature lessons as they are written.
+- [x] Recheck total lesson counts after splitting; the current 262 slots are not a fixed final count.
+- [ ] Apply the same direct style and typing limit to the 62 remaining feature lessons as they are written.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)
 

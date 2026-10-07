@@ -1,0 +1,1 @@
+            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),

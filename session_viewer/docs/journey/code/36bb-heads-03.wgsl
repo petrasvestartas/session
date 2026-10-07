@@ -1,0 +1,1 @@
+    return Output(position, colour, screen(position), screen(a), direction, half_width, 0u, 0.0);
