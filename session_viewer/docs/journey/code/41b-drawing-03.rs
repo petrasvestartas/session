@@ -1,0 +1,1 @@
+Self { source, vertices, normals, indices, index_count }

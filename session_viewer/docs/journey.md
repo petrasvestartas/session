@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 214 cumulative lessons, about 187–351.75 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 225 cumulative lessons, about 195.25–365.5 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **273 proposed slots: 214 current checkpoints and 59 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **282 proposed slots: 225 current checkpoints and 57 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -241,6 +241,17 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [38d · Insert an original curve and inspect its controls](journey/38d-input.md) | 0.75–1.25 hours | Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers. |
 | [39 · Resolve original visibility for every drawing kind](journey/39-visible.md) | 0.75–1.25 hours | Respect original source visibility consistently in drawing, Fit, control markers and mesh picking while retaining hidden sources. |
 | [39a · Share surface depth across all ink lanes](journey/39a-depth.md) | 0.75–1.25 hours | Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion. |
+| [40 · Carry the original mesh colour mode into display data](journey/40-colour.md) | 0.75–1.25 hours | Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries. |
+| [40a · Compare original colour modes through actual input](journey/40a-input.md) | 0.75–1.25 hours | Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen. |
+| [40b · Draw meshes beyond the sixteen-bit index limit](journey/40b-indices.md) | 0.75–1.25 hours | Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting. |
+| [41 · Retain checked source normals beside display positions](journey/41-normals.md) | 0.75–1.25 hours | Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout. |
+| [41a · Transform normals with nonuniform surface placement](journey/41a-placement.md) | 0.75–1.25 hours | Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening. |
+| [41b · Draw smooth normals and sharp surface faces](journey/41b-drawing.md) | 0.75–1.25 hours | Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback. |
+| [41c · Reveal oriented world normals in the renderer](journey/41c-view.md) | 0.75–1.25 hours | Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history. |
+| [41ca · Inspect smooth normals and face winding through commands](journey/41ca-input.md) | 0.75–1.25 hours | Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes. |
+| [41d · Bound the ground grid and its camera depth range](journey/41d-grid.md) | 0.75–1.25 hours | Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range. |
+| [41e · Draw a depth-correct grid with shared stroke buffers](journey/41e-drawing.md) | 0.75–1.25 hours | Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting. |
+| [41f · Inspect the ground grid through actual commands](journey/41f-input.md) | 0.75–1.25 hours | Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

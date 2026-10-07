@@ -1,0 +1,1 @@
+std::mem::size_of::<u32>()

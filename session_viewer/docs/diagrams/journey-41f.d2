@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "View Grid On / Off"
+b: "Checked viewport grid state"
+c: "Cached renderer settings and actual grid buffer"
+d: "BRG axes and depth-correct source occlusion"
+e: "Camera changes reuse grid and source buffers"
+f: "Undo / Redo remains original document history"
+g: "Close releases document; Grid Off releases viewport grid"
+a -> b
+b -> c
+c -> d
+c -> e
+b -> f
+b -> g

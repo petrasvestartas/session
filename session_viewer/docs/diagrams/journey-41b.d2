@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Shared position / colour / normal / index buffers"
+b: "144-byte per-row placement settings"
+c: "Placed interpolated smooth normal"
+d: "Derivative sharp face normal"
+e: "Choose present source normal or flat fallback"
+f: "Safe normalization and actual lighting"
+g: "Camera and placement reuse geometry"
+a -> c
+b -> c
+c -> e
+d -> e
+e -> f
+a -> g

@@ -1,0 +1,1 @@
+self.vertices.size() + self.normals.size() + self.indices.size()

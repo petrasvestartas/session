@@ -1,0 +1,16 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Checked grid strokes"
+b: "Shared 44-byte CSS stroke lane"
+c: "Surface depth already written"
+d: "Strict read-only grid depth"
+e: "Surface on / above ground hides grid"
+f: "Grid ahead of below-ground geometry remains visible"
+g: "Only changed data uploads; disable releases allocation"
+a -> b
+b -> d
+c -> d
+d -> e
+d -> f
+b -> g

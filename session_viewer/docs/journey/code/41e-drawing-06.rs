@@ -1,0 +1,1 @@
+uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size:

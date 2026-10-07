@@ -1,0 +1,1 @@
+source.vertices().len() * 24 + source.normals().len() * 12 + source.indices().len() * 4

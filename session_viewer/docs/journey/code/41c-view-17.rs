@@ -1,0 +1,1 @@
+    renderer.draw_mode(&view, background, transform, normals);

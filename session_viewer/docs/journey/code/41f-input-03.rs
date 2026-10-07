@@ -1,0 +1,1 @@
+self.camera = Camera { aspect, grid: self.camera.grid, ..Camera::default() };

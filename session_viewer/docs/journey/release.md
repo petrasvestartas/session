@@ -1,6 +1,6 @@
 # Course release: command-line checkpoints
 
-**All 214 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
+**All 225 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
 
 This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
 
@@ -10,7 +10,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 183 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 64 remaining feature lessons.
+All 225 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 57 remaining planned feature subjects.
 
 ## Command-panel typing split
 
@@ -269,3 +269,13 @@ npm --prefix ../session_tests run course -- generate
 Capture checks the build fingerprints and runs each uploaded specimen’s handwritten Rust example before launching Chrome. Each checkpoint gets a fresh browser context; reload and Back checks within that checkpoint keep the same page. These commands use `target` and leave `workspace/journey` untouched. The separate `structure` audit includes the unfinished production destination comparison; its remaining differences must be resolved before declaring the entire course complete.
 
 [Return to the course](../journey.md)
+
+## Original colours, normals and ground grid
+
+Eleven checkpoints40–41f preserve original mesh colour modes and arrays, carry32-bit display indices, retain checked source normals and transform them with oriented bounded cofactors. Actual GPU pixels verify source smoothing, sharp derivative fallback, nonuniform/sheared/reflected/flattened placement and visible opposite winding. The winding fixture uses independent panels because the kernel decoder repairs inconsistent shared-edge winding. Original normal attributes remain in the editable source and its saved protobuf.
+
+Actual commands compare object, point and face colours and sharp/smooth/winding specimens. View Normals remains outside document history; camera and placement changes reuse geometry. Exact GPU ledgers now include the separate12-byte-per-vertex normal stream and144-byte per-object settings, while the separate view uniform remains80bytes. A native65,537-vertex source proves the Uint32 drawing path; file admission is still bounded until the later loading subjects.
+
+The checked finite ground grid uses the current pink, yellow-green and blue axes. Its enabled camera depth includes distant corners and axis ends without enlarging source Fit bounds. Grid ink tests read-only strict surface depth; native pixels check surfaces above, on and below the ground in both projections/densities. Cached settings keep camera events from rebuilding identical CPU data, and unchanged GPU geometry retains its allocation. View Grid input preserves the setting through pose reset and source Close; Grid Off releases the viewport buffer. The course grid starts off at this stage; full production visual defaults are reconciled in91/94.
+
+Chrome checks original colour and normal attributes by saving actual downloads and reopening those files, then comparing the actual pixels at DPR1/2. Grid input additionally checks real BRG colours, coplanar source occlusion, projection/zoom reuse, history independence and separate release. These are local hardware proofs, not Lenovo measurements or full-course acceptance. The later nested tree, modelling, large-scene and final rendering subjects remain in the roadmap.

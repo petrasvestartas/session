@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 273 lesson slots; 214 current checkpoints have fresh build and Chrome evidence. 59 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 282 lesson slots; 225 current checkpoints have fresh build and Chrome evidence. 57 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -38,7 +38,7 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records which of the 175 checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 214 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 225 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -506,9 +506,27 @@ Strokes, markers, clouds and normals: reference 04b, 04c, 04d, 05, 09. Cloud str
 
 - [x] 39a · [Share surface depth across all ink lanes](39a-depth.md) — Actual hidden/front ink and flat coplanar edge pixels at both projections, zoom and DPR.
 
-- [ ] 40 · Carry face and vertex colours — preserve the source colour rules in display data.
+- [ ] 40 · [Carry the original mesh colour mode into display data](40-colour.md) — Original arrays, mode gating, interpolation, face duplication and actual pixels.
 
-- [ ] 41 · Read smooth and sharp surfaces — make normals and face winding visible and testable.
+- [ ] 40a · [Compare original colour modes through actual input](40a-input.md) — Actual colour pixels, camera reuse, history and editable download/reopen.
+
+- [ ] 40b · [Draw meshes beyond the sixteen-bit index limit](40b-indices.md) — Actual high-index source triangle, exact bytes and resource release.
+
+- [ ] 41 · [Retain checked source normals beside display positions](41-normals.md) — Source preservation, finite smooth directions and explicit flat fallback.
+
+- [ ] 41a · [Transform normals with nonuniform surface placement](41a-placement.md) — Perpendicularity, oriented reflection, flattening and finite range.
+
+- [ ] 41b · [Draw smooth normals and sharp surface faces](41b-drawing.md) — Shared normal stream, placed lighting, exact GPU resources and reuse.
+
+- [ ] 41c · [Reveal oriented world normals in the renderer](41c-view.md) — Sharp winding, smooth interpolation and independent diagnostic view settings.
+
+- [ ] 41ca · [Inspect smooth normals and face winding through commands](41ca-input.md) — Actual diagnostic pixels, source history and editable normal-attribute roundtrips.
+
+- [ ] 41d · [Bound the ground grid and its camera depth range](41d-grid.md) — Checked finite grid, current BRG axes and far corner reach.
+
+- [ ] 41e · [Draw a depth-correct grid with shared stroke buffers](41e-drawing.md) — Actual axis/depth pixels, exact allocations, change-only upload and release.
+
+- [ ] 41f · [Inspect the ground grid through actual commands](41f-input.md) — Current BRG pixels, source occlusion, view state, buffer reuse and independent release.
 
 ## Selection, editing and the application interface
 

@@ -1,0 +1,1 @@
+output.position = view.transform * world;

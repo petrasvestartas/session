@@ -14368,6 +14368,1111 @@
         }
       ],
       "image_same_as": "38d-input"
+    },
+    {
+      "id": "40-colour",
+      "title": "Carry the original mesh colour mode into display data",
+      "page": "journey/40-colour.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Preserve original object, point and face colour modes through the kernel render adapter, including shared face boundaries.",
+      "trace": "original mesh colour mode and arrays → authoritative kernel extraction → checked display vertices → actual colour pixels",
+      "question": "Why does a face-coloured mesh duplicate a shared corner?",
+      "answer": "A single GPU vertex has one colour. Two adjacent faces with different colours need separate display vertices at their shared corner while the original mesh topology stays unchanged.",
+      "result": "Run source colour checks for object, point and face modes. Display duplication follows the kernel rules while original topology and colour arrays remain intact.",
+      "experiment": "Supply incomplete point or face colour arrays. The active mode falls back to object colour, following the kernel adapter rather than inventing partial display rules.",
+      "production": "The existing kernel adapter already preserves colour modes. This checkpoint adds original colour specimens and verifies their actual mapping and pixels; real input follows next. Opacity belongs to chapter 93.",
+      "tests": true,
+      "frame": "journey/checks/40-colour.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Curve"
+        },
+        {
+          "command": "Controls On"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/curve-input.cjs",
+      "story": "Use the kernel’s current colour policy rather than duplicate its interpretation in the viewer. A complete active point-colour array shares interpolated display vertices; active face colours duplicate triangle corners.\n\nKeep the original mesh and colour arrays intact. Object mode and incomplete arrays fall back to object colour. This is the existing opaque RGB presentation; alpha handling remains a later subject.\n\n![Original colour modes choose shared interpolation or face corner duplication.](../illustrations/journey-40.svg)",
+      "browser_caption": "Actual Chrome draws a sampled quadratic arch and its three original curve control markers.",
+      "checks": "Native checks prove colour-mode gating, exact source preservation, shared point interpolation, duplicated face boundaries and object-colour fallback. Actual renderer pixels distinguish red/blue faces, green shared point colours and uniform object colour.",
+      "edits": [
+        {
+          "path": "src/colour.rs",
+          "before": null,
+          "snippet": "journey/code/40-colour-01.rs",
+          "why": "Build original colour-mode specimens while retaining shared kernel topology."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod mesh;",
+          "snippet": "journey/code/40-colour-02.rs",
+          "why": "Register original colour specimens and extraction checks."
+        },
+        {
+          "path": "src/colour_tests.rs",
+          "before": null,
+          "snippet": "journey/code/40-colour-03.rs",
+          "why": "Copy active mode, exact topology/arrays, shared interpolation, face duplication and fallback checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "38d-input"
+    },
+    {
+      "id": "40a-input",
+      "title": "Compare original colour modes through actual input",
+      "page": "journey/40a-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Insert original object/point/face colour specimens through real input and preserve their modes through Save/reopen.",
+      "trace": "actual colour example command → original source mode → one mesh history insertion → real pixels → editable download/reopen",
+      "question": "What should survive when a coloured mesh is saved and reopened?",
+      "answer": "Its original topology, active colour mode and stored arrays must survive. Display vertices can be recreated from that source without baking an interpolated pixel colour into the geometry.",
+      "result": "Close, type Example Face Colors. Compare Example Point Colors and Example Object Color in separate empty documents.",
+      "experiment": "Save each colour specimen and reopen the downloaded file. The same view must show the same source colour pixels; Undo/Redo still follows the original insertion.",
+      "production": "Original colour-mode input, drawing and editable roundtrips are complete. Inherited tree colour overrides remain in52/53, and alpha handling remains in93.",
+      "tests": true,
+      "frame": "journey/checks/40a-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Face Colors"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/colour-input.cjs",
+      "story": "Add three real dock commands that insert original colour-mode specimens. Each commits one prepared mesh in the existing history.\n\nExtend the original file validator to accept known colour modes and bounded, complete finite packed RGBA records. Incomplete colour counts keep the kernel object-colour fallback; incomplete RGBA records are refused.\n\nChrome compares object uniformity, interpolated point colours and sharp red/blue face boundaries. Save/reopen must reconstruct those pixels from retained original modes and arrays.\n\n![Original colour mode survives actual input, history and editable roundtrips.](../illustrations/journey-40a.svg)",
+      "browser_caption": "Actual Chrome draws two adjacent source faces with separate red and blue colours.",
+      "checks": "Native command and protobuf checks prove original colour mode, topology, arrays, one-step history and roundtrip preservation. Chrome verifies actual colours, camera buffer reuse, Undo/Redo, downloaded-file reopening and Close at DPR1/2.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    AddCurve,",
+          "snippet": "journey/code/40a-input-01.rs",
+          "why": "Expose original mesh colour specimens as editor actions."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddCurve => {",
+          "snippet": "journey/code/40a-input-02.rs",
+          "why": "Insert one original colour-mode mesh in a single history transaction."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Example Curve\",",
+          "snippet": "journey/code/40a-input-03.rs",
+          "why": "Expose original colour comparisons in dock completion and Help."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"example curve\" => Action::AddCurve,",
+          "snippet": "journey/code/40a-input-04.rs",
+          "why": "Dispatch actual colour input through the existing editor."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod colour;",
+          "snippet": "journey/code/40a-input-05.rs",
+          "why": "Register original colour history and editable roundtrip checks."
+        },
+        {
+          "path": "src/colour_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/40a-input-06.rs",
+          "why": "Copy original mode/array roundtrip, stable row identity, one-step Undo/Redo and Close checks.",
+          "copy": true
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    if mesh.color_mode != 0 { return Err(\"Per-face and per-vertex colours arrive later\"); }",
+          "snippet": "journey/code/40a-input-07.rs",
+          "why": "Accept known source colour modes and preserve only complete finite packed colour records."
+        },
+        {
+          "path": "src/document_tests.rs",
+          "before": "meshes[0].color_mode = 1;",
+          "snippet": "journey/code/40a-input-08.rs",
+          "why": "Copy unknown-mode refusal while accepting the newly implemented colour modes.",
+          "copy": true
+        },
+        {
+          "path": "src/document_phase_tests.rs",
+          "before": "message.objects.as_mut().unwrap().meshes[0].color_mode = 1;",
+          "snippet": "journey/code/40a-input-09.rs",
+          "why": "Copy the invalid-mode phase fixture with an actually unsupported mode.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "40b-indices",
+      "title": "Draw meshes beyond the sixteen-bit index limit",
+      "page": "journey/40b-indices.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Preserve kernel u32 indices through display and GPU drawing, with truthful payload and allocation accounting.",
+      "trace": "original large mesh → checked u32 display indices → Uint32 GPU draw → exact byte counters → real high-index pixels",
+      "question": "Why can a small triangle need a thirty-two-bit index buffer?",
+      "answer": "Its corners may refer to vertices beyond 65,535 in a larger shared vertex table. Truncating those indices draws the wrong corners or produces a degenerate triangle.",
+      "result": "Run a real source mesh with 65,537 vertices and a triangle referencing the highest vertex. The rendered triangle must appear correctly.",
+      "experiment": "Check both initialized index bytes and actual buffer sizes. Thirty-two-bit indices use four bytes each; source geometry and vertex sharing remain unchanged.",
+      "production": "The display index limit is removed while draw count and missing-index checks remain. Large-file budgets, full mixed loading and streaming follow in64–68.",
+      "tests": true,
+      "frame": "journey/checks/40b-indices.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Face Colors"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/colour-input.cjs",
+      "story": "Keep the kernel’s u32 indices through the display adapter and GPU draw call. Do not truncate high vertex references to fit an earlier demonstration layout.\n\nUpdate both CPU capacity and initialized GPU-byte accounting. Actual readback draws a source triangle referencing vertex65,536; complete Close still releases its source and display allocation.\n\n![Original high vertex references stay thirty-two-bit through GPU drawing.](../illustrations/journey-40b.svg)",
+      "browser_caption": "Actual Chrome draws two adjacent source faces with separate red and blue colours.",
+      "checks": "Native original-source checks retain high indices and exact original topology. Actual GPU readback verifies the high-index triangle, allocated/initialized bytes, shared geometry accounting and Close release.",
+      "edits": [
+        {
+          "path": "src/mesh.rs",
+          "before": "    indices: Vec<u16>,",
+          "snippet": "journey/code/40b-indices-01.rs",
+          "why": "Keep kernel index precision in retained display topology."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "indices: Vec<u16>)",
+          "snippet": "journey/code/40b-indices-02.rs",
+          "why": "Accept complete thirty-two-bit triangle references."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "        let indices: Result<Vec<u16>, _> = render.indices.into_iter().map(u16::try_from).collect();\n        Self::new(vertices, indices.map_err(|_| \"Mesh exceeds this lesson's 16-bit index capacity\")?)",
+          "snippet": "journey/code/40b-indices-03.rs",
+          "why": "Retain the authoritative kernel indices without narrowing them."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "std::mem::size_of::<u16>()",
+          "snippet": "journey/code/40b-indices-04.rs",
+          "why": "Count actual retained index capacity."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "pub fn indices(&self) -> &[u16]",
+          "snippet": "journey/code/40b-indices-05.rs",
+          "why": "Expose the actual display index type to drawing and picking."
+        },
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "wgpu::IndexFormat::Uint16",
+          "snippet": "journey/code/40b-indices-06.rs",
+          "why": "Interpret uploaded index bytes with their exact GPU format."
+        },
+        {
+          "path": "src/geometry_cache.rs",
+          "before": "source.indices().len() * 2",
+          "snippet": "journey/code/40b-indices-07.rs",
+          "why": "Count initialized index payload bytes independently of driver allocation."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "baseline[4] + 16 * 24 + 16 * 2",
+          "snippet": "journey/code/40b-indices-08.rs",
+          "why": "Copy the updated spare-capacity oracle for the real index layout.",
+          "copy": true
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod mesh;",
+          "snippet": "journey/code/40b-indices-09.rs",
+          "why": "Register actual original high-index checks."
+        },
+        {
+          "path": "src/index_width_tests.rs",
+          "before": null,
+          "snippet": "journey/code/40b-indices-10.rs",
+          "why": "Copy original high-index topology, correct displayed corners and missing-vertex refusal checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "40a-input"
+    },
+    {
+      "id": "41-normals",
+      "title": "Retain checked source normals beside display positions",
+      "page": "journey/41-normals.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain a checked normal stream from the original kernel adapter while preserving source attributes and the existing position/colour layout.",
+      "trace": "original vertex normal attributes → kernel normal extraction → finite normalized display stream → retained payload accounting",
+      "question": "Why does an absent normal remain a zero vector rather than inventing a smooth normal?",
+      "answer": "Zero explicitly requests the existing flat derivative normal. A present kernel normal is the source’s smoothing choice; preserving that distinction keeps sharp surfaces sharp.",
+      "result": "Run normal-stream checks. Original attributes remain exact, valid nonzero normals become bounded unit vectors, and missing normals retain the flat fallback.",
+      "experiment": "Prepare a source normal of length five. Its display direction is unit length while its original nx/ny/nz attributes remain unchanged.",
+      "production": "Normal data and CPU accounting are complete. Correct placement transforms and actual smooth/flat shader drawing follow in the next endpoints.",
+      "tests": true,
+      "frame": "journey/checks/41-normals.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Face Colors"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/colour-input.cjs",
+      "story": "Keep normals in a separate checked stream beside existing display positions and colours. Use the kernel adapter’s source normals; normalize finite nonzero vectors without overflow.\n\nZero normals keep the existing flat fallback. Retain original attributes untouched and include normal capacity in CPU display accounting before adding its GPU stream.\n\n![Original normal attributes produce a separate checked display stream.](../illustrations/journey-41.svg)",
+      "browser_caption": "Actual Chrome draws two adjacent source faces with separate red and blue colours.",
+      "checks": "Native checks prove original attribute preservation, finite normalized normals, explicit flat zeros, mismatch/NaN refusal and true CPU retained capacity. Existing actual colour drawing remains the browser baseline.",
+      "edits": [
+        {
+          "path": "src/normals.rs",
+          "before": null,
+          "snippet": "journey/code/41-normals-01.rs",
+          "why": "Normalize bounded display directions safely while preserving an explicit flat fallback."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod mesh;",
+          "snippet": "journey/code/41-normals-02.rs",
+          "why": "Register normal preparation and its source checks."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "    vertices: Vec<[f32; 6]>,",
+          "snippet": "journey/code/41-normals-03.rs",
+          "why": "Retain normal data independently of the established position/colour stream."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "        Ok(Self { vertices, indices })",
+          "snippet": "journey/code/41-normals-04.rs",
+          "why": "Give manually created display meshes explicit flat normals by default."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "        Self::new(vertices, render.indices)",
+          "snippet": "journey/code/41-normals-05.rs",
+          "why": "Carry kernel-extracted normal directions into checked display preparation."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "    pub fn payload_bytes(&self) -> usize {",
+          "snippet": "journey/code/41-normals-06.rs",
+          "why": "Require one finite checked normal per display vertex without touching original geometry."
+        },
+        {
+          "path": "src/mesh.rs",
+          "before": "            + self.indices.capacity() * std::mem::size_of::<u32>()",
+          "snippet": "journey/code/41-normals-07.rs",
+          "why": "Count actual retained normal capacity in CPU display bytes."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "baseline[4] + 16 * 24 + 16 * 4",
+          "snippet": "journey/code/41-normals-08.rs",
+          "why": "Copy the normal-capacity oracle for a display mesh retaining three normals.",
+          "copy": true
+        },
+        {
+          "path": "src/normal_source_tests.rs",
+          "before": null,
+          "snippet": "journey/code/41-normals-09.rs",
+          "why": "Copy exact original attributes, normalized directions, flat zeros, malformed data and overflow-safe checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "40a-input"
+    },
+    {
+      "id": "41a-placement",
+      "title": "Transform normals with nonuniform surface placement",
+      "page": "journey/41a-placement.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Prepare a finite oriented normal matrix that stays perpendicular under nonuniform scale, shear, reflection and flattening.",
+      "trace": "accepted affine placement → cofactor columns → bounded common scale → oriented world-normal matrix",
+      "question": "Why does multiplying a normal by the position matrix fail under nonuniform scale?",
+      "answer": "A normal must remain perpendicular to transformed tangent vectors. Cofactor columns preserve that relationship and face orientation, including reflections and rank-two flattening.",
+      "result": "Run perpendicularity, reflection, flattening and extreme-scale tests. Translation does not change the normal matrix.",
+      "experiment": "Shear and scale two source tangents differently. Their transformed cross product must align with the transformed source normal.",
+      "production": "Normal placement preparation is complete. GPU settings and smooth/flat drawing follow next; original source normals remain unchanged.",
+      "tests": true,
+      "frame": "journey/checks/41a-placement.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Face Colors"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/colour-input.cjs",
+      "story": "Build the normal matrix from cofactors of the placement’s three linear columns. Translation is excluded. A shared positive rescale keeps GPU entries finite without changing direction.\n\nThis follows oriented face winding under reflection and still works for a flattened plane. Rank-one collapse produces zero normals, preserving the flat fallback rather than pretending an inverse exists.\n\n![Normal placement stays perpendicular to transformed surface tangents.](../illustrations/journey-41a.svg)",
+      "browser_caption": "Actual Chrome draws two adjacent source faces with separate red and blue colours.",
+      "checks": "Native tests verify perpendicular transformed tangents, translation independence, oriented reflection, rank-two/rank-one collapse, huge finite scale and invalid affine refusal.",
+      "edits": [
+        {
+          "path": "src/normals.rs",
+          "before": "    Ok(vector.map(|v| v / length))\n}",
+          "snippet": "journey/code/41a-placement-01.rs",
+          "why": "Prepare bounded cofactor columns for oriented affine normal transformation."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod normals;",
+          "snippet": "journey/code/41a-placement-02.rs",
+          "why": "Register nonuniform, reflected and singular placement checks."
+        },
+        {
+          "path": "src/normal_matrix_tests.rs",
+          "before": null,
+          "snippet": "journey/code/41a-placement-03.rs",
+          "why": "Copy perpendicularity, translation independence, winding, collapse and finite-range checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "40a-input"
+    },
+    {
+      "id": "41b-drawing",
+      "title": "Draw smooth normals and sharp surface faces",
+      "page": "journey/41b-drawing.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Upload the retained source normal stream and its oriented placement matrix, with real smooth interpolation and explicit flat-face fallback.",
+      "trace": "checked source normals → shared GPU normal buffer → per-row cofactor uniform → interpolated world direction or derivative face normal",
+      "question": "Why calculate the flat derivative normal even when a smooth normal is present?",
+      "answer": "Fragment derivatives need neighbouring invocations. Calculate them before choosing the normal, then safely normalize the selected finite direction without a zero-vector division.",
+      "result": "Render flat and smooth source faces. Smooth directions change the actual pixels; absent normals retain sharp faces, and placements change normal settings without uploading geometry.",
+      "experiment": "Translate a mesh, then shear it. Translation rewrites position settings only; shear also rewrites the normal matrix while all shared geometry buffers remain unchanged.",
+      "production": "The actual renderer now uses source normals and correct affine normal placement. Normal examples, winding inspection and actual command/history/browser checks follow next.",
+      "tests": true,
+      "frame": "journey/checks/41b-drawing.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Face Colors"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/colour-input.cjs",
+      "story": "Add one shared normal buffer beside positions and colours. Give each object a bounded cofactor matrix in its placement uniform; translation cannot change its normal direction.\n\nInterpolate present normals across the face, normalize safely in the fragment shader, and use the derivative face normal for explicit zero normals. Count actual normal allocations and initialized bytes separately from later uniform changes.\n\n![Source normals and per-row placements meet in actual surface drawing.](../illustrations/journey-41b.svg)",
+      "browser_caption": "Actual Chrome draws two adjacent source faces with separate red and blue colours.",
+      "checks": "Actual native renderer pixels check smooth interpolation, flat fallback and nonuniform/sheared/reflected/flattened placement. Resource checks prove shared buffer sizes, exact writes, no camera/placement geometry uploads and final Close release.",
+      "edits": [
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "    vertices: wgpu::Buffer,",
+          "snippet": "journey/code/41b-drawing-01.rs",
+          "why": "Share the checked normal stream with the geometry’s existing GPU lifetime."
+        },
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "        let bytes: Vec<u8> = source.indices().iter()",
+          "snippet": "journey/code/41b-drawing-02.rs",
+          "why": "Upload three finite floats for each display vertex normal."
+        },
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "Self { source, vertices, indices, index_count }",
+          "snippet": "journey/code/41b-drawing-03.rs",
+          "why": "Retain the normal allocation beside position and index buffers."
+        },
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "self.vertices.size() + self.indices.size()",
+          "snippet": "journey/code/41b-drawing-04.rs",
+          "why": "Report actual normal allocation bytes as shared geometry."
+        },
+        {
+          "path": "src/gpu_geometry.rs",
+          "before": "        pass.set_vertex_buffer(0, self.vertices.slice(..));",
+          "snippet": "journey/code/41b-drawing-05.rs",
+          "why": "Bind the normal stream independently from position and colour attributes."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],\n                }],",
+          "snippet": "journey/code/41b-drawing-06.rs",
+          "why": "Describe three normal floats in shader attribute two."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    previous: [u8; 80],",
+          "snippet": "journey/code/41b-drawing-07.rs",
+          "why": "Retain previous model, selection and normal-matrix settings for change-only writes."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "fn settings(object: &Object, selected: bool) -> [u8; 80] {\n    let mut bytes = [0; 80];",
+          "snippet": "journey/code/41b-drawing-08.rs",
+          "why": "Allocate 64 model bytes, 16 selection bytes and 64 normal-matrix bytes."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());\n    bytes",
+          "snippet": "journey/code/41b-drawing-09.rs",
+          "why": "Serialize bounded normal cofactors after model and selection settings."
+        },
+        {
+          "path": "src/gpu_mesh.rs",
+          "before": "for (start, end) in [(0, 64), (64, 80)]",
+          "snippet": "journey/code/41b-drawing-10.rs",
+          "why": "Rewrite only the settings region whose bytes changed."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {\n        let next",
+          "snippet": "journey/code/41b-drawing-11.rs",
+          "why": "Refuse invalid initial placement before consuming an ID or creating a row."
+        },
+        {
+          "path": "src/geometry_cache.rs",
+          "before": "source.vertices().len() * 24 + source.indices().len() * 4",
+          "snippet": "journey/code/41b-drawing-12.rs",
+          "why": "Count initialized normal payload separately from retained GPU capacity."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "self.settings_allocations as u64 * 80",
+          "snippet": "journey/code/41b-drawing-13.rs",
+          "why": "Count complete initial object settings without confusing the separate ink view uniform."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    selection: vec4<f32>,",
+          "snippet": "journey/code/41b-drawing-14.rs",
+          "why": "Keep the shader uniform layout identical to the 144-byte host settings."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    @location(1) world: vec3<f32>,",
+          "snippet": "journey/code/41b-drawing-15.rs",
+          "why": "Interpolate the placed source normal across the rasterized face."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {",
+          "snippet": "journey/code/41b-drawing-16.rs",
+          "why": "Read the normal attribute from the separate shared stream."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    output.world = world.xyz;",
+          "snippet": "journey/code/41b-drawing-17.rs",
+          "why": "Transform a direction without adding the object’s translation."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    // Neighbouring fragments give two directions along this triangle's surface.\n    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));",
+          "snippet": "journey/code/41b-drawing-18.rs",
+          "why": "Choose source smoothing or sharp derivatives, then normalize without zero division or squaring huge vectors."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod normals;",
+          "snippet": "journey/code/41b-drawing-19.rs",
+          "why": "Register atomic placement and normal-stream GPU boundary checks."
+        },
+        {
+          "path": "src/normal_gpu_tests.rs",
+          "before": null,
+          "snippet": "journey/code/41b-drawing-20.rs",
+          "why": "Copy invalid-placement refusal and unchanged identity-allocation checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "40a-input"
+    },
+    {
+      "id": "41c-view",
+      "title": "Reveal oriented world normals in the renderer",
+      "page": "journey/41c-view.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw an oriented world-normal diagnostic with sharp-face winding and finite source smoothing, independently of source history.",
+      "trace": "source normals or sharp derivatives → actual front-facing orientation → world-normal RGB → view-only camera settings",
+      "question": "Why do derivatives alone fail to distinguish opposite source face winding?",
+      "answer": "They follow neighbouring rasterized points, so reversed vertex order produces the same screen derivatives. The actual front-facing flag restores oriented sharp-face normals.",
+      "result": "Run actual native diagnostic pixels for sharp, smooth and oppositely wound faces in both projections and densities.",
+      "experiment": "Reverse one face order. Its normal-view blue component changes from one to zero while ordinary double-sided lighting remains readable.",
+      "production": "Actual diagnostic rendering, view state and native oriented pixels are complete. Dock commands, source history and editable roundtrips follow next.",
+      "tests": true,
+      "frame": "journey/checks/41c-view.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Face Colors"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/colour-input.cjs",
+      "story": "Recover oriented sharp-face directions from derivatives and the actual front-facing flag. Present original smooth directions or sharp fallback as world-normal RGB.\n\nExtend camera settings independently from object placement. Keep normal visualization outside document history and reuse all geometry buffers.\n\n![Oriented normal diagnostics use shared geometry and separate view settings.](../illustrations/journey-41c.svg)\n\nThe winding specimen uses independent panels. The kernel decoder repairs inconsistent shared-edge winding, so it would otherwise erase the intentional contrast on reopen.",
+      "browser_caption": "Actual Chrome draws two adjacent source faces with separate red and blue colours.",
+      "checks": "Actual native GPU pixels verify sharp, smooth and reversed winding in both projections at DPR1/2. Existing real colour input remains the Chrome baseline until the diagnostic commands next.",
+      "edits": [
+        {
+          "path": "src/normal_example.rs",
+          "before": null,
+          "snippet": "journey/code/41c-view-01.rs",
+          "why": "Create original source specimens with missing, smooth or oppositely wound normals."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod normals;",
+          "snippet": "journey/code/41c-view-02.rs",
+          "why": "Register actual normal specimens and source/history checks."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    AddColours(crate::colour::Mode),",
+          "snippet": "journey/code/41c-view-03.rs",
+          "why": "Expose source insertion and normal diagnostics as separate editor actions."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "    pub background: Background,",
+          "snippet": "journey/code/41c-view-04.rs",
+          "why": "Retain the diagnostic view outside source document history."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            background: Background::default(),",
+          "snippet": "journey/code/41c-view-05.rs",
+          "why": "Start with ordinary surface lighting."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "                    Action::Background => self.background.toggle(),",
+          "snippet": "journey/code/41c-view-06.rs",
+          "why": "Change normal visualization without adding document history."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;",
+          "snippet": "journey/code/41c-view-07.rs",
+          "why": "Describe camera transform and diagnostic mode in the view uniform."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "output.position = transform * world;",
+          "snippet": "journey/code/41c-view-08.rs",
+          "why": "Use the transform field of the extended view settings."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {",
+          "snippet": "journey/code/41c-view-09.rs",
+          "why": "Receive actual face orientation rather than inferring winding from lighting."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    let face = cross(dpdx(input.world), dpdy(input.world));",
+          "snippet": "journey/code/41c-view-10.rs",
+          "why": "Recover oriented sharp-face normals from raster derivatives and actual front-facing state."
+        },
+        {
+          "path": "src/triangle.wgsl",
+          "before": "    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));",
+          "snippet": "journey/code/41c-view-11.rs",
+          "why": "Map oriented world-normal components into visible diagnostic RGB."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            label: Some(\"view transform\"),\n            size: 64,",
+          "snippet": "journey/code/41c-view-12.rs",
+          "why": "Allocate the complete camera and diagnostic uniform."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    ) {\n        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();\n        self.queue.write_buffer(&self.uniform, 0, &bytes);",
+          "snippet": "journey/code/41c-view-13.rs",
+          "why": "Draw either actual surface lighting or normal diagnostics with shared geometry and ink."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            &editor.camera.uniform(),\n            &mut panel,",
+          "snippet": "journey/code/41c-view-14.rs",
+          "why": "Pass the editor’s diagnostic setting to actual initial or subsequent browser drawing."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                &editor.camera.uniform(),\n                &mut panel,",
+          "snippet": "journey/code/41c-view-15.rs",
+          "why": "Pass the editor’s diagnostic setting to actual initial or subsequent browser drawing."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    transform: &[f32; 16],\n    panel: &mut crate::panel::Panel,",
+          "snippet": "journey/code/41c-view-16.rs",
+          "why": "Carry diagnostic mode through browser surface presentation."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    renderer.draw(&view, background, transform);",
+          "snippet": "journey/code/41c-view-17.rs",
+          "why": "Present actual diagnostic pixels through the maintained surface renderer."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-camera-matrix\",",
+          "snippet": "journey/code/41c-view-18.rs",
+          "why": "Expose current view mode for actual command verification."
+        }
+      ]
+    },
+    {
+      "id": "41ca-input",
+      "title": "Inspect smooth normals and face winding through commands",
+      "page": "journey/41ca-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Compare sharp/smooth source surfaces and actual face winding through real commands, retaining source history and editable normal attributes.",
+      "trace": "sharp / smooth / winding specimen command → one original mesh insertion → View Normals diagnostic → actual direction pixels → source Save / reopen",
+      "question": "Why does a normals view need the front-facing flag for a sharp face?",
+      "answer": "Screen-space derivatives describe the same rasterized surface even when its vertex order reverses. The front-facing flag recovers the oriented face direction, so reversed winding becomes visible.",
+      "result": "Close, type Example Winding, then View Normals On. The neighbouring source faces show opposite blue components; View Normals Off restores surface lighting.",
+      "experiment": "Compare Example Sharp and Example Smooth using View Normals On. The sharp face stays one direction; the smooth face interpolates its original vertex directions.",
+      "production": "Original smooth/flat input, oriented winding diagnostics, history and normal-attribute save/reopen are complete. Full visual styles remain in91; the depth-correct grid follows next.",
+      "tests": true,
+      "frame": "journey/checks/41ca-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Winding"
+        },
+        {
+          "command": "View Reset"
+        },
+        {
+          "command": "View Normals On"
+        }
+      ],
+      "browser_check": "journey/checks/browser/normal-input.cjs",
+      "story": "Insert original sharp, smooth and oppositely wound surfaces through dock commands. View Normals On maps world-normal components from minus one through plus one into visible RGB.\n\nRecover oriented sharp-face normals using the actual front-facing flag. Keep this view setting outside document history; Save/reopen preserves original normal attributes rather than diagnostic pixel colours.\n\n![Original normal attributes and face winding survive real input and editable roundtrips.](../illustrations/journey-41ca.svg)\n\nKeep the oppositely wound panels topologically independent: the kernel’s load policy repairs inconsistent winding across a shared edge.",
+      "browser_caption": "Actual Chrome normals view distinguishes two independent source panels with opposite winding.",
+      "checks": "Native source/history/protobuf checks and actual GPU direction pixels verify flat, smooth and reversed faces. Chrome compares diagnostics at DPR1/2 in both projections, buffer reuse, one-step Undo/Redo, downloaded-file reopening and Close.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    NormalView(bool),",
+          "snippet": "journey/code/41ca-input-01.rs",
+          "why": "Expose source insertion and normal diagnostics as separate editor actions."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddColours(mode) => {",
+          "snippet": "journey/code/41ca-input-02.rs",
+          "why": "Commit one original normal specimen in a single undoable insertion."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Example Face Colors\",",
+          "snippet": "journey/code/41ca-input-03.rs",
+          "why": "Expose normal specimens and diagnostics in actual dock completion and Help."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"example face colors\" => Action::AddColours(crate::colour::Mode::Faces),",
+          "snippet": "journey/code/41ca-input-04.rs",
+          "why": "Dispatch real command input through source and view actions."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod normal_example;",
+          "snippet": "journey/code/41ca-input-06.rs",
+          "why": "Register source normal attributes, view independence, history and editable roundtrip checks."
+        },
+        {
+          "path": "src/normal_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/41ca-input-05.rs",
+          "why": "Copy source normal attributes, exact protobuf roundtrip, independent view mode, one-step history and Close checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "41d-grid",
+      "title": "Bound the ground grid and its camera depth range",
+      "page": "journey/41d-grid.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Prepare a finite bounded ground grid with current BRG axis colours and include its distant corners in the camera depth range.",
+      "trace": "checked spacing and bounded cell count → finite floor lines and BRG axes → corner/axis depth reach → camera far range",
+      "question": "Why can fitting a small object accidentally clip a large ground grid?",
+      "answer": "The scene radius only covers the object. The far depth range must also reach the grid corners relative to the camera target, without changing the object’s Fit bounds.",
+      "result": "Run bounded-grid and depth-range checks. Grid data has a fixed checked maximum, current axis colours and camera reach that includes its distant corners.",
+      "experiment": "Fit a small scene and orbit into an isometric view. Compare a distant grid corner’s depth with the grid disabled and enabled.",
+      "production": "Checked grid preparation and camera range are complete. Actual GPU grid drawing and real grid input follow; defaults use metre-sized course units for the same physical5m half-width as production5000mm.",
+      "tests": true,
+      "frame": "journey/checks/41d-grid.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Winding"
+        },
+        {
+          "command": "View Reset"
+        },
+        {
+          "command": "View Normals On"
+        }
+      ],
+      "browser_check": "journey/checks/browser/normal-input.cjs",
+      "story": "Build finite floor lines and the current pink, yellow-green and blue axes. Validate spacing and cap the number of cells before allocating display data.\n\nInclude grid corners and axis ends in camera depth reach when enabled. Keep Fit tied to source geometry; extending the depth range does not enlarge the source object.\n\n![Bounded grid data and grid corners determine the enabled camera depth range.](../illustrations/journey-41d.svg)",
+      "browser_caption": "Actual Chrome normals view distinguishes two source faces with opposite winding.",
+      "checks": "Native tests verify exact bounded line counts, finite coordinates, axis colours, invalid-spacing/range refusal and actual projected corner depth after small-scene Fit. Actual normal-input Chrome remains the browser baseline.",
+      "edits": [
+        {
+          "path": "src/grid.rs",
+          "before": null,
+          "snippet": "journey/code/41d-grid-01.rs",
+          "why": "Validate and prepare finite grid lines, current axis colours and depth-reach reference points."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod normal_example;",
+          "snippet": "journey/code/41d-grid-02.rs",
+          "why": "Register bounded ground-grid preparation and camera-range checks."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "    pub projection: Projection,",
+          "snippet": "journey/code/41d-grid-03.rs",
+          "why": "Retain the enabled grid extent independently of source scene bounds."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "            projection: Projection::Perspective,",
+          "snippet": "journey/code/41d-grid-04.rs",
+          "why": "Keep prior camera drawing unchanged until actual grid input enables it."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        let far = self.distance + self.radius * 2.0;",
+          "snippet": "journey/code/41d-grid-05.rs",
+          "why": "Include grid corners in enabled far depth without altering source Fit bounds."
+        },
+        {
+          "path": "src/grid_source_tests.rs",
+          "before": null,
+          "snippet": "journey/code/41d-grid-06.rs",
+          "why": "Copy checked grid capacity, source colour values, invalid input and actual camera corner-depth checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "41e-drawing",
+      "title": "Draw a depth-correct grid with shared stroke buffers",
+      "page": "journey/41e-drawing.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw the bounded grid and BRG axes using the shared CSS stroke layout, with actual surface depth and exact independent grid-resource accounting.",
+      "trace": "checked grid strokes → shared 44-byte lane → read-only strict depth → actual floor/axis pixels → change-only buffer ownership",
+      "question": "Why does ground-grid ink use a strict depth comparison?",
+      "answer": "A source face on or above the ground hides the grid. Read-only Less keeps a coplanar grid from overlaying the face, while grid lines in front of below-ground geometry remain visible.",
+      "result": "Run actual grid pixels, surface occlusion and buffer-reuse checks. Grid view changes reuse geometry; disabling releases the active grid allocation.",
+      "experiment": "Place a surface above, on and below the ground. Grid lines must be hidden in the first two cases and visible where nearer in the last.",
+      "production": "Actual finite grid drawing, current axis colours and exact resources are complete. Commands and browser view-state acceptance follow next.",
+      "tests": true,
+      "frame": "journey/checks/41e-drawing.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Winding"
+        },
+        {
+          "command": "View Reset"
+        },
+        {
+          "command": "View Normals On"
+        }
+      ],
+      "browser_check": "journey/checks/browser/normal-input.cjs",
+      "story": "Reuse the existing CSS stroke lane for the finite grid and axes. Give its pipeline strict read-only surface depth; draw it after surfaces and before source ink.\n\nKeep grid buffers independent from document ownership. Upload changed grid data only, count initialized payload separately from current capacity, and release the active allocation when disabled.\n\n![A shared grid lane reads surface depth and owns only changed grid display data.](../illustrations/journey-41e.svg)\n\nCache accepted grid settings as well as packed bytes, so camera events do not rebuild identical grid data on the CPU.",
+      "browser_caption": "Actual Chrome normals view distinguishes two source faces with opposite winding.",
+      "checks": "Actual native GPU checks verify BRG axis pixels, surface/grid ordering at three heights, both projections and DPR1/2. Buffer checks cover exact1100-byte default payload, view reuse, invalid-input atomicity and release; actual normal input remains the Chrome baseline.",
+      "edits": [
+        {
+          "path": "src/depth.rs",
+          "before": "pub fn ink() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::LessEqual) }",
+          "snippet": "journey/code/41e-drawing-01.rs",
+          "why": "Hide coplanar grid ink without changing source strokes’ equal-depth drawing policy."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {\n            label: Some(\"stroke\"),",
+          "snippet": "journey/code/41e-drawing-02.rs",
+          "why": "Share stroke preparation while choosing a separate grid depth policy."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "depth_stencil: Some(crate::depth::ink()),",
+          "snippet": "journey/code/41e-drawing-03.rs",
+          "why": "Use the caller’s explicit ink or grid depth policy."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    markers: crate::stroke_gpu::Lane,",
+          "snippet": "journey/code/41e-drawing-04.rs",
+          "why": "Own grid display data independently from document geometry."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let markers = crate::stroke_gpu::Lane::markers(&device, format);",
+          "snippet": "journey/code/41e-drawing-05.rs",
+          "why": "Create an empty depth-correct grid pipeline."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "uniform, view_group, depth, strokes, paths, markers, size:",
+          "snippet": "journey/code/41e-drawing-06.rs",
+          "why": "Retain the grid lane for the renderer lifetime."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn stats(&self) -> [usize; 4] {",
+          "snippet": "journey/code/41e-drawing-07.rs",
+          "why": "Validate grid settings before mutation and expose actual grid bytes and uploads."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "+ self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes",
+          "snippet": "journey/code/41e-drawing-08.rs",
+          "why": "Include initialized grid payload in cumulative uploads without mixing current allocations."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.markers.view(&self.queue, transform, self.size, self.density);",
+          "snippet": "journey/code/41e-drawing-09.rs",
+          "why": "Update only grid view settings when the camera or display density changes."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            self.strokes.draw(&mut pass);",
+          "snippet": "journey/code/41e-drawing-10.rs",
+          "why": "Draw the grid against actual surface depth before original source ink."
+        }
+      ]
+    },
+    {
+      "id": "41f-input",
+      "title": "Inspect the ground grid through actual commands",
+      "page": "journey/41f-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Enable the finite depth-correct grid through actual dock input, preserving grid view state, source history and unchanged geometry during camera navigation.",
+      "trace": "View Grid On / Off → validated camera grid setting → cached renderer grid lane → actual BRG pixels and source occlusion → view-only history",
+      "question": "What should View Reset and Close do to the ground grid?",
+      "answer": "View Reset changes the pose and preserves the grid setting. Close releases document geometry and history while the viewport grid remains; View Grid Off releases its active buffer.",
+      "result": "Close, type View Grid On and View Isometric. Inspect pink X, yellow-green Y and blue Z axes; View Grid Off releases the grid allocation.",
+      "experiment": "Insert Example Sharp, toggle the grid and reset the view. One Undo still removes that source insertion; grid settings never enter document history.",
+      "production": "Finite grid input, current BRG colours, grid-aware far depth and viewport resource lifetimes are complete. Grid starts off in this teaching stage; production-style defaults and full visual modes are reconciled in91/94.",
+      "tests": true,
+      "frame": "journey/checks/41f-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "View Normals Off"
+        },
+        {
+          "command": "View Grid On"
+        },
+        {
+          "command": "View Reset"
+        },
+        {
+          "command": "View Isometric"
+        }
+      ],
+      "browser_check": "journey/checks/browser/grid-input.cjs",
+      "story": "Add View Grid On and View Grid Off as view actions. Validate settings before changing the camera; synchronize only changed grid settings before actual browser inspection and drawing.\n\nKeep the grid through pose reset and document Close. Its allocation belongs to the viewport, so turning the grid off releases it independently from original scene geometry and history.\n\n![Actual grid commands preserve viewport settings and source history while camera changes reuse buffers.](../illustrations/journey-41f.svg)",
+      "browser_caption": "Actual Chrome draws the finite ground grid and current pink, yellow-green and blue axes.",
+      "checks": "Native checks prove atomic grid validation, pose reset preservation and independent source history. Chrome measures actual BRG axes at DPR1/2 in both projections, coplanar source occlusion, camera buffer reuse, Undo/Redo, document Close and independent grid release.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    NormalView(bool),",
+          "snippet": "journey/code/41f-input-01.rs",
+          "why": "Expose checked viewport grid state through editor input."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "                    Action::NormalView(visible) => self.normal_view = visible,",
+          "snippet": "journey/code/41f-input-02.rs",
+          "why": "Validate finite grid settings before changing viewport state."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "self.camera = Camera { aspect, ..Camera::default() };",
+          "snippet": "journey/code/41f-input-03.rs",
+          "why": "Reset camera pose while preserving the existing grid view setting."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"View Normals Off\",",
+          "snippet": "journey/code/41f-input-04.rs",
+          "why": "Expose actual grid input in dock completion and Help."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"view normals off\" => Action::NormalView(false),",
+          "snippet": "journey/code/41f-input-05.rs",
+          "why": "Dispatch real viewport grid commands through checked editor actions."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "        if let Err(error) = inspect(&editor, &renderer) {",
+          "snippet": "journey/code/41f-input-06.rs",
+          "why": "Synchronize cached grid state before reporting or presenting the actual frame."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-normal-view\",",
+          "snippet": "journey/code/41f-input-07.rs",
+          "why": "Expose actual enabled state and grid allocation/upload counters."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod grid;",
+          "snippet": "journey/code/41f-input-08.rs",
+          "why": "Register atomic grid state, camera reset and source-history checks."
+        },
+        {
+          "path": "src/grid_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/41f-input-09.rs",
+          "why": "Copy validation atomicity, reset preservation, view-only history and independent source/grid release checks.",
+          "copy": true
+        }
+      ]
     }
   ]
 }

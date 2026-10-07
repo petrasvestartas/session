@@ -1,0 +1,1 @@
+        Self::new(vertices, render.indices)

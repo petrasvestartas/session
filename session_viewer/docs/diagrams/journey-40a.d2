@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Object / Point / Face colour command"
+b: "Original mesh mode and colour arrays"
+c: "One undoable source insertion"
+d: "Actual uniform, interpolated or sharp colours"
+e: "Editable Save / reopen retains source mode"
+f: "Camera changes reuse geometry; Close releases it"
+a -> b
+b -> c
+c -> d
+b -> e
+e -> d
+c -> f

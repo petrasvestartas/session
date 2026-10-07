@@ -1,0 +1,1 @@
+message.objects.as_mut().unwrap().meshes[0].color_mode = 4;

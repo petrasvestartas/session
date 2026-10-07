@@ -1,0 +1,1 @@
+source.indices().len() * 4

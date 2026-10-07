@@ -1,0 +1,1 @@
+meshes[0].color_mode = 4;
