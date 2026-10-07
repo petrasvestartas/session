@@ -193,9 +193,12 @@ impl State {
             return None;
         }
 
-        let group: Vec<(u32, Xform)> = rows
-            .iter()
-            .filter_map(|&row| Some((row, self.scene.placement_of(row)?)))
+        // what hangs under a moved row moves with it
+        let group: Vec<(u32, Xform)> = self
+            .scene
+            .with_descendants(&rows)
+            .into_iter()
+            .filter_map(|row| Some((row, self.scene.placement_of(row)?)))
             .collect();
         let main = self.scene.selected?;
         let ray = self.camera.ray(down, self.viewport())?;

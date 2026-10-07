@@ -51,6 +51,9 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 }
 
 // Edge color: the layer edge color when set, else the face rule.
+// A stroke or arrow whose alpha byte is ON_TOP draws over every solid: a plane's axes.
+const ON_TOP: u32 = 0xfeu;
+
 fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
     // no faces: edges follow the face rule
     if ((inst.flags & 1024u) == 0u) {

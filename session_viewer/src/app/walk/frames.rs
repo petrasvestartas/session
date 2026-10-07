@@ -70,29 +70,39 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
     bounds
 }
 
-/// The axis colours of the ground grid: x pink, y yellow-green, z blue.
+/// The axis colours of the ground grid, x pink, y yellow-green, z blue; alpha 254/255 draws them over every solid.
 const AXIS_COLORS: [[f32; 4]; 3] = [
-    [0.910, 0.278, 0.545, 1.0],
-    [0.604, 0.804, 0.196, 1.0],
-    [0.129, 0.588, 0.918, 1.0],
+    [0.910, 0.278, 0.545, 254.0 / 255.0],
+    [0.604, 0.804, 0.196, 254.0 / 255.0],
+    [0.129, 0.588, 0.918, 254.0 / 255.0],
 ];
 
-/// The plane's square and a small gumball on it: x, y and z arrows from the origin to the square's edges, coloured like the grid's axes.
+/// The grey of the ground grid's lines.
+const GRID_GREY: [f32; 4] = [0.55, 0.55, 0.55, 1.0];
+
+/// Cells along each side of a plane's grid.
+const CELLS: usize = 10;
+
+/// The plane as a small grid, 10 by 10 grey cells hidden by solids, and a gumball on it: x, y and z arrows from the origin to the grid's edges, drawn over everything.
 pub fn walk_plane(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Plane, row: u32) -> Row {
     let (o, x, y) = (pl.origin(), pl.x_axis(), pl.y_axis());
     let z = pl.z_axis();
-    let c = [
-        corner(&o, &x, &y, [1.0, 1.0]),
-        corner(&o, &x, &y, [-1.0, 1.0]),
-        corner(&o, &x, &y, [-1.0, -1.0]),
-        corner(&o, &x, &y, [1.0, -1.0]),
-    ];
-    let pen = Pen {
+    let grey = Pen {
         row,
         radius: encode_width(pl.width),
-        color: pack_rgba(pl.linecolor.to_f32()),
+        color: pack_rgba(GRID_GREY),
     };
-    let mut bounds = push_loop(seg, &c, &[[0, 1], [1, 2], [2, 3], [3, 0]], &pen);
+    let mut bounds = AABB::empty();
+
+    // the lines across x, then across y, edge to edge
+    for k in 0..=CELLS {
+        let t = 2.0 * k as f64 / CELLS as f64 - 1.0;
+        let across = [corner(&o, &x, &y, [t, -1.0]), corner(&o, &x, &y, [t, 1.0])];
+        let along = [corner(&o, &x, &y, [-1.0, t]), corner(&o, &x, &y, [1.0, t])];
+        bounds.union_with(&push_loop(seg, &across, &[[0, 1]], &grey));
+        bounds.union_with(&push_loop(seg, &along, &[[0, 1]], &grey));
+    }
+
     let origin = [o[0] as f32, o[1] as f32, o[2] as f32];
     let mut flags = 0;
 
@@ -101,7 +111,7 @@ pub fn walk_plane(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Plane, row: u32)
         let tip = [0, 1, 2].map(|k| (o[k] + axis[k] * plane_size()) as f32);
         let arrow = Pen {
             color: pack_rgba(color),
-            ..pen
+            ..grey
         };
         bounds.union_with(&push_loop(seg, &[origin, tip], &[[0, 1]], &arrow));
         flags |= push_heads(seg, lanes, seg.ribbons.len() - 1, Arrowhead::END);
@@ -130,21 +140,22 @@ mod tests {
     use crate::engine::gpu::Instance;
     use crate::engine::gpu::vectors::{VectorRow, VectorRows};
 
-    /// A plane is its square and three headed axes from its origin to the square's edges, x, y and z in the grid's colours.
+    /// A plane is an 11 by 11 line grey grid and three headed axes from its origin to the grid's edges, x, y and z in the grid's colours, drawn over solids.
     #[test]
-    fn plane_draws_its_square_and_a_gumball() {
+    fn plane_draws_a_grid_and_a_gumball() {
         let mut seg = SegRows::default();
         let mut lanes = LaneRows::default();
         let row = walk_plane(&mut seg, &mut lanes, &Plane::xy_plane(), 3);
         let heads = lanes.get::<VectorRows>().map_or(Vec::new(), |v| v.rows.clone());
         let size = plane_size() as f32;
 
-        assert_eq!(seg.ribbons.len(), 7);
-        assert_eq!((seg.ribbons[4].p0, seg.ribbons[4].p1), ([0.0, 0.0, 0.0], [size, 0.0, 0.0]));
-        assert_eq!((seg.ribbons[5].p0, seg.ribbons[5].p1), ([0.0, 0.0, 0.0], [0.0, size, 0.0]));
-        assert_eq!((seg.ribbons[6].p0, seg.ribbons[6].p1), ([0.0, 0.0, 0.0], [0.0, 0.0, size]));
-        assert_eq!(seg.ribbons[4].color, pack_rgba(AXIS_COLORS[0]));
-        assert_eq!(seg.ribbons[6].color, pack_rgba(AXIS_COLORS[2]));
+        assert_eq!(seg.ribbons.len(), 25);
+        assert_eq!(seg.ribbons[0].color, pack_rgba(GRID_GREY));
+        assert_eq!((seg.ribbons[22].p0, seg.ribbons[22].p1), ([0.0, 0.0, 0.0], [size, 0.0, 0.0]));
+        assert_eq!((seg.ribbons[23].p0, seg.ribbons[23].p1), ([0.0, 0.0, 0.0], [0.0, size, 0.0]));
+        assert_eq!((seg.ribbons[24].p0, seg.ribbons[24].p1), ([0.0, 0.0, 0.0], [0.0, 0.0, size]));
+        assert_eq!(seg.ribbons[22].color >> 24, 0xfe, "axes carry the on-top alpha");
+        assert_eq!(seg.ribbons[24].color, pack_rgba(AXIS_COLORS[2]));
         assert_eq!(heads.len(), 3);
         assert_eq!((heads[2].end, heads[2].heads), ([0.0, 0.0, size], VectorRow::HEAD_END | VectorRow::HEAD_ONLY));
         assert_eq!(row.flags, Instance::FLAG_HEADS);

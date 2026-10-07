@@ -72,9 +72,10 @@ impl State {
         let Some((from, dir)) = self.camera.ray((x, y), self.viewport()) else {
             return false;
         };
-        // every selected row with where it is now
+        // every selected row and what hangs under it, with where it is now
         let group = self
-            .selected_rows()
+            .scene
+            .with_descendants(&self.selected_rows())
             .into_iter()
             .filter_map(|r| Some((r, self.scene.placement_of(r)?)))
             .collect();

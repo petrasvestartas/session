@@ -430,6 +430,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     var c0 = mvp * vec4<f32>(w0, 1.0);
     var c1 = mvp * vec4<f32>(w1, 1.0);
     let contact = seg.color == 0x01000000u;
+    let on_top = (seg.color >> 24u) == ON_TOP;
     if (contact && seg.facing != FACING_UNKNOWN) {
         let normal = face_normal(inst.model, oct16_decode(seg.facing & 0xffffu));
         c0 = depth_layer(c0, w0, normal, LAYER_CONTACT);
@@ -466,7 +467,7 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     let sag = max(sag_terms(w0, c0, abs(seg.sag)), sag_terms(w1, c1, abs(seg.sag)));
 
     // one triangle in front of both ends hides it all: no fragment need ask
-    if (segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w, sag)) {
+    if (!on_top && segment_covered(inst.flags, s0, s1, e0.z / e0.w, e1.z / e1.w, sag)) {
         return dead_vertex();
     }
 
@@ -491,6 +492,9 @@ fn stroke_vertex(vid: u32, layer: u32) -> VsOut {
     }
     if (contact) {
         color = vec4<f32>(0.0, 0.0, 0.0, 1.0);
+    }
+    if (on_top) {
+        color.a = 2.0; // tells the fragment to skip the depth test
     }
 
     o.color = color;
@@ -668,14 +672,15 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
         discard;
     }
 
-    let hidden = !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
+    let on_top = in.color.a > 1.5;
+    let hidden = !on_top && !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
     let alpha = covered * through_glass(hidden);
 
     if (alpha <= 0.0) {
         discard;
     }
 
-    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
+    return InkColor(vec4<f32>(in.color.rgb, min(in.color.a, 1.0) * alpha));
 }
 
 // Visible stroke coverage into an outline mask.

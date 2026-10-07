@@ -530,3 +530,44 @@ pub(super) fn drag(scene: &mut Scene, dice: &mut Dice) {
 
     scene.settle();
 }
+
+/// Moving an element moves what hangs under it, its attributes too.
+#[test]
+fn moving_an_element_moves_its_attributes() {
+    let mut scene = scene();
+    let element = find(&scene, |g| matches!(g, Geometry::Element(_))).unwrap();
+    let (doc, _) = scene.identity_of(element).unwrap();
+    let child = live(&scene)
+        .into_iter()
+        .find(|(_, (owner, guid))| {
+            *owner == doc
+                && scene
+                    .parent_of(doc, guid)
+                    .is_some_and(|parent| parent.borrow().name == "attributes")
+        })
+        .unwrap()
+        .0;
+    let before = scene.placement_of(child).unwrap();
+    scene
+        .transform_rows(&[element], &Xform::translation(0.0, 0.0, 300.0), "move")
+        .unwrap();
+    check(&mut scene);
+    let after = scene.placement_of(child).unwrap();
+    assert_eq!(after.m[14] - before.m[14], 300.0);
+}
+
+/// A move previews what hangs under a row with it: the element's attributes come along.
+#[test]
+fn a_move_carries_what_hangs_under_the_row() {
+    let scene = scene();
+    let element = find(&scene, |g| matches!(g, Geometry::Element(_))).unwrap();
+    let rows = scene.with_descendants(&[element]);
+    assert!(rows.len() > 1 && rows.contains(&element));
+    let (doc, _) = scene.identity_of(element).unwrap();
+
+    for row in rows.into_iter().filter(|&row| row != element) {
+        let (owner, guid) = scene.identity_of(row).unwrap();
+        assert_eq!(owner, doc);
+        assert_eq!(scene.parent_of(owner, &guid).unwrap().borrow().name, "attributes");
+    }
+}

@@ -24,9 +24,11 @@ impl State {
 
         // whole objects follow the cursor; a face, edge or control point commits without a preview
         if crate::app::deform::Target::selected(&self.selection).is_none() {
-            draft.group = rows
-                .iter()
-                .filter_map(|&row| Some((row, self.scene.placement_of(row)?)))
+            draft.group = self
+                .scene
+                .with_descendants(&rows)
+                .into_iter()
+                .filter_map(|row| Some((row, self.scene.placement_of(row)?)))
                 .collect();
         }
 

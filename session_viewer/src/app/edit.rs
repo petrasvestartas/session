@@ -62,6 +62,33 @@ impl Scene {
             .collect()
     }
 
+    /// The rows and every object row below them in their tree, each once: what a move carries along.
+    pub fn with_descendants(&self, rows: &[u32]) -> Vec<u32> {
+        let mut out = rows.to_vec();
+
+        for &row in rows {
+            let Some((doc, _)) = self.identity_of(row) else {
+                continue;
+            };
+            let Some((node, _)) = self.node_of(row) else {
+                continue;
+            };
+            let mut stack = node.borrow().children();
+
+            while let Some(child) = stack.pop() {
+                if let Some(below) = self.row_of(doc, &child.borrow().name) {
+                    out.push(below);
+                }
+
+                stack.extend(child.borrow().children());
+            }
+        }
+
+        out.sort_unstable();
+        out.dedup();
+        out
+    }
+
     /// The row's document and guid, with its session made private.
     fn writable(&mut self, row: u32) -> Option<(usize, Rc<str>)> {
         let (doc, guid) = self.identity_of(row)?;

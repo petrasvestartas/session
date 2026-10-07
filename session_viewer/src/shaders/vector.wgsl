@@ -183,6 +183,9 @@ fn vs_main(@builtin(vertex_index) vid: u32, @builtin(instance_index) row: u32) -
     if (selected) {
         color = vec4<f32>(SELECT_COLOR, color.a);
     }
+    if ((v.color >> 24u) == ON_TOP) {
+        color.a = 2.0; // tells the fragment to skip the depth test
+    }
 
     o.color = color;
     o.p = p;
@@ -300,14 +303,15 @@ fn fs_main(in: VsOut, @builtin(sample_index) sample: u32) -> InkColor {
         discard;
     }
 
-    let hidden = !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
+    let on_top = in.color.a > 1.5;
+    let hidden = !on_top && !ink_visible(in.pos.xy, ink_axis(in), sample, (instances[in.inst_id].flags & FLAG_SMOOTH) != 0u);
     let alpha = covered * through_glass(hidden);
 
     if (alpha <= 0.0) {
         discard;
     }
 
-    return InkColor(vec4<f32>(in.color.rgb, in.color.a * alpha));
+    return InkColor(vec4<f32>(in.color.rgb, min(in.color.a, 1.0) * alpha));
 }
 
 @fragment
