@@ -1,5 +1,7 @@
 use crate::State;
-use crate::app::command::tool::elements::{create, lengths, picked_loops};
+use crate::app::command::tool::elements::{
+    Param, Recipe, create, is_curve, lengths, picked_loops, start,
+};
 use crate::app::command::{Action, Spec};
 use session_rust::Polyline;
 use wood::Plate;
@@ -9,14 +11,20 @@ const USAGE: &str =
 
 pub const SPEC: Spec = Spec::new(
     &["Element Plate"],
-    "Element Plate thickness: a wood plate on every selected closed polyline, the top that far along its normal · Example: Element Plate 40",
+    "Element Plate: pick closed polylines, the outlines · Thickness 60 or a number changes it · Enter creates a plate on each · Element Plate 40 on a selection creates at once",
     parse,
 );
 
-/// Read the thickness, 40 when left out.
+/// Read the typed values; left out they take their defaults and the command asks for picks.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let [thickness] = lengths(rest, [40.0], USAGE)?;
-    Ok(Box::new(ElementPlate(thickness)))
+    Ok(Box::new(ElementPlate {
+        params: vec![Param {
+            name: "Thickness",
+            value: thickness,
+        }],
+        typed: !rest.is_empty(),
+    }))
 }
 
 /// One plate per outline.
@@ -32,18 +40,34 @@ fn build(outlines: &[Polyline], thickness: f64) -> Result<Vec<Plate>, String> {
     }
 }
 
+/// What the command picks and makes.
+static RECIPE: Recipe = Recipe {
+    name: "Element Plate",
+    picks: "closed polylines, the plate outlines",
+    fits: is_curve,
+    options: &[
+        ("Thickness", "Thickness"),
+        ("Create", ""),
+        ("Cancel", "Escape"),
+    ],
+    make,
+};
+
+/// The elements from the picks, in pick order.
+fn make(state: &mut State, values: &[f64]) -> Result<String, String> {
+    create(state, build(&picked_loops(state), values[0])?, "Plate")
+}
+
 #[derive(Debug)]
-struct ElementPlate(f64);
+struct ElementPlate {
+    params: Vec<Param>, // the values, typed or default
+    typed: bool,        // typed values with a fitting selection make the elements at once
+}
 
 impl Action for ElementPlate {
-    /// One plate per selected closed polyline.
+    /// Make the elements, or ask for picks and values.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let plates = build(&picked_loops(state), self.0)?;
-        create(state, plates, "Plate")
-    }
-
-    fn needs_selection(&self) -> bool {
-        true
+        start(state, &RECIPE, self.params.clone(), self.typed)
     }
 }
 

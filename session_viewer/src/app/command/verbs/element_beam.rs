@@ -1,5 +1,7 @@
 use crate::State;
-use crate::app::command::tool::elements::{create, lengths, picked_polylines};
+use crate::app::command::tool::elements::{
+    Param, Recipe, create, is_curve, lengths, picked_polylines, start,
+};
 use crate::app::command::{Action, Spec};
 use session_rust::Polyline;
 use wood::Beam;
@@ -10,14 +12,26 @@ const USAGE: &str =
 
 pub const SPEC: Spec = Spec::new(
     &["Element Beam"],
-    "Element Beam width height: a wood beam of that rectangle along every selected line or polyline, mitred at its corners · Example: Element Beam 120 200",
+    "Element Beam: pick lines or polylines, the axes · Width 150, Height 250 or two numbers change them · Enter creates a beam on each, mitred at its corners · Element Beam 120 200 on a selection creates at once",
     parse,
 );
 
-/// Read the width and height, 120 by 200 when left out.
+/// Read the typed values; left out they take their defaults and the command asks for picks.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let [width, height] = lengths(rest, [120.0, 200.0], USAGE)?;
-    Ok(Box::new(ElementBeam(width, height)))
+    Ok(Box::new(ElementBeam {
+        params: vec![
+            Param {
+                name: "Width",
+                value: width,
+            },
+            Param {
+                name: "Height",
+                value: height,
+            },
+        ],
+        typed: !rest.is_empty(),
+    }))
 }
 
 /// One beam per axis of at least one segment.
@@ -36,18 +50,39 @@ fn build(axes: &[Polyline], width: f64, height: f64) -> Result<Vec<Beam>, String
     }
 }
 
+/// What the command picks and makes.
+static RECIPE: Recipe = Recipe {
+    name: "Element Beam",
+    picks: "lines or polylines, the beam axes",
+    fits: is_curve,
+    options: &[
+        ("Width", "Width"),
+        ("Height", "Height"),
+        ("Create", ""),
+        ("Cancel", "Escape"),
+    ],
+    make,
+};
+
+/// The elements from the picks, in pick order.
+fn make(state: &mut State, values: &[f64]) -> Result<String, String> {
+    create(
+        state,
+        build(&picked_polylines(state), values[0], values[1])?,
+        "Beam",
+    )
+}
+
 #[derive(Debug)]
-struct ElementBeam(f64, f64);
+struct ElementBeam {
+    params: Vec<Param>, // the values, typed or default
+    typed: bool,        // typed values with a fitting selection make the elements at once
+}
 
 impl Action for ElementBeam {
-    /// One beam per selected axis.
+    /// Make the elements, or ask for picks and values.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let beams = build(&picked_polylines(state), self.0, self.1)?;
-        create(state, beams, "Beam")
-    }
-
-    fn needs_selection(&self) -> bool {
-        true
+        start(state, &RECIPE, self.params.clone(), self.typed)
     }
 }
 

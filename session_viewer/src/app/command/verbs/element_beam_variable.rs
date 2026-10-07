@@ -1,5 +1,5 @@
 use crate::State;
-use crate::app::command::tool::elements::{create, picked_loops};
+use crate::app::command::tool::elements::{Param, Recipe, create, is_curve, picked_loops, start};
 use crate::app::command::{Action, Spec};
 use session_rust::Polyline;
 use wood::BeamVariable;
@@ -10,14 +10,17 @@ pub const SPEC: Spec = Spec {
     arity: Some(0),
     ..Spec::new(
         &["Element Beam Variable"],
-        "Element Beam Variable: a wood beam lofted through the picked closed sections in pick order, its axis from the first section's centre to the last's · Example: Element Beam Variable",
+        "Element Beam Variable: pick closed sections in station order · Enter creates the beam, its axis from the first section's centre to the last's · on a selection it creates at once",
         parse,
     )
 };
 
 /// No arguments.
 fn parse(_verb: &str, _rest: &[&str]) -> Result<Box<dyn Action>, String> {
-    Ok(Box::new(ElementBeamVariable))
+    Ok(Box::new(ElementBeamVariable {
+        params: Vec::new(),
+        typed: true,
+    }))
 }
 
 /// One variable beam through sections of one point count, in order.
@@ -36,18 +39,30 @@ fn build(sections: Vec<Polyline>) -> Result<BeamVariable, String> {
     Ok(BeamVariable::through(sections, "beam_variable"))
 }
 
+/// What the command picks and makes.
+static RECIPE: Recipe = Recipe {
+    name: "Element Beam Variable",
+    picks: "closed sections in station order",
+    fits: is_curve,
+    options: &[("Create", ""), ("Cancel", "Escape")],
+    make,
+};
+
+/// The elements from the picks, in pick order.
+fn make(state: &mut State, _values: &[f64]) -> Result<String, String> {
+    create(state, vec![build(picked_loops(state))?], "Beam Variable")
+}
+
 #[derive(Debug)]
-struct ElementBeamVariable;
+struct ElementBeamVariable {
+    params: Vec<Param>, // the values, typed or default
+    typed: bool,        // typed values with a fitting selection make the elements at once
+}
 
 impl Action for ElementBeamVariable {
-    /// One variable beam through the picked sections.
+    /// Make the elements, or ask for picks and values.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let beam = build(picked_loops(state))?;
-        create(state, vec![beam], "Beam Variable")
-    }
-
-    fn needs_selection(&self) -> bool {
-        true
+        start(state, &RECIPE, self.params.clone(), self.typed)
     }
 }
 

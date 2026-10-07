@@ -1,5 +1,7 @@
 use crate::State;
-use crate::app::command::tool::elements::{create, lengths, picked_polylines};
+use crate::app::command::tool::elements::{
+    Param, Recipe, create, is_curve, lengths, picked_polylines, start,
+};
 use crate::app::command::{Action, Spec};
 use session_rust::{Line, Polyline};
 use wood::Column;
@@ -10,14 +12,26 @@ const USAGE: &str =
 
 pub const SPEC: Spec = Spec::new(
     &["Element Column"],
-    "Element Column width depth: a wood column of that rectangle on every selected line, from its start to its end · Example: Element Column 200 300",
+    "Element Column: pick lines, the axes · Width 200, Depth 300 or two numbers change them · Enter creates a column on each · Element Column 200 300 on a selection creates at once",
     parse,
 );
 
-/// Read the width and depth, 200 by 300 when left out.
+/// Read the typed values; left out they take their defaults and the command asks for picks.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
     let [width, depth] = lengths(rest, [200.0, 300.0], USAGE)?;
-    Ok(Box::new(ElementColumn(width, depth)))
+    Ok(Box::new(ElementColumn {
+        params: vec![
+            Param {
+                name: "Width",
+                value: width,
+            },
+            Param {
+                name: "Depth",
+                value: depth,
+            },
+        ],
+        typed: !rest.is_empty(),
+    }))
 }
 
 /// One column per axis, a polyline taking its first and last point.
@@ -40,18 +54,39 @@ fn build(axes: &[Polyline], width: f64, depth: f64) -> Result<Vec<Column>, Strin
     }
 }
 
+/// What the command picks and makes.
+static RECIPE: Recipe = Recipe {
+    name: "Element Column",
+    picks: "lines, the column axes",
+    fits: is_curve,
+    options: &[
+        ("Width", "Width"),
+        ("Depth", "Depth"),
+        ("Create", ""),
+        ("Cancel", "Escape"),
+    ],
+    make,
+};
+
+/// The elements from the picks, in pick order.
+fn make(state: &mut State, values: &[f64]) -> Result<String, String> {
+    create(
+        state,
+        build(&picked_polylines(state), values[0], values[1])?,
+        "Column",
+    )
+}
+
 #[derive(Debug)]
-struct ElementColumn(f64, f64);
+struct ElementColumn {
+    params: Vec<Param>, // the values, typed or default
+    typed: bool,        // typed values with a fitting selection make the elements at once
+}
 
 impl Action for ElementColumn {
-    /// One column per selected line.
+    /// Make the elements, or ask for picks and values.
     fn run(&self, state: &mut State) -> Result<String, String> {
-        let columns = build(&picked_polylines(state), self.0, self.1)?;
-        create(state, columns, "Column")
-    }
-
-    fn needs_selection(&self) -> bool {
-        true
+        start(state, &RECIPE, self.params.clone(), self.typed)
     }
 }
 
