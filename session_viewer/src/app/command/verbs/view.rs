@@ -5,7 +5,7 @@ use crate::camera::View;
 pub const SPEC: Spec = Spec {
     options: &[
         "View Top", "View Side", "View Front", "View Back", "View Left", "View Right",
-        "View Bottom", "View Isometric", "View Reset", "View Perspective", "View Orthographic",
+        "View Bottom", "View Isometric", "View Isometric Back", "View Reset", "View Perspective", "View Orthographic",
         "View Show Edges", "View Hide Edges", "View Show Lines", "View Hide Lines",
         "View Show Points", "View Hide Points", "View Outline", "View Outline On", "View Outline Off",
         "View Lighting", "View Backfaces", "View Xray", "View Point Size", "View Plane Size", "View Names",
@@ -42,6 +42,7 @@ fn parse(_: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
         "left" => Change::Camera(View::Left),
         "bottom" => Change::Camera(View::Bottom),
         "isometric" => Change::Camera(View::Iso),
+        "isometric back" => Change::Camera(View::IsoBack),
         "reset" => Change::Reset,
         "perspective" => Change::Projection(true),
         "orthographic" => Change::Projection(false),

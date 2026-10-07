@@ -35,6 +35,7 @@ pub enum View {
     Top,
     Bottom,
     Iso,
+    IsoBack,
 }
 
 /// Orbit camera: an orientation, a target and a distance.
@@ -375,6 +376,12 @@ impl Camera {
                 let rv = yaw_q.rotate_vector(x);
                 (Quaternion::from_axis_angle(rv, -FRAC_PI_6) * yaw_q).normalized()
             }
+            View::IsoBack => {
+                // the isometric from the opposite corner: turned half round
+                let yaw_q = Quaternion::from_axis_angle(z, PI - FRAC_PI_6);
+                let rv = yaw_q.rotate_vector(x);
+                (Quaternion::from_axis_angle(rv, -FRAC_PI_6) * yaw_q).normalized()
+            }
         };
 
         self.perspective = false;
@@ -605,6 +612,21 @@ mod tests {
                 );
             }
         }
+    }
+
+    #[test]
+    fn the_back_isometric_looks_from_the_opposite_corner() {
+        let mut cam = Camera::new();
+        cam.set_view(View::Iso);
+        let front = cam.position;
+        cam.set_view(View::IsoBack);
+        let back = cam.position;
+        assert!(
+            front[0] < 0.0 && front[1] < 0.0 && front[2] > 0.0,
+            "{front:?}"
+        );
+        assert!(back[0] > 0.0 && back[1] > 0.0 && back[2] > 0.0, "{back:?}");
+        assert!((front[0] + back[0]).abs() < 1e-9 && (front[1] + back[1]).abs() < 1e-9);
     }
 
     #[test]

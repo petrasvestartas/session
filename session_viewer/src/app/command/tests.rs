@@ -482,7 +482,7 @@ fn discovery_and_layer_options_are_case_insensitive() {
 
 #[test]
 fn view_commands_replace_viewport_shortcuts() {
-    for name in ["Top", "Side", "Front", "Back", "Left", "Right", "Bottom", "Isometric", "Reset", "Perspective", "Orthographic", "Show Edges", "Hide Edges", "Show Lines", "Hide Lines", "Show Points", "Hide Points", "Outline", "Lighting", "Backfaces", "Xray", "Names", "Hide Selected", "Show All"] {
+    for name in ["Top", "Side", "Front", "Back", "Left", "Right", "Bottom", "Isometric", "Isometric Back", "Reset", "Perspective", "Orthographic", "Show Edges", "Hide Edges", "Show Lines", "Hide Lines", "Show Points", "Hide Points", "Outline", "Lighting", "Backfaces", "Xray", "Names", "Hide Selected", "Show All"] {
         assert!(parse(&format!("View {name}")).is_ok(), "{name}");
     }
     assert_eq!(parsed("view top"), Ok("Camera(Top)".into()));
