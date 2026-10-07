@@ -22,6 +22,9 @@ impl Unit {
 /// Near plane distance as a fraction of the target distance.
 pub const NEAR_FRACTION: f64 = 1.0e-4;
 
+/// Half width of the ground grid in scene units; matches HALF in grid.wgsl.
+const GRID_HALF: f64 = 5000.0;
+
 /// A named standard view.
 #[derive(Clone, Copy, Debug)]
 pub enum View {
@@ -277,6 +280,21 @@ impl Camera {
         self.distance / self.unit.to_meters()
     }
 
+    /// How far round the target the depth range must reach, in meters: the scene, and the ground grid's farthest corner, so neither is clipped.
+    fn depth_reach(&self) -> f64 {
+        let half = GRID_HALF * self.unit.to_meters();
+        let x = self.target[0].abs() + half;
+        let y = self.target[1].abs() + half;
+        let grid = (x * x + y * y + self.target[2] * self.target[2]).sqrt();
+        let scene = if self.scene_extent > 0.0 {
+            self.scene_extent
+        } else {
+            self.distance
+        };
+
+        scene.max(grid)
+    }
+
     /// The view-projection matrix, relative to the target.
     pub fn view_proj(&self, aspect: f64) -> Xform {
         self.view_proj_anchored(aspect, &self.origin())
@@ -287,20 +305,16 @@ impl Camera {
         let dist = self.distance;
         let a = self.unit.to_meters();
         let anchor = Point::new(anchor[0] * a, anchor[1] * a, anchor[2] * a); // to meters
-        // far plane reaches the whole scene
-        let far = (dist * 10.0).max(dist + 2.0 * self.scene_extent);
+        // far plane reaches the whole scene and the ground grid
+        let reach = self.depth_reach();
+        let far = (dist * 10.0).max(dist + 2.0 * reach);
         let projection = if self.perspective {
             // far and near swapped: depth 1 is near (reverse-Z)
             Xform::perspective(FOVY_DEG.to_radians(), aspect, far, dist * NEAR_FRACTION)
         } else {
             let h = dist * (FOVY_DEG * 0.5).to_radians().tan(); // half view height
-            // depth range covers the scene, not more
-            let extent = if self.scene_extent > 0.0 {
-                self.scene_extent
-            } else {
-                dist
-            };
-            let r = (dist + 2.0 * extent).max(1.0e-6);
+            // depth range covers the scene and the ground grid, not more
+            let r = (dist + 2.0 * reach).max(1.0e-6);
             Xform::orthographic(-aspect * h, aspect * h, -h, h, r, -r)
         };
 
@@ -526,6 +540,21 @@ mod tests {
                 front - rear > rear.abs() * 1.9073486e-6,
                 "distance {distance}: hidden ink falls within float tolerance"
             );
+        }
+    }
+
+    #[test]
+    fn orthographic_depth_contains_the_ground_grid_round_a_small_scene() {
+        let mut cam = Camera::new();
+        cam.perspective = false;
+        cam.scene_extent = 1.5;
+        cam.distance = 4.0;
+        cam.update_position();
+        // the grid's far corner lies about 7 m behind the target of a 1.5 m scene
+        let reach = GRID_HALF * cam.unit.to_meters() * 2.0_f64.sqrt();
+        for depth in [cam.distance - reach, cam.distance + reach] {
+            let projected = ndc_depth(&cam, depth);
+            assert!((0.0..=1.0).contains(&projected), "depth {depth}: {projected}");
         }
     }
 
