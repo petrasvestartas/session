@@ -2,9 +2,9 @@
 
 Start with a picture you understand, then grow it into the viewer we already use. You will type the implementation yourself. We will revisit earlier code when a new responsibility appears, explain the change and keep a working checkpoint.
 
-**Current release: 200 cumulative lessons, about 176.5–334.25 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
+**Current release: 214 cumulative lessons, about 187–351.75 active study hours.** Installation is extra. These estimates include reading, typing and experiments. Check the [release evidence](journey/release.md) before starting. The complete feature course is still being written.
 
-The [complete draft lesson checklist](journey/roadmap.md) has **262 proposed slots: 200 current checkpoints and 62 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
+The [complete draft lesson checklist](journey/roadmap.md) has **273 proposed slots: 214 current checkpoints and 59 later slots planned**. This is a teaching plan, not a fixed final count or percentage of engineering work.
 
 **Command-line revision:** [Use the viewer’s real command dock](journey/command-line.md) from the early lessons. Features are exercised by typing commands; later lessons retain canvas picking and gestures.
 
@@ -227,6 +227,20 @@ Chapter 34 has 18 small implementation checkpoints, grouped into four outcomes:
 | [36db · Place original connected coordinates and count shared owners](journey/36db-placement.md) | 0.75–1.25 hours | Place original path coordinates before display conversion and count shared source/display owners once. |
 | [36da · Draw connected document rows](journey/36da-render.md) | 0.75–1.25 hours | Synchronize placed connected paths into one shared lane and release every instance on Close. |
 | [36e · Insert connected paths and arrow examples](journey/36e-input.md) | 0.75–1.25 hours | Insert source-backed joined paths and arrowheads through the real dock, then check their actual browser pixels. |
+| [37 · Prepare an original point for a screen marker](journey/37-point.md) | 0.75–1.25 hours | Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record. |
+| [37a · Extrude a circular marker in screen pixels](journey/37a-disc.md) | 0.75–1.25 hours | Extrude a point into a depth-tested screen disc with analytic circular coverage. |
+| [37b · Draw markers with the shared instance lane](journey/37b-lane.md) | 0.75–1.25 hours | Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU. |
+| [37c · Retain original point rows and placement](journey/37c-document.md) | 0.75–1.25 hours | Give original point sources checked document identities, precise placement and undoable lifetimes. |
+| [37d · Draw original point rows and count their resources](journey/37d-render.md) | 0.75–1.25 hours | Draw placed original point rows with truthful CPU/GPU counters and complete Close release. |
+| [37da · Insert original points through the real dock](journey/37da-input.md) | 0.75–1.25 hours | Insert one original Point through actual command input and prove its screen diameter, history and resource release. |
+| [37e · Identify controls on the original curve owner](journey/37e-controls.md) | 0.75–1.25 hours | Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates. |
+| [38 · Validate an original NURBS curve before sampling](journey/38-layout.md) | 0.75–1.25 hours | Validate public kernel curve layout and domain before evaluating an original source. |
+| [38a · Sample a validated curve without replacing its source](journey/38a-samples.md) | 0.75–1.25 hours | Build a bounded display approximation from an original curve and retain exact source controls separately. |
+| [38b · Retain original curves beside their display samples](journey/38b-source.md) | 0.75–1.25 hours | Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document. |
+| [38c · Draw controls with their original curve parent and index](journey/38c-controls.md) | 0.75–1.25 hours | Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices. |
+| [38d · Insert an original curve and inspect its controls](journey/38d-input.md) | 0.75–1.25 hours | Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers. |
+| [39 · Resolve original visibility for every drawing kind](journey/39-visible.md) | 0.75–1.25 hours | Respect original source visibility consistently in drawing, Fit, control markers and mesh picking while retaining hidden sources. |
+| [39a · Share surface depth across all ink lanes](journey/39a-depth.md) | 0.75–1.25 hours | Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion. |
 
 The opening lessons separate browser events, the command dock, application state and GPU drawing. Before adding a camera or editable objects, follow this path without the listing: **typed command → state change → drawing commands → picture**.
 

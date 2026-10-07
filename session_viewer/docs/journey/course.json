@@ -13203,6 +13203,1171 @@
           "copy": true
         }
       ]
+    },
+    {
+      "id": "37-point",
+      "title": "Prepare an original point for a screen marker",
+      "page": "journey/37-point.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain exact kernel Point coordinates while preparing a finite 32-byte screen-marker record.",
+      "trace": "original Point owner → checked position and style → explicit default diameter → packed marker record",
+      "question": "Why retain a source Point beside the display marker?",
+      "answer": "The marker is a screen representation. Original doubles, identity and metadata remain available for saving, placing and later picking or editing.",
+      "result": "Run point preparation checks. The source keeps its exact coordinates while the marker uses explicit display precision and diameter.",
+      "experiment": "Use a coordinate that changes during f32 conversion. The source must remain unchanged; cloning prepared data must share its source owner.",
+      "production": "Original point payload preparation is complete here. Marker extrusion, document IDs, actual drawing and controls follow in later checkpoints.",
+      "tests": true,
+      "frame": "journey/checks/37-point.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Polyline"
+        },
+        {
+          "command": "Example Arrow"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/path-input.cjs",
+      "story": "Retain the original Point owner and convert only its display position. Pack centre, diameter and colour into one explicit 32-byte record.\n\nMatch the current viewer’s point defaults: an unspecified/default pen draws a six-pixel diameter dot, while an explicit width changes its diameter. Invalid display coordinates or overflowing widths fail before GPU allocation.\n\n![The exact point remains the source of its screen marker.](../illustrations/journey-37.svg)",
+      "browser_caption": "Chrome retains the existing connected examples while native checks establish point source and payload policy.",
+      "checks": "Native tests verify exact source precision, identity, shared lifetime, marker packing, default/style policy and finite display refusal. Connected browser checks remain the baseline until markers draw.",
+      "edits": [
+        {
+          "path": "src/marker.rs",
+          "before": null,
+          "snippet": "journey/code/37-point-01.rs",
+          "why": "Retain exact point ownership and pack finite display data with the viewer’s diameter policy."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod chain;",
+          "snippet": "journey/code/37-point-02.rs",
+          "why": "Register point preparation and its source checks."
+        },
+        {
+          "path": "src/marker_tests.rs",
+          "before": null,
+          "snippet": "journey/code/37-point-03.rs",
+          "why": "Copy point precision, packing, style and lifetime checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "36e-input"
+    },
+    {
+      "id": "37a-disc",
+      "title": "Extrude a circular marker in screen pixels",
+      "page": "journey/37a-disc.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Extrude a point into a depth-tested screen disc with analytic circular coverage.",
+      "trace": "checked centre → clip rejection → physical radius → clip-w billboard → circular coverage",
+      "question": "Why scale a marker offset by clip w?",
+      "answer": "Perspective divides its position by w. Multiplying the screen offset by w before that division keeps the marker’s diameter independent of distance.",
+      "result": "The actual drawing device validates the complete marker shader. Its real instance layout and pixel checks are the next endpoint.",
+      "experiment": "Follow a diameter of six CSS pixels through effective density one and two. The marker radius becomes three or six physical pixels.",
+      "production": "Screen-marker extrusion is complete. The next checkpoint connects the actual 32-byte instance layout and tests its rendered area.",
+      "tests": true,
+      "frame": "journey/checks/37a-disc.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Polyline"
+        },
+        {
+          "command": "Example Arrow"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/path-input.cjs",
+      "story": "Project the original point centre and reject centres outside the depth range. Offset a six-vertex billboard in physical pixels, using the current effective density.\n\nScale the clip offset by w so zoom cannot change the screen diameter. A circular distance function gives its edge coverage; the shared depth pass will hide a marker behind nearer geometry.\n\n![A projected source point becomes a depth-tested screen disc.](../illustrations/journey-37a.svg)",
+      "browser_caption": "Chrome retains the existing connected examples while native checks establish point source and payload policy.",
+      "checks": "The actual drawing device validates marker vertex and fragment entry points. Real area, alpha, projection and density checks follow with the instance lane.",
+      "edits": [
+        {
+          "path": "src/marker.wgsl",
+          "before": null,
+          "snippet": "journey/code/37a-disc-01.wgsl",
+          "why": "Keep disc diameter in screen pixels and cover its edge analytically."
+        },
+        {
+          "path": "src/marker.rs",
+          "before": "use std::rc::Rc;",
+          "snippet": "journey/code/37a-disc-02.rs",
+          "why": "Expose the actual marker shader source."
+        }
+      ],
+      "image_same_as": "37-point"
+    },
+    {
+      "id": "37b-lane",
+      "title": "Draw markers with the shared instance lane",
+      "page": "journey/37b-lane.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Bind actual 32-byte marker instances and verify their projected size, alpha and lifetime on the GPU.",
+      "trace": "finite marker records → format-specific attributes → shared upload/view policy → actual disc pixels → empty release",
+      "question": "Why give markers another layout rather than another resource-management implementation?",
+      "answer": "Their attributes and shader differ. Changed-data reuse, uniform updates, payload accounting and buffer lifetime remain the same responsibilities.",
+      "result": "Run native GPU checks. Screen-marker area and alpha remain stable under zoom and both projections at densities one and two.",
+      "experiment": "Submit the same marker twice, change only its camera, and inspect uploads. Invalid marker input must preserve the accepted buffer.",
+      "production": "Actual point-marker GPU drawing is complete. Original document IDs, placement, browser input and control ownership follow.",
+      "tests": true,
+      "frame": "journey/checks/37b-lane.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Polyline"
+        },
+        {
+          "command": "Example Arrow"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/path-input.cjs",
+      "story": "Add the marker’s 32-byte instance layout to the existing shared lane. Validate its centre, diameter and colour before accepting any new payload.\n\nNative texture readback measures real circular area and interior alpha at both projections, zoom levels and densities. Repeated data reuses its buffer; empty data releases it.\n\n![Markers reuse the shared buffer, view and release policy.](../illustrations/journey-37b.svg)",
+      "browser_caption": "Chrome retains the existing connected examples while native checks establish point source and payload policy.",
+      "checks": "Sixteen actual marker renders check circular area and alpha across sizes6/12, zoom, projection and DPR1/2. Buffer reuse, invalid-record refusal and empty release pass beside the earlier stroke checks.",
+      "edits": [
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "    fn set_bytes(&mut self, device: &wgpu::Device, data: Vec<u8>) -> Result<(), &'static str> {",
+          "snippet": "journey/code/37b-lane-01.rs",
+          "why": "Validate marker payloads before using shared change-only synchronization."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,",
+          "snippet": "journey/code/37b-lane-02.rs",
+          "why": "Use the exact centre, diameter and colour attributes for marker instances."
+        }
+      ],
+      "image_same_as": "37a-disc"
+    },
+    {
+      "id": "37c-document",
+      "title": "Retain original point rows and placement",
+      "page": "journey/37c-document.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Give original point sources checked document identities, precise placement and undoable lifetimes.",
+      "trace": "original Point → distinct row identity/GUID → checked model → double world bounds → final marker centre → Close",
+      "question": "Why does a placed marker derive its centre from the original source point?",
+      "answer": "Display coordinates already lost precision. Applying the model to the original doubles keeps world bounds and edits accurate before the final GPU conversion.",
+      "result": "Run point-document checks. Exact placed bounds, shared history owners and complete Close remain independent of the marker’s screen diameter.",
+      "experiment": "Translate a point with a precise fractional coordinate and Undo/Redo. Its source stays unchanged, while its placed world coordinates remain double precision.",
+      "production": "Original point rows and placement are complete here. GPU synchronization, actual dock input and control ownership follow.",
+      "tests": true,
+      "frame": "journey/checks/37c-document.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Polyline"
+        },
+        {
+          "command": "Example Arrow"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/path-input.cjs",
+      "story": "Retain one original Point source for each independently placed document row. Allocate a checked object identity and distinct saved GUID before insertion.\n\nValidate the complete placed point before changing its model. World bounds include the exact centre, while screen diameter remains presentation data. History retains immutable source owners and Close releases them.\n\n![Original point coordinates remain precise through document placement.](../illustrations/journey-37c.svg)",
+      "browser_caption": "Chrome retains the existing connected examples while native checks establish point source and payload policy.",
+      "checks": "Native checks prove distinct identities, original doubles, precise bounds, atomic invalid-placement refusal, shared history and complete Close. Mixed-geometry saving remains explicit future work.",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "#[derive(Clone)]\npub struct Scene {",
+          "snippet": "journey/code/37c-document-01.rs",
+          "why": "Retain exact point sources and derive placed display centres independently."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "objects: Vec::new(), paths: Vec::new(),",
+          "snippet": "journey/code/37c-document-02.rs",
+          "why": "Initialize the independent point-row table."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        bounds\n    }",
+          "snippet": "journey/code/37c-document-03.rs",
+          "why": "Include exact placed point centres in world bounds."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn paths(&self)",
+          "snippet": "journey/code/37c-document-04.rs",
+          "why": "Allocate distinct row identities and reject invalid placed centres before mutation."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn clear(&mut self) {",
+          "snippet": "journey/code/37c-document-05.rs",
+          "why": "Drop point rows and capacity with complete document Close."
+        },
+        {
+          "path": "src/document.rs",
+          "before": "    if !scene.lines().is_empty() || !scene.paths().is_empty() {",
+          "snippet": "journey/code/37c-document-06.rs",
+          "why": "Refuse unsupported point saving rather than silently omit original geometry."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod marker;",
+          "snippet": "journey/code/37c-document-07.rs",
+          "why": "Register precise point-placement and history checks."
+        },
+        {
+          "path": "src/point_document_tests.rs",
+          "before": null,
+          "snippet": "journey/code/37c-document-08.rs",
+          "why": "Copy exact placement, source sharing, identity and complete release checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "37b-lane"
+    },
+    {
+      "id": "37d-render",
+      "title": "Draw original point rows and count their resources",
+      "page": "journey/37d-render.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw placed original point rows with truthful CPU/GPU counters and complete Close release.",
+      "trace": "accepted point rows → final placed marker records → change-only lane → shared depth → source and buffer release",
+      "question": "Why does the renderer retain marker bytes without the original Point owner?",
+      "answer": "Editing and history own the source. The GPU needs display data only, so document Close can release original sources immediately before buffer synchronization.",
+      "result": "Run mixed-document GPU checks. Source points draw alongside connected paths; Close clears every live point and marker resource.",
+      "experiment": "Zoom with the marker-bearing scene. Vertex uploads remain unchanged, and complete Close expires the original source and drops the marker buffer.",
+      "production": "Point-row drawing is complete. The next endpoint exposes a real command and checks actual browser marker pixels.",
+      "tests": true,
+      "frame": "journey/checks/37d-render.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Polyline"
+        },
+        {
+          "command": "Example Arrow"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/path-input.cjs",
+      "story": "Synchronize original point rows through the shared marker lane after accepted document changes. Keep camera and density in the view uniform.\n\nDraw with the same depth texture as meshes and strokes. CPU counters report point rows, distinct sources and row capacity; GPU counters report actual marker instances, buffer bytes and initialized payloads.\n\n![Original point rows prepare display bytes without transferring source ownership to the GPU.](../illustrations/journey-37d.svg)",
+      "browser_caption": "Chrome retains the existing connected examples while native checks establish point source and payload policy.",
+      "checks": "Native texture readback retains all marker/stroke checks and draws an actual source point in the mixed fixture. Weak owners, precise counters, camera reuse and complete Close pass.",
+      "edits": [
+        {
+          "path": "src/renderer.rs",
+          "before": "    paths: crate::stroke_gpu::Lane,",
+          "snippet": "journey/code/37d-render-01.rs",
+          "why": "Keep one marker lane beside the other scene batches."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        let paths = crate::stroke_gpu::Lane::joined(&device, format);",
+          "snippet": "journey/code/37d-render-02.rs",
+          "why": "Create the actual marker pipeline with the scene drawing device."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "depth, strokes, paths, size: [640, 480]",
+          "snippet": "journey/code/37d-render-03.rs",
+          "why": "Retain the marker batch under renderer ownership."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {",
+          "snippet": "journey/code/37d-render-04.rs",
+          "why": "Reuse accepted point display data and report actual marker allocation."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes",
+          "snippet": "journey/code/37d-render-05.rs",
+          "why": "Include initialized marker payloads in measured scene upload bytes."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        self.paths.view(&self.queue, transform, self.size, self.density);",
+          "snippet": "journey/code/37d-render-06.rs",
+          "why": "Keep view-only marker changes in the shared uniform."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            self.paths.draw(&mut pass);",
+          "snippet": "journey/code/37d-render-07.rs",
+          "why": "Depth-test point markers in the same scene pass."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "pub fn paths<'a>",
+          "snippet": "journey/code/37d-render-08.rs",
+          "why": "Count actual point rows, unique source owners and retained row capacity."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-path-gpu\",",
+          "snippet": "journey/code/37d-render-09.rs",
+          "why": "Inspect point resource categories independently of earlier counters."
+        }
+      ]
+    },
+    {
+      "id": "37da-input",
+      "title": "Insert original points through the real dock",
+      "page": "journey/37da-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Insert one original Point through actual command input and prove its screen diameter, history and resource release.",
+      "trace": "Example Point input → original source → one undoable point row → circular pixels → view-only reuse → Close",
+      "question": "What changes when a point marker is enlarged by zoom?",
+      "answer": "Its world position moves with the camera, but its diameter stays in CSS pixels. Device density changes physical coverage without changing its source or vertex payload.",
+      "result": "Close, type Example Point, then zoom and switch projection. The marker keeps a twelve-pixel diameter.",
+      "experiment": "Undo and Redo the point. Close clears original owners, history and the actual marker buffer.",
+      "production": "Point source preparation, document placement, marker rendering and real command insertion are complete. General point construction, picking and mixed-document saving follow in their planned chapters.",
+      "tests": true,
+      "frame": "journey/checks/37da-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Point"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/marker-input.cjs",
+      "story": "Register Example Point in the existing dock and prepare its original Point before committing one history insertion.\n\nUse actual Chrome pixels to measure its diameter at both device densities, projections and zoom levels. Keep source ownership and buffer accounting visible through Undo, Redo and Close.\n\n![One command inserts an original point and draws a fixed screen diameter.](../illustrations/journey-37da.svg)",
+      "browser_caption": "Actual Chrome draws the original point as a twelve-pixel circular marker.",
+      "checks": "Native tests prove original identity, exact style, one-step Undo/Redo and release. Chrome measures real marker coverage at DPR1/2, both projections and zoom, and checks exact buffer reuse.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    AddLine,",
+          "snippet": "journey/code/37da-input-01.rs",
+          "why": "Expose an original point insertion as an editor action."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddLine => {",
+          "snippet": "journey/code/37da-input-02.rs",
+          "why": "Prepare the original point before one accepted undoable insertion."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Example Line\",",
+          "snippet": "journey/code/37da-input-03.rs",
+          "why": "Include the point example in completion and Help."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"example line\" => Action::AddLine,",
+          "snippet": "journey/code/37da-input-04.rs",
+          "why": "Dispatch actual input through the editor action."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod marker;",
+          "snippet": "journey/code/37da-input-05.rs",
+          "why": "Register the point input ownership checks."
+        },
+        {
+          "path": "src/point_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/37da-input-06.rs",
+          "why": "Copy original identity, style, one-step history and release checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "37e-controls",
+      "title": "Identify controls on the original curve owner",
+      "page": "journey/37e-controls.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Refer to an original curve control by its shared curve owner and stable control index, preserving homogeneous source coordinates.",
+      "trace": "original curve Rc and index → checked control layout → exact Euclidean control → finite screen marker",
+      "question": "Why does a curve control marker avoid a new Point GUID?",
+      "answer": "It identifies a control inside the original curve. A fabricated independent Point would lose its parent, control index and rational weight when editing begins.",
+      "result": "Run original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.",
+      "experiment": "Use rational controls whose weight is two. Display positions divide by the weight while the source homogeneous coordinates remain untouched.",
+      "production": "Control references and marker preparation are complete. The next curve chapter connects them to retained curve rows; subobject picking and editing follow in chapter 44.",
+      "tests": true,
+      "frame": "journey/checks/37e-controls.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Point"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/marker-input.cjs",
+      "story": "A control reference owns the original curve and carries its control index. Resolve its position from the original homogeneous coordinates before producing a screen marker.\n\nValidate dimensions, index, stride and checked slice bounds before touching a public kernel layout. Refuse zero or nonfinite rational weights and display overflow without allocating independent Point identities.\n\n![A control index belongs to its original curve owner.](../illustrations/journey-37e.svg)",
+      "browser_caption": "Chrome retains the original point example while native checks establish indexed curve-control ownership.",
+      "checks": "Native tests verify rational precision, stable index, shared owner lifetime, unchanged homogeneous coordinates and malformed-layout refusal. Browser point rendering remains the actual displayed baseline.",
+      "edits": [
+        {
+          "path": "src/controls.rs",
+          "before": null,
+          "snippet": "journey/code/37e-controls-01.rs",
+          "why": "Keep an indexed control on its original curve and guard every public layout access."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod marker;",
+          "snippet": "journey/code/37e-controls-02.rs",
+          "why": "Register original control references and their refusal checks."
+        },
+        {
+          "path": "src/control_tests.rs",
+          "before": null,
+          "snippet": "journey/code/37e-controls-03.rs",
+          "why": "Copy original rational precision, owner release, dimension and malicious-layout checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "37da-input"
+    },
+    {
+      "id": "38-layout",
+      "title": "Validate an original NURBS curve before sampling",
+      "page": "journey/38-layout.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Validate public kernel curve layout and domain before evaluating an original source.",
+      "trace": "original NURBS curve → bounded checked layout → finite positive weights → ordered knots → nonempty domain",
+      "question": "Why check public curve arrays before calling the kernel evaluator?",
+      "answer": "Public fields may contain incomplete or overflowing layouts. The viewer must refuse malformed input before a kernel slice access or display allocation.",
+      "result": "Run curve layout checks against valid, periodic, rational and maliciously incomplete inputs.",
+      "experiment": "Set the stride to usize::MAX. Validation must return an error without slicing or overflowing.",
+      "production": "Validated curve sources are ready for sampling. Sampled display data and retained document ownership follow in the next endpoints.",
+      "tests": true,
+      "frame": "journey/checks/38-layout.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Point"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/marker-input.cjs",
+      "story": "Validate the original curve before evaluating it. Check dimensions, count, order, stride, checked ranges, finite controls, positive rational weights and monotone knots.\n\nUse the kernel domain only after those checks. Display approximation never replaces the original curve, knot vector or homogeneous control values.\n\n![A checked original curve reaches the kernel evaluator safely.](../illustrations/journey-38.svg)",
+      "browser_caption": "Chrome retains point and connected rendering while native checks guard original curve evaluation.",
+      "checks": "Native checks accept valid clamped, periodic and rational sources and refuse malformed counts, ranges, knots, weights and empty domains without panicking.",
+      "edits": [
+        {
+          "path": "src/curve.rs",
+          "before": null,
+          "snippet": "journey/code/38-layout-01.rs",
+          "why": "Guard layout arithmetic and public arrays before original kernel evaluation."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod controls;",
+          "snippet": "journey/code/38-layout-02.rs",
+          "why": "Register source validation and malformed-input checks."
+        },
+        {
+          "path": "src/curve_layout_tests.rs",
+          "before": null,
+          "snippet": "journey/code/38-layout-03.rs",
+          "why": "Copy valid original domains, unchanged sources and malformed-layout refusal checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "37da-input"
+    },
+    {
+      "id": "38a-samples",
+      "title": "Sample a validated curve without replacing its source",
+      "page": "journey/38a-samples.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Build a bounded display approximation from an original curve and retain exact source controls separately.",
+      "trace": "validated original curve → control-polygon turning → bounded parameter samples and knot breaks → finite double-precision chords",
+      "question": "What does the sampled polyline know that the original curve does not lose?",
+      "answer": "It provides drawing chords at chosen parameters. The original knots, degree, rational weights and exact controls remain the editing source; the chords are explicitly an approximation.",
+      "result": "Run straight, curved, periodic and malformed curve sampling checks. Original control arrays remain unchanged.",
+      "experiment": "Compare dense kernel evaluations with the sampled quadratic arch. Check measured chord error, rather than mistaking its control polygon for the curve.",
+      "production": "Curve display sampling is complete. Original curve rows, control markers and real input follow in the remaining curve checkpoints.",
+      "tests": true,
+      "frame": "journey/checks/38a-samples.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Point"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/marker-input.cjs",
+      "story": "Use the control polygon’s turning to choose display chords, matching the current viewer’s three-degree policy and 512 uniform-chord cap.\n\nInclude original interior knot breaks as well. Bound the control count before allocating, keep sample positions in double precision, and refuse nonfinite or unrepresentable display coordinates. A sampled polyline remains an approximation rather than a replacement kernel curve.\n\n![Original kernel evaluations create a bounded display approximation.](../illustrations/journey-38a.svg)",
+      "browser_caption": "Chrome retains point and connected rendering while native checks guard original curve evaluation.",
+      "checks": "Native checks prove exact original preservation, straight minimal samples, real quadratic arch shape and measured dense chord error, periodic endpoints, knot-break inclusion and bounded malformed-input refusal.",
+      "edits": [
+        {
+          "path": "src/curve.rs",
+          "before": "    Ok(domain)\n}",
+          "snippet": "journey/code/38a-samples-01.rs",
+          "why": "Sample the original evaluator with bounded uniform chords and exact interior knot breaks."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod curve;",
+          "snippet": "journey/code/38a-samples-02.rs",
+          "why": "Register actual sampled geometry checks."
+        },
+        {
+          "path": "src/curve_sample_tests.rs",
+          "before": null,
+          "snippet": "journey/code/38a-samples-03.rs",
+          "why": "Copy original preservation, dense measured error, periodic closure and knot-break checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "37da-input"
+    },
+    {
+      "id": "38b-source",
+      "title": "Retain original curves beside their display samples",
+      "page": "journey/38b-source.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Retain original NURBS ownership, cached double samples and placed curve bounds in the existing path document.",
+      "trace": "original NURBS Rc → validated shared double samples → path row and checked ID → placed display chords and conservative bounds",
+      "question": "Why does a curve row retain its original control hull beside sampled chords?",
+      "answer": "The display approximation can miss an extremum. Positive-weight control bounds conservatively contain the curve, while the original curve remains available for editing and exact measurement.",
+      "result": "Insert an original curve into a document in native checks. Duplicate rows share source and samples while retaining distinct document IDs.",
+      "experiment": "Translate a curve row with high-precision coordinates. Original controls remain unchanged, display endpoints move, and bounds include its placed control hull.",
+      "production": "Original curve path rows and placements are complete. Control drawing and real curve input follow. Bounds here are conservative control hulls; exact command measurements belong to chapter 84.",
+      "tests": true,
+      "frame": "journey/checks/38b-source.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Point"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/marker-input.cjs",
+      "story": "Extend path ownership with the original curve and a shared double-precision sample cache. GPU spans keep their existing connected format.\n\nRetain original GUIDs and checked document IDs. Use transformed original controls for conservative curve bounds, and report sampled doubles separately from kernel ownership and packed display vertices.\n\n![A curve row shares its original source and separate display samples.](../illustrations/journey-38b.svg)",
+      "browser_caption": "Chrome retains point and connected rendering while native checks guard original curve evaluation.",
+      "checks": "Native checks prove original identity, shared sample/source lifetime, distinct IDs, precise placed control-hull bounds, real curved segments and complete resource release.",
+      "edits": [
+        {
+          "path": "src/chain.rs",
+          "before": "pub enum Source { Line(Rc<Line>), Polyline(Rc<Polyline>) }",
+          "snippet": "journey/code/38b-source-01.rs",
+          "why": "Retain the original curve separately from shared approximation samples."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "Self::Polyline(line) => line.guid()",
+          "snippet": "journey/code/38b-source-02.rs",
+          "why": "Keep original curve identity under path ownership."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "Self::Polyline(line) => (1, Rc::as_ptr(line) as usize)",
+          "snippet": "journey/code/38b-source-03.rs",
+          "why": "Count curve source owners independently of sampled data."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "            Self::Polyline(line) => line.coords.chunks_exact(3).map(|p| [p[0], p[1], p[2]]).collect(),",
+          "snippet": "journey/code/38b-source-04.rs",
+          "why": "Use cached original evaluator positions when placing display chords."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "    pub fn coordinates(&self) -> Vec<[f64; 3]> {",
+          "snippet": "journey/code/38b-source-05.rs",
+          "why": "Keep stable original control indices and a conservative positive-weight hull."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "    pub fn line(source: Rc<Line>) -> Result<Self, &'static str> {",
+          "snippet": "journey/code/38b-source-06.rs",
+          "why": "Validate and cache the original curve before accepting connected display preparation."
+        },
+        {
+          "path": "src/chain.rs",
+          "before": "Source::Polyline(line) => line.arrowhead",
+          "snippet": "journey/code/38b-source-07.rs",
+          "why": "Use the original curve arrowhead policy."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn points(&self) -> Vec<session_rust::Point> {",
+          "snippet": "journey/code/38b-source-08.rs",
+          "why": "Place conservative curve bounds from original double controls."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for row in &self.paths {\n            for point in row.points() {",
+          "snippet": "journey/code/38b-source-09.rs",
+          "why": "Include the complete placed control hull in document Fit bounds."
+        },
+        {
+          "path": "src/memory.rs",
+          "before": "pub fn paths<'a>",
+          "snippet": "journey/code/38b-source-10.rs",
+          "why": "Count sampled doubles separately from source owners and packed GPU data."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod curve;",
+          "snippet": "journey/code/38b-source-11.rs",
+          "why": "Register retained source and placed bounds checks."
+        },
+        {
+          "path": "src/curve_source_tests.rs",
+          "before": null,
+          "snippet": "journey/code/38b-source-12.rs",
+          "why": "Copy retained source identity, distinct IDs, precise placement, conservative bounds and release checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "37da-input"
+    },
+    {
+      "id": "38c-controls",
+      "title": "Draw controls with their original curve parent and index",
+      "page": "journey/38c-controls.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Draw enabled curve controls through the real marker lane while retaining original parent IDs and control indices.",
+      "trace": "retained curve path row → enabled original controls → parent/index marker records → placed marker lane → Close release",
+      "question": "How do two rows sharing one curve distinguish their control markers?",
+      "answer": "Each marker carries its document parent ID and original control index. Both still refer to the same original curve owner, while each row applies its own placement.",
+      "result": "Enable controls on retained curve rows in native checks. Marker counts and buffer bytes reflect their actual controls.",
+      "experiment": "Place two rows sharing one curve at different offsets. Their controls share original ownership but retain distinct parent IDs and correct world positions.",
+      "production": "Curve controls draw from retained original rows. Actual curve and Controls On/Off input follow next; picking those parent/index references belongs to chapter 44.",
+      "tests": true,
+      "frame": "journey/checks/38c-controls.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Point"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/marker-input.cjs",
+      "story": "Resolve visible control markers from retained curve rows. Carry the document parent and original index beside each display marker, then send only marker bytes to the GPU.\n\nValidate both sampled chords and original controls during placement. Keep markers disabled by default, reuse the existing marker lane, and count enabled controls separately from standalone point sources.\n\n![Placed controls keep original curve ownership and document parent IDs.](../illustrations/journey-38c.svg)",
+      "browser_caption": "Chrome retains point and connected rendering while native checks guard original curve evaluation.",
+      "checks": "Native tests prove shared original owners, distinct parent IDs, exact placed controls and complete Close. GPU checks prove actual marker allocation, view-only reuse and zero buffers after release.",
+      "edits": [
+        {
+          "path": "src/scene.rs",
+          "before": "pub struct PathObject { pub id: ObjectId,",
+          "snippet": "journey/code/38c-controls-01.rs",
+          "why": "Retain explicit control display state on each document path row."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "PathObject { id, guid, prepared, model:",
+          "snippet": "journey/code/38c-controls-02.rs",
+          "why": "Keep original curve controls disabled until requested."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for p in row.prepared.source.coordinates() {",
+          "snippet": "journey/code/38c-controls-03.rs",
+          "why": "Reject invalid placed controls before accepting a curve row transform."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "#[derive(Clone)]\npub struct PointObject",
+          "snippet": "journey/code/38c-controls-04.rs",
+          "why": "Carry document parent and original control index beside each placed marker."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn paths(&self) -> &[PathObject] { &self.paths }",
+          "snippet": "journey/code/38c-controls-05.rs",
+          "why": "Resolve placed original controls with stable parent IDs and control indices."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "scene.points().iter().map(crate::scene::PointObject::marker))",
+          "snippet": "journey/code/38c-controls-06.rs",
+          "why": "Send only placed display bytes to the marker lane, retaining source ownership in the document."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "    canvas.set_attribute(\"data-point-cpu\",",
+          "snippet": "journey/code/38c-controls-07.rs",
+          "why": "Inspect sampled curve resources and actual enabled control count separately."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod controls;",
+          "snippet": "journey/code/38c-controls-08.rs",
+          "why": "Register document parent and placement checks."
+        },
+        {
+          "path": "src/control_parent_tests.rs",
+          "before": null,
+          "snippet": "journey/code/38c-controls-09.rs",
+          "why": "Copy shared curve identity, distinct parent IDs, original indices, correct placement and release checks.",
+          "copy": true
+        }
+      ],
+      "image_same_as": "37da-input"
+    },
+    {
+      "id": "38d-input",
+      "title": "Insert an original curve and inspect its controls",
+      "page": "journey/38d-input.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Insert an original NURBS curve through real input and distinguish its actual curve pixels from its indexed control markers.",
+      "trace": "Example Curve input → original curve path row → real sampled arch → Controls On/Off → parent/index markers → history and Close",
+      "question": "Why does the curve arch stop below its middle control point?",
+      "answer": "A quadratic curve follows the kernel’s weighted interpolation of controls. Its control polygon shapes the curve but is not the displayed curve itself.",
+      "result": "Close, type Example Curve, then Controls On. Inspect the sampled arch and its three original control markers.",
+      "experiment": "Toggle Controls Off, switch projection and zoom. The curve vertex payload remains unchanged; markers keep their screen diameter when enabled.",
+      "production": "Original NURBS sampling, retained ownership, placed control drawing and example commands are complete. General curve construction and subobject picking/editing remain in chapters 44 and 76.",
+      "tests": true,
+      "frame": "journey/checks/38d-input.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Curve"
+        },
+        {
+          "command": "Controls On"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/curve-input.cjs",
+      "story": "Register Example Curve and explicit Controls On/Off input. Insert an original quadratic curve in one history transaction; control display changes do not consume that transaction.\n\nChrome verifies real arch pixels at the kernel midpoint, absence of a drawn control polygon, original control markers at their projected positions, camera-only buffer reuse and complete Close.\n\n![Actual command input draws the original curve approximation and its indexed controls.](../illustrations/journey-38d.svg)",
+      "browser_caption": "Actual Chrome draws a sampled quadratic arch and its three original curve control markers.",
+      "checks": "Native command checks prove retained curve ownership, one-step Undo/Redo, unchanged display history and Close release. Chrome checks actual curved geometry and indexed control pixels at both DPRs, projections and zoom levels.",
+      "edits": [
+        {
+          "path": "src/editor.rs",
+          "before": "    AddPoint,",
+          "snippet": "journey/code/38d-input-01.rs",
+          "why": "Expose original curve insertion and explicit control display actions."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "            Action::AddPoint => {",
+          "snippet": "journey/code/38d-input-02.rs",
+          "why": "Insert an original curve transaction and keep control visibility out of geometry history."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "            \"Example Point\",",
+          "snippet": "journey/code/38d-input-03.rs",
+          "why": "Expose curve and control inputs in dock completion and Help."
+        },
+        {
+          "path": "src/browser.rs",
+          "before": "                    \"example point\" => Action::AddPoint,",
+          "snippet": "journey/code/38d-input-04.rs",
+          "why": "Dispatch accepted curve and explicit control input through the editor."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod curve;",
+          "snippet": "journey/code/38d-input-05.rs",
+          "why": "Register actual curve insertion history and ownership checks."
+        },
+        {
+          "path": "src/curve_input_tests.rs",
+          "before": null,
+          "snippet": "journey/code/38d-input-06.rs",
+          "why": "Copy original curve identity, control display history independence and complete release checks.",
+          "copy": true
+        }
+      ]
+    },
+    {
+      "id": "39-visible",
+      "title": "Resolve original visibility for every drawing kind",
+      "page": "journey/39-visible.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Respect original source visibility consistently in drawing, Fit, control markers and mesh picking while retaining hidden sources.",
+      "trace": "original source visibility → shared document predicate → visible drawing and bounds → retained hidden ownership",
+      "question": "Why does hiding a source remove its drawing without deleting its document row?",
+      "answer": "Visibility is a display choice. Its identity, geometry and history remain available for saving and later layer actions, while hidden geometry cannot influence visible picking or Fit.",
+      "result": "Run hidden-source checks for meshes, lines, polylines, curves and points. No hidden drawing resources are created, but original source rows remain.",
+      "experiment": "Prepare an invisible curve and enable its controls. Its original curve and sample cache remain retained while both drawing lanes stay empty.",
+      "production": "Original visibility is resolved across all current kinds. Surface/ink depth checks follow next; user layer overrides and H/S shortcuts remain in chapter 53.",
+      "tests": true,
+      "frame": "journey/checks/39-visible.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Curve"
+        },
+        {
+          "command": "Controls On"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/curve-input.cjs",
+      "story": "Centralize original visibility in one document predicate. Mesh rows use retained metadata even after source unloading; other rows consult their original shared geometry.\n\nUse the same predicate for every drawing lane, control markers, Fit bounds and mesh picking. Keep hidden document rows and sources intact so visibility remains distinct from deletion.\n\n![One visibility predicate governs drawing, bounds and selection.](../illustrations/journey-39.svg)",
+      "browser_caption": "Actual Chrome draws a sampled quadratic arch and its three original curve control markers.",
+      "checks": "Native checks retain hidden original sources for every supported kind, exclude them from bounds and picking, and allocate no hidden GPU geometry or instance buffers. Close releases their retained sources.",
+      "edits": [
+        {
+          "path": "src/chain.rs",
+          "before": "    pub fn guid(&self) -> &str {",
+          "snippet": "journey/code/39-visible-01.rs",
+          "why": "Read visibility from the original shared path source."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {",
+          "snippet": "journey/code/39-visible-02.rs",
+          "why": "Resolve original visibility for every current document kind without removing ownership."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for object in &self.objects {\n            for vertex in object.mesh.vertices() {",
+          "snippet": "journey/code/39-visible-03.rs",
+          "why": "Exclude invisible surfaces from visible Fit bounds."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for line in &self.lines {\n            for point in line.endpoints() {",
+          "snippet": "journey/code/39-visible-04.rs",
+          "why": "Exclude invisible original line endpoints from Fit."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for row in &self.paths {\n            for point in row.bounds_points() {",
+          "snippet": "journey/code/39-visible-05.rs",
+          "why": "Exclude hidden polylines and original curve hulls from Fit."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for row in &self.points {\n            let p = row.point();",
+          "snippet": "journey/code/39-visible-06.rs",
+          "why": "Keep hidden standalone points out of visible bounds."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        for row in self.paths.iter().filter(|row| row.controls_visible) {",
+          "snippet": "journey/code/39-visible-07.rs",
+          "why": "Hide original controls with their invisible curve parent."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {",
+          "snippet": "journey/code/39-visible-08.rs",
+          "why": "Prevent hidden selected surfaces from influencing Fit Selected."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "scene.points().iter().map(crate::scene::PointObject::marker)",
+          "snippet": "journey/code/39-visible-09.rs",
+          "why": "Draw only visible original point rows."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "scene.paths().iter().flat_map(crate::scene::PathObject::segments)",
+          "snippet": "journey/code/39-visible-10.rs",
+          "why": "Keep invisible connected path data out of GPU instance allocation."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "scene.lines().iter().map(crate::scene::LineObject::stroke)",
+          "snippet": "journey/code/39-visible-11.rs",
+          "why": "Keep hidden original lines out of the stroke batch."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "        for object in scene.objects() {",
+          "snippet": "journey/code/39-visible-12.rs",
+          "why": "Allocate surface GPU rows only for visible document objects."
+        },
+        {
+          "path": "src/picking.rs",
+          "before": "    for object in scene.objects() {",
+          "snippet": "journey/code/39-visible-13.rs",
+          "why": "Use the same visibility predicate for ray picking and drawing."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod scene;",
+          "snippet": "journey/code/39-visible-14.rs",
+          "why": "Register hidden ownership and visible picking checks."
+        },
+        {
+          "path": "src/source_visibility_tests.rs",
+          "before": null,
+          "snippet": "journey/code/39-visible-15.rs",
+          "why": "Copy retained hidden ownership, empty visible bounds and invisible picking refusal checks.",
+          "copy": true
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "impl Object {",
+          "snippet": "journey/code/39-visible-16.rs",
+          "why": "Read retained source visibility directly without scanning all document IDs."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "impl LineObject {",
+          "snippet": "journey/code/39-visible-17.rs",
+          "why": "Read retained source visibility directly without scanning all document IDs."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "impl PathObject {",
+          "snippet": "journey/code/39-visible-18.rs",
+          "why": "Read retained source visibility directly without scanning all document IDs."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "impl PointObject {",
+          "snippet": "journey/code/39-visible-19.rs",
+          "why": "Read retained source visibility directly without scanning all document IDs."
+        },
+        {
+          "path": "src/scene.rs",
+          "before": "        if self.objects.is_empty() {\n            return None;\n        }\n        let index = self.objects.iter().position(|object| Some(object.id) == current)\n            .map_or(0, |index| index + 1);\n        Some(self.objects[index % self.objects.len()].id)",
+          "snippet": "journey/code/39-visible-20.rs",
+          "why": "Cycle only visible mesh rows without allocating a second object list."
+        }
+      ],
+      "image_same_as": "38d-input"
+    },
+    {
+      "id": "39a-depth",
+      "title": "Share surface depth across all ink lanes",
+      "page": "journey/39a-depth.md",
+      "hours": [
+        0.75,
+        1.25
+      ],
+      "goal": "Use one explicit depth format and policy for opaque surfaces and screen-space ink, then prove actual occlusion.",
+      "trace": "shared depth texture → opaque surface writes → read-only ink comparison → real hidden/front/coplanar pixels",
+      "question": "Why does ink read surface depth without writing its expanded quad?",
+      "answer": "A ribbon or marker quad contains transparent coverage outside its shape. Writing that quad would hide later geometry in pixels where no visible ink was drawn.",
+      "result": "Run real surface/ink readback checks. Behind-surface lines, curves and points stay hidden; front ink and a flat coplanar edge draw.",
+      "experiment": "Repeat the fixture at both projections, zoom levels and device densities. Compare actual surface pixels before and after behind-surface ink.",
+      "production": "Shared surface depth and read-only ink comparison are verified for the current lanes. Arbitrary curved Arctic outlines and face-coverage silhouettes remain in chapter 91.",
+      "tests": true,
+      "frame": "journey/checks/39a-depth.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "browser_result_status": "Document closed.",
+      "browser_actions": [
+        {
+          "file": "sample.pb"
+        },
+        {
+          "command": "Close"
+        },
+        {
+          "command": "Example Curve"
+        },
+        {
+          "command": "Controls On"
+        },
+        {
+          "command": "View Reset"
+        }
+      ],
+      "browser_check": "journey/checks/browser/curve-input.cjs",
+      "story": "Keep depth format and comparison policy in one module. Opaque surfaces write nearer depth; analytic ink reads that same texture and accepts equal depth without writing its transparent quad.\n\nActual texture readback proves behind-surface occlusion for lines, curves and markers, front ink, and a flat coplanar edge at both projections, zoom levels and densities. This is the shared depth contract; curved silhouette coverage is a later subject.\n\n![Surface depth governs every ink lane without transparent quad writes.](../illustrations/journey-39a.svg)",
+      "browser_caption": "Actual Chrome draws a sampled quadratic arch and its three original curve control markers.",
+      "checks": "Native actual renderer readback compares a solid surface before and after hidden ink and checks front line/point pixels plus a flat coplanar line across eight view/density cases.",
+      "edits": [
+        {
+          "path": "src/depth.rs",
+          "before": null,
+          "snippet": "journey/code/39a-depth-01.rs",
+          "why": "Name one depth format and explicit surface/ink comparison policies."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "pub mod renderer;",
+          "snippet": "journey/code/39a-depth-02.rs",
+          "why": "Register the shared depth contract."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            depth_stencil: Some(wgpu::DepthStencilState {\n                format: wgpu::TextureFormat::Depth32Float,\n                depth_write_enabled: Some(true),\n                depth_compare: Some(wgpu::CompareFunction::Less),\n                stencil: Default::default(),\n                bias: Default::default(),\n            }),",
+          "snippet": "journey/code/39a-depth-03.rs",
+          "why": "Use the shared writable nearer-surface policy."
+        },
+        {
+          "path": "src/renderer.rs",
+          "before": "            format: wgpu::TextureFormat::Depth32Float,",
+          "snippet": "journey/code/39a-depth-04.rs",
+          "why": "Allocate the exact depth format used by every drawing pipeline."
+        },
+        {
+          "path": "src/stroke_gpu.rs",
+          "before": "            depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float,\n                depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::LessEqual),\n                stencil: Default::default(), bias: Default::default() }),",
+          "snippet": "journey/code/39a-depth-05.rs",
+          "why": "Keep all analytic ink lanes read-only against the same surface depth."
+        }
+      ],
+      "image_same_as": "38d-input"
     }
   ]
 }

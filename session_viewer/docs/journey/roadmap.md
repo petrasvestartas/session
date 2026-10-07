@@ -1,6 +1,6 @@
 # The complete draft lesson checklist
 
-**Draft plan: 262 lesson slots; 200 current checkpoints have fresh build and Chrome evidence. 62 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Draft plan: 273 lesson slots; 214 current checkpoints have fresh build and Chrome evidence. 59 planned lessons remain.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
 
 The endpoint is fixed: the features and quality in [the destination contract](destination.md), including the later browser-recovery and interaction-ownership fixes. The current lessons are the opening of the course; this count is not a percentage of the implementation. Lesson count is not a measure of remaining engineering work.
 
@@ -38,7 +38,7 @@ Each lesson should answer: what changes, what Rust is needed, what to type, and 
 
 **Typing limit:** each lesson must fit within one hour of human typing, separately from reading and experiments. The [source-edit audit](typing-load.md) finds no current checkpoint exceeds the conservative planning limit. The header records which of the 175 checkpoints have fresh build and Chrome evidence after dependency and shortcut updates. Future topics will be split when necessary.
 
-- [x] Audit the added/changed code in all 200 current checkpoints, excluding unchanged context.
+- [x] Audit the added/changed code in all 214 current checkpoints, excluding unchanged context.
 - [x] Show typing time at the top; keep the combined study estimate in the expandable code explanation.
 - [x] Split every current over-limit checkpoint into complete runnable lessons; do not split inside functions.
 - [x] Recheck explanations, diagrams, commands, experiments, Rust builds, Chrome input and screenshots for each new endpoint.
@@ -478,11 +478,33 @@ Strokes, markers, clouds and normals: reference 04b, 04c, 04d, 05, 09. Cloud str
 
 - [x] 36e · [Insert connected paths and arrow examples](36e-input.md) — Actual dock commands, alpha joins, arrows, history and Close.
 
-- [ ] 37 · Draw points and control markers — size them on screen and retain their source IDs.
+- [x] 37 · [Prepare an original point for a screen marker](37-point.md) — Exact source owner, finite payload and default diameter.
 
-- [ ] 38 · Sample a curve for display — connect a kernel curve to an approximation we can inspect.
+- [x] 37a · [Extrude a circular marker in screen pixels](37a-disc.md) — Depth clipping, effective density and analytic disc coverage.
 
-- [ ] 39 · Resolve surface and line visibility — keep depth comparisons consistent at edges.
+- [x] 37b · [Draw markers with the shared instance lane](37b-lane.md) — Actual area, alpha, density, camera reuse and release checks.
+
+- [x] 37c · [Retain original point rows and placement](37c-document.md) — Exact world centres, checked IDs, bounds, history and release.
+
+- [x] 37d · [Draw original point rows and count their resources](37d-render.md) — Actual mixed rendering, original source release and marker accounting.
+
+- [x] 37da · [Insert original points through the real dock](37da-input.md) — Actual marker pixels, zoom, DPR, Undo/Redo and Close.
+
+- [x] 37e · [Identify controls on the original curve owner](37e-controls.md) — Stable control index, homogeneous precision and guarded source layout.
+
+- [x] 38 · [Validate an original NURBS curve before sampling](38-layout.md) — Checked public layout, weights, knots and domain.
+
+- [x] 38a · [Sample a validated curve without replacing its source](38a-samples.md) — Bounded chords, original knot breaks and measured approximation error.
+
+- [x] 38b · [Retain original curves beside their display samples](38b-source.md) — Identity, checked IDs, precise placement, conservative bounds and memory.
+
+- [x] 38c · [Draw controls with their original curve parent and index](38c-controls.md) — Placed original controls, explicit visibility and marker resources.
+
+- [x] 38d · [Insert an original curve and inspect its controls](38d-input.md) — Actual arch/control pixels, display history, zoom, DPR and Close.
+
+- [x] 39 · [Resolve original visibility for every drawing kind](39-visible.md) — Shared visibility, retained hidden ownership, Fit and picking.
+
+- [x] 39a · [Share surface depth across all ink lanes](39a-depth.md) — Actual hidden/front ink and flat coplanar edge pixels at both projections, zoom and DPR.
 
 - [ ] 40 · Carry face and vertex colours — preserve the source colour rules in display data.
 

@@ -1,0 +1,1 @@
+        for object in scene.objects().iter().filter(|row| row.visible()) {

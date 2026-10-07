@@ -1,0 +1,1 @@
+Source::Polyline(line) => line.arrowhead, Source::Curve(curve, _) => curve.arrowhead

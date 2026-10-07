@@ -1,0 +1,1 @@
+Self::Polyline(line) => line.guid(), Self::Curve(curve, _) => curve.guid()

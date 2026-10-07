@@ -1,0 +1,1 @@
+scene.points().iter().map(crate::scene::PointObject::marker).chain(scene.control_markers().into_iter().map(|c| c.display)))

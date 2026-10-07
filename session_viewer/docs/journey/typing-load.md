@@ -212,16 +212,30 @@ For planning, the typing range assumes 10–20 five-character words per minute (
 | [36db-placement](36db-placement.md) | 38 | 1782 | 18–36 min | 0.75–1.25 h | Within planning limit |
 | [36da-render](36da-render.md) | 20 | 1194 | 12–24 min | 0.75–1.25 h | Within planning limit |
 | [36e-input](36e-input.md) | 26 | 1391 | 14–28 min | 0.75–1.25 h | Within planning limit |
+| [37-point](37-point.md) | 33 | 1223 | 13–25 min | 0.75–1.25 h | Within planning limit |
+| [37a-disc](37a-disc.md) | 28 | 1402 | 15–29 min | 0.75–1.25 h | Within planning limit |
+| [37b-lane](37b-lane.md) | 15 | 765 | 8–16 min | 0.75–1.25 h | Within planning limit |
+| [37c-document](37c-document.md) | 44 | 2384 | 24–48 min | 0.75–1.25 h | Within planning limit |
+| [37d-render](37d-render.md) | 29 | 1630 | 17–33 min | 0.75–1.25 h | Within planning limit |
+| [37da-input](37da-input.md) | 15 | 665 | 7–14 min | 0.75–1.25 h | Within planning limit |
+| [37e-controls](37e-controls.md) | 40 | 1821 | 19–37 min | 0.75–1.25 h | Within planning limit |
+| [38-layout](38-layout.md) | 31 | 1662 | 17–34 min | 0.75–1.25 h | Within planning limit |
+| [38a-samples](38a-samples.md) | 37 | 1927 | 20–39 min | 0.75–1.25 h | Within planning limit |
+| [38b-source](38b-source.md) | 51 | 2663 | 27–54 min | 0.75–1.25 h | Within planning limit |
+| [38c-controls](38c-controls.md) | 28 | 1632 | 17–33 min | 0.75–1.25 h | Within planning limit |
+| [38d-input](38d-input.md) | 22 | 1100 | 11–22 min | 0.75–1.25 h | Within planning limit |
+| [39-visible](39-visible.md) | 37 | 2222 | 23–45 min | 0.75–1.25 h | Within planning limit |
+| [39a-depth](39a-depth.md) | 14 | 699 | 7–14 min | 0.75–1.25 h | Within planning limit |
 
 ## Current lesson audit completed
 
-- [x] Count the exact source edits for all 200 current checkpoints.
+- [x] Count the exact source edits for all 214 current checkpoints.
 - [x] Refactor the long command-dock lesson into small, understandable responsibilities.
 - [x] Split every current over-limit checkpoint into meaningful runnable lessons.
 - [x] Put separate typing and study estimates at every current lesson’s top.
 - [x] Verify each new endpoint in Rust and Chrome; capture its actual result.
 - [x] Update the full roadmap, navigation and recovery instructions.
-- [x] Recheck total lesson counts after splitting; the current 262 slots are not a fixed final count.
+- [x] Recheck total lesson counts after splitting; the current 273 slots are not a fixed final count.
 - [ ] Apply the same direct style and typing limit to the 62 remaining feature lessons as they are written.
 
 [Complete course checklist](roadmap.md) · [What the finished course must preserve](destination.md)

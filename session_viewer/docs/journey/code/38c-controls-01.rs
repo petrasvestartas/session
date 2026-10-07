@@ -1,0 +1,1 @@
+pub struct PathObject { pub controls_visible: bool, pub id: ObjectId,

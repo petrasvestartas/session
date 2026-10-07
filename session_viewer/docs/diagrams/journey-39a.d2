@@ -1,0 +1,14 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "One Depth32Float surface texture"
+b: "Opaque nearer surfaces write depth"
+c: "Analytic ink reads depth with LessEqual"
+d: "Behind-surface ink stays hidden"
+e: "Front ink and flat equal-depth edges draw"
+f: "Transparent expanded quads never write depth"
+a -> b
+b -> c
+c -> d
+c -> e
+c -> f

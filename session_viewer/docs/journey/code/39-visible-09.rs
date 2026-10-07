@@ -1,0 +1,1 @@
+scene.points().iter().filter(|row| row.visible()).map(crate::scene::PointObject::marker)

@@ -1,0 +1,14 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Finite centre, diameter and colour"
+b: "32-byte marker instance layout"
+c: "Shared changed-data synchronization"
+d: "Camera and effective density remain uniform data"
+e: "Actual circular area and alpha readback"
+f: "Empty batch drops its GPU allocation"
+a -> b
+b -> c
+c -> e
+d -> e
+c -> f

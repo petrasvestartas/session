@@ -1,0 +1,1 @@
+objects: Vec::new(), points: Vec::new(), paths: Vec::new(),

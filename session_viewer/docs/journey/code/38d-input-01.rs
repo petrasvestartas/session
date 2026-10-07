@@ -1,0 +1,3 @@
+    AddPoint,
+    AddCurve,
+    Controls(bool),

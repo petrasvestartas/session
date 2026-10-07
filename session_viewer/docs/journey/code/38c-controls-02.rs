@@ -1,0 +1,1 @@
+PathObject { controls_visible: false, id, guid, prepared, model:

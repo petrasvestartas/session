@@ -1,0 +1,15 @@
+vars: { d2-config: { layout-engine: elk; pad: 20; theme-id: 0 } }
+style: { fill: "#ffffff" }
+direction: down
+a: "Original point rows and placement"
+b: "Final 32-byte marker records"
+c: "Change-only GPU synchronization"
+d: "Camera, viewport and density uniform"
+e: "Shared scene depth pass"
+f: "Close releases source/history and marker buffer"
+a -> b
+b -> c
+c -> e
+d -> e
+a -> f
+c -> f

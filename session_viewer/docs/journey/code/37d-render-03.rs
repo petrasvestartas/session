@@ -1,0 +1,1 @@
+depth, strokes, paths, markers, size: [640, 480]

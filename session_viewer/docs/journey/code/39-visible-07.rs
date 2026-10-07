@@ -1,0 +1,1 @@
+        for row in self.paths.iter().filter(|row| row.controls_visible && row.visible()) {

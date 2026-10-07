@@ -1,0 +1,1 @@
+scene.lines().iter().filter(|row| row.visible()).map(crate::scene::LineObject::stroke)

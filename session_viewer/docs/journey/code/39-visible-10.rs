@@ -1,0 +1,1 @@
+scene.paths().iter().filter(|row| row.visible()).flat_map(crate::scene::PathObject::segments)
