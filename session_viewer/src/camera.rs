@@ -48,6 +48,7 @@ pub struct Camera {
     pub perspective: bool,       // false = orthographic
     pub unit: Unit,              // the scene file unit
     pub scene_extent: f64,       // scene radius in meters, keeps the far plane wide
+    pub frame: [f64; 4], // the canvas part the panels leave free: left, top, right, bottom in fractions
 }
 
 /// The part of the camera the user chose: where it looks from and at.
@@ -90,6 +91,7 @@ impl Camera {
             perspective: true,
             unit: Unit::Millimeters,
             scene_extent: 0.0,
+            frame: [0.0, 0.0, 1.0, 1.0],
         };
 
         cam.update_position();
@@ -137,8 +139,9 @@ impl Camera {
         }
 
         // pixel to -1..1 on both axes, y up
-        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
-        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
+        let [shift_x, shift_y] = self.shift();
+        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0 - shift_x;
+        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1 - shift_y;
         // work in scene units, not meters
         let s = self.unit.to_meters();
         let target = self.origin();
@@ -201,8 +204,9 @@ impl Camera {
         let new_dist = zoom_distance(self.distance, amount);
         let k = new_dist / self.distance; // how much closer
         // pixel to -1..1 on both axes, y up
-        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0;
-        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1;
+        let [shift_x, shift_y] = self.shift();
+        let ndc_x = 2.0 * cursor.0 / viewport.0 - 1.0 - shift_x;
+        let ndc_y = 1.0 - 2.0 * cursor.1 / viewport.1 - shift_y;
         // half the view size at the target plane
         let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan();
         let half_w = half_h * (viewport.0 / viewport.1);
@@ -242,14 +246,17 @@ impl Camera {
         );
         let half_h = self.distance * (FOVY_DEG * 0.5).to_radians().tan() / s; // half view height
         let half_w = half_h * aspect;
+        let [shift_x, shift_y] = self.shift();
         let mut lo = [f64::INFINITY; 3];
         let mut hi = [f64::NEG_INFINITY; 3];
 
         // clip every box corner to the visible rectangle
         for corner in bounds.corners() {
             let c = [corner[0] - t[0], corner[1] - t[1], corner[2] - t[2]];
-            let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2]).clamp(-half_w, half_w);
-            let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2]).clamp(-half_h, half_h);
+            let dx = (c[0] * right[0] + c[1] * right[1] + c[2] * right[2])
+                .clamp((-1.0 - shift_x) * half_w, (1.0 - shift_x) * half_w);
+            let dy = (c[0] * up[0] + c[1] * up[1] + c[2] * up[2])
+                .clamp((-1.0 - shift_y) * half_h, (1.0 - shift_y) * half_h);
             let dz = c[0] * fwd[0] + c[1] * fwd[1] + c[2] * fwd[2];
 
             for i in 0..3 {
@@ -336,7 +343,19 @@ impl Camera {
         let s = self.unit.to_meters();
         let scale = Xform::scale_xyz(s, s, s);
 
-        projection * view * scale
+        // the target lands in the middle of the free part, not of the canvas
+        let [shift_x, shift_y] = self.shift();
+        let lens = Xform::translation(shift_x, shift_y, 0.0);
+
+        lens * projection * view * scale
+    }
+
+    /// Where the middle of the free part sits on the canvas, -1..1 on both axes, y up.
+    pub fn shift(&self) -> [f64; 2] {
+        [
+            self.frame[0] + self.frame[2] - 1.0,
+            1.0 - self.frame[1] - self.frame[3],
+        ]
     }
 
     /// Turn to a named view, orthographic.
@@ -364,16 +383,20 @@ impl Camera {
 
     /// Reset to a fresh default camera.
     pub fn reset(&mut self) {
+        let frame = self.frame;
         *self = Camera::new();
+        self.frame = frame;
     }
 
-    /// Frame a box: look at its center, back off until it fits.
+    /// Frame a box: look at its center, back off until it fits the free part of the canvas.
     pub fn fit(&mut self, bounds: &AABB, aspect: f64) {
-        self.fit_in(bounds, aspect, [0.0, 0.0, 1.0, 1.0]);
+        self.fit_in(bounds, aspect, self.frame);
     }
 
     /// Frame a box in the part of the canvas the panels leave free, `frame` its left, top, right and bottom as fractions of the canvas: the box fits that part and sits in its middle.
     pub fn fit_in(&mut self, bounds: &AABB, aspect: f64, frame: [f64; 4]) {
+        self.frame = frame;
+
         if !bounds.is_valid() {
             return;
         }
@@ -387,7 +410,10 @@ impl Camera {
         let half_fov_y = FOVY_DEG.to_radians() * 0.5;
         let half_fov_x = (aspect * half_fov_y.tan()).atan();
         let (full_x, full_y) = (half_fov_x.tan(), half_fov_y.tan());
-        let (tx, ty) = (full_x * (frame[2] - frame[0]), full_y * (frame[3] - frame[1]));
+        let (tx, ty) = (
+            full_x * (frame[2] - frame[0]),
+            full_y * (frame[3] - frame[1]),
+        );
 
         let fwd = self.orientation.rotate_vector(Vector::y_axis());
         let up = self.orientation.rotate_vector(Vector::z_axis());
@@ -410,33 +436,7 @@ impl Camera {
 
         self.distance = (distance * 1.05).max(1.0e-6); // 5% margin
         self.scene_extent = extent; // farthest corner from the target
-
-        // slide the view so the box sits in the middle of the free part, not of the canvas;
-        // in perspective the slide moves near corners more, so back off until every one is in
-        let centre = self.target;
-        for _ in 0..40 {
-            let across = (frame[0] + frame[2] - 1.0) * self.distance * full_x;
-            let down = (frame[1] + frame[3] - 1.0) * self.distance * full_y;
-            for k in 0..3 {
-                self.target[k] = centre[k] - right[k] * across + up[k] * down;
-            }
-            self.update_position();
-            if self.frames(bounds, aspect, frame) {
-                break;
-            }
-            self.distance *= 1.02;
-        }
-    }
-
-    /// True when every corner of the box projects inside `frame`.
-    fn frames(&self, bounds: &AABB, aspect: f64, frame: [f64; 4]) -> bool {
-        let o = self.origin();
-        let projection = self.view_proj(aspect);
-        bounds.corners().iter().all(|c| {
-            let p = projection.transform_point(&Point::new(c[0] - o[0], c[1] - o[1], c[2] - o[2]));
-            let (x, y) = ((p[0] + 1.0) / 2.0, (1.0 - p[1]) / 2.0);
-            x >= frame[0] - 1e-9 && x <= frame[2] + 1e-9 && y >= frame[1] - 1e-9 && y <= frame[3] + 1e-9
-        })
+        self.update_position();
     }
 
     /// The eight box corners in meters, relative to the target.
@@ -580,15 +580,55 @@ mod tests {
         for perspective in [true, false] {
             let mut cam = Camera::new();
             cam.perspective = perspective;
-            let bounds = AABB::from_points(&[Point::new(0.0, 0.0, 0.0), Point::new(4000.0, 1000.0, 300.0)], 0.0);
+            let bounds = AABB::from_points(
+                &[Point::new(0.0, 0.0, 0.0), Point::new(4000.0, 1000.0, 300.0)],
+                0.0,
+            );
             // a panel over the right 40 %, a dock under the bottom 10 %
             cam.fit_in(&bounds, 1.6, [0.0, 0.0, 0.6, 0.9]);
             let o = cam.origin();
             for c in bounds.corners() {
-                let p = cam.view_proj(1.6).transform_point(&Point::new(c[0] - o[0], c[1] - o[1], c[2] - o[2]));
-                assert!(p[0] >= -1.0 && p[0] <= 0.2 + 1e-9, "x {} beside the panel", p[0]);
-                assert!(p[1] >= -0.8 - 1e-9 && p[1] <= 1.0, "y {} above the dock", p[1]);
+                let p = cam.view_proj(1.6).transform_point(&Point::new(
+                    c[0] - o[0],
+                    c[1] - o[1],
+                    c[2] - o[2],
+                ));
+                assert!(
+                    p[0] >= -1.0 && p[0] <= 0.2 + 1e-9,
+                    "x {} beside the panel",
+                    p[0]
+                );
+                assert!(
+                    p[1] >= -0.8 - 1e-9 && p[1] <= 1.0,
+                    "y {} above the dock",
+                    p[1]
+                );
             }
+        }
+    }
+
+    #[test]
+    fn the_target_sits_in_the_middle_of_the_free_part() {
+        for perspective in [true, false] {
+            let mut cam = Camera::new();
+            cam.perspective = perspective;
+            cam.frame = [0.0, 0.0, 0.6, 0.9];
+            // the free part's middle is 30 % across and 45 % down the canvas
+            let p = cam
+                .view_proj(1.6)
+                .transform_point(&Point::new(0.0, 0.0, 0.0));
+            assert!(
+                (p[0] + 0.4).abs() < 1e-9 && (p[1] - 0.1).abs() < 1e-9,
+                "{p:?}"
+            );
+            let (_, direction) = cam.ray((480.0, 450.0), (1600.0, 1000.0)).unwrap();
+            let forward = cam.orientation.rotate_vector(Vector::y_axis());
+            assert!(
+                (direction[0] * forward[0] + direction[1] * forward[1] + direction[2] * forward[2]
+                    - 1.0)
+                    .abs()
+                    < 1e-9
+            );
         }
     }
 
@@ -603,7 +643,10 @@ mod tests {
         let reach = GRID_HALF * cam.unit.to_meters() * 2.0_f64.sqrt();
         for depth in [cam.distance - reach, cam.distance + reach] {
             let projected = ndc_depth(&cam, depth);
-            assert!((0.0..=1.0).contains(&projected), "depth {depth}: {projected}");
+            assert!(
+                (0.0..=1.0).contains(&projected),
+                "depth {depth}: {projected}"
+            );
         }
     }
 
