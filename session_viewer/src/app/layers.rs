@@ -169,6 +169,23 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     rows
 }
 
+/// The element features: rows of elements that hang under another element as its child layers.
+pub fn feature_rows(scene: &Scene) -> Vec<u32> {
+    let element = |row: u32| matches!(scene.geometry(row), Some(Geometry::Element(_)));
+
+    (0..scene.row_count() as u32)
+        .filter(|&row| {
+            let Some((doc, guid)) = scene.identity_of(row) else {
+                return false;
+            };
+            let host = scene
+                .parent_of(doc, &guid)
+                .and_then(|parent| scene.row_of(doc, &parent.borrow().name));
+            element(row) && host.is_some_and(element)
+        })
+        .collect()
+}
+
 impl Scene {
     /// The tree node holding the object `guid` of `doc`, when it hangs from the tree.
     pub(crate) fn parent_of(&self, doc: usize, guid: &str) -> Option<Node> {
@@ -1360,6 +1377,35 @@ mod tests {
         assert_eq!(scene.docs[0].session.lookup.len(), 4);
         assert_eq!(scene.duplicate_layer(0, "walls").unwrap(), "walls copy 02");
         assert!(scene.duplicate_layer(0, "site").is_err());
+    }
+
+    /// Elements under an element are its features; elements under a group are not.
+    #[test]
+    fn elements_under_an_element_are_its_features() {
+        use session_rust::{Element, Mesh};
+        let element = |name: &str| {
+            let mut element = Element::new(name);
+            element.set_geometry(Mesh::create_box(1.0, 1.0, 1.0));
+            element
+        };
+        let mut session = Session::new("column");
+        let walls = session.add_group("walls");
+        let column = session.add_element(element("column"), Some(&walls));
+        session.add_element(element("cutter"), Some(&column));
+        session.add_element(element("support"), Some(&walls));
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "column".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let names: Vec<&str> = feature_rows(&scene)
+            .into_iter()
+            .map(|row| scene.object_name(row))
+            .collect();
+        assert_eq!(names, vec!["cutter"]);
     }
 
     /// A group under an object keeps its name when copied or moved, so `attributes` get no rows.

@@ -1042,11 +1042,13 @@ impl State {
         self.touch();
     }
 
-    /// Element Features On|Off: draw the features inside each element; `None` toggles.
+    /// Element Features On|Off: show the elements hung under each element and draw its features; `None` toggles.
     pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
         let show = value.unwrap_or(!self.scene.attributes);
         self.scene.attributes = show;
         self.select(None);
+        let children = crate::app::layers::feature_rows(&self.scene);
+        self.set_rows_hidden(&children, !show);
 
         if !self.scene.rewalk_editable(&mut self.gpu) {
             self.resume_after(hydrate::Resume::Rewalk);
