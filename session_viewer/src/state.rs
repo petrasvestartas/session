@@ -55,6 +55,7 @@ pub struct State {
     controls: Controls,                     // control points of the selected object
     requested: PickMode,                    // what the pending pick looks for
     pub(crate) additive_selection: bool,    // Shift held: add to the selection
+    pub(crate) snap_rotation: bool,         // Shift held: the gumball turns by 90 degree steps
     selection_order: Vec<u32>,              // selected rows in pick order
     highlighted: Vec<u32>,                  // rows highlighted, when several are selected
     pub selection_radius_css: f64,          // click tolerance in CSS pixels
@@ -90,6 +91,7 @@ impl State {
             controls: Controls::default(),
             requested: PickMode::Object,
             additive_selection: false,
+            snap_rotation: false,
             selection_order: Vec::new(),
             highlighted: Vec::new(),
             selection_radius_css: 6.0,

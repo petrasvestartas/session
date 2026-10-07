@@ -278,8 +278,8 @@ impl Gizmo {
         Some(drag)
     }
 
-    /// The transform from the grab to where the ray is now.
-    pub fn update(&self, drag: &Drag, from: &Point, dir: &Vector) -> Option<Xform> {
+    /// The transform from the grab to where the ray is now; `snap` turns a rotation by whole quarter turns.
+    pub fn update(&self, drag: &Drag, from: &Point, dir: &Vector, snap: bool) -> Option<Xform> {
         match drag.handle {
             Handle::Translate(axis) => {
                 let now = closest_on_axis(from, dir, &self.origin, &axis.unit())?;
@@ -289,6 +289,11 @@ impl Gizmo {
             Handle::Rotate(axis) => {
                 let now = plane_hit(from, dir, &self.origin, &axis.unit())?;
                 let turned = angle_in_plane(&now, &self.origin, axis) - drag.angle;
+                let turned = if snap {
+                    (turned / std::f64::consts::FRAC_PI_2).round() * std::f64::consts::FRAC_PI_2
+                } else {
+                    turned
+                };
                 Some(about(&self.origin, rotation(axis, turned)))
             }
             Handle::Scale(axis) => {
@@ -519,7 +524,7 @@ mod tests {
             .begin(Handle::Translate(Axis::X), &f0, &d0)
             .expect("grabbed");
         let (f1, d1) = down(42.0, 0.0);
-        let m = g.update(&drag, &f1, &d1).expect("a transform");
+        let m = g.update(&drag, &f1, &d1, false).expect("a transform");
         assert!((m.m[12] - 12.0).abs() < 1e-9);
         assert!(m.m[13].abs() < 1e-9 && m.m[14].abs() < 1e-9);
     }
@@ -540,10 +545,26 @@ mod tests {
         let (f0, d0) = down(ARM, 0.0);
         let drag = g.begin(Handle::Rotate(Axis::Z), &f0, &d0).expect("grabbed");
         let (f1, d1) = down(0.0, ARM);
-        let m = g.update(&drag, &f1, &d1).expect("a transform");
+        let m = g.update(&drag, &f1, &d1, false).expect("a transform");
         // column 0 is the image of the x axis
         assert!((m.m[0]).abs() < 1e-9, "x.x");
         assert!((m.m[1] - 1.0).abs() < 1e-9, "x.y");
+    }
+
+    /// With Shift a turn of 60 degrees snaps to the nearest quarter turn, 90.
+    #[test]
+    fn a_snapped_rotate_turns_by_quarter_turns() {
+        let mut g = at_origin();
+        let (f0, d0) = down(ARM, 0.0);
+        let drag = g.begin(Handle::Rotate(Axis::Z), &f0, &d0).expect("grabbed");
+        let (f1, d1) = down(ARM * 0.5, ARM * 0.866);
+        let free = g.update(&drag, &f1, &d1, false).expect("a transform");
+        let snapped = g.update(&drag, &f1, &d1, true).expect("a transform");
+        assert!((free.m[1] - 0.866).abs() < 1e-3, "60 degrees free");
+        assert!(
+            snapped.m[0].abs() < 1e-9 && (snapped.m[1] - 1.0).abs() < 1e-9,
+            "90 degrees snapped"
+        );
     }
 
     /// A scale starts at 1 and never flips.
@@ -552,18 +573,18 @@ mod tests {
         let mut g = at_origin();
         let (f0, d0) = down(BALL_AT, 0.0);
         let drag = g.begin(Handle::Scale(Axis::X), &f0, &d0).expect("grabbed");
-        let m = g.update(&drag, &f0, &d0).expect("a transform");
+        let m = g.update(&drag, &f0, &d0, false).expect("a transform");
         assert!((m.m[0] - 1.0).abs() < 1e-9, "no movement is no change");
 
         let (f1, d1) = down(BALL_AT * 4.0, 0.0);
-        let grown = g.update(&drag, &f1, &d1).expect("a transform");
+        let grown = g.update(&drag, &f1, &d1, false).expect("a transform");
         assert!(
             grown.m[0] > 1.0 && grown.m[5] == 1.0 && grown.m[10] == 1.0,
             "one axis only"
         );
 
         let (f2, d2) = down(-BALL_AT * 4.0, 0.0);
-        let flipped = g.update(&drag, &f2, &d2).expect("a transform");
+        let flipped = g.update(&drag, &f2, &d2, false).expect("a transform");
         assert!(flipped.m[0] >= MIN_SCALE, "never mirrors");
     }
 

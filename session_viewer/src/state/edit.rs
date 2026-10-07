@@ -128,7 +128,8 @@ impl State {
             return false;
         };
         // the transform the gesture means so far
-        let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
+        let Some(delta) =
+            Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir, self.snap_rotation)
         else {
             return false;
         };
@@ -217,7 +218,8 @@ impl State {
             return false;
         };
         gizmo.drag = None;
-        let Some(delta) = Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir)
+        let Some(delta) =
+            Gizmo::new(active.origin.clone()).update(&active.drag, &from, &dir, self.snap_rotation)
         else {
             return false;
         };

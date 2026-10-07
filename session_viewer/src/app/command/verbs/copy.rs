@@ -3,7 +3,7 @@ use crate::app::command::tool::{Next, Tool, translation};
 use crate::app::command::{Action, Spec, offset};
 use crate::app::layers::{self, owned};
 use crate::app::scene::{Scene, sync};
-use session_rust::{Plane, Point, Xform};
+use session_rust::{Geometry, Plane, Point, Xform};
 use std::rc::Rc;
 
 pub const SPEC: Spec = Spec::new(
@@ -122,7 +122,7 @@ impl Scene {
         rows: &[u32],
         delta: &Xform,
     ) -> Result<Vec<(usize, Rc<str>)>, String> {
-        let mut sources = Vec::with_capacity(rows.len()); // (document, guid, geometry, local)
+        let mut sources = Vec::with_capacity(rows.len()); // (document, guid, geometry, local, attributes)
 
         for &row in rows {
             let (doc, guid) = self.identity_of(row).ok_or("An object no longer exists")?;
@@ -143,8 +143,11 @@ impl Scene {
             let local = self
                 .local_for_world_delta(row, delta, &base)
                 .ok_or("This object's placement is singular")?;
-            sources.push((doc, guid, geometry, local));
+            let attributes = self.attributes_of(row);
+            sources.push((doc, guid, geometry, local, attributes));
         }
+
+        let features = self.attributes; // copied attributes show while Element Features is on
 
         let mut docs: Vec<usize> = sources.iter().map(|source| source.0).collect();
         docs.sort_unstable();
@@ -155,13 +158,13 @@ impl Scene {
             let mine: Vec<_> = sources.iter().filter(|source| source.0 == doc).collect();
             let parents: Vec<_> = mine
                 .iter()
-                .map(|(_, guid, _, _)| self.parent_of(doc, guid))
+                .map(|(_, guid, _, _, _)| self.parent_of(doc, guid))
                 .collect();
             let session = Rc::make_mut(&mut self.docs[doc].session);
             let mut made = Vec::with_capacity(mine.len());
             session.begin("copy");
 
-            for ((_, guid, geometry, local), parent) in mine.iter().zip(parents) {
+            for ((_, guid, geometry, local, attributes), parent) in mine.iter().zip(parents) {
                 let Some(parent) = owned(session, parent).or_else(|| session.tree.root()) else {
                     continue;
                 };
@@ -170,6 +173,21 @@ impl Scene {
                 };
                 let id: Rc<str> = Rc::from(node.borrow().name.as_str());
                 session.set_xform(&id, local.clone());
+
+                // an element's attributes come with it, placed on it as before
+                if !attributes.is_empty() {
+                    let group = session.add_group_with("attributes", Some(&node));
+
+                    for (attribute, place) in attributes {
+                        let shown = layers::shown(attribute, features);
+
+                        if let Some(child) = layers::add(session, &shown, &group, false) {
+                            let child = child.borrow().name.clone();
+                            session.set_xform(&child, place.clone());
+                        }
+                    }
+                }
+
                 made.push((node, (doc, Rc::clone(guid)), (doc, id)));
             }
 
@@ -189,6 +207,35 @@ impl Scene {
 
         self.edited(&docs);
         Ok(copies)
+    }
+}
+
+impl Scene {
+    /// The objects in a row's `attributes` group with their local placements; none for a row without one.
+    fn attributes_of(&self, row: u32) -> Vec<(Geometry, Xform)> {
+        let (Some((doc, _)), Some((node, _))) = (self.identity_of(row), self.node_of(row)) else {
+            return Vec::new();
+        };
+        let session = &self.docs[doc].session;
+        let mut out = Vec::new();
+
+        for group in node.borrow().children() {
+            if group.borrow().name != "attributes"
+                || session.lookup.contains_key(&group.borrow().name)
+            {
+                continue;
+            }
+
+            for child in group.borrow().children() {
+                let guid = child.borrow().name.clone();
+
+                if let Some(geometry) = session.lookup.get(&guid) {
+                    out.push((geometry.clone(), session.xform(&guid)));
+                }
+            }
+        }
+
+        out
     }
 }
 

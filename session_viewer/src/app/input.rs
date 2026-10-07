@@ -196,6 +196,7 @@ impl Input {
                 self.ctrl = mods.state().control_key();
                 self.command = mods.state().super_key();
                 self.shift = mods.state().shift_key();
+                state.snap_rotation = self.shift; // Shift turns the gumball by quarter turns
                 false
             }
             WindowEvent::Focused(false) => {

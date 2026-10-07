@@ -84,6 +84,7 @@ impl Scene {
             }
         };
         let place = self.docs[doc].place.clone();
+        let features = self.attributes; // new attributes show while Element Features is on
         let session = Rc::make_mut(&mut self.docs[doc].session);
         // the current layer, else the root
         let parent = layer
@@ -112,7 +113,12 @@ impl Scene {
                 let group = session.add_group_with("attributes", Some(&node));
 
                 for attribute in attributes {
-                    super::layers::add(session, attribute, &group, true);
+                    super::layers::add(
+                        session,
+                        &super::layers::shown(attribute, features),
+                        &group,
+                        true,
+                    );
                 }
             }
 

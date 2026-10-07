@@ -137,8 +137,28 @@ impl Scene {
         self.set_row_xform(row, local, label)
     }
 
-    /// Delete one row's object; the caller syncs the rows.
+    /// The rows with everything hung under the elements among them: an element goes with its attributes and features.
+    pub fn with_element_parts(&self, rows: &[u32]) -> Vec<u32> {
+        let elements: Vec<u32> = rows
+            .iter()
+            .copied()
+            .filter(|&row| matches!(self.geometry(row), Some(Geometry::Element(_))))
+            .collect();
+        let mut out = rows.to_vec();
+        out.extend(self.with_descendants(&elements));
+        out.sort_unstable();
+        out.dedup();
+        out
+    }
+
+    /// Delete one row's object, an element with its attributes and features; the caller syncs the rows.
     pub fn delete_row(&mut self, row: u32) -> bool {
+        let parts = self.with_element_parts(&[row]);
+
+        if parts.len() > 1 {
+            return self.delete_rows(&parts) > 0;
+        }
+
         if self.delete_text(row) {
             return true;
         }
@@ -163,8 +183,9 @@ impl Scene {
         removed
     }
 
-    /// Delete the objects and texts of `rows` as one undo step across their documents; how many went.
+    /// Delete the objects and texts of `rows` as one undo step across their documents, an element with what hangs under it; how many went.
     pub fn delete_rows(&mut self, rows: &[u32]) -> usize {
+        let rows = &self.with_element_parts(rows);
         let mut texts = Vec::new();
         let mut objects = Vec::new();
 

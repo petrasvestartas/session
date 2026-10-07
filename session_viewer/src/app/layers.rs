@@ -1100,6 +1100,27 @@ pub(crate) fn owned(session: &Session, node: Option<Node>) -> Option<Node> {
     Some(found)
 }
 
+/// The geometry drawn or hidden: an element's attributes follow Element Features.
+pub(crate) fn shown(geometry: &Geometry, on: bool) -> Geometry {
+    let mut geometry = geometry.clone();
+
+    match &mut geometry {
+        Geometry::OBB(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::BRep(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::Element(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::Line(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::Mesh(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::NurbsCurve(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::NurbsSurface(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::Plane(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::Point(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::PointCloud(g) => Rc::make_mut(g).is_visible = on,
+        Geometry::Polyline(g) => Rc::make_mut(g).is_visible = on,
+    }
+
+    geometry
+}
+
 /// Add a geometry under `parent`, keeping its guid or with a fresh one.
 pub(crate) fn add(
     session: &mut Session,
