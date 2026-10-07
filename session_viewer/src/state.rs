@@ -1031,14 +1031,9 @@ impl State {
 }
 
 impl State {
-    /// View Plane Size <mm>: every plane drawn again as a square of that half side with a normal arrow as long.
+    /// View Plane Size <mm>: every plane's grid of that half side, its arrows as long; the next frame draws it.
     pub fn set_plane_size(&mut self, size: f64) {
-        crate::app::walk::frames::set_plane_size(size);
-
-        if !self.scene.rewalk_editable(&mut self.gpu) {
-            self.resume_after(hydrate::Resume::Rewalk);
-        }
-
+        crate::engine::gpu::planes::set_plane_size(size);
         self.touch();
     }
 

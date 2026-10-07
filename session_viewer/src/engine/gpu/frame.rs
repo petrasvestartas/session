@@ -53,7 +53,7 @@ pub struct LineUniform {
     pub origin: [f32; 2], // top-left of this target in the canvas, px
     pub frame: [f32; 2],  // canvas size, px
     pub opacity: f32,     // alpha of mesh faces
-    pub _pad: f32,        // keeps the size a multiple of 16
+    pub plane_size: f32,  // half side of every plane's grid, scene units
 }
 
 // the shaders read these byte offsets
@@ -223,7 +223,7 @@ impl FrameUniforms {
             origin: [0.0; 2],
             frame: [size.0 as f32, size.1 as f32],
             opacity: 1.0,
-            _pad: 0.0,
+            plane_size: super::planes::plane_size() as f32,
         };
         let line_buffer = uniform_buffer(&ctx.device, "line.buffer", &line);
         let cloud = CloudUniform {
@@ -332,7 +332,7 @@ impl FrameUniforms {
             origin: [0.0; 2],
             frame: [cx.size.0 as f32, cx.size.1 as f32],
             opacity: cx.view.opacity,
-            _pad: 0.0,
+            plane_size: super::planes::plane_size() as f32,
         };
         ctx.queue
             .write_buffer(&self.line_buffer, 0, bytemuck::bytes_of(&line));

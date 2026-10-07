@@ -1,25 +1,11 @@
 use super::Row;
-use super::curves::push_heads;
 use super::encode::{FACING_UNKNOWN, Pen, encode_width, pack_rgba};
 use crate::engine::gpu::CylinderSegment;
 use crate::engine::gpu::lane::LaneRows;
+use crate::engine::gpu::planes::{PlaneRow, PlaneRows, plane_size};
 use crate::engine::gpu::segments::SegRows;
 use session_rust::AABB;
-use session_rust::{Arrowhead, OBB, Plane, Point, Vector};
-use std::sync::atomic::{AtomicU64, Ordering};
-
-/// Half side of the square drawn for every plane and length of its normal arrow, mm, as f64 bits; `View Plane Size` sets it.
-static PLANE_SIZE: AtomicU64 = AtomicU64::new(100.0_f64.to_bits());
-
-/// Half side of the square drawn for every plane, mm.
-pub fn plane_size() -> f64 {
-    f64::from_bits(PLANE_SIZE.load(Ordering::Relaxed))
-}
-
-/// Set the half side of every plane's square and its normal's length, mm; planes walked from now on use it.
-pub fn set_plane_size(size: f64) {
-    PLANE_SIZE.store(size.to_bits(), Ordering::Relaxed);
-}
+use session_rust::{OBB, Plane};
 
 /// The 12 box edges, corners bottom 0-3 then top 4-7.
 const BOX_EDGES: [[usize; 2]; 12] = [
@@ -36,17 +22,6 @@ const BOX_EDGES: [[usize; 2]; 12] = [
     [2, 6],
     [3, 7],
 ];
-
-/// One corner of the plane square.
-fn corner(o: &Point, x: &Vector, y: &Vector, s: [f64; 2]) -> [f32; 3] {
-    let mut position = [0.0; 3];
-
-    for (k, value) in position.iter_mut().enumerate() {
-        *value = (o[k] + (x[k] * s[0] + y[k] * s[1]) * plane_size()) as f32;
-    }
-
-    position
-}
 
 /// Push the edges as segments; return the points' box.
 fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pen) -> AABB {
@@ -70,57 +45,37 @@ fn push_loop(seg: &mut SegRows, pts: &[[f32; 3]], edges: &[[usize; 2]], pen: &Pe
     bounds
 }
 
-/// The axis colours of the ground grid, x pink, y yellow-green, z blue; alpha 254/255 draws them over every solid.
-const AXIS_COLORS: [[f32; 4]; 3] = [
-    [0.910, 0.278, 0.545, 254.0 / 255.0],
-    [0.604, 0.804, 0.196, 254.0 / 255.0],
-    [0.129, 0.588, 0.918, 254.0 / 255.0],
-];
-
-/// The grey of the ground grid's lines.
-const GRID_GREY: [f32; 4] = [0.55, 0.55, 0.55, 1.0];
-
-/// Cells along each side of a plane's grid.
-const CELLS: usize = 10;
-
-/// The plane as a small grid, 10 by 10 grey cells hidden by solids, and a gumball on it: x, y and z arrows from the origin to the grid's edges, drawn over everything.
-pub fn walk_plane(seg: &mut SegRows, lanes: &mut LaneRows, pl: &Plane, row: u32) -> Row {
-    let (o, x, y) = (pl.origin(), pl.x_axis(), pl.y_axis());
-    let z = pl.z_axis();
-    let grey = Pen {
-        row,
+/// The plane as one row of the plane lane, its frame; the lane draws its grid and its arrows, plane_size() from the origin.
+pub fn walk_plane(lanes: &mut LaneRows, pl: &Plane, row: u32) -> Row {
+    let (o, x, y, z) = (pl.origin(), pl.x_axis(), pl.y_axis(), pl.z_axis());
+    let f32s = |v: [f64; 3]| v.map(|c| c as f32);
+    lanes.get_mut::<PlaneRows>().rows.push(PlaneRow {
+        origin: f32s([o[0], o[1], o[2]]),
+        instance_id: row,
+        x: f32s([x[0], x[1], x[2]]),
         radius: encode_width(pl.width),
-        color: pack_rgba(GRID_GREY),
-    };
+        y: f32s([y[0], y[1], y[2]]),
+        pad: 0,
+    });
+    // the grid's corners and the z arrow's tip, at the size walked with
+    let size = plane_size();
     let mut bounds = AABB::empty();
 
-    // the lines across x, then across y, edge to edge
-    for k in 0..=CELLS {
-        let t = 2.0 * k as f64 / CELLS as f64 - 1.0;
-        let across = [corner(&o, &x, &y, [t, -1.0]), corner(&o, &x, &y, [t, 1.0])];
-        let along = [corner(&o, &x, &y, [-1.0, t]), corner(&o, &x, &y, [1.0, t])];
-        bounds.union_with(&push_loop(seg, &across, &[[0, 1]], &grey));
-        bounds.union_with(&push_loop(seg, &along, &[[0, 1]], &grey));
+    for (a, b, c) in [
+        (1.0, 1.0, 0.0),
+        (-1.0, -1.0, 0.0),
+        (1.0, -1.0, 0.0),
+        (-1.0, 1.0, 0.0),
+        (0.0, 0.0, 1.0),
+    ] {
+        bounds.union_with_point(
+            o[0] + (x[0] * a + y[0] * b + z[0] * c) * size,
+            o[1] + (x[1] * a + y[1] * b + z[1] * c) * size,
+            o[2] + (x[2] * a + y[2] * b + z[2] * c) * size,
+        );
     }
 
-    let origin = [o[0] as f32, o[1] as f32, o[2] as f32];
-    let mut flags = 0;
-
-    // each axis its own headed segment, so each gets its arrowhead
-    for (axis, color) in [x, y, z].iter().zip(AXIS_COLORS) {
-        let tip = [0, 1, 2].map(|k| (o[k] + axis[k] * plane_size()) as f32);
-        let arrow = Pen {
-            color: pack_rgba(color),
-            ..grey
-        };
-        bounds.union_with(&push_loop(seg, &[origin, tip], &[[0, 1]], &arrow));
-        flags |= push_heads(seg, lanes, seg.ribbons.len() - 1, Arrowhead::END);
-    }
-
-    Row {
-        flags,
-        ..Row::thin(bounds)
-    }
+    Row::thin(bounds)
 }
 
 /// A box as 12 black edges.
@@ -137,28 +92,229 @@ pub fn walk_obb(seg: &mut SegRows, b: &OBB, row: u32) -> Row {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::engine::gpu::Instance;
-    use crate::engine::gpu::vectors::{VectorRow, VectorRows};
+    use crate::engine::gpu::vectors::VectorRows;
 
-    /// A plane is an 11 by 11 line grey grid and three headed axes from its origin to the grid's edges, x, y and z in the grid's colours, drawn over solids.
+    /// A plane is one plane-lane row of its frame and no strokes; its box holds the grid and the z arrow.
     #[test]
-    fn plane_draws_a_grid_and_a_gumball() {
-        let mut seg = SegRows::default();
+    fn plane_is_one_row_of_its_frame() {
         let mut lanes = LaneRows::default();
-        let row = walk_plane(&mut seg, &mut lanes, &Plane::xy_plane(), 3);
-        let heads = lanes.get::<VectorRows>().map_or(Vec::new(), |v| v.rows.clone());
-        let size = plane_size() as f32;
+        let row = walk_plane(&mut lanes, &Plane::xy_plane(), 3);
+        let rows = &lanes.get::<PlaneRows>().unwrap().rows;
+        let size = plane_size();
 
-        assert_eq!(seg.ribbons.len(), 25);
-        assert_eq!(seg.ribbons[0].color, pack_rgba(GRID_GREY));
-        assert_eq!((seg.ribbons[22].p0, seg.ribbons[22].p1), ([0.0, 0.0, 0.0], [size, 0.0, 0.0]));
-        assert_eq!((seg.ribbons[23].p0, seg.ribbons[23].p1), ([0.0, 0.0, 0.0], [0.0, size, 0.0]));
-        assert_eq!((seg.ribbons[24].p0, seg.ribbons[24].p1), ([0.0, 0.0, 0.0], [0.0, 0.0, size]));
-        assert_eq!(seg.ribbons[22].color >> 24, 0xfe, "axes carry the on-top alpha");
-        assert_eq!(seg.ribbons[24].color, pack_rgba(AXIS_COLORS[2]));
-        assert_eq!(heads.len(), 3);
-        assert_eq!((heads[2].end, heads[2].heads), ([0.0, 0.0, size], VectorRow::HEAD_END | VectorRow::HEAD_ONLY));
-        assert_eq!(row.flags, Instance::FLAG_HEADS);
-        assert_eq!((row.bounds.max_point()[0], row.bounds.max_point()[2]), (size as f64, size as f64));
+        assert_eq!(rows.len(), 1);
+        assert_eq!(
+            (rows[0].origin, rows[0].x, rows[0].y, rows[0].instance_id),
+            ([0.0; 3], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], 3)
+        );
+        assert!(lanes.get::<VectorRows>().is_none());
+        assert_eq!(row.flags, 0);
+        assert_eq!(
+            (
+                row.bounds.min_point()[0],
+                row.bounds.max_point()[0],
+                row.bounds.max_point()[2]
+            ),
+            (-size, size, size)
+        );
+    }
+}
+
+#[cfg(test)]
+mod gpu_tests {
+    use crate::app::scene::{FileDoc, Scene};
+    use crate::camera::{Camera, View};
+    use crate::engine::gpu::{FrameInput, Gpu};
+    use session_rust::{AABB, Mesh, Plane, Point, Session, Vector, Xform};
+    use std::rc::Rc;
+    use std::time::Instant;
+
+    /// One frame of `session` from above, framed on a 500 square round the origin; with the GPU.
+    fn top_view(session: Session, gpu: &mut Gpu) -> Vec<u8> {
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "planes".into(),
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: false,
+        });
+        scene.upload_to(gpu);
+        let mut camera = Camera::new();
+        camera.set_view(View::Top);
+        let frame = AABB::from_points(
+            &[
+                Point::new(-250.0, -250.0, 0.0),
+                Point::new(250.0, 250.0, 100.0),
+            ],
+            0.0,
+        );
+        camera.fit(&frame, 1.0);
+        let anchor = gpu
+            .rebase_anchor(&camera.origin(), camera.distance_world(), 0.0)
+            .anchor;
+        gpu.render_offscreen(&FrameInput {
+            view_proj: camera.view_proj_anchored(1.0, &anchor),
+            clear: wgpu::Color::WHITE,
+            now_ms: 0.0,
+        })
+    }
+
+    /// Pixels inside the plane's square that `kind` accepts.
+    fn count(rgba: &[u8], kind: fn(i32, i32, i32) -> bool) -> usize {
+        rgba.chunks_exact(4)
+            .enumerate()
+            .filter(|(i, p)| {
+                (90..166).contains(&(i % 256))
+                    && (90..166).contains(&(i / 256))
+                    && kind(p[0].into(), p[1].into(), p[2].into())
+            })
+            .count()
+    }
+
+    /// A grey ink pixel: neutral, darker than the paper.
+    fn grey(r: i32, g: i32, b: i32) -> bool {
+        (r - g).abs() < 6 && (g - b).abs() < 6 && r < 235
+    }
+
+    /// A pink pixel: the x arrow.
+    fn pink(r: i32, g: i32, b: i32) -> bool {
+        r - g > 25 && r > b
+    }
+
+    /// A yellow-green pixel: the y arrow.
+    fn green(r: i32, g: i32, b: i32) -> bool {
+        g - b > 25 && g > r
+    }
+
+    /// A solid over a plane hides its grey grid but not its pink, yellow-green and blue arrows.
+    #[test]
+    #[ignore = "requires a native GPU adapter"]
+    fn a_solid_hides_the_grid_not_the_arrows() {
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(256, 256)) else {
+            panic!("a native adapter");
+        };
+        gpu.view.show_grid = false;
+        gpu.view.opacity = 1.0;
+        let plane = Plane::new(
+            Point::new(0.0, 0.0, 0.0),
+            Vector::new(1.0, 0.0, 0.0),
+            Vector::new(0.0, 1.0, 0.0),
+        );
+        let mut alone = Session::new("plane");
+        alone.add_plane(plane.clone(), None);
+        let open = top_view(alone, &mut gpu);
+        let mut covered = Session::new("plane");
+        covered.add_plane(plane, None);
+        let lid = covered.add_mesh(Mesh::create_box(400.0, 400.0, 20.0), None);
+        covered.set_xform(
+            &lid.expect("the lid").borrow().name,
+            Xform::translation(0.0, 0.0, 50.0),
+        );
+        let mut gpu = pollster::block_on(Gpu::new_headless(256, 256)).unwrap();
+        gpu.view.show_grid = false;
+        gpu.view.opacity = 1.0;
+        let under = top_view(covered, &mut gpu);
+        assert!(count(&open, grey) > 200, "the grid draws");
+        assert!(
+            count(&under, grey) * 10 < count(&open, grey),
+            "the lid hides the grid"
+        );
+
+        for axis in [pink, green] {
+            assert!(count(&open, axis) > 20, "the arrow draws");
+            assert!(
+                count(&under, axis) * 10 >= count(&open, axis) * 8,
+                "the arrow stays over the lid"
+            );
+        }
+
+        // View Plane Size reaches the next frame through the uniform, no walk
+        let mut alone = Session::new("plane");
+        alone.add_plane(Plane::xy_plane(), None);
+        let mut gpu = pollster::block_on(Gpu::new_headless(256, 256)).unwrap();
+        gpu.view.show_grid = false;
+        crate::engine::gpu::planes::set_plane_size(50.0);
+        let small = top_view(alone, &mut gpu);
+        crate::engine::gpu::planes::set_plane_size(100.0);
+        // the columns the grid spans, half as many
+        let columns = |rgba: &[u8]| {
+            (0..256)
+                .filter(|x| {
+                    (0..256).any(|y| {
+                        let p = &rgba[(y * 256 + x) * 4..];
+                        grey(p[0].into(), p[1].into(), p[2].into())
+                    })
+                })
+                .count()
+        };
+        let (wide, narrow) = (columns(&open), columns(&small));
+        assert!(
+            narrow * 10 < wide * 6 && narrow * 10 > wide * 4,
+            "a half size grid: {narrow} of {wide} columns"
+        );
+    }
+
+    /// 20 000 planes: GPU bytes, walk, upload and frame time.
+    #[test]
+    #[ignore]
+    fn plane_stress() {
+        let Ok(mut gpu) = pollster::block_on(Gpu::new_headless(1600, 1000)) else {
+            eprintln!("no GPU adapter; skipped");
+            return;
+        };
+        gpu.view.show_grid = false;
+        let empty = gpu.allocated_bytes();
+        let mut session = Session::new("planes");
+
+        for i in 0..20_000 {
+            let at = Point::new((i % 200) as f64 * 300.0, (i / 200) as f64 * 300.0, 0.0);
+            session.add_plane(
+                Plane::new(at, Vector::new(1.0, 0.0, 0.0), Vector::new(0.0, 1.0, 0.0)),
+                None,
+            );
+        }
+
+        let mut scene = Scene::new();
+        let start = Instant::now();
+        scene.add_file(FileDoc {
+            name: "planes".into(),
+            place: Xform::identity(),
+            session: Rc::new(session),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let walk = start.elapsed();
+        let start = Instant::now();
+        scene.upload_to(&mut gpu);
+        let upload = start.elapsed();
+        let full = gpu.allocated_bytes();
+        let mut camera = Camera::new();
+        camera.fit(&gpu.bounds, 1.6);
+        let anchor = gpu
+            .rebase_anchor(&camera.origin(), camera.distance_world(), 0.0)
+            .anchor;
+        let input = FrameInput {
+            view_proj: camera.view_proj_anchored(1.6, &anchor),
+            clear: wgpu::Color::WHITE,
+            now_ms: 0.0,
+        };
+        gpu.render_offscreen(&input);
+        let start = Instant::now();
+
+        for _ in 0..20 {
+            gpu.render_offscreen(&input);
+        }
+
+        let frame = start.elapsed() / 20;
+        eprintln!(
+            "STRESS buffers {} KB textures {} KB (scene adds {} KB) walk {:?} upload {:?} frame {:?}",
+            full.0 / 1024,
+            full.1 / 1024,
+            (full.0 - empty.0) / 1024,
+            walk,
+            upload,
+            frame
+        );
     }
 }

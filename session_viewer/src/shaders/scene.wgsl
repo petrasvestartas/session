@@ -32,6 +32,7 @@ struct LineUniform {
     origin: vec2<f32>, // top-left of this target in the canvas, px
     frame: vec2<f32>, // canvas size, px
     opacity: f32, // alpha of mesh faces
+    plane_size: f32, // half side of every plane's grid, scene units
 };
 
 // Object flag bits; match Instance::FLAG_* in Rust.
@@ -51,9 +52,6 @@ fn object_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
 }
 
 // Edge color: the layer edge color when set, else the face rule.
-// A stroke or arrow whose alpha byte is ON_TOP draws over every solid: a plane's axes.
-const ON_TOP: u32 = 0xfeu;
-
 fn edge_color(authored: vec4<f32>, inst: Instance) -> vec4<f32> {
     // no faces: edges follow the face rule
     if ((inst.flags & 1024u) == 0u) {

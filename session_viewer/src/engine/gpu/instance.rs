@@ -137,6 +137,7 @@ mod tests {
             "origin",
             "frame",
             "opacity",
+            "plane_size",
         ];
         assert_eq!(
             wgsl_fields(SCENE, "LineUniform"),
@@ -259,6 +260,7 @@ mod tiles_tests {
                             offset_of!(LineUniform, origin),
                             offset_of!(LineUniform, frame),
                             offset_of!(LineUniform, opacity),
+                            offset_of!(LineUniform, plane_size),
                         ],
                         size_of::<LineUniform>(),
                     ),
