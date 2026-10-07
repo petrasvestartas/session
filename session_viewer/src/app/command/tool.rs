@@ -1,11 +1,11 @@
 use crate::State;
 use session_rust::{Plane, Point, Xform};
 pub mod cut; // register:cut
+pub mod elements;
 pub mod gather; // register:gather
 mod options; // register:gather
 pub mod shape; // register:shape
-pub mod surfacing; // register:surfacing
-pub mod elements; // register:elements
+pub mod surfacing; // register:surfacing // register:elements
 
 /// What a tool wants after a point or a word.
 #[derive(Debug, PartialEq)]
@@ -26,6 +26,14 @@ pub trait Tool: std::fmt::Debug {
     /// Buttons under the command line: (label, line it runs); "" is Enter, Cancel is a phone's Esc.
     fn options(&self) -> &'static [(&'static str, &'static str)] {
         &[("Cancel", "Escape")]
+    }
+
+    /// The buttons as the command line shows them, values included; the options by default.
+    fn buttons(&self) -> Vec<(String, String)> {
+        self.options()
+            .iter()
+            .map(|(label, line)| (label.to_string(), line.to_string()))
+            .collect()
     }
 
     /// The option button shown as chosen, if any.

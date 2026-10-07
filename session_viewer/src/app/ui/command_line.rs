@@ -29,7 +29,8 @@ impl super::Panel for Hooks {
         let (input, popup) = STATE.with_borrow(|m| {
             (
                 m.command_rect.is_some_and(|r| r.contains(pointer)),
-                m.completion_rect.is_some_and(|r| r.contains(pointer)),
+                m.completion_rect.is_some_and(|r| r.contains(pointer))
+                    || m.options_rect.is_some_and(|r| r.contains(pointer)),
             )
         });
 
@@ -46,6 +47,7 @@ impl super::Panel for Hooks {
     fn fill(&self, state: &mut State) {
         STATE.with_borrow_mut(|model| {
             model.drawing_prompt = state.drawing_prompt();
+            model.options = state.tool_buttons();
         });
     }
 
@@ -64,7 +66,10 @@ impl super::Panel for Hooks {
     fn hit(&self, point: egui::Pos2) -> (bool, bool) {
         STATE.with_borrow(|model| {
             let inside = |rect: Option<egui::Rect>| rect.is_some_and(|r| r.contains(point));
-            (inside(model.command_rect), inside(model.completion_rect))
+            (
+                inside(model.command_rect),
+                inside(model.completion_rect) || inside(model.options_rect),
+            )
         })
     }
 

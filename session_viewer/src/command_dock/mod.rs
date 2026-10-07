@@ -30,6 +30,8 @@ pub struct CommandLine {
     pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
     pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
     pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
+    pub(crate) options: Vec<(String, String)>,      // the running command's buttons: label, line it runs
+    pub(crate) options_rect: Option<egui::Rect>,    // where those buttons are, for taps
 }
 
 /// One clickable control and where it was drawn, for browser tests.
@@ -303,6 +305,7 @@ pub(crate) fn refresh(
                 range.is_empty() && range.primary.index == model.command.chars().count()
             });
         if !deletes
+            && model.options.is_empty()
             && agent_edit != Some(true)
             && at_end
             && !model.command.is_empty()
@@ -386,7 +389,8 @@ pub(crate) fn browse(
         model.completion_visible = true;
     }
     let focused = model.command_open || response.has_focus() || response.lost_focus();
-    if !focused || !model.completion_visible || choices.is_empty() {
+    // a running command takes values, not other commands
+    if !focused || !model.completion_visible || choices.is_empty() || !model.options.is_empty() {
         return None;
     }
     model.completion = model.completion.min(choices.len() - 1);
@@ -524,7 +528,7 @@ pub(crate) fn row(
             ui,
             &mut model.command,
             placeholder(&model.drawing_prompt, &model.status, model.command_expanded),
-            0.0,
+            options_width(ui, &model.options),
             model.command_open,
         );
         model.command_rect = Some(response.rect);
@@ -541,9 +545,55 @@ pub(crate) fn row(
             &keys,
             escape_allowed,
         );
+        options(ui, model, controls, command);
         collapse(ui, model, controls);
     });
     focus_canvas
+}
+
+/// The width the running command's buttons take beside the field.
+fn options_width(ui: &egui::Ui, options: &[(String, String)]) -> f32 {
+    let font = egui::FontId::proportional(14.0);
+    options
+        .iter()
+        .map(|(label, _)| {
+            let text = ui.fonts_mut(|fonts| {
+                fonts.layout_no_wrap(label.clone(), font.clone(), egui::Color32::BLACK)
+            });
+            text.size().x + 2.0 * ui.spacing().button_padding.x + ui.spacing().item_spacing.x
+        })
+        .sum()
+}
+
+/// The running command's buttons: a value to change, Enter or Cancel; a click runs its line.
+fn options(
+    ui: &mut egui::Ui,
+    model: &mut CommandLine,
+    controls: &mut Option<Vec<Control>>,
+    command: &mut Option<String>,
+) {
+    model.options_rect = None;
+
+    for (label, line) in &model.options {
+        let response = ui.button(label);
+        record(
+            controls,
+            &format!("command/option/{label}"),
+            label,
+            &response,
+        );
+        model.options_rect = Some(match model.options_rect {
+            Some(rect) => rect.union(response.rect),
+            None => response.rect,
+        });
+
+        // the field keeps the keyboard, so the value is typed straight away
+        if response.clicked() {
+            *command = Some(line.clone());
+            model.command_open = true;
+            model.focus_command = true;
+        }
+    }
 }
 
 pub fn draw(

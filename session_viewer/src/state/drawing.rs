@@ -523,6 +523,18 @@ impl State {
         )
     }
 
+    /// The running command's buttons beside the command line, values included: (label, line it runs); "" is Enter.
+    pub fn tool_buttons(&self) -> Vec<(String, String)> {
+        match self.features.draft.as_ref().and_then(|draft| draft.tool.as_ref()) {
+            Some(tool) => tool.buttons(),
+            None => self
+                .drawing_options()
+                .iter()
+                .map(|(label, line)| (label.to_string(), line.to_string()))
+                .collect(),
+        }
+    }
+
     /// Buttons under the command line while drawing: (label, line it runs); "" is Enter.
     pub fn drawing_options(&self) -> &'static [(&'static str, &'static str)] {
         let Some(draft) = &self.features.draft else {

@@ -306,7 +306,11 @@ impl Tool for ElementTool {
 
     fn prompt(&self, _points: &[Point]) -> String {
         if let Some(at) = self.asking {
-            return format!("type the {}", self.params[at].name.to_ascii_lowercase());
+            let param = self.params[at];
+            return format!(
+                "{} <{}>: type a number · Enter keeps it",
+                param.name, param.value
+            );
         }
 
         let values = match self.params.is_empty() {
@@ -323,6 +327,20 @@ impl Tool for ElementTool {
 
     fn options(&self) -> &'static [(&'static str, &'static str)] {
         self.recipe.options
+    }
+
+    /// One button per value showing it, e.g. `Thickness 40`; a click asks for that value alone.
+    fn buttons(&self) -> Vec<(String, String)> {
+        let values = self.params.iter().map(|param| {
+            (
+                format!("{} {}", param.name, param.value),
+                param.name.to_string(),
+            )
+        });
+        let rest = [("Create", ""), ("Cancel", "Escape")]
+            .into_iter()
+            .map(|(label, line)| (label.to_string(), line.to_string()));
+        values.chain(rest).collect()
     }
 
     fn asks_points(&self) -> bool {
@@ -373,6 +391,11 @@ impl Tool for ElementTool {
 
     /// Enter makes the elements from the picks, in click order.
     fn enter(&mut self, state: &mut State, _points: &[Point]) -> Result<Next, String> {
+        // Enter on an asked value keeps it
+        if self.asking.take().is_some() {
+            return Ok(Next::More);
+        }
+
         if self.picked.is_empty() {
             return Err(format!("Pick {} first, then Enter", self.recipe.picks));
         }
@@ -445,7 +468,7 @@ pub mod tests {
             },
         ];
         let mut tool = ElementTool::new(&BEAM, params);
-        assert!(tool.take("height").is_ok() && tool.prompt(&[]).starts_with("type the height"));
+        assert!(tool.take("height").is_ok() && tool.prompt(&[]).starts_with("Height <200>"));
         assert!(tool.take("250").is_ok());
         assert!(tool.take("Width=150").is_ok());
         assert_eq!((tool.params[0].value, tool.params[1].value), (150.0, 250.0));
@@ -457,6 +480,13 @@ pub mod tests {
         );
         assert!(tool.prompt(&[]).contains("Width 300 · Height 100"));
         assert!(tool.take("Depth").is_err() && tool.take("-5").is_err());
+        let labels: Vec<String> = tool.buttons().into_iter().map(|(label, _)| label).collect();
+        assert_eq!(
+            labels,
+            ["Width 300", "Height 100", "Create", "Cancel"],
+            "a button per value"
+        );
+        assert_eq!(tool.buttons()[1].1, "Height", "a click asks for that value");
         let mut bare = ElementTool::new(&BEAM, Vec::new());
         assert!(bare.take("40").is_err(), "no values to take");
     }
