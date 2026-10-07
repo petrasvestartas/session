@@ -44,14 +44,15 @@ impl Scene {
             .into_iter()
             .map(|geometry| (geometry, Vec::new()))
             .collect();
-        self.create_with_attributes(items, label)
+        self.create_with_attributes(items, label, &[])
     }
 
-    /// Add geometries to the current layer as one undo step, each with its attributes in an `attributes` group under it; each (document, guid) comes back.
+    /// Add geometries to the current layer as one undo step, each with its attributes in an `attributes` group under it, the `consumed` rows removed in the same step; each (document, guid) comes back.
     pub(crate) fn create_with_attributes(
         &mut self,
         items: Vec<(Geometry, Vec<Geometry>)>,
         label: &str,
+        consumed: &[u32],
     ) -> Result<Vec<(usize, String)>, String> {
         if items.is_empty() {
             return Err("nothing to create".into());
@@ -125,8 +126,37 @@ impl Scene {
             nodes.push(node);
         }
 
+        // what the new objects were made from goes in the same step
+        let used: Vec<(usize, Rc<str>)> = consumed
+            .iter()
+            .filter_map(|&row| self.identity_of(row))
+            .collect();
+        let session = Rc::make_mut(&mut self.docs[doc].session);
+
+        for (_, guid) in used.iter().filter(|(owner, _)| *owner == doc) {
+            session.remove_object(guid);
+        }
+
         let notes = sync::commit(session);
         self.noted(doc, notes);
+        let mut docs = vec![doc];
+
+        for &other in used.iter().map(|(owner, _)| owner) {
+            if docs.contains(&other) || self.docs[other].display_only {
+                continue;
+            }
+
+            let session = Rc::make_mut(&mut self.docs[other].session);
+            session.begin(label);
+
+            for (_, guid) in used.iter().filter(|(owner, _)| *owner == other) {
+                session.remove_object(guid);
+            }
+
+            let notes = sync::commit(session);
+            self.noted(other, notes);
+            docs.push(other);
+        }
 
         if nodes.is_empty() {
             return Err("the geometry is empty".into());
@@ -139,7 +169,7 @@ impl Scene {
             made.push((doc, node.borrow().name.clone()));
         }
 
-        self.edited(&[doc]);
+        self.edited(&docs);
         Ok(made)
     }
 

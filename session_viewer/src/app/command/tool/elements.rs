@@ -114,15 +114,28 @@ pub fn items<T: WoodElement>(elements: &[T]) -> Vec<(Geometry, Vec<Geometry>)> {
         .collect()
 }
 
-/// Add the elements to the current layer as one undo step, each with its base plane, select them and say so.
+/// Add the elements to the current layer as one undo step, each with its base plane and features, the picked curves and points becoming them; select them and say so.
 pub fn create<T: WoodElement>(
     state: &mut State,
     elements: Vec<T>,
     what: &str,
 ) -> Result<String, String> {
-    let made = state
-        .scene
-        .create_with_attributes(items(&elements), &format!("Element {what}"))?;
+    let consumed: Vec<u32> = state
+        .ordered_rows()
+        .into_iter()
+        .filter(|&row| {
+            state
+                .scene
+                .geometry(row)
+                .is_some_and(|g| is_curve(g) || is_station(g))
+        })
+        .collect();
+    state.select(None);
+    let made = state.scene.create_with_attributes(
+        items(&elements),
+        &format!("Element {what}"),
+        &consumed,
+    )?;
     state.after_history();
     let rows = made
         .iter()
@@ -134,7 +147,9 @@ pub fn create<T: WoodElement>(
         count => format!("{count} {}s", what.to_ascii_lowercase()),
     };
 
-    Ok(format!("Created {noun} · Undo removes it"))
+    Ok(format!(
+        "Created {noun} from its curves · Undo brings them back"
+    ))
 }
 
 /// One length an Element command asks for: its name on the command line and its value.
@@ -456,6 +471,61 @@ pub mod tests {
         assert!(lengths(&["1", "2"], [1.0], "usage").is_err());
     }
 
+    /// A beam made from a picked line takes the line's place and carries it as its axis feature; one Undo brings the line back.
+    #[test]
+    fn a_beam_takes_its_axis_curve_and_undo_returns_it() {
+        use crate::app::scene::FileDoc;
+        use session_rust::{Session, Xform};
+        use wood::Beam;
+        use wood::geometry::profile_rectangle;
+
+        let axis = Polyline::new(vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(3000.0, 0.0, 0.0),
+        ]);
+        let mut source = Session::new("curves");
+        source.add_polyline(axis.clone(), None);
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "curves".into(),
+            session: Rc::new(source),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let line = (0..scene.row_count() as u32)
+            .find(|&row| matches!(scene.geometry(row), Some(Geometry::Polyline(_))))
+            .unwrap();
+        let picked = scene.identity_of(line).unwrap();
+        let beam = Beam::from_profile(&axis, profile_rectangle(120.0, 200.0), "beam");
+        let made = scene
+            .create_with_attributes(items(&[beam]), "Element Beam", &[line])
+            .unwrap();
+        scene.sync();
+
+        assert!(scene.row_of(picked.0, &picked.1).is_none(), "no loose line");
+        let element = scene.row_of(made[0].0, &made[0].1).unwrap();
+        let Some(Geometry::Element(beam)) = scene.geometry(element) else {
+            panic!("a beam")
+        };
+        assert!(
+            beam.features()
+                .iter()
+                .any(|f| f.feature_type == "axis" && f.outlines[0].point_count() == 2)
+        );
+
+        assert!(scene.undo(), "one step");
+        scene.sync();
+        assert!(
+            scene.row_of(picked.0, &picked.1).is_some(),
+            "the line is back"
+        );
+        assert!(
+            scene.row_of(made[0].0, &made[0].1).is_none(),
+            "the beam is gone"
+        );
+    }
+
     /// An element lands on the layer with its hidden base plane under `attributes`, one undo step for both.
     #[test]
     fn an_element_comes_with_its_hidden_base_plane() {
@@ -464,6 +534,7 @@ pub mod tests {
             .create_with_attributes(
                 items(&[Plate::from_outline(&square(600.0, 0.0), 40.0, "plate")]),
                 "Element Plate",
+                &[],
             )
             .unwrap();
         assert_eq!(made.len(), 1);
