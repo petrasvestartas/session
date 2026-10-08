@@ -188,8 +188,46 @@ impl State {
     /// The construction plane points land on: the fixed one, else the one the camera faces most.
     pub(super) fn facing(&self) -> CPlane {
         self.features.construction_plane.unwrap_or_else(|| {
-            CPlane::facing(&self.camera.orientation.rotate_vector(Vector::y_axis()))
+            CPlane::view(&self.camera.orientation.rotate_vector(Vector::y_axis()))
         })
+    }
+
+    /// Where a cursor ray crosses the plane through the camera's target square to the view.
+    fn at_view_depth(&self, from: &Point, direction: &Vector) -> Option<Point> {
+        let target = self.camera.origin();
+        let forward = self.camera.orientation.rotate_vector(Vector::y_axis());
+        let across =
+            direction[0] * forward[0] + direction[1] * forward[1] + direction[2] * forward[2];
+
+        if across.abs() < 1e-12 {
+            return None;
+        }
+
+        let t = ((target[0] - from[0]) * forward[0]
+            + (target[1] - from[1]) * forward[1]
+            + (target[2] - from[2]) * forward[2])
+            / across;
+        Some(Point::new(
+            from[0] + direction[0] * t,
+            from[1] + direction[1] * t,
+            from[2] + direction[2] * t,
+        ))
+    }
+
+    /// In View mode the grid lies on the plane points land on, so Front shows the front grid.
+    pub(crate) fn follow_view_grid(&mut self) {
+        if self.features.construction_plane.is_some() {
+            return;
+        }
+
+        let shown = self.facing();
+
+        if self.features.view_grid != Some(shown) {
+            self.gpu
+                .backdrop
+                .set_grid_frame(&self.gpu.ctx, shown.matrix());
+            self.features.view_grid = Some(shown);
+        }
     }
 
     /// Fix the construction plane, or None to follow the view again; the grid moves onto it and a running draft lands on it.
@@ -197,7 +235,10 @@ impl State {
         self.features.construction_plane = plane;
         coords::set_plane(plane); // typed points are measured in it
         let shown = plane.unwrap_or(CPlane::Xy);
-        self.gpu.backdrop.set_grid_frame(&self.gpu.ctx, shown.matrix());
+        self.gpu
+            .backdrop
+            .set_grid_frame(&self.gpu.ctx, shown.matrix());
+        self.features.view_grid = None; // View mode lays it again next frame
         self.camera.grid = plane.map(|plane| {
             let o = plane.origin();
             [o[0], o[1], o[2]]
@@ -548,13 +589,16 @@ impl State {
         } else {
             None
         };
-        // otherwise, where the cursor ray meets the plane
-        let free = ray.and_then(|(p, d)| {
-            draft.plane.hit(
-                &draft.points.last().cloned().unwrap_or_else(|| draft.plane.origin()),
-                &p,
-                &d,
-            )
+        // otherwise, where the cursor ray meets the plane: a fixed plane itself, a view plane through the last point
+        let fixed = self.features.construction_plane.is_some();
+        let through = match (fixed, draft.points.last()) {
+            (false, Some(last)) => last.clone(),
+            _ => draft.plane.origin(),
+        };
+        let free = ray.and_then(|(p, d)| match draft.plane.grazed(&d) {
+            // seen edge-on: the point under the cursor at the view's depth, laid onto the plane
+            true => Some(draft.plane.project(&through, &self.at_view_depth(&p, &d)?)),
+            false => draft.plane.hit(&through, &p, &d),
         });
         // off every object, Grid Snap rounds the plane point to the grid
         let grid = self.features.snap.grid && hit.is_none() && free.is_some();

@@ -7,6 +7,17 @@ use winit::keyboard::Key;
 /// A press moving less than this many pixels is a click.
 const CLICK_SLOP: f64 = 4.0;
 
+/// How far a quick press may wander and still be a click, CSS pixels: a hand drifts while clicking.
+const DRAG_SLOP: f64 = 10.0;
+
+/// How long a press must last before a move past CLICK_SLOP drags, ms.
+const DRAG_HOLD_MS: f64 = 200.0;
+
+/// True when a press `moved` CSS pixels after `held` ms is a drag: far, or past the click slop and held.
+fn drags(moved: f64, held: f64) -> bool {
+    moved > DRAG_SLOP || (moved > CLICK_SLOP && held >= DRAG_HOLD_MS)
+}
+
 /// How far from a handle a mouse press still takes it, CSS pixels.
 const MOUSE_REACH: f64 = 8.0;
 
@@ -25,8 +36,10 @@ pub struct Input {
     gesture: Option<&'static Gesture>,       // the left-button tool in charge
     last_cursor: (f64, f64),                 // last pointer position in pixels
     left_down: Option<(f64, f64)>,           // where the left button went down
+    left_down_ms: f64,                       // when it went down
     plain: bool,             // that press may still start a tool by dragging
     dragged: bool,           // that press, or the editing finger, left its slop
+    drag_far: bool,          // that plain press went far enough, or was held, to drag
     touch: Touches,          // camera finger gestures
     touch_edit: Option<u64>, // finger running a tool
     touch_down: (f64, f64),  // where that finger landed
@@ -56,6 +69,8 @@ impl Input {
             gesture: None,
             last_cursor: (0.0, 0.0),
             left_down: None,
+            left_down_ms: 0.0,
+            drag_far: false,
             plain: false,
             dragged: false,
             touch: Touches::new(),
@@ -131,11 +146,15 @@ impl Input {
                 self.right_dragged |= started.is_some();
 
                 // leaving the click slop turns the press into a drag
-                if let Some(down) = self.left_down
-                    && (at.0 - down.0).abs().max((at.1 - down.1).abs())
-                        > CLICK_SLOP * device_pixel_ratio()
-                {
-                    self.dragged = true;
+                if let Some(down) = self.left_down {
+                    let moved =
+                        (at.0 - down.0).abs().max((at.1 - down.1).abs()) / device_pixel_ratio();
+                    self.dragged |= moved > CLICK_SLOP;
+                    // a plain press must go far, or be held, before it moves or boxes anything
+                    self.drag_far |= drags(
+                        moved,
+                        crate::engine::performance::now_ms() - self.left_down_ms,
+                    );
                 }
 
                 // a running command draws with the button held
@@ -144,10 +163,10 @@ impl Input {
                     return state.tool_drag(at.0, at.1); // register:tools
                 }
 
-                // a plain press dragged past the slop may start a tool, once
+                // a plain press dragged far, or held and dragged, may start a tool, once
                 if self.gesture.is_none()
                     && self.plain
-                    && self.dragged
+                    && self.drag_far
                     && let Some(down) = self.left_down
                 {
                     self.plain = false;
@@ -379,7 +398,9 @@ impl Input {
                 closed |= state.close_number_box(); // a press in the scene closes the number box; register:editing
                 state.drop_released_drag(); // a flick still waiting for its pick is dropped
                 self.left_down = Some(self.last_cursor);
+                self.left_down_ms = crate::engine::performance::now_ms();
                 self.dragged = false;
+                self.drag_far = false;
                 // a running command that draws with the button, e.g. a lasso
                 self.tool_held = state.tool_press(self.last_cursor.0, self.last_cursor.1); // register:tools
 
@@ -414,14 +435,7 @@ impl Input {
                     return (active.release)(state, self.last_cursor, !self.dragged);
                 }
 
-                let Some(down) = down else {
-                    return false;
-                };
-                let moved = (self.last_cursor.0 - down.0)
-                    .abs()
-                    .max((self.last_cursor.1 - down.1).abs());
-
-                if moved > CLICK_SLOP * device_pixel_ratio() {
+                if down.is_none() || self.drag_far {
                     return false; // a drag, not a click
                 }
 
@@ -490,4 +504,19 @@ fn cancel_pointer(proxy: &winit::event_loop::EventLoopProxy<crate::Msg>) {
 /// Physical pixels per CSS pixel.
 fn device_pixel_ratio() -> f64 {
     crate::engine::gpu::view::device_pixel_ratio()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A quick press that wanders a few pixels is still a click; far, or held, it drags.
+    #[test]
+    fn a_quick_wobble_is_a_click() {
+        assert!(!drags(5.0, 60.0), "a hand drifting 5 px while clicking");
+        assert!(!drags(9.0, 150.0));
+        assert!(drags(12.0, 40.0), "a fast flick");
+        assert!(drags(5.0, 250.0), "held, then moved");
+        assert!(!drags(3.0, 900.0), "inside the click slop however long");
+    }
 }

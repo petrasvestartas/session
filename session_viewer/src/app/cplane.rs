@@ -1,5 +1,11 @@
 use session_rust::{Point, Vector};
 
+/// How square onto a world plane a view must look, as the cosine, for View mode to draw on it: within 20 degrees.
+const SQUARE_ON: f64 = 0.94;
+
+/// Below this cosine between a ray and the plane's normal, about 5 degrees off the plane, the ray only grazes it.
+const GRAZING: f64 = 0.08;
+
 /// A construction plane: one of the world planes, or a frame anywhere in space.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CPlane {
@@ -90,6 +96,41 @@ impl CPlane {
         Point::new(at(0), at(1), at(2))
     }
 
+    /// The plane drawing follows the view on: the world plane a named view looks square onto, else the ground under a free or isometric view.
+    pub fn view(forward: &Vector) -> Self {
+        let (x, y) = (forward[0].abs(), forward[1].abs());
+
+        match () {
+            _ if x >= SQUARE_ON => CPlane::Yz,
+            _ if y >= SQUARE_ON => CPlane::Xz,
+            _ => CPlane::Xy,
+        }
+    }
+
+    /// The point of the plane through `origin` nearest `point`.
+    pub fn project(self, origin: &Point, point: &Point) -> Point {
+        let n = self.normal();
+        let h = (point[0] - origin[0]) * n[0]
+            + (point[1] - origin[1]) * n[1]
+            + (point[2] - origin[2]) * n[2];
+        Point::new(
+            point[0] - n[0] * h,
+            point[1] - n[1] * h,
+            point[2] - n[2] * h,
+        )
+    }
+
+    /// True when a ray along `direction` meets the plane too obliquely to place a point well.
+    pub fn grazed(self, direction: &Vector) -> bool {
+        let n = self.normal();
+        let along = (direction[0] * n[0] + direction[1] * n[1] + direction[2] * n[2]).abs();
+        let length = (direction[0] * direction[0]
+            + direction[1] * direction[1]
+            + direction[2] * direction[2])
+            .sqrt();
+        along < GRAZING * length
+    }
+
     /// The plane the view faces most directly.
     pub fn facing(forward: &Vector) -> Self {
         let (x, y, z) = (forward[0].abs(), forward[1].abs(), forward[2].abs());
@@ -164,6 +205,49 @@ fn unit(v: [f64; 3]) -> Option<[f64; 3]> {
 
 #[cfg(test)]
 mod tests {
+
+    /// A named view draws on the plane it looks square onto; isometric and free views draw on the ground.
+    #[test]
+    fn view_mode_draws_on_the_ground_unless_square_on() {
+        assert_eq!(
+            CPlane::view(&Vector::new(0.0, 0.0, -1.0)),
+            CPlane::Xy,
+            "top"
+        );
+        assert_eq!(
+            CPlane::view(&Vector::new(0.0, 1.0, 0.0)),
+            CPlane::Xz,
+            "front"
+        );
+        assert_eq!(
+            CPlane::view(&Vector::new(-1.0, 0.0, 0.0)),
+            CPlane::Yz,
+            "right"
+        );
+        assert_eq!(
+            CPlane::view(&Vector::new(0.43, 0.75, -0.5)),
+            CPlane::Xy,
+            "isometric"
+        );
+        assert_eq!(
+            CPlane::view(&Vector::new(0.1, 0.98, -0.17)),
+            CPlane::Xz,
+            "nearly front"
+        );
+    }
+
+    /// Seen edge-on the plane is grazed, and a point is laid onto it square to the plane.
+    #[test]
+    fn an_edge_on_plane_takes_the_nearest_point() {
+        assert!(
+            CPlane::Xz.grazed(&Vector::new(0.0, 0.0, -1.0)),
+            "XZ from the top"
+        );
+        assert!(!CPlane::Xz.grazed(&Vector::new(0.0, 1.0, -0.5)));
+        let p = CPlane::Xz.project(&Point::new(0.0, 0.0, 0.0), &Point::new(300.0, 750.0, 20.0));
+        assert_eq!([p[0], p[1], p[2]], [300.0, 0.0, 20.0]);
+    }
+
     use super::*;
 
     /// Looking down picks the ground plane.
