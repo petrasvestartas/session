@@ -384,10 +384,10 @@ impl State {
 
         let points = draft.geometry_points()?;
         let draft = self.features.draft.take().unwrap();
-        // "line 0,0,0 1,1,1"
+        // "line w0,0,0 w1,1,1": the points are world, whatever plane typed points are measured in
         let mut command = draft.prefix.clone();
         for p in &points {
-            command.push_str(&format!(" {},{},{}", p[0], p[1], p[2]));
+            command.push_str(&format!(" w{},{},{}", p[0], p[1], p[2]));
         }
         // same path as a typed command: checks, selection, undo
         let result = crate::app::command::parse(&command).and_then(|_| self.run_command(&command));
