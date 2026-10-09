@@ -71,7 +71,7 @@ pub struct WalkCx {
     pub vert_base: u32,   // arena vertices already on the GPU
     pub cloud_px: f32,    // point size override in px, 0 = file's own
     pub row: u32,         // this object's row index
-    pub attributes: bool, // draw element features inside its row
+    pub interactions: bool, // draw element features, its interactions, inside its row
 }
 
 /// What a producer reports for one object row.
@@ -104,10 +104,10 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     walk_features(w, cx, e.features(), bounds);
 }
 
-/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's; contacts always, the rest while attributes are on.
+/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's; while interactions are on.
 pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bounds: &mut AABB) {
     for feature in features {
-        if !feature.visible || (!cx.attributes && feature.feature_type != "contact") {
+        if !feature.visible || !cx.interactions {
             continue;
         }
 
@@ -273,7 +273,7 @@ mod tests {
     use session_rust::element::ElementFeature;
 
     /// A box element with an axis, a section dot, a joint and a hidden joint.
-    fn walk_element(attributes: bool) -> (Upload, Row) {
+    fn walk_element(interactions: bool) -> (Upload, Row) {
         let mut element = Element::new("beam");
         element.set_geometry(Mesh::create_box(10.0, 10.0, 10.0));
         let axis = Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(100.0, 0.0, 0.0)]);
@@ -295,7 +295,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 4,
-            attributes,
+            interactions,
         };
         let row = walk_geometry(
             &mut Walk::of(&mut up),
@@ -305,14 +305,13 @@ mod tests {
         (up, row)
     }
 
-    /// Visible features add two ribbons and two dots to the element's own row, the contact dot even with attributes off; the hidden one adds nothing.
+    /// Visible features add two ribbons and two dots to the element's own row, the contact dot among them, only with interactions on; the hidden one adds nothing.
     #[test]
-    fn attributes_join_the_element_row() {
+    fn interactions_join_the_element_row() {
         let (off, row_off) = walk_element(false);
         let (on, row_on) = walk_element(true);
         assert_eq!(on.seg.ribbons.len(), off.seg.ribbons.len() + 2);
-        assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 1);
-        assert_eq!(off.glyph.dots.last().map(|d| d.instance_id), Some(4));
+        assert_eq!(on.glyph.dots.len(), off.glyph.dots.len() + 2);
         assert!(on.seg.ribbons.iter().all(|r| r.instance_id == 4));
         assert_eq!(on.glyph.dots.last().map(|d| d.instance_id), Some(4));
         assert_eq!(row_off.bounds.max_point()[0], 5.0);
@@ -328,7 +327,7 @@ mod tests {
         let square = Polyline::new(vec![Point::new(0.0, 0.0, 5.0), Point::new(4.0, 0.0, 5.0), Point::new(4.0, 4.0, 5.0), Point::new(0.0, 4.0, 5.0), Point::new(0.0, 0.0, 5.0)]);
         element.add_feature(ElementFeature::new("contact", 0, vec![square], "side_side"));
         let mut up = Upload::default();
-        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 7, attributes: true };
+        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 7, interactions: true };
         let before = {
             let mut bare = Upload::default();
             let mut plain = element.clone();

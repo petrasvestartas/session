@@ -307,7 +307,7 @@ mod tests {
             vert_base: 0,
             cloud_px: 0.0,
             row: 0,
-            attributes: false,
+            interactions: false,
         };
         walk_mesh(&mut arena, &mut ink, mesh, &MeshCx { cx: &cx, opts });
         let silhouettes = segments.pipe_sags.iter().filter(|sag| is_silhouette(**sag)).count();
@@ -365,7 +365,7 @@ mod tests {
             vert_base: 50,
             cloud_px: 0.0,
             row: 7,
-            attributes: false,
+            interactions: false,
         };
         walk_mesh(
             &mut arena,

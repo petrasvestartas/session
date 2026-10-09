@@ -44,7 +44,7 @@ wood_session.add_interaction(column, beam, joint); // Column now owns that featu
 
 For contacts and beam joints, the first argument chooses the host, even if the graph edge already exists in the opposite order. Reusing the same beam joint moves its feature; it does not add a second copy. Contact face indices are relative to the chosen host. Plate joints contain two explicitly named sides, so each plate keeps its own side.
 
-The viewer reads those feature lists from the saved document. Turn on `Element Features On`, select the host, then hide it: the attached feature should disappear with it. After changing ownership in Wood, save the document again and reload that scene. Reopening an old file cannot show a change that was never saved.
+The viewer reads those feature lists from the saved document. Turn on `Element Interactions On`, select the host, then hide it: the attached feature should disappear with it. After changing ownership in Wood, save the document again and reload that scene. Reopening an old file cannot show a change that was never saved.
 
 The rest of this page helps you locate mistakes inside your own rendering code.
 

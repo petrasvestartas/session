@@ -1,4 +1,5 @@
 use crate::app::scene::Scene;
+use session_rust::Geometry;
 #[cfg(test)]
 use session_rust::Session;
 #[cfg(test)]
@@ -27,6 +28,7 @@ pub struct Node {
     pub doc: usize,         // its document
     pub name: String,       // its tree node name, empty when outside the tree
     pub layer: bool,        // a group or document, not an object
+    pub feature: Option<(u32, Option<usize>)>, // an element row and one of its features, or all in its interactions group
 }
 
 /// The tree panel's flattened nodes.
@@ -208,6 +210,10 @@ impl Hierarchy {
             };
 
             if let Some(index) = exit {
+                if !self.interactions(scene, index, lookup) {
+                    return false;
+                }
+
                 self.finish(index);
                 continue;
             }
@@ -358,7 +364,49 @@ impl Hierarchy {
             doc,
             name,
             layer,
+            feature: None,
         });
+        true
+    }
+
+    /// Under an element's node `index`, its `interactions` group, a line per feature other elements hung on it.
+    fn interactions(&mut self, scene: &Scene, index: usize, lookup: &Lookup) -> bool {
+        let (doc, depth, name) = {
+            let node = &self.nodes[index];
+            (node.doc, node.depth, node.name.clone())
+        };
+        let Some(row) = row_of(lookup, doc, &name) else {
+            return true;
+        };
+        let Some(Geometry::Element(element)) = scene.geometry(row) else {
+            return true;
+        };
+
+        if element.features().is_empty() {
+            return true;
+        }
+
+        let group = self.nodes.len();
+
+        if !self.push("interactions", depth + 1, doc, format!("{name}/interactions"), false) {
+            return false;
+        }
+
+        self.nodes[group].feature = Some((row, None));
+
+        for (at, feature) in element.features().iter().enumerate() {
+            let line = self.nodes.len();
+            let label = if feature.name.is_empty() { &feature.feature_type } else { &feature.name };
+
+            if !self.push(label, depth + 2, doc, format!("{name}/interactions/{at}"), false) {
+                return false;
+            }
+
+            self.nodes[line].feature = Some((row, Some(at)));
+            self.finish(line);
+        }
+
+        self.finish(group);
         true
     }
 
@@ -531,6 +579,52 @@ mod tests {
             "the document line is the root layer"
         );
         assert_eq!(index.nodes[1].name, "walls");
+    }
+
+    /// An element hosting features gets an `interactions` group with a line per feature, named by the feature or its type.
+    #[test]
+    fn an_element_lists_its_interactions() {
+        use session_rust::element::{Element, ElementFeature};
+        let mut session = Session::new("site");
+        let walls = session.add_group("walls");
+        let mut element = Element::new("beam");
+        element.set_geometry(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
+        let outline = session_rust::Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
+        element.add_feature(ElementFeature::new("contact", 0, vec![outline.clone()], "seam_wedge_0"));
+        element.add_feature(ElementFeature::new("joint", 1, vec![outline], ""));
+        let beam = session.add_element(element, Some(&walls));
+        let mut bare = Element::new("bare");
+        bare.set_geometry(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
+        session.add_element(bare, Some(&walls));
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let mut index = Hierarchy::default();
+        index.rebuild(&scene);
+        let row = scene.row_of(0, &beam.borrow().name).unwrap();
+        let lines: Vec<(&str, usize, Option<(u32, Option<usize>)>)> = index
+            .nodes
+            .iter()
+            .filter(|node| node.feature.is_some())
+            .map(|node| (node.label.as_str(), node.depth, node.feature))
+            .collect();
+        assert_eq!(
+            lines,
+            vec![
+                ("interactions", 3, Some((row, None))),
+                ("seam_wedge_0", 4, Some((row, Some(0)))),
+                ("joint", 4, Some((row, Some(1)))),
+            ],
+            "one group under the beam, none under the bare element"
+        );
+        let group = index.nodes.iter().position(|node| node.label == "interactions").unwrap();
+        assert!(index.targets(group).is_empty(), "interaction lines hold no rows");
+        assert_eq!(index.nodes[group - 1].end, group + 3, "the group closes inside its element");
     }
 
     /// Past the node limit only layers get lines, and they still hold their objects.

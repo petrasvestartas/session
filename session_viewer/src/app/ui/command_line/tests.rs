@@ -76,7 +76,7 @@ fn browsing_starts_from_the_typed_option() {
 #[test]
 fn up_down_cycles_command_options_and_enter_accepts() {
     // one Enter runs a bare verb that needs no option; a space after it opens the options to browse
-    for name in ["Element Features", "Layers", "Arctic", "Outline", "Snap"] {
+    for name in ["Element Interactions", "Element Attributes", "Layers", "Arctic", "Outline", "Snap"] {
         let context = egui::Context::default();
         context.set_fonts(fonts(BUNDLED));
         context.options_mut(|options| options.max_passes = 1.try_into().unwrap());

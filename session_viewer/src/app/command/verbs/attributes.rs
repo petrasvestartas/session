@@ -2,32 +2,32 @@ use crate::State;
 use crate::app::command::{Action, Spec, on_off};
 
 pub const SPEC: Spec = Spec {
-    options: &["Element Features On", "Element Features Off"],
+    options: &["Element Attributes On", "Element Attributes Off"],
     wait_for_option: true,
     ..Spec::new(
-        &["Element Features"],
-        "Element Features (On Off): draw or remove the element features, moving with their element",
+        &["Element Attributes"],
+        "Element Attributes (On Off): show or hide the objects hung under each element, such as its base plane",
         parse,
     )
 };
 
-/// Draw or remove the element features.
+/// Show or hide the element attributes.
 fn parse(_verb: &str, rest: &[&str]) -> Result<Box<dyn Action>, String> {
-    Ok(Box::new(ElementFeatures(on_off(
+    Ok(Box::new(ElementAttributes(on_off(
         rest,
-        "Element Features (On Off)",
+        "Element Attributes (On Off)",
     )?)))
 }
 
 #[derive(Debug)]
-struct ElementFeatures(Option<bool>);
+struct ElementAttributes(Option<bool>);
 
-impl Action for ElementFeatures {
-    /// Add or drop the feature rows inside every element.
+impl Action for ElementAttributes {
+    /// Show or hide the rows hung under every element.
     fn run(&self, state: &mut State) -> Result<String, String> {
         let shown = state.show_attributes(self.0);
         Ok(format!(
-            "Element Features {}",
+            "Element Attributes {}",
             if shown { "On" } else { "Off" }
         ))
     }

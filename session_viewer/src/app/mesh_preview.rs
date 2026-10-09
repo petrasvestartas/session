@@ -305,7 +305,7 @@ mod tests {
                 vert_base: 0,
                 cloud_px: 0.,
                 row: 0,
-                attributes: false,
+                interactions: false,
             },
             &geometry,
         );

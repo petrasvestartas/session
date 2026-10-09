@@ -193,7 +193,7 @@ impl Scene {
             vert_base: 0,
             cloud_px: self.docs.get(doc).map_or(0.0, |file| file.point_px),
             row,
-            attributes: self.attributes,
+            interactions: self.interactions,
         };
         let mut walked = match batch {
             Some(index) => {
@@ -213,7 +213,7 @@ impl Scene {
             }
             None => walk_geometry(&mut Walk::of(&mut up), &cx, definition),
         };
-        let features = !instance.features.is_empty(); // contacts draw always, the rest while attributes are on
+        let features = !instance.features.is_empty(); // drawn while Element Interactions is on
 
         if features {
             walk_features(
@@ -336,7 +336,7 @@ impl Scene {
             vert_base: 0,
             cloud_px: 0.0,
             row,
-            attributes: self.attributes,
+            interactions: self.interactions,
         };
         let walk = walk_geometry(&mut Walk::of(&mut up), &cx, definition);
         (up, walk)
@@ -615,7 +615,7 @@ impl Scene {
                 continue;
             };
             let (mut up, walk) = self.shared_walk(row, definition);
-            // the attributes may have been switched: what instances take is walked again too
+            // the interactions may have been switched: what instances take is walked again too
             let hull = hull_of(&up, &[], &walk.bounds);
             let walked = Walked {
                 bounds: walk.bounds,
@@ -897,11 +897,11 @@ mod tests {
     fn a_definition_is_walked_once_for_every_instance() {
         let (source, _) = placed(3);
         let mut one = Scene::new();
-        one.attributes = true;
+        one.interactions = true;
         let (single, _) = placed(1);
         one.add_file(file(single));
         let mut scene = Scene::new();
-        scene.attributes = true;
+        scene.interactions = true;
         scene.add_file(file(source.clone()));
         scene.settle();
         scene.verify();
@@ -1056,20 +1056,20 @@ mod tests {
         assert_eq!(scene.placement_of(moved).unwrap().m[13], 5.0);
     }
 
-    /// Switching the attributes walks shared definitions again: the instances lose the axis.
+    /// Switching the interactions walks shared definitions again: the instances lose the axis.
     #[test]
     fn attributes_switch_reaches_every_instance() {
         let (source, _) = placed(2);
         let mut scene = Scene::new();
-        assert!(!scene.attributes);
+        assert!(!scene.interactions);
         scene.add_file(file(source));
         scene.settle();
         let plain = scene.uploaded.ribbons;
-        scene.attributes = true;
+        scene.interactions = true;
         scene.rewalk_cpu();
         let ribbons = scene.uploaded.ribbons;
         assert!(ribbons > plain, "enabled features reach the shared definition");
-        scene.attributes = false;
+        scene.interactions = false;
         scene.rewalk_cpu();
         scene.verify();
         assert!(scene.uploaded.ribbons < ribbons, "no feature ribbons");

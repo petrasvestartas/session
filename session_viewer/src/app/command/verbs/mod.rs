@@ -47,6 +47,7 @@ verbs! {
     opacity,                 // register:opacity
     arrowhead,               // register:arrowhead
     attributes,              // register:attributes
+    interactions,            // register:interactions
     element_plate,           // register:element_plate
     element_beam,            // register:element_beam
     element_column,          // register:element_column

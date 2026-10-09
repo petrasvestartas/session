@@ -140,7 +140,7 @@ impl Scene {
                 vert_base: self.uploaded.verts,
                 cloud_px: point_px,
                 row,
-                attributes: self.attributes,
+                interactions: self.interactions,
             };
             let walked = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geometry);
             let end = self.uploaded.plus(Counts::of(&self.tables));

@@ -365,21 +365,21 @@ fn session_structure_verbs_parse() {
 /// Tab completes the verb, then its option.
 #[test]
 fn partial_entries_accept_commands_then_options() {
-    assert_eq!(completions("Element F"), vec!["Element Features"]);
-    assert_eq!(accept("Element F"), ("Element Features".into(), true));
+    assert_eq!(completions("Element I"), vec!["Element Interactions"]);
+    assert_eq!(accept("Element I"), ("Element Interactions".into(), true));
     assert_eq!(
-        accept("Element Features "),
-        ("Element Features On".into(), true)
+        accept("Element Interactions "),
+        ("Element Interactions On".into(), true)
     );
     assert_eq!(
-        accept("Element Features of"),
-        ("Element Features Off".into(), true)
+        accept("Element Interactions of"),
+        ("Element Interactions Off".into(), true)
     );
     assert_eq!(
-        browse("Element Features Off"),
-        vec!["Element Features On", "Element Features Off"]
+        browse("Element Interactions Off"),
+        vec!["Element Interactions On", "Element Interactions Off"]
     );
-    assert_eq!(option_label("Element Features Off"), "Off");
+    assert_eq!(option_label("Element Interactions Off"), "Off");
     assert_eq!(accept("Lay"), ("Layers".into(), true));
     assert_eq!(accept("Layers "), ("Layers On".into(), true));
     assert_eq!(accept("Layers of"), ("Layers Off".into(), true));
@@ -417,8 +417,12 @@ fn several_word_names_ignore_case_and_spaces() {
         Ok("Fill(Some(true))".into())
     );
     assert_eq!(
-        parsed("elementfeatures on"),
-        Ok("ElementFeatures(Some(true))".into())
+        parsed("elementinteractions on"),
+        Ok("ElementInteractions(Some(true))".into())
+    );
+    assert_eq!(
+        parsed("elementattributes off"),
+        Ok("ElementAttributes(Some(false))".into())
     );
     assert_eq!(parsed("poly line"), parsed("Polyline"));
     assert_eq!(parsed("clipping"), Err("no command `clipping`".into()));
@@ -438,7 +442,7 @@ fn several_word_names_complete() {
     assert_eq!(completions("clip"), vec!["Clipping Plane"]);
     assert_eq!(completions("clipping p"), vec!["Clipping Plane"]);
     assert_eq!(completions("ClippingP"), vec!["Clipping Plane"]);
-    assert_eq!(completions("elementf"), vec!["Element Features"]);
+    assert_eq!(completions("elementi"), vec!["Element Interactions"]);
     assert_eq!(accept("clip"), ("Clipping Plane".into(), true));
     assert_eq!(accept("clippingplane"), ("Clipping Plane".into(), true));
     assert_eq!(
@@ -453,7 +457,7 @@ fn several_word_names_complete() {
         completions("clippingplane fill "),
         vec!["Clipping Plane Fill Hatch", "Clipping Plane Fill Solid"]
     );
-    assert_eq!(accept("elementf"), ("Element Features".into(), true));
+    assert_eq!(accept("elementi"), ("Element Interactions".into(), true));
     assert_eq!(browse("clip")[0], "Clipping Plane");
     assert_eq!(browse("clippingplane o"), options("Clipping Plane"));
     assert_eq!(hint("clippingplane"), hint("Clipping Plane"));
@@ -470,12 +474,12 @@ fn discovery_and_layer_options_are_case_insensitive() {
     assert!(completions("").contains(&"Controls"));
     assert_eq!(parsed("Layers OFF"), Ok("Layers(Some(false))".into()));
     assert_eq!(
-        parsed("Element Features off"),
-        Ok("ElementFeatures(Some(false))".into())
+        parsed("Element Interactions off"),
+        Ok("ElementInteractions(Some(false))".into())
     );
     assert_eq!(
-        parsed("Element Features"),
-        Ok("ElementFeatures(None)".into())
+        parsed("Element Interactions"),
+        Ok("ElementInteractions(None)".into())
     );
     assert_eq!(parsed("Opacity 0.5"), Ok("Opacity(0.5)".into()));
     assert!(parsed("Opacity 2").is_err());

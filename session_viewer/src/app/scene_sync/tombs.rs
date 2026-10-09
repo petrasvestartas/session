@@ -73,7 +73,7 @@ impl Scene {
                 record,
                 born,
                 place,
-                attributes: self.attributes,
+                interactions: self.interactions,
                 points,
             },
         );
@@ -93,7 +93,7 @@ impl Scene {
         let session = &self.docs[item.doc].session;
         let bits = |x: &Xform| x.m.map(f64::to_bits);
         let same = self.tombs.get(&key).is_some_and(|tomb| {
-            tomb.attributes == self.attributes
+            tomb.interactions == self.interactions
                 && tomb
                     .place
                     .as_ref()

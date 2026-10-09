@@ -108,6 +108,7 @@ impl Scene {
     pub(crate) fn verify(&self) {
         let mut fresh = Scene::new();
         fresh.attributes = self.attributes;
+        fresh.interactions = self.interactions;
         fresh.created_doc = self.created_doc;
         fresh.hidden = self.hidden.clone();
         fresh.colors = self.colors.clone();

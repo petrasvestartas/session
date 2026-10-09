@@ -169,7 +169,7 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     rows
 }
 
-/// What hangs under an element, its `attributes` and its `features` groups among them: the rows Element Features shows and hides.
+/// What hangs under an element, its `attributes` and its `features` groups among them: the rows Element Attributes shows and hides.
 pub fn feature_rows(scene: &Scene) -> Vec<u32> {
     (0..scene.row_count() as u32)
         .filter(|&row| under_element(scene, row))
@@ -1100,7 +1100,7 @@ pub(crate) fn owned(session: &Session, node: Option<Node>) -> Option<Node> {
     Some(found)
 }
 
-/// The geometry drawn or hidden: an element's attributes follow Element Features.
+/// The geometry drawn or hidden: an element's attributes follow Element Attributes.
 pub(crate) fn shown(geometry: &Geometry, on: bool) -> Geometry {
     let mut geometry = geometry.clone();
 

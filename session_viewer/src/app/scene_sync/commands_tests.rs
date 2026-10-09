@@ -572,7 +572,7 @@ fn a_move_carries_what_hangs_under_the_row() {
     }
 }
 
-/// Copying an element copies its attributes, hidden while Element Features is off; deleting it deletes them.
+/// Copying an element copies its attributes, hidden while Element Attributes is off; deleting it deletes them.
 #[test]
 fn an_element_copies_and_deletes_with_its_attributes() {
     let mut scene = scene();
@@ -585,15 +585,15 @@ fn an_element_copies_and_deletes_with_its_attributes() {
     check(&mut scene);
     let copy = scene.row_of(doc, &copies[0].1).unwrap();
     let attribute = *scene.with_descendants(&[copy]).iter().find(|&&row| row != copy).unwrap();
-    assert!(scene.hidden.contains(&scene.identity_of(attribute).unwrap()), "hidden while Element Features is off");
+    assert!(scene.hidden.contains(&scene.identity_of(attribute).unwrap()), "hidden while Element Attributes is off");
 
     scene.attributes = true;
-    scene.rewalk_cpu(); // as Element Features On does
+    scene.rewalk_cpu(); // as Element Attributes On does
     let shown = scene.copy_rows(&[element], &Xform::translation(0.0, 90.0, 0.0)).unwrap();
     check(&mut scene);
     let row = scene.row_of(doc, &shown[0].1).unwrap();
     let attribute = *scene.with_descendants(&[row]).iter().find(|&&r| r != row).unwrap();
-    assert!(!scene.hidden.contains(&scene.identity_of(attribute).unwrap()), "shown while Element Features is on");
+    assert!(!scene.hidden.contains(&scene.identity_of(attribute).unwrap()), "shown while Element Attributes is on");
 
     let before = scene.object_count();
     assert_eq!(scene.delete_rows(&[copy]), 2, "the element and its attribute");

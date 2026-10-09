@@ -147,7 +147,7 @@ impl Scene {
             sources.push((doc, guid, geometry, local, attributes));
         }
 
-        let features = self.attributes; // copied attributes show while Element Features is on
+        let features = self.attributes; // copied attributes show while Element Attributes is on
 
         let mut docs: Vec<usize> = sources.iter().map(|source| source.0).collect();
         docs.sort_unstable();

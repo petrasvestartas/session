@@ -1,5 +1,6 @@
 use crate::app::layers::Layer;
 use crate::state::State;
+use session_rust::Geometry;
 use std::rc::Rc;
 
 impl State {
@@ -125,7 +126,11 @@ impl State {
                     }
                 }
                 "select" | "add" => {
-                    let rows = self.features.hierarchy.targets(index);
+                    // an interaction line picks the element it is hung on
+                    let rows = match self.features.hierarchy.nodes[index].feature {
+                        Some((row, _)) => vec![row],
+                        None => self.features.hierarchy.targets(index),
+                    };
 
                     // a tool picking objects takes the rows
                     if self.tool_picks() {
@@ -158,6 +163,7 @@ impl State {
                     self.select_rows(rows, action == "add");
                     self.features.hierarchy.active = active;
                 }
+                "lock" if self.features.hierarchy.nodes[index].feature.is_some() => return,
                 "lock" => {
                     let rows = self.features.hierarchy.targets(index);
                     let lock = rows.iter().any(|row| self.scene.selectable(*row)); // anything unlocked: lock all
@@ -192,6 +198,11 @@ impl State {
                     return;
                 }
                 "hide" => {
+                    if let Some(feature) = self.features.hierarchy.nodes[index].feature {
+                        self.toggle_interactions(feature);
+                        return;
+                    }
+
                     let node = &self.features.hierarchy.nodes[index];
                     // the current layer, a layer holding it or its document line
                     let holds = match self.layer_of(index) {
@@ -367,6 +378,63 @@ impl State {
         self.touch();
     }
 
+    /// Hide or show the interactions an element hosts, one feature or all of them, as one undo step; showing one turns Element Interactions on.
+    fn toggle_interactions(&mut self, (row, at): (u32, Option<usize>)) {
+        let Some(Geometry::Element(element)) = self.scene.geometry(row) else {
+            return;
+        };
+        let picked = |i: usize| at.is_none_or(|at| at == i);
+        let mut features = element.features().to_vec();
+        // anything drawn: hide all, else show them
+        let show = !self.scene.interactions
+            || !features
+                .iter()
+                .enumerate()
+                .any(|(i, feature)| picked(i) && feature.visible);
+
+        for (i, feature) in features.iter_mut().enumerate() {
+            if picked(i) {
+                feature.visible = show;
+            }
+        }
+
+        let mut element = (**element).clone();
+        element.set_features(features);
+        let label = if show { "show interactions" } else { "hide interactions" };
+
+        if let Err(message) = self
+            .scene
+            .replace_rows(vec![(row, Geometry::Element(Rc::new(element)))], label)
+        {
+            self.status(&message);
+            return;
+        }
+
+        self.commit_rows();
+
+        if show && !self.scene.interactions {
+            self.show_interactions(Some(true));
+        }
+
+        self.refresh_layers();
+        self.touch();
+    }
+
+    /// The count and hidden state of an interaction line: its features, hidden while none is drawn.
+    fn interaction_state(&self, (row, at): (u32, Option<usize>)) -> (usize, bool) {
+        let Some(Geometry::Element(element)) = self.scene.geometry(row) else {
+            return (0, true);
+        };
+        let picked: Vec<_> = element
+            .features()
+            .iter()
+            .enumerate()
+            .filter(|(i, _)| at.is_none_or(|at| at == *i))
+            .collect();
+        let hidden = !self.scene.interactions || picked.iter().all(|(_, feature)| !feature.visible);
+        (picked.len(), hidden)
+    }
+
     /// Hide or show sorted rows.
     pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
         // a hidden row cannot stay selected
@@ -455,11 +523,16 @@ impl State {
             } else {
                 targets.iter().any(chosen)
             };
+            // an interaction line counts and hides its features, not rows
+            let (count, all_hidden) = match node.feature {
+                Some(feature) => self.interaction_state(feature),
+                None => (count, count > 0 && targets.iter().all(hidden)), // every row hidden, and at least one
+            };
             rows.push(LayerRow {
                 key: format!("select/{index}"), // the select button key
                 label: node.label.clone(),
                 count,
-                hidden: count > 0 && targets.iter().all(hidden), // every row hidden, and at least one
+                hidden: all_hidden,
                 locked,
                 selected,
                 color,

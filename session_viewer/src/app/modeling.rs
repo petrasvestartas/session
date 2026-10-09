@@ -85,7 +85,7 @@ impl Scene {
             }
         };
         let place = self.docs[doc].place.clone();
-        let features = self.attributes; // new attributes show while Element Features is on
+        let features = self.attributes; // new attributes show while Element Attributes is on
         let session = Rc::make_mut(&mut self.docs[doc].session);
         // the current layer, else the root
         let parent = layer

@@ -73,7 +73,8 @@ pub fn publish(state: &State) {
     snapshot["navigation_tier"] = serde_json::json!(state.gpu.performance.drag_tier());
     snapshot["rough"] = serde_json::json!(state.gpu.performance.rough());
     snapshot["opacity"] = serde_json::json!(state.gpu.view.opacity);
-    snapshot["element_features"] = serde_json::json!(state.scene.attributes);
+    snapshot["element_interactions"] = serde_json::json!(state.scene.interactions);
+    snapshot["element_attributes"] = serde_json::json!(state.scene.attributes);
     snapshot["selected_rows"] = serde_json::json!(state.selected_rows());
     snapshot["selected_models"] = serde_json::json!(
         state

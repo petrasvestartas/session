@@ -80,7 +80,7 @@ pub(crate) struct Tomb {
     pub record: Weak<history::Tomb>, // the kernel tomb; gone when no undo reaches it
     pub born: u64,                   // burial order, oldest released first
     pub place: Option<Xform>,        // its placement in a sheet document, whose pens hang on it
-    pub attributes: bool,            // whether element features were drawn
+    pub interactions: bool,          // whether element interactions were drawn
     pub points: u64,                 // cloud points it keeps on the GPU, 0 for other kinds
 }
 

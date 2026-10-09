@@ -1044,13 +1044,11 @@ impl State {
         self.touch();
     }
 
-    /// Element Features On|Off: show the elements hung under each element and draw its features; `None` toggles.
-    pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
-        let show = value.unwrap_or(!self.scene.attributes);
-        self.scene.attributes = show;
+    /// Element Interactions On|Off: draw what other elements do to each element, its features, contacts among them; `None` toggles.
+    pub fn show_interactions(&mut self, value: Option<bool>) -> bool {
+        let show = value.unwrap_or(!self.scene.interactions);
+        self.scene.interactions = show;
         self.select(None);
-        let children = crate::app::layers::feature_rows(&self.scene);
-        self.set_rows_hidden(&children, !show);
 
         if !self.scene.rewalk_editable(&mut self.gpu) {
             self.resume_after(hydrate::Resume::Rewalk);
@@ -1060,6 +1058,16 @@ impl State {
         self.refresh_layers();
         self.update_label();
         self.touch();
+        show
+    }
+
+    /// Element Attributes On|Off: show the objects hung under each element, its `attributes`; `None` toggles.
+    pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
+        let show = value.unwrap_or(!self.scene.attributes);
+        self.scene.attributes = show;
+        self.select(None);
+        let children = crate::app::layers::feature_rows(&self.scene);
+        self.set_rows_hidden(&children, !show);
         show
     }
 }

@@ -73,7 +73,8 @@ pub struct Scene {
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // face colour overrides
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
     pub selected: Option<u32>,                           // selected object row
-    pub attributes: bool,                                // element features drawn
+    pub interactions: bool,                              // element interactions (features) drawn
+    pub attributes: bool,                                // rows hung under elements shown
     order: Vec<Rc<str>>,                                 // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
     feet: Vec<Footprint>, // lane rows of each row
@@ -150,6 +151,7 @@ impl Scene {
             colors: HashMap::new(),
             edge_colors: HashMap::new(),
             selected: None,
+            interactions: false,
             attributes: false,
             order: Vec::new(),
             owners: Vec::new(),
@@ -500,7 +502,7 @@ impl Scene {
                 vert_base: self.uploaded.verts,
                 cloud_px: point_px,
                 row,
-                attributes: self.attributes,
+                interactions: self.interactions,
             };
             let start = self.uploaded.plus(Counts::of(&self.tables));
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
@@ -1413,12 +1415,12 @@ mod editing_tests {
         let mut source = Session::new("attributes");
         source.add_element(element, None);
         let mut scene = Scene::new();
-        scene.attributes = false;
+        scene.interactions = false;
         scene.add_file(file("beam", Rc::new(source), false));
         let plain = scene.tables.seg.ribbons.len();
         assert_eq!(scene.object_count(), 1);
 
-        scene.attributes = true;
+        scene.interactions = true;
         scene.rewalk_cpu();
         assert_eq!(scene.object_count(), 1);
         let range = scene.ribbon_range(0).unwrap();
