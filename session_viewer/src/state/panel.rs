@@ -163,6 +163,11 @@ impl State {
 
                     self.select_rows(rows, action == "add");
                     self.features.hierarchy.active = active;
+
+                    // the camera jumps to what was picked
+                    if !self.selected_rows().is_empty() {
+                        self.fit_selected_or_all();
+                    }
                 }
                 "lock" if self.features.hierarchy.nodes[index].pick.is_some() => return,
                 "lock" => {
@@ -222,14 +227,7 @@ impl State {
                         return;
                     }
 
-                    let rows = self.features.hierarchy.targets(index);
-                    // anything visible: hide all
-                    let hide = rows.iter().any(|row| {
-                        self.scene
-                            .identity_of(*row)
-                            .is_some_and(|id| !self.scene.hidden.contains(&id))
-                    });
-                    self.set_rows_hidden(&rows, hide);
+                    self.toggle_lamp(index);
                     return;
                 }
                 _ => return,
@@ -271,17 +269,9 @@ impl State {
         let mut made = None; // a new layer, named right away
         let result = match action {
             "current" => self.scene.set_current_layer(doc, &name).map(|_| {
-                let rows = self.features.hierarchy.targets(index);
-
                 // a hidden layer comes back when made current
-                if !rows.is_empty()
-                    && rows.iter().all(|row| {
-                        self.scene
-                            .identity_of(*row)
-                            .is_some_and(|id| self.scene.hidden.contains(&id))
-                    })
-                {
-                    self.set_rows_hidden(&rows, false);
+                if self.features.hierarchy.lamp_is_off(index) || self.hidden_itself(index) {
+                    self.toggle_lamp(index);
                 }
 
                 format!("Current layer: {name}")
@@ -435,6 +425,47 @@ impl State {
         (pick.features.len(), hidden)
     }
 
+    /// A lamp in the layers panel: a layer's switches it alone, so every lamp below keeps its own state.
+    fn toggle_lamp(&mut self, index: usize) {
+        let rows = self.features.hierarchy.targets(index);
+
+        // a layer switched off: show what it hid
+        if self.features.hierarchy.lamp_is_off(index) {
+            let show = self.features.hierarchy.lamp_on(&self.scene, index);
+            self.set_rows_hidden(&show, false);
+            return;
+        }
+
+        // hidden by itself: show it, unless a lamp switched off above keeps it
+        if self.hidden_itself(index) {
+            let show = self.features.hierarchy.keep_covered(&self.scene, &rows);
+            self.set_rows_hidden(&show, false);
+            return;
+        }
+
+        // a layer: switch it off, keeping what it hides
+        if self.features.hierarchy.nodes[index].layer {
+            let hide = self.features.hierarchy.lamp_off(&self.scene, index);
+            self.set_rows_hidden(&hide, true);
+            return;
+        }
+
+        // an object: hidden by itself, no longer by a lamp
+        self.features.hierarchy.release(&self.scene, &rows);
+        self.set_rows_hidden(&rows, true);
+    }
+
+    /// Whether node `index` has rows and every one is hidden by itself, not by a lamp switched off above it.
+    fn hidden_itself(&self, index: usize) -> bool {
+        let rows = self.features.hierarchy.targets(index);
+        let held = self.features.hierarchy.held();
+
+        !rows.is_empty()
+            && rows
+                .iter()
+                .all(|row| crate::app::hierarchy::Hierarchy::hidden_itself(&self.scene, &held, *row))
+    }
+
     /// Hide or show sorted rows.
     pub(super) fn set_rows_hidden(&mut self, rows: &[u32], hide: bool) {
         // a hidden row cannot stay selected
@@ -492,6 +523,8 @@ impl State {
                 .is_some_and(|id| self.scene.hidden.contains(&id))
         };
 
+        let held = self.features.hierarchy.held(); // objects hidden by a lamp, not by themselves
+
         // one panel row per visible node on this page
         for &index in visible.iter().skip(first).take(PAGE_SIZE) {
             let node = &self.features.hierarchy.nodes[index];
@@ -526,7 +559,15 @@ impl State {
             // an interaction line counts and hides its features, not rows
             let (count, all_hidden) = match &node.pick {
                 Some(pick) => self.pick_state(pick),
-                None => (count, count > 0 && targets.iter().all(hidden)), // every row hidden, and at least one
+                // its own lamp switched off, or every row hidden by itself, and at least one
+                None => (
+                    count,
+                    self.features.hierarchy.lamp_is_off(index)
+                        || (count > 0
+                            && targets.iter().all(|row| {
+                                crate::app::hierarchy::Hierarchy::hidden_itself(&self.scene, &held, *row)
+                            })),
+                ),
             };
             rows.push(LayerRow {
                 key: format!("select/{index}"), // the select button key

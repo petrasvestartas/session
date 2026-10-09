@@ -19,6 +19,8 @@ pub const PAGE_SIZE: usize = 128; // nodes per panel page
 
 type Lookup = HashMap<usize, HashMap<Rc<str>, u32>>; // document -> guid -> row
 
+type Identity = (usize, Rc<str>); // (document, guid)
+
 /// One line of the tree panel.
 pub struct Node {
     pub label: String,      // text shown
@@ -51,6 +53,7 @@ pub struct Hierarchy {
     pub active: Vec<usize>,         // clicked layer nodes
     revision: Option<u64>,          // scene revision this was built from
     away: HashSet<(usize, String)>, // open nodes an undo took away, open again when they return
+    pub off: HashMap<(usize, String), HashSet<Identity>>, // layer lamps switched off, each with the objects it hid
 }
 
 impl Hierarchy {
@@ -122,6 +125,132 @@ impl Hierarchy {
         open.retain(|name| !back.contains(name));
         self.away = open;
         self.connect(scene, &lookup);
+        self.prune_lamps(scene);
+    }
+
+    /// Keep a lamp off while its layer has a line and all of it is hidden, and only the objects it hid that still are.
+    fn prune_lamps(&mut self, scene: &Scene) {
+        let mut off = std::mem::take(&mut self.off);
+
+        off.retain(|(doc, name), hid| {
+            let Some(index) = self.index_of(*doc, name) else {
+                return false;
+            };
+            hid.retain(|id| scene.hidden.contains(id));
+            self.targets(index).iter().all(|row| hidden(scene, *row))
+        });
+
+        self.off = off;
+    }
+
+    /// The (document, name) a layer lamp is kept by.
+    pub fn lamp_key(&self, index: usize) -> (usize, String) {
+        let node = &self.nodes[index];
+        (node.doc, node.name.clone())
+    }
+
+    /// Whether the lamp of layer `index` is switched off.
+    pub fn lamp_is_off(&self, index: usize) -> bool {
+        self.nodes[index].layer && self.off.contains_key(&self.lamp_key(index))
+    }
+
+    /// Every object a switched-off lamp hid.
+    pub fn held(&self) -> HashSet<Identity> {
+        self.off.values().flatten().cloned().collect()
+    }
+
+    /// Whether a row is hidden by itself, not by a lamp switched off above it.
+    pub fn hidden_itself(scene: &Scene, held: &HashSet<Identity>, row: u32) -> bool {
+        scene
+            .identity_of(row)
+            .is_some_and(|id| scene.hidden.contains(&id) && !held.contains(&id))
+    }
+
+    /// Switch the lamp of layer `index` off: it keeps the objects it hides, those still drawn, and returns their rows.
+    pub fn lamp_off(&mut self, scene: &Scene, index: usize) -> Vec<u32> {
+        let mut rows = Vec::new();
+        let mut hid = HashSet::new();
+
+        for row in self.targets(index) {
+            if let Some(id) = scene.identity_of(row)
+                && !scene.hidden.contains(&id)
+            {
+                hid.insert(id);
+                rows.push(row);
+            }
+        }
+
+        self.off.insert(self.lamp_key(index), hid);
+        rows
+    }
+
+    /// Switch the lamp of layer `index` on: the rows of the objects it hid, those no other lamp still covers.
+    pub fn lamp_on(&mut self, scene: &Scene, index: usize) -> Vec<u32> {
+        let Some(hid) = self.off.remove(&self.lamp_key(index)) else {
+            return Vec::new();
+        };
+        let rows: Vec<u32> = self
+            .targets(index)
+            .into_iter()
+            .filter(|row| scene.identity_of(*row).is_some_and(|id| hid.contains(&id)))
+            .collect();
+        self.keep_covered(scene, &rows)
+    }
+
+    /// Of rows to show, those under a switched-off lamp join it and stay hidden; returns the rest.
+    pub fn keep_covered(&mut self, scene: &Scene, rows: &[u32]) -> Vec<u32> {
+        let covering = self.covering();
+        let mut free = Vec::new();
+
+        for &row in rows {
+            let Some(id) = scene.identity_of(row) else {
+                continue;
+            };
+
+            match covering.get(&row) {
+                Some(&lamp) => {
+                    let key = self.lamp_key(lamp);
+                    self.off.entry(key).or_default().insert(id);
+                }
+                None => free.push(row),
+            }
+        }
+
+        free
+    }
+
+    /// Rows hidden one by one: no lamp holds them any more, so they stay hidden when it is switched on.
+    pub fn release(&mut self, scene: &Scene, rows: &[u32]) {
+        for &row in rows {
+            if let Some(id) = scene.identity_of(row) {
+                for hid in self.off.values_mut() {
+                    hid.remove(&id);
+                }
+            }
+        }
+    }
+
+    /// Each row under a switched-off lamp, with the innermost such lamp.
+    fn covering(&self) -> HashMap<u32, usize> {
+        let mut covering: HashMap<u32, usize> = HashMap::new();
+
+        for (doc, name) in self.off.keys() {
+            let Some(index) = self.index_of(*doc, name) else {
+                continue;
+            };
+
+            for row in self.targets(index) {
+                let inner = covering
+                    .get(&row)
+                    .is_none_or(|&other| self.nodes[other].depth < self.nodes[index].depth);
+
+                if inner {
+                    covering.insert(row, index);
+                }
+            }
+        }
+
+        covering
     }
 
     /// The (document, name) of some nodes, which outlive a rebuild.
@@ -532,6 +661,13 @@ impl Hierarchy {
     }
 }
 
+/// Whether a row is hidden.
+fn hidden(scene: &Scene, row: u32) -> bool {
+    scene
+        .identity_of(row)
+        .is_some_and(|id| scene.hidden.contains(&id))
+}
+
 /// The row of one guid in one document.
 fn row_of(lookup: &Lookup, doc: usize, guid: &str) -> Option<u32> {
     lookup.get(&doc)?.get(guid).copied()
@@ -545,6 +681,84 @@ mod tests {
     #[cfg(test)]
     use session_rust::Session;
     use session_rust::Xform;
+
+    /// Hide or show rows as the panel does, by identity.
+    fn apply(scene: &mut Scene, rows: &[u32], hide: bool) {
+        for row in rows {
+            let id = scene.identity_of(*row).unwrap();
+
+            if hide {
+                scene.hidden.insert(id);
+            } else {
+                scene.hidden.remove(&id);
+            }
+        }
+    }
+
+    /// A layer lamp switches only itself: switched off and on again, every lamp and object below keeps its own state.
+    #[test]
+    fn a_layer_lamp_keeps_the_lamps_below() {
+        let mut session = Session::new("floor");
+        let parent = session.add_group("parent");
+        let child = session_rust::TreeNode::new("child");
+        session.add(&child, Some(&parent));
+        session.add_point(Point::new(0.0, 0.0, 0.0), Some(&child));
+        session.add_point(Point::new(1.0, 0.0, 0.0), Some(&parent));
+        session.add_point(Point::new(2.0, 0.0, 0.0), Some(&parent));
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "floor".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let mut index = Hierarchy::default();
+        index.rebuild(&scene);
+        let parent = index.index_of(0, "parent").unwrap();
+        let child = index.index_of(0, "child").unwrap();
+        let rows = index.targets(parent);
+        let inner = index.targets(child);
+        let alone = *rows.iter().find(|row| !inner.contains(row)).unwrap();
+        let other = *rows.iter().find(|row| !inner.contains(row) && **row != alone).unwrap();
+
+        // the child switched off, one object hidden by itself, then the parent off and on
+        let hide = index.lamp_off(&scene, child);
+        apply(&mut scene, &hide, true);
+        apply(&mut scene, &[alone], true);
+        let hide = index.lamp_off(&scene, parent);
+        assert_eq!(hide, vec![other]);
+        apply(&mut scene, &hide, true);
+        let show = index.lamp_on(&scene, parent);
+        assert_eq!(show, vec![other]);
+        apply(&mut scene, &show, false);
+        assert!(index.lamp_is_off(child) && !index.lamp_is_off(parent));
+        assert!(inner.iter().all(|row| hidden(&scene, *row)) && hidden(&scene, alone));
+        let held = index.held();
+        assert!(Hierarchy::hidden_itself(&scene, &held, alone) && !Hierarchy::hidden_itself(&scene, &held, inner[0]));
+
+        // the parent off, then the child: on again, the parent leaves the child's objects to the child
+        let show = index.lamp_on(&scene, child);
+        apply(&mut scene, &show, false);
+        let hide = index.lamp_off(&scene, parent);
+        apply(&mut scene, &hide, true);
+        assert!(index.lamp_off(&scene, child).is_empty());
+        let show = index.lamp_on(&scene, parent);
+        assert_eq!(show, vec![other]);
+        apply(&mut scene, &show, false);
+        assert!(inner.iter().all(|row| hidden(&scene, *row)));
+        let show = index.lamp_on(&scene, child);
+        assert_eq!(show, inner);
+        apply(&mut scene, &show, false);
+        assert!(index.off.is_empty() && hidden(&scene, alone) && !hidden(&scene, other));
+
+        // a lamp whose objects all show again after a rebuild is on again
+        let hide = index.lamp_off(&scene, child);
+        apply(&mut scene, &hide, true);
+        scene.hidden.clear();
+        index.rebuild(&scene);
+        assert!(index.off.is_empty());
+    }
 
     /// A full row table refuses the graph.
     #[test]

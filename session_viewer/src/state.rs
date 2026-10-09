@@ -416,6 +416,7 @@ impl State {
         }
 
         self.scene.hidden.clear();
+        self.features.hierarchy.off.clear(); // every lamp on again
         self.refresh_layers(); // register:panel
         self.update_label(); // register:scene_text
         self.touch();
