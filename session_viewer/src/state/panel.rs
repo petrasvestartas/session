@@ -1,5 +1,6 @@
 use crate::app::layers::Layer;
 use crate::state::State;
+use crate::app::hierarchy::Pick;
 use session_rust::Geometry;
 use std::rc::Rc;
 
@@ -127,8 +128,8 @@ impl State {
                 }
                 "select" | "add" => {
                     // an interaction line picks the element it is hung on
-                    let rows = match self.features.hierarchy.nodes[index].feature {
-                        Some((row, _)) => vec![row],
+                    let rows = match &self.features.hierarchy.nodes[index].pick {
+                        Some(pick) => vec![pick.row],
                         None => self.features.hierarchy.targets(index),
                     };
 
@@ -163,7 +164,7 @@ impl State {
                     self.select_rows(rows, action == "add");
                     self.features.hierarchy.active = active;
                 }
-                "lock" if self.features.hierarchy.nodes[index].feature.is_some() => return,
+                "lock" if self.features.hierarchy.nodes[index].pick.is_some() => return,
                 "lock" => {
                     let rows = self.features.hierarchy.targets(index);
                     let lock = rows.iter().any(|row| self.scene.selectable(*row)); // anything unlocked: lock all
@@ -198,8 +199,8 @@ impl State {
                     return;
                 }
                 "hide" => {
-                    if let Some(feature) = self.features.hierarchy.nodes[index].feature {
-                        self.toggle_interactions(feature);
+                    if let Some(pick) = self.features.hierarchy.nodes[index].pick.clone() {
+                        self.toggle_features(&pick);
                         return;
                     }
 
@@ -378,33 +379,29 @@ impl State {
         self.touch();
     }
 
-    /// Hide or show the interactions an element hosts, one feature or all of them, as one undo step; showing one turns Element Interactions on.
-    fn toggle_interactions(&mut self, (row, at): (u32, Option<usize>)) {
-        let Some(Geometry::Element(element)) = self.scene.geometry(row) else {
+    /// Hide or show the element features a panel line stands for as one undo step; showing turns on the command that draws them.
+    fn toggle_features(&mut self, pick: &Pick) {
+        let Some(Geometry::Element(element)) = self.scene.geometry(pick.row) else {
             return;
         };
-        let picked = |i: usize| at.is_none_or(|at| at == i);
+        let drawn = if pick.interactions { self.scene.interactions } else { self.scene.attributes };
         let mut features = element.features().to_vec();
         // anything drawn: hide all, else show them
-        let show = !self.scene.interactions
-            || !features
-                .iter()
-                .enumerate()
-                .any(|(i, feature)| picked(i) && feature.visible);
+        let show = !drawn || !pick.features.iter().any(|&i| features.get(i).is_some_and(|f| f.visible));
 
-        for (i, feature) in features.iter_mut().enumerate() {
-            if picked(i) {
+        for &i in &pick.features {
+            if let Some(feature) = features.get_mut(i) {
                 feature.visible = show;
             }
         }
 
         let mut element = (**element).clone();
         element.set_features(features);
-        let label = if show { "show interactions" } else { "hide interactions" };
+        let label = if show { "show features" } else { "hide features" };
 
         if let Err(message) = self
             .scene
-            .replace_rows(vec![(row, Geometry::Element(Rc::new(element)))], label)
+            .replace_rows(vec![(pick.row, Geometry::Element(Rc::new(element)))], label)
         {
             self.status(&message);
             return;
@@ -412,27 +409,30 @@ impl State {
 
         self.commit_rows();
 
-        if show && !self.scene.interactions {
-            self.show_interactions(Some(true));
+        if show && !drawn {
+            if pick.interactions {
+                self.show_interactions(Some(true));
+            } else {
+                self.show_attributes(Some(true));
+            }
         }
 
         self.refresh_layers();
         self.touch();
     }
 
-    /// The count and hidden state of an interaction line: its features, hidden while none is drawn.
-    fn interaction_state(&self, (row, at): (u32, Option<usize>)) -> (usize, bool) {
-        let Some(Geometry::Element(element)) = self.scene.geometry(row) else {
+    /// The count and hidden state of a feature line: hidden while its command is off or none of its features is drawn.
+    fn pick_state(&self, pick: &Pick) -> (usize, bool) {
+        let Some(Geometry::Element(element)) = self.scene.geometry(pick.row) else {
             return (0, true);
         };
-        let picked: Vec<_> = element
-            .features()
-            .iter()
-            .enumerate()
-            .filter(|(i, _)| at.is_none_or(|at| at == *i))
-            .collect();
-        let hidden = !self.scene.interactions || picked.iter().all(|(_, feature)| !feature.visible);
-        (picked.len(), hidden)
+        let drawn = if pick.interactions { self.scene.interactions } else { self.scene.attributes };
+        let hidden = !drawn
+            || pick
+                .features
+                .iter()
+                .all(|&i| element.features().get(i).is_none_or(|f| !f.visible));
+        (pick.features.len(), hidden)
     }
 
     /// Hide or show sorted rows.
@@ -524,8 +524,8 @@ impl State {
                 targets.iter().any(chosen)
             };
             // an interaction line counts and hides its features, not rows
-            let (count, all_hidden) = match node.feature {
-                Some(feature) => self.interaction_state(feature),
+            let (count, all_hidden) = match &node.pick {
+                Some(pick) => self.pick_state(pick),
                 None => (count, count > 0 && targets.iter().all(hidden)), // every row hidden, and at least one
             };
             rows.push(LayerRow {

@@ -339,6 +339,7 @@ impl Scene {
             cloud_px: file.point_px,
             row,
             interactions: self.interactions,
+            attributes: self.attributes,
         };
         let walked = walk_geometry(&mut Walk::of(&mut up), &cx, geometry);
         let mut object = ObjectRow::new(place.clone(), walked.flags);

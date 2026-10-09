@@ -28,7 +28,15 @@ pub struct Node {
     pub doc: usize,         // its document
     pub name: String,       // its tree node name, empty when outside the tree
     pub layer: bool,        // a group or document, not an object
-    pub feature: Option<(u32, Option<usize>)>, // an element row and one of its features, or all in its interactions group
+    pub pick: Option<Pick>, // the element features the line stands for, when it lists features
+}
+
+/// The features of one element a panel line stands for: an interaction, one of its pieces, or one of the element's own.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Pick {
+    pub row: u32,            // the element's row
+    pub features: Vec<usize>, // indices into its features
+    pub interactions: bool,  // drawn while Element Interactions is on, else while Element Attributes is
 }
 
 /// The tree panel's flattened nodes.
@@ -194,10 +202,10 @@ impl Hierarchy {
 
         let mut seen = HashSet::new(); // nodes visited
         let mut seen_rows = HashSet::new(); // rows placed
-        let mut stack = Vec::new(); // (node, depth, index to close, inside an object)
+        let mut stack = Vec::new(); // (node, depth, index to close, inside an object, the element row it hangs under)
 
         for child in root.iter().flat_map(|root| root.borrow().children()).rev() {
-            stack.push((child, 1, None, false));
+            stack.push((child, 1, None, false, None));
         }
 
         // without object lines one layer may hold every row
@@ -205,12 +213,12 @@ impl Hierarchy {
 
         // depth first; a node is pushed again to close it after its children
         for _ in 0..most * 2 {
-            let Some((node, depth, exit, inside)) = stack.pop() else {
+            let Some((node, depth, exit, inside, host)) = stack.pop() else {
                 break;
             };
 
             if let Some(index) = exit {
-                if !self.interactions(scene, index, lookup) {
+                if !self.feature_lines(scene, index, host, lookup) {
                     return false;
                 }
 
@@ -239,7 +247,7 @@ impl Hierarchy {
                     return false;
                 }
 
-                stack.push((Rc::clone(&node), depth, Some(index), inside));
+                stack.push((Rc::clone(&node), depth, Some(index), inside, host));
             }
 
             if let Some(row) = row
@@ -254,8 +262,11 @@ impl Hierarchy {
                 return false;
             }
 
+            // the children of an element know it, so its `attributes` group lists its own features
+            let element = row.filter(|&r| matches!(scene.geometry(r), Some(Geometry::Element(_))));
+
             for child in children.into_iter().rev() {
-                stack.push((child, depth + 1, None, inside || object));
+                stack.push((child, depth + 1, None, inside || object, element));
             }
         }
 
@@ -364,25 +375,60 @@ impl Hierarchy {
             doc,
             name,
             layer,
-            feature: None,
+            pick: None,
         });
         true
     }
 
-    /// Under an element's node `index`, its `interactions` group, a line per feature other elements hung on it.
-    fn interactions(&mut self, scene: &Scene, index: usize, lookup: &Lookup) -> bool {
+    /// Closing node `index`: an element's `attributes` group lists the element's own features, and an element ends with its `interactions` group, a line per interaction it hosts holding a line per feature that interaction drew.
+    fn feature_lines(&mut self, scene: &Scene, index: usize, host: Option<u32>, lookup: &Lookup) -> bool {
         let (doc, depth, name) = {
             let node = &self.nodes[index];
             (node.doc, node.depth, node.name.clone())
         };
+
+        // the element's `attributes` group: its own features after its objects
+        if name == "attributes"
+            && let Some(row) = host
+            && let Some(Geometry::Element(element)) = scene.geometry(row)
+        {
+            return self.own_lines(element, row, depth + 1, doc);
+        }
+
         let Some(row) = row_of(lookup, doc, &name) else {
             return true;
         };
         let Some(Geometry::Element(element)) = scene.geometry(row) else {
             return true;
         };
+        let session = &scene.docs[doc].session;
 
-        if element.features().is_empty() {
+        // no `attributes` group of its own: one made for its own features
+        let grouped = session
+            .tree
+            .get_node_by_name(&name)
+            .is_some_and(|node| node.borrow().children().iter().any(|c| c.borrow().name == "attributes"));
+
+        if !grouped && !crate::app::interactions::own(element).is_empty() {
+            let group = self.nodes.len();
+
+            if !self.push("attributes", depth + 1, doc, format!("{name}/attributes"), false)
+                || !self.own_lines(element, row, depth + 2, doc)
+            {
+                return false;
+            }
+
+            self.nodes[group].pick = Some(Pick {
+                row,
+                features: crate::app::interactions::own(element),
+                interactions: false,
+            });
+            self.finish(group);
+        }
+
+        let hosted = crate::app::interactions::hosted(session, &name, element);
+
+        if hosted.is_empty() {
             return true;
         }
 
@@ -392,21 +438,59 @@ impl Hierarchy {
             return false;
         }
 
-        self.nodes[group].feature = Some((row, None));
+        self.nodes[group].pick = Some(Pick {
+            row,
+            features: hosted.iter().flat_map(|h| h.features.iter().copied()).collect(),
+            interactions: true,
+        });
 
-        for (at, feature) in element.features().iter().enumerate() {
+        for (at, interaction) in hosted.iter().enumerate() {
             let line = self.nodes.len();
-            let label = if feature.name.is_empty() { &feature.feature_type } else { &feature.name };
 
-            if !self.push(label, depth + 2, doc, format!("{name}/interactions/{at}"), false) {
+            if !self.push(&interaction.label, depth + 2, doc, format!("{name}/interactions/{at}"), false) {
                 return false;
             }
 
-            self.nodes[line].feature = Some((row, Some(at)));
+            self.nodes[line].pick = Some(Pick {
+                row,
+                features: interaction.features.clone(),
+                interactions: true,
+            });
+
+            // its attributes: the pieces it drew
+            for &i in &interaction.features {
+                let piece = self.nodes.len();
+                let label = crate::app::interactions::feature_label(&element.features()[i]);
+
+                if !self.push(&label, depth + 3, doc, format!("{name}/interactions/{at}/{i}"), false) {
+                    return false;
+                }
+
+                self.nodes[piece].pick = Some(Pick { row, features: vec![i], interactions: true });
+                self.finish(piece);
+            }
+
             self.finish(line);
         }
 
         self.finish(group);
+        true
+    }
+
+    /// A line per feature the element carries of its own, an axis or a section, at `depth`.
+    fn own_lines(&mut self, element: &session_rust::Element, row: u32, depth: usize, doc: usize) -> bool {
+        for i in crate::app::interactions::own(element) {
+            let line = self.nodes.len();
+            let label = crate::app::interactions::feature_label(&element.features()[i]);
+
+            if !self.push(&label, depth, doc, format!("{}/own/{i}", element.guid()), false) {
+                return false;
+            }
+
+            self.nodes[line].pick = Some(Pick { row, features: vec![i], interactions: false });
+            self.finish(line);
+        }
+
         true
     }
 
@@ -581,21 +665,27 @@ mod tests {
         assert_eq!(index.nodes[1].name, "walls");
     }
 
-    /// An element hosting features gets an `interactions` group with a line per feature, named by the feature or its type.
+    /// An element lists its own features under `attributes` and, under `interactions`, a line per interaction it hosts, led by the full type name, holding the pieces it drew.
     #[test]
-    fn an_element_lists_its_interactions() {
+    fn an_element_lists_its_attributes_and_interactions() {
         use session_rust::element::{Element, ElementFeature};
         let mut session = Session::new("site");
         let walls = session.add_group("walls");
-        let mut element = Element::new("beam");
-        element.set_geometry(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        let outline = session_rust::Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
-        element.add_feature(ElementFeature::new("contact", 0, vec![outline.clone()], "seam_wedge_0"));
-        element.add_feature(ElementFeature::new("joint", 1, vec![outline], ""));
-        let beam = session.add_element(element, Some(&walls));
+        let line = session_rust::Polyline::new(vec![Point::new(0.0, 0.0, 0.0), Point::new(1.0, 0.0, 0.0)]);
+        let contact = session_rust::InteractionUnknown::new("InteractionContactFace", &[], "seam_wedge_0");
+        let mut touch = ElementFeature::new("contact", 0, vec![line.clone()], "side_side");
+        touch.set_guid(session_rust::Interaction::guid(&contact).to_string());
+        let mut beam = Element::new("beam");
+        beam.set_geometry(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
+        beam.add_feature(ElementFeature::new("axis", -1, vec![line], "axis"));
+        beam.add_feature(touch);
         let mut bare = Element::new("bare");
         bare.set_geometry(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        session.add_element(bare, Some(&walls));
+        let beam = session.add_element(beam, Some(&walls)).borrow().name.clone();
+        let bare = session.add_element(bare, Some(&walls)).borrow().name.clone();
+        session.graph.add_edge(&bare, &beam, "");
+        let edge = session.graph.edges[&bare][&beam].guid().to_string();
+        session.interactions.insert(edge, vec![Box::new(contact)]);
         let mut scene = Scene::new();
         scene.add_file(FileDoc {
             name: "site".into(),
@@ -606,25 +696,26 @@ mod tests {
         });
         let mut index = Hierarchy::default();
         index.rebuild(&scene);
-        let row = scene.row_of(0, &beam.borrow().name).unwrap();
-        let lines: Vec<(&str, usize, Option<(u32, Option<usize>)>)> = index
+        let row = scene.row_of(0, &beam).unwrap();
+        let lines: Vec<(&str, usize, Vec<usize>, bool)> = index
             .nodes
             .iter()
-            .filter(|node| node.feature.is_some())
-            .map(|node| (node.label.as_str(), node.depth, node.feature))
+            .filter_map(|node| node.pick.as_ref().map(|pick| (node.label.as_str(), node.depth, pick.features.clone(), pick.interactions)))
             .collect();
         assert_eq!(
             lines,
             vec![
-                ("interactions", 3, Some((row, None))),
-                ("seam_wedge_0", 4, Some((row, Some(0)))),
-                ("joint", 4, Some((row, Some(1)))),
+                ("attributes", 3, vec![0], false),
+                ("axis", 4, vec![0], false),
+                ("interactions", 3, vec![1], true),
+                ("InteractionContactFace seam_wedge_0", 4, vec![1], true),
+                ("contact side_side · face 0", 5, vec![1], true),
             ],
-            "one group under the beam, none under the bare element"
+            "the bare element lists nothing"
         );
+        assert!(index.nodes.iter().filter_map(|node| node.pick.as_ref()).all(|pick| pick.row == row));
         let group = index.nodes.iter().position(|node| node.label == "interactions").unwrap();
-        assert!(index.targets(group).is_empty(), "interaction lines hold no rows");
-        assert_eq!(index.nodes[group - 1].end, group + 3, "the group closes inside its element");
+        assert!(index.targets(group).is_empty(), "feature lines hold no rows");
     }
 
     /// Past the node limit only layers get lines, and they still hold their objects.

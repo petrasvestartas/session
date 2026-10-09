@@ -271,6 +271,7 @@ mod tests {
                     cloud_px: 0.0,
                     row: 0,
                     interactions: false,
+                    attributes: false,
                 },
             );
             pipes.push(

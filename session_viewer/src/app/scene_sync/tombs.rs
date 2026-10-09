@@ -74,6 +74,7 @@ impl Scene {
                 born,
                 place,
                 interactions: self.interactions,
+                attributes: self.attributes,
                 points,
             },
         );
@@ -94,6 +95,7 @@ impl Scene {
         let bits = |x: &Xform| x.m.map(f64::to_bits);
         let same = self.tombs.get(&key).is_some_and(|tomb| {
             tomb.interactions == self.interactions
+                && tomb.attributes == self.attributes
                 && tomb
                     .place
                     .as_ref()

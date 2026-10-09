@@ -71,7 +71,8 @@ pub struct WalkCx {
     pub vert_base: u32,   // arena vertices already on the GPU
     pub cloud_px: f32,    // point size override in px, 0 = file's own
     pub row: u32,         // this object's row index
-    pub interactions: bool, // draw element features, its interactions, inside its row
+    pub interactions: bool, // draw the features other elements put on an element, inside its row
+    pub attributes: bool,   // draw an element's own features, an axis or a section
 }
 
 /// What a producer reports for one object row.
@@ -104,10 +105,16 @@ fn walk_attributes(w: &mut Walk, cx: &WalkCx, e: &Element, bounds: &mut AABB) {
     walk_features(w, cx, e.features(), bounds);
 }
 
-/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's; while interactions are on.
+/// Draw visible features, thick, into the row of `cx`: an element's own or an instance's; the interactions while Element Interactions is on, its own while Element Attributes is.
 pub fn walk_features(w: &mut Walk, cx: &WalkCx, features: &[ElementFeature], bounds: &mut AABB) {
     for feature in features {
-        if !feature.visible || !cx.interactions {
+        let on = if crate::app::interactions::is_interaction(feature) {
+            cx.interactions
+        } else {
+            cx.attributes
+        };
+
+        if !feature.visible || !on {
             continue;
         }
 
@@ -296,6 +303,7 @@ mod tests {
             cloud_px: 0.0,
             row: 4,
             interactions,
+            attributes: interactions,
         };
         let row = walk_geometry(
             &mut Walk::of(&mut up),
@@ -327,7 +335,7 @@ mod tests {
         let square = Polyline::new(vec![Point::new(0.0, 0.0, 5.0), Point::new(4.0, 0.0, 5.0), Point::new(4.0, 4.0, 5.0), Point::new(0.0, 4.0, 5.0), Point::new(0.0, 0.0, 5.0)]);
         element.add_feature(ElementFeature::new("contact", 0, vec![square], "side_side"));
         let mut up = Upload::default();
-        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 7, interactions: true };
+        let cx = WalkCx { vert_base: 0, cloud_px: 0.0, row: 7, interactions: true, attributes: false };
         let before = {
             let mut bare = Upload::default();
             let mut plain = element.clone();

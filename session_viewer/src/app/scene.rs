@@ -74,7 +74,7 @@ pub struct Scene {
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
     pub selected: Option<u32>,                           // selected object row
     pub interactions: bool,                              // element interactions (features) drawn
-    pub attributes: bool,                                // rows hung under elements shown
+    pub attributes: bool,                                // an element's attributes shown: its attributes group and its own features
     order: Vec<Rc<str>>,                                 // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
     feet: Vec<Footprint>, // lane rows of each row
@@ -503,6 +503,7 @@ impl Scene {
                 cloud_px: point_px,
                 row,
                 interactions: self.interactions,
+                attributes: self.attributes,
             };
             let start = self.uploaded.plus(Counts::of(&self.tables));
             let r = walk_geometry(&mut Walk::of(&mut self.tables), &cx, geom);
@@ -1402,7 +1403,7 @@ mod editing_tests {
         assert!(!scene.loaded);
     }
 
-    /// Element features draw in the element's row and move with it.
+    /// An element's own features draw in its row while Element Attributes is on and move with it.
     #[test]
     fn attributes_share_the_element_row_and_its_placement() {
         use session_rust::element::ElementFeature;
@@ -1415,12 +1416,12 @@ mod editing_tests {
         let mut source = Session::new("attributes");
         source.add_element(element, None);
         let mut scene = Scene::new();
-        scene.interactions = false;
+        scene.attributes = false;
         scene.add_file(file("beam", Rc::new(source), false));
         let plain = scene.tables.seg.ribbons.len();
         assert_eq!(scene.object_count(), 1);
 
-        scene.interactions = true;
+        scene.attributes = true;
         scene.rewalk_cpu();
         assert_eq!(scene.object_count(), 1);
         let range = scene.ribbon_range(0).unwrap();

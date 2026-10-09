@@ -100,6 +100,7 @@ pub fn document(session: &Session) {
             cloud_px: 0.0,
             row: kind.objects as u32,
             interactions: true,
+            attributes: true,
         };
         let t = Instant::now();
         let row = walk_geometry(&mut Walk::of(&mut up), &cx, geom);

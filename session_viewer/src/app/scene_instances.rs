@@ -194,6 +194,7 @@ impl Scene {
             cloud_px: self.docs.get(doc).map_or(0.0, |file| file.point_px),
             row,
             interactions: self.interactions,
+            attributes: self.attributes,
         };
         let mut walked = match batch {
             Some(index) => {
@@ -337,6 +338,7 @@ impl Scene {
             cloud_px: 0.0,
             row,
             interactions: self.interactions,
+            attributes: self.attributes,
         };
         let walk = walk_geometry(&mut Walk::of(&mut up), &cx, definition);
         (up, walk)
@@ -1056,20 +1058,20 @@ mod tests {
         assert_eq!(scene.placement_of(moved).unwrap().m[13], 5.0);
     }
 
-    /// Switching the interactions walks shared definitions again: the instances lose the axis.
+    /// Switching the attributes walks shared definitions again: the instances lose the axis.
     #[test]
     fn attributes_switch_reaches_every_instance() {
         let (source, _) = placed(2);
         let mut scene = Scene::new();
-        assert!(!scene.interactions);
+        assert!(!scene.attributes);
         scene.add_file(file(source));
         scene.settle();
         let plain = scene.uploaded.ribbons;
-        scene.interactions = true;
+        scene.attributes = true;
         scene.rewalk_cpu();
         let ribbons = scene.uploaded.ribbons;
         assert!(ribbons > plain, "enabled features reach the shared definition");
-        scene.interactions = false;
+        scene.attributes = false;
         scene.rewalk_cpu();
         scene.verify();
         assert!(scene.uploaded.ribbons < ribbons, "no feature ribbons");

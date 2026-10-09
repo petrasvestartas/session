@@ -1061,13 +1061,22 @@ impl State {
         show
     }
 
-    /// Element Attributes On|Off: show the objects hung under each element, its `attributes`; `None` toggles.
+    /// Element Attributes On|Off: show each element's `attributes` group and draw its own features, an axis or a section; `None` toggles.
     pub fn show_attributes(&mut self, value: Option<bool>) -> bool {
         let show = value.unwrap_or(!self.scene.attributes);
         self.scene.attributes = show;
         self.select(None);
         let children = crate::app::layers::attribute_rows(&self.scene);
         self.set_rows_hidden(&children, !show);
+
+        if !self.scene.rewalk_editable(&mut self.gpu) {
+            self.resume_after(hydrate::Resume::Rewalk);
+        }
+
+        self.place_gizmo(None);
+        self.refresh_layers();
+        self.update_label();
+        self.touch();
         show
     }
 }

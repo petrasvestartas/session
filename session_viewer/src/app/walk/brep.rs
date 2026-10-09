@@ -361,6 +361,7 @@ mod tests {
             cloud_px: 0.0,
             row: 5,
             interactions: false,
+            attributes: false,
         };
         let row = {
             let mut ink = Ink {
@@ -535,6 +536,7 @@ mod tests {
             cloud_px: 0.0,
             row: 7,
             interactions: false,
+            attributes: false,
         };
         let row = walk_surface(&mut arena, &mut ink, &b.m_surfaces[0], &cx);
         assert_ne!(row.flags & Instance::FLAG_OPEN, 0);

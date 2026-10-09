@@ -81,6 +81,7 @@ pub(crate) struct Tomb {
     pub born: u64,                   // burial order, oldest released first
     pub place: Option<Xform>,        // its placement in a sheet document, whose pens hang on it
     pub interactions: bool,          // whether element interactions were drawn
+    pub attributes: bool,            // whether the elements' own features were drawn
     pub points: u64,                 // cloud points it keeps on the GPU, 0 for other kinds
 }
 

@@ -19,6 +19,7 @@ pub mod hierarchy; // register:hierarchy
 pub mod input; // register:input
 #[cfg(any(target_arch = "wasm32", test))] // register:inspection
 pub mod inspection; // register:inspection
+pub mod interactions; // register:interactions
 pub mod keys; // register:keys
 pub mod knobs; // register:knobs
 pub mod layers; // register:layers

@@ -697,6 +697,7 @@ mod tests {
                 cloud_px: 0.0,
                 row: 4,
                 interactions: false,
+                attributes: false,
             };
             let mut ink = Ink {
                 seg: &mut self.seg,

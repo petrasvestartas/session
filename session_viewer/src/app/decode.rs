@@ -248,6 +248,7 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
     let (mut tree, mut graph) = (None, None);
     let mut definitions = None; // the Objects message instances place
     let mut folds = Vec::new(); // (instance guid, stored placement), folded into xforms
+    let mut interactions = Vec::new(); // InteractionEntry messages, by edge guid
     let mut at = 0;
 
     while at < r.size {
@@ -261,6 +262,7 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
             5 => graph = Some(f),
             7 => xforms.push(f),
             8 => definitions = Some(f),
+            9 => interactions.push(f),
             _ => {}
         }
 
@@ -367,6 +369,17 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
         s.tree = read_tree(&mut r, f)?;
     }
 
+    // what joins each pair, an unknown type kept by its name, so the layers panel can list it
+    for &f in &interactions {
+        let entry: proto::InteractionEntry = r.message(f)?;
+        let kept = entry
+            .interactions
+            .into_iter()
+            .map(<dyn session_rust::Interaction>::from_proto)
+            .collect();
+        s.interactions.insert(entry.guid, kept);
+    }
+
     s.reindex();
 
     Ok(s)
@@ -468,6 +481,15 @@ fn read_graph(r: &mut Reader, f: Field, vertices: bool) -> Result<session_rust::
             4 => {
                 let edge: proto::Edge = r.message(field)?;
                 graph.add_edge(&edge.v0, &edge.v1, &edge.attribute);
+
+                // the stored guid, which the interactions are keyed by, on both copies of the edge
+                if !edge.guid.is_empty() {
+                    for (a, b) in [(&edge.v0, &edge.v1), (&edge.v1, &edge.v0)] {
+                        if let Some(stored) = graph.edges.get_mut(a).and_then(|e| e.get_mut(b)) {
+                            stored.set_guid(edge.guid.clone());
+                        }
+                    }
+                }
             }
             _ => {}
         }
@@ -806,6 +828,28 @@ mod tests {
         assert_eq!(d.graph.edges.len(), s.graph.edges.len());
         assert!(d.graph.has_node("lonely"));
         assert_eq!(d.world_xforms().len(), s.world_xforms().len());
+    }
+
+    /// The interactions come back on their edges, by the edges' own guids, an unknown type by its name.
+    #[test]
+    fn window_decode_keeps_interactions_on_their_edges() {
+        let mut s = Session::new("joined");
+        let a = s.add_point(p(0.0, 0.0, 0.0), None).borrow().name.clone();
+        let b = s.add_point(p(1.0, 0.0, 0.0), None).borrow().name.clone();
+        s.add_edge(&a, &b, "touches");
+        let edge = s.graph.edges[&a][&b].guid().to_string();
+        let contact = session_rust::InteractionUnknown::new("InteractionContactFace", &[1, 2], "seam_wedge_0");
+        let id = session_rust::Interaction::guid(&contact).to_string();
+        s.interactions.insert(edge.clone(), vec![Box::new(contact)]);
+        let d = decoded(s.pb_dumps(), false).unwrap();
+        assert_eq!(d.graph.edges[&a][&b].guid(), edge);
+        assert_eq!(d.graph.edges[&b][&a].guid(), edge, "both copies of the edge");
+        let kept = &d.interactions[&edge];
+        assert_eq!(kept.len(), 1);
+        assert_eq!(
+            (kept[0].interaction_type_name(), kept[0].name(), kept[0].guid()),
+            ("InteractionContactFace", "seam_wedge_0", id.as_str())
+        );
     }
 
     /// A display document keeps the vertices its edges name, not the others.
