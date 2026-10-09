@@ -48,7 +48,7 @@ function world(s) {
     assert.equal((await state(page)).drawing, null, 'no previous command is a no-op');
     const initial = await state(page);
     assert(Math.abs(initial.opacity - 0.95) < 1e-6, 'faces start at the requested opacity');
-    assert.equal(initial.element_interactions, false, 'element interactions start off');
+    assert.equal(initial.element_interactions, true, 'element interactions start on');
     assert.equal(initial.element_attributes, false, 'element attributes start off');
     for (const letter of ['g', 'o', '5', 'f']) {
       await blur(page);

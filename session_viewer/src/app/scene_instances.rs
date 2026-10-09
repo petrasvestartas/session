@@ -828,7 +828,7 @@ mod tests {
                 let dot = Polyline::new(vec![Point::new(0.5, 0.5, 0.5)]);
                 instance
                     .features
-                    .push(ElementFeature::new("joint", 0, vec![dot], "dot")); // a feature the switch hides; contacts always draw
+                    .push(ElementFeature::new("joint", 0, vec![dot], "dot")); // an interaction, drawn while Element Interactions is on
             }
 
             let parent = (i + 1 == n).then_some(&group);
@@ -1064,6 +1064,7 @@ mod tests {
         let (source, _) = placed(2);
         let mut scene = Scene::new();
         assert!(!scene.attributes);
+        scene.interactions = false; // the instances' joint dot apart, only the axis switches
         scene.add_file(file(source));
         scene.settle();
         let plain = scene.uploaded.ribbons;

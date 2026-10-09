@@ -73,7 +73,7 @@ pub struct Scene {
     pub colors: HashMap<(usize, Rc<str>), [u8; 3]>,      // face colour overrides
     pub edge_colors: HashMap<(usize, Rc<str>), [u8; 3]>, // edge colour overrides
     pub selected: Option<u32>,                           // selected object row
-    pub interactions: bool,                              // element interactions (features) drawn
+    pub interactions: bool,                              // element interactions drawn, on from the start
     pub attributes: bool,                                // an element's attributes shown: its attributes group and its own features
     order: Vec<Rc<str>>,                                 // guid of each row, empty when free
     owners: Vec<usize>,   // document of each row, or TEXT, FREE, SINK
@@ -151,7 +151,7 @@ impl Scene {
             colors: HashMap::new(),
             edge_colors: HashMap::new(),
             selected: None,
-            interactions: false,
+            interactions: true,
             attributes: false,
             order: Vec::new(),
             owners: Vec::new(),
