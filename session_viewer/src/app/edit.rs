@@ -137,7 +137,7 @@ impl Scene {
         self.set_row_xform(row, local, label)
     }
 
-    /// The rows with everything hung under the elements among them: an element goes with its attributes and features.
+    /// The rows with everything hung under the elements among them: an element goes with its attributes and the elements hung under it.
     pub fn with_element_parts(&self, rows: &[u32]) -> Vec<u32> {
         let elements: Vec<u32> = rows
             .iter()
@@ -151,7 +151,7 @@ impl Scene {
         out
     }
 
-    /// Delete one row's object, an element with its attributes and features; the caller syncs the rows.
+    /// Delete one row's object, an element with its attributes and the elements hung under it; the caller syncs the rows.
     pub fn delete_row(&mut self, row: u32) -> bool {
         let parts = self.with_element_parts(&[row]);
 

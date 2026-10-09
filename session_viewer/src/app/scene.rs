@@ -131,11 +131,11 @@ impl Default for Scene {
 }
 
 impl Scene {
-    /// True when the row is neither locked nor an element's attribute or feature.
+    /// True when the row is neither locked nor an element's attribute.
     pub fn selectable(&self, row: u32) -> bool {
         self.identity_of(row)
             .is_some_and(|id| !self.locked.contains(&id))
-            && !crate::app::layers::under_element(self, row)
+            && !crate::app::layers::in_attributes(self, row)
     }
 
     /// Empty: no documents, no rows.

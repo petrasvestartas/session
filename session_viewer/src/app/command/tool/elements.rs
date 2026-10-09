@@ -578,7 +578,7 @@ pub mod tests {
             scene.hidden_rows().contains(&plane),
             "the base plane starts hidden"
         );
-        assert!(crate::app::layers::under_element(&scene, plane) && !scene.selectable(plane));
+        assert!(crate::app::layers::in_attributes(&scene, plane) && !scene.selectable(plane));
         assert!(scene.undo());
         scene.sync();
         assert_eq!(

@@ -6,7 +6,7 @@ pub const SPEC: Spec = Spec {
     arity: Some(0),
     ..Spec::new(
         &["Select All"],
-        "Select All · selects every visible object that is not locked; an element's attributes and features stay out · Ctrl+A",
+        "Select All · selects every visible object that is not locked; an element's attributes stay out · Ctrl+A",
         parse,
     )
 };

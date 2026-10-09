@@ -169,28 +169,31 @@ pub fn of_layer(scene: &Scene, layer: Layer) -> Vec<u32> {
     rows
 }
 
-/// What hangs under an element, its `attributes` and its `features` groups among them: the rows Element Attributes shows and hides.
-pub fn feature_rows(scene: &Scene) -> Vec<u32> {
+/// The objects in an element's `attributes` group, such as its base plane: the rows Element Attributes shows and hides.
+pub fn attribute_rows(scene: &Scene) -> Vec<u32> {
     (0..scene.row_count() as u32)
-        .filter(|&row| under_element(scene, row))
+        .filter(|&row| in_attributes(scene, row))
         .collect()
 }
 
-/// True when the row hangs under an element: an attribute or a feature of it, shown or hidden, never edited.
-pub fn under_element(scene: &Scene, row: u32) -> bool {
+/// True when the row sits in the `attributes` group of an element, shown or hidden, never edited; an element hung under another element is an element of its own.
+pub fn in_attributes(scene: &Scene, row: u32) -> bool {
     let Some((doc, guid)) = scene.identity_of(row) else {
         return false;
     };
+    let mut below = String::new(); // the node the walk came up from
     let mut parent = scene.parent_of(doc, &guid);
 
-    // up the tree until an element or the root
+    // up the tree to the first element; the row is an attribute when it came through that element's `attributes` group
     while let Some(node) = parent {
-        let host = scene.row_of(doc, &node.borrow().name);
+        let name = node.borrow().name.clone();
+        let host = scene.row_of(doc, &name);
 
         if host.is_some_and(|host| matches!(scene.geometry(host), Some(Geometry::Element(_)))) {
-            return true;
+            return below == "attributes";
         }
 
+        below = name;
         parent = node.borrow().parent();
     }
 
@@ -1411,9 +1414,9 @@ mod tests {
         assert!(scene.duplicate_layer(0, "site").is_err());
     }
 
-    /// Whatever hangs under an element, through its `attributes` and `features` groups, is its features; elements under a group are not.
+    /// Only the objects in an element's `attributes` group are its attributes; an element under another element, through a `features` group or directly, is an element of its own.
     #[test]
-    fn elements_under_an_element_are_its_features() {
+    fn only_the_attributes_group_holds_attributes() {
         use session_rust::{Element, Mesh, Plane};
         let element = |name: &str| {
             let mut element = Element::new(name);
@@ -1425,6 +1428,8 @@ mod tests {
         let column = session.add_element(element("column"), Some(&walls));
         let features = session.add_group_with("features", Some(&column));
         session.add_element(element("cutter"), Some(&features));
+        let connector = session.add_element(element("connector"), Some(&walls));
+        session.add_element(element("dowel"), Some(&connector));
         let attributes = session.add_group_with("attributes", Some(&column));
         let mut base = Plane::default();
         base.name = "base_plane".into();
@@ -1438,15 +1443,15 @@ mod tests {
             point_px: 0.0,
             display_only: false,
         });
-        let names: Vec<&str> = feature_rows(&scene)
+        let names: Vec<&str> = attribute_rows(&scene)
             .into_iter()
             .map(|row| scene.object_name(row))
             .collect();
-        assert_eq!(names, vec!["base_plane", "cutter"]);
-        let rows = feature_rows(&scene);
+        assert_eq!(names, vec!["base_plane"]);
+        let rows = attribute_rows(&scene);
         assert!(
             rows.iter().all(|&row| !scene.selectable(row)),
-            "attributes and features are never edited"
+            "attributes are never edited"
         );
         assert!(
             (0..scene.row_count() as u32)

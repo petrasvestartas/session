@@ -1066,7 +1066,7 @@ impl State {
         let show = value.unwrap_or(!self.scene.attributes);
         self.scene.attributes = show;
         self.select(None);
-        let children = crate::app::layers::feature_rows(&self.scene);
+        let children = crate::app::layers::attribute_rows(&self.scene);
         self.set_rows_hidden(&children, !show);
         show
     }
