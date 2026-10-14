@@ -217,7 +217,7 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                 .transformed(delta);
             let mut next = (**source).clone();
 
-            if !next.set_cv_point(point, &p) {
+            if !set_curve_control(&mut next, point, &p) {
                 return Err("Cannot set curve control".into());
             }
 
@@ -268,7 +268,9 @@ pub fn transform(geometry: &Geometry, target: Target, delta: &Xform) -> Result<G
                     if let Some(p) = curve.get_cv(i)
                         && matches(&p)
                     {
-                        curve.set_cv_point(i, &p.transformed(delta));
+                        if !set_curve_control(curve, i, &p.transformed(delta)) {
+                            return Err("Cannot set curve control".into());
+                        }
                         changed_curves.insert(curve_index);
                     }
                 }
@@ -380,6 +382,16 @@ fn validate_boundaries(
     Ok(())
 }
 
+fn set_curve_control(curve: &mut session_rust::NurbsCurve, index: usize, point: &Point) -> bool {
+    if !curve.m_is_rat {
+        return curve.set_cv_point(index, point);
+    }
+    let Some((_, _, _, weight)) = curve.get_cv_4d(index) else {
+        return false;
+    };
+    curve.set_cv_4d(index, point[0] * weight, point[1] * weight, point[2] * weight, weight)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -404,6 +416,28 @@ mod tests {
     }
 
     /// Moving a face moves its vertices only.
+    #[test]
+    fn rational_curve_control_moves_without_changing_weights_or_other_controls() {
+        let mut curve = session_rust::NurbsCurve::create(true, 2, &[
+            Point::new(-1.0, 0.0, 0.0), Point::new(0.0, 1.0, 0.0), Point::new(1.0, 0.0, 0.0),
+        ]);
+        assert!(curve.set_cv_4d(1, 0.0, 2.0, 0.0, 2.0));
+        let _ = curve.guid();
+        let geometry = Geometry::NurbsCurve(Rc::new(curve));
+        let delta = Xform::translation(0.123456789012345, 0.25, -0.5);
+        let moved = transform(&geometry, Target::Control(ControlId::Curve { curve: 0, point: 1 }), &delta).unwrap();
+        let (Geometry::NurbsCurve(original), Geometry::NurbsCurve(edited)) = (&geometry, moved) else { panic!("Curve"); };
+        assert_eq!(edited.guid(), original.guid());
+        assert_eq!(edited.m_nurbsknot, original.m_nurbsknot);
+        for index in 0..original.cv_count() {
+            assert_eq!(edited.get_cv_4d(index).unwrap().3, original.get_cv_4d(index).unwrap().3);
+            let before = original.get_cv(index).unwrap();
+            let expected = if index == 1 { before.transformed(&delta) } else { before };
+            let actual = edited.get_cv(index).unwrap();
+            for axis in 0..3 { assert!((actual[axis] - expected[axis]).abs() < 1e-14); }
+        }
+    }
+
     #[test]
     fn mesh_face_moves_shared_source_vertices_not_unrelated_vertices() {
         let source = mesh();
