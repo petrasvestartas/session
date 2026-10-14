@@ -29,6 +29,7 @@ pub struct Node {
     pub rows: Range<usize>, // its object rows, as a slice of `Hierarchy::rows`
     pub doc: usize,         // its document
     pub name: String,       // its tree node name, empty when outside the tree
+    pub path: String,       // its name after its parents', which tells apart groups of one name
     pub layer: bool,        // a group or document, not an object
     pub pick: Option<Pick>, // the element features the line stands for, when it lists features
 }
@@ -53,7 +54,7 @@ pub struct Hierarchy {
     pub active: Vec<usize>,         // clicked layer nodes
     revision: Option<u64>,          // scene revision this was built from
     away: HashSet<(usize, String)>, // open nodes an undo took away, open again when they return
-    pub off: HashMap<(usize, String), HashSet<Identity>>, // layer lamps switched off, each with the objects it hid
+    pub off: HashMap<(usize, String), HashSet<Identity>>, // lamps switched off by (document, path), each with the objects it hid
 }
 
 impl Hierarchy {
@@ -132,8 +133,8 @@ impl Hierarchy {
     fn prune_lamps(&mut self, scene: &Scene) {
         let mut off = std::mem::take(&mut self.off);
 
-        off.retain(|(doc, name), hid| {
-            let Some(index) = self.index_of(*doc, name) else {
+        off.retain(|(doc, path), hid| {
+            let Some(index) = self.lamp_of(*doc, path) else {
                 return false;
             };
             hid.retain(|id| scene.hidden.contains(id));
@@ -143,15 +144,28 @@ impl Hierarchy {
         self.off = off;
     }
 
-    /// The (document, name) a layer lamp is kept by.
-    pub fn lamp_key(&self, index: usize) -> (usize, String) {
+    /// Whether node `index` has a lamp of its own: a layer, or an object or group holding more than one object.
+    pub fn is_lamp(&self, index: usize) -> bool {
         let node = &self.nodes[index];
-        (node.doc, node.name.clone())
+        node.pick.is_none() && (node.layer || node.rows.len() > 1)
     }
 
-    /// Whether the lamp of layer `index` is switched off.
+    /// The (document, path) a lamp is kept by.
+    pub fn lamp_key(&self, index: usize) -> (usize, String) {
+        let node = &self.nodes[index];
+        (node.doc, node.path.clone())
+    }
+
+    /// The node of the lamp kept by (document, path).
+    fn lamp_of(&self, doc: usize, path: &str) -> Option<usize> {
+        (0..self.nodes.len()).find(|&index| {
+            self.nodes[index].doc == doc && self.nodes[index].path == path && self.is_lamp(index)
+        })
+    }
+
+    /// Whether the lamp of node `index` is switched off.
     pub fn lamp_is_off(&self, index: usize) -> bool {
-        self.nodes[index].layer && self.off.contains_key(&self.lamp_key(index))
+        self.is_lamp(index) && self.off.contains_key(&self.lamp_key(index))
     }
 
     /// Every object a switched-off lamp hid.
@@ -166,7 +180,7 @@ impl Hierarchy {
             .is_some_and(|id| scene.hidden.contains(&id) && !held.contains(&id))
     }
 
-    /// Switch the lamp of layer `index` off: it keeps the objects it hides, those still drawn, and returns their rows.
+    /// Switch the lamp of node `index` off: it keeps the objects it hides, those still drawn, and returns their rows.
     pub fn lamp_off(&mut self, scene: &Scene, index: usize) -> Vec<u32> {
         let mut rows = Vec::new();
         let mut hid = HashSet::new();
@@ -184,7 +198,7 @@ impl Hierarchy {
         rows
     }
 
-    /// Switch the lamp of layer `index` on: the rows of the objects it hid, those no other lamp still covers.
+    /// Switch the lamp of node `index` on: the rows of the objects it hid, those no other lamp still covers.
     pub fn lamp_on(&mut self, scene: &Scene, index: usize) -> Vec<u32> {
         let Some(hid) = self.off.remove(&self.lamp_key(index)) else {
             return Vec::new();
@@ -234,8 +248,8 @@ impl Hierarchy {
     fn covering(&self) -> HashMap<u32, usize> {
         let mut covering: HashMap<u32, usize> = HashMap::new();
 
-        for (doc, name) in self.off.keys() {
-            let Some(index) = self.index_of(*doc, name) else {
+        for (doc, path) in self.off.keys() {
+            let Some(index) = self.lamp_of(*doc, path) else {
                 continue;
             };
 
@@ -325,16 +339,16 @@ impl Hierarchy {
             .map(|root| root.borrow().name.clone())
             .unwrap_or_default();
 
-        if !self.push(&file.name, 0, doc, name, root.is_some()) {
+        if !self.push(&file.name, 0, doc, name.clone(), root.is_some()) {
             return false;
         }
 
         let mut seen = HashSet::new(); // nodes visited
         let mut seen_rows = HashSet::new(); // rows placed
-        let mut stack = Vec::new(); // (node, depth, index to close, inside an object, the element row it hangs under)
+        let mut stack = Vec::new(); // (node, depth, index to close, inside an object, the element row it hangs under, its parent's path)
 
         for child in root.iter().flat_map(|root| root.borrow().children()).rev() {
-            stack.push((child, 1, None, false, None));
+            stack.push((child, 1, None, false, None, name.clone()));
         }
 
         // without object lines one layer may hold every row
@@ -342,7 +356,7 @@ impl Hierarchy {
 
         // depth first; a node is pushed again to close it after its children
         for _ in 0..most * 2 {
-            let Some((node, depth, exit, inside, host)) = stack.pop() else {
+            let Some((node, depth, exit, inside, host, parent)) = stack.pop() else {
                 break;
             };
 
@@ -367,6 +381,7 @@ impl Hierarchy {
                 || file.session.lookup.contains_key(&borrowed.name)
                 || file.session.component_lookup.contains_key(&borrowed.name);
             let layer = !object && !inside;
+            let path = format!("{parent}/{}", borrowed.name);
 
             // an object without a line of its own still counts under its layer
             if objects || layer {
@@ -376,7 +391,8 @@ impl Hierarchy {
                     return false;
                 }
 
-                stack.push((Rc::clone(&node), depth, Some(index), inside, host));
+                self.nodes[index].path = path.clone();
+                stack.push((Rc::clone(&node), depth, Some(index), inside, host, parent));
             }
 
             if let Some(row) = row
@@ -395,7 +411,7 @@ impl Hierarchy {
             let element = row.filter(|&r| matches!(scene.geometry(r), Some(Geometry::Element(_))));
 
             for child in children.into_iter().rev() {
-                stack.push((child, depth + 1, None, inside || object, element));
+                stack.push((child, depth + 1, None, inside || object, element, path.clone()));
             }
         }
 
@@ -502,6 +518,7 @@ impl Hierarchy {
             end: 0,
             rows: start..start,
             doc,
+            path: name.clone(),
             name,
             layer,
             pick: None,
@@ -758,6 +775,64 @@ mod tests {
         scene.hidden.clear();
         index.rebuild(&scene);
         assert!(index.off.is_empty());
+    }
+
+    /// An element holding elements has a lamp like a layer's, and lamps of groups with one name stay apart.
+    #[test]
+    fn an_element_lamp_keeps_its_parts() {
+        use session_rust::{Element, Mesh};
+        let element = |name: &str, visible: bool| {
+            let mut element = Element::new(name);
+            element.set_geometry(Mesh::create_box(1.0, 1.0, 1.0));
+            element.is_visible = visible;
+            element
+        };
+        let mut session = Session::new("site");
+        let walls = session.add_group("walls");
+        let connector = session.add_element(element("connector", true), Some(&walls));
+        session.add_element(element("dowel", false), Some(&connector));
+        session.add_element(element("screw", true), Some(&connector));
+        let left = session.add_group_with("left", Some(&walls));
+        let right = session.add_group_with("right", Some(&walls));
+        let left = session.add_group_with("joints", Some(&left));
+        let right = session.add_group_with("joints", Some(&right));
+        session.add_point(Point::new(0.0, 0.0, 0.0), Some(&left));
+        session.add_point(Point::new(1.0, 0.0, 0.0), Some(&left));
+        session.add_point(Point::new(2.0, 0.0, 0.0), Some(&right));
+        let mut scene = Scene::new();
+        scene.add_file(FileDoc {
+            name: "site".into(),
+            session: Rc::new(session),
+            place: Xform::identity(),
+            point_px: 0.0,
+            display_only: false,
+        });
+        let mut index = Hierarchy::default();
+        index.rebuild(&scene);
+        let state = |scene: &Scene| (0..scene.row_count() as u32).map(|row| hidden(scene, row)).collect::<Vec<_>>();
+        let loaded = state(&scene);
+        let connector = index.nodes.iter().position(|node| node.label == "connector").unwrap();
+        let dowel = index.nodes.iter().position(|node| node.label == "dowel").unwrap();
+        let dowel = index.targets(dowel)[0];
+
+        // the connector off and on: the dowel written hidden stays hidden
+        assert!(index.is_lamp(connector));
+        let hide = index.lamp_off(&scene, connector);
+        assert!(hide.len() == 2 && !hide.contains(&dowel));
+        apply(&mut scene, &hide, true);
+        index.rebuild(&scene);
+        assert!(index.lamp_is_off(connector));
+        let show = index.lamp_on(&scene, connector);
+        apply(&mut scene, &show, false);
+        assert_eq!(state(&scene), loaded);
+
+        // one of two `joints` groups off: the other keeps its lamp on
+        let joints: Vec<usize> = (0..index.nodes.len()).filter(|&i| index.nodes[i].name == "joints").collect();
+        let hide = index.lamp_off(&scene, joints[0]);
+        apply(&mut scene, &hide, true);
+        index.rebuild(&scene);
+        assert!(index.lamp_is_off(joints[0]) && !index.lamp_is_off(joints[1]));
+        assert!(index.targets(joints[1]).iter().all(|row| !hidden(&scene, *row)));
     }
 
     /// A full row table refuses the graph.

@@ -425,11 +425,11 @@ impl State {
         (pick.features.len(), hidden)
     }
 
-    /// A lamp in the layers panel: a layer's switches it alone, so every lamp below keeps its own state.
+    /// A lamp in the layers panel: a layer's, or an object's holding others, switches it alone, so every lamp and object below keeps its own state.
     fn toggle_lamp(&mut self, index: usize) {
         let rows = self.features.hierarchy.targets(index);
 
-        // a layer switched off: show what it hid
+        // a lamp switched off: show what it hid
         if self.features.hierarchy.lamp_is_off(index) {
             let show = self.features.hierarchy.lamp_on(&self.scene, index);
             self.set_rows_hidden(&show, false);
@@ -443,8 +443,8 @@ impl State {
             return;
         }
 
-        // a layer: switch it off, keeping what it hides
-        if self.features.hierarchy.nodes[index].layer {
+        // a layer or an object holding others: switch it off, keeping what it hides
+        if self.features.hierarchy.is_lamp(index) {
             let hide = self.features.hierarchy.lamp_off(&self.scene, index);
             self.set_rows_hidden(&hide, true);
             return;
