@@ -1,0 +1,468 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 4,
+  "title": "Browser lifetime and recovery",
+  "first": "33-owner",
+  "end_before": "35-stroke",
+  "lessons": [
+    {
+      "id": "33-owner",
+      "title": "Browser callbacks with a real lifetime",
+      "page": "journey/consolidation/33-owner.md",
+      "steps": [
+        "33-owner",
+        "33a-runtime",
+        "33b-cache"
+      ],
+      "checkpoint": "33b-cache"
+    },
+    {
+      "id": "34-fault",
+      "title": "First failure and independent diagnostic reports",
+      "page": "journey/consolidation/34-fault.md",
+      "steps": [
+        "34-fault",
+        "34a-stop",
+        "34b-report",
+        "34ba-events",
+        "34c-browser",
+        "34d-download"
+      ],
+      "checkpoint": "34d-download"
+    },
+    {
+      "id": "34e-schema",
+      "title": "Admit useful evidence and bound stored runs",
+      "page": "journey/consolidation/34e-schema.md",
+      "steps": [
+        "34e-schema",
+        "34ea-decode",
+        "34eb-recency",
+        "34ec-proof",
+        "34f-storage",
+        "34fa-retain",
+        "34fb-store",
+        "34fc-retention"
+      ],
+      "checkpoint": "34fc-retention"
+    },
+    {
+      "id": "34g-heartbeat",
+      "title": "Heartbeat suspension and revocable startup",
+      "page": "journey/consolidation/34g-heartbeat.md",
+      "steps": [
+        "34g-heartbeat",
+        "34ga-timer",
+        "34gb-close",
+        "34gba-lifecycle",
+        "34gbb-suspension",
+        "34gbba-browser",
+        "34gbc-authority",
+        "34gbca-startup"
+      ],
+      "checkpoint": "34gbca-startup"
+    },
+    {
+      "id": "34gc-messages",
+      "title": "Measured phases and conservative GPU recovery",
+      "page": "journey/consolidation/34gc-messages.md",
+      "steps": [
+        "34gc-messages",
+        "34gca-errors",
+        "34gd-adapter",
+        "34gda-browser",
+        "34gdb-phases",
+        "34gdc-startup",
+        "34gdd-read",
+        "34gde-measure",
+        "34gdea-import",
+        "34gdf-upload",
+        "34gdg-network",
+        "34gdga-revision",
+        "34ge-owner",
+        "34gea-policy",
+        "34geb-reload"
+      ],
+      "checkpoint": "34geb-reload"
+    }
+  ],
+  "old_step_to_lesson": {
+    "33-owner": {
+      "lesson": "33-owner",
+      "anchor": "checkpoint-33-owner"
+    },
+    "33a-runtime": {
+      "lesson": "33-owner",
+      "anchor": "checkpoint-33a-runtime"
+    },
+    "33b-cache": {
+      "lesson": "33-owner",
+      "anchor": "checkpoint-33b-cache"
+    },
+    "34-fault": {
+      "lesson": "34-fault",
+      "anchor": "checkpoint-34-fault"
+    },
+    "34a-stop": {
+      "lesson": "34-fault",
+      "anchor": "checkpoint-34a-stop"
+    },
+    "34b-report": {
+      "lesson": "34-fault",
+      "anchor": "checkpoint-34b-report"
+    },
+    "34ba-events": {
+      "lesson": "34-fault",
+      "anchor": "checkpoint-34ba-events"
+    },
+    "34c-browser": {
+      "lesson": "34-fault",
+      "anchor": "checkpoint-34c-browser"
+    },
+    "34d-download": {
+      "lesson": "34-fault",
+      "anchor": "checkpoint-34d-download"
+    },
+    "34e-schema": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34e-schema"
+    },
+    "34ea-decode": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34ea-decode"
+    },
+    "34eb-recency": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34eb-recency"
+    },
+    "34ec-proof": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34ec-proof"
+    },
+    "34f-storage": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34f-storage"
+    },
+    "34fa-retain": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34fa-retain"
+    },
+    "34fb-store": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34fb-store"
+    },
+    "34fc-retention": {
+      "lesson": "34e-schema",
+      "anchor": "checkpoint-34fc-retention"
+    },
+    "34g-heartbeat": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34g-heartbeat"
+    },
+    "34ga-timer": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34ga-timer"
+    },
+    "34gb-close": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34gb-close"
+    },
+    "34gba-lifecycle": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34gba-lifecycle"
+    },
+    "34gbb-suspension": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34gbb-suspension"
+    },
+    "34gbba-browser": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34gbba-browser"
+    },
+    "34gbc-authority": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34gbc-authority"
+    },
+    "34gbca-startup": {
+      "lesson": "34g-heartbeat",
+      "anchor": "checkpoint-34gbca-startup"
+    },
+    "34gc-messages": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gc-messages"
+    },
+    "34gca-errors": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gca-errors"
+    },
+    "34gd-adapter": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gd-adapter"
+    },
+    "34gda-browser": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gda-browser"
+    },
+    "34gdb-phases": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdb-phases"
+    },
+    "34gdc-startup": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdc-startup"
+    },
+    "34gdd-read": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdd-read"
+    },
+    "34gde-measure": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gde-measure"
+    },
+    "34gdea-import": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdea-import"
+    },
+    "34gdf-upload": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdf-upload"
+    },
+    "34gdg-network": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdg-network"
+    },
+    "34gdga-revision": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gdga-revision"
+    },
+    "34ge-owner": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34ge-owner"
+    },
+    "34gea-policy": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34gea-policy"
+    },
+    "34geb-reload": {
+      "lesson": "34gc-messages",
+      "anchor": "checkpoint-34geb-reload"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity."
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "33-owner",
+      "path": "screenshots/journey/33-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "33a-runtime",
+      "path": "screenshots/journey/33a-runtime.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "33b-cache",
+      "path": "screenshots/journey/33b-cache.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34-fault",
+      "path": "screenshots/journey/34-fault.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34a-stop",
+      "path": "screenshots/journey/34a-stop.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34b-report",
+      "path": "screenshots/journey/34b-report.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34ba-events",
+      "path": "screenshots/journey/34ba-events.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34c-browser",
+      "path": "screenshots/journey/34c-browser.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34d-download",
+      "path": "screenshots/journey/34d-download.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34e-schema",
+      "path": "screenshots/journey/34e-schema.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34ea-decode",
+      "path": "screenshots/journey/34ea-decode.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34eb-recency",
+      "path": "screenshots/journey/34eb-recency.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34ec-proof",
+      "path": "screenshots/journey/34ec-proof.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34f-storage",
+      "path": "screenshots/journey/34f-storage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34fa-retain",
+      "path": "screenshots/journey/34fa-retain.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34fb-store",
+      "path": "screenshots/journey/34fb-store.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34fc-retention",
+      "path": "screenshots/journey/34fc-retention.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34g-heartbeat",
+      "path": "screenshots/journey/34g-heartbeat.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34ga-timer",
+      "path": "screenshots/journey/34ga-timer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gb-close",
+      "path": "screenshots/journey/34gb-close.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gba-lifecycle",
+      "path": "screenshots/journey/34gba-lifecycle.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gbb-suspension",
+      "path": "screenshots/journey/34gbb-suspension.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gbba-browser",
+      "path": "screenshots/journey/34gbba-browser.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gbc-authority",
+      "path": "screenshots/journey/34gbc-authority.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gbca-startup",
+      "path": "screenshots/journey/34gbca-startup.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gc-messages",
+      "path": "screenshots/journey/34gc-messages.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gca-errors",
+      "path": "screenshots/journey/34gca-errors.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gd-adapter",
+      "path": "screenshots/journey/34gd-adapter.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gda-browser",
+      "path": "screenshots/journey/34gda-browser.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdb-phases",
+      "path": "screenshots/journey/34gdb-phases.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdc-startup",
+      "path": "screenshots/journey/34gdc-startup.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdd-read",
+      "path": "screenshots/journey/34gdd-read.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gde-measure",
+      "path": "screenshots/journey/34gde-measure.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdea-import",
+      "path": "screenshots/journey/34gdea-import.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdf-upload",
+      "path": "screenshots/journey/34gdf-upload.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdg-network",
+      "path": "screenshots/journey/34gdg-network.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gdga-revision",
+      "path": "screenshots/journey/34gdga-revision.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34ge-owner",
+      "path": "screenshots/journey/34ge-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34gea-policy",
+      "path": "screenshots/journey/34gea-policy.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "34geb-reload",
+      "path": "screenshots/journey/34geb-reload.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

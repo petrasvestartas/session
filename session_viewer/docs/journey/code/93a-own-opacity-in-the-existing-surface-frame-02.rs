@@ -1,0 +1,5 @@
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState{format,blend:Some(wgpu::BlendState::ALPHA_BLENDING),write_mask:wgpu::ColorWrites::ALL})],
+            }),
+            primitive: Default::default(),

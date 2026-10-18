@@ -1,0 +1,1 @@
+Self{count,record_count,geometry,color,counts,frame}

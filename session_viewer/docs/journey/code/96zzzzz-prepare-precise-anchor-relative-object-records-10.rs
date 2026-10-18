@@ -1,0 +1,1 @@
+self.cap_token,self.primitive_base,self.geometry.index_start,self.anchor);

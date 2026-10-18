@@ -1,0 +1,1 @@
+image("multisampled scene colour", base, format)

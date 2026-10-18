@@ -1,0 +1,1 @@
+Self{record_count,record_nearest,record_geometry,count,nearest,ids,records,owners,frame}

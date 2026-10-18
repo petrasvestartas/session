@@ -1,0 +1,1 @@
+colour(input.colour,input.radius,pixel-input.finite_axis_value.xy).a

@@ -1,0 +1,35 @@
+# Maintained viewer comparison and acceptance
+
+Subject 97 connects the maintained viewer from this checkout as the browser destination. Earlier checkpoints keep the teaching implementation so its individual owners remain readable. The final browser executes the current viewer’s camera, reverse-depth rendering, source walking, input, command actions, panels and phone bridge directly.
+
+Use the [current source inventory](inventory.md), [observed command grammar](current-command-grammar.md) and [rendering differences](rendering-differences.md) to follow a feature from the lesson into its maintained owner. The inventory records local source bytes and local commits. The separate [upstream check](latest-commit-audit.md) confirms the latest remote viewer commit and the complete viewer-linked Wood Rust subtree.
+
+The [complete local audit](local-checks.md) previously passed all 980 checkpoint records, including every optimized browser bundle and required native test/frame check. The final maintained-runtime browser contract now passes at DPR 1/2; the other 987 browser checkpoints and Lenovo performance acceptance remain pending; the earlier recorded build evidence must be refreshed after the October 9 source/checker updates.
+
+The course now has 990 checkpoints. The new [imported-feature bridge](96i-separate-own-and-hosted-element-features.md) reaches source-preserving native and Chrome acceptance at [96q](96q-prove-imported-feature-ownership-and-roundtrips.md); [96r](96r-preserve-exact-command-completions.md) corrects exact and word-boundary command completion. Three browser records are fresh: 96q, 96r and 97.
+
+The [October 9 update](current-viewer.md) targets the latest fetched viewer, including Element Attributes/Interactions and independent layer lamps. This is a maintained-runtime comparison. It does not complete the remaining handwritten implementation bridges.
+
+## Run the maintained comparison
+
+Apply the final checkpoint and run its displayed native checks and optimized Trunk build. Serve it on localhost, then open `/?inspect=1&nogrid=1`. Its packaged `view_local.yaml` loads the original four-solid comparison fixture and generates one nameplate, so inspection and Select All report five objects. The browser shell supplies the canvas, phone command input, status, diagnostics and fonts expected by the maintained runtime. The maintained dependency owns automatic WebAssembly startup; do not invoke the exported `start()` wrapper a second time.
+
+Type `Layers Off`, `View Isometric`, `Opacity 1`, `Arctic On`, `View Outline On` and `Fit`. Orbit with a right drag, pan with the maintained camera gesture and zoom around the cursor. With canvas focus, H hides selection, S shows everything and F fits. Ctrl/Cmd+Z undoes; Ctrl+Y or Ctrl/Cmd+Shift+Z redoes. Command text owns its editing keys. Select geometry, use `Length BoundingBox` for world X/Y/Z lengths, `BoundingBox` for a reversible original wire box, and Delete for the existing deletion transaction.
+
+Run the supplied `reference` example to render the same original protobuf through the maintained native pipeline. Its adapter and camera diagnostics belong to that run. Earlier course illustrations remain native teaching frames; they are not browser screenshots or claims of pixel equivalence.
+
+## Complete acceptance
+
+The [final browser contract](checks/browser/final.cjs) uses the maintained inspection attributes. Run it on the served final endpoint with a real browser. It checks original scene loading, command text ownership, canvas shortcuts, Element deletion, bounding-box history, the expanded panel width at a 1440-pixel-or-wider viewport, Delete/Undo/Redo, rotation, zoom, independent Element visibility and actual loader release. Close is checked for its expected rejection outside drawing and must leave the document intact; the positive drawing case also passes: two points are rejected without mutation, three points close into a 300/400/500 mm triangle, Length reports 1,200 mm, and Undo/Redo restores the same original. It creates a typed Line, converts it with `Element Beam 100 200`, and checks the restored Element identity and its measured world extents. A stationary middle press transfers keyboard focus without clearing selection; Escape is a cancellation or selection action. Ctrl/Cmd+A in an empty command field belongs to document selection, so the helper uses it only to replace existing text. The capture runner restores the original comparison and checks actual colored geometry and black boundaries at both pixel densities. These contracts passed in visible Chrome 153.0.8010.36 at DPR 1 and 2; see [local evidence](local-checks.md). Screenshot command URLs encode spaces as `%20`, matching the maintained query reader.
+
+For a focused manual exercise, type `Line 0,0,0 1000,0,0`, then `Element Beam 100 200`. The selected beam should report `X 1000 · Y 100 · Z 200` with `Length BoundingBox`. Type `BoundingBox` to create its original wire box, then Undo. Select the beam again with `Select By Name beam`, click it in the drawing and press Delete. Undo must restore it. `Element Block` instead needs bottom and top closed polylines; its bare command does not generate a sample block.
+
+Capture and inspect representative flat and curved boundaries, shallow-angle ink, orthographic hidden lines, section caps, translucent faces, text, sheets, instances and Element contacts. Check both pixel densities, resizing, panel-aware Fit and picking. Contacts must remain barely depth-biased with black boundaries; curved and flat face outlines must share their CSS width. Test phone gestures and command input separately. Record actual images and errors instead of inferring acceptance from source hashes.
+
+Use the full timber floor and the actual output of `wood/examples/templates_vault_4_dome.cpp` with the [large-scene measurement recipe](large-scenes.md). Compare matching source bytes, hardware, adapter, browser, viewport, camera and quality settings. Software Vulkan readback timings describe that native workload; they do not establish Lenovo Chrome or Firefox rotation/zoom performance.
+
+Retire superseded reference pages only after the replacement lessons, build checks, browser behavior and visual cases pass. The final browser contract passes; broader browser/visual acceptance, the handwritten implementation bridges and Lenovo hardware measurements remain pending. Keep the old reference available until those gates are satisfied.
+
+## Review the course
+
+Give the reviewer the canonical course ledger, generated lessons, [typing audit](typing-load.md), current source/command inventories, final handoff and actual check results. Ask for shorter explanations and focused exercises while preserving source ownership, runnable endpoints and honest evidence. Follow the [AI pointer guide](command-line.md#point-an-ai-assistant-at-the-exact-lesson) when assigning individual edits. A later editing session starts from the reviewer’s written findings; separate sessions do not coordinate automatically.

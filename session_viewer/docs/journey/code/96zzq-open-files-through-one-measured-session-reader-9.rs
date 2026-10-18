@@ -1,0 +1,2 @@
+pub fn import(scene:&mut Scene,bytes:&[u8],name:&str,place:&Xform,point_px:f32)->Result<u32,String>{import_at(scene,bytes,name,place,point_px,None)}
+pub fn import_at(scene:&mut Scene,bytes:&[u8],name:&str,place:&Xform,point_px:f32,location:Option<Rc<crate::reload_url::ReloadUrl>>)->Result<u32,String>{

@@ -1,0 +1,1 @@
+for row in &mut self.rows{row.group=None;}if let Some(lookup)=&mut self.lookup{lookup.invalidate();}}

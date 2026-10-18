@@ -1,0 +1,1 @@
+lane.enable_finite(device,format,false)

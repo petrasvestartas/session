@@ -1,4 +1,6 @@
-# 34gca · Observe uncaught browser failures
+# 4.2.24 · Observe uncaught browser failures
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 18–35 minutes.** [Estimate](typing-load.md).
 
@@ -26,16 +28,27 @@ Enable the two browser event interfaces without changing dependency versions.
 <summary>Locate the existing block</summary>
 
 ```toml
-"PageTransitionEvent",
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Storage", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "Navigator", "Storage", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gca-errors-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -50,49 +63,182 @@ mod browser_startup;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(target_arch = "wasm32")]
+mod browser_errors;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gca-errors-03.rs"
 ```
 
+</details>
+
 ### 4. `src/report_lifecycle.rs`
 
-Record failures through the existing first-failure path; keep event defaults and heartbeat scheduling unchanged.
+Record failures through the existing first-failure path; keep event defaults and heartbeat scheduling unchanged. Own both Window failure bindings beside the five existing metadata bindings, including partial-registration cleanup.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 <details>
-<summary>Locate the existing block</summary>
+<summary>Locate this block</summary>
 
 ```rust
-            _ => return,
+    let mut listeners = Listeners::new(callback);
+    listeners.listen(window.as_ref(), "pagehide")?; listeners.listen(window.as_ref(), "pageshow")?;
+    for name in ["visibilitychange", "freeze", "resume"] { listeners.listen(document.as_ref(), name)?; }
+    ACTIVE.with(|slot| slot.replace(Some((token, listeners, Suspension::new(hidden))))); Ok(())
+}
 ```
 
 </details>
 
-Replace that block with:
+Replace it with:
 
 ```rust
+    let mut listeners = Listeners::new(callback);
+    listeners.listen(window.as_ref(), "pagehide")?; listeners.listen(window.as_ref(), "pageshow")?;
+    for name in ["visibilitychange", "freeze", "resume"] { listeners.listen(document.as_ref(), name)?; }
+    for name in ["error", "unhandledrejection"] { listeners.listen(window.as_ref(), name)?; }
+    ACTIVE.with(|slot| slot.replace(Some((token, listeners, Suspension::new(hidden))))); Ok(())
+}
+```
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+                change(Reason::Hidden, observed.hidden());
+                let _ = report::observe("lifecycle", &event.type_());
+            }
+            _ => return,
+        }
+        if let Err(error) = report::start_periodic() {
+```
+
+</details>
+
+Replace it with:
+
+```rust
+                change(Reason::Hidden, observed.hidden());
+                let _ = report::observe("lifecycle", &event.type_());
+            }
+            "error" | "unhandledrejection" => {
+                if let Some(message) = crate::browser_errors::message(&event) { report::fatal(&message); }
+                return;
+            }
+            _ => return,
+        }
+        if let Err(error) = report::start_periodic() {
+```
+
+<details>
+<summary>Complete updated block reference</summary>
+
+```rust
+use std::{cell::RefCell, rc::Rc};
+use wasm_bindgen::{closure::Closure, JsCast, JsValue};
+use crate::{browser_report as report, listeners::Listeners, suspension::{Reason, Suspension}};
+
+thread_local! { static ACTIVE: RefCell<Option<(Rc<()>, Listeners, Suspension)>> = const { RefCell::new(None) }; }
+
+fn current(token: &Rc<()>) -> bool {
+    ACTIVE.with(|slot| slot.borrow().as_ref().is_some_and(|(id, _, _)| Rc::ptr_eq(id, token)))
+}
+
+pub fn permits() -> bool {
+    ACTIVE.with(|slot| slot.borrow().as_ref().is_some_and(|(_, _, state)| state.permits()))
+}
+
+fn change(reason: Reason, paused: bool) {
+    ACTIVE.with(|slot| { if let Some((_, _, state)) = slot.borrow_mut().as_mut() { state.change(reason, paused); } });
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = stop_report_lifecycle)]
+
+pub fn stop() -> bool {
+    let owner = ACTIVE.with(|slot| slot.borrow_mut().take());
+    let active = owner.is_some(); report::stop_periodic(); drop(owner); active
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen(js_name = install_report_lifecycle)]
+pub fn install() -> Result<(), JsValue> {
+    stop(); let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let hidden = document.hidden(); let observed = document.clone();
+    let token = Rc::new(()); let guarded = Rc::clone(&token);
+    let callback = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+        if !current(&guarded) { return; }
+        match event.type_().as_str() {
+            "pagehide" => {
+                let cached = event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted());
+                let _ = report::observe("lifecycle", if cached { "pagehide cached" } else { "pagehide final" });
+                change(Reason::Cached, true);
+                report::stop_periodic();
+                if !cached {
+                    ACTIVE.with(|slot| { if let Some((_, _, state)) = slot.borrow_mut().as_mut() { state.close(); } });
+                    let _ = report::close_report(); let token = Rc::clone(&guarded);
+                    wasm_bindgen_futures::spawn_local(async move { if current(&token) { stop(); } });
+                }
+            }
+            "pageshow" => {
+                let _ = report::observe("lifecycle", "pageshow");
+                change(Reason::Cached, false); change(Reason::Hidden, observed.hidden());
+            }
+            "visibilitychange" => {
+                change(Reason::Hidden, observed.hidden());
+                let _ = report::observe("lifecycle", if observed.hidden() { "hidden" } else { "visible" });
+            }
+            "freeze" | "resume" => {
+                change(Reason::Frozen, event.type_() == "freeze");
+                change(Reason::Hidden, observed.hidden());
+                let _ = report::observe("lifecycle", &event.type_());
+            }
+            "error" | "unhandledrejection" => {
+                if let Some(message) = crate::browser_errors::message(&event) { report::fatal(&message); }
+                return;
+            }
+            _ => return,
+        }
+        if let Err(error) = report::start_periodic() {
+            let _ = report::observe("diagnostic", &format!("Heartbeat unavailable: {error:?}"));
+        }
+    });
+    let mut listeners = Listeners::new(callback);
+    listeners.listen(window.as_ref(), "pagehide")?; listeners.listen(window.as_ref(), "pageshow")?;
+    for name in ["visibilitychange", "freeze", "resume"] { listeners.listen(document.as_ref(), name)?; }
+    for name in ["error", "unhandledrejection"] { listeners.listen(window.as_ref(), name)?; }
+    ACTIVE.with(|slot| slot.replace(Some((token, listeners, Suspension::new(hidden))))); Ok(())
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn report_lifecycle_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
+```
+
+</details>
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gca-errors-04.rs"
 ```
 
-### 5. `src/report_lifecycle.rs`
-
-Own both Window failure bindings beside the five existing metadata bindings, including partial-registration cleanup.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    for name in ["visibilitychange", "freeze", "resume"] { listeners.listen(document.as_ref(), name)?; }
+```text
+--8<-- "journey/code/34gca-errors-05.rs"
 ```
 
 </details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/34gca-errors-05.rs"
-```
 
 ## Run and check
 
@@ -100,25 +246,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the browser console, run `Promise.reject(new Error("lesson check"))`. Type `Report`: its first failure reads “Unhandled rejection: lesson check”.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Observe uncaught browser failures.](../screenshots/journey/34gca-errors-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for observe uncaught browser failures.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -150,8 +294,8 @@ In the debug console, run Promise.reject(new Error("lesson failure")), then type
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gca-errors
-npm --prefix ../session_tests run course -- save 34gca-errors
+npm --prefix ../session_tests run course -- check 4.2.24
+npm --prefix ../session_tests run course -- save 4.2.24
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -174,7 +318,7 @@ Actual uncaught errors and unhandled promises, bounded messages, first-failure r
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gca-errors
+npm --prefix ../session_tests run course -- capture 4.2.24
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

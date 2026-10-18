@@ -1,0 +1,1 @@
+s })).chain(scene.objects().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)).flat_map(|r|crate::cad_display::wires(r,anchor,Some(yellow),2.))))?;

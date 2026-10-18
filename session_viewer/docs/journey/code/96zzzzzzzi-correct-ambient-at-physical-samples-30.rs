@@ -1,0 +1,1 @@
+er.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("ambient sample-preserving composition"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:color,resolve_target:None,depth_slice:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});pass.set_pipeline(&self.pipes.a

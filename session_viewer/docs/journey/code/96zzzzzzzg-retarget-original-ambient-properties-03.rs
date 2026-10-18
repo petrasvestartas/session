@@ -1,0 +1,1 @@
+e::Wgsl(if samples==4{crate::clipping_gpu::source(&source,2,0).replace("@location(0) world:","@location(0) @interpolate(perspective,sample) world:").into()}else{crate::c

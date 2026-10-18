@@ -1,0 +1,50 @@
+{
+  "scope": "Independent maintained native one-sample unlit horizontal-line reference. Same Box/Line recipe with separately generated source identities. Viewport960x640/DPR1 and physical3000mm Top/Orthographic distance; native targetY offsets the source to align the browser line atY303. Only line/fill coverage and color are compared; this is not whole-frame native/browser parity.",
+  "binarySha256": "ec22e0af1eb5a6fbd0f32765bf7f11ebb52861f2bc538ce5fe6d1b3fe9a0f085",
+  "documentSha256": "505b765e6dab2d85bc7ab649fed277d4f9db4142d4d3ae588f3f186d3285110a",
+  "archiveSha256": "833209b29401ce1770e7f66cb0cdc1c43db2e9c79891179073768c17f24b98ef",
+  "environment": {
+    "VIEWER_VIEW": "top",
+    "VIEWER_ORTHO": "1",
+    "VIEWER_NO_GRID": "1",
+    "VIEWER_MSAA": "1",
+    "VIEWER_OPACITY": "1",
+    "VIEWER_W": "960",
+    "VIEWER_H": "640",
+    "VIEWER_TARGET": "0,-92.01519915209657,0",
+    "VIEWER_DISTANCE_SCALE": "0.5604354934392468"
+  },
+  "fitted": 5352.980022,
+  "source": "b7785e7c108c50aeafad1dd7156359d00598a0f8ed3f2fa80dc0d81d359bf68a",
+  "exampleSha256": "08ff7410f5fd12ad9dab88eaf12b70718fb462217e8078c272234c61a170208c",
+  "imageSha256": "b42104851b4dfeef3398fe64209d98c401e473185f9bfc1d1922d92f2d3420df",
+  "lineRGB": [
+    183,
+    183,
+    183
+  ],
+  "fillRGB": [
+    248,
+    248,
+    248
+  ],
+  "samples": [
+    [
+      40,
+      302
+    ],
+    [
+      40,
+      303
+    ],
+    [
+      480,
+      302
+    ],
+    [
+      480,
+      303
+    ]
+  ],
+  "file": "review/surface-line-maintained-native-2026-10-15.png"
+}

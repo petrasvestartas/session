@@ -1,0 +1,1 @@
+@location(2) normal:u32

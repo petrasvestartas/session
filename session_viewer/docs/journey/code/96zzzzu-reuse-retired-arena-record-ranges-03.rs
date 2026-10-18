@@ -1,0 +1,1 @@
+self.vertices.clear();self.indices.clear();self.sources.clear();self.free_vertices.clear();self.free_indices.clear();

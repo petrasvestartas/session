@@ -1,0 +1,138 @@
+{
+  "session_head": "430accda0b18e7982b375c97dfbe244a21e118e1",
+  "wood_head": "04fef15e02eb37f14586a81f583043056d55a724",
+  "scope": "Actual maintained native renderer; current local revisions only. Lavapipe at640x480, fixed full quality, eight orbit/readback frames including cold first work. No browser/Lenovo benchmark or before/after improvement claim.",
+  "dome_generator": {
+    "source": "wood/examples/templates_vault_4_dome.cpp",
+    "source_sha256": "c426aa1890262ef3d35233e719ded740f126b96673b23c977c41efb4e78d9293",
+    "change": "Only output path changed in scratch; current wood_core rebuilt. User live.pb checksum unchanged.",
+    "voussoirs": 800,
+    "contacts": 2320,
+    "object_families": {
+      "planes": 800,
+      "elements": 800
+    }
+  },
+  "records": [
+    {
+      "name": "comparison",
+      "source": "/home/petras/code/code_cpp/wood_research/session/session_viewer/assets/pb/course-comparison.pb",
+      "source_sha256": "6b3eba300710c715012f891b01cf71415249e001dbf5e12d397ca1e4efa33850",
+      "source_bytes": 19382,
+      "output": "/tmp/viewer-current-scene-evidence/comparison.ppm",
+      "output_sha256": "b81cfca87cd1cea3e7b6215d3703dd2e04ff7958efb3a46d53e524693f699d29",
+      "log": "/tmp/viewer-current-scene-evidence/comparison.log",
+      "wall_seconds": 2.54382749798242,
+      "viewport": [
+        640,
+        480
+      ],
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1"
+      },
+      "scope": "Current maintained native offscreen pipeline on Lavapipe. Eight fixed-quality orbit/readback frames; includes initial work, not a warmed browser benchmark or Lenovo evidence.",
+      "adapter": "llvmpipe (LLVM 21.1.8, 256 bits), CPU Vulkan",
+      "log_text": "[INFO] Found 2 cooperative matrix configurations supported by wgpu\n[INFO] adapter: llvmpipe (LLVM 21.1.8, 256 bits) (Cpu, Vulkan)\n[WARN] software adapter - rendering on the CPU will be slow\n[INFO] device ready: 0.0 ms, 0 pipelines, 0 shaders\n[INFO] viewer init OK - surface 640x480, format Rgba8UnormSrgb\n[INFO] gpu built: 13.8 ms, 0 pipelines, 0 shaders\n  course-comparison.pb: 0.0 MB | decode 484.655\u00b5s | walk 21.103863ms\n[INFO] camera: eye (-1118.253140, -1936.871254, 1426.247503) mm, target (0.000000, 0.000000, 135.000000) mm, distance 2582.495005 mm\n[INFO] census camera: CENSUS_EYE=-1.118253139946,-1.936871254110,1.426247502740 CENSUS_FWD=0.433012701892,0.750000000000,-0.500000000000 CENSUS_UP=0.250000000000,0.433012701892,0.866025403784 CENSUS_ORTHO_H=0.000000000\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\n[INFO] headless frame: 19 draws, 4 objects, 640x480\nframes: n=8 median 20.8 ms (48 fps) min 17.9 max 2015.1\ngpu ms, median per pass: tiles 4.445, points 0.016, faces 1.508, ao.prepare 0.437, ao.depth 0.434, ao.ground 3.025, ao.horizons 1.820, ao.blur_x 0.438, ao.blur_y 0.748, ao.upsample 1.131, ao.history 0.137, ssao 0.613, masks 0.397, pool 0.618, alpha 0.968, ink 2.117, end 0.008\ngpu bytes: buffers 1802440, textures 4454568, tile tables 710384\ntext: 1 preparations, 0.0212 ms each, 0.0027 ms per frame\n[INFO] headless frame: 19 draws, 4 objects, 640x480\nwrote /tmp/viewer-current-scene-evidence/comparison.ppm  640x480  non-background pixels: 64366 (21.0%)\n",
+      "image": "../screenshots/journey/current-native-comparison.png",
+      "native_batch_summary": "frames: n=8 median 20.8 ms (48 fps) min 17.9 max 2015.1"
+    },
+    {
+      "name": "floor-input",
+      "source": "/home/petras/code/code_cpp/wood_research/wood/data/floor_model.pb",
+      "source_sha256": "75e2de99b16ea1de9ac01691d3561a657ac4aa93f153e329ae94ea8c5e4ebd69",
+      "source_bytes": 1638998,
+      "output": "/tmp/viewer-current-scene-evidence/floor-input.ppm",
+      "output_sha256": "e2609e1cd7f43d51482006eca145093ef8ed84234c6669524d3dd2ed71562544",
+      "log": "/tmp/viewer-current-scene-evidence/floor-input.log",
+      "wall_seconds": 3.1804852850036696,
+      "viewport": [
+        640,
+        480
+      ],
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1"
+      },
+      "scope": "Current maintained native offscreen pipeline on Lavapipe. Eight fixed-quality orbit/readback frames; includes initial work, not a warmed browser benchmark or Lenovo evidence.",
+      "adapter": "llvmpipe (LLVM 21.1.8, 256 bits), CPU Vulkan",
+      "log_text": "[INFO] Found 2 cooperative matrix configurations supported by wgpu\n[INFO] adapter: llvmpipe (LLVM 21.1.8, 256 bits) (Cpu, Vulkan)\n[WARN] software adapter - rendering on the CPU will be slow\n[INFO] device ready: 0.0 ms, 0 pipelines, 0 shaders\n[INFO] viewer init OK - surface 640x480, format Rgba8UnormSrgb\n[INFO] gpu built: 11.8 ms, 0 pipelines, 0 shaders\n  floor_model.pb: 1.6 MB | decode 70.84061ms | walk 41.052843ms\n[INFO] camera: eye (-4026.136331, -6973.472684, 6406.108987) mm, target (0.000000, 0.000000, 1757.127197) mm, distance 9297.963579 mm\n[INFO] census camera: CENSUS_EYE=-4.026136331460,-6.973472684287,6.406108986791 CENSUS_FWD=0.433012701892,0.750000000000,-0.500000000000 CENSUS_UP=0.250000000000,0.433012701892,0.866025403784 CENSUS_ORTHO_H=0.000000000\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\nframes: n=8 median 96.0 ms (10 fps) min 90.6 max 2215.4\ngpu ms, median per pass: tiles 28.367, points 0.025, faces 5.983, ao.prepare 0.670, ao.depth 0.923, ao.ground 3.207, ao.horizons 1.751, ao.blur_x 0.559, ao.blur_y 0.703, ao.upsample 1.158, ao.history 0.251, ssao 0.477, masks 0.349, pool 0.495, alpha 0.967, ink 44.475, end 0.007\ngpu bytes: buffers 6009040, textures 4454568, tile tables 3332464\ntext: 1 preparations, 0.0164 ms each, 0.0020 ms per frame\n[INFO] headless frame: 20 draws, 237 objects, 640x480\nwrote /tmp/viewer-current-scene-evidence/floor-input.ppm  640x480  non-background pixels: 15545 (5.1%)\n",
+      "image": "../screenshots/journey/current-native-floor-input.png",
+      "native_batch_summary": "frames: n=8 median 96.0 ms (10 fps) min 90.6 max 2215.4"
+    },
+    {
+      "name": "floor-output",
+      "source": "/home/petras/code/code_cpp/wood_research/wood/data/output/pb/floor_model.pb",
+      "source_sha256": "82a0ddb7637ed61c47fa96d7cbe92f53b2689436c880d33842e1b85debdc5933",
+      "source_bytes": 1510951,
+      "output": "/tmp/viewer-current-scene-evidence/floor-output.ppm",
+      "output_sha256": "e2609e1cd7f43d51482006eca145093ef8ed84234c6669524d3dd2ed71562544",
+      "log": "/tmp/viewer-current-scene-evidence/floor-output.log",
+      "wall_seconds": 3.22077468293719,
+      "viewport": [
+        640,
+        480
+      ],
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1"
+      },
+      "scope": "Current maintained native offscreen pipeline on Lavapipe. Eight fixed-quality orbit/readback frames; includes initial work, not a warmed browser benchmark or Lenovo evidence.",
+      "adapter": "llvmpipe (LLVM 21.1.8, 256 bits), CPU Vulkan",
+      "log_text": "[INFO] Found 2 cooperative matrix configurations supported by wgpu\n[INFO] adapter: llvmpipe (LLVM 21.1.8, 256 bits) (Cpu, Vulkan)\n[WARN] software adapter - rendering on the CPU will be slow\n[INFO] device ready: 0.0 ms, 0 pipelines, 0 shaders\n[INFO] viewer init OK - surface 640x480, format Rgba8UnormSrgb\n[INFO] gpu built: 12.0 ms, 0 pipelines, 0 shaders\n  floor_model.pb: 1.4 MB | decode 71.022769ms | walk 41.2319ms\n[INFO] camera: eye (-4026.136331, -6973.472684, 6406.108987) mm, target (0.000000, 0.000000, 1757.127197) mm, distance 9297.963579 mm\n[INFO] census camera: CENSUS_EYE=-4.026136331460,-6.973472684287,6.406108986791 CENSUS_FWD=0.433012701892,0.750000000000,-0.500000000000 CENSUS_UP=0.250000000000,0.433012701892,0.866025403784 CENSUS_ORTHO_H=0.000000000\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\n[INFO] headless frame: 20 draws, 237 objects, 640x480\nframes: n=8 median 98.8 ms (10 fps) min 93.6 max 2226.7\ngpu ms, median per pass: tiles 29.967, points 0.029, faces 5.860, ao.prepare 0.663, ao.depth 0.946, ao.ground 4.031, ao.horizons 1.650, ao.blur_x 0.441, ao.blur_y 0.722, ao.upsample 1.120, ao.history 0.163, ssao 0.493, masks 0.449, pool 0.620, alpha 1.065, ink 50.931, end 0.006\ngpu bytes: buffers 6009040, textures 4454568, tile tables 3332464\ntext: 1 preparations, 0.0154 ms each, 0.0019 ms per frame\n[INFO] headless frame: 20 draws, 237 objects, 640x480\nwrote /tmp/viewer-current-scene-evidence/floor-output.ppm  640x480  non-background pixels: 15545 (5.1%)\n",
+      "image": "../screenshots/journey/current-native-floor-output.png",
+      "native_batch_summary": "frames: n=8 median 98.8 ms (10 fps) min 93.6 max 2226.7"
+    },
+    {
+      "name": "dome",
+      "source": "/tmp/viewer-dome-source-proof/dome.pb",
+      "source_sha256": "961bbb52452e3beb5f60400e8ab93ae45896f62e805af84a3fcf5e77c625d551",
+      "source_bytes": 4240028,
+      "output": "/tmp/viewer-current-scene-evidence/dome.ppm",
+      "output_sha256": "8dc0b182a9eea9b5a04c65a86c163ebcd14ec50e1d9a0367338d753cfbc1e7f2",
+      "log": "/tmp/viewer-current-scene-evidence/dome.log",
+      "wall_seconds": 3.81721964397002,
+      "viewport": [
+        640,
+        480
+      ],
+      "settings": {
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_LIT": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_AO": "1",
+        "VIEWER_OUTLINES": "1",
+        "VIEWER_FRAMES": "8",
+        "VIEWER_FRAMES_ORBIT": "2",
+        "VIEWER_GPU_TIMING": "1"
+      },
+      "scope": "Current maintained native offscreen pipeline on Lavapipe. Eight fixed-quality orbit/readback frames; includes initial work, not a warmed browser benchmark or Lenovo evidence.",
+      "adapter": "llvmpipe (LLVM 21.1.8, 256 bits), CPU Vulkan",
+      "log_text": "[INFO] Found 2 cooperative matrix configurations supported by wgpu\n[INFO] adapter: llvmpipe (LLVM 21.1.8, 256 bits) (Cpu, Vulkan)\n[WARN] software adapter - rendering on the CPU will be slow\n[INFO] device ready: 0.0 ms, 0 pipelines, 0 shaders\n[INFO] viewer init OK - surface 640x480, format Rgba8UnormSrgb\n[INFO] gpu built: 12.1 ms, 0 pipelines, 0 shaders\n  dome.pb: 4.0 MB | decode 108.414418ms | walk 103.296774ms\n[INFO] camera: eye (-5694.144939, -9862.548340, 8688.391357) mm, target (0.000000, 0.000000, 2113.359131) mm, distance 13150.064453 mm\n[INFO] census camera: CENSUS_EYE=-5.694144938912,-9.862548339858,8.688391357186 CENSUS_FWD=0.433012701892,0.750000000000,-0.500000000000 CENSUS_UP=0.250000000000,0.433012701892,0.866025403784 CENSUS_ORTHO_H=0.000000000\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\nframes: n=8 median 122.8 ms (8 fps) min 119.0 max 2510.7\ngpu ms, median per pass: tiles 40.620, points 0.027, faces 7.344, ao.prepare 0.783, ao.depth 0.987, ao.ground 2.871, ao.horizons 1.748, ao.blur_x 0.352, ao.blur_y 0.500, ao.upsample 0.829, ao.history 0.136, ssao 0.518, masks 0.372, pool 0.622, alpha 0.921, ink 62.470, end 0.010\ngpu bytes: buffers 7740896, textures 4454568, tile tables 3918064\ntext: 1 preparations, 0.0181 ms each, 0.0023 ms per frame\n[INFO] headless frame: 22 draws, 1600 objects, 640x480\nwrote /tmp/viewer-current-scene-evidence/dome.ppm  640x480  non-background pixels: 16341 (5.3%)\n",
+      "image": "../screenshots/journey/current-native-dome.png",
+      "native_batch_summary": "frames: n=8 median 122.8 ms (8 fps) min 119.0 max 2510.7"
+    }
+  ]
+}

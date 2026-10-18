@@ -1,3 +1,5 @@
+import {lines, lineChanges} from './line-diff.ts';
+export {lines} from './line-diff.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
@@ -8,7 +10,7 @@ export const docs = path.join(viewer, 'docs');
 export const site = fileURLToPath(new URL('../../', import.meta.url));
 export const work = path.join(viewer, 'workspace/journey');
 export type Files = Record<string, string>;
-export interface Edit { path: string; snippet: string; before: string | null; why: string; copy?: boolean }
+export interface Edit { path: string; snippet: string; before: string | null; why: string; copy?: boolean; reuse?: string; supplied?: 'validation' | 'example' | 'move'; rename_field?: boolean }
 export interface Step {
     id: string; title: string; page: string; hours: [number, number]; goal: string;
     trace: string; question: string; answer: string; edits: Edit[]; story: string;
@@ -22,40 +24,49 @@ export interface Step {
     frame_constructor?: string;
     frame_size?: [number, number];
     tests?: boolean;
-    browser_actions?: ({command: string} | {canvas: [number, number]} | {viewport: [number, number]} | {drag: [[number, number], [number, number]]} | {wheel: number} | {key: string} | {file: string})[];
+    browser_actions?: ({command: string} | {canvas: [number, number]} | {viewport: [number, number]} | {drag: [[number, number], [number, number]]} | {wheel: number} | {key: string} | {file: string; fit?: boolean})[];
     image_result?: string;
     lock?: string;
     assets?: string[];
 }
-export interface Course { release: string; steps: Step[] }
+export interface Course { release: string; inventory?: string; steps: Step[] }
 
 export const read = (file: string) => fs.readFileSync(file, 'utf8');
 export const json = (file: string) => JSON.parse(read(file));
 export const hash = (value: string | Uint8Array) => crypto.createHash('sha256').update(value).digest('hex');
-export const course = (): Course => json(path.join(docs, 'journey/course.json'));
+export const course = (): Course => sequence?.data || json(path.join(docs, 'journey/course.json'));
 export const reference = () => json(path.join(docs, 'typing/manifest.json'));
-export const lines = (text: string) => text.match(/[^\n]*\n|[^\n]+$/g) || [];
 export const sorted = (files: Files) => Object.fromEntries(Object.keys(files).sort().map(name => [name, files[name]]));
 export const fingerprint = (files: Files) => hash(JSON.stringify(sorted(files)));
 
 export function addedLines(before: string, after: string): string[] {
-    const a = lines(before), b = lines(after);
-    const common = Array.from({length: a.length + 1}, () => new Uint32Array(b.length + 1));
-    for (let i = a.length - 1; i >= 0; i--) for (let j = b.length - 1; j >= 0; j--) {
-        common[i][j] = a[i] === b[j] ? common[i + 1][j + 1] + 1 : Math.max(common[i + 1][j], common[i][j + 1]);
+    return lineChanges(before, after).filter(line => line.kind === 'add').map(line => line.text);
+}
+
+export function edited(original: string | undefined, edit: Edit, code: string, label = 'checkpoint'): string {
+    const where = `${label}: ${edit.path}`;
+    if (edit.rename_field) {
+        const field = /^self(?:\.[A-Za-z_]\w*)+$/;
+        if (edit.copy || edit.supplied || edit.reuse || edit.before === null || edit.before !== edit.before.trim() || code !== code.trim()
+            || !field.test(edit.before) || !field.test(code)) throw Error(`${where}: field rename requires two field references and must be typed`);
+        const pattern = new RegExp('\\b' + edit.before.replaceAll('.', '\\.') + '\\b', 'g');
+        if (original === undefined || !pattern.test(original)) throw Error(`${where}: field reference not found`);
+        return original.replace(pattern, () => code);
     }
-    const added: string[] = [];
-    let i = 0, j = 0;
-    while (j < b.length) {
-        if (i < a.length && a[i] === b[j]) { i++; j++; }
-        else if (i < a.length && common[i + 1][j] > common[i][j + 1]) i++;
-        else added.push(b[j++]);
+    if (edit.before === null) {
+        if (original !== undefined) throw Error(`${where} already exists`);
+        return code;
     }
-    return added;
+    if (original === undefined) throw Error(`${where} does not exist`);
+    if (original.split(edit.before).length !== 2) throw Error(`${where}: replacement must match exactly once`);
+    return original.replace(edit.before, () => code);
 }
 
 export function typingLoad(step: Step) {
-    const added = step.edits.filter(edit => !edit.copy).flatMap(edit => addedLines(edit.before || '', read(path.join(docs, edit.snippet))));
+    const added = step.edits.filter(edit => !edit.copy).flatMap(edit => {
+        const code = read(path.join(docs, edit.snippet));
+        return edit.rename_field ? [edit.before || '', code] : addedLines(edit.before || '', code);
+    });
     const characters = [...added.join('')].length;
     return {lines: added.length, characters, minutes: [Math.ceil(characters / 100), Math.ceil(characters / 50)]};
 }
@@ -111,25 +122,31 @@ export function filesIn(directory: string): string[] {
     });
 }
 
+let sequence: {data: Course; at: number; files: Files} | undefined;
+
+export function withExpectedSequence<T>(run: () => T): T {
+    // Scope a synchronous pass that does not edit course inputs.
+    const previous = sequence;
+    sequence = {data: json(path.join(docs, 'journey/course.json')), at: -1, files: {}};
+    try { return run(); }
+    finally { sequence = previous; }
+}
+
 export function expected(id: string): Files {
-    const files: Files = {};
-    for (const step of course().steps) {
+    const state = sequence || {data: course(), at: -1, files: {}};
+    const end = state.data.steps.findIndex(step => step.id === id);
+    if (end < 0) throw Error(`Unknown lesson: ${id}`);
+    if (end < state.at) { state.at = -1; state.files = {}; }
+    const files = state.files;
+    for (let index = state.at + 1; index <= end; index++) {
+        const step = state.data.steps[index];
         for (const edit of step.edits) {
             const code = read(path.join(docs, edit.snippet));
-            if (edit.before === null) {
-                if (edit.path in files) throw Error(`${step.id}: ${edit.path} already exists`);
-                files[edit.path] = code;
-            } else {
-                const original = files[edit.path];
-                if (original === undefined || original.split(edit.before).length !== 2) {
-                    throw Error(`${step.id}: replacement in ${edit.path} must match exactly once`);
-                }
-                files[edit.path] = original.replace(edit.before, () => code);
-            }
+            files[edit.path] = edited(files[edit.path], edit, code, step.id);
         }
-        if (step.id === id) return files;
+        state.at = index;
     }
-    throw Error(`Unknown lesson: ${id}`);
+    return {...files};
 }
 
 export function referenceFiles(id: string): Files {

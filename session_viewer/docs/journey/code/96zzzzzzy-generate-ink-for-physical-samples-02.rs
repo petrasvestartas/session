@@ -1,0 +1,1 @@
+itive(pixel,sample);if(finite_

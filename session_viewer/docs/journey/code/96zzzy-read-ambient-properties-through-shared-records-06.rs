@@ -1,0 +1,1 @@
+Some(if shared {&geometry}else{&radius})],

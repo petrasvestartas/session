@@ -1,0 +1,5 @@
+            Action::Query(query)=>{let ids=query.found(&self.scene).map_err(|message|self.primitive_failure(message))?;self.select_objects(ids,false);return Ok(Change::View)},
+            Action::Arrowhead(head)=>return self.curve_heads(head),
+            Action::Escape=>{if self.element.is_some()||self.draft.is_some()||self.split.is_some()||self.gizmo_edit.is_some(){self.apply_action(Action::GizmoCancel)?;return self.apply_action(Action::CancelTool)}self.select_objects([],false);return Ok(Change::View)},
+            Action::Measure(kind)=>return self.measure_selection(kind),
+            Action::MeasureDistance(text)=>return self.begin_measure_distance(&text),

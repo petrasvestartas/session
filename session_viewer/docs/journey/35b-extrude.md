@@ -1,4 +1,6 @@
-# 35b · Extrude a stroke in screen pixels
+# 5.1.3 · Extrude a stroke in screen pixels
+
+**Chapter 5 · Lines, points and curves · Section 5.1 · Original lines** · [Contents](contents.md)
 
 **Typing: 20–40 minutes.** [Estimate](typing-load.md).
 
@@ -31,11 +33,23 @@ use std::rc::Rc;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub const SHADER: &str = include_str!("stroke.wgsl");
+use std::rc::Rc;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/35b-extrude-02.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -43,25 +57,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the GPU check. The real drawing device validates the stroke shader; its visible lane is connected next.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Extrude a stroke in screen pixels.](../screenshots/journey/35b-extrude-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for extrude a stroke in screen pixels.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -93,8 +105,8 @@ Trace the six corners: they form two triangles. The width divides by viewport pi
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 35b-extrude
-npm --prefix ../session_tests run course -- save 35b-extrude
+npm --prefix ../session_tests run course -- check 5.1.3
+npm --prefix ../session_tests run course -- save 5.1.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -115,7 +127,7 @@ Chrome preserves the preceding route while the GPU fixture validates the new sha
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 35b-extrude
+npm --prefix ../session_tests run course -- capture 5.1.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,3 @@
+  let create=|shared| {let project_layout=layout("finite original projection",&[entry(0,Stage::COMPUTE,Type::Storage{read_only:true}),entry(1,Stage::COMPUTE,Type::Storage{read_only:true}),entry(2,Stage::COMPUTE,if shared {Type::Storage{read_only:true}}else{Type::Uniform}),entry(3,Stage::COMPUTE,Type::Storage{read_only:false}),entry(4,Stage::COMPUTE,Type::Uniform)]);
+   let source=if shared {crate::finite_project_source::records()}else{crate::finite_project_source::source()};let project=compute(device,&source,"cs_main",&[Some(view),Some(&line),Some(&project_layout)]);(project_layout,project)};
+  let(project_layout,project)=create(false);let(record_project_layout,record_project)=create(true);

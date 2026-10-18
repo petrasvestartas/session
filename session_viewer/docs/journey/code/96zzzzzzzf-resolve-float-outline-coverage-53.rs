@@ -1,0 +1,1 @@
+sert_with(||crate::outline_gpu::Outline::with_samples(&ctx,self.format,self.targets.samples)

@@ -1,0 +1,1 @@
+let points=row.points_at(anchor);

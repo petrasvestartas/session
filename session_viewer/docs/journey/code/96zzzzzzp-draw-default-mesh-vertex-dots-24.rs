@@ -1,0 +1,1 @@
+assert_eq!(current.mesh_markers.len(),8);assert_eq!(current.mesh_markers.iter().map(|m|m.values()).collect::<Vec<_>>(),baseline.mesh_markers.iter().map(|m|m.values()).collect::<Vec<_>>());assert_eq!(&current.marker_ids[..8],&vec![[far.objects()[0].id.value(),0];8]);assert_eq!(current.marker_ids[8..].len(),far.points().len()+far.control_markers_at(anchor).len());

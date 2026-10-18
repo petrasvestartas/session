@@ -1,0 +1,1 @@
+for p in &cut.marks{overlay.mark(crate::clipping_geometry::array(p),6.,blue);}

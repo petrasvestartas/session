@@ -15,7 +15,7 @@ module.exports = async (original, helpers) => {
             const value = async name => JSON.parse(await page.locator('canvas').getAttribute(name));
             const quiet = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(120); };
             const pixels = async (mode, diagnostics) => {
-                await quiet(); const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+                await quiet(); const url = await require('./canvas-image.cjs')(page.locator('canvas'));
                 const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64')), m = await value('data-camera-matrix');
                 assert.equal(await value('data-normal-view'), diagnostics);
                 for (const x of [-0.35, 0.35]) {
@@ -46,7 +46,7 @@ module.exports = async (original, helpers) => {
                 const pending = page.waitForEvent('download'); await helpers.command(page, 'Save'); const download = await pending;
                 const file = path.resolve('target', `course-${helpers.step.id}`, `normal-${density}-${mode}.session`); await download.saveAs(file);
                 await helpers.command(page, 'Close'); const chooser = page.waitForEvent('filechooser'); await helpers.command(page, 'Open'); await (await chooser).setFiles(file);
-                await page.waitForFunction(() => document.getElementById('status')?.textContent === 'File imported. Undo removes the entire import.');
+                await require('./imported-file.cjs')(page, file);
                 await pixels(mode, true); assert.equal(await helpers.drawing(page), expected, 'Downloaded source attributes and face order must reconstruct identical diagnostic pixels');
                 await helpers.command(page, 'Close'); assert.deepEqual(await value('data-gpu-usage'), [0, 0, 0, 0]);
             }

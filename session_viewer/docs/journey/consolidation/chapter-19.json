@@ -1,0 +1,411 @@
+{
+  "status": "consolidated prose and coverage; integration and current runtime/visual acceptance pending",
+  "chapter": 19,
+  "title": "Integration and original ownership",
+  "first": "96-retain-non-drawing-originals-and-validate-raw-planes",
+  "end_before": "96zh-bind-the-shared-geometry-as-storage",
+  "lessons": [
+    {
+      "id": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "title": "Complete source metadata and the actual command contract",
+      "page": "journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md",
+      "steps": [
+        "96-retain-non-drawing-originals-and-validate-raw-planes",
+        "96a-merge-unused-definitions-with-displayed-instances",
+        "96b-preserve-component-and-interaction-metadata-in-archives",
+        "96c-keep-current-element-and-frame-definition-families",
+        "96d-observe-the-real-current-registry-and-parser",
+        "96e-verify-the-complete-declared-current-source-closure",
+        "96f-report-retained-original-metadata-in-the-real-viewer",
+        "96g-prove-exact-metadata-and-definition-round-trips",
+        "96h-prove-current-source-grammar-and-explicit-differences"
+      ],
+      "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences"
+    },
+    {
+      "id": "96i-separate-own-and-hosted-element-features",
+      "title": "Original Element ancestry and derived feature trees",
+      "page": "journey/consolidation/96i-separate-own-and-hosted-element-features.md",
+      "steps": [
+        "96i-separate-own-and-hosted-element-features",
+        "96j-group-features-by-original-interaction",
+        "96k-separate-derived-rows-from-editable-elements",
+        "96l-attach-a-bounded-derived-feature-tree",
+        "96m-project-original-feature-outlines",
+        "96n-connect-imported-interaction-hierarchies",
+        "96o-reuse-projections-for-created-elements",
+        "96p-build-an-imported-interaction-specimen",
+        "96q-prove-imported-feature-ownership-and-roundtrips",
+        "96r-preserve-exact-command-completions"
+      ],
+      "checkpoint": "96r-preserve-exact-command-completions"
+    },
+    {
+      "id": "96s-resolve-feature-rows-to-original-element-owners",
+      "title": "Original owners across selection, copying and display",
+      "page": "journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md",
+      "steps": [
+        "96s-resolve-feature-rows-to-original-element-owners",
+        "96t-select-and-highlight-original-feature-owners",
+        "96u-fit-original-box-corners-to-the-free-canvas",
+        "96v-project-definition-and-per-instance-features",
+        "96w-detach-copied-original-source-identity",
+        "96x-regenerate-display-for-copied-feature-owners",
+        "96y-address-feature-pixels-to-original-cad-owners",
+        "96z-preserve-source-feature-visibility-and-pixel-styles"
+      ],
+      "checkpoint": "96z-preserve-source-feature-visibility-and-pixel-styles"
+    },
+    {
+      "id": "96za-address-original-controls-with-family-keys",
+      "title": "Family-aware original controls and source previews",
+      "page": "journey/consolidation/96za-address-original-controls-with-family-keys.md",
+      "steps": [
+        "96za-address-original-controls-with-family-keys",
+        "96zb-draw-and-pick-original-cad-control-points",
+        "96zc-share-the-current-control-point-style",
+        "96zd-reuse-world-controls-for-their-display-nets",
+        "96ze-scope-controls-to-the-selected-original",
+        "96zf-edit-original-controls-through-the-source-preview",
+        "96zg-rebuild-an-edited-element-without-replacing-its-owner"
+      ],
+      "checkpoint": "96zg-rebuild-an-edited-element-without-replacing-its-owner"
+    }
+  ],
+  "old_step_to_lesson": {
+    "96-retain-non-drawing-originals-and-validate-raw-planes": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes"
+    },
+    "96a-merge-unused-definitions-with-displayed-instances": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96a-merge-unused-definitions-with-displayed-instances"
+    },
+    "96b-preserve-component-and-interaction-metadata-in-archives": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96b-preserve-component-and-interaction-metadata-in-archives"
+    },
+    "96c-keep-current-element-and-frame-definition-families": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96c-keep-current-element-and-frame-definition-families"
+    },
+    "96d-observe-the-real-current-registry-and-parser": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96d-observe-the-real-current-registry-and-parser"
+    },
+    "96e-verify-the-complete-declared-current-source-closure": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96e-verify-the-complete-declared-current-source-closure"
+    },
+    "96f-report-retained-original-metadata-in-the-real-viewer": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96f-report-retained-original-metadata-in-the-real-viewer"
+    },
+    "96g-prove-exact-metadata-and-definition-round-trips": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96g-prove-exact-metadata-and-definition-round-trips"
+    },
+    "96h-prove-current-source-grammar-and-explicit-differences": {
+      "lesson": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "anchor": "checkpoint-96h-prove-current-source-grammar-and-explicit-differences"
+    },
+    "96i-separate-own-and-hosted-element-features": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96i-separate-own-and-hosted-element-features"
+    },
+    "96j-group-features-by-original-interaction": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96j-group-features-by-original-interaction"
+    },
+    "96k-separate-derived-rows-from-editable-elements": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96k-separate-derived-rows-from-editable-elements"
+    },
+    "96l-attach-a-bounded-derived-feature-tree": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96l-attach-a-bounded-derived-feature-tree"
+    },
+    "96m-project-original-feature-outlines": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96m-project-original-feature-outlines"
+    },
+    "96n-connect-imported-interaction-hierarchies": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96n-connect-imported-interaction-hierarchies"
+    },
+    "96o-reuse-projections-for-created-elements": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96o-reuse-projections-for-created-elements"
+    },
+    "96p-build-an-imported-interaction-specimen": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96p-build-an-imported-interaction-specimen"
+    },
+    "96q-prove-imported-feature-ownership-and-roundtrips": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96q-prove-imported-feature-ownership-and-roundtrips"
+    },
+    "96r-preserve-exact-command-completions": {
+      "lesson": "96i-separate-own-and-hosted-element-features",
+      "anchor": "checkpoint-96r-preserve-exact-command-completions"
+    },
+    "96s-resolve-feature-rows-to-original-element-owners": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96s-resolve-feature-rows-to-original-element-owners"
+    },
+    "96t-select-and-highlight-original-feature-owners": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96t-select-and-highlight-original-feature-owners"
+    },
+    "96u-fit-original-box-corners-to-the-free-canvas": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96u-fit-original-box-corners-to-the-free-canvas"
+    },
+    "96v-project-definition-and-per-instance-features": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96v-project-definition-and-per-instance-features"
+    },
+    "96w-detach-copied-original-source-identity": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96w-detach-copied-original-source-identity"
+    },
+    "96x-regenerate-display-for-copied-feature-owners": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96x-regenerate-display-for-copied-feature-owners"
+    },
+    "96y-address-feature-pixels-to-original-cad-owners": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96y-address-feature-pixels-to-original-cad-owners"
+    },
+    "96z-preserve-source-feature-visibility-and-pixel-styles": {
+      "lesson": "96s-resolve-feature-rows-to-original-element-owners",
+      "anchor": "checkpoint-96z-preserve-source-feature-visibility-and-pixel-styles"
+    },
+    "96za-address-original-controls-with-family-keys": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96za-address-original-controls-with-family-keys"
+    },
+    "96zb-draw-and-pick-original-cad-control-points": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96zb-draw-and-pick-original-cad-control-points"
+    },
+    "96zc-share-the-current-control-point-style": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96zc-share-the-current-control-point-style"
+    },
+    "96zd-reuse-world-controls-for-their-display-nets": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96zd-reuse-world-controls-for-their-display-nets"
+    },
+    "96ze-scope-controls-to-the-selected-original": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96ze-scope-controls-to-the-selected-original"
+    },
+    "96zf-edit-original-controls-through-the-source-preview": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96zf-edit-original-controls-through-the-source-preview"
+    },
+    "96zg-rebuild-an-edited-element-without-replacing-its-owner": {
+      "lesson": "96za-address-original-controls-with-family-keys",
+      "anchor": "checkpoint-96zg-rebuild-an-edited-element-without-replacing-its-owner"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/session_io.rs",
+      "session_viewer/src/app/command/mod.rs",
+      "session_viewer/src/app/hierarchy.rs",
+      "session_viewer/src/app/scene.rs",
+      "session_viewer/src/app/selection.rs",
+      "session_viewer/src/app/deform.rs",
+      "session_viewer/src/app/walk/mod.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "96-retain-non-drawing-originals-and-validate-raw-planes",
+      "path": "screenshots/journey/96-retain-non-drawing-originals-and-validate-raw-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96a-merge-unused-definitions-with-displayed-instances",
+      "path": "screenshots/journey/96a-merge-unused-definitions-with-displayed-instances.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96b-preserve-component-and-interaction-metadata-in-archives",
+      "path": "screenshots/journey/96b-preserve-component-and-interaction-metadata-in-archives.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96c-keep-current-element-and-frame-definition-families",
+      "path": "screenshots/journey/96c-keep-current-element-and-frame-definition-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96d-observe-the-real-current-registry-and-parser",
+      "path": "screenshots/journey/96d-observe-the-real-current-registry-and-parser.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96e-verify-the-complete-declared-current-source-closure",
+      "path": "screenshots/journey/96e-verify-the-complete-declared-current-source-closure.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96f-report-retained-original-metadata-in-the-real-viewer",
+      "path": "screenshots/journey/96f-report-retained-original-metadata-in-the-real-viewer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96g-prove-exact-metadata-and-definition-round-trips",
+      "path": "screenshots/journey/96g-prove-exact-metadata-and-definition-round-trips.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96h-prove-current-source-grammar-and-explicit-differences",
+      "path": "screenshots/journey/96h-prove-current-source-grammar-and-explicit-differences.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96i-separate-own-and-hosted-element-features",
+      "path": "screenshots/journey/96i-separate-own-and-hosted-element-features.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96j-group-features-by-original-interaction",
+      "path": "screenshots/journey/96j-group-features-by-original-interaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96k-separate-derived-rows-from-editable-elements",
+      "path": "screenshots/journey/96k-separate-derived-rows-from-editable-elements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96l-attach-a-bounded-derived-feature-tree",
+      "path": "screenshots/journey/96l-attach-a-bounded-derived-feature-tree.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96m-project-original-feature-outlines",
+      "path": "screenshots/journey/96m-project-original-feature-outlines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96n-connect-imported-interaction-hierarchies",
+      "path": "screenshots/journey/96n-connect-imported-interaction-hierarchies.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96o-reuse-projections-for-created-elements",
+      "path": "screenshots/journey/96o-reuse-projections-for-created-elements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96p-build-an-imported-interaction-specimen",
+      "path": "screenshots/journey/96p-build-an-imported-interaction-specimen.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96q-prove-imported-feature-ownership-and-roundtrips",
+      "path": "screenshots/journey/96q-prove-imported-feature-ownership-and-roundtrips.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96r-preserve-exact-command-completions",
+      "path": "screenshots/journey/96r-preserve-exact-command-completions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96s-resolve-feature-rows-to-original-element-owners",
+      "path": "screenshots/journey/96s-resolve-feature-rows-to-original-element-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96t-select-and-highlight-original-feature-owners",
+      "path": "screenshots/journey/96t-select-and-highlight-original-feature-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96u-fit-original-box-corners-to-the-free-canvas",
+      "path": "screenshots/journey/96u-fit-original-box-corners-to-the-free-canvas.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96v-project-definition-and-per-instance-features",
+      "path": "screenshots/journey/96v-project-definition-and-per-instance-features.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96w-detach-copied-original-source-identity",
+      "path": "screenshots/journey/96w-detach-copied-original-source-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96x-regenerate-display-for-copied-feature-owners",
+      "path": "screenshots/journey/96x-regenerate-display-for-copied-feature-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96y-address-feature-pixels-to-original-cad-owners",
+      "path": "screenshots/journey/96y-address-feature-pixels-to-original-cad-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96z-preserve-source-feature-visibility-and-pixel-styles",
+      "path": "screenshots/journey/96z-preserve-source-feature-visibility-and-pixel-styles.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96za-address-original-controls-with-family-keys",
+      "path": "screenshots/journey/96za-address-original-controls-with-family-keys.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zb-draw-and-pick-original-cad-control-points",
+      "path": "screenshots/journey/96zb-draw-and-pick-original-cad-control-points.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zc-share-the-current-control-point-style",
+      "path": "screenshots/journey/96zc-share-the-current-control-point-style.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zd-reuse-world-controls-for-their-display-nets",
+      "path": "screenshots/journey/96zd-reuse-world-controls-for-their-display-nets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96ze-scope-controls-to-the-selected-original",
+      "path": "screenshots/journey/96ze-scope-controls-to-the-selected-original.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zf-edit-original-controls-through-the-source-preview",
+      "path": "screenshots/journey/96zf-edit-original-controls-through-the-source-preview.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zg-rebuild-an-edited-element-without-replacing-its-owner",
+      "path": "screenshots/journey/96zg-rebuild-an-edited-element-without-replacing-its-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Earlier course-only lane/record/finite-AA abstractions remain staged where divergent; current production extraction and matched acceptance are pending."
+  ]
+}

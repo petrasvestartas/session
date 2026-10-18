@@ -1,0 +1,1 @@
+@vertex fn vs_pick_count(@location(0) position:vec3<f32>,@builtin(instance_index) plane:u32)->CountOut{var output=count_corner(position,plane,object_at(0u));output.pos=cap_crop.transform*output.pos;return output;}

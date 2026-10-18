@@ -1,0 +1,1 @@
+self.records.allocated_bytes()+if self.batches.is_empty()

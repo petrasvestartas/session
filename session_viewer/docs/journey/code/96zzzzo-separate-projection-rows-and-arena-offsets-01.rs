@@ -1,0 +1,1 @@
+fn physical_clip_corner(index:u32,row:u32,first:u32)->vec4<f32>{

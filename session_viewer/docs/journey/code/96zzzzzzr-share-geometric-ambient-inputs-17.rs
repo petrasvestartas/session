@@ -1,0 +1,1 @@
+ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));

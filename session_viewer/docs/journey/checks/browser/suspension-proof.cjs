@@ -21,7 +21,7 @@ module.exports = async (original, helpers) => {
             return {attributes: Object.fromEntries(['data-row-placements', 'data-selected-id', 'data-camera-matrix', 'data-gpu-stats']
                 .map(name => [name, canvas.getAttribute(name)])), history: JSON.parse(canvas.getAttribute('data-command-ui')).history};
         });
-        const drawing = () => page.evaluate(() => document.querySelector('canvas').toDataURL());
+        const drawing = () => require('./canvas-image.cjs')(page.locator('canvas'));
         await page.activate(); await page.send('Page.navigate', {url: original.url()});
         await wait(() => window.wasmBindings?.runtime_running?.() && document.querySelector('canvas')?.hasAttribute('data-command-ui'));
         await wait(() => !document.hidden);

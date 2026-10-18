@@ -1,4 +1,6 @@
-# 32fc · Record a reload version without retaining geometry
+# 3.16.10 · Record a reload version without retaining geometry
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 21–41 minutes.** [Estimate](typing-load.md).
 
@@ -21,10 +23,10 @@ prost = "=0.14.4"
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```toml
---8<-- "journey/code/32fc-version-01.toml"
+--8<-- "journey/code/32fc-version-01.toml" skip=18
 ```
 
 ### 2. `src/lib.rs`
@@ -40,10 +42,10 @@ pub mod row_metadata;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32fc-version-02.rs"
+--8<-- "journey/code/32fc-version-02.rs" skip=22
 ```
 
 ### 3. `src/origin.rs`
@@ -58,35 +60,31 @@ Create the file and type:
 
 ## Run and check
 
-After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
+Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 32fc-version
+npm --prefix ../session_tests run course -- dependencies 3.16.10
 ```
 
 In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the version checks below. Changing one file byte changes its fingerprint; importing the same bytes again gets a distinct import ID. The browser picture is unchanged.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Record a reload version without retaining geometry.](../screenshots/journey/32fc-version-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for record a reload version without retaining geometry.](../screenshots/journey/32fc-version.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -120,8 +118,8 @@ Change one source byte and predict the version comparison. Then import identical
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32fc-version
-npm --prefix ../session_tests run course -- save 32fc-version
+npm --prefix ../session_tests run course -- check 3.16.10
+npm --prefix ../session_tests run course -- save 3.16.10
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -140,7 +138,7 @@ Production released sources retain document/tree metadata. This module prepares 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32fc-version
+npm --prefix ../session_tests run course -- capture 3.16.10
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

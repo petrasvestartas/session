@@ -1,0 +1,1 @@
+map(|b|b.records.size()+b.slots.allocated_bytes()).sum()

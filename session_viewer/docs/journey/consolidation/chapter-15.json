@@ -1,0 +1,879 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 15,
+  "title": "Transforms and surface construction",
+  "first": "77-copy-current-transformation-and-source-edit-algorithms",
+  "end_before": "81-project-originals-through-the-current-plane-algorithms",
+  "lessons": [
+    {
+      "id": "77-copy-current-transformation-and-source-edit-algorithms",
+      "title": "Original transforms, part edits and solid recipes",
+      "page": "journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms.md",
+      "steps": [
+        "77-copy-current-transformation-and-source-edit-algorithms",
+        "77sa-compute-signed-construction-plane-rotation",
+        "77sb-address-original-controls-and-exclusive-part-selections",
+        "77sc-collect-finite-original-controls-and-mesh-vertices",
+        "77sd-connect-curve-polygons-and-surface-control-nets",
+        "77se-reuse-control-collectors-across-original-geometry-families",
+        "77sf-represent-original-geometry-edit-targets",
+        "77sg-resolve-original-mesh-vertices-for-part-edits",
+        "77sh-resolve-surface-grids-and-individual-source-controls",
+        "77si-collect-affected-points-across-cad-geometry-families",
+        "77sj-preserve-rational-weights-and-validate-brep-boundaries",
+        "77sk-transform-original-mesh-and-surface-controls",
+        "77sl-transform-original-line-polyline-point-and-curve-controls",
+        "77sm-transform-shared-brep-boundary-positions-coherently",
+        "77sn-dispatch-original-part-edits-and-retain-element-ownership",
+        "77so-map-sparse-original-vertex-keys-to-display-slots",
+        "77sp-compute-polygon-normals-from-original-boundaries",
+        "77sq-build-one-original-edge-table-and-record-incident-faces",
+        "77sr-preserve-hole-winding-and-complete-original-mesh-topology",
+        "77a-own-transformation-questions-and-the-selected-original-targets",
+        "77b-validate-point-and-number-transformation-answers",
+        "77c-resolve-typed-batches-and-temporary-transformation-previews",
+        "77d-resolve-original-cad-parts-and-complete-selected-bounds",
+        "77e-rebuild-an-edited-original-cad-source-before-adoption",
+        "77f-copy-original-rows-beside-their-existing-parents",
+        "77g-carry-transformation-state-through-the-existing-drawing-owner",
+        "77h-validate-selected-originals-before-beginning-or-committing-a-transform",
+        "77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions",
+        "77j-route-transform-input-cancellation-and-current-plane-changes",
+        "77k-connect-transformation-lifecycle-and-part-move-dispatch",
+        "77l-register-copy-scale-rotate-and-their-current-aliases",
+        "77m-apply-direct-scale-and-rotate-about-the-current-selection-center",
+        "77n-retain-earlier-selection-checks-with-source-part-support",
+        "77o-exercise-original-copy-transforms-history-and-exact-persistence",
+        "77zza-describe-curve-gathering-answers",
+        "77zzb-read-curve-gathering-values",
+        "77zzc-connect-gathering-recipes",
+        "77zzd-parse-gathering-command-words",
+        "77zze-track-ordered-curve-picks",
+        "77zzf-advance-and-cancel-curve-picks",
+        "77zzg-prepare-placed-kernel-curves",
+        "77zzh-check-original-loops-and-surface-controls",
+        "77zzi-align-original-sections-and-loft-through-them",
+        "77zzj-find-extrusion-axes-and-cap-eligibility",
+        "77zzk-map-cap-curves-to-surface-parameters",
+        "77zzl-build-closed-curved-extrusion-topology",
+        "77zzm-extrude-original-corners-and-curves",
+        "77zzn-connect-the-original-extrusion-recipe",
+        "77zzo-revolve-original-profiles-around-an-axis"
+      ],
+      "checkpoint": "77zzo-revolve-original-profiles-around-an-axis"
+    },
+    {
+      "id": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "title": "Profile collection and one surfacing transaction",
+      "page": "journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md",
+      "steps": [
+        "78-copy-current-curve-collection-and-surfacing-recipes",
+        "78a-own-picked-originals-and-world-profile-copies",
+        "78b-resolve-a-recipe-input-and-guard-picked-source-freshness",
+        "78c-accept-curve-picks-and-geometric-answers-atomically",
+        "78d-read-options-and-typed-batches-without-partial-results",
+        "78e-constrain-distance-input-and-draw-lifted-profile-wires",
+        "78f-carry-gather-state-through-the-current-tool-owner",
+        "78g-adopt-every-generated-original-in-one-history-transaction",
+        "78h-start-and-advance-the-recipe-through-the-existing-editor",
+        "78i-route-typed-answers-and-axis-cursor-input",
+        "78j-restore-selection-and-preserve-the-gather-lifecycle",
+        "78k-register-extrusion-revolution-and-browser-curve-picking",
+        "78l-pick-original-profiles-through-the-browser-integer-pass",
+        "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
+      ],
+      "checkpoint": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
+    },
+    {
+      "id": "79-retain-current-loft-section-order-and-degree-options",
+      "title": "Lofts, rail sweeps and network foundations",
+      "page": "journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md",
+      "steps": [
+        "79-retain-current-loft-section-order-and-degree-options",
+        "79aa-frame-original-profiles-on-their-rail",
+        "79ab-carry-and-blend-original-profiles-along-the-rail",
+        "79a-carry-original-profiles-along-one-rail",
+        "79b-align-shape-curves-between-two-original-rails",
+        "79c-register-loft-sweep-names-options-and-aliases",
+        "79d-exercise-original-sections-rail-groups-and-exact-persistence",
+        "79zza-sample-original-network-curve-stations",
+        "79zzb-classify-two-original-network-directions",
+        "79zzc-order-and-orient-original-network-curves",
+        "79zzd-sample-original-network-lofts-and-tensor",
+        "79zze-fit-the-original-gordon-surface"
+      ],
+      "checkpoint": "79zze-fit-the-original-gordon-surface"
+    },
+    {
+      "id": "80-build-a-surface-through-two-directions-of-original-curves",
+      "title": "Two-direction networks and corner patches",
+      "page": "journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md",
+      "steps": [
+        "80-build-a-surface-through-two-directions-of-original-curves",
+        "80a-construct-the-patch-through-four-ordered-corners",
+        "80b-guide-corner-questions-without-retaining-unrelated-profiles",
+        "80c-register-network-patch-aliases-and-initial-corner-arity",
+        "80d-exercise-networks-corner-retries-and-exact-original-archives",
+        "80za-read-original-projection-planes"
+      ],
+      "checkpoint": "80za-read-original-projection-planes"
+    }
+  ],
+  "old_step_to_lesson": {
+    "77-copy-current-transformation-and-source-edit-algorithms": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77-copy-current-transformation-and-source-edit-algorithms"
+    },
+    "77sa-compute-signed-construction-plane-rotation": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sa-compute-signed-construction-plane-rotation"
+    },
+    "77sb-address-original-controls-and-exclusive-part-selections": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sb-address-original-controls-and-exclusive-part-selections"
+    },
+    "77sc-collect-finite-original-controls-and-mesh-vertices": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sc-collect-finite-original-controls-and-mesh-vertices"
+    },
+    "77sd-connect-curve-polygons-and-surface-control-nets": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sd-connect-curve-polygons-and-surface-control-nets"
+    },
+    "77se-reuse-control-collectors-across-original-geometry-families": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77se-reuse-control-collectors-across-original-geometry-families"
+    },
+    "77sf-represent-original-geometry-edit-targets": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sf-represent-original-geometry-edit-targets"
+    },
+    "77sg-resolve-original-mesh-vertices-for-part-edits": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sg-resolve-original-mesh-vertices-for-part-edits"
+    },
+    "77sh-resolve-surface-grids-and-individual-source-controls": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sh-resolve-surface-grids-and-individual-source-controls"
+    },
+    "77si-collect-affected-points-across-cad-geometry-families": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77si-collect-affected-points-across-cad-geometry-families"
+    },
+    "77sj-preserve-rational-weights-and-validate-brep-boundaries": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sj-preserve-rational-weights-and-validate-brep-boundaries"
+    },
+    "77sk-transform-original-mesh-and-surface-controls": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sk-transform-original-mesh-and-surface-controls"
+    },
+    "77sl-transform-original-line-polyline-point-and-curve-controls": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sl-transform-original-line-polyline-point-and-curve-controls"
+    },
+    "77sm-transform-shared-brep-boundary-positions-coherently": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sm-transform-shared-brep-boundary-positions-coherently"
+    },
+    "77sn-dispatch-original-part-edits-and-retain-element-ownership": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sn-dispatch-original-part-edits-and-retain-element-ownership"
+    },
+    "77so-map-sparse-original-vertex-keys-to-display-slots": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77so-map-sparse-original-vertex-keys-to-display-slots"
+    },
+    "77sp-compute-polygon-normals-from-original-boundaries": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sp-compute-polygon-normals-from-original-boundaries"
+    },
+    "77sq-build-one-original-edge-table-and-record-incident-faces": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sq-build-one-original-edge-table-and-record-incident-faces"
+    },
+    "77sr-preserve-hole-winding-and-complete-original-mesh-topology": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77sr-preserve-hole-winding-and-complete-original-mesh-topology"
+    },
+    "77a-own-transformation-questions-and-the-selected-original-targets": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77a-own-transformation-questions-and-the-selected-original-targets"
+    },
+    "77b-validate-point-and-number-transformation-answers": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77b-validate-point-and-number-transformation-answers"
+    },
+    "77c-resolve-typed-batches-and-temporary-transformation-previews": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77c-resolve-typed-batches-and-temporary-transformation-previews"
+    },
+    "77d-resolve-original-cad-parts-and-complete-selected-bounds": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77d-resolve-original-cad-parts-and-complete-selected-bounds"
+    },
+    "77e-rebuild-an-edited-original-cad-source-before-adoption": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77e-rebuild-an-edited-original-cad-source-before-adoption"
+    },
+    "77f-copy-original-rows-beside-their-existing-parents": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77f-copy-original-rows-beside-their-existing-parents"
+    },
+    "77g-carry-transformation-state-through-the-existing-drawing-owner": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77g-carry-transformation-state-through-the-existing-drawing-owner"
+    },
+    "77h-validate-selected-originals-before-beginning-or-committing-a-transform": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77h-validate-selected-originals-before-beginning-or-committing-a-transform"
+    },
+    "77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions"
+    },
+    "77j-route-transform-input-cancellation-and-current-plane-changes": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77j-route-transform-input-cancellation-and-current-plane-changes"
+    },
+    "77k-connect-transformation-lifecycle-and-part-move-dispatch": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77k-connect-transformation-lifecycle-and-part-move-dispatch"
+    },
+    "77l-register-copy-scale-rotate-and-their-current-aliases": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77l-register-copy-scale-rotate-and-their-current-aliases"
+    },
+    "77m-apply-direct-scale-and-rotate-about-the-current-selection-center": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77m-apply-direct-scale-and-rotate-about-the-current-selection-center"
+    },
+    "77n-retain-earlier-selection-checks-with-source-part-support": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77n-retain-earlier-selection-checks-with-source-part-support"
+    },
+    "77o-exercise-original-copy-transforms-history-and-exact-persistence": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77o-exercise-original-copy-transforms-history-and-exact-persistence"
+    },
+    "77zza-describe-curve-gathering-answers": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zza-describe-curve-gathering-answers"
+    },
+    "77zzb-read-curve-gathering-values": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzb-read-curve-gathering-values"
+    },
+    "77zzc-connect-gathering-recipes": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzc-connect-gathering-recipes"
+    },
+    "77zzd-parse-gathering-command-words": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzd-parse-gathering-command-words"
+    },
+    "77zze-track-ordered-curve-picks": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zze-track-ordered-curve-picks"
+    },
+    "77zzf-advance-and-cancel-curve-picks": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzf-advance-and-cancel-curve-picks"
+    },
+    "77zzg-prepare-placed-kernel-curves": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzg-prepare-placed-kernel-curves"
+    },
+    "77zzh-check-original-loops-and-surface-controls": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzh-check-original-loops-and-surface-controls"
+    },
+    "77zzi-align-original-sections-and-loft-through-them": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzi-align-original-sections-and-loft-through-them"
+    },
+    "77zzj-find-extrusion-axes-and-cap-eligibility": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzj-find-extrusion-axes-and-cap-eligibility"
+    },
+    "77zzk-map-cap-curves-to-surface-parameters": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzk-map-cap-curves-to-surface-parameters"
+    },
+    "77zzl-build-closed-curved-extrusion-topology": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzl-build-closed-curved-extrusion-topology"
+    },
+    "77zzm-extrude-original-corners-and-curves": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzm-extrude-original-corners-and-curves"
+    },
+    "77zzn-connect-the-original-extrusion-recipe": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzn-connect-the-original-extrusion-recipe"
+    },
+    "77zzo-revolve-original-profiles-around-an-axis": {
+      "lesson": "77-copy-current-transformation-and-source-edit-algorithms",
+      "anchor": "checkpoint-77zzo-revolve-original-profiles-around-an-axis"
+    },
+    "78-copy-current-curve-collection-and-surfacing-recipes": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78-copy-current-curve-collection-and-surfacing-recipes"
+    },
+    "78a-own-picked-originals-and-world-profile-copies": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78a-own-picked-originals-and-world-profile-copies"
+    },
+    "78b-resolve-a-recipe-input-and-guard-picked-source-freshness": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78b-resolve-a-recipe-input-and-guard-picked-source-freshness"
+    },
+    "78c-accept-curve-picks-and-geometric-answers-atomically": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78c-accept-curve-picks-and-geometric-answers-atomically"
+    },
+    "78d-read-options-and-typed-batches-without-partial-results": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78d-read-options-and-typed-batches-without-partial-results"
+    },
+    "78e-constrain-distance-input-and-draw-lifted-profile-wires": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78e-constrain-distance-input-and-draw-lifted-profile-wires"
+    },
+    "78f-carry-gather-state-through-the-current-tool-owner": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78f-carry-gather-state-through-the-current-tool-owner"
+    },
+    "78g-adopt-every-generated-original-in-one-history-transaction": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78g-adopt-every-generated-original-in-one-history-transaction"
+    },
+    "78h-start-and-advance-the-recipe-through-the-existing-editor": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78h-start-and-advance-the-recipe-through-the-existing-editor"
+    },
+    "78i-route-typed-answers-and-axis-cursor-input": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78i-route-typed-answers-and-axis-cursor-input"
+    },
+    "78j-restore-selection-and-preserve-the-gather-lifecycle": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78j-restore-selection-and-preserve-the-gather-lifecycle"
+    },
+    "78k-register-extrusion-revolution-and-browser-curve-picking": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78k-register-extrusion-revolution-and-browser-curve-picking"
+    },
+    "78l-pick-original-profiles-through-the-browser-integer-pass": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78l-pick-original-profiles-through-the-browser-integer-pass"
+    },
+    "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction": {
+      "lesson": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "anchor": "checkpoint-78m-exercise-profiles-exact-surfaces-and-one-undo-transaction"
+    },
+    "79-retain-current-loft-section-order-and-degree-options": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79-retain-current-loft-section-order-and-degree-options"
+    },
+    "79aa-frame-original-profiles-on-their-rail": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79aa-frame-original-profiles-on-their-rail"
+    },
+    "79ab-carry-and-blend-original-profiles-along-the-rail": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79ab-carry-and-blend-original-profiles-along-the-rail"
+    },
+    "79a-carry-original-profiles-along-one-rail": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79a-carry-original-profiles-along-one-rail"
+    },
+    "79b-align-shape-curves-between-two-original-rails": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79b-align-shape-curves-between-two-original-rails"
+    },
+    "79c-register-loft-sweep-names-options-and-aliases": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79c-register-loft-sweep-names-options-and-aliases"
+    },
+    "79d-exercise-original-sections-rail-groups-and-exact-persistence": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79d-exercise-original-sections-rail-groups-and-exact-persistence"
+    },
+    "79zza-sample-original-network-curve-stations": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79zza-sample-original-network-curve-stations"
+    },
+    "79zzb-classify-two-original-network-directions": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79zzb-classify-two-original-network-directions"
+    },
+    "79zzc-order-and-orient-original-network-curves": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79zzc-order-and-orient-original-network-curves"
+    },
+    "79zzd-sample-original-network-lofts-and-tensor": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79zzd-sample-original-network-lofts-and-tensor"
+    },
+    "79zze-fit-the-original-gordon-surface": {
+      "lesson": "79-retain-current-loft-section-order-and-degree-options",
+      "anchor": "checkpoint-79zze-fit-the-original-gordon-surface"
+    },
+    "80-build-a-surface-through-two-directions-of-original-curves": {
+      "lesson": "80-build-a-surface-through-two-directions-of-original-curves",
+      "anchor": "checkpoint-80-build-a-surface-through-two-directions-of-original-curves"
+    },
+    "80a-construct-the-patch-through-four-ordered-corners": {
+      "lesson": "80-build-a-surface-through-two-directions-of-original-curves",
+      "anchor": "checkpoint-80a-construct-the-patch-through-four-ordered-corners"
+    },
+    "80b-guide-corner-questions-without-retaining-unrelated-profiles": {
+      "lesson": "80-build-a-surface-through-two-directions-of-original-curves",
+      "anchor": "checkpoint-80b-guide-corner-questions-without-retaining-unrelated-profiles"
+    },
+    "80c-register-network-patch-aliases-and-initial-corner-arity": {
+      "lesson": "80-build-a-surface-through-two-directions-of-original-curves",
+      "anchor": "checkpoint-80c-register-network-patch-aliases-and-initial-corner-arity"
+    },
+    "80d-exercise-networks-corner-retries-and-exact-original-archives": {
+      "lesson": "80-build-a-surface-through-two-directions-of-original-curves",
+      "anchor": "checkpoint-80d-exercise-networks-corner-retries-and-exact-original-archives"
+    },
+    "80za-read-original-projection-planes": {
+      "lesson": "80-build-a-surface-through-two-directions-of-original-curves",
+      "anchor": "checkpoint-80za-read-original-projection-planes"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/deform.rs",
+      "session_viewer/src/state/edit.rs",
+      "session_viewer/src/app/command/tool/gather.rs",
+      "session_viewer/src/app/command/tool/surfacing.rs",
+      "session_viewer/src/app/walk/mesh.rs",
+      "session_viewer/src/app/walk/brep.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "77-copy-current-transformation-and-source-edit-algorithms",
+      "path": "screenshots/journey/77-copy-current-transformation-and-source-edit-algorithms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sa-compute-signed-construction-plane-rotation",
+      "path": "screenshots/journey/77sa-compute-signed-construction-plane-rotation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sb-address-original-controls-and-exclusive-part-selections",
+      "path": "screenshots/journey/77sb-address-original-controls-and-exclusive-part-selections.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sc-collect-finite-original-controls-and-mesh-vertices",
+      "path": "screenshots/journey/77sc-collect-finite-original-controls-and-mesh-vertices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sd-connect-curve-polygons-and-surface-control-nets",
+      "path": "screenshots/journey/77sd-connect-curve-polygons-and-surface-control-nets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77se-reuse-control-collectors-across-original-geometry-families",
+      "path": "screenshots/journey/77se-reuse-control-collectors-across-original-geometry-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sf-represent-original-geometry-edit-targets",
+      "path": "screenshots/journey/77sf-represent-original-geometry-edit-targets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sg-resolve-original-mesh-vertices-for-part-edits",
+      "path": "screenshots/journey/77sg-resolve-original-mesh-vertices-for-part-edits.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sh-resolve-surface-grids-and-individual-source-controls",
+      "path": "screenshots/journey/77sh-resolve-surface-grids-and-individual-source-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77si-collect-affected-points-across-cad-geometry-families",
+      "path": "screenshots/journey/77si-collect-affected-points-across-cad-geometry-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sj-preserve-rational-weights-and-validate-brep-boundaries",
+      "path": "screenshots/journey/77sj-preserve-rational-weights-and-validate-brep-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sk-transform-original-mesh-and-surface-controls",
+      "path": "screenshots/journey/77sk-transform-original-mesh-and-surface-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sl-transform-original-line-polyline-point-and-curve-controls",
+      "path": "screenshots/journey/77sl-transform-original-line-polyline-point-and-curve-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sm-transform-shared-brep-boundary-positions-coherently",
+      "path": "screenshots/journey/77sm-transform-shared-brep-boundary-positions-coherently.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sn-dispatch-original-part-edits-and-retain-element-ownership",
+      "path": "screenshots/journey/77sn-dispatch-original-part-edits-and-retain-element-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77so-map-sparse-original-vertex-keys-to-display-slots",
+      "path": "screenshots/journey/77so-map-sparse-original-vertex-keys-to-display-slots.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sp-compute-polygon-normals-from-original-boundaries",
+      "path": "screenshots/journey/77sp-compute-polygon-normals-from-original-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sq-build-one-original-edge-table-and-record-incident-faces",
+      "path": "screenshots/journey/77sq-build-one-original-edge-table-and-record-incident-faces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77sr-preserve-hole-winding-and-complete-original-mesh-topology",
+      "path": "screenshots/journey/77sr-preserve-hole-winding-and-complete-original-mesh-topology.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77a-own-transformation-questions-and-the-selected-original-targets",
+      "path": "screenshots/journey/77a-own-transformation-questions-and-the-selected-original-targets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77b-validate-point-and-number-transformation-answers",
+      "path": "screenshots/journey/77b-validate-point-and-number-transformation-answers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77c-resolve-typed-batches-and-temporary-transformation-previews",
+      "path": "screenshots/journey/77c-resolve-typed-batches-and-temporary-transformation-previews.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77d-resolve-original-cad-parts-and-complete-selected-bounds",
+      "path": "screenshots/journey/77d-resolve-original-cad-parts-and-complete-selected-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77e-rebuild-an-edited-original-cad-source-before-adoption",
+      "path": "screenshots/journey/77e-rebuild-an-edited-original-cad-source-before-adoption.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77f-copy-original-rows-beside-their-existing-parents",
+      "path": "screenshots/journey/77f-copy-original-rows-beside-their-existing-parents.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77g-carry-transformation-state-through-the-existing-drawing-owner",
+      "path": "screenshots/journey/77g-carry-transformation-state-through-the-existing-drawing-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77h-validate-selected-originals-before-beginning-or-committing-a-transform",
+      "path": "screenshots/journey/77h-validate-selected-originals-before-beginning-or-committing-a-transform.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions",
+      "path": "screenshots/journey/77i-adopt-validated-outcomes-and-preserve-repeat-copy-transactions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77j-route-transform-input-cancellation-and-current-plane-changes",
+      "path": "screenshots/journey/77j-route-transform-input-cancellation-and-current-plane-changes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77k-connect-transformation-lifecycle-and-part-move-dispatch",
+      "path": "screenshots/journey/77k-connect-transformation-lifecycle-and-part-move-dispatch.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77l-register-copy-scale-rotate-and-their-current-aliases",
+      "path": "screenshots/journey/77l-register-copy-scale-rotate-and-their-current-aliases.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77m-apply-direct-scale-and-rotate-about-the-current-selection-center",
+      "path": "screenshots/journey/77m-apply-direct-scale-and-rotate-about-the-current-selection-center.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77n-retain-earlier-selection-checks-with-source-part-support",
+      "path": "screenshots/journey/77n-retain-earlier-selection-checks-with-source-part-support.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77o-exercise-original-copy-transforms-history-and-exact-persistence",
+      "path": "screenshots/journey/77o-exercise-original-copy-transforms-history-and-exact-persistence.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zza-describe-curve-gathering-answers",
+      "path": "screenshots/journey/77zza-describe-curve-gathering-answers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzb-read-curve-gathering-values",
+      "path": "screenshots/journey/77zzb-read-curve-gathering-values.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzc-connect-gathering-recipes",
+      "path": "screenshots/journey/77zzc-connect-gathering-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzd-parse-gathering-command-words",
+      "path": "screenshots/journey/77zzd-parse-gathering-command-words.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zze-track-ordered-curve-picks",
+      "path": "screenshots/journey/77zze-track-ordered-curve-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzf-advance-and-cancel-curve-picks",
+      "path": "screenshots/journey/77zzf-advance-and-cancel-curve-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzg-prepare-placed-kernel-curves",
+      "path": "screenshots/journey/77zzg-prepare-placed-kernel-curves.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzh-check-original-loops-and-surface-controls",
+      "path": "screenshots/journey/77zzh-check-original-loops-and-surface-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzi-align-original-sections-and-loft-through-them",
+      "path": "screenshots/journey/77zzi-align-original-sections-and-loft-through-them.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzj-find-extrusion-axes-and-cap-eligibility",
+      "path": "screenshots/journey/77zzj-find-extrusion-axes-and-cap-eligibility.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzk-map-cap-curves-to-surface-parameters",
+      "path": "screenshots/journey/77zzk-map-cap-curves-to-surface-parameters.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzl-build-closed-curved-extrusion-topology",
+      "path": "screenshots/journey/77zzl-build-closed-curved-extrusion-topology.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzm-extrude-original-corners-and-curves",
+      "path": "screenshots/journey/77zzm-extrude-original-corners-and-curves.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzn-connect-the-original-extrusion-recipe",
+      "path": "screenshots/journey/77zzn-connect-the-original-extrusion-recipe.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "77zzo-revolve-original-profiles-around-an-axis",
+      "path": "screenshots/journey/77zzo-revolve-original-profiles-around-an-axis.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78-copy-current-curve-collection-and-surfacing-recipes",
+      "path": "screenshots/journey/78-copy-current-curve-collection-and-surfacing-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78a-own-picked-originals-and-world-profile-copies",
+      "path": "screenshots/journey/78a-own-picked-originals-and-world-profile-copies.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78b-resolve-a-recipe-input-and-guard-picked-source-freshness",
+      "path": "screenshots/journey/78b-resolve-a-recipe-input-and-guard-picked-source-freshness.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78c-accept-curve-picks-and-geometric-answers-atomically",
+      "path": "screenshots/journey/78c-accept-curve-picks-and-geometric-answers-atomically.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78d-read-options-and-typed-batches-without-partial-results",
+      "path": "screenshots/journey/78d-read-options-and-typed-batches-without-partial-results.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78e-constrain-distance-input-and-draw-lifted-profile-wires",
+      "path": "screenshots/journey/78e-constrain-distance-input-and-draw-lifted-profile-wires.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78f-carry-gather-state-through-the-current-tool-owner",
+      "path": "screenshots/journey/78f-carry-gather-state-through-the-current-tool-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78g-adopt-every-generated-original-in-one-history-transaction",
+      "path": "screenshots/journey/78g-adopt-every-generated-original-in-one-history-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78h-start-and-advance-the-recipe-through-the-existing-editor",
+      "path": "screenshots/journey/78h-start-and-advance-the-recipe-through-the-existing-editor.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78i-route-typed-answers-and-axis-cursor-input",
+      "path": "screenshots/journey/78i-route-typed-answers-and-axis-cursor-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78j-restore-selection-and-preserve-the-gather-lifecycle",
+      "path": "screenshots/journey/78j-restore-selection-and-preserve-the-gather-lifecycle.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78k-register-extrusion-revolution-and-browser-curve-picking",
+      "path": "screenshots/journey/78k-register-extrusion-revolution-and-browser-curve-picking.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78l-pick-original-profiles-through-the-browser-integer-pass",
+      "path": "screenshots/journey/78l-pick-original-profiles-through-the-browser-integer-pass.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "78m-exercise-profiles-exact-surfaces-and-one-undo-transaction",
+      "path": "screenshots/journey/78m-exercise-profiles-exact-surfaces-and-one-undo-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79-retain-current-loft-section-order-and-degree-options",
+      "path": "screenshots/journey/79-retain-current-loft-section-order-and-degree-options.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79aa-frame-original-profiles-on-their-rail",
+      "path": "screenshots/journey/79aa-frame-original-profiles-on-their-rail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79ab-carry-and-blend-original-profiles-along-the-rail",
+      "path": "screenshots/journey/79ab-carry-and-blend-original-profiles-along-the-rail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79a-carry-original-profiles-along-one-rail",
+      "path": "screenshots/journey/79a-carry-original-profiles-along-one-rail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79b-align-shape-curves-between-two-original-rails",
+      "path": "screenshots/journey/79b-align-shape-curves-between-two-original-rails.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79c-register-loft-sweep-names-options-and-aliases",
+      "path": "screenshots/journey/79c-register-loft-sweep-names-options-and-aliases.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79d-exercise-original-sections-rail-groups-and-exact-persistence",
+      "path": "screenshots/journey/79d-exercise-original-sections-rail-groups-and-exact-persistence.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79zza-sample-original-network-curve-stations",
+      "path": "screenshots/journey/79zza-sample-original-network-curve-stations.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79zzb-classify-two-original-network-directions",
+      "path": "screenshots/journey/79zzb-classify-two-original-network-directions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79zzc-order-and-orient-original-network-curves",
+      "path": "screenshots/journey/79zzc-order-and-orient-original-network-curves.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79zzd-sample-original-network-lofts-and-tensor",
+      "path": "screenshots/journey/79zzd-sample-original-network-lofts-and-tensor.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "79zze-fit-the-original-gordon-surface",
+      "path": "screenshots/journey/79zze-fit-the-original-gordon-surface.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "80-build-a-surface-through-two-directions-of-original-curves",
+      "path": "screenshots/journey/80-build-a-surface-through-two-directions-of-original-curves.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "80a-construct-the-patch-through-four-ordered-corners",
+      "path": "screenshots/journey/80a-construct-the-patch-through-four-ordered-corners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "80b-guide-corner-questions-without-retaining-unrelated-profiles",
+      "path": "screenshots/journey/80b-guide-corner-questions-without-retaining-unrelated-profiles.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "80c-register-network-patch-aliases-and-initial-corner-arity",
+      "path": "screenshots/journey/80c-register-network-patch-aliases-and-initial-corner-arity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "80d-exercise-networks-corner-retries-and-exact-original-archives",
+      "path": "screenshots/journey/80d-exercise-networks-corner-retries-and-exact-original-archives.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "80za-read-original-projection-planes",
+      "path": "screenshots/journey/80za-read-original-projection-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

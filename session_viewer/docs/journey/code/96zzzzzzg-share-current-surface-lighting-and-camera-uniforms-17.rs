@@ -1,0 +1,1 @@
+let inverse=crate::clipping_uniform::inverse(&mvp)?.m.map(|v|v as f32);

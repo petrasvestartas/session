@@ -1,0 +1,1 @@
+  if rows.len()>capacity(&ctx.device)||u32::try_from(rows.len()).is_err()

@@ -1,0 +1,6 @@
+    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
+    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
+    ("Hide",||Action::Hide),
+    ("Show",||Action::Show),
+    ("Example Box", || Action::AddBox),
+    ("Example Nested",||Action::AddNested),

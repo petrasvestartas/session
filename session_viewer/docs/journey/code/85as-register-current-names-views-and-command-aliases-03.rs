@@ -1,0 +1,5 @@
+    ("Polyline Rectangle",||Action::BeginTool(crate::tool::Shape::Rectangle)),
+    ("Polyline Polygon",||Action::BeginTool(crate::tool::Shape::Polygon {sides:6})),
+    ("Construction Plane",||Action::PlaneMenu),
+    ("Hide",||Action::Hide),
+    ("Show",||Action::Show),

@@ -1,6 +1,8 @@
-# 28 · Prepare a display from an owned source mesh
+# 3.12.1 · Prepare a display from an owned source mesh
 
-**Typing: 22–43 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.12 · Owned source meshes** · [Contents](contents.md)
+
+**Typing: 8–15 minutes.** [Estimate](typing-load.md).
 
 Introduce `PreparedMesh` between source construction and scene insertion. It retains the kernel mesh and a validated derived display. The live scene still uses its earlier insertion path; the next lessons connect this boundary.
 
@@ -31,21 +33,28 @@ pub mod mesh;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/28-record-02.rs"
+--8<-- "journey/code/28-record-02.rs" skip=14
 ```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/prepared_tests.rs`
 
-Compare original doubles with the display, and retain name, flags and GUID through preparation.
+Optional authoring fixture. Compare original doubles with the display, and retain name, flags and GUID through preparation.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/28-record-03.rs"
 ```
+
+</details>
 
 ### 4. `src/lib.rs`
 
@@ -61,10 +70,10 @@ mod move_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/28-record-04.rs"
+--8<-- "journey/code/28-record-04.rs" skip=29
 ```
 
 ## Run and check
@@ -73,25 +82,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the source-record checks below. The original double coordinate remains exact while the display uses floats. This preparation type does not change the browser picture yet.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prepare a display from an owned source mesh.](../screenshots/journey/28-record-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for prepare a display from an owned source mesh.](../screenshots/journey/28-record.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -127,8 +134,8 @@ Change the precision check’s coordinate to 123456789.125 and predict the sourc
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 28-record
-npm --prefix ../session_tests run course -- save 28-record
+npm --prefix ../session_tests run course -- check 3.12.1
+npm --prefix ../session_tests run course -- save 3.12.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

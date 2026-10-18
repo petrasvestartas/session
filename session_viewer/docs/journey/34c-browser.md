@@ -1,4 +1,6 @@
-# 34c · Read live diagnostic context outside the GPU runtime
+# 4.2.5 · Read live diagnostic context outside the GPU runtime
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 24–47 minutes.** [Estimate](typing-load.md).
 
@@ -26,16 +28,27 @@ Enable typed browser address, identity and monotonic-clock access.
 <summary>Locate the existing block</summary>
 
 ```toml
-"PageTransitionEvent", "Event",
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34c-browser-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -51,11 +64,23 @@ mod browser_runtime;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(target_arch = "wasm32")]
+mod browser_report;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34c-browser-03.rs"
 ```
+
+</details>
 
 ### 4. `src/browser.rs`
 
@@ -70,11 +95,23 @@ Start diagnostic context before awaiting the GPU connection; failure observation
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    crate::browser_report::start()?;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34c-browser-04.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -82,25 +119,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, inspect `window.wasmBindings.diagnostic_snapshot()`. Its viewport and canvas dimensions must match this browser. Resize and read again: context should refresh without changing the scene.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Read live diagnostic context outside the GPU runtime.](../screenshots/journey/34c-browser-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for read live diagnostic context outside the gpu runtime.](../screenshots/journey/34c-browser.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -136,8 +169,8 @@ Put the report inside Runtime instead, trigger the actual device-loss check, and
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34c-browser
-npm --prefix ../session_tests run course -- save 34c-browser
+npm --prefix ../session_tests run course -- check 4.2.5
+npm --prefix ../session_tests run course -- save 4.2.5
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -158,7 +191,7 @@ Chrome verifies real diagnostic context, sanitized URL, fresh dimensions, snapsh
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34c-browser
+npm --prefix ../session_tests run course -- capture 4.2.5
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,4 +1,6 @@
-# 36a · Link adjacent spans and headed ends
+# 5.2.2 · Link adjacent spans and headed ends
+
+**Chapter 5 · Lines, points and curves · Section 5.2 · Connected paths and arrows** · [Contents](contents.md)
 
 **Typing: 12–24 minutes.** [Estimate](typing-load.md).
 
@@ -24,21 +26,28 @@ Describe neighbours and heads without modifying the original source.
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/36a-links-01.rs"
+--8<-- "journey/code/36a-links-01.rs" skip=84
 ```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/chain_link_tests.rs`
 
 Copy closed-neighbour and headed-span checks.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/36a-links-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -53,11 +62,23 @@ pub mod chain;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(test)]
+mod chain_link_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/36a-links-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -65,25 +86,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run neighbour checks. A closed chain wraps both ends and suppresses free arrowheads; an open chain uses its first and last nonzero spans.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Link adjacent spans and headed ends.](../screenshots/journey/36a-links-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for link adjacent spans and headed ends.](../screenshots/journey/35cb-render.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [5.1.6 · Connect the stroke lane to the document renderer](35cb-render.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -94,9 +113,9 @@ shared display points → previous/current/next → closed wraparound → headed
 
 ![Neighbours and free-end flags describe one connected source path.](../illustrations/journey-36a.svg)
 
-Why are repeated display points removed without changing the source polyline?
+Which original does a prepared path link belong to?
 
-A zero-length projected span has no direction for extrusion. Display preparation can omit it while saving and editing retain the original coordinates.
+Its source polyline and original span address. Reuse the [display filtering rule](36-chain.md); do not turn sampled or omitted points into new editable originals.
 
 Study estimate, including typing and experiments: 0.75–1.25 hours.
 
@@ -115,8 +134,8 @@ Inspect a closed triangle and an open headed chain. Verify their source coordina
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 36a-links
-npm --prefix ../session_tests run course -- save 36a-links
+npm --prefix ../session_tests run course -- check 5.2.2
+npm --prefix ../session_tests run course -- save 5.2.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -137,7 +156,7 @@ Chrome retains the existing real line example while native tests verify connecte
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 36a-links
+npm --prefix ../session_tests run course -- capture 5.2.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+    pub fn cancel_pick(&mut self) {self.pick_cursor=None;self.picker.cancel();}

@@ -1,0 +1,1 @@
+group(device,if row.shared {&self.pipes.record_project_layout}else{&self.pipes.project_layout},&[&row.vertices

@@ -1,6 +1,8 @@
-# 32gja · Prove failed restoration cannot partly commit
+# 3.16.45 · Prove failed restoration cannot partly commit
 
-**Typing: 20–40 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
+
+**Typing: 1–1 minutes.** [Estimate](typing-load.md).
 
 Test restoration as one transaction across two imported origins. If the second body is invalid, neither source may be restored and the captured Save must not download anything.
 
@@ -21,21 +23,28 @@ mod reload_precision_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gja-failures-01.rs"
+--8<-- "journey/code/32gja-failures-01.rs" skip=28
 ```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/reload_failure_tests.rs`
 
-A failure, missing body, changed file, duplicate key or stale epoch must not partially restore a multi-source Save.
+Optional authoring fixture. A failure, missing body, changed file, duplicate key or stale epoch must not partially restore a multi-source Save.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/32gja-failures-02.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -43,25 +52,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the failed-restoration checks below. An invalid or incomplete reply must leave the scene, source residency and history unchanged, with no edit or Save download.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove failed restoration cannot partly commit.](../screenshots/journey/32gja-failures-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for prove failed restoration cannot partly commit.](../screenshots/journey/32gja-failures.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -83,7 +88,7 @@ Study estimate, including typing and experiments: 1–2 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Install each prepared source as soon as its fetch succeeds, then fail the second source. Explain which native and browser residency assertions identify the partial commit.
+Trace a successful first fetch followed by a failed second fetch. Explain how the browser residency checks distinguish atomic adoption from a partial commit.
 
 </details>
 
@@ -93,8 +98,8 @@ Install each prepared source as soon as its fetch succeeds, then fail the second
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gja-failures
-npm --prefix ../session_tests run course -- save 32gja-failures
+npm --prefix ../session_tests run course -- check 3.16.45
+npm --prefix ../session_tests run course -- save 3.16.45
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -121,7 +126,7 @@ Visible Chrome checks automatic Move/Delete/Save failures, unchanged drawing/sta
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gja-failures
+npm --prefix ../session_tests run course -- capture 3.16.45
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

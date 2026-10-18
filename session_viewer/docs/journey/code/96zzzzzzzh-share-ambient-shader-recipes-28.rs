@@ -1,0 +1,3 @@
+);let module=|label,source:String|device.create_shader_module(wgpu::ShaderModuleDescriptor{label:Some(label),source:wgpu::ShaderSource::Wgsl(source.into())});
+  let shader=module("current ambient recipe",shader_source);let depth_shader=module("ambient depth recipe",include_str!("ambient_depth.wgsl").into());let composite_shader=module("ambient composition",include_str!("ambient_composite.wgsl").into());
+  let groups=[So

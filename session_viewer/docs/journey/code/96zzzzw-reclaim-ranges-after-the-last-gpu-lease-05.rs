@@ -1,0 +1,1 @@
+self.leases.clear();self.rows.reset();self.vertices.reset();

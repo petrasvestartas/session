@@ -1,6 +1,8 @@
-# 20a · Remember the pointer that starts a drag
+# 3.4.2 · Remember the pointer that starts a drag
 
-**Typing: 20–39 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.4 · Resize and pointer motion** · [Contents](contents.md)
+
+**Typing: 14–27 minutes.** [Estimate](typing-load.md).
 
 Gesture remembers one pointer ID, its button and its positions. Reject a second press while that pointer is active. Each move reports the change from the previous position.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/20a-press-state.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/gesture_tests.rs`
 
-Check rejected presses, pointer ownership and movement from the previous position.
+Optional authoring fixture. Check rejected presses, pointer ownership and movement from the previous position.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/20a-press-tests.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -46,7 +55,7 @@ pub mod renderer;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/21-gestures-fullscreen-1.rs"
@@ -58,25 +67,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks. Another pointer cannot replace the press or move it; matching moves report relative deltas.
+Inspect the supplied state fixtures. Another pointer cannot replace the press or move it; matching moves report relative deltas.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Remember the pointer that starts a drag.](../screenshots/journey/20a-press-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for remember the pointer that starts a drag.](../screenshots/journey/20-resize.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [3.4.1 · Resize canvas, depth and camera together](20-resize.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -98,7 +105,7 @@ Study estimate, including typing and experiments: 0.75–1.25 hours.
 <details>
 <summary>Optional experiment</summary>
 
-In the native check, move the matching pointer to [30.0, 28.0]. Predict the delta from [20.0, 25.0] before running it.
+Trace a matching pointer moving from [20.0, 25.0] to [30.0, 28.0] through the supplied press fixture. Predict the delta before reading its expected result.
 
 </details>
 
@@ -108,8 +115,8 @@ In the native check, move the matching pointer to [30.0, 28.0]. Predict the delt
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 20a-press
-npm --prefix ../session_tests run course -- save 20a-press
+npm --prefix ../session_tests run course -- check 3.4.2
+npm --prefix ../session_tests run course -- save 3.4.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -128,7 +135,7 @@ Native checks establish one-pointer ownership and relative movement. Chrome reta
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 20a-press
+npm --prefix ../session_tests run course -- capture 3.4.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

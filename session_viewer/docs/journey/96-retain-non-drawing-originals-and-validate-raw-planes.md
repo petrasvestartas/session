@@ -1,0 +1,130 @@
+# 19.1.1 · Retain non drawing originals and validate raw planes
+
+**Chapter 19 · Integration and original ownership · Section 19.1 · Metadata and current command contracts** · [Contents](contents.md)
+
+**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+
+Retain non drawing originals and validate raw planes.
+
+## Type
+
+Continue from [Prove cache invalidation and honest performance reports](95f-prove-cache-invalidation-and-honest-performance-reports.md). [Save or recover your work](recovery.md).
+
+### 1. `src/source_metadata.rs`
+
+Own exact non drawing source metadata and pre-kernel plane validation.
+
+Create the file and type:
+
+```rust
+--8<-- "journey/code/96-retain-non-drawing-originals-and-validate-raw-planes-01.rs"
+```
+
+### 2. `src/lib.rs`
+
+Register the completed audit owner.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+#[cfg(test)]
+mod bench_tests;
+```
+
+</details>
+
+After that block, type:
+
+```rust
+--8<-- "journey/code/96-retain-non-drawing-originals-and-validate-raw-planes-02.rs" skip=30
+```
+
+## Run and check
+
+Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:
+
+```sh
+npm --prefix ../session_tests run course -- dependencies 19.1.1
+```
+
+In your project:
+
+```sh
+cd workspace/journey
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+```
+
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+
+
+
+### Recorded visual result
+
+**Previous native render — current verification pending.**
+
+Original blue solids and black boundaries remain intact after the performance changes.
+
+![Native renderer output for retain non drawing originals and validate raw planes.](../screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [18.6.4 · Prove the original comparison and inspect differences](94c-prove-the-original-comparison-and-inspect-differences.md). It does not demonstrate a new feature by itself.
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+
+
+audit original records and current source → preserve exact metadata → verify real registry outcomes.
+
+![Retain non drawing originals and validate raw planes.](../illustrations/96-retain-non-drawing-originals-and-validate-raw-planes.svg)
+
+Can a non drawing record be discarded during Save?
+
+Its component JSON, unknown interaction state and unused definitions still belong to the document. Retain their exact original records. Validate all twelve raw plane doubles before kernel defaults can replace malformed data.
+
+Study estimate, including typing and experiments: 0.5–1 hours.
+
+</details>
+
+<details>
+<summary>Optional experiment</summary>
+
+Inspect the component-only header and unused-definition selection. Compare retained serialized metadata size with actual heap/GPU memory; they are different measurements.
+
+</details>
+
+<details>
+<summary>Check and save your work</summary>
+
+Restore experimental edits, then run from `session_viewer`:
+
+```sh
+npm --prefix ../session_tests run course -- check 19.1.1
+npm --prefix ../session_tests run course -- save 19.1.1
+```
+
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
+
+<details>
+<summary>Viewer coverage and verification</summary>
+
+
+
+The supplied contract imports the real original metadata fixture, saves and reopens it through the teaching command dock, and checks retained metadata accounting. It is syntaxchecked; it has not been run in a browser.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 19.1.1
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

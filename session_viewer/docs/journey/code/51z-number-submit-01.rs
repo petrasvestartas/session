@@ -1,0 +1,7 @@
+    GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
+    GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
+    GizmoCancel,
+    GizmoNumber(String),
+    Snap(crate::snap::Setting),
+    ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
+    BeginTool(crate::tool::Shape),

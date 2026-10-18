@@ -1,0 +1,1 @@
+let mut segments=row.segments_at(anchor);

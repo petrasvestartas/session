@@ -1,0 +1,1 @@
+(camera.target[i] - anchor[i] - forward[i] * camera.distance) as f32

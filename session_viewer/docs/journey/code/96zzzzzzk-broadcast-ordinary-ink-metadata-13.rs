@@ -1,0 +1,1 @@
+stride,grid,true,varying,&view

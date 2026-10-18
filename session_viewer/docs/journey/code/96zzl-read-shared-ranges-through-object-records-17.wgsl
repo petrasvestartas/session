@@ -1,0 +1,1 @@
+positions[indices[index+object_settings.range.x]]

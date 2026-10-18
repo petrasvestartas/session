@@ -1,0 +1,5 @@
+    grid: crate::stroke_gpu::Lane,
+    grid_settings: Option<crate::grid::Settings>,
+    grid_plane:crate::cplane::CPlane,
+    size: [u32; 2],
+    density: f32,

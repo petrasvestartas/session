@@ -1,0 +1,1 @@
+mesh.geometry.draw_range(&mut pass,plane..plane+1);

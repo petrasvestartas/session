@@ -1,0 +1,10 @@
+    ("Quad Sphere",&crate::round_quad_sphere::SHAPE,0),
+    ("Quad Sphere Mesh",&crate::round_quad_sphere::SHAPE,0),
+    ("Nurbs Curve Circle",&crate::freeform_circle::SHAPE,0),
+    ("Nurbs Curve Ellipse",&crate::freeform_ellipse::SHAPE,0),
+    ("Nurbs Curve Arc",&crate::freeform_arc::SHAPE,0),
+    ("Nurbs Curve Arc Center",&crate::freeform_arc::SHAPE,0),
+    ("Nurbs Curve Arc 3 Points",&crate::freeform_arc::SHAPE,1),
+    ("Nurbs Curve Parabola",&crate::freeform_parabola::SHAPE,0),
+    ("bo",&crate::primitive_box::SHAPE,0),
+];

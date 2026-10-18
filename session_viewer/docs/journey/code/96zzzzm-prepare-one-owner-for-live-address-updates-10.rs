@@ -1,0 +1,1 @@
+assert_eq!(&gpu.instance_usage()[..3],&[2,2,376]);assert_eq!(gpu.instance_allocations(),[352,24]);

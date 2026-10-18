@@ -1,0 +1,1 @@
+Style{source_faces:true,selected:false,owner:owner.value(),colour:None}

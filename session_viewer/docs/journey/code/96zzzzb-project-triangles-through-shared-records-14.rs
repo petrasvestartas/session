@@ -1,0 +1,1 @@
+pass.set_pipeline(if row.shared {&self.pipes.record_project}else{&self.pipes.project});

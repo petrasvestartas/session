@@ -1,0 +1,266 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 2,
+  "title": "Geometry, camera and selection",
+  "first": "05-vertices",
+  "end_before": "17-solid",
+  "lessons": [
+    {
+      "id": "05-vertices",
+      "title": "Buffers that describe a shared mesh",
+      "page": "journey/consolidation/05-vertices.md",
+      "steps": [
+        "05-vertices",
+        "06-indices"
+      ],
+      "checkpoint": "06-indices"
+    },
+    {
+      "id": "07-uniforms",
+      "title": "Camera state and the world-to-clip transform",
+      "page": "journey/consolidation/07-uniforms.md",
+      "steps": [
+        "07-uniforms",
+        "08-camera",
+        "09-matrices"
+      ],
+      "checkpoint": "09-matrices"
+    },
+    {
+      "id": "10-depth",
+      "title": "Depth, validated geometry and stable objects",
+      "page": "journey/consolidation/10-depth.md",
+      "steps": [
+        "10-depth",
+        "10a-mesh",
+        "11-scene",
+        "11a-identity"
+      ],
+      "checkpoint": "11a-identity"
+    },
+    {
+      "id": "12-identity",
+      "title": "Selection that agrees with the displayed view",
+      "page": "journey/consolidation/12-identity.md",
+      "steps": [
+        "12-identity",
+        "12a-coordinates",
+        "12b-picking",
+        "13-picking"
+      ],
+      "checkpoint": "13-picking"
+    },
+    {
+      "id": "13a-history",
+      "title": "Document history and perspective rays",
+      "page": "journey/consolidation/13a-history.md",
+      "steps": [
+        "13a-history",
+        "14-history",
+        "14a-perspective",
+        "14b-ray"
+      ],
+      "checkpoint": "14b-ray"
+    },
+    {
+      "id": "15-perspective",
+      "title": "Perspective picking and orbit navigation",
+      "page": "journey/consolidation/15-perspective.md",
+      "steps": [
+        "15-perspective",
+        "16-orbit"
+      ],
+      "checkpoint": "16-orbit"
+    }
+  ],
+  "old_step_to_lesson": {
+    "05-vertices": {
+      "lesson": "05-vertices",
+      "anchor": "checkpoint-05-vertices"
+    },
+    "06-indices": {
+      "lesson": "05-vertices",
+      "anchor": "checkpoint-06-indices"
+    },
+    "07-uniforms": {
+      "lesson": "07-uniforms",
+      "anchor": "checkpoint-07-uniforms"
+    },
+    "08-camera": {
+      "lesson": "07-uniforms",
+      "anchor": "checkpoint-08-camera"
+    },
+    "09-matrices": {
+      "lesson": "07-uniforms",
+      "anchor": "checkpoint-09-matrices"
+    },
+    "10-depth": {
+      "lesson": "10-depth",
+      "anchor": "checkpoint-10-depth"
+    },
+    "10a-mesh": {
+      "lesson": "10-depth",
+      "anchor": "checkpoint-10a-mesh"
+    },
+    "11-scene": {
+      "lesson": "10-depth",
+      "anchor": "checkpoint-11-scene"
+    },
+    "11a-identity": {
+      "lesson": "10-depth",
+      "anchor": "checkpoint-11a-identity"
+    },
+    "12-identity": {
+      "lesson": "12-identity",
+      "anchor": "checkpoint-12-identity"
+    },
+    "12a-coordinates": {
+      "lesson": "12-identity",
+      "anchor": "checkpoint-12a-coordinates"
+    },
+    "12b-picking": {
+      "lesson": "12-identity",
+      "anchor": "checkpoint-12b-picking"
+    },
+    "13-picking": {
+      "lesson": "12-identity",
+      "anchor": "checkpoint-13-picking"
+    },
+    "13a-history": {
+      "lesson": "13a-history",
+      "anchor": "checkpoint-13a-history"
+    },
+    "14-history": {
+      "lesson": "13a-history",
+      "anchor": "checkpoint-14-history"
+    },
+    "14a-perspective": {
+      "lesson": "13a-history",
+      "anchor": "checkpoint-14a-perspective"
+    },
+    "14b-ray": {
+      "lesson": "13a-history",
+      "anchor": "checkpoint-14b-ray"
+    },
+    "15-perspective": {
+      "lesson": "15-perspective",
+      "anchor": "checkpoint-15-perspective"
+    },
+    "16-orbit": {
+      "lesson": "15-perspective",
+      "anchor": "checkpoint-16-orbit"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity."
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "05-vertices",
+      "path": "screenshots/journey/05-vertices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "06-indices",
+      "path": "screenshots/journey/06-indices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "07-uniforms",
+      "path": "screenshots/journey/07-uniforms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "08-camera",
+      "path": "screenshots/journey/08-camera.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "09-matrices",
+      "path": "screenshots/journey/09-matrices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "10-depth",
+      "path": "screenshots/journey/10-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "10a-mesh",
+      "path": "screenshots/journey/10a-mesh.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "11-scene",
+      "path": "screenshots/journey/11-scene.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "11a-identity",
+      "path": "screenshots/journey/11a-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "12-identity",
+      "path": "screenshots/journey/12-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "12a-coordinates",
+      "path": "screenshots/journey/12a-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "12b-picking",
+      "path": "screenshots/journey/12b-picking.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "13-picking",
+      "path": "screenshots/journey/13-picking.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "13a-history",
+      "path": "screenshots/journey/13a-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "14-history",
+      "path": "screenshots/journey/14-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "14a-perspective",
+      "path": "screenshots/journey/14a-perspective.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "14b-ray",
+      "path": "screenshots/journey/14b-ray.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "15-perspective",
+      "path": "screenshots/journey/15-perspective.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "16-orbit",
+      "path": "screenshots/journey/16-orbit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

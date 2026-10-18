@@ -1,0 +1,1 @@
+finite_alpha(input.finite_pixel,input.finite_axis_value,input.finite_depths,input.clip_flags,false)

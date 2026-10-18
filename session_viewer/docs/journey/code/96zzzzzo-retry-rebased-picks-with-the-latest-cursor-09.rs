@@ -1,0 +1,1 @@
+        if density.is_finite() && density > 0.0 && density != self.density { self.cancel_pick(); self.density = density; }

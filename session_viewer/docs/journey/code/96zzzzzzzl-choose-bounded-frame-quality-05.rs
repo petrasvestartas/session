@@ -1,0 +1,2 @@
+    let sample_budget=crate::sample_quality::budget(adapter.get_info().device_type);
+    let mut sample_forced=window.location().search().ok().and_then(|s|web_sys::UrlSearchParams::new_with_str(&s).ok()).and_then(|q|q.get("msaa")).and_then(|v|v.parse::<u32>().ok());

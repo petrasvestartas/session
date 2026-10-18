@@ -1,0 +1,1 @@
+for(owner,tree)in trees.into_iter().enumerate(){replace(scene,owner,tree);}project_copies(scene, &copies)?;Ok(copies)

@@ -1,0 +1,1 @@
+return axis.depth+abs(axis.depth)*DEPTH_REL_TOL+abs(1.-axis.depth)*2.3841858e-7+ink_sag_slack(axis.sag,triangle.gradient.xy);

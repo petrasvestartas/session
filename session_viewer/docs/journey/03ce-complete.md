@@ -1,6 +1,8 @@
-# 03ce · Complete a command name
+# 1.3.12 · Complete a command name
 
-**Typing: 22–43 minutes.** [Estimate](typing-load.md).
+**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
+
+**Typing: 22–44 minutes.** [Estimate](typing-load.md).
 
 After the field changes, find a matching command name. Replace the text and select only the suggested suffix, so the next letter replaces that suffix.
 
@@ -23,7 +25,7 @@ Report that inline completion is connected.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ce-complete-direct-01.rs"
@@ -44,10 +46,10 @@ Match names after changes and select only the suggested suffix.
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/03ce-complete-direct-02.rs"
+--8<-- "journey/code/03ce-complete-direct-02.rs" skip=47
 ```
 
 ### 3. `src/panel.rs`
@@ -65,7 +67,7 @@ Keep the field response and refresh completion after editing.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ce-complete-direct-03.rs"
@@ -77,19 +79,25 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type He. The field shows Help with the suggested ending selected. Backspace leaves He.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Complete a command name.](../screenshots/journey/03ce-complete-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+This checkpoint was rendered independently and has the same native comparison frame as [Recognize Help](03cd-vocabulary.md). Use its state checks and browser exercise to assess the changed behavior.
+
+![Native renderer output for complete a command name.](../screenshots/journey/03-triangle.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [1.3.1 · Give the GPU three corners](03-triangle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -121,8 +129,8 @@ Type He, then x. The selected lp should be replaced by x, leaving Hex with no ma
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 03ce-complete
-npm --prefix ../session_tests run course -- save 03ce-complete
+npm --prefix ../session_tests run course -- check 1.3.12
+npm --prefix ../session_tests run course -- save 1.3.12
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -141,7 +149,7 @@ This step connects one responsibility of the production command dock. Scene comm
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 03ce-complete
+npm --prefix ../session_tests run course -- capture 1.3.12
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+ambient bounded sampl

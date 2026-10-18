@@ -1,0 +1,1 @@
+Self {source,index_count,index_start:0,storage:Storage::Owned {vertices,indices,group:pull_group}}

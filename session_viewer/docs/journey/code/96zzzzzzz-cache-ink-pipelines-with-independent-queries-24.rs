@@ -1,0 +1,1 @@
+pass.set_pipeline(&self.color.active.0);

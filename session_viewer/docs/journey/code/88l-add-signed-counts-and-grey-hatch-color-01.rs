@@ -1,0 +1,10 @@
+ device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("original closed-solid sections"),layout:Some(&layout),vertex:wgpu::VertexState{module:&shader,entry_point:Some(vertex),compilation_options:Default::default(),buffers:&buffers},fragment:Some(wgpu::FragmentState{module:&shader,entry_point:Some(fragment),compilation_options:Default::default(),targets:&targets.iter().cloned().map(Some).collect::<Vec<_>>()}),primitive:Default::default(),depth_stencil:if count{None}else{Some(crate::depth::surface())},multisample:Default::default(),multiview_mask:None,cache:None})
+}
+pub struct Pipelines{pub count:wgpu::RenderPipeline,pub color:wgpu::RenderPipeline,pub counts:wgpu::BindGroupLayout,pub frame:wgpu::BindGroupLayout}
+impl Pipelines{
+ pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
+  let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,160);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
+  let add=wgpu::BlendComponent{src_factor:wgpu::BlendFactor::One,dst_factor:wgpu::BlendFactor::One,operation:wgpu::BlendOperation::Add};let count=pipeline(device,crate::clipping_gpu::source(include_str!("cap_count.wgsl"),2,0),&[&view,&model,&clip],"vs_count","fs_count",&[wgpu::ColorTargetState{format:wgpu::TextureFormat::R16Float,blend:Some(wgpu::BlendState{color:add,alpha:add}),write_mask:wgpu::ColorWrites::RED}],true);
+  let color=pipeline(device,crate::clipping_gpu::source(include_str!("cap_color.wgsl"),1,0),&[&frame,&clip,&counts],"vs_cap","fs_cap",&[wgpu::ColorTargetState{format,blend:None,write_mask:wgpu::ColorWrites::ALL},wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg32Float,blend:None,write_mask:wgpu::ColorWrites::ALL}],false);Self{count,color,counts,frame}
+ }
+}

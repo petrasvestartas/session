@@ -1,0 +1,1 @@
+renderer.draw_mode(&texture.create_view(&Default::default()), &Default::default(), &transform, normals);

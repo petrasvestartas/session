@@ -1,0 +1,1 @@
+        for row in scene.control_markers_at(anchor) {

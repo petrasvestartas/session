@@ -1,0 +1,1 @@
+if !matches!(target.part,Part::SourceControl(_)) && self.objects.iter().any(|row|row.id==target.owner&&row.original.is_some()){

@@ -1,0 +1,990 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 18,
+  "title": "Lighting, render quality and comparison",
+  "first": "89-copy-density-scaled-depth-reduction",
+  "end_before": "96-retain-non-drawing-originals-and-validate-raw-planes",
+  "lessons": [
+    {
+      "id": "89-copy-density-scaled-depth-reduction",
+      "title": "A retained depth and radius pyramid",
+      "page": "journey/consolidation/89-copy-density-scaled-depth-reduction.md",
+      "steps": [
+        "89-copy-density-scaled-depth-reduction",
+        "89a-prepare-linear-original-depth-and-radius-addresses",
+        "89b-own-six-real-depth-and-radius-levels",
+        "89c-build-prepare-and-nearest-depth-pipelines",
+        "89d-prepare-cached-pyramid-inputs-and-images",
+        "89e-encode-six-levels-only-when-inputs-change",
+        "89f-expose-actual-pyramid-allocation-and-levels",
+        "89g-route-original-depth-into-the-pyramid-owner",
+        "89h-exercise-actual-depth-levels-and-cache-release"
+      ],
+      "checkpoint": "89h-exercise-actual-depth-levels-and-cache-release"
+    },
+    {
+      "id": "90-copy-maintained-original-contact-radius",
+      "title": "Original contact metadata and ambient light",
+      "page": "journey/consolidation/90-copy-maintained-original-contact-radius.md",
+      "steps": [
+        "90-copy-maintained-original-contact-radius",
+        "90a-copy-current-viewing-rays",
+        "90b-adapt-the-earlier-forward-camera",
+        "90c-gather-weak-original-ambient-properties",
+        "90d-copy-current-horizon-and-bilateral-recipes",
+        "90da-reconstruct-original-surfaces-from-depth",
+        "90db-encode-normals-and-read-original-contact-metadata",
+        "90dc-prepare-a-compact-depth-radius-and-normal-target",
+        "90dd-measure-ground-contact-along-bounded-horizons",
+        "90de-integrate-cosine-weighted-surface-visibility",
+        "90df-filter-contact-without-crossing-unrelated-surfaces",
+        "90dg-reject-invalid-ambient-history-before-blending",
+        "90dh-reconstruct-full-resolution-contact-from-low-resolution-samples",
+        "90di-collect-bounded-sample-corrections-with-gpu-atomics",
+        "90dj-composite-contact-as-black-alpha-over-the-original-scene",
+        "90e-bind-real-original-normals-and-radii",
+        "90f-write-original-surface-contact-properties",
+        "90g-build-the-depth-equal-original-property-pass",
+        "90h-cache-original-radius-buffers-and-draw-properties",
+        "90i-own-actual-ambient-image-allocation",
+        "90j-prepare-reduced-and-full-ambient-targets",
+        "90k-build-explicit-ambient-fullscreen-pipelines",
+        "90l-match-current-ambient-sampling-layouts",
+        "90m-cache-reduced-levels-and-filtered-samples",
+        "90n-bind-exact-current-ambient-source-images",
+        "90o-record-explicit-ambient-passes",
+        "90p-own-cached-ambient-pipelines-and-release-images",
+        "90q-prepare-changed-ambient-framebuffer-inputs",
+        "90r-render-a-complete-ambient-result-in-one-frame",
+        "90s-count-actual-ambient-resources-and-work",
+        "90t-route-original-scene-properties-into-ambient-shading",
+        "90u-enable-arctic-as-a-presentation-change",
+        "90v-exercise-actual-contacts-cache-and-source-ownership"
+      ],
+      "checkpoint": "90v-exercise-actual-contacts-cache-and-source-ownership"
+    },
+    {
+      "id": "91-include-visible-section-coverage",
+      "title": "Section-aware outlines and one presentation composite",
+      "page": "journey/consolidation/91-include-visible-section-coverage.md",
+      "steps": [
+        "91-include-visible-section-coverage",
+        "91a-cache-visible-section-bindings",
+        "91b-combine-outline-alpha-once",
+        "91c-cache-one-black-outline-composite",
+        "91d-separate-source-scope-from-outline-selection",
+        "91e-prepare-masks-without-a-second-blend",
+        "91f-own-independent-global-outline-resources",
+        "91g-draw-all-solid-and-selected-coverage-consistently",
+        "91h-connect-outline-and-arctic-presentation-commands",
+        "91i-prove-actual-outlines-and-original-ownership"
+      ],
+      "checkpoint": "91i-prove-actual-outlines-and-original-ownership"
+    },
+    {
+      "id": "92-link-current-wood-element-builders",
+      "title": "Original Wood Elements and portable source records",
+      "page": "journey/consolidation/92-link-current-wood-element-builders.md",
+      "steps": [
+        "92-link-current-wood-element-builders",
+        "91zza-write-original-beam-column-and-plate-builders",
+        "92a-retain-current-positive-lengths-and-six-builders",
+        "92b-own-original-element-geometry",
+        "92c-read-current-element-command-defaults",
+        "92d-build-typed-elements-from-ordered-world-picks",
+        "92e-capture-original-picks-while-the-tool-runs",
+        "92f-teach-named-and-bare-element-values",
+        "92g-make-element-input-batches-atomic",
+        "92h-attach-readonly-element-attributes",
+        "92i-adopt-elements-and-consume-sources-once",
+        "92j-save-and-open-original-element-records",
+        "92k-own-independent-element-tool-state",
+        "92l-commit-one-element-creation-and-retry-errors",
+        "92m-route-current-element-commands-and-feature-visibility",
+        "92n-pick-elements-through-the-real-command-dock",
+        "92o-prove-element-recipes-source-history-and-archives"
+      ],
+      "checkpoint": "92o-prove-element-recipes-source-history-and-archives"
+    },
+    {
+      "id": "93-classify-original-solids-independently-of-clipping",
+      "title": "Glass, X-ray and shared visibility rules",
+      "page": "journey/consolidation/93-classify-original-solids-independently-of-clipping.md",
+      "steps": [
+        "93-classify-original-solids-independently-of-clipping",
+        "93a-own-opacity-in-the-existing-surface-frame",
+        "93b-blend-closed-faces-and-retain-opaque-open-surfaces",
+        "93c-exclude-x-ray-faces-from-original-picks-and-masks",
+        "93d-carry-opacity-into-finite-original-ink",
+        "93e-fade-hidden-ink-without-showing-clipped-geometry",
+        "93f-invalidate-presentation-and-preserve-cached-geometry",
+        "93g-connect-strict-opacity-presentation-commands",
+        "93h-prove-actual-glass-x-ray-and-source-ownership"
+      ],
+      "checkpoint": "93h-prove-actual-glass-x-ray-and-source-ownership"
+    },
+    {
+      "id": "94-declare-the-rendering-comparison-contract",
+      "title": "Matched rendering comparisons from original sources",
+      "page": "journey/consolidation/94-declare-the-rendering-comparison-contract.md",
+      "steps": [
+        "94-declare-the-rendering-comparison-contract",
+        "94a-link-the-maintained-native-rendering-reference",
+        "94b-read-actual-maintained-frames-without-source-mutation",
+        "94c-prove-the-original-comparison-and-inspect-differences"
+      ],
+      "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences"
+    },
+    {
+      "id": "95-record-comparable-large-scene-conditions",
+      "title": "Measured frame costs and dependency-aware cache reports",
+      "page": "journey/consolidation/95-record-comparable-large-scene-conditions.md",
+      "steps": [
+        "95-record-comparable-large-scene-conditions",
+        "95a-measure-warmed-frame-times-and-the-slow-tail",
+        "95b-reject-incomparable-before-and-after-runs",
+        "95c-witness-immutable-tree-inputs-across-camera-frames",
+        "95d-reuse-layer-rows-while-rotating-and-zooming",
+        "95e-borrow-graph-edges-and-index-their-labels",
+        "95f-prove-cache-invalidation-and-honest-performance-reports"
+      ],
+      "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports"
+    }
+  ],
+  "old_step_to_lesson": {
+    "89-copy-density-scaled-depth-reduction": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89-copy-density-scaled-depth-reduction"
+    },
+    "89a-prepare-linear-original-depth-and-radius-addresses": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89a-prepare-linear-original-depth-and-radius-addresses"
+    },
+    "89b-own-six-real-depth-and-radius-levels": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89b-own-six-real-depth-and-radius-levels"
+    },
+    "89c-build-prepare-and-nearest-depth-pipelines": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89c-build-prepare-and-nearest-depth-pipelines"
+    },
+    "89d-prepare-cached-pyramid-inputs-and-images": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89d-prepare-cached-pyramid-inputs-and-images"
+    },
+    "89e-encode-six-levels-only-when-inputs-change": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89e-encode-six-levels-only-when-inputs-change"
+    },
+    "89f-expose-actual-pyramid-allocation-and-levels": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89f-expose-actual-pyramid-allocation-and-levels"
+    },
+    "89g-route-original-depth-into-the-pyramid-owner": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89g-route-original-depth-into-the-pyramid-owner"
+    },
+    "89h-exercise-actual-depth-levels-and-cache-release": {
+      "lesson": "89-copy-density-scaled-depth-reduction",
+      "anchor": "checkpoint-89h-exercise-actual-depth-levels-and-cache-release"
+    },
+    "90-copy-maintained-original-contact-radius": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90-copy-maintained-original-contact-radius"
+    },
+    "90a-copy-current-viewing-rays": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90a-copy-current-viewing-rays"
+    },
+    "90b-adapt-the-earlier-forward-camera": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90b-adapt-the-earlier-forward-camera"
+    },
+    "90c-gather-weak-original-ambient-properties": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90c-gather-weak-original-ambient-properties"
+    },
+    "90d-copy-current-horizon-and-bilateral-recipes": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90d-copy-current-horizon-and-bilateral-recipes"
+    },
+    "90da-reconstruct-original-surfaces-from-depth": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90da-reconstruct-original-surfaces-from-depth"
+    },
+    "90db-encode-normals-and-read-original-contact-metadata": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90db-encode-normals-and-read-original-contact-metadata"
+    },
+    "90dc-prepare-a-compact-depth-radius-and-normal-target": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90dc-prepare-a-compact-depth-radius-and-normal-target"
+    },
+    "90dd-measure-ground-contact-along-bounded-horizons": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90dd-measure-ground-contact-along-bounded-horizons"
+    },
+    "90de-integrate-cosine-weighted-surface-visibility": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90de-integrate-cosine-weighted-surface-visibility"
+    },
+    "90df-filter-contact-without-crossing-unrelated-surfaces": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90df-filter-contact-without-crossing-unrelated-surfaces"
+    },
+    "90dg-reject-invalid-ambient-history-before-blending": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90dg-reject-invalid-ambient-history-before-blending"
+    },
+    "90dh-reconstruct-full-resolution-contact-from-low-resolution-samples": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90dh-reconstruct-full-resolution-contact-from-low-resolution-samples"
+    },
+    "90di-collect-bounded-sample-corrections-with-gpu-atomics": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90di-collect-bounded-sample-corrections-with-gpu-atomics"
+    },
+    "90dj-composite-contact-as-black-alpha-over-the-original-scene": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90dj-composite-contact-as-black-alpha-over-the-original-scene"
+    },
+    "90e-bind-real-original-normals-and-radii": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90e-bind-real-original-normals-and-radii"
+    },
+    "90f-write-original-surface-contact-properties": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90f-write-original-surface-contact-properties"
+    },
+    "90g-build-the-depth-equal-original-property-pass": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90g-build-the-depth-equal-original-property-pass"
+    },
+    "90h-cache-original-radius-buffers-and-draw-properties": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90h-cache-original-radius-buffers-and-draw-properties"
+    },
+    "90i-own-actual-ambient-image-allocation": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90i-own-actual-ambient-image-allocation"
+    },
+    "90j-prepare-reduced-and-full-ambient-targets": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90j-prepare-reduced-and-full-ambient-targets"
+    },
+    "90k-build-explicit-ambient-fullscreen-pipelines": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90k-build-explicit-ambient-fullscreen-pipelines"
+    },
+    "90l-match-current-ambient-sampling-layouts": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90l-match-current-ambient-sampling-layouts"
+    },
+    "90m-cache-reduced-levels-and-filtered-samples": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90m-cache-reduced-levels-and-filtered-samples"
+    },
+    "90n-bind-exact-current-ambient-source-images": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90n-bind-exact-current-ambient-source-images"
+    },
+    "90o-record-explicit-ambient-passes": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90o-record-explicit-ambient-passes"
+    },
+    "90p-own-cached-ambient-pipelines-and-release-images": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90p-own-cached-ambient-pipelines-and-release-images"
+    },
+    "90q-prepare-changed-ambient-framebuffer-inputs": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90q-prepare-changed-ambient-framebuffer-inputs"
+    },
+    "90r-render-a-complete-ambient-result-in-one-frame": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90r-render-a-complete-ambient-result-in-one-frame"
+    },
+    "90s-count-actual-ambient-resources-and-work": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90s-count-actual-ambient-resources-and-work"
+    },
+    "90t-route-original-scene-properties-into-ambient-shading": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90t-route-original-scene-properties-into-ambient-shading"
+    },
+    "90u-enable-arctic-as-a-presentation-change": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90u-enable-arctic-as-a-presentation-change"
+    },
+    "90v-exercise-actual-contacts-cache-and-source-ownership": {
+      "lesson": "90-copy-maintained-original-contact-radius",
+      "anchor": "checkpoint-90v-exercise-actual-contacts-cache-and-source-ownership"
+    },
+    "91-include-visible-section-coverage": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91-include-visible-section-coverage"
+    },
+    "91a-cache-visible-section-bindings": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91a-cache-visible-section-bindings"
+    },
+    "91b-combine-outline-alpha-once": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91b-combine-outline-alpha-once"
+    },
+    "91c-cache-one-black-outline-composite": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91c-cache-one-black-outline-composite"
+    },
+    "91d-separate-source-scope-from-outline-selection": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91d-separate-source-scope-from-outline-selection"
+    },
+    "91e-prepare-masks-without-a-second-blend": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91e-prepare-masks-without-a-second-blend"
+    },
+    "91f-own-independent-global-outline-resources": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91f-own-independent-global-outline-resources"
+    },
+    "91g-draw-all-solid-and-selected-coverage-consistently": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91g-draw-all-solid-and-selected-coverage-consistently"
+    },
+    "91h-connect-outline-and-arctic-presentation-commands": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91h-connect-outline-and-arctic-presentation-commands"
+    },
+    "91i-prove-actual-outlines-and-original-ownership": {
+      "lesson": "91-include-visible-section-coverage",
+      "anchor": "checkpoint-91i-prove-actual-outlines-and-original-ownership"
+    },
+    "92-link-current-wood-element-builders": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92-link-current-wood-element-builders"
+    },
+    "91zza-write-original-beam-column-and-plate-builders": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-91zza-write-original-beam-column-and-plate-builders"
+    },
+    "92a-retain-current-positive-lengths-and-six-builders": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92a-retain-current-positive-lengths-and-six-builders"
+    },
+    "92b-own-original-element-geometry": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92b-own-original-element-geometry"
+    },
+    "92c-read-current-element-command-defaults": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92c-read-current-element-command-defaults"
+    },
+    "92d-build-typed-elements-from-ordered-world-picks": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92d-build-typed-elements-from-ordered-world-picks"
+    },
+    "92e-capture-original-picks-while-the-tool-runs": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92e-capture-original-picks-while-the-tool-runs"
+    },
+    "92f-teach-named-and-bare-element-values": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92f-teach-named-and-bare-element-values"
+    },
+    "92g-make-element-input-batches-atomic": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92g-make-element-input-batches-atomic"
+    },
+    "92h-attach-readonly-element-attributes": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92h-attach-readonly-element-attributes"
+    },
+    "92i-adopt-elements-and-consume-sources-once": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92i-adopt-elements-and-consume-sources-once"
+    },
+    "92j-save-and-open-original-element-records": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92j-save-and-open-original-element-records"
+    },
+    "92k-own-independent-element-tool-state": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92k-own-independent-element-tool-state"
+    },
+    "92l-commit-one-element-creation-and-retry-errors": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92l-commit-one-element-creation-and-retry-errors"
+    },
+    "92m-route-current-element-commands-and-feature-visibility": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92m-route-current-element-commands-and-feature-visibility"
+    },
+    "92n-pick-elements-through-the-real-command-dock": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92n-pick-elements-through-the-real-command-dock"
+    },
+    "92o-prove-element-recipes-source-history-and-archives": {
+      "lesson": "92-link-current-wood-element-builders",
+      "anchor": "checkpoint-92o-prove-element-recipes-source-history-and-archives"
+    },
+    "93-classify-original-solids-independently-of-clipping": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93-classify-original-solids-independently-of-clipping"
+    },
+    "93a-own-opacity-in-the-existing-surface-frame": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93a-own-opacity-in-the-existing-surface-frame"
+    },
+    "93b-blend-closed-faces-and-retain-opaque-open-surfaces": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93b-blend-closed-faces-and-retain-opaque-open-surfaces"
+    },
+    "93c-exclude-x-ray-faces-from-original-picks-and-masks": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93c-exclude-x-ray-faces-from-original-picks-and-masks"
+    },
+    "93d-carry-opacity-into-finite-original-ink": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93d-carry-opacity-into-finite-original-ink"
+    },
+    "93e-fade-hidden-ink-without-showing-clipped-geometry": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93e-fade-hidden-ink-without-showing-clipped-geometry"
+    },
+    "93f-invalidate-presentation-and-preserve-cached-geometry": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93f-invalidate-presentation-and-preserve-cached-geometry"
+    },
+    "93g-connect-strict-opacity-presentation-commands": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93g-connect-strict-opacity-presentation-commands"
+    },
+    "93h-prove-actual-glass-x-ray-and-source-ownership": {
+      "lesson": "93-classify-original-solids-independently-of-clipping",
+      "anchor": "checkpoint-93h-prove-actual-glass-x-ray-and-source-ownership"
+    },
+    "94-declare-the-rendering-comparison-contract": {
+      "lesson": "94-declare-the-rendering-comparison-contract",
+      "anchor": "checkpoint-94-declare-the-rendering-comparison-contract"
+    },
+    "94a-link-the-maintained-native-rendering-reference": {
+      "lesson": "94-declare-the-rendering-comparison-contract",
+      "anchor": "checkpoint-94a-link-the-maintained-native-rendering-reference"
+    },
+    "94b-read-actual-maintained-frames-without-source-mutation": {
+      "lesson": "94-declare-the-rendering-comparison-contract",
+      "anchor": "checkpoint-94b-read-actual-maintained-frames-without-source-mutation"
+    },
+    "94c-prove-the-original-comparison-and-inspect-differences": {
+      "lesson": "94-declare-the-rendering-comparison-contract",
+      "anchor": "checkpoint-94c-prove-the-original-comparison-and-inspect-differences"
+    },
+    "95-record-comparable-large-scene-conditions": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95-record-comparable-large-scene-conditions"
+    },
+    "95a-measure-warmed-frame-times-and-the-slow-tail": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95a-measure-warmed-frame-times-and-the-slow-tail"
+    },
+    "95b-reject-incomparable-before-and-after-runs": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95b-reject-incomparable-before-and-after-runs"
+    },
+    "95c-witness-immutable-tree-inputs-across-camera-frames": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95c-witness-immutable-tree-inputs-across-camera-frames"
+    },
+    "95d-reuse-layer-rows-while-rotating-and-zooming": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95d-reuse-layer-rows-while-rotating-and-zooming"
+    },
+    "95e-borrow-graph-edges-and-index-their-labels": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95e-borrow-graph-edges-and-index-their-labels"
+    },
+    "95f-prove-cache-invalidation-and-honest-performance-reports": {
+      "lesson": "95-record-comparable-large-scene-conditions",
+      "anchor": "checkpoint-95f-prove-cache-invalidation-and-honest-performance-reports"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/gpu/ssao.rs",
+      "session_viewer/src/engine/gpu/ssao/pipelines.rs",
+      "session_viewer/src/shaders/ssao.wgsl",
+      "session_viewer/src/shaders/triangle.wgsl",
+      "session_viewer/src/shaders/ink_visibility.wgsl",
+      "session_viewer/src/engine/gpu/surface_outline.rs",
+      "session_viewer/src/engine/gpu/render.rs",
+      "session_viewer/src/engine/performance.rs",
+      "session_viewer/src/engine/gpu/timing.rs",
+      "session_viewer/src/app/command/tool/elements.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "89-copy-density-scaled-depth-reduction",
+      "path": "screenshots/journey/89-copy-density-scaled-depth-reduction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89a-prepare-linear-original-depth-and-radius-addresses",
+      "path": "screenshots/journey/89a-prepare-linear-original-depth-and-radius-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89b-own-six-real-depth-and-radius-levels",
+      "path": "screenshots/journey/89b-own-six-real-depth-and-radius-levels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89c-build-prepare-and-nearest-depth-pipelines",
+      "path": "screenshots/journey/89c-build-prepare-and-nearest-depth-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89d-prepare-cached-pyramid-inputs-and-images",
+      "path": "screenshots/journey/89d-prepare-cached-pyramid-inputs-and-images.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89e-encode-six-levels-only-when-inputs-change",
+      "path": "screenshots/journey/89e-encode-six-levels-only-when-inputs-change.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89f-expose-actual-pyramid-allocation-and-levels",
+      "path": "screenshots/journey/89f-expose-actual-pyramid-allocation-and-levels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89g-route-original-depth-into-the-pyramid-owner",
+      "path": "screenshots/journey/89g-route-original-depth-into-the-pyramid-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "89h-exercise-actual-depth-levels-and-cache-release",
+      "path": "screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90-copy-maintained-original-contact-radius",
+      "path": "screenshots/journey/90-copy-maintained-original-contact-radius.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90a-copy-current-viewing-rays",
+      "path": "screenshots/journey/90a-copy-current-viewing-rays.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90b-adapt-the-earlier-forward-camera",
+      "path": "screenshots/journey/90b-adapt-the-earlier-forward-camera.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90c-gather-weak-original-ambient-properties",
+      "path": "screenshots/journey/90c-gather-weak-original-ambient-properties.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90d-copy-current-horizon-and-bilateral-recipes",
+      "path": "screenshots/journey/90d-copy-current-horizon-and-bilateral-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90da-reconstruct-original-surfaces-from-depth",
+      "path": "screenshots/journey/90da-reconstruct-original-surfaces-from-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90db-encode-normals-and-read-original-contact-metadata",
+      "path": "screenshots/journey/90db-encode-normals-and-read-original-contact-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90dc-prepare-a-compact-depth-radius-and-normal-target",
+      "path": "screenshots/journey/90dc-prepare-a-compact-depth-radius-and-normal-target.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90dd-measure-ground-contact-along-bounded-horizons",
+      "path": "screenshots/journey/90dd-measure-ground-contact-along-bounded-horizons.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90de-integrate-cosine-weighted-surface-visibility",
+      "path": "screenshots/journey/90de-integrate-cosine-weighted-surface-visibility.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90df-filter-contact-without-crossing-unrelated-surfaces",
+      "path": "screenshots/journey/90df-filter-contact-without-crossing-unrelated-surfaces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90dg-reject-invalid-ambient-history-before-blending",
+      "path": "screenshots/journey/90dg-reject-invalid-ambient-history-before-blending.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90dh-reconstruct-full-resolution-contact-from-low-resolution-samples",
+      "path": "screenshots/journey/90dh-reconstruct-full-resolution-contact-from-low-resolution-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90di-collect-bounded-sample-corrections-with-gpu-atomics",
+      "path": "screenshots/journey/90di-collect-bounded-sample-corrections-with-gpu-atomics.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90dj-composite-contact-as-black-alpha-over-the-original-scene",
+      "path": "screenshots/journey/90dj-composite-contact-as-black-alpha-over-the-original-scene.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90e-bind-real-original-normals-and-radii",
+      "path": "screenshots/journey/90e-bind-real-original-normals-and-radii.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90f-write-original-surface-contact-properties",
+      "path": "screenshots/journey/90f-write-original-surface-contact-properties.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90g-build-the-depth-equal-original-property-pass",
+      "path": "screenshots/journey/90g-build-the-depth-equal-original-property-pass.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90h-cache-original-radius-buffers-and-draw-properties",
+      "path": "screenshots/journey/90h-cache-original-radius-buffers-and-draw-properties.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90i-own-actual-ambient-image-allocation",
+      "path": "screenshots/journey/90i-own-actual-ambient-image-allocation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90j-prepare-reduced-and-full-ambient-targets",
+      "path": "screenshots/journey/90j-prepare-reduced-and-full-ambient-targets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90k-build-explicit-ambient-fullscreen-pipelines",
+      "path": "screenshots/journey/90k-build-explicit-ambient-fullscreen-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90l-match-current-ambient-sampling-layouts",
+      "path": "screenshots/journey/90l-match-current-ambient-sampling-layouts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90m-cache-reduced-levels-and-filtered-samples",
+      "path": "screenshots/journey/90m-cache-reduced-levels-and-filtered-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90n-bind-exact-current-ambient-source-images",
+      "path": "screenshots/journey/90n-bind-exact-current-ambient-source-images.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90o-record-explicit-ambient-passes",
+      "path": "screenshots/journey/90o-record-explicit-ambient-passes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90p-own-cached-ambient-pipelines-and-release-images",
+      "path": "screenshots/journey/90p-own-cached-ambient-pipelines-and-release-images.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90q-prepare-changed-ambient-framebuffer-inputs",
+      "path": "screenshots/journey/90q-prepare-changed-ambient-framebuffer-inputs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90r-render-a-complete-ambient-result-in-one-frame",
+      "path": "screenshots/journey/90r-render-a-complete-ambient-result-in-one-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90s-count-actual-ambient-resources-and-work",
+      "path": "screenshots/journey/90s-count-actual-ambient-resources-and-work.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90t-route-original-scene-properties-into-ambient-shading",
+      "path": "screenshots/journey/90t-route-original-scene-properties-into-ambient-shading.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90u-enable-arctic-as-a-presentation-change",
+      "path": "screenshots/journey/90u-enable-arctic-as-a-presentation-change.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "90v-exercise-actual-contacts-cache-and-source-ownership",
+      "path": "screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91-include-visible-section-coverage",
+      "path": "screenshots/journey/91-include-visible-section-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91a-cache-visible-section-bindings",
+      "path": "screenshots/journey/91a-cache-visible-section-bindings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91b-combine-outline-alpha-once",
+      "path": "screenshots/journey/91b-combine-outline-alpha-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91c-cache-one-black-outline-composite",
+      "path": "screenshots/journey/91c-cache-one-black-outline-composite.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91d-separate-source-scope-from-outline-selection",
+      "path": "screenshots/journey/91d-separate-source-scope-from-outline-selection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91e-prepare-masks-without-a-second-blend",
+      "path": "screenshots/journey/91e-prepare-masks-without-a-second-blend.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91f-own-independent-global-outline-resources",
+      "path": "screenshots/journey/91f-own-independent-global-outline-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91g-draw-all-solid-and-selected-coverage-consistently",
+      "path": "screenshots/journey/91g-draw-all-solid-and-selected-coverage-consistently.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91h-connect-outline-and-arctic-presentation-commands",
+      "path": "screenshots/journey/91h-connect-outline-and-arctic-presentation-commands.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91i-prove-actual-outlines-and-original-ownership",
+      "path": "screenshots/journey/91i-prove-actual-outlines-and-original-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92-link-current-wood-element-builders",
+      "path": "screenshots/journey/92-link-current-wood-element-builders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "91zza-write-original-beam-column-and-plate-builders",
+      "path": "screenshots/journey/91zza-write-original-beam-column-and-plate-builders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92a-retain-current-positive-lengths-and-six-builders",
+      "path": "screenshots/journey/92a-retain-current-positive-lengths-and-six-builders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92b-own-original-element-geometry",
+      "path": "screenshots/journey/92b-own-original-element-geometry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92c-read-current-element-command-defaults",
+      "path": "screenshots/journey/92c-read-current-element-command-defaults.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92d-build-typed-elements-from-ordered-world-picks",
+      "path": "screenshots/journey/92d-build-typed-elements-from-ordered-world-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92e-capture-original-picks-while-the-tool-runs",
+      "path": "screenshots/journey/92e-capture-original-picks-while-the-tool-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92f-teach-named-and-bare-element-values",
+      "path": "screenshots/journey/92f-teach-named-and-bare-element-values.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92g-make-element-input-batches-atomic",
+      "path": "screenshots/journey/92g-make-element-input-batches-atomic.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92h-attach-readonly-element-attributes",
+      "path": "screenshots/journey/92h-attach-readonly-element-attributes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92i-adopt-elements-and-consume-sources-once",
+      "path": "screenshots/journey/92i-adopt-elements-and-consume-sources-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92j-save-and-open-original-element-records",
+      "path": "screenshots/journey/92j-save-and-open-original-element-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92k-own-independent-element-tool-state",
+      "path": "screenshots/journey/92k-own-independent-element-tool-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92l-commit-one-element-creation-and-retry-errors",
+      "path": "screenshots/journey/92l-commit-one-element-creation-and-retry-errors.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92m-route-current-element-commands-and-feature-visibility",
+      "path": "screenshots/journey/92m-route-current-element-commands-and-feature-visibility.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92n-pick-elements-through-the-real-command-dock",
+      "path": "screenshots/journey/92n-pick-elements-through-the-real-command-dock.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "92o-prove-element-recipes-source-history-and-archives",
+      "path": "screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93-classify-original-solids-independently-of-clipping",
+      "path": "screenshots/journey/93-classify-original-solids-independently-of-clipping.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93a-own-opacity-in-the-existing-surface-frame",
+      "path": "screenshots/journey/93a-own-opacity-in-the-existing-surface-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93b-blend-closed-faces-and-retain-opaque-open-surfaces",
+      "path": "screenshots/journey/93b-blend-closed-faces-and-retain-opaque-open-surfaces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93c-exclude-x-ray-faces-from-original-picks-and-masks",
+      "path": "screenshots/journey/93c-exclude-x-ray-faces-from-original-picks-and-masks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93d-carry-opacity-into-finite-original-ink",
+      "path": "screenshots/journey/93d-carry-opacity-into-finite-original-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93e-fade-hidden-ink-without-showing-clipped-geometry",
+      "path": "screenshots/journey/93e-fade-hidden-ink-without-showing-clipped-geometry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93f-invalidate-presentation-and-preserve-cached-geometry",
+      "path": "screenshots/journey/93f-invalidate-presentation-and-preserve-cached-geometry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93g-connect-strict-opacity-presentation-commands",
+      "path": "screenshots/journey/93g-connect-strict-opacity-presentation-commands.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "93h-prove-actual-glass-x-ray-and-source-ownership",
+      "path": "screenshots/journey/93h-prove-actual-glass-x-ray-and-source-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "94-declare-the-rendering-comparison-contract",
+      "path": "screenshots/journey/94-declare-the-rendering-comparison-contract.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "94a-link-the-maintained-native-rendering-reference",
+      "path": "screenshots/journey/94a-link-the-maintained-native-rendering-reference.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "94b-read-actual-maintained-frames-without-source-mutation",
+      "path": "screenshots/journey/94b-read-actual-maintained-frames-without-source-mutation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "94c-prove-the-original-comparison-and-inspect-differences",
+      "path": "screenshots/journey/94c-prove-the-original-comparison-and-inspect-differences.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95-record-comparable-large-scene-conditions",
+      "path": "screenshots/journey/95-record-comparable-large-scene-conditions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95a-measure-warmed-frame-times-and-the-slow-tail",
+      "path": "screenshots/journey/95a-measure-warmed-frame-times-and-the-slow-tail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95b-reject-incomparable-before-and-after-runs",
+      "path": "screenshots/journey/95b-reject-incomparable-before-and-after-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95c-witness-immutable-tree-inputs-across-camera-frames",
+      "path": "screenshots/journey/95c-witness-immutable-tree-inputs-across-camera-frames.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95d-reuse-layer-rows-while-rotating-and-zooming",
+      "path": "screenshots/journey/95d-reuse-layer-rows-while-rotating-and-zooming.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95e-borrow-graph-edges-and-index-their-labels",
+      "path": "screenshots/journey/95e-borrow-graph-edges-and-index-their-labels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "95f-prove-cache-invalidation-and-honest-performance-reports",
+      "path": "screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Retained early finite predicate/stroke-chain AA implementations are staged; actual ribbon/vector algorithm reconciliation and current matched visual acceptance remain pending.",
+    "No comparison capture or performance benchmark run in this prose batch. Historical software-GPU costs and private proposals do not establish final hardware performance or whole-renderer parity.",
+    "Element startup-default audit: historical course fixture Attributes Off/Interactions On versus maintained Scene attributes=true/interactions=true; lesson marks this staging divergence."
+  ]
+}

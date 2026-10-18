@@ -1,0 +1,1 @@
+::Device,samples:u32) -> wgp

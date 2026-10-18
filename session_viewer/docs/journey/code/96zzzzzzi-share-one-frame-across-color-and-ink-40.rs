@@ -1,0 +1,1 @@
+self.marks.draw(pass,view)

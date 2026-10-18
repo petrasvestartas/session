@@ -1,0 +1,368 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 13,
+  "title": "Shared definitions and drawing sheets",
+  "first": "69-validate-original-definition-references",
+  "end_before": "71-read-original-sheet-entity-metadata",
+  "lessons": [
+    {
+      "id": "69-validate-original-definition-references",
+      "title": "Shared original definitions and independently placed instances",
+      "page": "journey/consolidation/69-validate-original-definition-references.md",
+      "steps": [
+        "69-validate-original-definition-references",
+        "69b-prepare-each-used-definition-once",
+        "69c-keep-instance-bindings-through-scene-history",
+        "69d-append-independently-placed-shared-rows",
+        "69e-import-canonical-original-instance-placements",
+        "69f-protect-shared-originals-during-part-edits",
+        "69g-collect-shared-definitions-without-flattening",
+        "69h-save-original-instance-references-and-namespaces",
+        "69i-check-sharing-precision-history-and-release"
+      ],
+      "checkpoint": "69i-check-sharing-precision-history-and-release"
+    },
+    {
+      "id": "69j-preserve-per-instance-original-colours",
+      "title": "Independent presentation and reusable CAD preparation",
+      "page": "journey/consolidation/69j-preserve-per-instance-original-colours.md",
+      "steps": [
+        "69j-preserve-per-instance-original-colours",
+        "69k-create-a-shared-definition-face-pipeline",
+        "69l-reuse-bounded-independent-draw-records",
+        "69m-draw-batched-faces-with-independent-integer-owners",
+        "69n-inspect-and-exercise-original-definition-instances",
+        "69zza-move-between-original-rigid-frames",
+        "69zzb-find-an-original-frame-and-pack-key-words",
+        "69zzc-encode-original-parameters-and-topology",
+        "69a-describe-a-rigid-frame-and-original-shape-key",
+        "69aa-retain-cloneable-derived-cad-values",
+        "69ab-replay-sampled-geometry-in-the-new-rigid-frame",
+        "69ac-guard-reusable-walks-with-source-validity-and-size",
+        "69ad-share-recordings-only-during-document-preparation",
+        "69ae-compare-actual-replay-pixels-and-integer-owners",
+        "69af-exercise-independent-original-cad-reuse"
+      ],
+      "checkpoint": "69af-exercise-independent-original-cad-reuse"
+    },
+    {
+      "id": "70-evaluate-source-ancestry-once-per-document",
+      "title": "Feature ancestry and canonical local-to-world placement",
+      "page": "journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
+      "steps": [
+        "70-evaluate-source-ancestry-once-per-document",
+        "70a-keep-original-local-parent-and-world-matrices",
+        "70b-connect-canonical-cached-models-to-every-source-owner",
+        "70c-save-nested-local-frames-without-flattening",
+        "70d-exercise-rotated-and-mirrored-original-references"
+      ],
+      "checkpoint": "70d-exercise-rotated-and-mirrored-original-references"
+    },
+    {
+      "id": "70za-read-original-sheet-metadata-records",
+      "title": "Original sheet entity metadata",
+      "page": "journey/consolidation/70za-read-original-sheet-metadata-records.md",
+      "steps": [
+        "70za-read-original-sheet-metadata-records"
+      ],
+      "checkpoint": "70za-read-original-sheet-metadata-records"
+    }
+  ],
+  "old_step_to_lesson": {
+    "69-validate-original-definition-references": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69-validate-original-definition-references"
+    },
+    "69b-prepare-each-used-definition-once": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69b-prepare-each-used-definition-once"
+    },
+    "69c-keep-instance-bindings-through-scene-history": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69c-keep-instance-bindings-through-scene-history"
+    },
+    "69d-append-independently-placed-shared-rows": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69d-append-independently-placed-shared-rows"
+    },
+    "69e-import-canonical-original-instance-placements": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69e-import-canonical-original-instance-placements"
+    },
+    "69f-protect-shared-originals-during-part-edits": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69f-protect-shared-originals-during-part-edits"
+    },
+    "69g-collect-shared-definitions-without-flattening": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69g-collect-shared-definitions-without-flattening"
+    },
+    "69h-save-original-instance-references-and-namespaces": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69h-save-original-instance-references-and-namespaces"
+    },
+    "69i-check-sharing-precision-history-and-release": {
+      "lesson": "69-validate-original-definition-references",
+      "anchor": "checkpoint-69i-check-sharing-precision-history-and-release"
+    },
+    "69j-preserve-per-instance-original-colours": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69j-preserve-per-instance-original-colours"
+    },
+    "69k-create-a-shared-definition-face-pipeline": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69k-create-a-shared-definition-face-pipeline"
+    },
+    "69l-reuse-bounded-independent-draw-records": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69l-reuse-bounded-independent-draw-records"
+    },
+    "69m-draw-batched-faces-with-independent-integer-owners": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69m-draw-batched-faces-with-independent-integer-owners"
+    },
+    "69n-inspect-and-exercise-original-definition-instances": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69n-inspect-and-exercise-original-definition-instances"
+    },
+    "69zza-move-between-original-rigid-frames": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69zza-move-between-original-rigid-frames"
+    },
+    "69zzb-find-an-original-frame-and-pack-key-words": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69zzb-find-an-original-frame-and-pack-key-words"
+    },
+    "69zzc-encode-original-parameters-and-topology": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69zzc-encode-original-parameters-and-topology"
+    },
+    "69a-describe-a-rigid-frame-and-original-shape-key": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69a-describe-a-rigid-frame-and-original-shape-key"
+    },
+    "69aa-retain-cloneable-derived-cad-values": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69aa-retain-cloneable-derived-cad-values"
+    },
+    "69ab-replay-sampled-geometry-in-the-new-rigid-frame": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69ab-replay-sampled-geometry-in-the-new-rigid-frame"
+    },
+    "69ac-guard-reusable-walks-with-source-validity-and-size": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69ac-guard-reusable-walks-with-source-validity-and-size"
+    },
+    "69ad-share-recordings-only-during-document-preparation": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69ad-share-recordings-only-during-document-preparation"
+    },
+    "69ae-compare-actual-replay-pixels-and-integer-owners": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69ae-compare-actual-replay-pixels-and-integer-owners"
+    },
+    "69af-exercise-independent-original-cad-reuse": {
+      "lesson": "69j-preserve-per-instance-original-colours",
+      "anchor": "checkpoint-69af-exercise-independent-original-cad-reuse"
+    },
+    "70-evaluate-source-ancestry-once-per-document": {
+      "lesson": "70-evaluate-source-ancestry-once-per-document",
+      "anchor": "checkpoint-70-evaluate-source-ancestry-once-per-document"
+    },
+    "70a-keep-original-local-parent-and-world-matrices": {
+      "lesson": "70-evaluate-source-ancestry-once-per-document",
+      "anchor": "checkpoint-70a-keep-original-local-parent-and-world-matrices"
+    },
+    "70b-connect-canonical-cached-models-to-every-source-owner": {
+      "lesson": "70-evaluate-source-ancestry-once-per-document",
+      "anchor": "checkpoint-70b-connect-canonical-cached-models-to-every-source-owner"
+    },
+    "70c-save-nested-local-frames-without-flattening": {
+      "lesson": "70-evaluate-source-ancestry-once-per-document",
+      "anchor": "checkpoint-70c-save-nested-local-frames-without-flattening"
+    },
+    "70d-exercise-rotated-and-mirrored-original-references": {
+      "lesson": "70-evaluate-source-ancestry-once-per-document",
+      "anchor": "checkpoint-70d-exercise-rotated-and-mirrored-original-references"
+    },
+    "70za-read-original-sheet-metadata-records": {
+      "lesson": "70za-read-original-sheet-metadata-records",
+      "anchor": "checkpoint-70za-read-original-sheet-metadata-records"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/scene_instances.rs",
+      "session_viewer/src/engine/gpu/instanced.rs",
+      "session_viewer/src/engine/gpu/slots.rs",
+      "session_viewer/src/app/walk/brep_shapes.rs",
+      "session_viewer/src/app/hierarchy.rs",
+      "session_viewer/src/app/sheet_query.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "69-validate-original-definition-references",
+      "path": "screenshots/journey/69-validate-original-definition-references.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69b-prepare-each-used-definition-once",
+      "path": "screenshots/journey/69b-prepare-each-used-definition-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69c-keep-instance-bindings-through-scene-history",
+      "path": "screenshots/journey/69c-keep-instance-bindings-through-scene-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69d-append-independently-placed-shared-rows",
+      "path": "screenshots/journey/69d-append-independently-placed-shared-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69e-import-canonical-original-instance-placements",
+      "path": "screenshots/journey/69e-import-canonical-original-instance-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69f-protect-shared-originals-during-part-edits",
+      "path": "screenshots/journey/69f-protect-shared-originals-during-part-edits.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69g-collect-shared-definitions-without-flattening",
+      "path": "screenshots/journey/69g-collect-shared-definitions-without-flattening.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69h-save-original-instance-references-and-namespaces",
+      "path": "screenshots/journey/69h-save-original-instance-references-and-namespaces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69i-check-sharing-precision-history-and-release",
+      "path": "screenshots/journey/69i-check-sharing-precision-history-and-release.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69j-preserve-per-instance-original-colours",
+      "path": "screenshots/journey/69j-preserve-per-instance-original-colours.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69k-create-a-shared-definition-face-pipeline",
+      "path": "screenshots/journey/69k-create-a-shared-definition-face-pipeline.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69l-reuse-bounded-independent-draw-records",
+      "path": "screenshots/journey/69l-reuse-bounded-independent-draw-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69m-draw-batched-faces-with-independent-integer-owners",
+      "path": "screenshots/journey/69m-draw-batched-faces-with-independent-integer-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69n-inspect-and-exercise-original-definition-instances",
+      "path": "screenshots/journey/69n-inspect-and-exercise-original-definition-instances.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69zza-move-between-original-rigid-frames",
+      "path": "screenshots/journey/69zza-move-between-original-rigid-frames.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69zzb-find-an-original-frame-and-pack-key-words",
+      "path": "screenshots/journey/69zzb-find-an-original-frame-and-pack-key-words.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69zzc-encode-original-parameters-and-topology",
+      "path": "screenshots/journey/69zzc-encode-original-parameters-and-topology.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69a-describe-a-rigid-frame-and-original-shape-key",
+      "path": "screenshots/journey/69a-describe-a-rigid-frame-and-original-shape-key.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69aa-retain-cloneable-derived-cad-values",
+      "path": "screenshots/journey/69aa-retain-cloneable-derived-cad-values.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69ab-replay-sampled-geometry-in-the-new-rigid-frame",
+      "path": "screenshots/journey/69ab-replay-sampled-geometry-in-the-new-rigid-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69ac-guard-reusable-walks-with-source-validity-and-size",
+      "path": "screenshots/journey/69ac-guard-reusable-walks-with-source-validity-and-size.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69ad-share-recordings-only-during-document-preparation",
+      "path": "screenshots/journey/69ad-share-recordings-only-during-document-preparation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69ae-compare-actual-replay-pixels-and-integer-owners",
+      "path": "screenshots/journey/69ae-compare-actual-replay-pixels-and-integer-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "69af-exercise-independent-original-cad-reuse",
+      "path": "screenshots/journey/69af-exercise-independent-original-cad-reuse.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "70-evaluate-source-ancestry-once-per-document",
+      "path": "screenshots/journey/70-evaluate-source-ancestry-once-per-document.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "70a-keep-original-local-parent-and-world-matrices",
+      "path": "screenshots/journey/70a-keep-original-local-parent-and-world-matrices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "70b-connect-canonical-cached-models-to-every-source-owner",
+      "path": "screenshots/journey/70b-connect-canonical-cached-models-to-every-source-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "70c-save-nested-local-frames-without-flattening",
+      "path": "screenshots/journey/70c-save-nested-local-frames-without-flattening.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "70d-exercise-rotated-and-mirrored-original-references",
+      "path": "screenshots/journey/70d-exercise-rotated-and-mirrored-original-references.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "70za-read-original-sheet-metadata-records",
+      "path": "screenshots/journey/70za-read-original-sheet-metadata-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

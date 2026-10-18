@@ -1,0 +1,1 @@
+pass.set_bind_group(3, &self.group(), &[]);

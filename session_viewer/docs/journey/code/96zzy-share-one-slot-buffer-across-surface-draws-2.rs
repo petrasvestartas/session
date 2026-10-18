@@ -1,0 +1,1 @@
+pub(crate) slots:crate::draw_slots::Slots,pub writes:u64,pub written_bytes:u64}

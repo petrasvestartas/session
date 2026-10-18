@@ -1,0 +1,1 @@
+scene.control_markers_at(anchor).into_iter()

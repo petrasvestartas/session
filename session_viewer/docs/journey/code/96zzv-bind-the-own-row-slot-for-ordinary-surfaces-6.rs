@@ -1,0 +1,1 @@
+  .replace("return object_settings;","return objects[index];");

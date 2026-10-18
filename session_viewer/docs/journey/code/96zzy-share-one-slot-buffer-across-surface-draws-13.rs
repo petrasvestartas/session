@@ -1,0 +1,1 @@
+self.slots.bind(pass,0,batch.first_slot);

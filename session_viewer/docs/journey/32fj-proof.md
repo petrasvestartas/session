@@ -1,6 +1,8 @@
-# 32fj · Prove unloading preserves placed history
+# 3.16.17 · Prove unloading preserves placed history
 
-**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
+
+**Typing: 1–1 minutes.** [Estimate](typing-load.md).
 
 Use a located imported document and a real placement edit. Retain its derived display Rc, record Weak observers of the kernel mesh and Session, and unload. The old editable values must disappear while the row’s local ID, saved GUID, display owner, placement and camera remain.
 
@@ -21,21 +23,28 @@ mod origin_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32fj-proof-01.rs"
+--8<-- "journey/code/32fj-proof-01.rs" skip=18
 ```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/unload_tests.rs`
 
-Prove old source values expire while placed drawing data and history remain available.
+Optional authoring fixture. Prove old source values expire while placed drawing data and history remain available.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/32fj-proof-02.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -43,25 +52,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the weak-owner checks below. After source release, the original source allocation must expire while its retained display still draws.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove unloading preserves placed history.](../screenshots/journey/32fj-proof-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for prove unloading preserves placed history.](../screenshots/journey/32fj-proof.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -95,8 +100,8 @@ Retain only the Origin rather than the display Rc in the fixture. Predict which 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32fj-proof
-npm --prefix ../session_tests run course -- save 32fj-proof
+npm --prefix ../session_tests run course -- check 3.16.17
+npm --prefix ../session_tests run course -- save 3.16.17
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -115,7 +120,7 @@ This proof covers the current immutable imported mesh subset. The full source re
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32fj-proof
+npm --prefix ../session_tests run course -- capture 3.16.17
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

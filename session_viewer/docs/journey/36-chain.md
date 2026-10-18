@@ -1,4 +1,6 @@
-# 36 · Retain connected source geometry
+# 5.2.1 · Retain connected source geometry
+
+**Chapter 5 · Lines, points and curves · Section 5.2 · Connected paths and arrows** · [Contents](contents.md)
 
 **Typing: 22–44 minutes.** [Estimate](typing-load.md).
 
@@ -31,21 +33,41 @@ pub mod stroke;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+pub mod chain;
+#[cfg(test)]
+mod chain_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/36-chain-02.rs"
 ```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/chain_tests.rs`
 
 Copy source precision, links, degeneracy and packed-head checks.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/36-chain-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +75,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the exact-source checks. Display conversion retains the original kernel coordinates and owner.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Retain connected source geometry.](../screenshots/journey/36-chain-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for retain connected source geometry.](../screenshots/journey/35cb-render.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [5.1.6 · Connect the stroke lane to the document renderer](35cb-render.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +123,8 @@ Prepare a polyline with repeated points and clone its prepared value. The displa
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 36-chain
-npm --prefix ../session_tests run course -- save 36-chain
+npm --prefix ../session_tests run course -- check 5.2.1
+npm --prefix ../session_tests run course -- save 5.2.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +145,7 @@ Chrome still draws the existing line example. Connected records are checked nati
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 36-chain
+npm --prefix ../session_tests run course -- capture 5.2.1
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

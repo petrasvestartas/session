@@ -1,0 +1,1 @@
+select(0u,input.owner,crop.mode==0u)

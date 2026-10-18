@@ -1,0 +1,6 @@
+    SelectAll,
+    PickMode(crate::pick_sources::Mode),
+    Live(Box<Scene>),
+    Adopt {scene:Box<Scene>,replace:bool},
+    Import(Vec<u8>),
+    Replace(Vec<u8>),

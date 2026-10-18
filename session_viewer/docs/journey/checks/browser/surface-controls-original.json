@@ -1,0 +1,154 @@
+{
+  "scope": "Actual identical saved original mesh archive rendered by maintained native and imported by learner browser. Two planar patches have opposite original winding, scaled to1400x1000mm source coordinates before saving. Comparison covers interior mode colors; native and browser framing differ. Single-sample edge quality is not complete renderer parity.",
+  "archive": "U0VTU0lPTi1WSUVXRVIBCgqzBgoHQ3JlYXRlZBr+BEr7BAokOTUwNWJhNzctYjU2Ni00MjUzLWEyNmMtMzgzMmM3ZGYyODg5EgdteV9tZXNoGg0IBxIJEQAAAAAAQH9AGhYIAhISCQAAAAAA4IVAEQAAAAAAQH/AGg0IBBIJEQAAAAAAQH9AGhYIAxISCQAAAAAA4IXAEQAAAAAAQH9AGhYIBRISCQAAAAAA4IVAEQAAAAAAQH9AGhQSEgkAAAAAAOCFwBEAAAAAAEB/wBoNCAESCREAAAAAAEB/wBoNCAYSCREAAAAAAEB/wCIKCAESBgoEBgcFAiIIEgYKBAABBAM6AwoBeDoDCgF5OgMKAXpqQAAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D96HhUAAAA/HQAAAD8lAAAAPy0AAIA/MghteV9jb2xvcpIBgAEAAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAP5oBIAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/ogGAAQAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/IqYBGqMBCiRmZGEyMjk1NC04MWU1LTQ1ZmMtOTg1MC0wOWQ5N2VhZTE4MmMSB0NyZWF0ZWQicgokN2I4OTdmMTktODcxOC00N2RiLWIwYWMtYzNiYWM1MDBiOTc1EiQ5NTA1YmE3Ny1iNTY2LTQyNTMtYTI2Yy0zODMyYzdkZjI4ODkaJGZkYTIyOTU0LTgxZTUtNDVmYy05ODUwLTA5ZDk3ZWFlMTgyYxLsAXsiY3JlYXRlZF9kb2MiOjAsImN1cnJlbnRfbGF5ZXIiOm51bGwsImRvY3VtZW50cyI6W3sibmFtZSI6IkNyZWF0ZWQiLCJwbGFjZSI6WzEuMCwwLjAsMC4wLDAuMCwwLjAsMS4wLDAuMCwwLjAsMC4wLDAuMCwxLjAsMC4wLDAuMCwwLjAsMC4wLDEuMF0sInBvaW50X3B4IjowLjB9XSwiaGlkZGVuIjpbXSwibG9ja2VkIjpbXSwiY29sb3JzIjpbXSwiZWRnZV9jb2xvcnMiOltdLCJ0ZXh0cyI6W10sImdyb3VwcyI6W119",
+  "archiveSha256": "dff37247f692abca60bbf8bad9753dbcefe11fe557812940fc30e0f58104e245",
+  "documentSha256": "bc74ff473752fc281484149747b6e2629eaffbf1337b59ee5d8c77ca0a8b0924",
+  "binarySha256": "ec22e0af1eb5a6fbd0f32765bf7f11ebb52861f2bc538ce5fe6d1b3fe9a0f085",
+  "source": "eafa67a95a555212ced8249a82106c8f1a27bcda03032b28c8e20ac722126ad8",
+  "exampleSha256": "c5129d780304dd741e9d814cf3fa7c659c41fcbc264a352095642a42b0aef466",
+  "references": {
+    "flat": {
+      "file": "review/surface-controls-maintained-native-flat-mm-2026-10-15.png",
+      "sha256": "8d32a5ba3898f12a08dae587965b8ab1b89448bef4629d17cf128f1dcc7899df",
+      "environment": {
+        "VIEWER_ORTHO": "1",
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_W": "640",
+        "VIEWER_H": "480",
+        "VIEWER_VIEW": "top"
+      },
+      "colors": [
+        [
+          "188,188,188",
+          117160
+        ],
+        [
+          "195,195,195",
+          808
+        ],
+        [
+          "132,132,132",
+          808
+        ],
+        [
+          "112,112,112",
+          580
+        ],
+        [
+          "174,174,174",
+          580
+        ],
+        [
+          "100,100,100",
+          580
+        ],
+        [
+          "131,131,131",
+          4
+        ],
+        [
+          "119,119,119",
+          4
+        ]
+      ]
+    },
+    "backfaces": {
+      "file": "review/surface-controls-maintained-native-backfaces-mm-2026-10-15.png",
+      "sha256": "52371ce51784c2f0acec271f446a5709b33c30a845ed5915e3743ec4560067fd",
+      "environment": {
+        "VIEWER_ORTHO": "1",
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_W": "640",
+        "VIEWER_H": "480",
+        "VIEWER_VIEW": "top",
+        "VIEWER_BACKFACE": "1"
+      },
+      "colors": [
+        [
+          "188,188,188",
+          58580
+        ],
+        [
+          "231,63,63",
+          58580
+        ],
+        [
+          "195,195,195",
+          808
+        ],
+        [
+          "112,112,112",
+          580
+        ],
+        [
+          "132,132,132",
+          404
+        ],
+        [
+          "163,42,42",
+          404
+        ],
+        [
+          "174,174,174",
+          290
+        ],
+        [
+          "100,100,100",
+          290
+        ]
+      ]
+    },
+    "headlight": {
+      "file": "review/surface-controls-maintained-native-headlight-mm-2026-10-15.png",
+      "sha256": "1045eea0ae0a3b5b2ba3b800b016ca018ff26d96bc5185cafcbf39b90b7cc49b",
+      "environment": {
+        "VIEWER_ORTHO": "1",
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_W": "640",
+        "VIEWER_H": "480",
+        "VIEWER_VIEW": "iso",
+        "VIEWER_LIT": "1"
+      },
+      "colors": [
+        [
+          "174,174,174",
+          58001
+        ],
+        [
+          "173,173,173",
+          81
+        ],
+        [
+          "172,172,172",
+          60
+        ],
+        [
+          "170,170,170",
+          42
+        ],
+        [
+          "168,168,168",
+          42
+        ],
+        [
+          "171,171,171",
+          36
+        ],
+        [
+          "163,163,163",
+          35
+        ],
+        [
+          "166,166,166",
+          31
+        ]
+      ]
+    }
+  }
+}

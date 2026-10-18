@@ -1,0 +1,1 @@
+Some(&crate::clipping_gpu::layout(device)),Some(&GpuGeometry::storage_layout(device))]

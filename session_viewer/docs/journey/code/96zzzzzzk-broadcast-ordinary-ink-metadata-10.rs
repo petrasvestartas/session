@@ -1,0 +1,1 @@
+array_stride:if varying{4}else{0},step_mode:wgpu::VertexStepMode::Instance,attributes:&flags

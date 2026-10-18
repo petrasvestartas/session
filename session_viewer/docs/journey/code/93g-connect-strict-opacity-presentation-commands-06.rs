@@ -1,0 +1,6 @@
+    ("Element Block",||Action::ElementBegin{kind:crate::element_input::Kind::Block,text:String::new()}),
+    ("Element Attributes",||Action::ElementAttributes(None)),
+    ("Element Interactions",||Action::ElementInteractions(None)),
+    ("Opacity",||Action::Opacity(1.)),
+    ("View Outline",||Action::ViewOutline(None)),
+    ("Arctic",||Action::Arctic(None)),

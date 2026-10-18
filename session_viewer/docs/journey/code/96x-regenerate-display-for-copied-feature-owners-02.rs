@@ -1,0 +1,1 @@
+copy_attributes(scene, &mut tree);

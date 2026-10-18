@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const {PNG} = require('pngjs');
 
-const image = async page => PNG.sync.read(Buffer.from((await page.locator('canvas').evaluate(c => c.toDataURL())).split(',')[1], 'base64'));
+const image = async page => PNG.sync.read(Buffer.from((await require('./canvas-image.cjs')(page.locator('canvas'))).split(',')[1], 'base64'));
 const latest = async page => JSON.parse(await page.locator('canvas').getAttribute('data-command-ui')).history.at(-1);
 
 module.exports = async (page, {command, drawing, step}) => {

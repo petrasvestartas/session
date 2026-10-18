@@ -1,0 +1,1 @@
+depth.clone(),tables.primitive.clone()

@@ -1,0 +1,1 @@
+let normal=normalize(select(face,-face,front));

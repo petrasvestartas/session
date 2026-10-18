@@ -1,0 +1,1 @@
+settings(object, style,0,0,0)

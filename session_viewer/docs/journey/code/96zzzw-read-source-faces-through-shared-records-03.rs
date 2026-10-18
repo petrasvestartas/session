@@ -1,0 +1,1 @@
+@location(2) @interpolate(flat) flags:u32,@location(3) @interpolate(flat) owner:u32,

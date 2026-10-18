@@ -1,0 +1,1 @@
+source.vertices().len() * 20 + source.indices().len() * 4

@@ -1,0 +1,1 @@
+NonZeroU64::new(BYTES as u64)

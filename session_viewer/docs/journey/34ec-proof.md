@@ -1,6 +1,8 @@
-# 34ec · Prove saved-run exclusions before adopting storage
+# 4.2.10 · Prove saved-run exclusions before adopting storage
 
-**Typing: 13–26 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 0–0 minutes.** [Estimate](typing-load.md).
 
 Complete the previous-run policy with rejected examples. Use a fixed clock to test invalid timestamps, reversed start/heartbeat order, and a failure dated before its run.
 
@@ -8,14 +10,19 @@ Complete the previous-run policy with rejected examples. Use a fixed clock to te
 
 Continue from [Choose a recent failure without blaming active tabs](34eb-recency.md). [Save or recover your work](recovery.md).
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 1. `src/report_recency_tests.rs`
 
-Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.
+Optional authoring fixture. Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 use crate::{diagnostic::Outcome, diagnostic_shape_tests::report, report_recency::eligible};
 
 #[test]
@@ -47,11 +54,13 @@ fn previous_run_selection_respects_actual_failure_time() {
 
 </details>
 
-Replace that block with:
+After that block, append this supplied code:
 
-```rust
---8<-- "journey/code/34ec-proof-01.rs"
+```text
+--8<-- "journey/code/34ec-proof-01.rs" skip=1607
 ```
+
+</details>
 
 ## Run and check
 
@@ -59,25 +68,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the exclusion checks below. Ready/Closed reports and invalid clocks must remain ineligible, with the input report unchanged.
+Optional boundary cases cover invalid clocks and Ready/Closed exclusions. The browser storage reader is still prepared for the next lesson.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove saved-run exclusions before adopting storage.](../screenshots/journey/34ec-proof-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for prove saved-run exclusions before adopting storage.](../screenshots/journey/34ec-proof.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -101,7 +106,7 @@ Study estimate, including typing and experiments: 1–2 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Make the default outcome branch return a score for Ready, then run the tests and describe the false notice. Make the parser return NaN for the failure and explain why comparison/ranking must reject it.
+Trace one Ready report, one reversed heartbeat and one earlier failure through the eligibility function. Explain the returned value for each without changing the policy. Reading these fixtures requires no native runner.
 
 </details>
 
@@ -111,8 +116,8 @@ Make the default outcome branch return a score for Ready, then run the tests and
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34ec-proof
-npm --prefix ../session_tests run course -- save 34ec-proof
+npm --prefix ../session_tests run course -- check 4.2.10
+npm --prefix ../session_tests run course -- save 4.2.10
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -135,7 +140,7 @@ Native tests prove invalid/healthy/closed/bad-order candidates are excluded with
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34ec-proof
+npm --prefix ../session_tests run course -- capture 4.2.10
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

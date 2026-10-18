@@ -1,6 +1,8 @@
-# 32gid · Validate restoration before replaying the command
+# 3.16.41 · Validate restoration before replaying the command
 
-**Typing: 30–59 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
+
+**Typing: 5–10 minutes.** [Estimate](typing-load.md).
 
 Restore the required sources before replaying a captured command. A failed or stale reply must perform no edit or download.
 
@@ -21,10 +23,10 @@ impl Reply {
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gid-complete-01.rs"
+--8<-- "journey/code/32gid-complete-01.rs" skip=13
 ```
 
 ### 2. `src/lib.rs`
@@ -40,21 +42,28 @@ mod reload_reply_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gid-complete-02.rs"
+--8<-- "journey/code/32gid-complete-02.rs" skip=24
 ```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/reload_complete_tests.rs`
 
-Prove automatic native Move/Delete/Save completion, original target, later selection/camera, Undo, and stale or failed completion.
+Optional authoring fixture. Prove automatic native Move/Delete/Save completion, original target, later selection/camera, Undo, and stale or failed completion.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/32gid-complete-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -62,25 +71,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the completion checks below. A valid batch restores sources before replaying its captured edit. Failed or stale batches must perform no edit or download.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Validate restoration before replaying the command.](../screenshots/journey/32gid-complete-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for validate restoration before replaying the command.](../screenshots/journey/32gid-complete.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -114,8 +119,8 @@ Move intent.replay above hydrate and run the failed/stale completion checks. Exp
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gid-complete
-npm --prefix ../session_tests run course -- save 32gid-complete
+npm --prefix ../session_tests run course -- check 3.16.41
+npm --prefix ../session_tests run course -- save 3.16.41
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -136,7 +141,7 @@ Native checks complete captured cold-source Move/Delete/Save and reject stale or
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gid-complete
+npm --prefix ../session_tests run course -- capture 3.16.41
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

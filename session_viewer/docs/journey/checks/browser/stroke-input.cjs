@@ -16,9 +16,10 @@ module.exports = async (original, helpers) => {
             const quiet = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(120); };
             const width = async () => {
                 await quiet();
-                const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+                const url = await require('./canvas-image.cjs')(page.locator('canvas'));
                 const pixels = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
-                const x = pixels.width / 2, mid = pixels.height / 2;
+                const matrix = await value('data-camera-matrix');
+                const x = pixels.width / 2, mid = Math.round((1 - matrix[13] / matrix[15]) * pixels.height / 2);
                 let coverage = 0;
                 for (let y = mid - 24; y < mid + 24; y++) {
                     const v = pixels.data[(y * pixels.width + x) * 4] / 255;
@@ -45,8 +46,7 @@ module.exports = async (original, helpers) => {
             assert.deepEqual((await usage()).slice(0, 2), [0, 0]);
             await helpers.command(page, 'Redo'); await quiet();
             assert.equal(await helpers.drawing(page), visible);
-            await helpers.command(page, 'Save');
-            assert.match((await value('data-command-ui')).history.at(-1), /cannot save line objects yet/);
+            await require('./save-ink.cjs')(page, helpers, /cannot save line objects yet/);
             await helpers.command(page, 'Undo'); assert.deepEqual((await usage()).slice(0, 2), [0, 0]);
             await helpers.command(page, 'Redo');
             const beforeClose = await usage(); await helpers.command(page, 'Close');

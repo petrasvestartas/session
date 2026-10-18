@@ -6,7 +6,7 @@ module.exports=async(page,helpers)=>{
  const canvas=page.locator('canvas');
  const field=await canvas.evaluate(c=>JSON.parse(c.getAttribute('data-command-ui')).controls.find(c=>c.key==='command/input').rect);
  assert(Math.abs(field[3]-field[1]-22)<2,'The field retains its 22 CSS pixel row');
- const png=PNG.sync.read(Buffer.from((await canvas.evaluate(c=>c.toDataURL())).split(',')[1],'base64'));
+ const png=PNG.sync.read(Buffer.from((await require('./canvas-image.cjs')(canvas)).split(',')[1],'base64'));
  const scale=png.width/(await canvas.boundingBox()).width;
  const top=(left,right)=>{
   for(let y=Math.ceil((field[1]+2)*scale);y<(field[3]-2)*scale;y++)

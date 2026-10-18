@@ -64,7 +64,7 @@ module.exports = async (page, {command, drawing}) => {
     await page.mouse.up();
     await page.waitForTimeout(130);
     assert.equal(await drawing(page), unmoved, 'Returning a left drag to its start must not select');
-    const url = await canvas.evaluate(c => c.toDataURL());
+    const url = await require('./canvas-image.cjs')(canvas);
     const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
     const grey = [];
     for (let y = 0; y < image.height - 34; y++) for (let x = 0; x < image.width; x++) {
@@ -76,7 +76,7 @@ module.exports = async (page, {command, drawing}) => {
     const [x, y] = grey[Math.floor(grey.length / 2)];
     await canvas.click({position: {x: x + .5, y: y + .5}});
     await page.waitForTimeout(130);
-    const selected = PNG.sync.read(Buffer.from((await canvas.evaluate(c => c.toDataURL())).split(',')[1], 'base64'));
+    const selected = PNG.sync.read(Buffer.from((await require('./canvas-image.cjs')(canvas)).split(',')[1], 'base64'));
     let yellow = 0;
     for (let i = 0; i < selected.width * (selected.height - 34) * 4; i += 4) {
         const [r, g, b] = selected.data.subarray(i, i + 3);

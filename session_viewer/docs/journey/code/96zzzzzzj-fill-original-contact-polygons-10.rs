@@ -1,0 +1,1 @@
+pub fn source(base:&str,group:u32,binding:u32)->String{let base=base.replace(r#"#include "contact_depth.wgsl""#,include_str!("contact_depth.wgsl"));format!

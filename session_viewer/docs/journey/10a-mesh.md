@@ -1,4 +1,6 @@
-# 10a · Give geometry a validated CPU owner
+# 2.6.2 · Give geometry a validated CPU owner
+
+**Chapter 2 · Geometry, camera and selection · Section 2.6 · Depth and validated meshes** · [Contents](contents.md)
 
 **Typing: 24–47 minutes.** [Estimate](typing-load.md).
 
@@ -45,7 +47,7 @@ mod browser;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/10a-mesh-register.rs"
@@ -57,25 +59,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks below. Valid triangles are accepted; missing vertices, incomplete triangles and NaN values are rejected.
+Inspect the supplied state fixtures. Valid triangles are accepted; missing vertices, incomplete triangles and NaN values are rejected.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Give geometry a validated CPU owner.](../screenshots/journey/10a-mesh-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for give geometry a validated cpu owner.](../screenshots/journey/10-depth.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [2.6.1 · Keep the nearest surface](10-depth.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -107,8 +107,8 @@ In the constructor test, replace the invalid index 3 with 2. That case becomes v
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 10a-mesh
-npm --prefix ../session_tests run course -- save 10a-mesh
+npm --prefix ../session_tests run course -- check 2.6.2
+npm --prefix ../session_tests run course -- save 2.6.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

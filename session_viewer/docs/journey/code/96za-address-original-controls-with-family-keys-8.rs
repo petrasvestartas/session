@@ -1,0 +1,2 @@
+    assert_eq!(markers[1].part, crate::pick_sources::Part::Control(1)); assert_eq!(markers[4].part, crate::pick_sources::Part::Control(1));
+    assert!(crate::source_edit::same(&crate::source_edit::original(&scene, first).unwrap(), &crate::source_edit::original(&scene, second).unwrap()));

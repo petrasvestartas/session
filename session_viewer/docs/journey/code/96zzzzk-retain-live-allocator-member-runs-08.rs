@@ -1,0 +1,1 @@
+assert!(gpu.instances.ordinary.is_empty());assert!(gpu.instances.space.is_none());

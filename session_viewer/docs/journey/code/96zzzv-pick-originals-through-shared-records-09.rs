@@ -1,0 +1,1 @@
+Self { legacy_clipping:None,pipeline,record_pipeline, view

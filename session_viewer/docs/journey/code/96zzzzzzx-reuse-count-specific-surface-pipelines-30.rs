@@ -1,0 +1,1 @@
+s=crate::sample_pipelines::Variants::new(pipelines(device,format,view,&layout,1),1

@@ -1,0 +1,16 @@
+ASTRA SESSION — REVIEW FIRST
+
+Review the complete current Session Viewer course for clarity, brevity and constructive coverage of the actual maintained viewer. Work in /home/petras/code/code_cpp/wood_research. Read repository instructions, session/session_viewer/docs/journey/course.json, roadmap.md, destination.md, inventory.md, latest-commit-audit.md, current-command-grammar.md, rendering-differences.md, final-handoff.md, local-checks.md and actual release results. Inspect the generated lessons and source owners, including the current viewer's uncommitted changes. Check the supplemental upstream audit rather than assuming local commit IDs establish remote freshness.
+
+Review all subjects 00–97, not just recent tutorial edits. Check a learner can apply each exact edit, understand the needed Rust, run one useful exercise and recognize the expected result. Find repetition, unnecessary explanations, weak or misleading examples, useful merges and missing coverage. Preserve the conservative 60-minute typing bound, cumulative endpoints, original geometry ownership, tested code and explicit differences. Check H/S/F, Undo/Redo, Delete, BoundingBox, Length BoundingBox, panel-aware camera behavior, consistent curved/flat outlines, barely offset contacts with black edges, and full floor/dome performance recipes. Distinguish native/build/parser proof from actual browser behavior and Lenovo hardware timing.
+
+Write concise, prioritized findings to session/docs/plans/viewer-tutorial-astra-review.md. Include exact canonical lesson IDs and file paths, representative before/after wording, merge/split recommendations, coverage gaps, evidence limitations and a practical editing order. Review first; do not rewrite the course or silently retire old pages. Finish the written review before starting Sol.
+
+SOL SESSION — START AFTER THE REVIEW FILE EXISTS
+
+Read session/docs/plans/viewer-tutorial-astra-review.md and the complete current course/source inventories. Implement its justified improvements in the canonical ledger and snippets, then regenerate the lessons. Reconsider suggestions that would lose behavior, original source identity, cumulative runnable endpoints or honest evidence. Keep explanations direct and exercises focused; preserve the conservative 60-minute typing bound. Do not substitute generated teaching images for browser screenshots or claim Lenovo speed without matching hardware measurements.
+
+Run appropriate reconstruction, typing, authoring, diagram, build and documentation checks. Source changes need renewed affected endpoint evidence. Record completed findings, rejected suggestions with reasons and remaining external acceptance in session/docs/plans/viewer-tutorial-sol-handoff.md. Keep reference pages until actual replacement acceptance passes. Do not push, publish or change unrelated code without authorization.
+
+SEQUENCE
+These are separate manual sessions. Astra finishes its review file first. Open Sol afterward and provide its prompt plus that review file. Neither session can infer the other's completion without the written handoff.

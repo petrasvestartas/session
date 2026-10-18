@@ -1,0 +1,1 @@
+u64::from(image.window.draw[3]) * 24

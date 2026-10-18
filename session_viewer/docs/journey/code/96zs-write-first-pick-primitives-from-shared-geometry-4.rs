@@ -1,0 +1,1 @@
+targets: &[Some(wgpu::TextureFormat::Rg32Uint.into()),Some(crate::primitive_image::target(true))]

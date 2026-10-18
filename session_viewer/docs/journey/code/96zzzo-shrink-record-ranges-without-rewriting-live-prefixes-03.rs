@@ -1,0 +1,1 @@
+   self.buffer.truncate(u32::try_from(rows.len()+1).expect("Bounded draw slots"));

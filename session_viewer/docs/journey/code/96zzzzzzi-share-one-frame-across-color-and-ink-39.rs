@@ -1,0 +1,1 @@
+self.segments.draw(pass,view)

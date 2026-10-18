@@ -1,4 +1,6 @@
-# 30a · Give a pending read an explicit ticket
+# 3.14.2 · Give a pending read an explicit ticket
+
+**Chapter 3 · Documents, editing and ownership · Section 3.14 · Transactions and recovery** · [Contents](contents.md)
 
 **Typing: 18–35 minutes.** [Estimate](typing-load.md).
 
@@ -31,10 +33,10 @@ pub mod document;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/30a-tickets-02.rs"
+--8<-- "journey/code/30a-tickets-02.rs" skip=18
 ```
 
 ## Run and check
@@ -43,25 +45,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the ReadGate checks below. Start two tickets and complete the older one first: only the current ticket may be accepted. Browser integration follows next.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Give a pending read an explicit ticket.](../screenshots/journey/30a-tickets-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for give a pending read an explicit ticket.](../screenshots/journey/30a-tickets.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -99,8 +97,8 @@ Start three tickets and finish them in reverse order. Predict why only the newes
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 30a-tickets
-npm --prefix ../session_tests run course -- save 30a-tickets
+npm --prefix ../session_tests run course -- check 3.14.2
+npm --prefix ../session_tests run course -- save 3.14.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -119,7 +117,7 @@ Production load generations reject old asynchronous results. This small gate als
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 30a-tickets
+npm --prefix ../session_tests run course -- capture 3.14.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

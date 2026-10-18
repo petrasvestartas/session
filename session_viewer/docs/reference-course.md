@@ -1,10 +1,10 @@
 # Complete viewer implementation reference
 
-This is the existing 43-section reconstruction of the finished viewer. It remains the source-complete reference while the [shorter cumulative courses](journey.md) are developed. Its large sections are not yet converted into small lessons.
+This is the preserved 43-section reconstruction of an earlier viewer. The [current cumulative course](journey.md) now covers all subjects 00–97 in 980 authored checkpoints and ends with the maintained runtime. Use that route for current features; keep this historical reference available while browser acceptance remains pending.
 
-The final checkpoint records the viewer before the September 29 browser-recovery changes. Those fixes are explained in [Reading failures](debugging.md); their code still needs to enter the course checkpoints. Source parity is therefore pending, not a current passing claim. Each reference section has earlier cumulative build evidence, but individual listings are not runnable checkpoints. This reference uses `workspace/handwritten`; the new opening lessons use `workspace/journey`. Do not mix their files.
+The final reference checkpoint records the viewer before the September 29 browser-recovery changes. Current fixes are covered by the cumulative course and its [final handoff](journey/final-handoff.md). The historical listings reconstruct their stored snapshots, but their final file list omits newer production files, so historical source parity remains pending. Each reference section has earlier cumulative build evidence; individual listings are not runnable checkpoints. This reference uses `workspace/handwritten`; the current course uses `workspace/journey`. Do not mix their files.
 
-You may study this material now, but it is not a direct continuation of the opening triangle project. The bridge and advanced short lessons must be implemented before that route is advertised as complete.
+This material remains useful for inspecting the older implementation. Follow the current cumulative course for the complete route from the opening GPU frame to the maintained viewer.
 
 [Architecture and time map](map.md) · [Reference workflow](how-to-learn.md) · [Feature preservation contract](journey/destination.md)
 

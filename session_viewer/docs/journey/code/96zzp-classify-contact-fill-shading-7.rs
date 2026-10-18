@@ -1,0 +1,1 @@
+unpack4x8unorm(vertex.color)

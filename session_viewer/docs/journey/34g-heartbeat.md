@@ -1,6 +1,8 @@
-# 34g · Refresh heartbeat without rewriting failure evidence
+# 4.2.15 · Refresh heartbeat without rewriting failure evidence
 
-**Typing: 17–33 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 8–15 minutes.** [Estimate](typing-load.md).
 
 Refresh lastSeen without recording an event. A periodic heartbeat would otherwise fill the 24-event window and push out useful observations.
 
@@ -21,21 +23,44 @@ Advance heartbeat independently of observations, outcome and the first fatal tim
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    pub fn heartbeat(&mut self, time: String) -> Result<(), &'static str> {
+        if time.is_empty() || time.chars().count() > 64 { return Err("Invalid heartbeat timestamp"); }
+        self.last_seen = time; Ok(())
+    }
+
+    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34g-heartbeat-01.rs"
 ```
 
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/heartbeat_tests.rs`
 
-Verify all run outcomes, first-failure/event retention and atomic timestamp-text bounds without a browser clock dependency.
+Optional authoring fixture. Verify all run outcomes, first-failure/event retention and atomic timestamp-text bounds without a browser clock dependency.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34g-heartbeat-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -50,11 +75,23 @@ pub mod diagnostic;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(test)]
+mod heartbeat_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34g-heartbeat-03.rs"
 ```
+
+</details>
 
 ### 4. `src/browser_report.rs`
 
@@ -69,11 +106,32 @@ pub fn download() -> Result<(), JsValue> {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn heartbeat() -> Result<(), JsValue> {
+    let context = context()?; let time = js_sys::Date::new_0().to_iso_string().into();
+    REPORT.with(|slot| {
+        let mut slot = slot.borrow_mut(); let report = slot.as_mut().ok_or("No report")?;
+        report.heartbeat(time).map_err(JsValue::from_str)?; report.context = context; Ok::<_, JsValue>(())
+    })?;
+    let _ = persist(); Ok(())
+}
+
+pub fn download() -> Result<(), JsValue> {
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34g-heartbeat-04.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -81,25 +139,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, call `window.wasmBindings.heartbeat()`. Download `Report`: lastSeen advances, while outcome, events and the first failure stay unchanged.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Refresh heartbeat without rewriting failure evidence.](../screenshots/journey/34g-heartbeat-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for refresh heartbeat without rewriting failure evidence.](../screenshots/journey/34g-heartbeat.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -133,8 +187,8 @@ Implement heartbeat through record("fatal", ...), then predict which failure/out
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34g-heartbeat
-npm --prefix ../session_tests run course -- save 34g-heartbeat
+npm --prefix ../session_tests run course -- check 4.2.15
+npm --prefix ../session_tests run course -- save 4.2.15
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -155,7 +209,7 @@ Chrome updates and reads real stored heartbeat metadata, preserves scene/history
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34g-heartbeat
+npm --prefix ../session_tests run course -- capture 4.2.15
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

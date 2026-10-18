@@ -1,6 +1,8 @@
-# 20b · Finish or cancel a drag
+# 3.4.3 · Finish or cancel a drag
 
-**Typing: 23–46 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.4 · Resize and pointer motion** · [Contents](contents.md)
+
+**Typing: 7–14 minutes.** [Estimate](typing-load.md).
 
 Release processes the final position, then takes the remembered drag out of Gesture. A left release picks only if the press never crossed the movement threshold. Right release may supply one final orbit delta.
 
@@ -24,20 +26,25 @@ Finish the owned pointer, preserve drag classification and clear cancelled input
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/20b-release-methods.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/gesture_tests.rs`
 
-Check left-click classification, final motion, pointer ownership and cancellation.
+Optional authoring fixture. Check left-click classification, final motion, pointer ownership and cancellation.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 use crate::gesture::{Gesture, Motion};
 
 #[test]
@@ -55,11 +62,13 @@ fn a_press_retains_one_pointer_and_reports_relative_motion() {
 
 </details>
 
-Replace that block with:
+Update the existing block with this supplied code; keep unchanged lines:
 
-```rust
+```text
 --8<-- "journey/code/20b-release-tests.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -67,25 +76,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.
+Inspect the supplied state fixtures. A left drag returning to its start does not click; cancellation produces no selection and permits a fresh press.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Finish or cancel a drag.](../screenshots/journey/20b-release-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for finish or cancel a drag.](../screenshots/journey/20-resize.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [3.4.1 · Resize canvas, depth and camera together](20-resize.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -117,8 +124,8 @@ Read the return-to-start test. Predict the result if release checked only its fi
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 20b-release
-npm --prefix ../session_tests run course -- save 20b-release
+npm --prefix ../session_tests run course -- check 3.4.3
+npm --prefix ../session_tests run course -- save 3.4.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -137,7 +144,7 @@ Native checks establish click classification, owned release and cancellation. Ch
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 20b-release
+npm --prefix ../session_tests run course -- capture 3.4.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

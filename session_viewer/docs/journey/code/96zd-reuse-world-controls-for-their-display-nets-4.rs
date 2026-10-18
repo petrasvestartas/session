@@ -1,0 +1,1 @@
+assert_eq!(sources.edges.len(), 12 + sources.path_ids.len()); assert_eq!(sources.mesh_ink.len(), 14); assert!(sources.mesh_ids[12..].iter().all(|pixel|pixel[1]==0));

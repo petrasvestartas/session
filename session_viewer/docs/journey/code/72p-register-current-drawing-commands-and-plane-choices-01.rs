@@ -1,0 +1,6 @@
+    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
+    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
+    ("Polyline",||Action::BeginTool(crate::tool::Shape::Polyline)),
+    ("CPlane",||Action::PlaneMenu),
+    ("Hide",||Action::Hide),
+    ("Show",||Action::Show),

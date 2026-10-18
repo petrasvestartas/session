@@ -1,0 +1,1398 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 16,
+  "title": "Geometry editing and measurement",
+  "first": "81-project-originals-through-the-current-plane-algorithms",
+  "end_before": "86-copy-finite-tile-allocation-rules",
+  "lessons": [
+    {
+      "id": "81-project-originals-through-the-current-plane-algorithms",
+      "title": "Projection, extension and stable edit targets",
+      "page": "journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md",
+      "steps": [
+        "81-project-originals-through-the-current-plane-algorithms",
+        "81zza-read-original-cutters-in-object-frames",
+        "81zzb-find-original-cutters-near-the-pointer",
+        "81zzc-grow-original-domains-and-extract-the-tail",
+        "81zzd-find-original-end-directions-and-length-reach",
+        "81zze-stop-straight-growth-at-the-first-boundary",
+        "81zzf-stop-curved-growth-at-an-original-boundary",
+        "81zzg-dispatch-original-extension-families",
+        "81a-find-source-cutters-and-current-extension-reach",
+        "81b-capture-eligible-original-identity-and-placement",
+        "81c-replace-an-original-without-replacing-its-row",
+        "81d-own-the-originals-selected-for-projection",
+        "81e-validate-candidate-plane-answers-before-accepting-them",
+        "81f-prepare-projection-results-as-one-transaction",
+        "81g-own-extension-candidates-and-screen-bounds",
+        "81h-gather-boundaries-and-sample-eligible-curve-owners",
+        "81i-cache-current-boundary-meshes-and-start-the-end-phase",
+        "81j-resolve-distance-and-boundary-reach-in-source-coordinates",
+        "81k-find-the-nearest-visible-curve-end-in-css-pixels",
+        "81l-preview-extension-and-refresh-only-changed-originals",
+        "81m-keep-projection-and-extension-in-the-pending-tool-owner",
+        "81n-connect-checked-projection-to-one-editor-transaction",
+        "81o-connect-boundary-picks-repeated-end-clicks-and-cancellation",
+        "81p-expose-editing-actions-and-normalized-interval-extension",
+        "81q-route-accepted-editing-input-and-owner-lifecycle-1",
+        "81r-route-accepted-editing-input-and-owner-lifecycle-2",
+        "81s-route-accepted-editing-input-and-owner-lifecycle-3",
+        "81t-register-current-projection-and-extension-commands",
+        "81u-route-whole-boundary-picks-and-observe-pending-edits",
+        "81v-exercise-original-projection-retry-and-repeated-extension",
+        "81za-validate-original-split-inputs-and-name-pieces"
+      ],
+      "checkpoint": "81za-validate-original-split-inputs-and-name-pieces"
+    },
+    {
+      "id": "82-divide-current-original-curve-families",
+      "title": "Split original curves and joined faces",
+      "page": "journey/consolidation/82-divide-current-original-curve-families.md",
+      "steps": [
+        "82-divide-current-original-curve-families",
+        "82a-own-the-split-target-and-toggle-original-cutters",
+        "82b-transform-cutters-into-the-target-frame-before-dividing",
+        "82c-adopt-sibling-pieces-beside-the-original-target",
+        "82d-connect-pending-split-completion-to-one-history-change",
+        "82e-route-cutter-picks-cancellation-and-temporary-highlights",
+        "82f-register-split-and-route-mouse-touch-and-confirmation",
+        "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"
+      ],
+      "checkpoint": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"
+    },
+    {
+      "id": "83-split-original-faces-without-separating-the-solid",
+      "title": "Joined-face topology and exact surface measures",
+      "page": "journey/consolidation/83-split-original-faces-without-separating-the-solid.md",
+      "steps": [
+        "83-split-original-faces-without-separating-the-solid",
+        "83za-visit-original-mesh-triangles-and-format-measures",
+        "83zb-compute-original-mesh-measures-and-curve-length",
+        "83ze-integrate-original-surface-area"
+      ],
+      "checkpoint": "83ze-integrate-original-surface-area"
+    },
+    {
+      "id": "84-measure-original-curves-surfaces-and-closed-solids",
+      "title": "Measurements, temporary marks and retained CAD pieces",
+      "page": "journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md",
+      "steps": [
+        "84-measure-original-curves-surfaces-and-closed-solids",
+        "84a-validate-an-original-box-and-derive-wire-only-display",
+        "84b-adopt-original-boxes-and-retain-precise-placed-bounds",
+        "84c-save-and-reopen-the-original-box-frame",
+        "84d-own-temporary-measurement-labels-without-scene-identities",
+        "84e-report-distance-and-world-bounding-lengths",
+        "84f-collect-only-supported-finite-original-measurements",
+        "84g-format-totals-refusals-and-three-axis-box-extents",
+        "84h-keep-measurements-outside-geometry-history",
+        "84i-accept-two-distance-points-through-the-drawing-tool",
+        "84j-register-measurements-and-end-temporary-marks-predictably",
+        "84k-draw-cached-unpickable-measurement-strokes",
+        "84l-merge-measurement-chips-with-cached-scene-text",
+        "84m-exercise-original-boxes-and-temporary-distance-annotations",
+        "84zza-describe-removable-cad-parts",
+        "84zzb-read-trim-part-previews",
+        "84zzc-collect-curve-crossings",
+        "84zzd-preserve-trimmed-source-types",
+        "84zze-group-faces-by-cutting-planes",
+        "84zzf-cut-planar-brep-faces",
+        "84zzg-assemble-removable-face-groups",
+        "84zzh-mark-retained-brep-topology",
+        "84zzi-rebuild-retained-brep-tables",
+        "84zzj-split-mesh-faces-at-a-plane",
+        "84zzk-compact-both-trimmed-mesh-sides",
+        "84zzl-rebuild-kept-cad-parts",
+        "84zzm-connect-original-trim-recipes",
+        "84zna-index-selection-loops-by-pixel-row",
+        "84znb-test-window-membership-and-segment-crossings",
+        "84znc-sample-original-cad-families-for-selection",
+        "84znd-collect-original-boundary-strokes",
+        "84zne-test-crossing-selection-on-original-strokes",
+        "84znf-connect-window-and-bounds-selection-tests",
+        "84zoa-classify-originals-and-isolate-one-mesh-face",
+        "84zob-copy-original-brep-edges-and-pcurves",
+        "84zoc-build-one-original-brep-face",
+        "84zod-explode-supported-original-families"
+      ],
+      "checkpoint": "84zod-explode-supported-original-families"
+    },
+    {
+      "id": "85-copy-current-original-command-recipes",
+      "title": "Text, Plane, Trim and integrated editing commands",
+      "page": "journey/consolidation/85-copy-current-original-command-recipes.md",
+      "steps": [
+        "85-copy-current-original-command-recipes",
+        "85a-validate-original-plane-display-and-precise-bounds",
+        "85b-retain-original-plane-and-text-edit-eligibility",
+        "85c-find-eligible-objects-by-name-or-world-size",
+        "85d-plan-sibling-pieces-from-original-owners",
+        "85e-own-text-height-and-words-before-placement",
+        "85f-own-unpickable-cached-guide-data",
+        "85g-shade-explicit-dashed-guides",
+        "85h-cache-guide-buffers-and-actual-allocation",
+        "85i-draw-cached-guides-through-the-overlay-owner",
+        "85j-own-trim-targets-cutters-and-part-state",
+        "85k-prepare-local-cuts-from-world-cutters",
+        "85l-hit-remaining-trim-parts-in-canvas-pixels",
+        "85m-preview-cuts-without-changing-originals",
+        "85n-show-remaining-cuts-and-removed-part-guides",
+        "85o-sample-bounded-physical-pixel-lasso-loops",
+        "85p-own-document-scoped-groups-and-links",
+        "85q-resolve-current-graph-and-group-identities",
+        "85r-connect-two-original-owners-and-save-their-links",
+        "85s-remap-appended-links-and-remove-deleted-owners",
+        "85t-plan-world-preserving-original-groups",
+        "85u-adopt-group-branches-with-one-reversible-edit",
+        "85v-append-namespaced-graphs-and-preserve-original-row-identities",
+        "85w-replace-original-families-without-changing-world-placement",
+        "85x-save-group-namespaces-and-original-planes",
+        "85y-keep-named-views-and-grid-on-the-drawing-plane",
+        "85z-connect-cached-guide-and-placed-grid-lanes",
+        "85aa-expose-graph-links-and-the-lasso-overlay",
+        "85ab-own-current-pending-command-state",
+        "85ac-retain-text-answers-inside-the-existing-point-draft",
+        "85ad-complete-original-text-and-headed-arrow-tools",
+        "85ae-present-cached-extension-guides-and-error-endpoints",
+        "85af-commit-prepared-trims-once",
+        "85ag-advance-trim-through-targets-cutters-and-parts",
+        "85ah-adopt-original-pieces-and-arrowhead-changes-atomically",
+        "85ai-dispatch-current-original-commands-through-checked-owners",
+        "85aj-preserve-previews-selection-and-accepted-tool-answers",
+        "85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input",
+        "85al-preserve-pending-originals-during-view-changes",
+        "85am-route-named-views-and-whole-trim-picks",
+        "85an-capture-source-backed-command-arguments",
+        "85ao-restore-typed-requests-and-their-selected-owners",
+        "85ap-witness-identities-and-placement-during-source-loading",
+        "85aq-deduplicate-original-fetches-and-replay-safely",
+        "85ar-route-source-backed-edits-through-guarded-replay",
+        "85as-register-current-names-views-and-command-aliases",
+        "85at-validate-current-command-words-and-options",
+        "85au-capture-lasso-pointer-ownership-in-the-browser",
+        "85av-route-trim-and-lasso-pointer-input",
+        "85aw-refresh-command-panels-source-loading-and-cached-previews",
+        "85ax-observe-current-original-command-state",
+        "85ay-exercise-current-original-commands-together"
+      ],
+      "checkpoint": "85ay-exercise-current-original-commands-together"
+    }
+  ],
+  "old_step_to_lesson": {
+    "81-project-originals-through-the-current-plane-algorithms": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81-project-originals-through-the-current-plane-algorithms"
+    },
+    "81zza-read-original-cutters-in-object-frames": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zza-read-original-cutters-in-object-frames"
+    },
+    "81zzb-find-original-cutters-near-the-pointer": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zzb-find-original-cutters-near-the-pointer"
+    },
+    "81zzc-grow-original-domains-and-extract-the-tail": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zzc-grow-original-domains-and-extract-the-tail"
+    },
+    "81zzd-find-original-end-directions-and-length-reach": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zzd-find-original-end-directions-and-length-reach"
+    },
+    "81zze-stop-straight-growth-at-the-first-boundary": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zze-stop-straight-growth-at-the-first-boundary"
+    },
+    "81zzf-stop-curved-growth-at-an-original-boundary": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zzf-stop-curved-growth-at-an-original-boundary"
+    },
+    "81zzg-dispatch-original-extension-families": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81zzg-dispatch-original-extension-families"
+    },
+    "81a-find-source-cutters-and-current-extension-reach": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81a-find-source-cutters-and-current-extension-reach"
+    },
+    "81b-capture-eligible-original-identity-and-placement": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81b-capture-eligible-original-identity-and-placement"
+    },
+    "81c-replace-an-original-without-replacing-its-row": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81c-replace-an-original-without-replacing-its-row"
+    },
+    "81d-own-the-originals-selected-for-projection": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81d-own-the-originals-selected-for-projection"
+    },
+    "81e-validate-candidate-plane-answers-before-accepting-them": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81e-validate-candidate-plane-answers-before-accepting-them"
+    },
+    "81f-prepare-projection-results-as-one-transaction": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81f-prepare-projection-results-as-one-transaction"
+    },
+    "81g-own-extension-candidates-and-screen-bounds": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81g-own-extension-candidates-and-screen-bounds"
+    },
+    "81h-gather-boundaries-and-sample-eligible-curve-owners": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81h-gather-boundaries-and-sample-eligible-curve-owners"
+    },
+    "81i-cache-current-boundary-meshes-and-start-the-end-phase": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81i-cache-current-boundary-meshes-and-start-the-end-phase"
+    },
+    "81j-resolve-distance-and-boundary-reach-in-source-coordinates": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81j-resolve-distance-and-boundary-reach-in-source-coordinates"
+    },
+    "81k-find-the-nearest-visible-curve-end-in-css-pixels": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81k-find-the-nearest-visible-curve-end-in-css-pixels"
+    },
+    "81l-preview-extension-and-refresh-only-changed-originals": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81l-preview-extension-and-refresh-only-changed-originals"
+    },
+    "81m-keep-projection-and-extension-in-the-pending-tool-owner": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81m-keep-projection-and-extension-in-the-pending-tool-owner"
+    },
+    "81n-connect-checked-projection-to-one-editor-transaction": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81n-connect-checked-projection-to-one-editor-transaction"
+    },
+    "81o-connect-boundary-picks-repeated-end-clicks-and-cancellation": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81o-connect-boundary-picks-repeated-end-clicks-and-cancellation"
+    },
+    "81p-expose-editing-actions-and-normalized-interval-extension": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81p-expose-editing-actions-and-normalized-interval-extension"
+    },
+    "81q-route-accepted-editing-input-and-owner-lifecycle-1": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81q-route-accepted-editing-input-and-owner-lifecycle-1"
+    },
+    "81r-route-accepted-editing-input-and-owner-lifecycle-2": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81r-route-accepted-editing-input-and-owner-lifecycle-2"
+    },
+    "81s-route-accepted-editing-input-and-owner-lifecycle-3": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81s-route-accepted-editing-input-and-owner-lifecycle-3"
+    },
+    "81t-register-current-projection-and-extension-commands": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81t-register-current-projection-and-extension-commands"
+    },
+    "81u-route-whole-boundary-picks-and-observe-pending-edits": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81u-route-whole-boundary-picks-and-observe-pending-edits"
+    },
+    "81v-exercise-original-projection-retry-and-repeated-extension": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81v-exercise-original-projection-retry-and-repeated-extension"
+    },
+    "81za-validate-original-split-inputs-and-name-pieces": {
+      "lesson": "81-project-originals-through-the-current-plane-algorithms",
+      "anchor": "checkpoint-81za-validate-original-split-inputs-and-name-pieces"
+    },
+    "82-divide-current-original-curve-families": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82-divide-current-original-curve-families"
+    },
+    "82a-own-the-split-target-and-toggle-original-cutters": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82a-own-the-split-target-and-toggle-original-cutters"
+    },
+    "82b-transform-cutters-into-the-target-frame-before-dividing": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82b-transform-cutters-into-the-target-frame-before-dividing"
+    },
+    "82c-adopt-sibling-pieces-beside-the-original-target": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82c-adopt-sibling-pieces-beside-the-original-target"
+    },
+    "82d-connect-pending-split-completion-to-one-history-change": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82d-connect-pending-split-completion-to-one-history-change"
+    },
+    "82e-route-cutter-picks-cancellation-and-temporary-highlights": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82e-route-cutter-picks-cancellation-and-temporary-highlights"
+    },
+    "82f-register-split-and-route-mouse-touch-and-confirmation": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82f-register-split-and-route-mouse-touch-and-confirmation"
+    },
+    "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo": {
+      "lesson": "82-divide-current-original-curve-families",
+      "anchor": "checkpoint-82g-exercise-curve-pieces-source-inheritance-and-one-step-undo"
+    },
+    "83-split-original-faces-without-separating-the-solid": {
+      "lesson": "83-split-original-faces-without-separating-the-solid",
+      "anchor": "checkpoint-83-split-original-faces-without-separating-the-solid"
+    },
+    "83za-visit-original-mesh-triangles-and-format-measures": {
+      "lesson": "83-split-original-faces-without-separating-the-solid",
+      "anchor": "checkpoint-83za-visit-original-mesh-triangles-and-format-measures"
+    },
+    "83zb-compute-original-mesh-measures-and-curve-length": {
+      "lesson": "83-split-original-faces-without-separating-the-solid",
+      "anchor": "checkpoint-83zb-compute-original-mesh-measures-and-curve-length"
+    },
+    "83ze-integrate-original-surface-area": {
+      "lesson": "83-split-original-faces-without-separating-the-solid",
+      "anchor": "checkpoint-83ze-integrate-original-surface-area"
+    },
+    "84-measure-original-curves-surfaces-and-closed-solids": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84-measure-original-curves-surfaces-and-closed-solids"
+    },
+    "84a-validate-an-original-box-and-derive-wire-only-display": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"
+    },
+    "84b-adopt-original-boxes-and-retain-precise-placed-bounds": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"
+    },
+    "84c-save-and-reopen-the-original-box-frame": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84c-save-and-reopen-the-original-box-frame"
+    },
+    "84d-own-temporary-measurement-labels-without-scene-identities": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84d-own-temporary-measurement-labels-without-scene-identities"
+    },
+    "84e-report-distance-and-world-bounding-lengths": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84e-report-distance-and-world-bounding-lengths"
+    },
+    "84f-collect-only-supported-finite-original-measurements": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84f-collect-only-supported-finite-original-measurements"
+    },
+    "84g-format-totals-refusals-and-three-axis-box-extents": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"
+    },
+    "84h-keep-measurements-outside-geometry-history": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84h-keep-measurements-outside-geometry-history"
+    },
+    "84i-accept-two-distance-points-through-the-drawing-tool": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"
+    },
+    "84j-register-measurements-and-end-temporary-marks-predictably": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84j-register-measurements-and-end-temporary-marks-predictably"
+    },
+    "84k-draw-cached-unpickable-measurement-strokes": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84k-draw-cached-unpickable-measurement-strokes"
+    },
+    "84l-merge-measurement-chips-with-cached-scene-text": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84l-merge-measurement-chips-with-cached-scene-text"
+    },
+    "84m-exercise-original-boxes-and-temporary-distance-annotations": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"
+    },
+    "84zza-describe-removable-cad-parts": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zza-describe-removable-cad-parts"
+    },
+    "84zzb-read-trim-part-previews": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzb-read-trim-part-previews"
+    },
+    "84zzc-collect-curve-crossings": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzc-collect-curve-crossings"
+    },
+    "84zzd-preserve-trimmed-source-types": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzd-preserve-trimmed-source-types"
+    },
+    "84zze-group-faces-by-cutting-planes": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zze-group-faces-by-cutting-planes"
+    },
+    "84zzf-cut-planar-brep-faces": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzf-cut-planar-brep-faces"
+    },
+    "84zzg-assemble-removable-face-groups": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzg-assemble-removable-face-groups"
+    },
+    "84zzh-mark-retained-brep-topology": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzh-mark-retained-brep-topology"
+    },
+    "84zzi-rebuild-retained-brep-tables": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzi-rebuild-retained-brep-tables"
+    },
+    "84zzj-split-mesh-faces-at-a-plane": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzj-split-mesh-faces-at-a-plane"
+    },
+    "84zzk-compact-both-trimmed-mesh-sides": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzk-compact-both-trimmed-mesh-sides"
+    },
+    "84zzl-rebuild-kept-cad-parts": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzl-rebuild-kept-cad-parts"
+    },
+    "84zzm-connect-original-trim-recipes": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zzm-connect-original-trim-recipes"
+    },
+    "84zna-index-selection-loops-by-pixel-row": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zna-index-selection-loops-by-pixel-row"
+    },
+    "84znb-test-window-membership-and-segment-crossings": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84znb-test-window-membership-and-segment-crossings"
+    },
+    "84znc-sample-original-cad-families-for-selection": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84znc-sample-original-cad-families-for-selection"
+    },
+    "84znd-collect-original-boundary-strokes": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84znd-collect-original-boundary-strokes"
+    },
+    "84zne-test-crossing-selection-on-original-strokes": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zne-test-crossing-selection-on-original-strokes"
+    },
+    "84znf-connect-window-and-bounds-selection-tests": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84znf-connect-window-and-bounds-selection-tests"
+    },
+    "84zoa-classify-originals-and-isolate-one-mesh-face": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face"
+    },
+    "84zob-copy-original-brep-edges-and-pcurves": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zob-copy-original-brep-edges-and-pcurves"
+    },
+    "84zoc-build-one-original-brep-face": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zoc-build-one-original-brep-face"
+    },
+    "84zod-explode-supported-original-families": {
+      "lesson": "84-measure-original-curves-surfaces-and-closed-solids",
+      "anchor": "checkpoint-84zod-explode-supported-original-families"
+    },
+    "85-copy-current-original-command-recipes": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85-copy-current-original-command-recipes"
+    },
+    "85a-validate-original-plane-display-and-precise-bounds": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85a-validate-original-plane-display-and-precise-bounds"
+    },
+    "85b-retain-original-plane-and-text-edit-eligibility": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85b-retain-original-plane-and-text-edit-eligibility"
+    },
+    "85c-find-eligible-objects-by-name-or-world-size": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85c-find-eligible-objects-by-name-or-world-size"
+    },
+    "85d-plan-sibling-pieces-from-original-owners": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85d-plan-sibling-pieces-from-original-owners"
+    },
+    "85e-own-text-height-and-words-before-placement": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85e-own-text-height-and-words-before-placement"
+    },
+    "85f-own-unpickable-cached-guide-data": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85f-own-unpickable-cached-guide-data"
+    },
+    "85g-shade-explicit-dashed-guides": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85g-shade-explicit-dashed-guides"
+    },
+    "85h-cache-guide-buffers-and-actual-allocation": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85h-cache-guide-buffers-and-actual-allocation"
+    },
+    "85i-draw-cached-guides-through-the-overlay-owner": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85i-draw-cached-guides-through-the-overlay-owner"
+    },
+    "85j-own-trim-targets-cutters-and-part-state": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85j-own-trim-targets-cutters-and-part-state"
+    },
+    "85k-prepare-local-cuts-from-world-cutters": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85k-prepare-local-cuts-from-world-cutters"
+    },
+    "85l-hit-remaining-trim-parts-in-canvas-pixels": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85l-hit-remaining-trim-parts-in-canvas-pixels"
+    },
+    "85m-preview-cuts-without-changing-originals": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85m-preview-cuts-without-changing-originals"
+    },
+    "85n-show-remaining-cuts-and-removed-part-guides": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85n-show-remaining-cuts-and-removed-part-guides"
+    },
+    "85o-sample-bounded-physical-pixel-lasso-loops": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85o-sample-bounded-physical-pixel-lasso-loops"
+    },
+    "85p-own-document-scoped-groups-and-links": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85p-own-document-scoped-groups-and-links"
+    },
+    "85q-resolve-current-graph-and-group-identities": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85q-resolve-current-graph-and-group-identities"
+    },
+    "85r-connect-two-original-owners-and-save-their-links": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85r-connect-two-original-owners-and-save-their-links"
+    },
+    "85s-remap-appended-links-and-remove-deleted-owners": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85s-remap-appended-links-and-remove-deleted-owners"
+    },
+    "85t-plan-world-preserving-original-groups": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85t-plan-world-preserving-original-groups"
+    },
+    "85u-adopt-group-branches-with-one-reversible-edit": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85u-adopt-group-branches-with-one-reversible-edit"
+    },
+    "85v-append-namespaced-graphs-and-preserve-original-row-identities": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85v-append-namespaced-graphs-and-preserve-original-row-identities"
+    },
+    "85w-replace-original-families-without-changing-world-placement": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85w-replace-original-families-without-changing-world-placement"
+    },
+    "85x-save-group-namespaces-and-original-planes": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85x-save-group-namespaces-and-original-planes"
+    },
+    "85y-keep-named-views-and-grid-on-the-drawing-plane": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85y-keep-named-views-and-grid-on-the-drawing-plane"
+    },
+    "85z-connect-cached-guide-and-placed-grid-lanes": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85z-connect-cached-guide-and-placed-grid-lanes"
+    },
+    "85aa-expose-graph-links-and-the-lasso-overlay": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85aa-expose-graph-links-and-the-lasso-overlay"
+    },
+    "85ab-own-current-pending-command-state": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ab-own-current-pending-command-state"
+    },
+    "85ac-retain-text-answers-inside-the-existing-point-draft": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ac-retain-text-answers-inside-the-existing-point-draft"
+    },
+    "85ad-complete-original-text-and-headed-arrow-tools": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ad-complete-original-text-and-headed-arrow-tools"
+    },
+    "85ae-present-cached-extension-guides-and-error-endpoints": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ae-present-cached-extension-guides-and-error-endpoints"
+    },
+    "85af-commit-prepared-trims-once": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85af-commit-prepared-trims-once"
+    },
+    "85ag-advance-trim-through-targets-cutters-and-parts": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ag-advance-trim-through-targets-cutters-and-parts"
+    },
+    "85ah-adopt-original-pieces-and-arrowhead-changes-atomically": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ah-adopt-original-pieces-and-arrowhead-changes-atomically"
+    },
+    "85ai-dispatch-current-original-commands-through-checked-owners": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ai-dispatch-current-original-commands-through-checked-owners"
+    },
+    "85aj-preserve-previews-selection-and-accepted-tool-answers": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85aj-preserve-previews-selection-and-accepted-tool-answers"
+    },
+    "85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input"
+    },
+    "85al-preserve-pending-originals-during-view-changes": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85al-preserve-pending-originals-during-view-changes"
+    },
+    "85am-route-named-views-and-whole-trim-picks": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85am-route-named-views-and-whole-trim-picks"
+    },
+    "85an-capture-source-backed-command-arguments": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85an-capture-source-backed-command-arguments"
+    },
+    "85ao-restore-typed-requests-and-their-selected-owners": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ao-restore-typed-requests-and-their-selected-owners"
+    },
+    "85ap-witness-identities-and-placement-during-source-loading": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ap-witness-identities-and-placement-during-source-loading"
+    },
+    "85aq-deduplicate-original-fetches-and-replay-safely": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85aq-deduplicate-original-fetches-and-replay-safely"
+    },
+    "85ar-route-source-backed-edits-through-guarded-replay": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ar-route-source-backed-edits-through-guarded-replay"
+    },
+    "85as-register-current-names-views-and-command-aliases": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85as-register-current-names-views-and-command-aliases"
+    },
+    "85at-validate-current-command-words-and-options": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85at-validate-current-command-words-and-options"
+    },
+    "85au-capture-lasso-pointer-ownership-in-the-browser": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85au-capture-lasso-pointer-ownership-in-the-browser"
+    },
+    "85av-route-trim-and-lasso-pointer-input": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85av-route-trim-and-lasso-pointer-input"
+    },
+    "85aw-refresh-command-panels-source-loading-and-cached-previews": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85aw-refresh-command-panels-source-loading-and-cached-previews"
+    },
+    "85ax-observe-current-original-command-state": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ax-observe-current-original-command-state"
+    },
+    "85ay-exercise-current-original-commands-together": {
+      "lesson": "85-copy-current-original-command-recipes",
+      "anchor": "checkpoint-85ay-exercise-current-original-commands-together"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/command/verbs/project_to_plane.rs",
+      "session_viewer/src/app/command/verbs/extend.rs",
+      "session_viewer/src/app/splitting.rs",
+      "session_viewer/src/app/command/verbs/measure.rs",
+      "session_viewer/src/app/command/verbs/trim/parts.rs",
+      "session_viewer/src/app/command/verbs/explode.rs",
+      "session_viewer/src/app/walk/frames.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "81-project-originals-through-the-current-plane-algorithms",
+      "path": "screenshots/journey/81-project-originals-through-the-current-plane-algorithms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zza-read-original-cutters-in-object-frames",
+      "path": "screenshots/journey/81zza-read-original-cutters-in-object-frames.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zzb-find-original-cutters-near-the-pointer",
+      "path": "screenshots/journey/81zzb-find-original-cutters-near-the-pointer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zzc-grow-original-domains-and-extract-the-tail",
+      "path": "screenshots/journey/81zzc-grow-original-domains-and-extract-the-tail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zzd-find-original-end-directions-and-length-reach",
+      "path": "screenshots/journey/81zzd-find-original-end-directions-and-length-reach.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zze-stop-straight-growth-at-the-first-boundary",
+      "path": "screenshots/journey/81zze-stop-straight-growth-at-the-first-boundary.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zzf-stop-curved-growth-at-an-original-boundary",
+      "path": "screenshots/journey/81zzf-stop-curved-growth-at-an-original-boundary.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81zzg-dispatch-original-extension-families",
+      "path": "screenshots/journey/81zzg-dispatch-original-extension-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81a-find-source-cutters-and-current-extension-reach",
+      "path": "screenshots/journey/81a-find-source-cutters-and-current-extension-reach.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81b-capture-eligible-original-identity-and-placement",
+      "path": "screenshots/journey/81b-capture-eligible-original-identity-and-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81c-replace-an-original-without-replacing-its-row",
+      "path": "screenshots/journey/81c-replace-an-original-without-replacing-its-row.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81d-own-the-originals-selected-for-projection",
+      "path": "screenshots/journey/81d-own-the-originals-selected-for-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81e-validate-candidate-plane-answers-before-accepting-them",
+      "path": "screenshots/journey/81e-validate-candidate-plane-answers-before-accepting-them.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81f-prepare-projection-results-as-one-transaction",
+      "path": "screenshots/journey/81f-prepare-projection-results-as-one-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81g-own-extension-candidates-and-screen-bounds",
+      "path": "screenshots/journey/81g-own-extension-candidates-and-screen-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81h-gather-boundaries-and-sample-eligible-curve-owners",
+      "path": "screenshots/journey/81h-gather-boundaries-and-sample-eligible-curve-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81i-cache-current-boundary-meshes-and-start-the-end-phase",
+      "path": "screenshots/journey/81i-cache-current-boundary-meshes-and-start-the-end-phase.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81j-resolve-distance-and-boundary-reach-in-source-coordinates",
+      "path": "screenshots/journey/81j-resolve-distance-and-boundary-reach-in-source-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81k-find-the-nearest-visible-curve-end-in-css-pixels",
+      "path": "screenshots/journey/81k-find-the-nearest-visible-curve-end-in-css-pixels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81l-preview-extension-and-refresh-only-changed-originals",
+      "path": "screenshots/journey/81l-preview-extension-and-refresh-only-changed-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81m-keep-projection-and-extension-in-the-pending-tool-owner",
+      "path": "screenshots/journey/81m-keep-projection-and-extension-in-the-pending-tool-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81n-connect-checked-projection-to-one-editor-transaction",
+      "path": "screenshots/journey/81n-connect-checked-projection-to-one-editor-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81o-connect-boundary-picks-repeated-end-clicks-and-cancellation",
+      "path": "screenshots/journey/81o-connect-boundary-picks-repeated-end-clicks-and-cancellation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81p-expose-editing-actions-and-normalized-interval-extension",
+      "path": "screenshots/journey/81p-expose-editing-actions-and-normalized-interval-extension.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81q-route-accepted-editing-input-and-owner-lifecycle-1",
+      "path": "screenshots/journey/81q-route-accepted-editing-input-and-owner-lifecycle-1.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81r-route-accepted-editing-input-and-owner-lifecycle-2",
+      "path": "screenshots/journey/81r-route-accepted-editing-input-and-owner-lifecycle-2.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81s-route-accepted-editing-input-and-owner-lifecycle-3",
+      "path": "screenshots/journey/81s-route-accepted-editing-input-and-owner-lifecycle-3.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81t-register-current-projection-and-extension-commands",
+      "path": "screenshots/journey/81t-register-current-projection-and-extension-commands.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81u-route-whole-boundary-picks-and-observe-pending-edits",
+      "path": "screenshots/journey/81u-route-whole-boundary-picks-and-observe-pending-edits.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81v-exercise-original-projection-retry-and-repeated-extension",
+      "path": "screenshots/journey/81v-exercise-original-projection-retry-and-repeated-extension.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "81za-validate-original-split-inputs-and-name-pieces",
+      "path": "screenshots/journey/81za-validate-original-split-inputs-and-name-pieces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82-divide-current-original-curve-families",
+      "path": "screenshots/journey/82-divide-current-original-curve-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82a-own-the-split-target-and-toggle-original-cutters",
+      "path": "screenshots/journey/82a-own-the-split-target-and-toggle-original-cutters.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82b-transform-cutters-into-the-target-frame-before-dividing",
+      "path": "screenshots/journey/82b-transform-cutters-into-the-target-frame-before-dividing.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82c-adopt-sibling-pieces-beside-the-original-target",
+      "path": "screenshots/journey/82c-adopt-sibling-pieces-beside-the-original-target.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82d-connect-pending-split-completion-to-one-history-change",
+      "path": "screenshots/journey/82d-connect-pending-split-completion-to-one-history-change.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82e-route-cutter-picks-cancellation-and-temporary-highlights",
+      "path": "screenshots/journey/82e-route-cutter-picks-cancellation-and-temporary-highlights.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82f-register-split-and-route-mouse-touch-and-confirmation",
+      "path": "screenshots/journey/82f-register-split-and-route-mouse-touch-and-confirmation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "82g-exercise-curve-pieces-source-inheritance-and-one-step-undo",
+      "path": "screenshots/journey/82g-exercise-curve-pieces-source-inheritance-and-one-step-undo.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "83-split-original-faces-without-separating-the-solid",
+      "path": "screenshots/journey/83-split-original-faces-without-separating-the-solid.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "83za-visit-original-mesh-triangles-and-format-measures",
+      "path": "screenshots/journey/83za-visit-original-mesh-triangles-and-format-measures.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "83zb-compute-original-mesh-measures-and-curve-length",
+      "path": "screenshots/journey/83zb-compute-original-mesh-measures-and-curve-length.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "83ze-integrate-original-surface-area",
+      "path": "screenshots/journey/83ze-integrate-original-surface-area.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84-measure-original-curves-surfaces-and-closed-solids",
+      "path": "screenshots/journey/84-measure-original-curves-surfaces-and-closed-solids.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84a-validate-an-original-box-and-derive-wire-only-display",
+      "path": "screenshots/journey/84a-validate-an-original-box-and-derive-wire-only-display.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84b-adopt-original-boxes-and-retain-precise-placed-bounds",
+      "path": "screenshots/journey/84b-adopt-original-boxes-and-retain-precise-placed-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84c-save-and-reopen-the-original-box-frame",
+      "path": "screenshots/journey/84c-save-and-reopen-the-original-box-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84d-own-temporary-measurement-labels-without-scene-identities",
+      "path": "screenshots/journey/84d-own-temporary-measurement-labels-without-scene-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84e-report-distance-and-world-bounding-lengths",
+      "path": "screenshots/journey/84e-report-distance-and-world-bounding-lengths.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84f-collect-only-supported-finite-original-measurements",
+      "path": "screenshots/journey/84f-collect-only-supported-finite-original-measurements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84g-format-totals-refusals-and-three-axis-box-extents",
+      "path": "screenshots/journey/84g-format-totals-refusals-and-three-axis-box-extents.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84h-keep-measurements-outside-geometry-history",
+      "path": "screenshots/journey/84h-keep-measurements-outside-geometry-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84i-accept-two-distance-points-through-the-drawing-tool",
+      "path": "screenshots/journey/84i-accept-two-distance-points-through-the-drawing-tool.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84j-register-measurements-and-end-temporary-marks-predictably",
+      "path": "screenshots/journey/84j-register-measurements-and-end-temporary-marks-predictably.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84k-draw-cached-unpickable-measurement-strokes",
+      "path": "screenshots/journey/84k-draw-cached-unpickable-measurement-strokes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84l-merge-measurement-chips-with-cached-scene-text",
+      "path": "screenshots/journey/84l-merge-measurement-chips-with-cached-scene-text.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84m-exercise-original-boxes-and-temporary-distance-annotations",
+      "path": "screenshots/journey/84m-exercise-original-boxes-and-temporary-distance-annotations.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zza-describe-removable-cad-parts",
+      "path": "screenshots/journey/84zza-describe-removable-cad-parts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzb-read-trim-part-previews",
+      "path": "screenshots/journey/84zzb-read-trim-part-previews.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzc-collect-curve-crossings",
+      "path": "screenshots/journey/84zzc-collect-curve-crossings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzd-preserve-trimmed-source-types",
+      "path": "screenshots/journey/84zzd-preserve-trimmed-source-types.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zze-group-faces-by-cutting-planes",
+      "path": "screenshots/journey/84zze-group-faces-by-cutting-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzf-cut-planar-brep-faces",
+      "path": "screenshots/journey/84zzf-cut-planar-brep-faces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzg-assemble-removable-face-groups",
+      "path": "screenshots/journey/84zzg-assemble-removable-face-groups.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzh-mark-retained-brep-topology",
+      "path": "screenshots/journey/84zzh-mark-retained-brep-topology.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzi-rebuild-retained-brep-tables",
+      "path": "screenshots/journey/84zzi-rebuild-retained-brep-tables.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzj-split-mesh-faces-at-a-plane",
+      "path": "screenshots/journey/84zzj-split-mesh-faces-at-a-plane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzk-compact-both-trimmed-mesh-sides",
+      "path": "screenshots/journey/84zzk-compact-both-trimmed-mesh-sides.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzl-rebuild-kept-cad-parts",
+      "path": "screenshots/journey/84zzl-rebuild-kept-cad-parts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zzm-connect-original-trim-recipes",
+      "path": "screenshots/journey/84zzm-connect-original-trim-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zna-index-selection-loops-by-pixel-row",
+      "path": "screenshots/journey/84zna-index-selection-loops-by-pixel-row.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84znb-test-window-membership-and-segment-crossings",
+      "path": "screenshots/journey/84znb-test-window-membership-and-segment-crossings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84znc-sample-original-cad-families-for-selection",
+      "path": "screenshots/journey/84znc-sample-original-cad-families-for-selection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84znd-collect-original-boundary-strokes",
+      "path": "screenshots/journey/84znd-collect-original-boundary-strokes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zne-test-crossing-selection-on-original-strokes",
+      "path": "screenshots/journey/84zne-test-crossing-selection-on-original-strokes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84znf-connect-window-and-bounds-selection-tests",
+      "path": "screenshots/journey/84znf-connect-window-and-bounds-selection-tests.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zoa-classify-originals-and-isolate-one-mesh-face",
+      "path": "screenshots/journey/84zoa-classify-originals-and-isolate-one-mesh-face.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zob-copy-original-brep-edges-and-pcurves",
+      "path": "screenshots/journey/84zob-copy-original-brep-edges-and-pcurves.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zoc-build-one-original-brep-face",
+      "path": "screenshots/journey/84zoc-build-one-original-brep-face.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "84zod-explode-supported-original-families",
+      "path": "screenshots/journey/84zod-explode-supported-original-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85-copy-current-original-command-recipes",
+      "path": "screenshots/journey/85-copy-current-original-command-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85a-validate-original-plane-display-and-precise-bounds",
+      "path": "screenshots/journey/85a-validate-original-plane-display-and-precise-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85b-retain-original-plane-and-text-edit-eligibility",
+      "path": "screenshots/journey/85b-retain-original-plane-and-text-edit-eligibility.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85c-find-eligible-objects-by-name-or-world-size",
+      "path": "screenshots/journey/85c-find-eligible-objects-by-name-or-world-size.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85d-plan-sibling-pieces-from-original-owners",
+      "path": "screenshots/journey/85d-plan-sibling-pieces-from-original-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85e-own-text-height-and-words-before-placement",
+      "path": "screenshots/journey/85e-own-text-height-and-words-before-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85f-own-unpickable-cached-guide-data",
+      "path": "screenshots/journey/85f-own-unpickable-cached-guide-data.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85g-shade-explicit-dashed-guides",
+      "path": "screenshots/journey/85g-shade-explicit-dashed-guides.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85h-cache-guide-buffers-and-actual-allocation",
+      "path": "screenshots/journey/85h-cache-guide-buffers-and-actual-allocation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85i-draw-cached-guides-through-the-overlay-owner",
+      "path": "screenshots/journey/85i-draw-cached-guides-through-the-overlay-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85j-own-trim-targets-cutters-and-part-state",
+      "path": "screenshots/journey/85j-own-trim-targets-cutters-and-part-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85k-prepare-local-cuts-from-world-cutters",
+      "path": "screenshots/journey/85k-prepare-local-cuts-from-world-cutters.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85l-hit-remaining-trim-parts-in-canvas-pixels",
+      "path": "screenshots/journey/85l-hit-remaining-trim-parts-in-canvas-pixels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85m-preview-cuts-without-changing-originals",
+      "path": "screenshots/journey/85m-preview-cuts-without-changing-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85n-show-remaining-cuts-and-removed-part-guides",
+      "path": "screenshots/journey/85n-show-remaining-cuts-and-removed-part-guides.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85o-sample-bounded-physical-pixel-lasso-loops",
+      "path": "screenshots/journey/85o-sample-bounded-physical-pixel-lasso-loops.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85p-own-document-scoped-groups-and-links",
+      "path": "screenshots/journey/85p-own-document-scoped-groups-and-links.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85q-resolve-current-graph-and-group-identities",
+      "path": "screenshots/journey/85q-resolve-current-graph-and-group-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85r-connect-two-original-owners-and-save-their-links",
+      "path": "screenshots/journey/85r-connect-two-original-owners-and-save-their-links.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85s-remap-appended-links-and-remove-deleted-owners",
+      "path": "screenshots/journey/85s-remap-appended-links-and-remove-deleted-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85t-plan-world-preserving-original-groups",
+      "path": "screenshots/journey/85t-plan-world-preserving-original-groups.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85u-adopt-group-branches-with-one-reversible-edit",
+      "path": "screenshots/journey/85u-adopt-group-branches-with-one-reversible-edit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85v-append-namespaced-graphs-and-preserve-original-row-identities",
+      "path": "screenshots/journey/85v-append-namespaced-graphs-and-preserve-original-row-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85w-replace-original-families-without-changing-world-placement",
+      "path": "screenshots/journey/85w-replace-original-families-without-changing-world-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85x-save-group-namespaces-and-original-planes",
+      "path": "screenshots/journey/85x-save-group-namespaces-and-original-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85y-keep-named-views-and-grid-on-the-drawing-plane",
+      "path": "screenshots/journey/85y-keep-named-views-and-grid-on-the-drawing-plane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85z-connect-cached-guide-and-placed-grid-lanes",
+      "path": "screenshots/journey/85z-connect-cached-guide-and-placed-grid-lanes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85aa-expose-graph-links-and-the-lasso-overlay",
+      "path": "screenshots/journey/85aa-expose-graph-links-and-the-lasso-overlay.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ab-own-current-pending-command-state",
+      "path": "screenshots/journey/85ab-own-current-pending-command-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ac-retain-text-answers-inside-the-existing-point-draft",
+      "path": "screenshots/journey/85ac-retain-text-answers-inside-the-existing-point-draft.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ad-complete-original-text-and-headed-arrow-tools",
+      "path": "screenshots/journey/85ad-complete-original-text-and-headed-arrow-tools.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ae-present-cached-extension-guides-and-error-endpoints",
+      "path": "screenshots/journey/85ae-present-cached-extension-guides-and-error-endpoints.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85af-commit-prepared-trims-once",
+      "path": "screenshots/journey/85af-commit-prepared-trims-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ag-advance-trim-through-targets-cutters-and-parts",
+      "path": "screenshots/journey/85ag-advance-trim-through-targets-cutters-and-parts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ah-adopt-original-pieces-and-arrowhead-changes-atomically",
+      "path": "screenshots/journey/85ah-adopt-original-pieces-and-arrowhead-changes-atomically.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ai-dispatch-current-original-commands-through-checked-owners",
+      "path": "screenshots/journey/85ai-dispatch-current-original-commands-through-checked-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85aj-preserve-previews-selection-and-accepted-tool-answers",
+      "path": "screenshots/journey/85aj-preserve-previews-selection-and-accepted-tool-answers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input",
+      "path": "screenshots/journey/85ak-keep-annotations-during-touch-navigation-and-capture-lasso-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85al-preserve-pending-originals-during-view-changes",
+      "path": "screenshots/journey/85al-preserve-pending-originals-during-view-changes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85am-route-named-views-and-whole-trim-picks",
+      "path": "screenshots/journey/85am-route-named-views-and-whole-trim-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85an-capture-source-backed-command-arguments",
+      "path": "screenshots/journey/85an-capture-source-backed-command-arguments.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ao-restore-typed-requests-and-their-selected-owners",
+      "path": "screenshots/journey/85ao-restore-typed-requests-and-their-selected-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ap-witness-identities-and-placement-during-source-loading",
+      "path": "screenshots/journey/85ap-witness-identities-and-placement-during-source-loading.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85aq-deduplicate-original-fetches-and-replay-safely",
+      "path": "screenshots/journey/85aq-deduplicate-original-fetches-and-replay-safely.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ar-route-source-backed-edits-through-guarded-replay",
+      "path": "screenshots/journey/85ar-route-source-backed-edits-through-guarded-replay.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85as-register-current-names-views-and-command-aliases",
+      "path": "screenshots/journey/85as-register-current-names-views-and-command-aliases.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85at-validate-current-command-words-and-options",
+      "path": "screenshots/journey/85at-validate-current-command-words-and-options.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85au-capture-lasso-pointer-ownership-in-the-browser",
+      "path": "screenshots/journey/85au-capture-lasso-pointer-ownership-in-the-browser.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85av-route-trim-and-lasso-pointer-input",
+      "path": "screenshots/journey/85av-route-trim-and-lasso-pointer-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85aw-refresh-command-panels-source-loading-and-cached-previews",
+      "path": "screenshots/journey/85aw-refresh-command-panels-source-loading-and-cached-previews.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ax-observe-current-original-command-state",
+      "path": "screenshots/journey/85ax-observe-current-original-command-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "85ay-exercise-current-original-commands-together",
+      "path": "screenshots/journey/85ay-exercise-current-original-commands-together.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

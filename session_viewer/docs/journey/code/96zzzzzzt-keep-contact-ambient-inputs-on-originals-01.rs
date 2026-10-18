@@ -1,0 +1,1 @@
+fn visual_ancestor(scene: &Scene, doc: &Document, index: usize) -> Option<ObjectId> {

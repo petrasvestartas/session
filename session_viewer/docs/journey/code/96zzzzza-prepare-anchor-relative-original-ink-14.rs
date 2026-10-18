@@ -1,0 +1,1 @@
+            let points:Vec<_>=row.points().iter().map(|p|crate::render_space::relative(crate::clipping_geometry::array(p),anchor)).collect();

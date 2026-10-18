@@ -1,0 +1,1 @@
+&self.primitive.view,&self.meshes

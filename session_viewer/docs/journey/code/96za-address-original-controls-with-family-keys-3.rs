@@ -1,0 +1,1 @@
+markers.push(ControlMarker { parent: row.id, part: crate::pick_sources::Part::Control(control.index), display });

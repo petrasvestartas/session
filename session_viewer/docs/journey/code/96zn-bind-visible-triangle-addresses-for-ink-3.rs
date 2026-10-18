@@ -1,0 +1,1 @@
+wgpu::TextureSampleType::Float{filterable:false},false),crate::text_gpu_support::texture_entry(4,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Uint,false)]

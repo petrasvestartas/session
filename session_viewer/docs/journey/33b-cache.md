@@ -1,4 +1,6 @@
-# 33b · Keep a cached viewer ready for Back navigation
+# 4.1.3 · Keep a cached viewer ready for Back navigation
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.1 · Listener and page lifetime** · [Contents](contents.md)
 
 **Typing: 3–5 minutes.** [Estimate](typing-load.md).
 
@@ -16,16 +18,27 @@ Enable the browser event type that tells us whether the page may return from its
 <summary>Locate the existing block</summary>
 
 ```toml
-"AddEventListenerOptions", "Event",
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/33b-cache-01.rs"
 ```
+
+</details>
 
 ### 2. `src/browser.rs`
 
@@ -41,11 +54,25 @@ Cancel an unfinished drag, retain the cached page’s live owner, and dispose on
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        if event.type_() == "pagehide" {
+            gesture.cancel();
+            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/33b-cache-02.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +80,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. `window.wasmBindings.runtime_running()` stays true and typed commands still work.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Keep a cached viewer ready for Back navigation.](../screenshots/journey/33b-cache-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for keep a cached viewer ready for back navigation.](../screenshots/journey/33b-cache.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -105,8 +128,8 @@ Remove the persisted check and run the retained-runtime assertions. Explain why 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 33b-cache
-npm --prefix ../session_tests run course -- save 33b-cache
+npm --prefix ../session_tests run course -- check 4.1.3
+npm --prefix ../session_tests run course -- save 4.1.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -127,7 +150,7 @@ Chrome checks persisted transition handling, cancelled drag, retained state and 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 33b-cache
+npm --prefix ../session_tests run course -- capture 4.1.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

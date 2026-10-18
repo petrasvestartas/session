@@ -1,0 +1,2 @@
+    pub fn point(&self)->session_rust::Point {self.point_at([0.;3])}
+    pub fn point_at(&self,anchor:[f64;3])->session_rust::Point {crate::render_space::placed(&self.model,anchor).transform_point(&self.prepared.source)}

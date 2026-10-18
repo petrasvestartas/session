@@ -1,0 +1,1 @@
+let point=packed_position(physical_vertices[physical_indices[index]]);

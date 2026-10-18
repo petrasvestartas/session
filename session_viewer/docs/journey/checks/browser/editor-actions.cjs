@@ -19,7 +19,7 @@ module.exports = async (page, {command, drawing}) => {
     assert.equal(await drawing(page), initial, 'Redo and reselect must restore the same display');
     await command(page, 'Pan Right');
     await command(page, 'Select Next');
-    const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+    const url = await require('./canvas-image.cjs')(page.locator('canvas'));
     const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
     const grey = [];
     for (let y = 0; y < image.height - 34; y++) for (let x = 0; x < image.width; x++) {
@@ -33,7 +33,7 @@ module.exports = async (page, {command, drawing}) => {
     const box = await canvas.boundingBox();
     await canvas.click({position: {x: (x + .5) * box.width / image.width, y: (y + .5) * box.height / image.height}});
     await page.waitForTimeout(180);
-    const selected = PNG.sync.read(Buffer.from((await canvas.evaluate(c => c.toDataURL())).split(',')[1], 'base64'));
+    const selected = PNG.sync.read(Buffer.from((await require('./canvas-image.cjs')(canvas)).split(',')[1], 'base64'));
     let yellow = 0;
     for (let i = 0; i < selected.width * (selected.height - 34) * 4; i += 4) {
         const [r, g, b] = selected.data.subarray(i, i + 3);

@@ -1,0 +1,1 @@
+let center=control.position.map(|v|v as f32);

@@ -1,0 +1,1 @@
+self.highlight.objects_at(&self.device,scene,ids,anchor)?

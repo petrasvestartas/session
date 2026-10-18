@@ -1,0 +1,8 @@
+    Pick([f32; 2]),
+    Picked(Option<ObjectId>),
+    PickedTarget(Option<crate::pick_sources::Target>),
+    PickedMany { target: Option<crate::pick_sources::Target>, additive: bool },
+    SelectAll,
+    PickMode(crate::pick_sources::Mode),
+    Import(Vec<u8>),
+    Replace(Vec<u8>),

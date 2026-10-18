@@ -1,0 +1,1 @@
+::Wgsl(if target.samples==4 {include_str!("text_plate.wgsl").replace("@location(0) local:","@location(0) @interpolate(linear,sample) local:").into()}else{include_s

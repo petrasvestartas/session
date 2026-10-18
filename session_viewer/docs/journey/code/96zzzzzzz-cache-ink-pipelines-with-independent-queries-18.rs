@@ -1,0 +1,1 @@
+  let attrs=attributes(stride);

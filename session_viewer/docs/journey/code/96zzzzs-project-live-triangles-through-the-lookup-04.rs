@@ -1,0 +1,1 @@
+if self.fallback{self.lookup=None;self.rows.clear();

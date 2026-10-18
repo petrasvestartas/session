@@ -1,0 +1,1 @@
+d.encode_masks(&ctx,&mut encoder,&self.targets.depth,&self.view_group,&self.meshes,*tr

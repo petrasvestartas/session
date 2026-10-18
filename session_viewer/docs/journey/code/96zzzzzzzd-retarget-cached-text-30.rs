@@ -1,0 +1,1 @@
+crate::text_gpu_support::Target {format:self.format,samples:self.targets.samples}

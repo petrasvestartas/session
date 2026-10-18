@@ -1,0 +1,1 @@
+mesh.vertices().iter().zip(mesh.normals()).zip(mesh.alphas()).flat_map(|((v,n),a)|pack(*v,*n,*a))

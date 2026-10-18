@@ -1,0 +1,1 @@
+count:u32,slots:crate::draw_slots::Slots}

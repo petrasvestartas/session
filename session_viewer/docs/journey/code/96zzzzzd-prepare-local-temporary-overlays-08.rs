@@ -1,0 +1,1 @@
+if let Some(trim)=&self.trim{return trim.overlay_at(anchor)}

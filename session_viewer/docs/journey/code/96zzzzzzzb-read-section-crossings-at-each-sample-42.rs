@@ -1,0 +1,1 @@
+){let geometry=self.counts.take().map_or_else(Default::default,|c|c.geometry);let image=Imag

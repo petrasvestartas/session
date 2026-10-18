@@ -15,11 +15,12 @@ module.exports = async (original, helpers) => {
             const usage = () => value('data-path-gpu');
             const quiet = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(120); };
             const pixels = async () => {
-                await quiet(); const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+                await quiet(); const url = await require('./canvas-image.cjs')(page.locator('canvas'));
                 return PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
             };
             const joint = async () => {
-                const p = await pixels(), x = p.width / 2, y = p.height / 2;
+                const p = await pixels(), m = await value('data-camera-matrix');
+                const x = Math.floor((m[12] / m[15] + 1) * p.width / 2), y = Math.floor((1 - m[13] / m[15]) * p.height / 2);
                 const sample = p.data[(y * p.width + x) * 4] / 255;
                 const linear = sample <= 0.04045 ? sample / 12.92 : ((sample + 0.055) / 1.055) ** 2.4;
                 assert(Math.abs(linear - 0.5) < 0.025, `Join must remain continuous and singly blended: ${linear}`);
@@ -48,8 +49,7 @@ module.exports = async (original, helpers) => {
             assert(black > 700 * density * density, 'The opaque arrow, including headed area, must actually draw');
             await helpers.command(page, 'Undo'); await quiet(); assert.equal(await helpers.drawing(page), joined);
             await helpers.command(page, 'Redo'); await quiet(); assert.equal(await helpers.drawing(page), withArrow);
-            await helpers.command(page, 'Save');
-            assert.match((await value('data-command-ui')).history.at(-1), /cannot save line objects yet/);
+            await require('./save-ink.cjs')(page, helpers, /cannot save line objects yet/);
             const before = await usage(); await helpers.command(page, 'Close');
             assert.deepEqual(await value('data-path-cpu'), [0, 0, 0, 0, 0]);
             assert.deepEqual(await usage(), [0, 0, before[2], before[3]]);

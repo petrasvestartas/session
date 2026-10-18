@@ -1,0 +1,13 @@
+),usage);crate::cap_gpu_tests::wait(&r);assert_eq!(r.take_pick(matrix).unwrap().unwrap().unwrap()[0],owner.value());
+}
+
+
+#[test]
+fn automatic_sampling_eligibility_follows_active_faces_and_world_lettering() {
+ let mut scene=Scene::empty();let mut r=crate::cap_gpu_tests::renderer(&scene);assert!(!r.has_solids());let sheet=scene.insert_sheet(Rc::new(crate::sheet_source::Prepared::new(Rc::new(crate::sheet_example::source())).unwrap())).unwrap();r.set_scene(&scene,None);assert!(!r.has_solids(),"Original drawing pens are ribbons, not the reference arena's sheet fills");
+ let mesh=scene.insert(crate::prepared::PreparedMesh::triangle([[-0.5,-0.5,0.5],[0.5,-0.5,0.5],[0.,0.5,0.5]],[0.2,0.4,0.8]).unwrap()).unwrap();r.set_scene(&scene,None);assert!(r.has_solids());r.set_opacity(0.);assert!(r.has_solids(),"Eligibility describes geometry, not the current opacity");Rc::make_mut(&mut scene.view).hide(&[mesh],true);r.set_scene(&scene,None);assert!(!r.has_solids());
+ let mut isolated=session_rust::Mesh::new();isolated.add_vertex(session_rust::Point::new(0.,0.,0.),Some(17));let isolated=crate::prepared::PreparedMesh::new(isolated).unwrap();assert!(isolated.display.parts.edges.is_empty()&&isolated.display.parts.dots.is_empty(),"Isolated source vertices do not produce mesh pipes or glyphs");let mut empty_faces=Scene::empty();empty_faces.insert(isolated).unwrap();r.set_scene(&empty_faces,None);assert!(!r.has_solids());
+ for kind in ["surface","brep","plane"] {let mut sample=Scene::empty();match kind {"surface"=>{sample.insert_surface(Rc::new(crate::surface::example())).unwrap();},"brep"=>{sample.insert_cad(Rc::new(session_rust::BRep::create_box(1.,1.,1.))).unwrap();},_=>{crate::plane_original::insert(&mut sample,Rc::new(session_rust::Plane::xy_plane())).unwrap();}}let owner=sample.objects()[0].id;let source=Rc::clone(&sample.objects()[0].mesh);r.set_scene(&sample,None);assert_eq!(r.has_solids(),kind!="plane","Validated surface and CAD boundaries accompany faces; original plane pens are ribbons");assert!(Rc::ptr_eq(&source,&sample.objects()[0].mesh));Rc::make_mut(&mut sample.view).hide(&[owner],true);r.set_scene(&sample,None);assert!(!r.has_solids(),"Hidden original source families do not qualify");}
+ r.set_scene(&scene,None);
+ let mut text=crate::text_example::label();r.set_text(vec![text.clone()]).unwrap();assert!(!r.has_solids(),"Screen overlay lettering is not world geometry");text.placement=crate::text::TextPlacement::WorldBillboard {world:[0.;3],world_height:0.1};r.set_text(vec![text]).unwrap();assert!(r.has_solids(),"World lettering is a filled world surface");assert!(scene.visible(sheet));
+}

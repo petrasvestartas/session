@@ -1,0 +1,1 @@
+        if let Err(error)=crate::browser_rebase::prepare(&mut renderer,&mut editor){

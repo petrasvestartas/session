@@ -1,0 +1,1 @@
+let ctx=self.text_context();

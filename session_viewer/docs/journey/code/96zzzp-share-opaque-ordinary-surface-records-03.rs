@@ -1,0 +1,1 @@
+rows:impl IntoIterator<Item=&'a GpuMesh>,ordinary:impl IntoIterator<Item=&'a GpuMesh>)->Result<(),&'static str>

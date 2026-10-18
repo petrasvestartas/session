@@ -1,0 +1,1 @@
+        let mut renderer = Self {space:Default::default(),opacity:

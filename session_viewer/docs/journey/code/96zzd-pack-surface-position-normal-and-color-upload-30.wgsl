@@ -1,0 +1,1 @@
+vec4<f32>(oct32_decode(normal),0.)

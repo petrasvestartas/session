@@ -1,0 +1,7 @@
+    cloud_error:std::cell::RefCell<Option<String>>,
+    outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
+    global_outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
+    outlines_enabled:std::cell::Cell<bool>,
+    outline_composite:std::cell::RefCell<Option<crate::outline_composite::Composite>>,
+    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
+    text_error:std::cell::RefCell<Option<String>>,

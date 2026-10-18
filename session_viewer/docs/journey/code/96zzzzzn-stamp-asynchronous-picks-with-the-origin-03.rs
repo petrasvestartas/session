@@ -1,0 +1,2 @@
+    pub fn new(transform:[f32;16],size:[u32;2],density:f32)->Result<Self,&'static str>{Self::anchored(transform,size,density,[0.;3])}
+    pub fn anchored(transform:[f32;16],size:[u32;2],density:f32,origin:[f64;3])->Result<Self,&'static str>{

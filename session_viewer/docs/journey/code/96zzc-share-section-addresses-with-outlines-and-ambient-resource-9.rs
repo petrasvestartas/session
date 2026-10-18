@@ -1,0 +1,1 @@
+self.frame.size()+self.pick_bytes()

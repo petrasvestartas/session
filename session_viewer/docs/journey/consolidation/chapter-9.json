@@ -1,0 +1,336 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 9,
+  "title": "CAD surfaces and topology",
+  "first": "55-validation",
+  "end_before": "60-fonts",
+  "lessons": [
+    {
+      "id": "55-validation",
+      "title": "Original surfaces, analytic normals and trim boundaries",
+      "page": "journey/consolidation/55-validation.md",
+      "steps": [
+        "55-validation",
+        "55a-grid",
+        "55b-normals",
+        "55c-display",
+        "55d-source-row",
+        "55e-identities",
+        "55f-ownership",
+        "55g-surface",
+        "55za-read-original-edge-use-samples",
+        "55zb-follow-original-isoparametric-boundaries",
+        "55zc-follow-original-constrained-trim-labels"
+      ],
+      "checkpoint": "55zc-follow-original-constrained-trim-labels"
+    },
+    {
+      "id": "56-chains",
+      "title": "Shared CAD boundaries across incident faces",
+      "page": "journey/consolidation/56-chains.md",
+      "steps": [
+        "56-chains",
+        "56a-shared",
+        "56b-boundaries"
+      ],
+      "checkpoint": "56b-boundaries"
+    },
+    {
+      "id": "57-parameters",
+      "title": "Trimmed curved faces with real open holes",
+      "page": "journey/consolidation/57-parameters.md",
+      "steps": [
+        "57-parameters",
+        "57a-trims"
+      ],
+      "checkpoint": "57a-trims"
+    },
+    {
+      "id": "58-uses",
+      "title": "Periodic seams and face-edge direction",
+      "page": "journey/consolidation/58-uses.md",
+      "steps": [
+        "58-uses",
+        "58a-periodic",
+        "58za-match-original-face-edge-directions"
+      ],
+      "checkpoint": "58za-match-original-face-edge-directions"
+    },
+    {
+      "id": "59-orientation",
+      "title": "Oriented CAD solids, original picks and empty bores",
+      "page": "journey/consolidation/59-orientation.md",
+      "steps": [
+        "59-orientation",
+        "59a-face-data",
+        "59b-display",
+        "59c-source-row",
+        "59d-identities",
+        "59e-cache",
+        "59f-cad"
+      ],
+      "checkpoint": "59f-cad"
+    }
+  ],
+  "old_step_to_lesson": {
+    "55-validation": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55-validation"
+    },
+    "55a-grid": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55a-grid"
+    },
+    "55b-normals": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55b-normals"
+    },
+    "55c-display": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55c-display"
+    },
+    "55d-source-row": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55d-source-row"
+    },
+    "55e-identities": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55e-identities"
+    },
+    "55f-ownership": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55f-ownership"
+    },
+    "55g-surface": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55g-surface"
+    },
+    "55za-read-original-edge-use-samples": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55za-read-original-edge-use-samples"
+    },
+    "55zb-follow-original-isoparametric-boundaries": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55zb-follow-original-isoparametric-boundaries"
+    },
+    "55zc-follow-original-constrained-trim-labels": {
+      "lesson": "55-validation",
+      "anchor": "checkpoint-55zc-follow-original-constrained-trim-labels"
+    },
+    "56-chains": {
+      "lesson": "56-chains",
+      "anchor": "checkpoint-56-chains"
+    },
+    "56a-shared": {
+      "lesson": "56-chains",
+      "anchor": "checkpoint-56a-shared"
+    },
+    "56b-boundaries": {
+      "lesson": "56-chains",
+      "anchor": "checkpoint-56b-boundaries"
+    },
+    "57-parameters": {
+      "lesson": "57-parameters",
+      "anchor": "checkpoint-57-parameters"
+    },
+    "57a-trims": {
+      "lesson": "57-parameters",
+      "anchor": "checkpoint-57a-trims"
+    },
+    "58-uses": {
+      "lesson": "58-uses",
+      "anchor": "checkpoint-58-uses"
+    },
+    "58a-periodic": {
+      "lesson": "58-uses",
+      "anchor": "checkpoint-58a-periodic"
+    },
+    "58za-match-original-face-edge-directions": {
+      "lesson": "58-uses",
+      "anchor": "checkpoint-58za-match-original-face-edge-directions"
+    },
+    "59-orientation": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59-orientation"
+    },
+    "59a-face-data": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59a-face-data"
+    },
+    "59b-display": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59b-display"
+    },
+    "59c-source-row": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59c-source-row"
+    },
+    "59d-identities": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59d-identities"
+    },
+    "59e-cache": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59e-cache"
+    },
+    "59f-cad": {
+      "lesson": "59-orientation",
+      "anchor": "checkpoint-59f-cad"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/walk/brep.rs",
+      "session_viewer/src/app/walk/brep_edges.rs",
+      "session_viewer/src/app/walk/brep_orient.rs",
+      "session_viewer/src/app/walk/brep_shapes.rs",
+      "session_viewer/src/engine/gpu/faces.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "55-validation",
+      "path": "screenshots/journey/55-validation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55a-grid",
+      "path": "screenshots/journey/55a-grid.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55b-normals",
+      "path": "screenshots/journey/55b-normals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55c-display",
+      "path": "screenshots/journey/55c-display.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55d-source-row",
+      "path": "screenshots/journey/55d-source-row.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55e-identities",
+      "path": "screenshots/journey/55e-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55f-ownership",
+      "path": "screenshots/journey/55f-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55g-surface",
+      "path": "screenshots/journey/55g-surface.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55za-read-original-edge-use-samples",
+      "path": "screenshots/journey/55za-read-original-edge-use-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55zb-follow-original-isoparametric-boundaries",
+      "path": "screenshots/journey/55zb-follow-original-isoparametric-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "55zc-follow-original-constrained-trim-labels",
+      "path": "screenshots/journey/55zc-follow-original-constrained-trim-labels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "56-chains",
+      "path": "screenshots/journey/56-chains.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "56a-shared",
+      "path": "screenshots/journey/56a-shared.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "56b-boundaries",
+      "path": "screenshots/journey/56b-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "57-parameters",
+      "path": "screenshots/journey/57-parameters.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "57a-trims",
+      "path": "screenshots/journey/57a-trims.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "58-uses",
+      "path": "screenshots/journey/58-uses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "58a-periodic",
+      "path": "screenshots/journey/58a-periodic.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "58za-match-original-face-edge-directions",
+      "path": "screenshots/journey/58za-match-original-face-edge-directions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59-orientation",
+      "path": "screenshots/journey/59-orientation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59a-face-data",
+      "path": "screenshots/journey/59a-face-data.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59b-display",
+      "path": "screenshots/journey/59b-display.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59c-source-row",
+      "path": "screenshots/journey/59c-source-row.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59d-identities",
+      "path": "screenshots/journey/59d-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59e-cache",
+      "path": "screenshots/journey/59e-cache.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "59f-cad",
+      "path": "screenshots/journey/59f-cad.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Controlled CAD visual job remains pending; bore, borders, holes and parametric features require individually inspected current evidence."
+  ]
+}

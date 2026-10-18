@@ -1,0 +1,1 @@
+let buffers=[&vertices,parameter,&indices];let mut entries=extra.to_vec();entries.extend(buffers.into_iter().enumerate().map(|(i,buffer)|wgpu::BindGroupEntry{binding:first+i as u32,resource:buffer.as_entire_binding()}));let group=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("cap plane and current arena"),layout,entries:&entries});

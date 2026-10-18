@@ -1,0 +1,5 @@
+    StreamRefresh,
+    BeginTransformation(crate::transform_draft::Kind),
+    ScaleFactor(f64),RotateWorld{axis:crate::gizmo::Axis,degrees:f64},
+    Transformation {kind:crate::transform_draft::Kind,delta:session_rust::Xform},
+    PrimitiveBegin {shape:&'static crate::primitive_shape::Shape,option:usize,text:String},

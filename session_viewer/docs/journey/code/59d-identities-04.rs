@@ -1,0 +1,5 @@
+            Part::Object => format!("Object {}", self.owner.value()),
+            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
+            Part::BRepEdge(edge)=>format!("Object {} · original BRep edge {edge}",self.owner.value()),
+            Part::SurfaceEdge(edge)=>format!("Object {} · surface domain edge {edge}",self.owner.value()),
+            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),

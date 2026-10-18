@@ -1,0 +1,1 @@
+self.strokes.draw(&mut pass,&self.view_group)

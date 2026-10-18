@@ -1,0 +1,1 @@
+Self {target:None,mesh:None,strokes:

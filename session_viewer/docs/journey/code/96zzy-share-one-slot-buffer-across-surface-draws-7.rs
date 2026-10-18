@@ -1,0 +1,1 @@
+let mut old=std::mem::take(&mut self.batches);let mut batches=BTreeMap::new();let mut all_slots=Vec::new();

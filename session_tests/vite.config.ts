@@ -28,6 +28,7 @@ export default defineConfig(({ command }) => ({
   base: command === 'build' ? process.env.DOCS_BASE || '/session/docs/' : '/session/',
   plugins: [vue(), watchPublicPlugin(), coursePlugin()],
   build: {
+    reportCompressedSize: false,
     outDir: 'dist',
     assetsDir: 'assets',
     // Copy testData.js to dist during build

@@ -1,0 +1,1 @@
+Rc::make_mut(&mut scene.view).hide(&[b],true);gpu.set_scene(&scene,None);assert_eq!(&gpu.instance_usage()[..3],&[0,0,376]);gpu.request_pick([-0.45,0.],identity())

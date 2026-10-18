@@ -12,9 +12,30 @@ import {diagrams} from './course/diagrams.ts';
 import {foundations} from './course/foundations.ts';
 import {dockPreview} from './course/dock.ts';
 import {referenceStructure} from './course/reference-checks.ts';
+import {courseBook, readingBook} from '../src/courseBook.ts';
+
+function book() {
+    return courseBook(course().steps, JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8')));
+}
+
+function lessonId(name: string) {
+    if (/^\d+\.\d+$/.test(name)) {
+        const plan = JSON.parse(fs.readFileSync(path.join(docs, 'journey/book.json'), 'utf8'));
+        const chapter = readingBook(course().steps, plan).chapters[Number(name.split('.')[0]) - 1];
+        const lesson = chapter?.sections.flatMap(section => section.lessons).find(step => step.number === name);
+        const endpoint = plan.chapters[Number(name.split('.')[0]) - 1]?.consolidated?.find((step: {id: string}) => step.id === lesson?.id)?.checkpoint;
+        if (!endpoint) throw Error(`Unknown consolidated lesson number: ${name}`);
+        return endpoint;
+    }
+    if (!/^\d+\.\d+\.\d+$/.test(name)) return name;
+    const lesson = [...book().byId.values()].find(step => step.number === name);
+    if (!lesson) throw Error(`Unknown lesson number: ${name}`);
+    return lesson.id;
+}
 
 function main() {
-    const [action, name, ...args] = process.argv.slice(2);
+    const [action, selected, ...args] = process.argv.slice(2);
+    const name = ['check', 'dependencies', 'reference'].includes(action) ? lessonId(selected) : selected;
     const lock = path.join(docs, 'journey/release/Cargo.lock');
     if (action === 'init') {
         fs.mkdirSync(path.dirname(work), {recursive: true});
@@ -68,9 +89,9 @@ function main() {
     } else if (action === 'verify') {
         const ids = [name, ...args].filter(Boolean);
         const stored = ids.includes('--stored');
-        verify(ids.filter(id => id !== '--stored'), stored);
+        verify(ids.filter(id => id !== '--stored').map(lessonId), stored);
     } else if (action === 'capture') {
-        const ids = [name, ...args].filter(Boolean);
+        const ids = [name, ...args].filter(Boolean).map(lessonId);
         verify(ids, true);
         // Verification reconstructs each checkpoint from scratch. Recreate its
         // handwritten specimen before Chrome opens the file picker.
@@ -86,7 +107,8 @@ function main() {
         // Each checkpoint owns its browser context. Init probes and storage-denial
         // fixtures must not leak into the next checkpoint's Back-navigation test.
         for (const step of course().steps.filter(step => !ids.length || ids.includes(step.id))) {
-            const result = spawnSync(process.execPath, [path.join(docs, 'capture_journey.cjs'), step.id], {cwd: viewer, stdio: 'inherit',
+            const capture = step.browser_check === 'journey/checks/browser/final.cjs' ? 'capture_current.cjs' : 'capture_journey.cjs';
+            const result = spawnSync(process.execPath, [path.join(docs, capture), step.id], {cwd: viewer, stdio: 'inherit',
                 env: {...process.env, NODE_PATH: path.join(viewer, 'target/course-tools/node_modules')}});
             if (result.status !== 0) throw Error(`Browser capture failed for ${step.id}; see the error above.`);
         }
@@ -94,9 +116,14 @@ function main() {
     } else if (action === 'serve') {
         serve(name ? Number(name) : 8781);
     } else if (action === 'list') {
-        for (const step of course().steps) console.log(`${step.id}  ${step.title}`);
+        const selectedId = name && name !== '--ids' ? lessonId(name) : undefined;
+        const lessons = course().steps.filter(step => !selectedId || step.id === selectedId);
+        if (!lessons.length) throw Error(`Unknown lesson: ${name}`);
+        const numbers = book().byId;
+        for (const step of lessons) console.log(`${name === '--ids' ? step.id : numbers.get(step.id)?.number || 'Reference comparison'}  ${step.title}`);
     } else {
-        console.log('npm run course -- init | check ID | dependencies ID | save NAME | restore NAME | reference ID --output NEW_FOLDER');
+        console.log('npm run course -- init | check LESSON | dependencies LESSON | save NAME | restore NAME | reference LESSON --output NEW_FOLDER');
+        console.log('Use a book number such as 22.2.3 or an existing lesson ID. List shows book numbers; list --ids shows internal IDs.');
         console.log('Authoring: dock-preview | generate | structure | verify [ID] [--stored] | verify-reference [ID] [--stored] | parity | foundations | diagrams [--check] | serve [PORT] | capture | list');
     }
 }

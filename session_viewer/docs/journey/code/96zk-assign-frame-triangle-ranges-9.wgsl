@@ -1,0 +1,1 @@
+(object.selection.x & 1u) != 0u

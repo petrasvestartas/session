@@ -1,0 +1,1 @@
+crate::pick_view::View::anchored(transform,self.size,self.density,self.anchor()) {

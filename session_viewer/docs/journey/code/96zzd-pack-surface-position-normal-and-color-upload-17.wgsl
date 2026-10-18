@@ -1,0 +1,1 @@
+var<storage, read> mesh_values: array<PackedVertex>;

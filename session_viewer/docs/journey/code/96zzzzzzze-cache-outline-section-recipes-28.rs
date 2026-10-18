@@ -1,0 +1,1 @@
+Variants::new(pipeline(device,&pipeline_layout,&shader,format,samples),samples)

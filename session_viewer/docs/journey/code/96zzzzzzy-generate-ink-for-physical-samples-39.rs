@@ -1,0 +1,1 @@
+grid,false,varying,1,&view

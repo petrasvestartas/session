@@ -1,0 +1,1 @@
+                for pair in points.windows(2) {let ends=[pair[0],pair[1]].map(|p|crate::render_space::placed(&row.model,anchor).transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32());strokes.push(crate::stroke::Stroke {start:ends[0],end:ends[1],colour:yellow,width:3.});}

@@ -1,0 +1,6 @@
+    ("Show",||Action::Show),
+    ("Example Box", || Action::AddBox),
+    ("Example Cloud LOD",||Action::AddCloudLod),
+    ("Example Cloud",||Action::AddCloud),
+    ("Example CAD",||Action::AddCad),
+    ("Example Scene Text",||Action::AddText(crate::text::TextPlacement::WorldPlane {world:[-1.5,0.,1.],right:[1.,0.,0.],up:[0.,1.,0.],world_height:0.22})),

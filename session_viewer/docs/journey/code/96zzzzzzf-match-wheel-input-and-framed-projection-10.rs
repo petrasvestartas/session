@@ -1,0 +1,1 @@
+if !bounds.valid() {return;}

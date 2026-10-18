@@ -1,0 +1,169 @@
+{
+  "scope": "The identical original saved Element with its concave coplanar contact, three initially collinear corners and complete source feature data is rendered by the accepted maintained-native binary and imported by the learner browser. Compare fill color/shape/empty notch and real original ownership. Framing and existing ambient/boundary/MSAA differences are not full-frame parity.",
+  "archive": "U0VTU0lPTi1WSUVXRVIBCgrICAoYT3JpZ2luYWwgY29udGFjdCBmZWF0dXJlGtwFetkFChZPcmlnaW5hbCBjb250YWN0IHBhbmVsEiQ2ZjNjOTAzZi0yZmY4LTQxNDgtYTAzYy05MDQzNTQ4NjlmN2MaBE1lc2gi2wISB215X21lc2gaFggDEhIJAAAAAAAgjMARAAAAAABQhEAaFggCEhIJAAAAAAAgjEARAAAAAABQhEAaFBISCQAAAAAAIIzAEQAAAAAAUITAGhYIARISCQAAAAAAIIxAEQAAAAAAUITAIggSBgoEAAECAzoDCgF4OgMKAXk6AwoBemogAAAAAAAA8D8AAAAAAADwPwAAAAAAAPA/AAAAAAAA8D96HhXNzEw+Hc3MzD4lmpkZPy0AAIA/MghteV9jb2xvcpIBQAAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD8AAIA/AACAPwAAgD+aARAAAIA/AACAPwAAgD8AAIA/ogFAAAAAAAAAAAAAAAAAAACAPwAAAAAAAAAAAAAAAAAAgD8AAAAAAAAAAAAAAAAAAIA/AAAAAAAAAAAAAAAAAACAP3K0AgoPY29uY2F2ZSBjb250YWN0Egdjb250YWN0IpcCEgtteV9wb2x5bGluZRrwAQAAAAAAMIHAAAAAAADgdcAAAAAAAAAAAAAAAAAAAAAAAAAAAADgdcAAAAAAAAAAAAAAAAAAMIFAAAAAAADgdcAAAAAAAAAAAAAAAAAAMIFAAAAAAADgdUAAAAAAAAAAAAAAAAAAwGJAAAAAAADgdUAAAAAAAAAAAAAAAAAAwGJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwGLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAwGLAAAAAAADgdUAAAAAAAAAAAAAAAAAAMIHAAAAAAADgdUAAAAAAAAAAAAAAAAAAMIHAAAAAAADgdcAAAAAAAAAAACEAAAAAAADwPyoMLQAAgD8yBWJsYWNrIrcBGrQBCiRmNTBhMGEwMi02ZWM2LTQ4MTMtOWI1Yy1lMTIwYjBlZmY5YmQSGE9yaWdpbmFsIGNvbnRhY3QgZmVhdHVyZSJyCiQ2ZmM1YzY4Ni0yOWVhLTQxNWYtYTVkNy01OWY1OTZlMDQwNzkSJDZmM2M5MDNmLTJmZjgtNDE0OC1hMDNjLTkwNDM1NDg2OWY3YxokZjUwYTBhMDItNmVjNi00ODEzLTliNWMtZTEyMGIwZWZmOWJkKpIBCh5PcmlnaW5hbCBjb250YWN0IGZlYXR1cmVfZ3JhcGgabgokNmYzYzkwM2YtMmZmOC00MTQ4LWEwM2MtOTA0MzU0ODY5ZjdjEkYKJDZmM2M5MDNmLTJmZjgtNDE0OC1hMDNjLTkwNDM1NDg2OWY3YxoeZWxlbWVudF9PcmlnaW5hbCBjb250YWN0IHBhbmVsKAES+AF7ImNyZWF0ZWRfZG9jIjpudWxsLCJjdXJyZW50X2xheWVyIjpudWxsLCJkb2N1bWVudHMiOlt7Im5hbWUiOiJvcmlnaW5hbC1jb250YWN0IiwicGxhY2UiOlsxLjAsMC4wLDAuMCwwLjAsMC4wLDEuMCwwLjAsMC4wLDAuMCwwLjAsMS4wLDAuMCwwLjAsMC4wLDAuMCwxLjBdLCJwb2ludF9weCI6MC4wfV0sImhpZGRlbiI6W10sImxvY2tlZCI6W10sImNvbG9ycyI6W10sImVkZ2VfY29sb3JzIjpbXSwidGV4dHMiOltdLCJncm91cHMiOltdfQ==",
+  "archiveSha256": "04ca3796ab0494e8a8c31ef8dae2a20650d58bed8a2662eff06b43a7388ea721",
+  "documentSha256": "8f2868e1c94aedefe437fb512018066ad5f8b6b7a0050733c65d6727becda241",
+  "source": "60e74dc1fe3a5fc10b258e02773c1d26f865fb620cf6a71295846d17f637f7d0",
+  "binarySha256": "ec22e0af1eb5a6fbd0f32765bf7f11ebb52861f2bc538ce5fe6d1b3fe9a0f085",
+  "binaryAcceptedReference": "surface-controls-original.json",
+  "references": {
+    "top": {
+      "file": "review/contact-fill-maintained-native-top-2026-10-15.png",
+      "sha256": "608904548218ca8c9953ee0b4da329b8b573c2b3e1a93a44370625ce9aa5b3b0",
+      "environment": {
+        "VIEWER_ORTHO": "1",
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_W": "640",
+        "VIEWER_H": "480",
+        "VIEWER_VIEW": "top"
+      },
+      "contact": {
+        "rgb": [
+          244,
+          90,
+          90
+        ],
+        "pixels": 32846
+      },
+      "host": {
+        "rgb": [
+          124,
+          170,
+          203
+        ],
+        "pixels": 83182
+      },
+      "colors": [
+        [
+          "255,255,255",
+          186432
+        ],
+        [
+          "124,170,203",
+          83182
+        ],
+        [
+          "244,90,90",
+          32846
+        ],
+        [
+          "234,234,234",
+          808
+        ],
+        [
+          "53,75,91",
+          808
+        ],
+        [
+          "172,172,172",
+          584
+        ],
+        [
+          "97,134,160",
+          584
+        ],
+        [
+          "177,63,63",
+          428
+        ],
+        [
+          "79,111,133",
+          316
+        ],
+        [
+          "196,71,71",
+          312
+        ],
+        [
+          "91,126,152",
+          248
+        ],
+        [
+          "91,126,151",
+          180
+        ]
+      ]
+    },
+    "iso": {
+      "file": "review/contact-fill-maintained-native-iso-2026-10-15.png",
+      "sha256": "27f22bfedb7db907e7278dca3f88dafffd20c54375ba3019b2c2a022661a44f5",
+      "environment": {
+        "VIEWER_ORTHO": "1",
+        "VIEWER_NO_GRID": "1",
+        "VIEWER_MSAA": "1",
+        "VIEWER_OPACITY": "1",
+        "VIEWER_W": "640",
+        "VIEWER_H": "480",
+        "VIEWER_VIEW": "iso"
+      },
+      "contact": {
+        "rgb": [
+          244,
+          90,
+          90
+        ],
+        "pixels": 16111
+      },
+      "host": {
+        "rgb": [
+          124,
+          170,
+          203
+        ],
+        "pixels": 40606
+      },
+      "colors": [
+        [
+          "255,255,255",
+          246402
+        ],
+        [
+          "124,170,203",
+          40606
+        ],
+        [
+          "244,90,90",
+          16111
+        ],
+        [
+          "123,169,202",
+          83
+        ],
+        [
+          "254,254,254",
+          36
+        ],
+        [
+          "27,41,51",
+          35
+        ],
+        [
+          "36,52,64",
+          35
+        ],
+        [
+          "253,253,253",
+          32
+        ],
+        [
+          "120,165,197",
+          31
+        ],
+        [
+          "252,252,252",
+          30
+        ],
+        [
+          "122,167,200",
+          29
+        ],
+        [
+          "121,166,198",
+          29
+        ]
+      ]
+    }
+  }
+}

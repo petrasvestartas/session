@@ -1,0 +1,1 @@
+entry_point: Some(if shared {"face_record_vertex"}else{"face_vertex"}), buffers: if shared {&slots}else{&[]}

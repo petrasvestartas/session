@@ -1,0 +1,1 @@
+self.geometry.bytes()+self.records.size()+self.owners.size()+self.frame.size()+

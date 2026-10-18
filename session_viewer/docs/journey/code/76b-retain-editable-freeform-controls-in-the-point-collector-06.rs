@@ -1,0 +1,5 @@
+    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
+    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
+    ("Curve",||Action::BeginTool(crate::tool::Shape::Curve)),
+    ("Polyline",||Action::BeginTool(crate::tool::Shape::Polyline)),
+    ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),

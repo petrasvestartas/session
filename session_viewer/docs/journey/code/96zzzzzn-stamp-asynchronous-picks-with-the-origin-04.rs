@@ -1,0 +1,1 @@
+        if origin.iter().any(|v|!v.is_finite())||transform.iter().any(|n| !n.is_finite())

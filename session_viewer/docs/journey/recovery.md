@@ -10,10 +10,12 @@ npm --prefix ../session_tests run course -- save before-my-experiment
 
 This copies your files into `workspace/journey-saves/before-my-experiment`. It leaves out build output and Git internals. Choose a new name for each save; existing saves are never overwritten. You can save unfinished work too, but call it something that tells you it was unfinished.
 
+Use the lesson number shown in the book for source checks and dependency setup. Existing internal IDs still work. You can also name a save after its lesson, such as `22.2.3`; custom names remain available.
+
 ## Compare without changing anything
 
 ```sh
-npm --prefix ../session_tests run course -- check 03-triangle
+npm --prefix ../session_tests run course -- check 1.3.1
 ```
 
 The command shows missing files or differences from the end of that lesson. It does not edit your project. A difference may be your intentional experiment; source comparison is a guide, not a measure of understanding. Build and run to check behavior.
@@ -33,13 +35,13 @@ The compiler may need to rebuild cached output after a restore. That is machine 
 If a difference is difficult to locate, assemble a reference in a new folder:
 
 ```sh
-npm --prefix ../session_tests run course -- reference 03-triangle --output target/triangle-reference
+npm --prefix ../session_tests run course -- reference 1.3.1 --output target/triangle-reference
 ```
 
 The destination must not already exist and cannot be your handwritten project or a folder inside it. This is an optional reference for comparison, not the normal teaching workflow. Return to your own project and make the correction yourself.
 
 ## When the course itself is wrong
 
-Keep your last working save and record the lesson ID, release name and first error. A correction must identify the affected block, explain the cause and pass the checkpoint checks. It should preserve your project and unaffected work. Follow the [small corrections for existing projects](corrections.md); each names the affected lessons and exact changes.
+Keep your last working save and record the lesson number, release name and first error. A correction must identify the affected block, explain the cause and pass the checkpoint checks. It should preserve your project and unaffected work. Follow the [small corrections for existing projects](corrections.md); each names the affected lessons and exact changes.
 
 [Return to the course](../journey.md)

@@ -1,0 +1,1 @@
+gpu.meshes[0].geometry.buffers().0.size()

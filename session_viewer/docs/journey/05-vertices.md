@@ -1,4 +1,6 @@
-# 05 · Let Rust supply the corners
+# 2.1.1 · Let Rust supply the corners
+
+**Chapter 2 · Geometry, camera and selection · Section 2.1 · CPU geometry** · [Contents](contents.md)
 
 **Typing: 12–23 minutes.** [Estimate](typing-load.md).
 
@@ -34,7 +36,7 @@ fn fragment() -> @location(0) vec4<f32> {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/05-vertices-01.wgsl"
@@ -42,7 +44,7 @@ Replace that block with:
 
 ### 2. `src/renderer.rs`
 
-Define six positions and upload their vertex buffer.
+Define six positions and upload their vertex buffer. Describe two f32 coordinates at each eight-byte vertex. Retain the uploaded vertex buffer in Renderer. Bind the vertex buffer and draw all six positions.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -59,24 +61,11 @@ impl Renderer {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/05-vertices-fullscreen-2.rs"
-```
-
-### 3. `src/renderer.rs`
-
-Describe two f32 coordinates at each eight-byte vertex.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: Some("vertex"),
                 compilation_options: Default::default(),
@@ -84,24 +73,13 @@ Describe two f32 coordinates at each eight-byte vertex.
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/05-vertices-fullscreen-3.rs"
-```
-
-### 4. `src/renderer.rs`
-
-Retain the uploaded vertex buffer in Renderer.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: None,
+            multisample: Default::default(),
             multiview_mask: None,
             cache: None,
         });
@@ -109,24 +87,23 @@ Retain the uploaded vertex buffer in Renderer.
     }
 
     pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/05-vertices-fullscreen-4.rs"
-```
-
-### 5. `src/renderer.rs`
-
-Bind the vertex buffer and draw all six positions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+        let [r, g, b] = background.rgb();
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r, g, b, a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
                 ..Default::default()
             });
             pass.set_pipeline(&self.pipeline);
@@ -134,17 +111,122 @@ Bind the vertex buffer and draw all six positions.
         }
         self.queue.submit([encoder.finish()]);
     }
+}
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use wgpu::util::DeviceExt;
+
+const POSITIONS: [[f32; 2]; 6] = [
+    [-0.6, -0.5], [0.6, -0.5], [0.6, 0.6],
+    [-0.6, -0.5], [0.6, 0.6], [-0.6, 0.6],
+];
+
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+    vertices: wgpu::Buffer,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
+        let bytes: Vec<u8> = POSITIONS.iter().flatten()
+            .flat_map(|value| value.to_ne_bytes()).collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("rectangle positions"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 8,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x2],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: None,
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        });
+        Self { device, queue, pipeline, vertices }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
+        let [r, g, b] = background.rgb();
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r, g, b, a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                ..Default::default()
+            });
+            pass.set_pipeline(&self.pipeline);
+            pass.set_vertex_buffer(0, self.vertices.slice(..));
+            pass.draw(0..POSITIONS.len() as u32, 0..1);
+        }
+        self.queue.submit([encoder.finish()]);
+    }
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/05-vertices-fullscreen-2.rs"
+```
+
+```text
+--8<-- "journey/code/05-vertices-fullscreen-3.rs"
+```
+
+```text
+--8<-- "journey/code/05-vertices-fullscreen-4.rs"
+```
+
+```text
 --8<-- "journey/code/05-vertices-fullscreen-5.rs"
 ```
 
-### 6. `src/browser.rs`
+</details>
+
+### 3. `src/browser.rs`
 
 Report that the uploaded corners form a rectangle.
 
@@ -162,7 +244,7 @@ Report that the uploaded corners form a rectangle.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/05-vertices-window-1.rs"
@@ -174,19 +256,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The GPU draws a rectangle from six buffered positions. Change one corner in the Rust vertex array, save, and check the changed outline. Restore it.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Let Rust supply the corners.](../screenshots/journey/05-vertices-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for let rust supply the corners.](../screenshots/journey/05-vertices.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -220,8 +304,8 @@ Predict which triangle changes if you move only the first position to [-0.9, -0.
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 05-vertices
-npm --prefix ../session_tests run course -- save 05-vertices
+npm --prefix ../session_tests run course -- check 2.1.1
+npm --prefix ../session_tests run course -- save 2.1.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

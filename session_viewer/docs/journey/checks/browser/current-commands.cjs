@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict');
+module.exports=async(page,helpers)=>{
+    await require('./measure.cjs')(page,helpers);
+    const value=async name=>JSON.parse(await page.locator('canvas').getAttribute(name));
+    for(const line of ['Close','CPlane XY','View Top','Line w-1,0,0 w1,0,0','Line w-1,0.5,0 w1,0.5,0','Select All','Arrowhead Both'])await helpers.command(page,line);
+    assert.equal((await value('data-drawing-originals')).lines.length,0);
+    for(const line of ['Add Group beams','Add Edge'])await helpers.command(page,line);
+    assert.equal((await value('data-groups')).length,1);assert.equal((await value('data-graph')).length,1);
+    await helpers.command(page,'Undo');assert.equal((await value('data-graph')).length,0);
+    await helpers.command(page,'Redo');assert.equal((await value('data-graph')).length,1);
+    await helpers.command(page,'Select By Name Line');assert.equal((await value('data-selected-ids')).length,2);
+    await helpers.command(page,'Select Lasso');assert.ok(await value('data-lasso'));await page.keyboard.press('Escape');await page.waitForFunction(()=>document.querySelector('canvas').getAttribute('data-lasso')==='null');
+    await helpers.command(page,'Text timber');await helpers.command(page,'Height 0.25');await helpers.command(page,'w-0.5,-0.5,0');assert.equal((await value('data-scene-texts')).length,1);assert.equal((await value('data-scene-texts'))[0].source.label.text,'timber');
+    await helpers.command(page,'Undo');assert.equal((await value('data-scene-texts')).length,0);await helpers.command(page,'Redo');assert.equal((await value('data-scene-texts')).length,1);
+    await helpers.command(page,'Select None');await helpers.command(page,'Extend Distance 0.8');
+    const canvas=await page.locator('canvas').boundingBox();assert.ok(canvas);
+    await page.mouse.move(canvas.x+canvas.width*0.75,canvas.y+canvas.height*0.5);
+    await helpers.command(page,'Escape');assert.equal(await value('data-tool'),null);assert.equal(await value('data-guide-gpu-bytes'),0);
+    for(const line of ['Close','CPlane XY','View Top','Line w-2,0,0 w2,0,0','Line w0,-2,0 w0,2,0','Select None','Trim'])await helpers.command(page,line);
+    assert.equal((await value('data-trim')).phase,'Targets');await helpers.command(page,'Escape');assert.equal(await value('data-trim'),null);
+    await helpers.command(page,'Measure Distance w0,0,0 w3,4,0');const before=await value('data-measurement');await page.mouse.move(canvas.x+canvas.width*0.7,canvas.y+canvas.height*0.6);await page.mouse.down({button:'right'});await page.mouse.move(canvas.x+canvas.width*0.65,canvas.y+canvas.height*0.65,{steps:4});await page.mouse.up({button:'right'});assert.deepEqual(await value('data-measurement'),before);
+    await helpers.command(page,'Escape');assert.equal(await value('data-measurement'),null);
+};

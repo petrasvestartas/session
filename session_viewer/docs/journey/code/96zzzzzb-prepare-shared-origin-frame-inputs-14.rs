@@ -1,0 +1,1 @@
+self.ambient_rows.ground_at(self.anchor()),[self.pyramid_revision

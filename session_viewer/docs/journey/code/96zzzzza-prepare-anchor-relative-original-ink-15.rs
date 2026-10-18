@@ -1,0 +1,1 @@
+        for (owner, stroke) in scene.control_nets_at(anchor) {

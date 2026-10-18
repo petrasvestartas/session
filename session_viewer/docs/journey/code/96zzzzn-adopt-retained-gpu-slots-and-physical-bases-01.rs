@@ -1,0 +1,1 @@
+pub struct Lane {pub(crate) lookup:Option<crate::primitive_slot_table::Table>,pub(crate) space:

@@ -1,0 +1,1 @@
+sources.marker_ids.push(id(row.id, sub_id::OBJECT_INK));

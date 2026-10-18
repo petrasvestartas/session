@@ -1,0 +1,1 @@
+self.aspect, far, near)

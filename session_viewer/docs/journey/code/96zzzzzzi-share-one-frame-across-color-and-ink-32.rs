@@ -1,0 +1,1 @@
+self.strokes.draw(pass,view)

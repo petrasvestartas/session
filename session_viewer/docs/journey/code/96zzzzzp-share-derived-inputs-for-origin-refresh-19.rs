@@ -1,0 +1,1 @@
+gpu.set_source_ink(&far);

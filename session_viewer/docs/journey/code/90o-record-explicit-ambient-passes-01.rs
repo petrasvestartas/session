@@ -1,0 +1,3 @@
+pub fn draw(encoder:&mut wgpu::CommandEncoder,pipeline:&wgpu::RenderPipeline,targets:&[&wgpu::TextureView],groups:&[(u32,&wgpu::BindGroup)],clear:bool){
+ let attachments=targets.iter().map(|view|Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:if clear{wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)}else{wgpu::LoadOp::Load},store:wgpu::StoreOp::Store}})).collect::<Vec<_>>();let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("ambient current recipe"),color_attachments:&attachments,..Default::default()});pass.set_pipeline(pipeline);for (index,group)in groups{pass.set_bind_group(*index,*group,&[]);}pass.draw(0..3,0..1);
+}

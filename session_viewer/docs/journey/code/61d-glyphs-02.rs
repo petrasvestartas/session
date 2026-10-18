@@ -1,0 +1,5 @@
+    ("Cancel Reload", Host::CancelReload),
+    ("Save", Host::Save),
+    ("Example Text",Host::TextDemo),
+    ("Report", Host::Report),
+    ("Report Previous", Host::PreviousReport),

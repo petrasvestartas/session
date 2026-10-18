@@ -1,0 +1,33 @@
+{
+  "finished_at_utc": "2026-10-09T11:53:51+00:00",
+  "subjects": "00–97",
+  "authored_checkpoints": 980,
+  "current_stored_records": 980,
+  "successful_commands": {
+    "wasm": 980,
+    "tests": 949,
+    "web": 980,
+    "frame": 979
+  },
+  "authoring_tests": 9,
+  "current_course_structure": "passed",
+  "exact_diagram_reproduction": "passed",
+  "strict_documentation_build": "passed",
+  "missing_page_images": 0,
+  "undeclared_page_image_repeats": 0,
+  "fresh_browser_checkpoints": 8,
+  "pending_browser_checkpoints": 972,
+  "lenovo_hardware_performance": "unmeasured",
+  "historical_reference_combined_structure": "fails final comparison of preserved 271 historical sources against 299 current sources; checkers unchanged",
+  "canonical_ledger_sha256": "75f8197901253474a1d1cd556149ab8cad395ac58bf8ac80d6b2a2cd5f193b86",
+  "checker_sha256": "b969fcb49110405e85ae43168926a7c0085cf1116a3590ee37386d74bb8fa63b",
+  "logs": {
+    "stored": "/tmp/viewer-980-complete-stored.log",
+    "authoring": "/tmp/viewer-980-complete-authoring.log",
+    "generate": "/tmp/viewer-980-complete-generate.log",
+    "current_structure": "/tmp/viewer-980-complete-current-structure.log",
+    "diagrams": "/tmp/viewer-980-complete-diagrams.log",
+    "docs": "/tmp/viewer-980-complete-docs.log",
+    "historical_reference_failure": "/tmp/viewer-980-complete-structure-historical-parity-failure.log"
+  }
+}

@@ -1,0 +1,1 @@
+sert_with(||crate::outline_composite::Composite::with_samples(&self.device,self.format,self.targets.samples)

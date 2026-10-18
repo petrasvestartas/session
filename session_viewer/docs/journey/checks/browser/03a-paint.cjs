@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const {PNG} = require('pngjs');
 module.exports = async (page, {step}) => {
-    const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+    const url = await require('./canvas-image.cjs')(page.locator('canvas'));
     const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
     const scene = PNG.sync.read(fs.readFileSync(path.resolve('docs/screenshots/journey/03-triangle-browser.png')));
     assert.deepEqual([image.width, image.height], [scene.width, scene.height]);

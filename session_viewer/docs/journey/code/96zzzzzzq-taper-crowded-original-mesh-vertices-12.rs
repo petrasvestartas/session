@@ -1,0 +1,1 @@
+let radius = marker_radius(position,diameter);

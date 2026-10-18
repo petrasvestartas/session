@@ -1,0 +1,1 @@
+struct Counts{image:Image,group:wgpu::BindGroup,geometry:crate::cap_geometry::Geometry}

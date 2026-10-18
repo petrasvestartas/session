@@ -1,8 +1,8 @@
 <template>
   <div class="course-page">
     <p class="course-progress">
-      <router-link to="/course/journey/roadmap">To-do list and progress</router-link>
-      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Latest lesson: {{ pages[latestLesson].title }}</router-link></template>
+      <router-link to="/course/journey/contents">Contents</router-link> · <router-link to="/course/journey/roadmap">To-do list and progress</router-link>
+      <template v-if="latestLesson"> · <router-link :to="'/course/' + latestLesson">Latest coding checkpoint: {{ pages[latestLesson].title }}</router-link></template>
     </p>
     <p v-if="missing" class="missing">
       There is no course page named "{{ slug }}". <router-link to="/course">All lessons</router-link>
@@ -35,6 +35,7 @@
 import { computed, nextTick, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { loaders, pages, type CoursePage } from 'virtual:course';
+import { latestCodingLesson } from '../courseOrder';
 
 const route = useRoute();
 const router = useRouter();
@@ -42,7 +43,7 @@ const page = ref<CoursePage | null>(null);
 const missing = ref(false);
 const slug = computed(() => String(route.params.slug || ''));
 const meta = computed(() => pages[slug.value]);
-const latestLesson = Object.keys(pages).find(s => s.startsWith('journey/') && pages[s].prev && !pages[s].next);
+const latestLesson = latestCodingLesson(pages);
 
 const scrollToHash = () => {
   const id = decodeURIComponent(route.hash.slice(1));
@@ -67,6 +68,10 @@ watch(
     }
     const mod = await load();
     if (s !== slug.value) return;
+    if (mod.default.redirect) {
+      await router.replace(mod.default.redirect);
+      return;
+    }
     page.value = mod.default;
     document.title = `${mod.default.title} · Session docs`;
     await nextTick();

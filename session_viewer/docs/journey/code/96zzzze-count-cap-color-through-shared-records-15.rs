@@ -1,0 +1,1 @@
+self.caps.borrow_mut().draw(&self.device,&mut encoder,

@@ -1,4 +1,6 @@
-# 34f · Read previous reports from real browser storage
+# 4.2.11 · Read previous reports from real browser storage
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 20–40 minutes.** [Estimate](typing-load.md).
 
@@ -31,11 +33,23 @@ mod browser_report;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(target_arch = "wasm32")]
+pub mod report_storage;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34f-storage-02.rs"
 ```
+
+</details>
 
 ### 3. `Cargo.toml`
 
@@ -45,16 +59,27 @@ Enable the pinned browser Storage bindings without changing package versions.
 <summary>Locate the existing block</summary>
 
 ```toml
-"Location", "Navigator",
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Storage", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34f-storage-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -62,25 +87,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, run `JSON.parse(window.wasmBindings.previous_storage_probe()).tab`. Reload and run it again: the tab ID stays the same.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Read previous reports from real browser storage.](../screenshots/journey/34f-storage-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for read previous reports from real browser storage.](../screenshots/journey/34f-storage.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -114,8 +135,8 @@ Change selection to rank lastSeen, then compare the two saved failures whose hea
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34f-storage
-npm --prefix ../session_tests run course -- save 34f-storage
+npm --prefix ../session_tests run course -- check 4.2.11
+npm --prefix ../session_tests run course -- save 4.2.11
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -136,7 +157,7 @@ Headed Chrome uses real Web Storage and UTC timestamp parsing to test candidate 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34f-storage
+npm --prefix ../session_tests run course -- capture 4.2.11
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

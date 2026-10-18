@@ -1,4 +1,6 @@
-# 03 · Give the GPU three corners
+# 1.3.1 · Give the GPU three corners
+
+**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
@@ -20,7 +22,7 @@ Create the file and type:
 
 ### 2. `src/renderer.rs`
 
-Create and retain the triangle shader pipeline.
+Create and retain the triangle shader pipeline. Bind the pipeline and draw its three vertices.
 
 <details>
 <summary>Locate the existing block</summary>
@@ -44,41 +46,107 @@ impl Renderer {
                 label: Some("canvas"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view,
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/03-triangle-fullscreen-2.rs"
-```
-
-### 3. `src/renderer.rs`
-
-Bind the pipeline and draw its three vertices.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
                 })],
                 ..Default::default()
             });
         }
         self.queue.submit([encoder.finish()]);
     }
+}
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: None,
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        });
+        Self { device, queue, pipeline }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView) {
+        let mut encoder = self.device.create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                ..Default::default()
+            });
+            pass.set_pipeline(&self.pipeline);
+            pass.draw(0..3, 0..1);
+        }
+        self.queue.submit([encoder.finish()]);
+    }
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/03-triangle-fullscreen-2.rs"
+```
+
+```text
 --8<-- "journey/code/03-triangle-fullscreen-3.rs"
 ```
 
-### 4. `src/browser.rs`
+</details>
+
+### 3. `src/browser.rs`
 
 Pass the surface format to the renderer; a pipeline must agree with the texture it draws into.
 
@@ -98,7 +166,7 @@ Pass the surface format to the renderer; a pipeline must agree with the texture 
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03-triangle-window-1.rs"
@@ -110,19 +178,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 A pink triangle appears on white. Change its top vertex in the shader, save, and check that only the triangle’s shape changes. Restore the vertex.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Give the GPU three corners.](../screenshots/journey/03-triangle-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for give the gpu three corners.](../screenshots/journey/03-triangle.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -156,8 +226,8 @@ Predict the result of changing the last corner from `(0.0, 0.6)` to `(0.4, 0.6)`
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 03-triangle
-npm --prefix ../session_tests run course -- save 03-triangle
+npm --prefix ../session_tests run course -- check 1.3.1
+npm --prefix ../session_tests run course -- save 1.3.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

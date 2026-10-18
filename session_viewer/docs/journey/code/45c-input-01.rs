@@ -1,0 +1,7 @@
+            "Example Polyline",
+            "Example Arrow",
+            "Example Triangle",
+            "Select Next", "Select All", "Select None",
+            "Select Object",
+            "Select Face",
+            "Select Edge",

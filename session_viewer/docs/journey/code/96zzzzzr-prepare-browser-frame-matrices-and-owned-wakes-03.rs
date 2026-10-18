@@ -1,0 +1,2 @@
+        let id=if repeat {window.set_interval_with_callback_and_timeout_and_arguments_0(callback.as_ref().unchecked_ref(),milliseconds)?}
+            else {window.set_timeout_with_callback_and_timeout_and_arguments_0(callback.as_ref().unchecked_ref(),milliseconds)?};

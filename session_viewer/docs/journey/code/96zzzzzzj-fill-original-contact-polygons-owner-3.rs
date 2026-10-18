@@ -1,0 +1,1 @@
+owner:if object.metadata.is_locked {0}else{object.id.value()}

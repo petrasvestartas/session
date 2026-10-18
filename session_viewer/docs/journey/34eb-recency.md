@@ -1,6 +1,8 @@
-# 34eb · Choose a recent failure without blaming active tabs
+# 4.2.9 · Choose a recent failure without blaming active tabs
 
-**Typing: 25–49 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 9–17 minutes.** [Estimate](typing-load.md).
 
 Choose previous failure evidence by fatal time. An old failed tab may keep updating lastSeen; its heartbeat must not make the original failure recent again.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/34eb-recency-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/report_recency_tests.rs`
 
-Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking.
+Optional authoring fixture. Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34eb-recency-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -41,11 +50,25 @@ pub mod report_store;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod report_recency;
+#[cfg(test)]
+mod report_recency_tests;
+pub mod report_store;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34eb-recency-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +76,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the recency checks below. A fresh heartbeat must not make an old fatal event eligible. An actively running other tab must not produce an interruption notice.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Choose a recent failure without blaming active tabs.](../screenshots/journey/34eb-recency-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for choose a recent failure without blaming active tabs.](../screenshots/journey/34eb-recency.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -105,8 +124,8 @@ Rank failures by lastSeen instead of the first fatal timestamp. Explain why an o
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34eb-recency
-npm --prefix ../session_tests run course -- save 34eb-recency
+npm --prefix ../session_tests run course -- check 4.2.9
+npm --prefix ../session_tests run course -- save 4.2.9
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -127,7 +146,7 @@ Native tests verify failure/heartbeat recency and ranking, including the origina
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34eb-recency
+npm --prefix ../session_tests run course -- capture 4.2.9
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+let w=local.clip(world)[3];

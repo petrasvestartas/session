@@ -1,0 +1,1 @@
+set_primitive_base(&gpu.queue,crate::primitive_image::CAP_START).is_err()

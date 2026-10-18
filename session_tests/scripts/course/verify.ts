@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {spawnSync} from 'node:child_process';
 import {course, docs, viewer, read, json, write, hash, fingerprint, expected, materialize, filesIn, reference, lockFor, compare, assetsFor} from './model.ts';
 import {png, ppm} from './png.ts';
+import {dependencyInputs} from './dependency-inputs.ts';
 
 export const evidence = path.join(viewer, 'target/course-checks');
 const native = 'x86_64-unknown-linux-gnu';
@@ -15,7 +16,7 @@ export function signature(id: string) {
     const kernel = path.join(viewer, '../session_rust');
     const inputs = files['Cargo.toml'].includes('session_rust')
         ? [...filesIn(path.join(kernel, 'src')), path.join(kernel, 'Cargo.toml'), path.join(kernel, 'build.rs')] : [];
-    return fingerprint({...files, 'Cargo.lock': read(lockFor(id)),
+    return fingerprint({...files, ...dependencyInputs(files['Cargo.toml']), 'Cargo.lock': read(lockFor(id)),
         ...Object.fromEntries(assetsFor(id).map(name => [name, hash(fs.readFileSync(path.join(viewer, name)))])),
         kernel: fingerprint(Object.fromEntries(inputs.map(file => [path.relative(kernel, file), hash(fs.readFileSync(file))]))),
         constructor: step.frame_constructor || '',
@@ -143,7 +144,7 @@ export function structure() {
             images.set(digest, file);
         }
     }
-    const destination = json(path.join(docs, 'journey/destination.json'));
+    const destination = json(path.join(docs, course().inventory || 'journey/current-viewer-2026-10-09.json'));
     const names = filesIn(path.join(viewer, 'src')).map(file => path.relative(viewer, file));
     assert.deepEqual(names.sort(), Object.keys(destination.files).sort());
     for (const [name, record] of Object.entries(destination.files) as [string, {sha256: string; course: string}][]) {

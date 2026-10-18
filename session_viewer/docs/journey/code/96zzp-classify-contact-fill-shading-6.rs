@@ -1,0 +1,1 @@
+struct MeshInput { position: vec3<f32>, colour: vec4<f32>, normal: vec3<f32>, }

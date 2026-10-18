@@ -1,0 +1,1 @@
+pub struct Slots {pub(crate) buffer:GrowBuf,previous:Vec<Slot>}

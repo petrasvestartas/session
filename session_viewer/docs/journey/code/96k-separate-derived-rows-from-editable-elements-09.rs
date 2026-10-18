@@ -1,0 +1,1 @@
+let ids=all.difference(&assigned).copied().filter(|id|!scene.forest.derived(*id)).collect::<HashSet<_>>();

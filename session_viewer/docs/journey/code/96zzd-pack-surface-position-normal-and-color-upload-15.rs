@@ -1,0 +1,1 @@
+self.vertices.size() + self.indices.size()

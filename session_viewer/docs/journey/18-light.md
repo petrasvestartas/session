@@ -1,4 +1,6 @@
-# 18 · Read the shape through light
+# 3.2.1 · Read the shape through light
+
+**Chapter 3 · Documents, editing and ownership · Section 3.2 · Surface lighting and editor actions** · [Contents](contents.md)
 
 **Typing: 6–11 minutes.** [Estimate](typing-load.md).
 
@@ -39,7 +41,7 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 --8<-- "journey/code/18-light-01.wgsl"
@@ -63,7 +65,7 @@ Report that lighting changes brightness without changing geometry.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/18-light-window-1.rs"
@@ -75,25 +77,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Type `Example Box` and `View Isometric`. Faces pointing in different directions should have different brightness, making the box’s shape easier to read.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Read the shape through light.](../screenshots/journey/18-light-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+Compare the box with lesson 17: its left face is darker than its right face, and its top is brightest. Geometry and camera are unchanged; the shader now shades each face. Three projected face samples check those brightness levels.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for read the shape through light.](../screenshots/journey/18-light.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -129,8 +129,8 @@ Change the light to vec3<f32>(0.0, 0.0, 1.0). Predict the box first: the top sho
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 18-light
-npm --prefix ../session_tests run course -- save 18-light
+npm --prefix ../session_tests run course -- check 3.2.1
+npm --prefix ../session_tests run course -- save 3.2.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

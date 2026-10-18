@@ -1,0 +1,1 @@
+assert!(matches!(crate::commands::parse("Opacity 0.4 extra").unwrap(),crate::commands::Command::Editor(crate::editor::Action::Opacity(value)) if value==0.4));

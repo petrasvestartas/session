@@ -1,0 +1,1 @@
+ordinary_rows:impl IntoIterator<Item=&'a GpuMesh>

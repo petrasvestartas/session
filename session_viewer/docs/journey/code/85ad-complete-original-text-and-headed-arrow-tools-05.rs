@@ -1,0 +1,5 @@
+            crate::tool::Built::Polyline(line)=>scene.insert_path(line).map(|_|()),
+            crate::tool::Built::Geometry(geometry)=>crate::primitive_geometry::insert(scene,geometry).map(|_|()),
+            crate::tool::Built::Text(_)=>unreachable!("Text adopts its original label owner"),
+            crate::tool::Built::Measured(_)=>unreachable!("Measurement changes no original geometry"),
+            crate::tool::Built::Move(_)=>unreachable!("Move uses its placement preview"),

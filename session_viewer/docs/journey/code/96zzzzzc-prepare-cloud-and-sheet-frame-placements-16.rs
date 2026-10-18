@@ -1,0 +1,1 @@
+    let mut bytes = crate::render_space::placed(&row.model,anchor)

@@ -1,0 +1,381 @@
+{
+  "status": "consolidated prose and coverage; integration and current runtime/visual acceptance pending",
+  "chapter": 21,
+  "title": "Precise camera and browser coordinates",
+  "first": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+  "end_before": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+  "lessons": [
+    {
+      "id": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "title": "Units and one precise render origin",
+      "page": "journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md",
+      "steps": [
+        "96zzzzy-prepare-unit-aware-anchored-camera-space",
+        "96zzzzz-prepare-precise-anchor-relative-object-records",
+        "96zzzzza-prepare-anchor-relative-original-ink",
+        "96zzzzzb-prepare-shared-origin-frame-inputs",
+        "96zzzzzc-prepare-cloud-and-sheet-frame-placements",
+        "96zzzzzd-prepare-local-temporary-overlays",
+        "96zzzzze-preserve-local-precision-before-source-placement",
+        "96zzzzzf-prepare-precise-construction-grid-origins",
+        "96zzzzzg-initialize-object-records-in-the-local-frame",
+        "96zzzzzh-prepare-anchor-relative-original-highlights",
+        "96zzzzzi-share-one-camera-and-measurement-unit"
+      ],
+      "checkpoint": "96zzzzzi-share-one-camera-and-measurement-unit"
+    },
+    {
+      "id": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "title": "Precise CPU queries and origin-stamped picks",
+      "page": "journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md",
+      "steps": [
+        "96zzzzzj-project-cpu-queries-around-the-precise-target",
+        "96zzzzzk-prepare-precise-text-selection-polygons",
+        "96zzzzzl-connect-precise-rectangle-selection-queries",
+        "96zzzzzm-finish-precise-lasso-and-handle-queries",
+        "96zzzzzn-stamp-asynchronous-picks-with-the-origin",
+        "96zzzzzo-retry-rebased-picks-with-the-latest-cursor",
+        "96zzzzzp-share-derived-inputs-for-origin-refresh"
+      ],
+      "checkpoint": "96zzzzzp-share-derived-inputs-for-origin-refresh"
+    },
+    {
+      "id": "96zzzzzq-prepare-one-shared-render-origin",
+      "title": "Browser ownership of frame matrices and wakeups",
+      "page": "journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md",
+      "steps": [
+        "96zzzzzq-prepare-one-shared-render-origin",
+        "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes",
+        "96zzzzzs-adopt-the-shared-origin-in-the-browser"
+      ],
+      "checkpoint": "96zzzzzs-adopt-the-shared-origin-in-the-browser"
+    },
+    {
+      "id": "96zzzzzt-share-depth-endpoints-and-comparisons",
+      "title": "Reversed depth and homogeneous near clipping",
+      "page": "journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md",
+      "steps": [
+        "96zzzzzt-share-depth-endpoints-and-comparisons",
+        "96zzzzzu-share-homogeneous-near-plane-ink-clipping",
+        "96zzzzzz-use-reversed-depth-across-the-frame"
+      ],
+      "checkpoint": "96zzzzzz-use-reversed-depth-across-the-frame"
+    },
+    {
+      "id": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "title": "Physical camera, world grid and framed navigation",
+      "page": "journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md",
+      "steps": [
+        "96zzzzzza-match-physical-camera-defaults-and-limits",
+        "96zzzzzzb-omit-unused-background-pick-pipelines",
+        "96zzzzzzc-draw-the-construction-grid-as-physical-lines",
+        "96zzzzzzd-build-viewing-rays-without-matrix-inversion",
+        "96zzzzzze-grow-camera-depth-from-cached-world-bounds",
+        "96zzzzzzf-match-wheel-input-and-framed-projection"
+      ],
+      "checkpoint": "96zzzzzzf-match-wheel-input-and-framed-projection"
+    }
+  ],
+  "old_step_to_lesson": {
+    "96zzzzy-prepare-unit-aware-anchored-camera-space": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzy-prepare-unit-aware-anchored-camera-space"
+    },
+    "96zzzzz-prepare-precise-anchor-relative-object-records": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzz-prepare-precise-anchor-relative-object-records"
+    },
+    "96zzzzza-prepare-anchor-relative-original-ink": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzza-prepare-anchor-relative-original-ink"
+    },
+    "96zzzzzb-prepare-shared-origin-frame-inputs": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzb-prepare-shared-origin-frame-inputs"
+    },
+    "96zzzzzc-prepare-cloud-and-sheet-frame-placements": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzc-prepare-cloud-and-sheet-frame-placements"
+    },
+    "96zzzzzd-prepare-local-temporary-overlays": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzd-prepare-local-temporary-overlays"
+    },
+    "96zzzzze-preserve-local-precision-before-source-placement": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzze-preserve-local-precision-before-source-placement"
+    },
+    "96zzzzzf-prepare-precise-construction-grid-origins": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzf-prepare-precise-construction-grid-origins"
+    },
+    "96zzzzzg-initialize-object-records-in-the-local-frame": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzg-initialize-object-records-in-the-local-frame"
+    },
+    "96zzzzzh-prepare-anchor-relative-original-highlights": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzh-prepare-anchor-relative-original-highlights"
+    },
+    "96zzzzzi-share-one-camera-and-measurement-unit": {
+      "lesson": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "anchor": "checkpoint-96zzzzzi-share-one-camera-and-measurement-unit"
+    },
+    "96zzzzzj-project-cpu-queries-around-the-precise-target": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzj-project-cpu-queries-around-the-precise-target"
+    },
+    "96zzzzzk-prepare-precise-text-selection-polygons": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzk-prepare-precise-text-selection-polygons"
+    },
+    "96zzzzzl-connect-precise-rectangle-selection-queries": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzl-connect-precise-rectangle-selection-queries"
+    },
+    "96zzzzzm-finish-precise-lasso-and-handle-queries": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzm-finish-precise-lasso-and-handle-queries"
+    },
+    "96zzzzzn-stamp-asynchronous-picks-with-the-origin": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzn-stamp-asynchronous-picks-with-the-origin"
+    },
+    "96zzzzzo-retry-rebased-picks-with-the-latest-cursor": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzo-retry-rebased-picks-with-the-latest-cursor"
+    },
+    "96zzzzzp-share-derived-inputs-for-origin-refresh": {
+      "lesson": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "anchor": "checkpoint-96zzzzzp-share-derived-inputs-for-origin-refresh"
+    },
+    "96zzzzzq-prepare-one-shared-render-origin": {
+      "lesson": "96zzzzzq-prepare-one-shared-render-origin",
+      "anchor": "checkpoint-96zzzzzq-prepare-one-shared-render-origin"
+    },
+    "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes": {
+      "lesson": "96zzzzzq-prepare-one-shared-render-origin",
+      "anchor": "checkpoint-96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes"
+    },
+    "96zzzzzs-adopt-the-shared-origin-in-the-browser": {
+      "lesson": "96zzzzzq-prepare-one-shared-render-origin",
+      "anchor": "checkpoint-96zzzzzs-adopt-the-shared-origin-in-the-browser"
+    },
+    "96zzzzzt-share-depth-endpoints-and-comparisons": {
+      "lesson": "96zzzzzt-share-depth-endpoints-and-comparisons",
+      "anchor": "checkpoint-96zzzzzt-share-depth-endpoints-and-comparisons"
+    },
+    "96zzzzzu-share-homogeneous-near-plane-ink-clipping": {
+      "lesson": "96zzzzzt-share-depth-endpoints-and-comparisons",
+      "anchor": "checkpoint-96zzzzzu-share-homogeneous-near-plane-ink-clipping"
+    },
+    "96zzzzzz-use-reversed-depth-across-the-frame": {
+      "lesson": "96zzzzzt-share-depth-endpoints-and-comparisons",
+      "anchor": "checkpoint-96zzzzzz-use-reversed-depth-across-the-frame"
+    },
+    "96zzzzzza-match-physical-camera-defaults-and-limits": {
+      "lesson": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "anchor": "checkpoint-96zzzzzza-match-physical-camera-defaults-and-limits"
+    },
+    "96zzzzzzb-omit-unused-background-pick-pipelines": {
+      "lesson": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "anchor": "checkpoint-96zzzzzzb-omit-unused-background-pick-pipelines"
+    },
+    "96zzzzzzc-draw-the-construction-grid-as-physical-lines": {
+      "lesson": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "anchor": "checkpoint-96zzzzzzc-draw-the-construction-grid-as-physical-lines"
+    },
+    "96zzzzzzd-build-viewing-rays-without-matrix-inversion": {
+      "lesson": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "anchor": "checkpoint-96zzzzzzd-build-viewing-rays-without-matrix-inversion"
+    },
+    "96zzzzzze-grow-camera-depth-from-cached-world-bounds": {
+      "lesson": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "anchor": "checkpoint-96zzzzzze-grow-camera-depth-from-cached-world-bounds"
+    },
+    "96zzzzzzf-match-wheel-input-and-framed-projection": {
+      "lesson": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "anchor": "checkpoint-96zzzzzzf-match-wheel-input-and-framed-projection"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/camera.rs",
+      "session_viewer/src/state.rs",
+      "session_viewer/src/engine/gpu/objects.rs",
+      "session_viewer/src/engine/gpu/frame.rs",
+      "session_viewer/src/engine/gpu/targets.rs",
+      "session_viewer/src/shaders/grid.wgsl",
+      "session_viewer/src/shaders/ribbon.wgsl",
+      "session_viewer/src/app/cplane.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "path": "screenshots/journey/96zzzzy-prepare-unit-aware-anchored-camera-space.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzz-prepare-precise-anchor-relative-object-records",
+      "path": "screenshots/journey/96zzzzz-prepare-precise-anchor-relative-object-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzza-prepare-anchor-relative-original-ink",
+      "path": "screenshots/journey/96zzzzza-prepare-anchor-relative-original-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzb-prepare-shared-origin-frame-inputs",
+      "path": "screenshots/journey/96zzzzzb-prepare-shared-origin-frame-inputs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzc-prepare-cloud-and-sheet-frame-placements",
+      "path": "screenshots/journey/96zzzzzc-prepare-cloud-and-sheet-frame-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzd-prepare-local-temporary-overlays",
+      "path": "screenshots/journey/96zzzzzd-prepare-local-temporary-overlays.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzze-preserve-local-precision-before-source-placement",
+      "path": "screenshots/journey/96zzzzze-preserve-local-precision-before-source-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzf-prepare-precise-construction-grid-origins",
+      "path": "screenshots/journey/96zzzzzf-prepare-precise-construction-grid-origins.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzg-initialize-object-records-in-the-local-frame",
+      "path": "screenshots/journey/96zzzzzg-initialize-object-records-in-the-local-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzh-prepare-anchor-relative-original-highlights",
+      "path": "screenshots/journey/96zzzzzh-prepare-anchor-relative-original-highlights.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzi-share-one-camera-and-measurement-unit",
+      "path": "screenshots/journey/96zzzzzi-share-one-camera-and-measurement-unit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzj-project-cpu-queries-around-the-precise-target",
+      "path": "screenshots/journey/96zzzzzj-project-cpu-queries-around-the-precise-target.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzk-prepare-precise-text-selection-polygons",
+      "path": "screenshots/journey/96zzzzzk-prepare-precise-text-selection-polygons.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzl-connect-precise-rectangle-selection-queries",
+      "path": "screenshots/journey/96zzzzzl-connect-precise-rectangle-selection-queries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzm-finish-precise-lasso-and-handle-queries",
+      "path": "screenshots/journey/96zzzzzm-finish-precise-lasso-and-handle-queries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzn-stamp-asynchronous-picks-with-the-origin",
+      "path": "screenshots/journey/96zzzzzn-stamp-asynchronous-picks-with-the-origin.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzo-retry-rebased-picks-with-the-latest-cursor",
+      "path": "screenshots/journey/96zzzzzo-retry-rebased-picks-with-the-latest-cursor.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzp-share-derived-inputs-for-origin-refresh",
+      "path": "screenshots/journey/96zzzzzp-share-derived-inputs-for-origin-refresh.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzq-prepare-one-shared-render-origin",
+      "path": "screenshots/journey/96zzzzzq-prepare-one-shared-render-origin.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes",
+      "path": "screenshots/journey/96zzzzzr-prepare-browser-frame-matrices-and-owned-wakes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzs-adopt-the-shared-origin-in-the-browser",
+      "path": "screenshots/journey/96zzzzzs-adopt-the-shared-origin-in-the-browser.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzt-share-depth-endpoints-and-comparisons",
+      "path": "screenshots/journey/96zzzzzt-share-depth-endpoints-and-comparisons.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzu-share-homogeneous-near-plane-ink-clipping",
+      "path": "screenshots/journey/96zzzzzu-share-homogeneous-near-plane-ink-clipping.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzz-use-reversed-depth-across-the-frame",
+      "path": "screenshots/journey/96zzzzzz-use-reversed-depth-across-the-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzza-match-physical-camera-defaults-and-limits",
+      "path": "screenshots/journey/96zzzzzza-match-physical-camera-defaults-and-limits.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzb-omit-unused-background-pick-pipelines",
+      "path": "screenshots/journey/96zzzzzzb-omit-unused-background-pick-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzc-draw-the-construction-grid-as-physical-lines",
+      "path": "screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzd-build-viewing-rays-without-matrix-inversion",
+      "path": "screenshots/journey/96zzzzzzd-build-viewing-rays-without-matrix-inversion.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzze-grow-camera-depth-from-cached-world-bounds",
+      "path": "screenshots/journey/96zzzzzze-grow-camera-depth-from-cached-world-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzf-match-wheel-input-and-framed-projection",
+      "path": "screenshots/journey/96zzzzzzf-match-wheel-input-and-framed-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Earlier course-only lane/record/finite-AA abstractions remain staged where divergent; current production extraction and matched acceptance are pending.",
+    "Latest-camera preservation during scene reload and unchanged base world-grid plane remain a later implementation/acceptance batch, including in-flight camera motion and floating-origin rebases."
+  ]
+}

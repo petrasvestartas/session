@@ -1,0 +1,1 @@
+format!("{}\n{}\n{}",crate::object_record::shader(),include_str!("packed_vertex.wgsl"),

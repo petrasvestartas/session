@@ -1,0 +1,1 @@
+self.counts.as_ref().map_or(0,|c|c.image.bytes+c.geometry.bytes())

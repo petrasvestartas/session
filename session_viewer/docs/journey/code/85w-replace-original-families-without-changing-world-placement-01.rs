@@ -1,0 +1,14 @@
+        use session_rust::Geometry;
+        if self.pick_id(id.value())!=Some(id){return Err("Edit a visible unlocked original")}
+        crate::source_edit::original(self,id).ok_or("Reload an editable original source")?;
+        let model=self.placement(id).ok_or("Source placement is missing")?;geometry.set_guid(self.row_guid(id).ok_or("Original source identity is missing")?);
+        match geometry{
+            Geometry::Plane(source)=>{let prepared=crate::plane_original::prepared(&source)?;let row=self.objects.iter_mut().find(|r|r.id==id).ok_or("Expected a plane source")?;row.mesh=Rc::new(prepared.display);row.original=Some(Geometry::Plane(source));row.editable=crate::edit_source::EditSource::Loaded{geometry:prepared.geometry,source:None};},
+            Geometry::OBB(source)=>{let prepared=crate::bounds_original::prepared(&source)?;let bounds=crate::bounds_original::placed(&source,&model);if bounds.min.into_iter().chain(bounds.max).any(|v|!(v as f32).is_finite()){return Err("Edited box exceeds display range")}let row=self.objects.iter_mut().find(|r|r.id==id).ok_or("Expected a box source")?;row.mesh=Rc::new(prepared.display);row.original=Some(Geometry::OBB(source));row.editable=crate::edit_source::EditSource::Loaded{geometry:prepared.geometry,source:None};},
+            Geometry::Point(source)=>{let prepared=crate::marker::PreparedPoint::new(source)?;let p=model.transform_point(&prepared.source);if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited point exceeds display range")}if let Some(row)=self.points.iter_mut().find(|r|r.id==id){row.prepared=prepared;}else if let Some(row)=self.clouds.iter().find(|r|r.id==id){let guid=row.guid.clone();self.clouds.retain(|r|r.id!=id);self.points.push(PointObject{id,guid,prepared,model});}else{return Err("Expected a point source")}},
+            Geometry::Line(source)if self.lines.iter().any(|r|r.id==id)=>{
+                let prepared=crate::chain::PreparedChain::line(source.clone())?;for p in prepared.source.bounds_coordinates(){let p=model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited line exceeds display range")}}
+                if source.arrowhead==session_rust::Arrowhead::NONE{self.lines.iter_mut().find(|r|r.id==id).unwrap().prepared=crate::stroke::PreparedLine::new(source)?;}else{let old=self.lines.iter().find(|r|r.id==id).unwrap();let guid=old.guid.clone();self.lines.retain(|r|r.id!=id);self.paths.push(PathObject{controls_visible:false,id,guid,prepared,model});}
+            },
+            Geometry::Line(_)|Geometry::Polyline(_)|Geometry::NurbsCurve(_)=>{
+                let prepared=match geometry{Geometry::Line(source)=>crate::chain::PreparedChain::line(source)?,Geometry::Polyline(source)=>crate::chain::PreparedChain::polyline(source)?,Geometry::NurbsCurve(source)=>crate::chain::PreparedChain::curve(source)?,_=>unreachable!()};

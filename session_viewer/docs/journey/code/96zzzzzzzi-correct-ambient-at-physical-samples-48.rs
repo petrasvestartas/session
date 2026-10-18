@@ -1,0 +1,1 @@
+});if i==3{buffer.slice(0..4).get_mapped_range_mut().copy_from_slice(&6u32.to_ne_bytes());buffer.unmap();}buffer});let mut entr

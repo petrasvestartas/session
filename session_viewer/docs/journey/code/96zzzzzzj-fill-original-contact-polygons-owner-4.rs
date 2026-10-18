@@ -1,0 +1,1 @@
+owner:crate::feature_owner::display_owner(scene,id).map_or(0,ObjectId::value)

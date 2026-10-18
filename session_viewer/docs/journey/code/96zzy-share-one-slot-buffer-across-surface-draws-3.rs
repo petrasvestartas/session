@@ -1,0 +1,1 @@
+Self {pipeline,layout,batches:BTreeMap::new(),slots:crate::draw_slots::Slots::new(&crate::text_gpu_support::GpuCtx::new(device,queue)),writes:1,written_bytes:8}

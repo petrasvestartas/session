@@ -1,0 +1,1 @@
+&u32::from(style.selected).to_ne_bytes()

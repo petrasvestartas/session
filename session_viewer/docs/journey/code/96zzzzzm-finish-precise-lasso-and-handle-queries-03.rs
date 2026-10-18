@@ -1,0 +1,1 @@
+let model=crate::render_space::placed(&scene.placement(*id).unwrap(),view.origin);

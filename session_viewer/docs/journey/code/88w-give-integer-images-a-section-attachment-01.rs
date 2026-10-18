@@ -1,0 +1,5 @@
+    pub colour: wgpu::TextureView,
+    pub depth: wgpu::TextureView,
+    pub section:wgpu::TextureView,
+    pub readback: wgpu::Buffer,
+    pub window: Window,

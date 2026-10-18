@@ -1,0 +1,1 @@
+        if let Some(clouds)=self.clouds.borrow().as_ref(){let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite")

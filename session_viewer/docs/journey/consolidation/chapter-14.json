@@ -1,0 +1,1266 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 14,
+  "title": "Coordinates and geometry tools",
+  "first": "71-read-original-sheet-entity-metadata",
+  "end_before": "77-copy-current-transformation-and-source-edit-algorithms",
+  "lessons": [
+    {
+      "id": "71-read-original-sheet-entity-metadata",
+      "title": "Original drawings, entity queries and construction frames",
+      "page": "journey/consolidation/71-read-original-sheet-entity-metadata.md",
+      "steps": [
+        "71-read-original-sheet-entity-metadata",
+        "71a-bound-original-entity-records-before-reading",
+        "71b-give-metadata-reads-their-own-cancellation-signal",
+        "71c-fetch-one-revision-matched-metadata-answer",
+        "71d-decode-precise-original-sheet-columns",
+        "71e-measure-original-sheet-pages-and-world-pens",
+        "71f-retain-charged-pages-beside-resident-pages",
+        "71g-own-the-complete-original-drawing-source",
+        "71h-place-drawing-rows-without-changing-endpoints",
+        "71i-register-original-drawing-rows-on-the-current-layer",
+        "71j-carry-drawing-identity-through-scene-operations",
+        "71k-save-and-reopen-complete-original-sheets",
+        "71l-locate-original-drawing-identity-and-fixed-ranges",
+        "71m-validate-the-bounded-drawing-envelope-tail",
+        "71n-scan-drawing-columns-under-one-revision",
+        "71o-read-drawing-page-columns-through-the-shared-queue",
+        "71p-adopt-nonoverlapping-charged-drawing-pages",
+        "71q-keep-partial-drawing-sources-explicit",
+        "71r-reserve-memory-before-the-drawing-prefix",
+        "71s-continue-drawing-reads-without-reviving-closed-sources",
+        "71t-resolve-sheet-picks-to-original-entity-ids",
+        "71u-project-authored-world-pens-into-drawing-quads",
+        "71v-use-the-same-sheet-coverage-for-color-and-picks",
+        "71w-build-sheet-color-and-integer-pipelines",
+        "71x-own-the-shared-drawing-lane-resources",
+        "71y-bound-drawing-buffers-and-pack-independent-settings",
+        "71z-upload-each-original-drawing-page-once",
+        "71aa-reuse-independent-drawing-placement-records",
+        "71ab-draw-world-pens-with-the-current-camera-lens",
+        "71ac-connect-sheet-batches-to-rendering-and-bounded-picks",
+        "71ad-own-metadata-delivery-without-pinning-drawings",
+        "71ae-query-metadata-only-for-the-current-selected-entity",
+        "71af-keep-published-drawing-sources-and-url-bases-independent",
+        "71ag-retire-staged-drawing-reads-with-their-publication-owner",
+        "71ah-stage-bounded-drawings-through-publication-loading",
+        "71ai-show-current-sheet-resources-and-selected-entity-answers",
+        "71aj-exercise-complete-and-ranged-original-drawings",
+        "71za-build-original-construction-plane-frames",
+        "71zb-map-original-plane-and-world-coordinates",
+        "71zc-guard-original-plane-and-ray-projections",
+        "71zd-parse-original-drawing-coordinate-forms",
+        "71ze-resolve-original-relative-and-polar-coordinates"
+      ],
+      "checkpoint": "71ze-resolve-original-relative-and-polar-coordinates"
+    },
+    {
+      "id": "72-copy-current-construction-planes-and-coordinate-forms",
+      "title": "Precise coordinates and original drawing drafts",
+      "page": "journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md",
+      "steps": [
+        "72-copy-current-construction-planes-and-coordinate-forms",
+        "72a-resolve-bounded-typed-batches-in-the-current-plane",
+        "72b-place-clicks-on-stable-construction-planes",
+        "72c-name-the-construction-plane-chooser-options",
+        "72d-add-original-polylines-to-the-point-tool",
+        "72e-keep-construction-frames-and-plane-points-in-drafts",
+        "72f-replay-finished-drafts-with-explicit-world-prefixes",
+        "72g-own-the-fixed-construction-plane-in-the-editor",
+        "72h-commit-completed-original-geometry-exactly-once",
+        "72i-change-fixed-planes-without-rewriting-accepted-points",
+        "72j-open-the-plane-chooser-and-collect-its-frame",
+        "72k-resolve-typed-input-against-the-current-draft",
+        "72l-finish-open-tools-with-enter-and-route-typed-forms",
+        "72m-validate-complete-drawing-commands-before-adoption",
+        "72n-close-original-polylines-as-one-transaction",
+        "72o-snap-draft-starts-and-use-the-construction-frame-grid",
+        "72p-register-current-drawing-commands-and-plane-choices",
+        "72q-preview-accepted-segments-without-committing-originals",
+        "72r-expose-original-drawing-coordinates-and-cancellation-state",
+        "72s-exercise-current-drawing-tools-and-original-persistence"
+      ],
+      "checkpoint": "72s-exercise-current-drawing-tools-and-original-persistence"
+    },
+    {
+      "id": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "title": "Planar boundaries and checked solid foundations",
+      "page": "journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md",
+      "steps": [
+        "73-construct-rectangles-and-polygons-in-plane-axes",
+        "73a-bound-generated-original-construction-points",
+        "73b-give-point-tools-a-plane-aware-construction-hook",
+        "73c-build-original-rectangle-and-polygon-tool-results",
+        "73d-preserve-world-replay-for-multiword-construction-names",
+        "73e-keep-polygon-sides-in-the-current-draft",
+        "73f-register-current-planar-options-and-temporary-outlines",
+        "73g-exercise-oriented-original-planar-constructions",
+        "73h-match-solid-command-options",
+        "73i-describe-solid-command-questions",
+        "73j-build-a-right-handed-solid-frame",
+        "73k-sample-solid-preview-wires",
+        "73l-describe-solid-builders-and-dimensions",
+        "73m-validate-solid-sizes-and-radius",
+        "73n-weld-solid-tessellation-once",
+        "73o-scale-and-cache-polyhedron-faces",
+        "73p-build-a-placed-kernel-box",
+        "73q-read-box-questions-and-corner-clicks",
+        "73r-build-an-oriented-kernel-pyramid",
+        "73s-build-a-block-with-a-kernel-hole",
+        "73t-build-regular-kernel-polyhedra"
+      ],
+      "checkpoint": "73t-build-regular-kernel-polyhedra"
+    },
+    {
+      "id": "74-copy-current-solid-geometry-and-question-definitions",
+      "title": "Solid questions, previews and one original commit",
+      "page": "journey/consolidation/74-copy-current-solid-geometry-and-question-definitions.md",
+      "steps": [
+        "74-copy-current-solid-geometry-and-question-definitions",
+        "74a-own-current-shape-questions-and-answer-state",
+        "74b-validate-a-new-answer-before-changing-its-original-state",
+        "74c-build-only-after-the-last-shape-question",
+        "74d-answer-shape-dimensions-with-atomic-typed-batches",
+        "74e-preview-solid-wires-and-measure-normal-axis-clicks",
+        "74f-adopt-original-primitive-geometry-through-existing-rows",
+        "74g-keep-primitive-answers-beside-the-existing-drawing-draft",
+        "74h-route-clicked-points-to-the-current-shape-question",
+        "74i-route-typed-shape-input-and-preserve-detailed-errors",
+        "74j-synchronize-shape-frames-before-accepting-plane-changes",
+        "74k-resolve-height-clicks-without-closing-an-open-shape-collector",
+        "74l-prepare-complete-solid-commands-before-replacing-a-draft",
+        "74m-register-every-current-solid-name-and-representation",
+        "74n-draw-temporary-solid-wire-sets-and-report-current-input-failures",
+        "74o-keep-quick-mouse-drift-as-a-click-using-current-event-time",
+        "74p-exercise-current-solid-input-and-original-persistence",
+        "74za-build-original-cylinders-with-signed-height",
+        "74zb-build-original-cones-and-spheres"
+      ],
+      "checkpoint": "74zb-build-original-cones-and-spheres"
+    },
+    {
+      "id": "75-reuse-current-round-solid-builders",
+      "title": "Round solids and exact planar conics",
+      "page": "journey/consolidation/75-reuse-current-round-solid-builders.md",
+      "steps": [
+        "75-reuse-current-round-solid-builders",
+        "75aa-build-original-capsules-with-shared-dimensions",
+        "75a-retain-mesh-only-round-families",
+        "75b-register-current-round-names-and-choices",
+        "75c-exercise-round-originals-and-one-transaction",
+        "75za-build-original-planar-circles",
+        "75zb-build-original-planar-ellipses",
+        "75zc-build-exact-rational-arc-spans",
+        "75zd-read-original-arcs-from-center-and-angle",
+        "75ze-read-three-point-arcs-and-connect-the-recipe",
+        "75zf-build-original-parabola-previews-and-sources"
+      ],
+      "checkpoint": "75zf-build-original-parabola-previews-and-sources"
+    },
+    {
+      "id": "76-copy-exact-planar-curve-definitions",
+      "title": "Exact parabola recipes and editable freeform controls",
+      "page": "journey/consolidation/76-copy-exact-planar-curve-definitions.md",
+      "steps": [
+        "76-copy-exact-planar-curve-definitions",
+        "76a-expose-exact-curve-choices-in-the-existing-registry",
+        "76b-retain-editable-freeform-controls-in-the-point-collector",
+        "76c-inspect-original-curve-data-through-the-browser-contract",
+        "76d-exercise-exact-curves-and-rational-control-edits"
+      ],
+      "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits"
+    }
+  ],
+  "old_step_to_lesson": {
+    "71-read-original-sheet-entity-metadata": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71-read-original-sheet-entity-metadata"
+    },
+    "71a-bound-original-entity-records-before-reading": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71a-bound-original-entity-records-before-reading"
+    },
+    "71b-give-metadata-reads-their-own-cancellation-signal": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71b-give-metadata-reads-their-own-cancellation-signal"
+    },
+    "71c-fetch-one-revision-matched-metadata-answer": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71c-fetch-one-revision-matched-metadata-answer"
+    },
+    "71d-decode-precise-original-sheet-columns": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71d-decode-precise-original-sheet-columns"
+    },
+    "71e-measure-original-sheet-pages-and-world-pens": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71e-measure-original-sheet-pages-and-world-pens"
+    },
+    "71f-retain-charged-pages-beside-resident-pages": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71f-retain-charged-pages-beside-resident-pages"
+    },
+    "71g-own-the-complete-original-drawing-source": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71g-own-the-complete-original-drawing-source"
+    },
+    "71h-place-drawing-rows-without-changing-endpoints": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71h-place-drawing-rows-without-changing-endpoints"
+    },
+    "71i-register-original-drawing-rows-on-the-current-layer": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71i-register-original-drawing-rows-on-the-current-layer"
+    },
+    "71j-carry-drawing-identity-through-scene-operations": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71j-carry-drawing-identity-through-scene-operations"
+    },
+    "71k-save-and-reopen-complete-original-sheets": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71k-save-and-reopen-complete-original-sheets"
+    },
+    "71l-locate-original-drawing-identity-and-fixed-ranges": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71l-locate-original-drawing-identity-and-fixed-ranges"
+    },
+    "71m-validate-the-bounded-drawing-envelope-tail": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71m-validate-the-bounded-drawing-envelope-tail"
+    },
+    "71n-scan-drawing-columns-under-one-revision": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71n-scan-drawing-columns-under-one-revision"
+    },
+    "71o-read-drawing-page-columns-through-the-shared-queue": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71o-read-drawing-page-columns-through-the-shared-queue"
+    },
+    "71p-adopt-nonoverlapping-charged-drawing-pages": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71p-adopt-nonoverlapping-charged-drawing-pages"
+    },
+    "71q-keep-partial-drawing-sources-explicit": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71q-keep-partial-drawing-sources-explicit"
+    },
+    "71r-reserve-memory-before-the-drawing-prefix": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71r-reserve-memory-before-the-drawing-prefix"
+    },
+    "71s-continue-drawing-reads-without-reviving-closed-sources": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71s-continue-drawing-reads-without-reviving-closed-sources"
+    },
+    "71t-resolve-sheet-picks-to-original-entity-ids": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71t-resolve-sheet-picks-to-original-entity-ids"
+    },
+    "71u-project-authored-world-pens-into-drawing-quads": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71u-project-authored-world-pens-into-drawing-quads"
+    },
+    "71v-use-the-same-sheet-coverage-for-color-and-picks": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71v-use-the-same-sheet-coverage-for-color-and-picks"
+    },
+    "71w-build-sheet-color-and-integer-pipelines": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71w-build-sheet-color-and-integer-pipelines"
+    },
+    "71x-own-the-shared-drawing-lane-resources": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71x-own-the-shared-drawing-lane-resources"
+    },
+    "71y-bound-drawing-buffers-and-pack-independent-settings": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71y-bound-drawing-buffers-and-pack-independent-settings"
+    },
+    "71z-upload-each-original-drawing-page-once": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71z-upload-each-original-drawing-page-once"
+    },
+    "71aa-reuse-independent-drawing-placement-records": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71aa-reuse-independent-drawing-placement-records"
+    },
+    "71ab-draw-world-pens-with-the-current-camera-lens": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ab-draw-world-pens-with-the-current-camera-lens"
+    },
+    "71ac-connect-sheet-batches-to-rendering-and-bounded-picks": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ac-connect-sheet-batches-to-rendering-and-bounded-picks"
+    },
+    "71ad-own-metadata-delivery-without-pinning-drawings": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ad-own-metadata-delivery-without-pinning-drawings"
+    },
+    "71ae-query-metadata-only-for-the-current-selected-entity": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ae-query-metadata-only-for-the-current-selected-entity"
+    },
+    "71af-keep-published-drawing-sources-and-url-bases-independent": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71af-keep-published-drawing-sources-and-url-bases-independent"
+    },
+    "71ag-retire-staged-drawing-reads-with-their-publication-owner": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ag-retire-staged-drawing-reads-with-their-publication-owner"
+    },
+    "71ah-stage-bounded-drawings-through-publication-loading": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ah-stage-bounded-drawings-through-publication-loading"
+    },
+    "71ai-show-current-sheet-resources-and-selected-entity-answers": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ai-show-current-sheet-resources-and-selected-entity-answers"
+    },
+    "71aj-exercise-complete-and-ranged-original-drawings": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71aj-exercise-complete-and-ranged-original-drawings"
+    },
+    "71za-build-original-construction-plane-frames": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71za-build-original-construction-plane-frames"
+    },
+    "71zb-map-original-plane-and-world-coordinates": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71zb-map-original-plane-and-world-coordinates"
+    },
+    "71zc-guard-original-plane-and-ray-projections": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71zc-guard-original-plane-and-ray-projections"
+    },
+    "71zd-parse-original-drawing-coordinate-forms": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71zd-parse-original-drawing-coordinate-forms"
+    },
+    "71ze-resolve-original-relative-and-polar-coordinates": {
+      "lesson": "71-read-original-sheet-entity-metadata",
+      "anchor": "checkpoint-71ze-resolve-original-relative-and-polar-coordinates"
+    },
+    "72-copy-current-construction-planes-and-coordinate-forms": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72-copy-current-construction-planes-and-coordinate-forms"
+    },
+    "72a-resolve-bounded-typed-batches-in-the-current-plane": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72a-resolve-bounded-typed-batches-in-the-current-plane"
+    },
+    "72b-place-clicks-on-stable-construction-planes": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72b-place-clicks-on-stable-construction-planes"
+    },
+    "72c-name-the-construction-plane-chooser-options": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72c-name-the-construction-plane-chooser-options"
+    },
+    "72d-add-original-polylines-to-the-point-tool": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72d-add-original-polylines-to-the-point-tool"
+    },
+    "72e-keep-construction-frames-and-plane-points-in-drafts": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72e-keep-construction-frames-and-plane-points-in-drafts"
+    },
+    "72f-replay-finished-drafts-with-explicit-world-prefixes": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72f-replay-finished-drafts-with-explicit-world-prefixes"
+    },
+    "72g-own-the-fixed-construction-plane-in-the-editor": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72g-own-the-fixed-construction-plane-in-the-editor"
+    },
+    "72h-commit-completed-original-geometry-exactly-once": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72h-commit-completed-original-geometry-exactly-once"
+    },
+    "72i-change-fixed-planes-without-rewriting-accepted-points": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72i-change-fixed-planes-without-rewriting-accepted-points"
+    },
+    "72j-open-the-plane-chooser-and-collect-its-frame": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72j-open-the-plane-chooser-and-collect-its-frame"
+    },
+    "72k-resolve-typed-input-against-the-current-draft": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72k-resolve-typed-input-against-the-current-draft"
+    },
+    "72l-finish-open-tools-with-enter-and-route-typed-forms": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72l-finish-open-tools-with-enter-and-route-typed-forms"
+    },
+    "72m-validate-complete-drawing-commands-before-adoption": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72m-validate-complete-drawing-commands-before-adoption"
+    },
+    "72n-close-original-polylines-as-one-transaction": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72n-close-original-polylines-as-one-transaction"
+    },
+    "72o-snap-draft-starts-and-use-the-construction-frame-grid": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72o-snap-draft-starts-and-use-the-construction-frame-grid"
+    },
+    "72p-register-current-drawing-commands-and-plane-choices": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72p-register-current-drawing-commands-and-plane-choices"
+    },
+    "72q-preview-accepted-segments-without-committing-originals": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72q-preview-accepted-segments-without-committing-originals"
+    },
+    "72r-expose-original-drawing-coordinates-and-cancellation-state": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72r-expose-original-drawing-coordinates-and-cancellation-state"
+    },
+    "72s-exercise-current-drawing-tools-and-original-persistence": {
+      "lesson": "72-copy-current-construction-planes-and-coordinate-forms",
+      "anchor": "checkpoint-72s-exercise-current-drawing-tools-and-original-persistence"
+    },
+    "73-construct-rectangles-and-polygons-in-plane-axes": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73-construct-rectangles-and-polygons-in-plane-axes"
+    },
+    "73a-bound-generated-original-construction-points": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73a-bound-generated-original-construction-points"
+    },
+    "73b-give-point-tools-a-plane-aware-construction-hook": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73b-give-point-tools-a-plane-aware-construction-hook"
+    },
+    "73c-build-original-rectangle-and-polygon-tool-results": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73c-build-original-rectangle-and-polygon-tool-results"
+    },
+    "73d-preserve-world-replay-for-multiword-construction-names": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73d-preserve-world-replay-for-multiword-construction-names"
+    },
+    "73e-keep-polygon-sides-in-the-current-draft": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73e-keep-polygon-sides-in-the-current-draft"
+    },
+    "73f-register-current-planar-options-and-temporary-outlines": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73f-register-current-planar-options-and-temporary-outlines"
+    },
+    "73g-exercise-oriented-original-planar-constructions": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73g-exercise-oriented-original-planar-constructions"
+    },
+    "73h-match-solid-command-options": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73h-match-solid-command-options"
+    },
+    "73i-describe-solid-command-questions": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73i-describe-solid-command-questions"
+    },
+    "73j-build-a-right-handed-solid-frame": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73j-build-a-right-handed-solid-frame"
+    },
+    "73k-sample-solid-preview-wires": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73k-sample-solid-preview-wires"
+    },
+    "73l-describe-solid-builders-and-dimensions": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73l-describe-solid-builders-and-dimensions"
+    },
+    "73m-validate-solid-sizes-and-radius": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73m-validate-solid-sizes-and-radius"
+    },
+    "73n-weld-solid-tessellation-once": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73n-weld-solid-tessellation-once"
+    },
+    "73o-scale-and-cache-polyhedron-faces": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73o-scale-and-cache-polyhedron-faces"
+    },
+    "73p-build-a-placed-kernel-box": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73p-build-a-placed-kernel-box"
+    },
+    "73q-read-box-questions-and-corner-clicks": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73q-read-box-questions-and-corner-clicks"
+    },
+    "73r-build-an-oriented-kernel-pyramid": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73r-build-an-oriented-kernel-pyramid"
+    },
+    "73s-build-a-block-with-a-kernel-hole": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73s-build-a-block-with-a-kernel-hole"
+    },
+    "73t-build-regular-kernel-polyhedra": {
+      "lesson": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "anchor": "checkpoint-73t-build-regular-kernel-polyhedra"
+    },
+    "74-copy-current-solid-geometry-and-question-definitions": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74-copy-current-solid-geometry-and-question-definitions"
+    },
+    "74a-own-current-shape-questions-and-answer-state": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74a-own-current-shape-questions-and-answer-state"
+    },
+    "74b-validate-a-new-answer-before-changing-its-original-state": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74b-validate-a-new-answer-before-changing-its-original-state"
+    },
+    "74c-build-only-after-the-last-shape-question": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74c-build-only-after-the-last-shape-question"
+    },
+    "74d-answer-shape-dimensions-with-atomic-typed-batches": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74d-answer-shape-dimensions-with-atomic-typed-batches"
+    },
+    "74e-preview-solid-wires-and-measure-normal-axis-clicks": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74e-preview-solid-wires-and-measure-normal-axis-clicks"
+    },
+    "74f-adopt-original-primitive-geometry-through-existing-rows": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74f-adopt-original-primitive-geometry-through-existing-rows"
+    },
+    "74g-keep-primitive-answers-beside-the-existing-drawing-draft": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74g-keep-primitive-answers-beside-the-existing-drawing-draft"
+    },
+    "74h-route-clicked-points-to-the-current-shape-question": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74h-route-clicked-points-to-the-current-shape-question"
+    },
+    "74i-route-typed-shape-input-and-preserve-detailed-errors": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74i-route-typed-shape-input-and-preserve-detailed-errors"
+    },
+    "74j-synchronize-shape-frames-before-accepting-plane-changes": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74j-synchronize-shape-frames-before-accepting-plane-changes"
+    },
+    "74k-resolve-height-clicks-without-closing-an-open-shape-collector": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74k-resolve-height-clicks-without-closing-an-open-shape-collector"
+    },
+    "74l-prepare-complete-solid-commands-before-replacing-a-draft": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74l-prepare-complete-solid-commands-before-replacing-a-draft"
+    },
+    "74m-register-every-current-solid-name-and-representation": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74m-register-every-current-solid-name-and-representation"
+    },
+    "74n-draw-temporary-solid-wire-sets-and-report-current-input-failures": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74n-draw-temporary-solid-wire-sets-and-report-current-input-failures"
+    },
+    "74o-keep-quick-mouse-drift-as-a-click-using-current-event-time": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74o-keep-quick-mouse-drift-as-a-click-using-current-event-time"
+    },
+    "74p-exercise-current-solid-input-and-original-persistence": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74p-exercise-current-solid-input-and-original-persistence"
+    },
+    "74za-build-original-cylinders-with-signed-height": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74za-build-original-cylinders-with-signed-height"
+    },
+    "74zb-build-original-cones-and-spheres": {
+      "lesson": "74-copy-current-solid-geometry-and-question-definitions",
+      "anchor": "checkpoint-74zb-build-original-cones-and-spheres"
+    },
+    "75-reuse-current-round-solid-builders": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75-reuse-current-round-solid-builders"
+    },
+    "75aa-build-original-capsules-with-shared-dimensions": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75aa-build-original-capsules-with-shared-dimensions"
+    },
+    "75a-retain-mesh-only-round-families": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75a-retain-mesh-only-round-families"
+    },
+    "75b-register-current-round-names-and-choices": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75b-register-current-round-names-and-choices"
+    },
+    "75c-exercise-round-originals-and-one-transaction": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75c-exercise-round-originals-and-one-transaction"
+    },
+    "75za-build-original-planar-circles": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75za-build-original-planar-circles"
+    },
+    "75zb-build-original-planar-ellipses": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75zb-build-original-planar-ellipses"
+    },
+    "75zc-build-exact-rational-arc-spans": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75zc-build-exact-rational-arc-spans"
+    },
+    "75zd-read-original-arcs-from-center-and-angle": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75zd-read-original-arcs-from-center-and-angle"
+    },
+    "75ze-read-three-point-arcs-and-connect-the-recipe": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75ze-read-three-point-arcs-and-connect-the-recipe"
+    },
+    "75zf-build-original-parabola-previews-and-sources": {
+      "lesson": "75-reuse-current-round-solid-builders",
+      "anchor": "checkpoint-75zf-build-original-parabola-previews-and-sources"
+    },
+    "76-copy-exact-planar-curve-definitions": {
+      "lesson": "76-copy-exact-planar-curve-definitions",
+      "anchor": "checkpoint-76-copy-exact-planar-curve-definitions"
+    },
+    "76a-expose-exact-curve-choices-in-the-existing-registry": {
+      "lesson": "76-copy-exact-planar-curve-definitions",
+      "anchor": "checkpoint-76a-expose-exact-curve-choices-in-the-existing-registry"
+    },
+    "76b-retain-editable-freeform-controls-in-the-point-collector": {
+      "lesson": "76-copy-exact-planar-curve-definitions",
+      "anchor": "checkpoint-76b-retain-editable-freeform-controls-in-the-point-collector"
+    },
+    "76c-inspect-original-curve-data-through-the-browser-contract": {
+      "lesson": "76-copy-exact-planar-curve-definitions",
+      "anchor": "checkpoint-76c-inspect-original-curve-data-through-the-browser-contract"
+    },
+    "76d-exercise-exact-curves-and-rational-control-edits": {
+      "lesson": "76-copy-exact-planar-curve-definitions",
+      "anchor": "checkpoint-76d-exercise-exact-curves-and-rational-control-edits"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/walk/sheet.rs",
+      "session_viewer/src/app/sheet_query.rs",
+      "session_viewer/src/app/stream.rs",
+      "session_viewer/src/app/cplane.rs",
+      "session_viewer/src/app/coords.rs",
+      "session_viewer/src/app/command/tool/shape.rs",
+      "session_viewer/src/app/command/tool/gather.rs",
+      "session_viewer/src/app/deform.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "71-read-original-sheet-entity-metadata",
+      "path": "screenshots/journey/71-read-original-sheet-entity-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71a-bound-original-entity-records-before-reading",
+      "path": "screenshots/journey/71a-bound-original-entity-records-before-reading.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71b-give-metadata-reads-their-own-cancellation-signal",
+      "path": "screenshots/journey/71b-give-metadata-reads-their-own-cancellation-signal.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71c-fetch-one-revision-matched-metadata-answer",
+      "path": "screenshots/journey/71c-fetch-one-revision-matched-metadata-answer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71d-decode-precise-original-sheet-columns",
+      "path": "screenshots/journey/71d-decode-precise-original-sheet-columns.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71e-measure-original-sheet-pages-and-world-pens",
+      "path": "screenshots/journey/71e-measure-original-sheet-pages-and-world-pens.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71f-retain-charged-pages-beside-resident-pages",
+      "path": "screenshots/journey/71f-retain-charged-pages-beside-resident-pages.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71g-own-the-complete-original-drawing-source",
+      "path": "screenshots/journey/71g-own-the-complete-original-drawing-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71h-place-drawing-rows-without-changing-endpoints",
+      "path": "screenshots/journey/71h-place-drawing-rows-without-changing-endpoints.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71i-register-original-drawing-rows-on-the-current-layer",
+      "path": "screenshots/journey/71i-register-original-drawing-rows-on-the-current-layer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71j-carry-drawing-identity-through-scene-operations",
+      "path": "screenshots/journey/71j-carry-drawing-identity-through-scene-operations.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71k-save-and-reopen-complete-original-sheets",
+      "path": "screenshots/journey/71k-save-and-reopen-complete-original-sheets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71l-locate-original-drawing-identity-and-fixed-ranges",
+      "path": "screenshots/journey/71l-locate-original-drawing-identity-and-fixed-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71m-validate-the-bounded-drawing-envelope-tail",
+      "path": "screenshots/journey/71m-validate-the-bounded-drawing-envelope-tail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71n-scan-drawing-columns-under-one-revision",
+      "path": "screenshots/journey/71n-scan-drawing-columns-under-one-revision.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71o-read-drawing-page-columns-through-the-shared-queue",
+      "path": "screenshots/journey/71o-read-drawing-page-columns-through-the-shared-queue.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71p-adopt-nonoverlapping-charged-drawing-pages",
+      "path": "screenshots/journey/71p-adopt-nonoverlapping-charged-drawing-pages.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71q-keep-partial-drawing-sources-explicit",
+      "path": "screenshots/journey/71q-keep-partial-drawing-sources-explicit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71r-reserve-memory-before-the-drawing-prefix",
+      "path": "screenshots/journey/71r-reserve-memory-before-the-drawing-prefix.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71s-continue-drawing-reads-without-reviving-closed-sources",
+      "path": "screenshots/journey/71s-continue-drawing-reads-without-reviving-closed-sources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71t-resolve-sheet-picks-to-original-entity-ids",
+      "path": "screenshots/journey/71t-resolve-sheet-picks-to-original-entity-ids.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71u-project-authored-world-pens-into-drawing-quads",
+      "path": "screenshots/journey/71u-project-authored-world-pens-into-drawing-quads.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71v-use-the-same-sheet-coverage-for-color-and-picks",
+      "path": "screenshots/journey/71v-use-the-same-sheet-coverage-for-color-and-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71w-build-sheet-color-and-integer-pipelines",
+      "path": "screenshots/journey/71w-build-sheet-color-and-integer-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71x-own-the-shared-drawing-lane-resources",
+      "path": "screenshots/journey/71x-own-the-shared-drawing-lane-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71y-bound-drawing-buffers-and-pack-independent-settings",
+      "path": "screenshots/journey/71y-bound-drawing-buffers-and-pack-independent-settings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71z-upload-each-original-drawing-page-once",
+      "path": "screenshots/journey/71z-upload-each-original-drawing-page-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71aa-reuse-independent-drawing-placement-records",
+      "path": "screenshots/journey/71aa-reuse-independent-drawing-placement-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ab-draw-world-pens-with-the-current-camera-lens",
+      "path": "screenshots/journey/71ab-draw-world-pens-with-the-current-camera-lens.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ac-connect-sheet-batches-to-rendering-and-bounded-picks",
+      "path": "screenshots/journey/71ac-connect-sheet-batches-to-rendering-and-bounded-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ad-own-metadata-delivery-without-pinning-drawings",
+      "path": "screenshots/journey/71ad-own-metadata-delivery-without-pinning-drawings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ae-query-metadata-only-for-the-current-selected-entity",
+      "path": "screenshots/journey/71ae-query-metadata-only-for-the-current-selected-entity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71af-keep-published-drawing-sources-and-url-bases-independent",
+      "path": "screenshots/journey/71af-keep-published-drawing-sources-and-url-bases-independent.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ag-retire-staged-drawing-reads-with-their-publication-owner",
+      "path": "screenshots/journey/71ag-retire-staged-drawing-reads-with-their-publication-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ah-stage-bounded-drawings-through-publication-loading",
+      "path": "screenshots/journey/71ah-stage-bounded-drawings-through-publication-loading.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ai-show-current-sheet-resources-and-selected-entity-answers",
+      "path": "screenshots/journey/71ai-show-current-sheet-resources-and-selected-entity-answers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71aj-exercise-complete-and-ranged-original-drawings",
+      "path": "screenshots/journey/71aj-exercise-complete-and-ranged-original-drawings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71za-build-original-construction-plane-frames",
+      "path": "screenshots/journey/71za-build-original-construction-plane-frames.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71zb-map-original-plane-and-world-coordinates",
+      "path": "screenshots/journey/71zb-map-original-plane-and-world-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71zc-guard-original-plane-and-ray-projections",
+      "path": "screenshots/journey/71zc-guard-original-plane-and-ray-projections.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71zd-parse-original-drawing-coordinate-forms",
+      "path": "screenshots/journey/71zd-parse-original-drawing-coordinate-forms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "71ze-resolve-original-relative-and-polar-coordinates",
+      "path": "screenshots/journey/71ze-resolve-original-relative-and-polar-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72-copy-current-construction-planes-and-coordinate-forms",
+      "path": "screenshots/journey/72-copy-current-construction-planes-and-coordinate-forms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72a-resolve-bounded-typed-batches-in-the-current-plane",
+      "path": "screenshots/journey/72a-resolve-bounded-typed-batches-in-the-current-plane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72b-place-clicks-on-stable-construction-planes",
+      "path": "screenshots/journey/72b-place-clicks-on-stable-construction-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72c-name-the-construction-plane-chooser-options",
+      "path": "screenshots/journey/72c-name-the-construction-plane-chooser-options.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72d-add-original-polylines-to-the-point-tool",
+      "path": "screenshots/journey/72d-add-original-polylines-to-the-point-tool.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72e-keep-construction-frames-and-plane-points-in-drafts",
+      "path": "screenshots/journey/72e-keep-construction-frames-and-plane-points-in-drafts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72f-replay-finished-drafts-with-explicit-world-prefixes",
+      "path": "screenshots/journey/72f-replay-finished-drafts-with-explicit-world-prefixes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72g-own-the-fixed-construction-plane-in-the-editor",
+      "path": "screenshots/journey/72g-own-the-fixed-construction-plane-in-the-editor.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72h-commit-completed-original-geometry-exactly-once",
+      "path": "screenshots/journey/72h-commit-completed-original-geometry-exactly-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72i-change-fixed-planes-without-rewriting-accepted-points",
+      "path": "screenshots/journey/72i-change-fixed-planes-without-rewriting-accepted-points.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72j-open-the-plane-chooser-and-collect-its-frame",
+      "path": "screenshots/journey/72j-open-the-plane-chooser-and-collect-its-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72k-resolve-typed-input-against-the-current-draft",
+      "path": "screenshots/journey/72k-resolve-typed-input-against-the-current-draft.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72l-finish-open-tools-with-enter-and-route-typed-forms",
+      "path": "screenshots/journey/72l-finish-open-tools-with-enter-and-route-typed-forms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72m-validate-complete-drawing-commands-before-adoption",
+      "path": "screenshots/journey/72m-validate-complete-drawing-commands-before-adoption.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72n-close-original-polylines-as-one-transaction",
+      "path": "screenshots/journey/72n-close-original-polylines-as-one-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72o-snap-draft-starts-and-use-the-construction-frame-grid",
+      "path": "screenshots/journey/72o-snap-draft-starts-and-use-the-construction-frame-grid.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72p-register-current-drawing-commands-and-plane-choices",
+      "path": "screenshots/journey/72p-register-current-drawing-commands-and-plane-choices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72q-preview-accepted-segments-without-committing-originals",
+      "path": "screenshots/journey/72q-preview-accepted-segments-without-committing-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72r-expose-original-drawing-coordinates-and-cancellation-state",
+      "path": "screenshots/journey/72r-expose-original-drawing-coordinates-and-cancellation-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "72s-exercise-current-drawing-tools-and-original-persistence",
+      "path": "screenshots/journey/72s-exercise-current-drawing-tools-and-original-persistence.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73-construct-rectangles-and-polygons-in-plane-axes",
+      "path": "screenshots/journey/73-construct-rectangles-and-polygons-in-plane-axes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73a-bound-generated-original-construction-points",
+      "path": "screenshots/journey/73a-bound-generated-original-construction-points.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73b-give-point-tools-a-plane-aware-construction-hook",
+      "path": "screenshots/journey/73b-give-point-tools-a-plane-aware-construction-hook.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73c-build-original-rectangle-and-polygon-tool-results",
+      "path": "screenshots/journey/73c-build-original-rectangle-and-polygon-tool-results.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73d-preserve-world-replay-for-multiword-construction-names",
+      "path": "screenshots/journey/73d-preserve-world-replay-for-multiword-construction-names.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73e-keep-polygon-sides-in-the-current-draft",
+      "path": "screenshots/journey/73e-keep-polygon-sides-in-the-current-draft.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73f-register-current-planar-options-and-temporary-outlines",
+      "path": "screenshots/journey/73f-register-current-planar-options-and-temporary-outlines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73g-exercise-oriented-original-planar-constructions",
+      "path": "screenshots/journey/73g-exercise-oriented-original-planar-constructions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73h-match-solid-command-options",
+      "path": "screenshots/journey/73h-match-solid-command-options.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73i-describe-solid-command-questions",
+      "path": "screenshots/journey/73i-describe-solid-command-questions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73j-build-a-right-handed-solid-frame",
+      "path": "screenshots/journey/73j-build-a-right-handed-solid-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73k-sample-solid-preview-wires",
+      "path": "screenshots/journey/73k-sample-solid-preview-wires.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73l-describe-solid-builders-and-dimensions",
+      "path": "screenshots/journey/73l-describe-solid-builders-and-dimensions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73m-validate-solid-sizes-and-radius",
+      "path": "screenshots/journey/73m-validate-solid-sizes-and-radius.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73n-weld-solid-tessellation-once",
+      "path": "screenshots/journey/73n-weld-solid-tessellation-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73o-scale-and-cache-polyhedron-faces",
+      "path": "screenshots/journey/73o-scale-and-cache-polyhedron-faces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73p-build-a-placed-kernel-box",
+      "path": "screenshots/journey/73p-build-a-placed-kernel-box.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73q-read-box-questions-and-corner-clicks",
+      "path": "screenshots/journey/73q-read-box-questions-and-corner-clicks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73r-build-an-oriented-kernel-pyramid",
+      "path": "screenshots/journey/73r-build-an-oriented-kernel-pyramid.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73s-build-a-block-with-a-kernel-hole",
+      "path": "screenshots/journey/73s-build-a-block-with-a-kernel-hole.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "73t-build-regular-kernel-polyhedra",
+      "path": "screenshots/journey/73t-build-regular-kernel-polyhedra.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74-copy-current-solid-geometry-and-question-definitions",
+      "path": "screenshots/journey/74-copy-current-solid-geometry-and-question-definitions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74a-own-current-shape-questions-and-answer-state",
+      "path": "screenshots/journey/74a-own-current-shape-questions-and-answer-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74b-validate-a-new-answer-before-changing-its-original-state",
+      "path": "screenshots/journey/74b-validate-a-new-answer-before-changing-its-original-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74c-build-only-after-the-last-shape-question",
+      "path": "screenshots/journey/74c-build-only-after-the-last-shape-question.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74d-answer-shape-dimensions-with-atomic-typed-batches",
+      "path": "screenshots/journey/74d-answer-shape-dimensions-with-atomic-typed-batches.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74e-preview-solid-wires-and-measure-normal-axis-clicks",
+      "path": "screenshots/journey/74e-preview-solid-wires-and-measure-normal-axis-clicks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74f-adopt-original-primitive-geometry-through-existing-rows",
+      "path": "screenshots/journey/74f-adopt-original-primitive-geometry-through-existing-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74g-keep-primitive-answers-beside-the-existing-drawing-draft",
+      "path": "screenshots/journey/74g-keep-primitive-answers-beside-the-existing-drawing-draft.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74h-route-clicked-points-to-the-current-shape-question",
+      "path": "screenshots/journey/74h-route-clicked-points-to-the-current-shape-question.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74i-route-typed-shape-input-and-preserve-detailed-errors",
+      "path": "screenshots/journey/74i-route-typed-shape-input-and-preserve-detailed-errors.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74j-synchronize-shape-frames-before-accepting-plane-changes",
+      "path": "screenshots/journey/74j-synchronize-shape-frames-before-accepting-plane-changes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74k-resolve-height-clicks-without-closing-an-open-shape-collector",
+      "path": "screenshots/journey/74k-resolve-height-clicks-without-closing-an-open-shape-collector.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74l-prepare-complete-solid-commands-before-replacing-a-draft",
+      "path": "screenshots/journey/74l-prepare-complete-solid-commands-before-replacing-a-draft.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74m-register-every-current-solid-name-and-representation",
+      "path": "screenshots/journey/74m-register-every-current-solid-name-and-representation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74n-draw-temporary-solid-wire-sets-and-report-current-input-failures",
+      "path": "screenshots/journey/74n-draw-temporary-solid-wire-sets-and-report-current-input-failures.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74o-keep-quick-mouse-drift-as-a-click-using-current-event-time",
+      "path": "screenshots/journey/74o-keep-quick-mouse-drift-as-a-click-using-current-event-time.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74p-exercise-current-solid-input-and-original-persistence",
+      "path": "screenshots/journey/74p-exercise-current-solid-input-and-original-persistence.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74za-build-original-cylinders-with-signed-height",
+      "path": "screenshots/journey/74za-build-original-cylinders-with-signed-height.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "74zb-build-original-cones-and-spheres",
+      "path": "screenshots/journey/74zb-build-original-cones-and-spheres.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75-reuse-current-round-solid-builders",
+      "path": "screenshots/journey/75-reuse-current-round-solid-builders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75aa-build-original-capsules-with-shared-dimensions",
+      "path": "screenshots/journey/75aa-build-original-capsules-with-shared-dimensions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75a-retain-mesh-only-round-families",
+      "path": "screenshots/journey/75a-retain-mesh-only-round-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75b-register-current-round-names-and-choices",
+      "path": "screenshots/journey/75b-register-current-round-names-and-choices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75c-exercise-round-originals-and-one-transaction",
+      "path": "screenshots/journey/75c-exercise-round-originals-and-one-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75za-build-original-planar-circles",
+      "path": "screenshots/journey/75za-build-original-planar-circles.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75zb-build-original-planar-ellipses",
+      "path": "screenshots/journey/75zb-build-original-planar-ellipses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75zc-build-exact-rational-arc-spans",
+      "path": "screenshots/journey/75zc-build-exact-rational-arc-spans.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75zd-read-original-arcs-from-center-and-angle",
+      "path": "screenshots/journey/75zd-read-original-arcs-from-center-and-angle.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75ze-read-three-point-arcs-and-connect-the-recipe",
+      "path": "screenshots/journey/75ze-read-three-point-arcs-and-connect-the-recipe.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "75zf-build-original-parabola-previews-and-sources",
+      "path": "screenshots/journey/75zf-build-original-parabola-previews-and-sources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "76-copy-exact-planar-curve-definitions",
+      "path": "screenshots/journey/76-copy-exact-planar-curve-definitions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "76a-expose-exact-curve-choices-in-the-existing-registry",
+      "path": "screenshots/journey/76a-expose-exact-curve-choices-in-the-existing-registry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "76b-retain-editable-freeform-controls-in-the-point-collector",
+      "path": "screenshots/journey/76b-retain-editable-freeform-controls-in-the-point-collector.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "76c-inspect-original-curve-data-through-the-browser-contract",
+      "path": "screenshots/journey/76c-inspect-original-curve-data-through-the-browser-contract.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+      "path": "screenshots/journey/76d-exercise-exact-curves-and-rational-control-edits.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

@@ -1,0 +1,1 @@
+    let model=crate::render_space::placed(&object.model,anchor).to_f32();

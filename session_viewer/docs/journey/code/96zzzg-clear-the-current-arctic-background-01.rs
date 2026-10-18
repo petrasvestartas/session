@@ -1,0 +1,1 @@
+        let [r, g, b] = if self.ambient_enabled.get() { [0.94; 3] } else { background.rgb() };

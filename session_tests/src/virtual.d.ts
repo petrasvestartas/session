@@ -1,8 +1,9 @@
 declare module 'virtual:course' {
-  export const groups: { title: string; slugs: string[] }[];
+  export const groups: { title: string; slugs: string[]; sections?: { title: string; slugs: string[] }[] }[];
   export const pages: Record<string, { title: string; prev?: string; next?: string }>;
   export const loaders: Record<string, () => Promise<{ default: CoursePage }>>;
   export interface CoursePage {
+    redirect?: string;
     title: string;
     html: string;
     toc: { level: number; id: string; text: string }[];

@@ -1,0 +1,46 @@
+use session_rust::{NurbsCurve,Point};
+/// A curve through control points; ending on the start closes it smoothly.
+pub fn curve(points: &[Point]) -> NurbsCurve {
+    let count = points.len();
+    let closed = count >= 4 && points[0].distance(&points[count - 1], None) <= 1e-12;
+
+    if closed {
+        return NurbsCurve::create(true, (count - 2).min(3), &points[..count - 1]);
+    }
+
+    NurbsCurve::create(false, (count - 1).min(3), points)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A curve that ends on its start closes without a kink.
+    #[test]
+    fn a_curve_ending_on_its_start_is_closed() {
+        let square = [
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(10.0, 0.0, 0.0),
+            Point::new(10.0, 10.0, 0.0),
+            Point::new(0.0, 10.0, 0.0),
+            Point::new(0.0, 0.0, 0.0),
+        ];
+        let closed = curve(&square);
+        assert!(closed.is_valid() && closed.is_closed());
+        assert!(
+            closed
+                .point_at_start()
+                .distance(&closed.point_at_end(), None)
+                < 1e-9
+        );
+        let triangle = curve(&[
+            square[0].clone(),
+            square[1].clone(),
+            square[2].clone(),
+            square[0].clone(),
+        ]);
+        assert!(triangle.is_valid() && triangle.is_closed());
+        let open = curve(&square[..4]);
+        assert!(open.is_valid() && !open.is_closed());
+    }
+}

@@ -1,0 +1,69 @@
+use crate::primitive_shape as shape;
+use crate::primitive_shape::{ MESH_ONLY, Part, Shape};
+use crate::round_cylinder as cylinder;
+use session_rust::{Geometry, Line, Point, Primitives};
+use std::rc::Rc;
+
+pub static SHAPE: Shape = Shape {
+    name: "Capsule",
+    options: MESH_ONLY,
+    upfront: false,
+    ask: cylinder::ask,
+    read,
+    outline,
+    build,
+};
+
+/// The cylinder's radius and height, taller than the two caps.
+fn read(frame: &shape::Frame, answers: &[shape::Answer], option: &str) -> Result<Part, String> {
+    let part = cylinder::read(frame, answers, option)?;
+
+    if let [radius, height] = part.sizes[..]
+        && height.abs() <= 2.0 * radius
+    {
+        return Err("The height must exceed the diameter".into());
+    }
+
+    Ok(part)
+}
+
+/// The base ring, then the rings where the caps begin and four sides.
+fn outline(part: &Part) -> Vec<Vec<Point>> {
+    let [radius, height] = part.sizes[..] else {
+        return part
+            .sizes
+            .first()
+            .map_or_else(Vec::new, |radius| vec![part.frame.ring(*radius, 0.0)]);
+    };
+    let (frame, height) = part.frame.upright(height);
+    let (low, high) = (radius, height - radius);
+    let mut wires = vec![frame.ring(radius, low), frame.ring(radius, high)];
+
+    for (u, v) in [(1.0, 0.0), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0)] {
+        wires.push(vec![
+            frame.at(0.0, 0.0, 0.0),
+            frame.at(u * radius, v * radius, low),
+            frame.at(u * radius, v * radius, high),
+            frame.at(0.0, 0.0, height),
+        ]);
+    }
+
+    wires
+}
+
+/// The kernel capsule on the axis, its caps ending at the base and the height.
+fn build(part: &Part, _option: &str) -> Result<Geometry, String> {
+    let [radius, height] = part.sizes[..] else {
+        return Err("Capsule needs a radius and a height".into());
+    };
+    let (frame, height) = part.frame.upright(height);
+    let axis = Line::from_points(
+        &Point::new(0.0, 0.0, radius),
+        &Point::new(0.0, 0.0, height - radius),
+    );
+    let mut mesh = Primitives::capsule_mesh(&axis, radius);
+    mesh.transform(&frame.to_xform());
+    mesh.name = "capsule".into();
+    Ok(Geometry::Mesh(Rc::new(mesh)))
+}
+

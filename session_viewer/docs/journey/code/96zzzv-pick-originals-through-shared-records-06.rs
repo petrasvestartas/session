@@ -1,0 +1,1 @@
+buffers: if shared {&slots}else{&[]}

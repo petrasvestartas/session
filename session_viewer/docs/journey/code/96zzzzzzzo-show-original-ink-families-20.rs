@@ -1,0 +1,1 @@
+if line_frame {[owner,sub_id::OBJECT_INK]}

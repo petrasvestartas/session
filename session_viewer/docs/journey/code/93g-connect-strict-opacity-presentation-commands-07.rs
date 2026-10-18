@@ -1,0 +1,8 @@
+    if let Some(kind)=[("Element Beam",crate::element_input::Kind::Beam),("Element Column",crate::element_input::Kind::Column),("Element Plate",crate::element_input::Kind::Plate),("Element Support",crate::element_input::Kind::Support),("Element Beam Variable",crate::element_input::Kind::Variable),("Element Block",crate::element_input::Kind::Block)].into_iter().find_map(|(n,k)|(n==name).then_some(k)){let text=words[count..].join(" ");kind.read(&text)?;return Ok(Command::Editor(Action::ElementBegin{kind,text}));}
+    if matches!(name,"Element Attributes"|"Element Interactions") {
+        let on=crate::element_input::visibility(&words[count..])?;
+        return Ok(Command::Editor(if name=="Element Attributes"{Action::ElementAttributes(on)}else{Action::ElementInteractions(on)}));
+    }
+    if name=="Opacity"{let [word]=&words[count..]else{return Err("Opacity 0..1 · Example: Opacity 0.5".into())};let value=word.parse::<f32>().ok().filter(|v|v.is_finite()&&(0.0..=1.0).contains(v)).ok_or("Opacity takes a value from 0 to 1")?;return Ok(Command::Editor(Action::Opacity(value)));}
+    if name=="View Outline"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("View Outline (On Off)".into())};return Ok(Command::Editor(Action::ViewOutline(on)));}
+    if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}

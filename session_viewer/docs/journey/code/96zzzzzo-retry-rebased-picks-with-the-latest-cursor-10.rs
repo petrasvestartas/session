@@ -1,0 +1,1 @@
+        if self.size != [size.width, size.height] { self.cancel_pick(); }

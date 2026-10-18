@@ -1,6 +1,8 @@
-# 29c · Prove the saved document reopens faithfully
+# 3.13.4 · Prove the saved document reopens faithfully
 
-**Typing: 23–46 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.13 · Stable identity and saving** · [Contents](contents.md)
+
+**Typing: 1–1 minutes.** [Estimate](typing-load.md).
 
 Prove snapshot and load preserve the editable document before adding browser downloading.
 
@@ -8,15 +10,22 @@ Prove snapshot and load preserve the editable document before adding browser dow
 
 Continue from [Reopen source geometry with its placement](29b-placements.md). [Save or recover your work](recovery.md).
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 1. `src/save_roundtrip_tests.rs`
 
-Compare exact source values, stored identities and object matrices after encoding and decoding.
+Optional authoring fixture. Compare exact source values, stored identities and object matrices after encoding and decoding.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/29c-roundtrip-01.rs"
 ```
+
+</details>
 
 ### 2. `src/lib.rs`
 
@@ -32,10 +41,10 @@ mod placement_load_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/29c-roundtrip-02.rs"
+--8<-- "journey/code/29c-roundtrip-02.rs" skip=39
 ```
 
 ## Run and check
@@ -44,25 +53,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the round-trip checks below. Reopened geometry must retain exact doubles, attributes, saved identities and placements. Compare the source values, not the float display.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove the saved document reopens faithfully.](../screenshots/journey/29c-roundtrip-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for prove the saved document reopens faithfully.](../screenshots/journey/29c-roundtrip.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -98,8 +103,8 @@ Change the exact coordinate to 123456789.125. Predict why the reopened kernel co
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 29c-roundtrip
-npm --prefix ../session_tests run course -- save 29c-roundtrip
+npm --prefix ../session_tests run course -- check 3.13.4
+npm --prefix ../session_tests run course -- save 3.13.4
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -118,7 +123,7 @@ The production viewer preserves editable source data through save/reopen and ass
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 29c-roundtrip
+npm --prefix ../session_tests run course -- capture 3.13.4
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+uniform(device, crate::object_record::BYTES as u64)

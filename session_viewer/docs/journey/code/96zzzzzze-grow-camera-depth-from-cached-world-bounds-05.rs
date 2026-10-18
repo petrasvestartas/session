@@ -1,0 +1,1 @@
+let mut renderer = Self {world_bounds:Default::default(),space:Default::default(),

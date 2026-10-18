@@ -1,4 +1,6 @@
-# 34gea · Permit one conservative recovery reload
+# 4.2.36 · Permit one conservative recovery reload
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 5–9 minutes.** [Estimate](typing-load.md).
 
@@ -31,21 +33,42 @@ pub mod drawing_document;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod recovery;
+#[cfg(test)]
+mod recovery_tests;
+pub mod drawing_document;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gea-policy-02.rs"
 ```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/recovery_tests.rs`
 
 Copy normal, duplicate, recovered and fresh-run checks.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34gea-policy-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +76,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the policy checks. Normal runs permit one device-loss reload; recovered runs refuse another.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Permit one conservative recovery reload.](../screenshots/journey/34gea-policy-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for permit one conservative recovery reload.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +124,8 @@ Request recovery for a validation error, then for device loss. Only the device-l
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gea-policy
-npm --prefix ../session_tests run course -- save 34gea-policy
+npm --prefix ../session_tests run course -- check 4.2.36
+npm --prefix ../session_tests run course -- save 4.2.36
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +146,7 @@ Chrome repeats the preceding telemetry route while the one-reload policy is intr
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gea-policy
+npm --prefix ../session_tests run course -- capture 4.2.36
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+pub struct Pipelines{pub count:wgpu::RenderPipeline,pub record_count:wgpu::RenderPipeline,pub geometry:wgpu::BindGroupLayout,

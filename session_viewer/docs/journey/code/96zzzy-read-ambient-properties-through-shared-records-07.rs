@@ -1,0 +1,2 @@
+let source=concat!(include_str!("triangle.wgsl"),"
+",include_str!("ambient_sources.wgsl"));let source=if shared {crate::object_rows::source(source)}else{source.into()};let module=device.create_shader_module

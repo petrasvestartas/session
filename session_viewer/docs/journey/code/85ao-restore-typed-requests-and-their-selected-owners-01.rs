@@ -1,0 +1,9 @@
+        Action::GatherBegin{recipe,text}=>Self::Gather{name:recipe.name.into(),text:text.clone()},Action::TrimPick(id)=>Self::Pick{kind:0,id:*id},Action::SplitPick(id)=>Self::Pick{kind:1,id:*id},Action::ExtendPick(id)=>Self::Pick{kind:2,id:*id},Action::GatherPick(id)=>Self::Pick{kind:3,id:*id},_=>return None,
+    })}
+    pub fn action(&self)->Result<Action,&'static str>{Ok(match self{
+        Self::BoundingBox=>Action::BoundingBox,Self::Measure(kind)=>Action::Measure(*kind),Self::Explode=>Action::Explode,Self::Arrowhead(head)=>Action::Arrowhead(*head),Self::Group(name)=>Action::AddGroup(name.clone()),Self::Edge=>Action::AddEdge,Self::Project(words)=>Action::Project(words.clone()),Self::Interval(interval)=>Action::Interval(*interval),Self::Extend{distance,asking}=>Action::ExtendBegin{distance:*distance,asking:*asking},Self::Split=>Action::Split,Self::Trim=>Action::Trim,
+        Self::Transform{kind,delta}=>Action::Transformation{kind:*kind,delta:session_rust::Xform::from_matrix(*delta)},Self::BeginTransform(kind)=>Action::BeginTransformation(*kind),Self::Scale(factor)=>Action::ScaleFactor(*factor),Self::Rotate{axis,degrees}=>Action::RotateWorld{axis:*axis,degrees:*degrees},Self::Move(offset)=>Action::Translate(*offset),Self::Delete=>Action::Delete,
+        Self::Gather{name,text}=>crate::gather_registry::command(name,text).ok_or("Gathering recipe is gone")?.map_err(|_|"Gathering recipe changed")?,Self::Pick{kind,id}=>match kind{0=>Action::TrimPick(*id),1=>Action::SplitPick(*id),2=>Action::ExtendPick(*id),3=>Action::GatherPick(*id),_=>return Err("Pending cutter kind is gone")},
+    })}
+    pub fn ids(&self,editor:&Editor)->Vec<ObjectId>{match self{Self::Pick{id,..}=>id.iter().copied().collect(),_=>editor.selected_part.and(editor.selected).into_iter().chain(editor.selected_objects()).collect()}}
+}

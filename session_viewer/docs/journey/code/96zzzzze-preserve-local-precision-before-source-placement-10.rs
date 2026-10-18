@@ -1,0 +1,1 @@
+for (owner, legacy, controls) in self.control_sources_at(anchor) {

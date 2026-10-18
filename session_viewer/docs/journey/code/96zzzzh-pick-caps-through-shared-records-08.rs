@@ -1,0 +1,1 @@
+assert!(r.cap_usage()[0]>24);r.use_uniform_surface_records();assert_eq!(picked(&mut r,[0.3,0.2]),Some([owner.value(),0]),"Uniform fallback retains the full original owner");r.set_scene(&scene,None);assert_eq!(picked(&mut r,[0.3,0.2]),Some([owner.value(),0]),"Shared cap owner restores before a color frame");pixels(&r);

@@ -1,0 +1,1 @@
+self.ambient_rows.set(scene);

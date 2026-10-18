@@ -1,4 +1,6 @@
-# 32gi · Capture the requested edit before waiting
+# 3.16.33 · Capture the requested edit before waiting
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 
@@ -21,10 +23,10 @@ pub mod reload_job;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gi-capture-01.rs"
+--8<-- "journey/code/32gi-capture-01.rs" skip=20
 ```
 
 ### 2. `src/edit_intent.rs`
@@ -43,25 +45,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the intent checks below. Capture Move for one selected object, change selection, and compare the stored target and offset. Automatic browser replay comes later.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Capture the requested edit before waiting.](../screenshots/journey/32gi-capture-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for capture the requested edit before waiting.](../screenshots/journey/32gi-capture.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -83,7 +81,7 @@ Study estimate, including typing and experiments: 1–2 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Capture Move for one object, change selection, then inspect the captured ObjectId in the native test. Explain which origin the request must load.
+Trace the supplied captured-Move fixture: capture one object, change selection, then inspect the retained ObjectId. Explain which origin the later request must load.
 
 </details>
 
@@ -93,8 +91,8 @@ Capture Move for one object, change selection, then inspect the captured ObjectI
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gi-capture
-npm --prefix ../session_tests run course -- save 32gi-capture
+npm --prefix ../session_tests run course -- check 3.16.33
+npm --prefix ../session_tests run course -- save 3.16.33
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -115,7 +113,7 @@ The existing explicit source reload preserves this checkpoint’s placed drawing
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gi-capture
+npm --prefix ../session_tests run course -- capture 3.16.33
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+crate::navigation::wheel(wheel.delta_y(),mode,web_sys::window()?.device_pixel_ratio())

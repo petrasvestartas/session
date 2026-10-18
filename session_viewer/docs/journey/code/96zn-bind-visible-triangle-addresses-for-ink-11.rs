@@ -1,0 +1,1 @@
+caps:image.section.clone(),primitive:tables.primitive.clone()}

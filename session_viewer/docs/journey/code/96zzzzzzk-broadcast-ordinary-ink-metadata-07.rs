@@ -1,0 +1,1 @@
+self.reset_flags(device)

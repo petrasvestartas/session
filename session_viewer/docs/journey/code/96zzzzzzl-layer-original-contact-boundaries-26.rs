@@ -1,0 +1,1 @@
+input.clip_flags,true,vec2<f32>(input.rise,0.))

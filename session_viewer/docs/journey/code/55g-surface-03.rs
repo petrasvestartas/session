@@ -1,0 +1,5 @@
+    ("Show",||Action::Show),
+    ("Example Box", || Action::AddBox),
+    ("Example Surface",||Action::AddSurface),
+    ("Example Nested",||Action::AddNested),
+    ("Example Line", || Action::AddLine),

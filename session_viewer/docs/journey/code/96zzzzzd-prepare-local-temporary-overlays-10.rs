@@ -1,0 +1,1 @@
+overlay.mark(point,6.,red);

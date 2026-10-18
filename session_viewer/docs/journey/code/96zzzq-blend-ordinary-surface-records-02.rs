@@ -1,0 +1,1 @@
+let create=|blend|device.create_render_pipeline(

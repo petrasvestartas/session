@@ -1,0 +1,2 @@
+    pub fn marker(&self)->crate::marker::Marker {self.marker_at([0.;3])}
+    pub fn marker_at(&self,anchor:[f64;3])->crate::marker::Marker {crate::marker::Marker {center:crate::render_space::relative(crate::clipping_geometry::array(&self.point()),anchor),..self.prepared.display}}

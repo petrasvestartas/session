@@ -1,4 +1,6 @@
-# 02 · Give browser presentation its own function
+# 1.2.1 · Give browser presentation its own function
+
+**Chapter 1 · Browser, Rust and the GPU · Section 1.2 · Browser presentation** · [Contents](contents.md)
 
 **Typing: 28–56 minutes.** [Estimate](typing-load.md).
 
@@ -34,7 +36,7 @@ pub fn start() {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/02-clear-fullscreen-2.rs"
@@ -82,7 +84,7 @@ impl Renderer {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/02-clear-fullscreen-4.rs"
@@ -130,7 +132,7 @@ pub async fn run() -> Result<(), JsValue> {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/02-clear-window-1.rs"
@@ -142,19 +144,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The canvas remains white. Change its clear colour to `r: 0.9, g: 0.9, b: 0.9`: it becomes light grey through the sRGB view. Restore all three values to `1.0`.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Give browser presentation its own function.](../screenshots/journey/02-clear-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for give browser presentation its own function.](../screenshots/journey/01a-gpu.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [1.1.2 · Paint the first GPU frame](01a-gpu.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -190,8 +196,8 @@ Compare width and height with the device limit in run. Explain why a drawing buf
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 02-clear
-npm --prefix ../session_tests run course -- save 02-clear
+npm --prefix ../session_tests run course -- check 1.2.1
+npm --prefix ../session_tests run course -- save 1.2.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

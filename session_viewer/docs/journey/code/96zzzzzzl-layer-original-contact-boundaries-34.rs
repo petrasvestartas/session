@@ -1,0 +1,1 @@
+var axis=finite_ink_axis(pixel,ends,depths);axis.sag=sag;

@@ -31,7 +31,7 @@ module.exports = async (page, {command}) => {
     };
     const bounds = async () => {
         const measured = await size();
-        const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+        const url = await require('./canvas-image.cjs')(page.locator('canvas'));
         const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
         let left = image.width, top = image.height, right = -1, bottom = -1, count = 0;
         for (let y = 0; y < image.height - Math.ceil(34 * measured.ratio); y++) for (let x = 0; x < image.width; x++) {

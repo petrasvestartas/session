@@ -1,0 +1,6 @@
+    pub element:Option<crate::element_draft::Draft>,
+    pub element_attributes:bool,
+    pub element_interactions:bool,
+    pub opacity:f32,
+    pub arctic:bool,
+    pub outlines:bool,

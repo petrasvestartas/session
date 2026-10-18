@@ -1,0 +1,2 @@
+        let anchor=self.anchor();let matrix=camera.view_projection_anchored(anchor);
+        let layout=origin.map(|p|std::array::from_fn(|i|p[i]-anchor[i])).and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)

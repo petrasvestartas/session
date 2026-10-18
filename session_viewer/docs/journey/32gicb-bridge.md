@@ -1,4 +1,6 @@
-# 32gicb · Carry captured intent through browser completion
+# 3.16.40 · Carry captured intent through browser completion
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 12–23 minutes.** [Estimate](typing-load.md).
 
@@ -10,142 +12,187 @@ Continue from [Pair captured intent with complete source bodies](32gica-reply.md
 
 ### 1. `src/browser_reload.rs`
 
-Use the same completion value in the browser mailbox.
+Use the same completion value in the browser mailbox. Preserve explicit Reload Sources while allowing a captured operation to accompany its keys. Only a current ticket may collect its captured operation and deliver the complete reply. Let the existing abortable flight own an optional operation. Capture the operation when starting the abortable source flight. Install the optional operation and keys into one ticket owner. Return both keys and operation only after checking completion ownership.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
+use crate::{rehydrate::ReloadKey, reload_job::{ReloadJob, Request}};
+use std::{cell::RefCell, rc::Rc};
+
+pub type Shared = Rc<RefCell<Flight>>;
+
 pub type Reply = Result<Vec<(ReloadKey, Vec<u8>)>, String>;
-```
+pub type Delivery = Rc<RefCell<Option<Reply>>>;
 
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/32gicb-bridge-01.rs"
-```
-
-### 2. `src/browser_reload.rs`
-
-Preserve explicit Reload Sources while allowing a captured operation to accompany its keys.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
 pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
     let (request, signal) = shared.borrow_mut().begin(keys)?;
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/32gicb-bridge-02.rs"
-```
-
-### 3. `src/browser_reload.rs`
-
-Only a current ticket may collect its captured operation and deliver the complete reply.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+    crate::browser::report("Reloading editable sources…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result: Result<Vec<Vec<u8>>, String> = async {
+            let mut values = Vec::new();
+            for url in request.urls { values.push(crate::source_fetch::fetch(&url, &signal).await?); }
+            Ok(values)
+        }.await;
         let Some(keys) = shared.borrow_mut().finish(request.ticket, result.is_err()) else { return; };
         let result = result.map(|values| keys.into_iter().zip(values).collect());
         if let Err(error) = deliver(result, &delivery) {
+            crate::browser::report(&format!("Cannot deliver reload: {error:?}"));
+        }
+    });
+    Ok(())
+}
+
+fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsValue> {
+    let event = web_sys::Event::new("viewer-reload")?;
+    *delivery.borrow_mut() = Some(result);
+    let result = web_sys::window().ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
+        .and_then(|window| window.dispatch_event(&event));
+    delivery.borrow_mut().take();
+    result.map(|_| ())
+}
+
+#[derive(Default)]
+pub struct Flight {
+    job: ReloadJob,
+    controller: Option<web_sys::AbortController>,
+}
+
+impl Flight {
+    pub fn cancel(&mut self) -> bool {
+        let cancelled = self.job.cancel();
+        if let Some(controller) = self.controller.take() { controller.abort(); }
+        cancelled
+    }
+
+    fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<(Request, web_sys::AbortSignal), String> {
+        self.cancel();
+        let controller = web_sys::AbortController::new().map_err(|error| format!("Cannot start reload: {error:?}"))?;
+        let request = self.job.begin(keys)?;
+        let signal = controller.signal();
+        self.controller = Some(controller);
+        Ok((request, signal))
+    }
+
+    fn finish(&mut self, ticket: u64, failed: bool) -> Option<Vec<ReloadKey>> {
+        let keys = self.job.finish(ticket)?;
+        if let Some(controller) = self.controller.take() { if failed { controller.abort(); } }
+        Some(keys)
+    }
+}
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use crate::{rehydrate::ReloadKey, reload_job::{ReloadJob, Request}};
+use std::{cell::RefCell, rc::Rc};
+
+pub type Shared = Rc<RefCell<Flight>>;
+
+pub type Reply = crate::reload_reply::Reply;
+pub type Delivery = Rc<RefCell<Option<Reply>>>;
+
+pub fn start(shared: Shared, keys: Vec<ReloadKey>, delivery: Delivery) -> Result<(), String> {
+    start_with(shared, keys, None, delivery)
+}
+
+pub fn start_with(shared: Shared, keys: Vec<ReloadKey>, intent: Option<crate::edit_intent::Intent>, delivery: Delivery) -> Result<(), String> {
+    let (request, signal) = shared.borrow_mut().begin(keys, intent)?;
+    crate::browser::report("Reloading editable sources…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result: Result<Vec<Vec<u8>>, String> = async {
+            let mut values = Vec::new();
+            for url in request.urls { values.push(crate::source_fetch::fetch(&url, &signal).await?); }
+            Ok(values)
+        }.await;
+        let Some((keys, intent)) = shared.borrow_mut().finish(request.ticket, result.is_err()) else { return; };
+        let reply = Reply::new(keys, intent, result);
+        if let Err(error) = deliver(reply, &delivery) {
+            crate::browser::report(&format!("Cannot deliver reload: {error:?}"));
+        }
+    });
+    Ok(())
+}
+
+fn deliver(result: Reply, delivery: &Delivery) -> Result<(), wasm_bindgen::JsValue> {
+    let event = web_sys::Event::new("viewer-reload")?;
+    *delivery.borrow_mut() = Some(result);
+    let result = web_sys::window().ok_or_else(|| wasm_bindgen::JsValue::from_str("No browser window"))
+        .and_then(|window| window.dispatch_event(&event));
+    delivery.borrow_mut().take();
+    result.map(|_| ())
+}
+
+#[derive(Default)]
+pub struct Flight {
+    job: ReloadJob<Option<crate::edit_intent::Intent>>,
+    controller: Option<web_sys::AbortController>,
+}
+
+impl Flight {
+    pub fn cancel(&mut self) -> bool {
+        let cancelled = self.job.cancel();
+        if let Some(controller) = self.controller.take() { controller.abort(); }
+        cancelled
+    }
+
+    fn begin(&mut self, keys: Vec<ReloadKey>, intent: Option<crate::edit_intent::Intent>) -> Result<(Request, web_sys::AbortSignal), String> {
+        self.cancel();
+        let controller = web_sys::AbortController::new().map_err(|error| format!("Cannot start reload: {error:?}"))?;
+        let request = self.job.begin_with(keys, intent)?;
+        let signal = controller.signal();
+        self.controller = Some(controller);
+        Ok((request, signal))
+    }
+
+    fn finish(&mut self, ticket: u64, failed: bool) -> Option<(Vec<ReloadKey>, Option<crate::edit_intent::Intent>)> {
+        let keys = self.job.finish_with(ticket)?;
+        if let Some(controller) = self.controller.take() { if failed { controller.abort(); } }
+        Some(keys)
+    }
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/32gicb-bridge-01.rs"
+```
+
+```text
+--8<-- "journey/code/32gicb-bridge-02.rs"
+```
+
+```text
 --8<-- "journey/code/32gicb-bridge-03.rs"
 ```
 
-### 4. `src/browser_reload.rs`
-
-Let the existing abortable flight own an optional operation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    job: ReloadJob,
-```
-
-</details>
-
-Replace that block with:
-
-```rust
+```text
 --8<-- "journey/code/32gicb-bridge-04.rs"
 ```
 
-### 5. `src/browser_reload.rs`
-
-Capture the operation when starting the abortable source flight.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    fn begin(&mut self, keys: Vec<ReloadKey>) -> Result<(Request, web_sys::AbortSignal), String> {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
+```text
 --8<-- "journey/code/32gicb-bridge-05.rs"
 ```
 
-### 6. `src/browser_reload.rs`
-
-Install the optional operation and keys into one ticket owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        let request = self.job.begin(keys)?;
-```
-
-</details>
-
-Replace that block with:
-
-```rust
+```text
 --8<-- "journey/code/32gicb-bridge-06.rs"
 ```
 
-### 7. `src/browser_reload.rs`
-
-Return both keys and operation only after checking completion ownership.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    fn finish(&mut self, ticket: u64, failed: bool) -> Option<Vec<ReloadKey>> {
-        let keys = self.job.finish(ticket)?;
+```text
+--8<-- "journey/code/32gicb-bridge-07.rs"
 ```
 
 </details>
 
-Replace that block with:
-
-```rust
---8<-- "journey/code/32gicb-bridge-07.rs"
-```
-
-### 8. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Keep the existing explicit source-restoration receiver reading the reply body.
 
@@ -159,11 +206,23 @@ Keep the existing explicit source-restoration receiver reading the reply body.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+            if let Some(reply) = reload_delivery.borrow_mut().take() {
+                match reply.result.and_then(|values| editor.hydrate(values).map_err(str::to_owned)) {
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/32gicb-bridge-08.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -171,25 +230,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Build the browser bundle and run the checks below. Accepted delivery now carries the intent; an aborted older flight cannot deliver it. Automatic commands are not routed yet.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Carry captured intent through browser completion.](../screenshots/journey/32gicb-bridge-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for carry captured intent through browser completion.](../screenshots/journey/32gicb-bridge.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -223,8 +278,8 @@ Return the intent from the future rather than finish_with. Explain why cancellin
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gicb-bridge
-npm --prefix ../session_tests run course -- save 32gicb-bridge
+npm --prefix ../session_tests run course -- check 3.16.40
+npm --prefix ../session_tests run course -- save 3.16.40
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -245,7 +300,7 @@ Chrome checks explicit Reload Sources, cancellation and editing through the new 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gicb-bridge
+npm --prefix ../session_tests run course -- capture 3.16.40
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

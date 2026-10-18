@@ -1,0 +1,1 @@
+        let mut next = settings(object, style,

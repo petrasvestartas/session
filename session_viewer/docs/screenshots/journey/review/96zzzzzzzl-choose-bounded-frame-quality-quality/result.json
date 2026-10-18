@@ -1,0 +1,445 @@
+{
+  "status": "Actual quality browser checks passed; every current image still requires direct critical inspection.",
+  "results": [
+    {
+      "density": 1,
+      "automatic": 4,
+      "automaticAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "resizedAttachments": {
+        "samples": 4,
+        "size": [
+          620,
+          420
+        ],
+        "cssSize": [
+          620,
+          420
+        ],
+        "viewport": [
+          620,
+          420
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              620,
+              420,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              620,
+              420,
+              1
+            ]
+          }
+        ]
+      },
+      "restoredAttachments": {
+        "samples": 4,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedFour": true,
+      "otherForcedOne": true,
+      "exactReturns": true,
+      "originalOwner": true,
+      "originalSourceArchive": true,
+      "realResize": true,
+      "repeatedCountAllocations": 0
+    },
+    {
+      "density": 2,
+      "automatic": 1,
+      "automaticAttachments": {
+        "samples": 1,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedAttachments": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "resizedAttachments": {
+        "samples": 1,
+        "size": [
+          1240,
+          840
+        ],
+        "cssSize": [
+          620,
+          420
+        ],
+        "viewport": [
+          620,
+          420
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              1240,
+              840,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              1240,
+              840,
+              1
+            ]
+          }
+        ]
+      },
+      "restoredAttachments": {
+        "samples": 1,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "forcedFour": true,
+      "otherForcedOne": true,
+      "exactReturns": true,
+      "originalOwner": true,
+      "originalSourceArchive": true,
+      "realResize": true,
+      "repeatedCountAllocations": 0
+    },
+    {
+      "beforeLoss": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "reduced": {
+        "samples": 1,
+        "size": [
+          480,
+          360
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 1,
+            "format": "depth32float",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 1,
+            "format": "rg16uint",
+            "size": [
+              480,
+              360,
+              1
+            ]
+          }
+        ]
+      },
+      "normal": {
+        "samples": 4,
+        "size": [
+          960,
+          720
+        ],
+        "cssSize": [
+          480,
+          360
+        ],
+        "viewport": [
+          480,
+          360
+        ],
+        "attachments": [
+          {
+            "label": "scene depth",
+            "count": 4,
+            "format": "depth32float",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          },
+          {
+            "label": "physical triangle addresses",
+            "count": 4,
+            "format": "rg16uint",
+            "size": [
+              960,
+              720,
+              1
+            ]
+          }
+        ]
+      },
+      "errors": [],
+      "recoveredErrors": [],
+      "normalErrors": [],
+      "urlForcedFour": true,
+      "realDeviceLoss": true,
+      "reducedOverridesForced": true,
+      "ordinaryReloadRestoresFour": true,
+      "unrelatedUrlPreserved": true,
+      "oldLostGpuCalls": 0
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import path from 'node:path';
 import {work} from './model.ts';
 
 export function savedPath(name: string, project = work): string {
-    if (!name || !/^[a-zA-Z0-9_-]+$/.test(name)) throw Error('Use letters, digits, - and _ in a save name.');
+    if (!name || !/^(?:[a-zA-Z0-9_-]+|\d+\.\d+\.\d+)$/.test(name)) throw Error('Use a save name with letters, digits, - and _, or a book lesson number such as 22.2.3.');
     return path.join(path.dirname(project), 'journey-saves', name);
 }
 

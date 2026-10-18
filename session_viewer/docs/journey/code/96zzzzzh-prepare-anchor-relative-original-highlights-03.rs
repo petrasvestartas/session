@@ -1,0 +1,1 @@
+                let ends = row.mesh.parts.endpoints[index].map(|p| crate::render_space::placed(&row.model,anchor).transform_point(&session_rust::Point::new(p[0], p[1], p[2])).to_f32());

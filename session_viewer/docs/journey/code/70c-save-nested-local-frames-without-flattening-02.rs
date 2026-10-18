@@ -1,0 +1,11 @@
+use session_rust::{proto,Xform};
+use prost::Message;
+pub fn message()->proto::Session {
+    let mut mesh=crate::prepared::PreparedMesh::triangle([[0.123456789012345,0.,0.],[0.8,0.,0.],[0.,0.8,0.]],[0.1,0.3,0.8]).unwrap().geometry.to_proto();mesh.guid="original-definition".into();
+    proto::Session {guid:"nested-source".into(),name:"Nested placements".into(),objects:Some(proto::Objects {instances:vec![proto::InstanceRef {guid:"turned".into(),definition_guid:mesh.guid.clone(),xform:Some(Xform::translation(0.25,0.,0.).to_proto()),..Default::default()},proto::InstanceRef {guid:"mirrored".into(),definition_guid:mesh.guid.clone(),..Default::default()}],..Default::default()}),definitions:Some(proto::Objects {meshes:vec![mesh],..Default::default()}),tree:Some(proto::Tree {root:Some(proto::TreeNode {name:"assembly".into(),children:vec![proto::TreeNode {name:"branch".into(),children:vec![proto::TreeNode {name:"turned".into(),..Default::default()}],..Default::default()},proto::TreeNode {name:"mirror-branch".into(),children:vec![proto::TreeNode {name:"mirrored".into(),..Default::default()}],..Default::default()}],..Default::default()}),..Default::default()}),xforms:vec![proto::XformEntry {guid:"assembly".into(),xform:Some(Xform::translation(1_000_000_000.125,0.,0.).to_proto())},proto::XformEntry {guid:"branch".into(),xform:Some(Xform::rotation_z(90.,true).to_proto())},proto::XformEntry {guid:"turned".into(),xform:Some(Xform::translation(2.,0.,0.).to_proto())},proto::XformEntry {guid:"mirror-branch".into(),xform:Some(Xform::scale_xyz(-1.,1.,1.).to_proto())},proto::XformEntry {guid:"mirrored".into(),xform:Some(Xform::translation(1.,0.,0.).to_proto())}],..Default::default()}
+}
+
+pub fn visible()->proto::Session {
+    let mut source=message();source.xforms[0].xform=Some(Xform::identity().to_proto());source.xforms[1].xform=Some((&Xform::translation(-0.7,-0.3,0.3)*&Xform::rotation_z(45.,true)).to_proto());source.xforms[2].xform=Some(Xform::translation(0.25,0.,0.).to_proto());source.xforms[3].xform=Some((&Xform::translation(0.7,-0.3,0.3)*&Xform::scale_xyz(-1.,1.,1.)).to_proto());source.xforms[4].xform=Some(Xform::translation(0.25,0.,0.).to_proto());source
+}
+pub fn bytes()->Vec<u8> {visible().encode_to_vec()}

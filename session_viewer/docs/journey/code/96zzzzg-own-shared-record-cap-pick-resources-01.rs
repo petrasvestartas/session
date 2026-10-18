@@ -1,0 +1,2 @@
+ pub fn group(&mut self,device:&wgpu::Device,layout:&wgpu::BindGroupLayout,geometry:&Rc<crate::gpu_geometry::GpuGeometry>,plane:u32)->Result<wgpu::BindGroup,&'static str> {self.group_with(device,layout,geometry,plane,0,&[]) }
+ pub fn group_with(&mut self,device:&wgpu::Device,layout:&wgpu::BindGroupLayout,geometry:&Rc<crate::gpu_geometry::GpuGeometry>,plane:u32,first:u32,extra:&[wgpu::BindGroupEntry])->Result<wgpu::BindGroup,&'static str> {

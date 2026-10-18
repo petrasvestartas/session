@@ -1,0 +1,1 @@
+for (stride,grid,varying) in [(44,false,false),(72,false,false),(32,false,false),(44,true,false),(44,false,true),(32,false,true)] {for samples in [1,4] {sources.push(("finite color",crate::finite_sources::source_with_samples(stride,false,grid,varying,samples)));}sources.push(("finite pick",crate::finite_sources::source_metadata(stride,true,grid,varying)));}

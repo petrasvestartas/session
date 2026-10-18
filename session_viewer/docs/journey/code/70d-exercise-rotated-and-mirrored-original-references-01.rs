@@ -1,0 +1,5 @@
+    AddInstances,
+    AddShapeReuse,
+    AddNestedInstances,
+    AddText(crate::text::TextPlacement),
+    AddSurface,

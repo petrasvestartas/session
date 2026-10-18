@@ -1,0 +1,1 @@
+@vertex fn vs_main(@location(0) position:vec3<f32>,@location(1) normal:u32,@location(2) colour:u32)->Vertex {return ambient_vertex(position,unpack4x8unorm(colour),oct32_decode(normal),object_at(0u));}

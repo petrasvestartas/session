@@ -1,0 +1,1 @@
+            return visual_ancestor(scene, doc, index);

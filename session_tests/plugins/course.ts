@@ -10,6 +10,7 @@ import MiniSearch from 'minisearch';
 import { codeTheme, renderCode } from '../src/codeTheme';
 import { SEARCH_OPTIONS } from '../src/searchOptions';
 import { kernelClasses } from './kernel';
+import { readingBook } from '../src/courseBook';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const SESSION = path.resolve(HERE, '../..');
@@ -35,11 +36,13 @@ interface Page {
   toc: { level: number; id: string; text: string }[];
   ids: Set<string>;
   search: boolean;
+  redirect?: string;
 }
 
 interface Group {
   title: string;
   slugs: string[];
+  sections?: { title: string; slugs: string[] }[];
 }
 
 interface Link {
@@ -79,6 +82,10 @@ function listPages(): string[] {
     }
   };
   walk(DOCS, 0);
+  const book = JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8'));
+  for (const chapter of book.chapters) {
+    for (const lesson of chapter.consolidated || []) out.push(path.join(DOCS, lesson.page));
+  }
   const arch = path.join(VIEWER, 'ARCHITECTURE.md');
   if (fs.existsSync(arch)) out.push(arch);
   return out;
@@ -126,31 +133,14 @@ function navGroups(bySlug: Map<string, string>): Group[] {
   const journey = path.join(DOCS, 'journey/course.json');
   if (fs.existsSync(journey)) {
     const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
-    const subjects = [
-      {title: '01–10 · Drawing and command input', first: '01-canvas', last: '10-depth'},
-      {title: '10a–22 · Scene, camera and actions', first: '10a-mesh', last: '22-shortcuts'},
-      {title: '22a–30e · Import, placement and saving', first: '22a-records', last: '30e-recovery'},
-      {title: '31–31c · GPU geometry owners', first: '31-settings', last: '31c-incremental'},
-      {title: '32–32fl · Document and source lifetime', first: '32-history', last: '32fl-guards'},
-      {title: '32g–32gja · Restore sources for editing', first: '32g-keys', last: '32gja-failures'},
-      {title: '33–34a · Browser lifetime and GPU failure', first: '33-owner', last: '34a-stop'},
-      {title: '34b–34d · Download the current report', first: '34b-report', last: '34d-download'},
-      {title: '34e–34fc · Retrieve previous reports', first: '34e-schema', last: '34fc-retention'},
-      {title: '34g–34gdc · Activity, page exit and loading timings', first: '34g-heartbeat', last: '34gdc-startup'},
-    ];
-    const lessonGroups: Group[] = [];
-    let at = 0;
-    for (const subject of subjects) {
-      if (opening.steps[at]?.id !== subject.first) throw Error(`Course subject does not start at ${subject.first}`);
-      const end = opening.steps.findIndex((step: {id: string}) => step.id === subject.last);
-      if (end < at) throw Error(`Course subject does not end at ${subject.last}`);
-      lessonGroups.push({title: subject.title, slugs: opening.steps.slice(at, end + 1)
-        .map((step: {page: string}) => pageSlug(path.join(DOCS, step.page)))});
-      at = end + 1;
-    }
-    // Unpublished subjects can continue the sequence without disappearing from navigation.
-    if (at < opening.steps.length) lessonGroups.push({title: 'Continue building the viewer',
-      slugs: opening.steps.slice(at).map((step: {page: string}) => pageSlug(path.join(DOCS, step.page)))});
+    const book = readingBook(opening.steps, JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8')));
+    const lessonGroups: Group[] = book.chapters.map(chapter => ({
+      title: `${chapter.number} · ${chapter.title}`,
+      slugs: chapter.sections.flatMap(section => section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))),
+      sections: chapter.sections.map(section => ({title: `${section.number} · ${section.title}`,
+        slugs: section.lessons.map(lesson => pageSlug(path.join(DOCS, lesson.page)))})),
+    }));
+    if (book.comparison) lessonGroups.push({title: 'Reference comparison', slugs: [pageSlug(path.join(DOCS, book.comparison.page))]});
     groups.splice(1, 0, ...lessonGroups);
     const reference = groups.find((g) => g.title === 'Course');
     if (reference) reference.title = 'Complete viewer reference';
@@ -161,7 +151,7 @@ function navGroups(bySlug: Map<string, string>): Group[] {
   return groups.filter((g) => g.slugs.length);
 }
 
-const SNIPPET = /^([ \t]*)-{1,}8<-{1,}[ \t]+("(?:\\"|[^"\n\r])+?"|'(?:\\'|[^'\n\r])+?')[ \t]*$/;
+const SNIPPET = /^([ \t]*)-{1,}8<-{1,}[ \t]+("(?:\\"|[^"\n\r])+?"|'(?:\\'|[^'\n\r])+?')(?:[ \t]+skip=(\d+))?[ \t]*$/;
 const MARKER = /-{1,}8<-{1,}[ \t]+\[[ \t]*(start|end)[ \t]*:[ \t]*([a-z][-_0-9a-z]*)[ \t]*\]/i;
 
 function resolveFile(p: string): string | null {
@@ -173,12 +163,14 @@ function resolveFile(p: string): string | null {
 }
 
 /** Lines of one include spec, or an error string. */
-export function include(spec: string, sources: Set<string>): string[] | string {
+export function include(spec: string, sources: Set<string>, skip = 0): string[] | string {
   const m = spec.match(/^(.*?)(?::(\d*):(\d*)|:(\d+)|:([a-z][-_0-9a-z]*))?$/i)!;
   const file = resolveFile(m[1]);
   if (file) sources.add(file);
   if (!file) return 'file not found (looked in session_viewer/docs/ and session/)';
-  let lines = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n').split('\n');
+  const raw = fs.readFileSync(file, 'utf8');
+  if (!Number.isSafeInteger(skip) || skip < 0 || skip > raw.length) return 'invalid snippet prefix length';
+  let lines = raw.slice(skip).replace(/\r\n/g, '\n').split('\n');
   if (lines[lines.length - 1] === '') lines.pop();
   if (m[2] !== undefined || m[4] !== undefined) {
     const start = parseInt(m[2] ?? m[4], 10) || 1;
@@ -218,7 +210,7 @@ function resolveSnippets(text: string, page: string, errors: string[], sources: 
       continue;
     }
     const spec = m[2].slice(1, -1);
-    const got = include(spec, sources);
+    const got = include(spec, sources, Number(m[3] || 0));
     if (typeof got === 'string') {
       errors.push(`${page}: --8<-- "${spec}": ${got}`);
       continue;
@@ -238,6 +230,7 @@ export default function coursePlugin(): Plugin {
   let sources = new Set<string>();
   let rendering: Promise<void> | null = null;
   let isBuild = false;
+  let readerBook: ReturnType<typeof readingBook>;
 
   const highlight = (code: string, lang: string): string => {
     const id = ALIAS[lang] ?? lang;
@@ -248,6 +241,19 @@ export default function coursePlugin(): Plugin {
   const renderPage = (file: string, slug: string, bySlug: Map<string, string>, links: Link[], errors: string[]): Page => {
     const rel = posix(path.relative(SESSION, file));
     let raw = fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
+    const alias = readerBook.aliases.get(slug.replace(/^journey\//, ''));
+    if (alias) {
+      const target = pageSlug(path.join(DOCS, alias.page));
+      const redirect = `/course/${target}#${alias.anchor}`;
+      const title = raw.match(/^# (.+)/)?.[1] || slug;
+      const ids = new Set<string>();
+      const id = slugify(title, ids);
+      links.push({from: rel, href: redirect, slug: target, frag: alias.anchor});
+      return {slug, file, title, ids, toc: [], search: false, redirect,
+        html: `<h1 id="${id}">${esc(title)}</h1><p>This original checkpoint is retained in the <a href="#${redirect}">consolidated lesson</a>, with its complete implementation and recovery ID.</p>`};
+    }
+    const lesson = [...readerBook.byId.values()].find(lesson => pageSlug(path.join(DOCS, lesson.page)) === slug);
+    if (lesson && /^\d+\.\d+$/.test(lesson.number)) raw = raw.replace(/^# (?:\d+\.\d+ · )?/, `# ${lesson.number} · `);
     let search = true;
     const front = raw.match(/^---\n([\s\S]*?)\n---\n/);
     if (front) {
@@ -294,7 +300,7 @@ export default function coursePlugin(): Plugin {
           const inner = this.parser.parseInline(tokens);
           const text = stripTags(inner);
           const id = slugify(text, ids);
-          if (depth === 2 || depth === 3) toc.push({ level: depth, id, text });
+          if (depth === 2 || (depth === 3 && !/^\d+\.\d+$/.test(lesson?.number || ''))) toc.push({ level: depth, id, text });
           return `<h${depth} id="${id}">${inner}<a class="anchor" href="#/course/${slug}#${id}" aria-label="Link to this section">#</a></h${depth}>\n`;
         },
         code({ text, lang }: Tokens.Code) {
@@ -351,6 +357,7 @@ export default function coursePlugin(): Plugin {
       kept.push('', `@@BLOCK${blocks.length - 1}@@`, '');
     }
     let html = md.parse(kept.join('\n')) as string;
+    for (const match of html.matchAll(/\bid="([^"]+)"/g)) ids.add(match[1]);
     html = html.replace(/<p>@@BLOCK(\d+)@@<\/p>/g, (_m, n) => blocks[+n]);
     const h1 = html.match(/<h1 id="[^"]*">([\s\S]*?)<a class="anchor"/);
     const title = h1 ? stripTags(h1[1]) : slug;
@@ -388,7 +395,9 @@ export default function coursePlugin(): Plugin {
     hl ??= await createHighlighter({ themes: [codeTheme as any], langs: LANGS as any });
     const t0 = Date.now();
     const files = listPages();
-    sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt'), path.join(DOCS, 'typing/manifest.json')]);
+    readerBook = readingBook(JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/course.json'), 'utf8')).steps,
+      JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8')));
+    sources = new Set([...files, path.join(VIEWER, 'mkdocs.yml'), path.join(DOCS, 'lessons/SERIES.txt'), path.join(DOCS, 'typing/manifest.json'), path.join(DOCS, 'journey/book.json'), path.join(DOCS, 'journey/course.json')]);
     const bySlug = new Map(files.map((f) => [pageSlug(f), f]));
     const links: Link[] = [];
     const errors: string[] = [];
@@ -406,7 +415,7 @@ export default function coursePlugin(): Plugin {
     for (const l of links) {
       const target = l.slug && next.get(l.slug);
       if (!target) broken.push(`${l.from}: ${l.href}`);
-      else if (l.frag && !target.ids.has(l.frag)) broken.push(`${l.from}: ${l.href} (no anchor #${l.frag})`);
+      else if (l.frag && !target.redirect && !target.ids.has(l.frag)) broken.push(`${l.from}: ${l.href} (no anchor #${l.frag})`);
     }
     if (broken.length) {
       const msg = `course: ${broken.length} broken link(s):\n  ${broken.join('\n  ')}`;
@@ -421,7 +430,7 @@ export default function coursePlugin(): Plugin {
 
   const ensure = () => (rendering ??= renderAll());
 
-  const courseModule = () => {
+  const courseModule = (loadPage?: (slug: string) => string) => {
     const order = groups.flatMap((g) => g.slugs);
     const chains: string[][] = [];
     const manifest = path.join(DOCS, 'typing/manifest.json');
@@ -437,7 +446,10 @@ export default function coursePlugin(): Plugin {
     const journey = path.join(DOCS, 'journey/course.json');
     if (fs.existsSync(journey)) {
       const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
-      chains.push(['readme', 'journey', ...opening.steps.map((step: { page: string }) => pageSlug(path.join(DOCS, step.page)))]);
+      const book = readingBook(opening.steps, JSON.parse(fs.readFileSync(path.join(DOCS, 'journey/book.json'), 'utf8')));
+      const reading = book.chapters.flatMap(chapter => chapter.sections.flatMap(section => section.lessons));
+      chains.push(['readme', 'journey', ...reading.map(step => pageSlug(path.join(DOCS, step.page))),
+        ...(book.comparison ? [pageSlug(path.join(DOCS, book.comparison.page))] : [])]);
     }
     const connected = new Set(chains.flat());
     chains.push(order.filter((s) => !connected.has(s)));
@@ -449,8 +461,28 @@ export default function coursePlugin(): Plugin {
         if (i + 1 < chain.length) meta[s].next = chain[i + 1];
       });
     }
-    const loaders = [...pages.keys()].map((s) => `${JSON.stringify(s)}: () => import(${JSON.stringify(V_PAGE + s)})`);
-    return `export const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
+    if (fs.existsSync(journey)) {
+      const opening = JSON.parse(fs.readFileSync(journey, 'utf8'));
+      for (const [index, step] of opening.steps.entries()) {
+        if (!readerBook.aliases.has(step.id)) continue;
+        const slug = pageSlug(path.join(DOCS, step.page));
+        const previous = opening.steps[index - 1];
+        const next = opening.steps[index + 1];
+        meta[slug].prev = previous ? pageSlug(path.join(DOCS, previous.page)) : 'journey';
+        meta[slug].next = next ? pageSlug(path.join(DOCS, next.page)) : undefined;
+      }
+    }
+    const loaders = [...pages.keys()].map((s) => `${JSON.stringify(s)}: () => ${loadPage ? loadPage(s) : `import(${JSON.stringify(V_PAGE + s)})`}`);
+    const fetchPage = loadPage ? `const loaded = new Map();
+function fetchPage(url) {
+  if (!loaded.has(url)) loaded.set(url, fetch(url).then(response => {
+    if (!response.ok) throw new Error('Course page request failed: ' + response.status);
+    return response.json();
+  }).then(page => ({default: page})).catch(error => { loaded.delete(url); throw error; }));
+  return loaded.get(url);
+}
+` : '';
+    return `${fetchPage}export const groups = ${JSON.stringify(groups)};\nexport const pages = ${JSON.stringify(meta)};\nexport const loaders = {${loaders.join(',\n')}};\n`;
   };
 
   const kernelModule = () => {
@@ -475,11 +507,16 @@ export default function coursePlugin(): Plugin {
       if (!id.startsWith('\0virtual:')) return;
       await ensure();
       const v = id.slice(1);
-      if (v === V_COURSE) return courseModule();
+      if (v === V_COURSE) return courseModule(isBuild ? slug => {
+        const page = pages.get(slug)!;
+        const reference = this.emitFile({type: 'asset', name: `course-${slug.replaceAll('/', '-')}.json`,
+          source: Buffer.from(JSON.stringify({title: page.title, html: page.html, toc: page.toc, redirect: page.redirect}))});
+        return `fetchPage(import.meta.ROLLUP_FILE_URL_${reference})`;
+      } : undefined);
       if (v === V_KERNEL) return kernelModule();
       if (v === V_SEARCH) return `export default ${JSON.stringify(searchJson)};\n`;
       const page = pages.get(v.slice(V_PAGE.length));
-      if (page) return `export default ${JSON.stringify({ title: page.title, html: page.html, toc: page.toc })};\n`;
+      if (page) return `export default ${JSON.stringify({ title: page.title, html: page.html, toc: page.toc, redirect: page.redirect })};\n`;
     },
     generateBundle() {
       if (!isBuild) return;

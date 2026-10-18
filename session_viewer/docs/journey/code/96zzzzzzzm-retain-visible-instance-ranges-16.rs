@@ -1,0 +1,1 @@
+ink.pick(device,&mut pass,view,&crop,vertices,&ids,flags,1,if stride==72 {18}else{6},tables,&target.depth,&Default::default())

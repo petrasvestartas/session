@@ -1,0 +1,1 @@
+    fn drop(&mut self){if self.repeat{self.window.clear_interval_with_handle(self.id);}else{self.window.clear_timeout_with_handle(self.id);}}

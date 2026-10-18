@@ -1,0 +1,1 @@
+    let pixel=input.position.xy+vec2<f32>(vec2<u32>(crop._a,crop._b));

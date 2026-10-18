@@ -1,0 +1,1 @@
+crate::clipping_gpu::source(include_str!("outline_caps.wgsl"),1,0).into()

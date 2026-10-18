@@ -1,0 +1,1 @@
+pub fn allocation_parts(&self)->[u64;3]

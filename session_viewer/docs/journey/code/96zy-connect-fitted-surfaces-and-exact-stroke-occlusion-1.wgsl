@@ -1,0 +1,1 @@
+fn finite_grid_visible(pixel:

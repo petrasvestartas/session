@@ -1,0 +1,1 @@
+"Opacity NaN","Opacity 1.000000001 extra"

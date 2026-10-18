@@ -1,0 +1,1 @@
+        self.target=target.filter(|t|t.valid(scene));self.mesh=None;let mut strokes

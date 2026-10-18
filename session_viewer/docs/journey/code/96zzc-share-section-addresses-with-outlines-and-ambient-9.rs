@@ -1,0 +1,1 @@
+self.caps.draw(&mut pass,clipping);

@@ -1,0 +1,1 @@
+markers.push(crate::marker::Marker { colour: [1., 1., 0., 1.], ..marker.display });

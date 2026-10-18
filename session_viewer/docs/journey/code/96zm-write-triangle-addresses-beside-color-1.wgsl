@@ -1,0 +1,1 @@
+fn shade(input: VertexOutput, front: bool) -> vec4<f32> {

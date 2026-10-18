@@ -1,4 +1,6 @@
-# 32gfa · Prove cancelled work releases its source owners
+# 3.16.27 · Prove cancelled work releases its source owners
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 26–51 minutes.** [Estimate](typing-load.md).
 
@@ -22,10 +24,10 @@ Check ordering, exhaustion and actual owner expiration while abandoned work rema
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gfa-ownership-01.rs"
+--8<-- "journey/code/32gfa-ownership-01.rs" skip=73
 ```
 
 ## Run and check
@@ -34,25 +36,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the request-owner checks below. Cancelling a batch releases its request metadata; a late completion must not revive that owner.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove cancelled work releases its source owners.](../screenshots/journey/32gfa-ownership-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for prove cancelled work releases its source owners.](../screenshots/journey/32gfa-ownership.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -86,8 +84,8 @@ Change Request to store an `Rc<Origin>` in a scratch copy and predict which Weak
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gfa-ownership
-npm --prefix ../session_tests run course -- save 32gfa-ownership
+npm --prefix ../session_tests run course -- check 3.16.27
+npm --prefix ../session_tests run course -- save 3.16.27
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -106,7 +104,7 @@ The browser checks existing command-only unloading and retained drawing. The new
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gfa-ownership
+npm --prefix ../session_tests run course -- capture 3.16.27
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,2 @@
+                let slots:Vec<crate::draw_slots::Slot>=records.iter().enumerate().map(|(row,record)|[row as u32,u32::from_ne_bytes(record[crate::object_record::RANGE+4..crate::object_record::RANGE+8].try_into().unwrap())]).collect();
+                let first_slot=u32::try_from(all_slots.len()+1).map_err(|_|"Instance slot range")?;all_slots.extend_from_slice(&slots);

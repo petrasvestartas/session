@@ -1,8 +1,10 @@
 # Build and understand the Session Viewer
 
-Begin with a small picture whose whole path you can explain. Then grow the same project toward the viewer we use today, preserving its functionality and carefully developed rendering.
+Learn the existing Session Viewer and its developed rendering paths in dependency order. Early checkpoints stage the required owners and GPU concepts; later lessons must converge to the production Rust and WGSL implementation.
 
-**Start with [the course route](journey.md).** Its cumulative lessons now cover drawing, picking, undo, a perspective camera, lit solids, resizing and pointer gestures. Browser checks remain pending, and the advanced courses are still being written. The [complete implementation reference](reference-course.md) preserves the required final feature set.
+Begin with [chapter 1: four consolidated lessons](journey/consolidation/01-canvas.md). The [production source and coverage map](journey/production-course-map.md) distinguishes reused code, staged integration, divergent algorithms and missing coverage. All original checkpoint links and recovery IDs remain available.
+
+**Start with [the course route](journey.md).** All subjects 00–97 are authored, from the first GPU frame through original geometry, editing, rendering and the maintained viewer runtime. The [lesson checklist](journey/roadmap.md) tracks acceptance separately; most browser checks remain pending. The [complete implementation reference](reference-course.md) preserves the final feature set.
 
 You type every piece of application code. Lessons may revisit earlier files, explain why the change is needed and finish with a working checkpoint. [Save and recovery commands](journey/recovery.md) protect your own work. Vue hosts these documents; Rust and wgpu implement the viewer.
 
@@ -41,6 +43,6 @@ Keep Cargo.lock: it records the dependency versions used by the viewer. Allow ex
 
 ## Begin
 
-Follow [lesson 01: a page that Rust can reach](journey/01-canvas.md). Rust concepts are explained where you use them; the [foundations](foundations.md) provide additional practice when useful.
+Follow [lesson 1.1: Rust and the first GPU frame](journey/consolidation/01-canvas.md). Rust concepts are explained where you use them; the [foundations](foundations.md) provide additional practice when useful.
 
-Keep the [destination contract](journey/destination.md) nearby. It records the features and quality the complete course must eventually demonstrate. The first triangle is a starting point, not the end of the viewer.
+Keep the [destination contract](journey/destination.md) nearby. It records the required features, rendering quality and acceptance checks.

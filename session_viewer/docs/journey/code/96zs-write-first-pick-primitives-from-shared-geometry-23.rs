@@ -1,0 +1,1 @@
+assert_eq!(primitive_pixels(&gpu,&gpu.primitive.texture),before,

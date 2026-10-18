@@ -1,0 +1,1 @@
+faces.draw(&mut pass,meshes,view_group,crop_group,records.map(|(rows,_)|rows));

@@ -1,0 +1,2 @@
+ rows.truncate(2);let capacity=slots.allocated_bytes();let held=slots.buffer.buf.clone();assert!(!slots.set(&ctx,&rows));assert_eq!(slots.written_bytes,0);assert_eq!(slots.instances(),2);assert_eq!(slots.buffer.buf,held);assert_eq!(slots.allocated_bytes(),capacity);check(&slots,&rows);
+ rows[0]=[0x80000003,0x80000007];rows.truncate(1);assert!(slots.set(&ctx,&rows));assert_eq!(slots.written_bytes,8);assert_eq!(slots.instances(),1);check(&slots,&rows);

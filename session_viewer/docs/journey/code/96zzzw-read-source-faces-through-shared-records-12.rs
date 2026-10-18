@@ -1,0 +1,1 @@
+        pipeline};let pipeline=create(false);let record_pipeline=create(true);Self {pipeline,record_pipeline,rows:Vec::new()}

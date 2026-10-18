@@ -1,0 +1,1 @@
+let entries = [0, 2].map(|binding| wgpu::BindGroupLayoutEntry

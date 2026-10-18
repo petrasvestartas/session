@@ -1,0 +1,1 @@
+th,tolerance,sample)||!ink_disc

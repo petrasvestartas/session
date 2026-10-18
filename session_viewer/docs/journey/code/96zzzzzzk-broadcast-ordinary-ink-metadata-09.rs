@@ -1,0 +1,1 @@
+stride:u64,grid:bool,picking:bool,varying:bool,

@@ -1,0 +1,1 @@
+state.group || state.owner.is_some() || !row.readonly && state.selectable

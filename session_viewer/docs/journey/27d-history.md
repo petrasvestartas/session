@@ -1,6 +1,8 @@
-# 27d · Prove placement and history agree
+# 3.11.5 · Prove placement and history agree
 
-**Typing: 22–44 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.11 · Object placement and transforms** · [Contents](contents.md)
+
+**Typing: 1–1 minutes.** [Estimate](typing-load.md).
 
 The visible result is useful evidence, but a moved picture alone does not prove which data changed. These checks follow the values that future editing tools must preserve.
 
@@ -22,21 +24,28 @@ mod placement_tests;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/27d-history-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/move_tests.rs`
 
-Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection.
+Optional authoring fixture. Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/27d-history-02.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -44,25 +53,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the placement/history checks below. Move and Undo must change only placement, preserve shared local geometry, and treat a zero offset as no document edit.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove placement and history agree.](../screenshots/journey/27d-history-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+The native helper runs the same Editor actions, uses the selected display color, projects a known world point and checks its picking ID and rendered pixels.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for prove placement and history agree.](../screenshots/journey/27d-history.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -98,8 +105,8 @@ Change the existing x scale in the world-axis test from 2 to 3. Predict the loca
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 27d-history
-npm --prefix ../session_tests run course -- save 27d-history
+npm --prefix ../session_tests run course -- check 3.11.5
+npm --prefix ../session_tests run course -- save 3.11.5
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -120,7 +127,7 @@ Prove placement and history agree. The actual command dock drives this checkpoin
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 27d-history
+npm --prefix ../session_tests run course -- capture 3.11.5
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

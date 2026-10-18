@@ -1,0 +1,1 @@
+self.stride,self.strict_depth,varying))

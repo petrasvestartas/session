@@ -1,0 +1,1 @@
+k.wgsl").replace("@location(0) world:","@location(0) @interpolate(perspective,sample) world:")}else{include_str!("outline_mask.wgsl").into()},2,0).in

@@ -1,0 +1,1 @@
+let placed=primitive_pixels(&gpu,&gpu.primitive.texture);

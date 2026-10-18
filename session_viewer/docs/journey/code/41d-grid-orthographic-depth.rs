@@ -1,0 +1,1 @@
+let depth_range = (self.distance + 2.0 * reach).max(1.0e-6);

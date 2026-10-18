@@ -1,6 +1,8 @@
-# 32gj · Prove restored Save keeps the source doubles
+# 3.16.44 · Prove restored Save keeps the source doubles
 
-**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
+
+**Typing: 4–7 minutes.** [Estimate](typing-load.md).
 
 Add `precise_bytes` to the specimen builder with one coordinate that cannot survive an `f32` round trip. Keep the ordinary specimen function for existing checks.
 
@@ -36,30 +38,37 @@ pub fn bytes() -> Vec<u8> {
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gj-precision-01.rs"
+--8<-- "journey/code/32gj-precision-01.rs" skip=697
 ```
+
+<details>
+<summary>Optional authoring helper</summary>
+
+Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
 
 ### 2. `examples/sample.rs`
 
-The browser’s actual uploaded sample now contains the precision sentinel.
+Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 viewer_journey::specimen::bytes()
 ```
 
 </details>
 
-Replace that block with:
+Update the existing block with this supplied code; keep unchanged lines:
 
-```rust
+```text
 --8<-- "journey/code/32gj-precision-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -74,21 +83,28 @@ mod reload_complete_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32gj-precision-03.rs"
+--8<-- "journey/code/32gj-precision-03.rs" skip=27
 ```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/reload_precision_tests.rs`
 
-Verify exact source-coordinate restoration with a real precision sentinel and unchanged edit history.
+Optional authoring fixture. Verify exact source-coordinate restoration with a real precision sentinel and unchanged edit history.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/32gj-precision-04.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -96,25 +112,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open `sample.pb`, type `Unload Sources`, then `Save`. Run the precision checks below: the restored Save must retain the exact source double rather than its rounded display value.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove restored Save keeps the source doubles.](../screenshots/journey/32gj-precision-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for prove restored save keeps the source doubles.](../screenshots/journey/32gj-precision.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -138,7 +150,7 @@ Study estimate, including typing and experiments: 1–2 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Replace snapshot geometry with the display floats. Predict why screenshots could still pass, then run the native and downloaded-coordinate checks.
+Predict what would happen if snapshot geometry came from the display floats. Compare the supplied exact-coordinate expectations and the browser download: screenshots alone cannot reveal the lost precision.
 
 </details>
 
@@ -148,8 +160,8 @@ Replace snapshot geometry with the display floats. Predict why screenshots could
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gj-precision
-npm --prefix ../session_tests run course -- save 32gj-precision
+npm --prefix ../session_tests run course -- check 3.16.44
+npm --prefix ../session_tests run course -- save 3.16.44
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -176,7 +188,7 @@ Chrome checks actual warm and cold-source Save downloads against the precision s
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gj-precision
+npm --prefix ../session_tests run course -- capture 3.16.44
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

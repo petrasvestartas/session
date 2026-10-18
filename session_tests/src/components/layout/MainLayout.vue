@@ -95,10 +95,17 @@
         <router-link to="/course" class="nav-button" :class="{ active: currentRoute === 'course' }">Viewer course</router-link>
 
         <div v-if="currentRoute === 'course'" class="suites-section course-section">
+          <router-link to="/course/journey/contents" class="suite-button course-link">Book contents</router-link>
           <router-link to="/course/journey/roadmap" class="suite-button course-link" :class="{ active: currentSlug === 'journey/roadmap' }">To-do list and progress</router-link>
           <details v-for="g in courseGroups" :key="g.title" :open="g.slugs.includes('readme') || g.slugs.includes('journey/01-canvas') || g.slugs.includes(currentSlug)">
             <summary class="group-title">{{ g.title }}</summary>
-            <router-link
+            <template v-if="g.sections">
+              <details v-for="section in g.sections" :key="section.title" :open="section.slugs.includes(currentSlug)" class="book-section">
+                <summary class="group-title">{{ section.title }}</summary>
+                <router-link v-for="s in section.slugs" :key="s" :to="'/course/' + s" class="suite-button course-link" :class="{ active: s === currentSlug }">{{ coursePages[s]?.title }}</router-link>
+              </details>
+            </template>
+            <router-link v-else
               v-for="s in g.slugs" :key="s"
               :to="'/course/' + s"
               class="suite-button course-link"
@@ -363,6 +370,8 @@ watch(
 </script>
 
 <style scoped>
+.book-section { margin-left: 0.65rem; }
+
 .main-layout {
   height: 100vh;
   height: 100dvh;

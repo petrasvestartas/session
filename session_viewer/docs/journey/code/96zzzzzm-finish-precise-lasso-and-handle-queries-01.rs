@@ -1,0 +1,2 @@
+let region=crate::selection_region::Region::new(&self.points);let view=crate::snap_math::Screen::camera(camera,self.size.map(|v|v*self.density));
+        let local=crate::snap_math::Screen{matrix:view.matrix,size:view.size,origin:[0.;3]};

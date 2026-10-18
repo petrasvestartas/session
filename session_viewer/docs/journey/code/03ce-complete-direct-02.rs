@@ -28,6 +28,7 @@ pub(crate) fn refresh(
                 range.is_empty() && range.primary.index == model.command.chars().count()
             });
         if !deletes
+            && model.options.is_empty()
             && agent_edit != Some(true)
             && at_end
             && !model.command.is_empty()

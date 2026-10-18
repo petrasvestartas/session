@@ -1,0 +1,1 @@
+self.records.bind(pass);self.slots.bind(pass,0,first);true

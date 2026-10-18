@@ -1,0 +1,2 @@
+ipeline,wgpu::RenderPipeline)>,
+  shade

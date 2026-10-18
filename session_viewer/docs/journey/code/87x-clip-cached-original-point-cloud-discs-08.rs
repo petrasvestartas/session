@@ -1,0 +1,5 @@
+    &ctx.device,
+    &shader,
+    &[&layouts.uniform, &layouts.columns,&crate::clipping_gpu::layout(&ctx.device)],
+    "vs_point",
+    "fs_point",

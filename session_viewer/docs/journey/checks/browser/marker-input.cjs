@@ -15,10 +15,11 @@ module.exports = async (original, helpers) => {
             const usage = () => value('data-point-gpu');
             const quiet = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(120); };
             const disc = async () => {
-                await quiet(); const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+                await quiet(); const url = await require('./canvas-image.cjs')(page.locator('canvas'));
                 const p = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
                 const linear = v => { v /= 255; return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
-                const x = Math.floor(p.width / 2), y = Math.floor(p.height / 2);
+                const m = await value('data-camera-matrix');
+                const x = Math.floor((m[12] / m[15] + 1) * p.width / 2), y = Math.floor((1 - m[13] / m[15]) * p.height / 2);
                 const interior = linear(p.data[(y * p.width + x) * 4]);
                 assert(Math.abs(interior - 0.5) < 0.025, `Point must blend once: ${interior}`);
                 let area = 0, width = 0, height = 0;
@@ -49,8 +50,7 @@ module.exports = async (original, helpers) => {
             await helpers.command(page, 'Undo'); await quiet(); assert.equal(await helpers.drawing(page), empty);
             assert.deepEqual((await usage()).slice(0, 2), [0, 0]);
             await helpers.command(page, 'Redo'); assert.deepEqual(await disc(), expected);
-            await helpers.command(page, 'Save');
-            assert.match((await value('data-command-ui')).history.at(-1), /cannot save point objects yet/);
+            await require('./save-ink.cjs')(page, helpers, /cannot save point objects yet/);
             const before = await usage(); await helpers.command(page, 'Close');
             assert.deepEqual(await value('data-point-cpu'), [0, 0, 0]);
             assert.deepEqual(await usage(), [0, 0, before[2], before[3]]);

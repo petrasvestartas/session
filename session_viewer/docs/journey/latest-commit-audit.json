@@ -1,0 +1,26 @@
+{
+  "checked_at_utc": "2026-10-09T20:15:25.537333+00:00",
+  "method": "git fetch --no-recurse-submodules origin; local source and branch comparison",
+  "repositories": {
+    "session": {
+      "head": "2f96b35d225015cfcb9bfe5e8ec66565ef99aa28",
+      "origin_main": "2f96b35d225015cfcb9bfe5e8ec66565ef99aa28"
+    },
+    "wood": {
+      "head": "4916884a45e2558d57dd1a0175bca1bd8a627410",
+      "origin_main": "4916884a45e2558d57dd1a0175bca1bd8a627410"
+    },
+    "kernel": {
+      "head": "1c415309c46dd10f2a95a44eb980b067a5ef1651",
+      "origin_main": "1c415309c46dd10f2a95a44eb980b067a5ef1651"
+    },
+    "superproject": {
+      "head": "5184b03c8a801c58d6be9353de46bf50273d1ab4",
+      "origin_main": "a0d2685beeae71532c7418e2a7df4ce480dfae84"
+    }
+  },
+  "preserved_local_source_changes": [
+    "session_viewer/src/app/deform.rs"
+  ],
+  "wood_rust_tree": "4cc6459309feb30cd50d392953e8bae138dd34c9"
+}

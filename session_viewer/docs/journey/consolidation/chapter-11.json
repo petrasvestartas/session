@@ -1,0 +1,480 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 11,
+  "title": "Outlines and point clouds",
+  "first": "63-radius",
+  "end_before": "66-read-scene-manifests",
+  "lessons": [
+    {
+      "id": "63-radius",
+      "title": "Coverage-based screen-space outlines",
+      "page": "journey/consolidation/63-radius.md",
+      "steps": [
+        "63-radius",
+        "63a-coverage",
+        "63aa-pool-and-dilate-a-conservative-outline-mask",
+        "63b-resources",
+        "63c-pipelines",
+        "63d-bindings",
+        "63e-reuse",
+        "63f-union",
+        "63g-composite",
+        "63h-outline"
+      ],
+      "checkpoint": "63h-outline"
+    },
+    {
+      "id": "64-nodes",
+      "title": "Validated original cloud columns and placed owners",
+      "page": "journey/consolidation/64-nodes.md",
+      "steps": [
+        "64-nodes",
+        "64a-tree",
+        "64b-source",
+        "64c-placements",
+        "64d-scene",
+        "64e-identity"
+      ],
+      "checkpoint": "64e-identity"
+    },
+    {
+      "id": "64f-projection",
+      "title": "View-dependent LOD and cached point splats",
+      "page": "journey/consolidation/64f-projection.md",
+      "steps": [
+        "64f-projection",
+        "64g-detail",
+        "64h-shaders",
+        "64ha-project-original-cloud-rows-to-bounded-point-splats",
+        "64hb-rasterize-source-point-discs-with-integer-ownership",
+        "64hc-encode-original-cloud-normals-and-resolve-point-targets",
+        "64hd-check-cloud-shaders-on-the-actual-browser-device",
+        "64i-columns",
+        "64j-targets",
+        "64k-layouts",
+        "64l-pipelines",
+        "64m-cache",
+        "64n-records",
+        "64o-runs",
+        "64p-frame",
+        "64q-owner",
+        "64r-draw",
+        "64s-diagnostics",
+        "64t-clouds"
+      ],
+      "checkpoint": "64t-clouds"
+    },
+    {
+      "id": "65-originals",
+      "title": "Original point identity and manifest source records",
+      "page": "journey/consolidation/65-originals.md",
+      "steps": [
+        "65-originals",
+        "65a-addresses",
+        "65b-controls",
+        "65c-cloud-point",
+        "65za-read-original-manifest-records-and-placements",
+        "65zb-validate-original-manifest-text-and-source-keys"
+      ],
+      "checkpoint": "65zb-validate-original-manifest-text-and-source-keys"
+    }
+  ],
+  "old_step_to_lesson": {
+    "63-radius": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63-radius"
+    },
+    "63a-coverage": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63a-coverage"
+    },
+    "63aa-pool-and-dilate-a-conservative-outline-mask": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask"
+    },
+    "63b-resources": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63b-resources"
+    },
+    "63c-pipelines": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63c-pipelines"
+    },
+    "63d-bindings": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63d-bindings"
+    },
+    "63e-reuse": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63e-reuse"
+    },
+    "63f-union": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63f-union"
+    },
+    "63g-composite": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63g-composite"
+    },
+    "63h-outline": {
+      "lesson": "63-radius",
+      "anchor": "checkpoint-63h-outline"
+    },
+    "64-nodes": {
+      "lesson": "64-nodes",
+      "anchor": "checkpoint-64-nodes"
+    },
+    "64a-tree": {
+      "lesson": "64-nodes",
+      "anchor": "checkpoint-64a-tree"
+    },
+    "64b-source": {
+      "lesson": "64-nodes",
+      "anchor": "checkpoint-64b-source"
+    },
+    "64c-placements": {
+      "lesson": "64-nodes",
+      "anchor": "checkpoint-64c-placements"
+    },
+    "64d-scene": {
+      "lesson": "64-nodes",
+      "anchor": "checkpoint-64d-scene"
+    },
+    "64e-identity": {
+      "lesson": "64-nodes",
+      "anchor": "checkpoint-64e-identity"
+    },
+    "64f-projection": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64f-projection"
+    },
+    "64g-detail": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64g-detail"
+    },
+    "64h-shaders": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64h-shaders"
+    },
+    "64ha-project-original-cloud-rows-to-bounded-point-splats": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64ha-project-original-cloud-rows-to-bounded-point-splats"
+    },
+    "64hb-rasterize-source-point-discs-with-integer-ownership": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64hb-rasterize-source-point-discs-with-integer-ownership"
+    },
+    "64hc-encode-original-cloud-normals-and-resolve-point-targets": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64hc-encode-original-cloud-normals-and-resolve-point-targets"
+    },
+    "64hd-check-cloud-shaders-on-the-actual-browser-device": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64hd-check-cloud-shaders-on-the-actual-browser-device"
+    },
+    "64i-columns": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64i-columns"
+    },
+    "64j-targets": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64j-targets"
+    },
+    "64k-layouts": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64k-layouts"
+    },
+    "64l-pipelines": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64l-pipelines"
+    },
+    "64m-cache": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64m-cache"
+    },
+    "64n-records": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64n-records"
+    },
+    "64o-runs": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64o-runs"
+    },
+    "64p-frame": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64p-frame"
+    },
+    "64q-owner": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64q-owner"
+    },
+    "64r-draw": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64r-draw"
+    },
+    "64s-diagnostics": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64s-diagnostics"
+    },
+    "64t-clouds": {
+      "lesson": "64f-projection",
+      "anchor": "checkpoint-64t-clouds"
+    },
+    "65-originals": {
+      "lesson": "65-originals",
+      "anchor": "checkpoint-65-originals"
+    },
+    "65a-addresses": {
+      "lesson": "65-originals",
+      "anchor": "checkpoint-65a-addresses"
+    },
+    "65b-controls": {
+      "lesson": "65-originals",
+      "anchor": "checkpoint-65b-controls"
+    },
+    "65c-cloud-point": {
+      "lesson": "65-originals",
+      "anchor": "checkpoint-65c-cloud-point"
+    },
+    "65za-read-original-manifest-records-and-placements": {
+      "lesson": "65-originals",
+      "anchor": "checkpoint-65za-read-original-manifest-records-and-placements"
+    },
+    "65zb-validate-original-manifest-text-and-source-keys": {
+      "lesson": "65-originals",
+      "anchor": "checkpoint-65zb-validate-original-manifest-text-and-source-keys"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/gpu/surface_outline.rs",
+      "session_viewer/src/engine/gpu/cloud.rs",
+      "session_viewer/src/engine/gpu/lod.rs",
+      "session_viewer/src/engine/gpu/splat.rs",
+      "session_viewer/src/shaders/splat.wgsl",
+      "session_viewer/src/shaders/splat_resolve.wgsl",
+      "session_viewer/src/app/cloud_query.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "63-radius",
+      "path": "screenshots/journey/63-radius.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63a-coverage",
+      "path": "screenshots/journey/63a-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63aa-pool-and-dilate-a-conservative-outline-mask",
+      "path": "screenshots/journey/63aa-pool-and-dilate-a-conservative-outline-mask.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63b-resources",
+      "path": "screenshots/journey/63b-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63c-pipelines",
+      "path": "screenshots/journey/63c-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63d-bindings",
+      "path": "screenshots/journey/63d-bindings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63e-reuse",
+      "path": "screenshots/journey/63e-reuse.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63f-union",
+      "path": "screenshots/journey/63f-union.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63g-composite",
+      "path": "screenshots/journey/63g-composite.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "63h-outline",
+      "path": "screenshots/journey/63h-outline.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64-nodes",
+      "path": "screenshots/journey/64-nodes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64a-tree",
+      "path": "screenshots/journey/64a-tree.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64b-source",
+      "path": "screenshots/journey/64b-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64c-placements",
+      "path": "screenshots/journey/64c-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64d-scene",
+      "path": "screenshots/journey/64d-scene.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64e-identity",
+      "path": "screenshots/journey/64e-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64f-projection",
+      "path": "screenshots/journey/64f-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64g-detail",
+      "path": "screenshots/journey/64g-detail.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64h-shaders",
+      "path": "screenshots/journey/64h-shaders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64ha-project-original-cloud-rows-to-bounded-point-splats",
+      "path": "screenshots/journey/64ha-project-original-cloud-rows-to-bounded-point-splats.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64hb-rasterize-source-point-discs-with-integer-ownership",
+      "path": "screenshots/journey/64hb-rasterize-source-point-discs-with-integer-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64hc-encode-original-cloud-normals-and-resolve-point-targets",
+      "path": "screenshots/journey/64hc-encode-original-cloud-normals-and-resolve-point-targets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64hd-check-cloud-shaders-on-the-actual-browser-device",
+      "path": "screenshots/journey/64hd-check-cloud-shaders-on-the-actual-browser-device.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64i-columns",
+      "path": "screenshots/journey/64i-columns.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64j-targets",
+      "path": "screenshots/journey/64j-targets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64k-layouts",
+      "path": "screenshots/journey/64k-layouts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64l-pipelines",
+      "path": "screenshots/journey/64l-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64m-cache",
+      "path": "screenshots/journey/64m-cache.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64n-records",
+      "path": "screenshots/journey/64n-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64o-runs",
+      "path": "screenshots/journey/64o-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64p-frame",
+      "path": "screenshots/journey/64p-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64q-owner",
+      "path": "screenshots/journey/64q-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64r-draw",
+      "path": "screenshots/journey/64r-draw.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64s-diagnostics",
+      "path": "screenshots/journey/64s-diagnostics.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "64t-clouds",
+      "path": "screenshots/journey/64t-clouds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "65-originals",
+      "path": "screenshots/journey/65-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "65a-addresses",
+      "path": "screenshots/journey/65a-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "65b-controls",
+      "path": "screenshots/journey/65b-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "65c-cloud-point",
+      "path": "screenshots/journey/65c-cloud-point.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "65za-read-original-manifest-records-and-placements",
+      "path": "screenshots/journey/65za-read-original-manifest-records-and-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "65zb-validate-original-manifest-text-and-source-keys",
+      "path": "screenshots/journey/65zb-validate-original-manifest-text-and-source-keys.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Matched cloud witness pending. Current course/production use integer-centred disc/radius and four-neighbour EDL kernels; 1681 points bypass LOD below 2M. DPR density cause is unproven; audit default LOD0 versus earlier course2 without removing explicit LOD2 support."
+  ]
+}

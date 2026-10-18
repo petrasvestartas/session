@@ -1,0 +1,1 @@
+self.settings_allocations as u64 * crate::object_record::BYTES as u64

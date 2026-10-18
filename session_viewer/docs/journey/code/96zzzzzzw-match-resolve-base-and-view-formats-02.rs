@@ -1,0 +1,1 @@
+        let image = |label, base, format| {

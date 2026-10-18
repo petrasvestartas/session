@@ -1,0 +1,1 @@
+        let target = Point::new(local[0], local[1], local[2]);

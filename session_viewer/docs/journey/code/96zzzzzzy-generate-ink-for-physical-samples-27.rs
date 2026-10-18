@@ -1,0 +1,1 @@
+nput: Output,@builtin(sample_index) sample:u32) -> @locati

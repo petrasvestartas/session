@@ -1,0 +1,1 @@
+Groups::new(device,&self.pipes,&images,&self.frame)

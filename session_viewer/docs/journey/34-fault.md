@@ -1,6 +1,8 @@
-# 34 · Keep the first GPU failure with its device
+# 4.2.1 · Keep the first GPU failure with its device
 
-**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 6–11 minutes.** [Estimate](typing-load.md).
 
 Keep the first GPU error: later errors caused by the same loss must not overwrite its reason. This lesson adds the shared value; the next connects it to GPU callbacks.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/34-fault-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/gpu_fault_tests.rs`
 
-Verify first-reason retention, replacement-device isolation and concurrent callback delivery.
+Optional authoring fixture. Verify first-reason retention, replacement-device isolation and concurrent callback delivery.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34-fault-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -41,11 +50,25 @@ pub mod background;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod gpu_fault;
+#[cfg(test)]
+mod gpu_fault_tests;
+pub mod background;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34-fault-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +76,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the first-failure checks below. Two callback writers must share one original reason; a replacement device gets a separate Fault. Browser GPU callbacks are connected next.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Keep the first GPU failure with its device.](../screenshots/journey/34-fault-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for keep the first gpu failure with its device.](../screenshots/journey/34-fault.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -95,7 +114,7 @@ Study estimate, including typing and experiments: 1–2 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Change the first.is_some guard so every callback overwrites the stored reason. Run the tests and explain which useful evidence is lost. Then make a replacement by cloning the old Fault and explain why its identity test fails.
+Change the first.is_some guard so every callback overwrites the stored reason. Inspect the tests and explain which useful evidence is lost. Then make a replacement by cloning the old Fault and explain why its identity test fails.
 
 </details>
 
@@ -105,8 +124,8 @@ Change the first.is_some guard so every callback overwrites the stored reason. R
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34-fault
-npm --prefix ../session_tests run course -- save 34-fault
+npm --prefix ../session_tests run course -- check 4.2.1
+npm --prefix ../session_tests run course -- save 4.2.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +144,7 @@ Chrome verifies the inherited command, source-restoration and page-lifetime beha
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34-fault
+npm --prefix ../session_tests run course -- capture 4.2.1
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+geometry(packed_position(vertex), unpack4x8unorm(vertex.color).rgb,

@@ -1,0 +1,8 @@
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+    highlight_pipeline: wgpu::RenderPipeline,
+    highlight: crate::highlight::Highlight,
+    meshes: Vec<GpuMesh>,
+    geometry: crate::geometry_cache::GeometryCache,
+    settings_allocations: usize,

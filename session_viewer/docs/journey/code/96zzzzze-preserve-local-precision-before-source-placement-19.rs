@@ -1,0 +1,1 @@
+    Some(crate::render_space::placed(&row.model,anchor).transform_point(

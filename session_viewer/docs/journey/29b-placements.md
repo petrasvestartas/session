@@ -1,6 +1,8 @@
-# 29b · Reopen source geometry with its placement
+# 3.13.3 · Reopen source geometry with its placement
 
-**Typing: 24–48 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.13 · Stable identity and saving** · [Contents](contents.md)
+
+**Typing: 12–24 minutes.** [Estimate](typing-load.md).
 
 Accept the saved file's separate placement records. Each must identify an existing mesh, occur once, and contain sixteen finite values with an affine final row.
 
@@ -31,10 +33,10 @@ pub mod prepared;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/29b-placements-02.rs"
+--8<-- "journey/code/29b-placements-02.rs" skip=18
 ```
 
 ### 3. `src/scene.rs`
@@ -51,7 +53,7 @@ Make direct placement edits use the same rule as imported files.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/29b-placements-03.rs"
@@ -59,43 +61,94 @@ Replace that block with:
 
 ### 4. `src/prepared.rs`
 
-Carry the validated object placement beside local source geometry.
+Carry the validated object placement beside local source geometry. Generated geometry begins with identity placement.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
+use crate::{document::Source, mesh::Mesh};
+use std::rc::Rc;
+
+pub struct PreparedMesh {
+    pub geometry: Rc<session_rust::Mesh>,
+    pub display: Mesh,
     pub source: Option<Source>,
+}
+
+impl PreparedMesh {
+    pub fn triangle(points: [[f64; 3]; 3], colour: [f32; 3]) -> Result<Self, &'static str> {
+        let vertices = points.into_iter().map(|p| session_rust::Point::new(p[0], p[1], p[2])).collect();
+        let mut geometry = session_rust::Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2]]);
+        geometry.set_objectcolor(session_rust::Color::new(colour[0], colour[1], colour[2], 1.0));
+        Self::new(geometry)
+    }
+
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
+        Self::from_shared(Rc::new(geometry))
+    }
+
+    pub fn from_shared(geometry: Rc<session_rust::Mesh>) -> Result<Self, &'static str> {
+        // The kernel creates a GUID lazily; establish identity before sharing.
+        let _ = geometry.guid();
+        let display = Mesh::from_kernel(&geometry)?;
+        Ok(Self { geometry, display, source: None })
+    }
+}
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use crate::{document::Source, mesh::Mesh};
+use std::rc::Rc;
+
+pub struct PreparedMesh {
+    pub geometry: Rc<session_rust::Mesh>,
+    pub display: Mesh,
+    pub source: Option<Source>,
+    pub model: session_rust::Xform,
+}
+
+impl PreparedMesh {
+    pub fn triangle(points: [[f64; 3]; 3], colour: [f32; 3]) -> Result<Self, &'static str> {
+        let vertices = points.into_iter().map(|p| session_rust::Point::new(p[0], p[1], p[2])).collect();
+        let mut geometry = session_rust::Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2]]);
+        geometry.set_objectcolor(session_rust::Color::new(colour[0], colour[1], colour[2], 1.0));
+        Self::new(geometry)
+    }
+
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
+        Self::from_shared(Rc::new(geometry))
+    }
+
+    pub fn from_shared(geometry: Rc<session_rust::Mesh>) -> Result<Self, &'static str> {
+        // The kernel creates a GUID lazily; establish identity before sharing.
+        let _ = geometry.guid();
+        let display = Mesh::from_kernel(&geometry)?;
+        Ok(Self { geometry, display, source: None, model: session_rust::Xform::identity() })
+    }
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/29b-placements-04.rs"
 ```
 
-### 5. `src/prepared.rs`
-
-Generated geometry begins with identity placement.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-        Ok(Self { geometry, display, source: None })
+```text
+--8<-- "journey/code/29b-placements-05.rs"
 ```
 
 </details>
 
-Replace that block with:
-
-```rust
---8<-- "journey/code/29b-placements-05.rs"
-```
-
-### 6. `src/document.rs`
+### 5. `src/document.rs`
 
 Retain the validated stored placement without baking it into source vertices.
 
@@ -108,13 +161,13 @@ Retain the validated stored placement without baking it into source vertices.
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/29b-placements-06.rs"
+--8<-- "journey/code/29b-placements-06.rs" skip=72
 ```
 
-### 7. `src/scene.rs`
+### 6. `src/scene.rs`
 
 Insert each prepared model exactly once.
 
@@ -127,94 +180,279 @@ Insert each prepared model exactly once.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/29b-placements-07.rs"
 ```
 
-### 8. `src/document.rs`
+### 7. `src/document.rs`
 
-Remove the temporary source-only validation comment.
+Remove the temporary source-only validation comment. Validate the complete saved message now that the loader accepts placements. Accept placements while keeping the other unsupported source families explicit. Reject unknown, duplicate, incomplete, non-finite or projective placement records before kernel construction.
 
-Find this exact block:
-
-```rust
-    // Source validation; placements come next.
-```
-
-Delete this block.
-
-### 9. `src/document.rs`
-
-Validate the complete saved message now that the loader accepts placements.
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 <details>
-<summary>Locate the existing block</summary>
+<summary>Locate this block</summary>
 
 ```rust
-    let mut geometry = message.clone(); geometry.xforms.clear();
-    validate(&geometry)?;
+        }
+        validate_mesh(mesh)?;
+    }
+    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
+        let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
+        if names != guids || root.children.len() != guids.len()
 ```
 
 </details>
 
-Replace that block with:
+Replace it with:
 
 ```rust
+        }
+        validate_mesh(mesh)?;
+    }
+    let mut placed = HashSet::new();
+    for entry in &message.xforms {
+        let matrix = &entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix;
+        if !guids.contains(entry.guid.as_str()) || !placed.insert(entry.guid.as_str())
+            || !crate::placement::valid(matrix)
+        {
+            return Err("Invalid mesh placement");
+        }
+    }
+    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
+        let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
+        if names != guids || root.children.len() != guids.len()
+```
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
+    if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
+        return Err("Placements, definitions and interactions arrive in later checkpoints");
+    }
+    let other = objects.points.len() + objects.lines.len() + objects.planes.len()
+        + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
+```
+
+</details>
+
+Replace it with:
+
+```rust
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
+    if message.definitions.is_some() || !message.interactions.is_empty() {
+        return Err("Definitions and interactions arrive in later checkpoints");
+    }
+    let other = objects.points.len() + objects.lines.len() + objects.planes.len()
+        + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
+```
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+            name: "Objects".into(), children, ..Default::default()
+        }), ..Default::default() }), xforms, ..Default::default()
+    };
+    // Source validation; placements come next.
+    let mut geometry = message.clone(); geometry.xforms.clear();
+    validate(&geometry)?;
+    let bytes = message.encode_to_vec();
+    if bytes.len() > MAX_BYTES { return Err("The saved document exceeds 4 MiB"); }
+    Ok(bytes)
+```
+
+</details>
+
+Replace it with:
+
+```rust
+            name: "Objects".into(), children, ..Default::default()
+        }), ..Default::default() }), xforms, ..Default::default()
+    };
+    validate(&message)?;
+    let bytes = message.encode_to_vec();
+    if bytes.len() > MAX_BYTES { return Err("The saved document exceeds 4 MiB"); }
+    Ok(bytes)
+```
+
+<details>
+<summary>Complete updated block reference</summary>
+
+```rust
+use crate::prepared::PreparedMesh;
+use prost::Message;
+use session_rust::{proto, Session};
+use std::{collections::HashSet, rc::Rc};
+
+pub const MAX_BYTES: usize = 4 * 1024 * 1024;
+
+#[derive(Clone)]
+pub struct Source {
+    pub document: Rc<Session>,
+    pub guid: String,
+}
+
+pub struct Loaded {
+    pub document: Rc<Session>,
+    pub meshes: Vec<PreparedMesh>,
+}
+
+pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
+    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
+    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    validate(&message)?;
+    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let mut meshes = Vec::new();
+    for mesh in document.objects.meshes.iter() {
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.model = document.xforms.get(mesh.guid()).cloned().unwrap_or_else(session_rust::Xform::identity);
+        prepared.source = Some(Source {
+            document: Rc::clone(&document), guid: mesh.guid().to_owned(),
+        });
+        meshes.push(prepared);
+    }
+    Ok(Loaded { document, meshes })
+}
+
+pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
+    let mut objects = proto::Objects::default();
+    let mut children = Vec::new();
+    let mut xforms = Vec::new();
+    for object in scene.objects() {
+        let mut mesh = object.geometry.to_proto();
+        mesh.guid = object.guid.clone();
+        objects.meshes.push(mesh);
+        children.push(proto::TreeNode { name: object.guid.clone(), ..Default::default() });
+        if object.model.m != session_rust::Xform::identity().m {
+            xforms.push(proto::XformEntry {
+                guid: object.guid.clone(), xform: Some(object.model.to_proto()),
+            });
+        }
+    }
+    let message = proto::Session {
+        name: "Viewer document".into(), objects: Some(objects),
+        tree: Some(proto::Tree { root: Some(proto::TreeNode {
+            name: "Objects".into(), children, ..Default::default()
+        }), ..Default::default() }), xforms, ..Default::default()
+    };
+    validate(&message)?;
+    let bytes = message.encode_to_vec();
+    if bytes.len() > MAX_BYTES { return Err("The saved document exceeds 4 MiB"); }
+    Ok(bytes)
+}
+
+fn validate(message: &proto::Session) -> Result<(), &'static str> {
+    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
+    if message.definitions.is_some() || !message.interactions.is_empty() {
+        return Err("Definitions and interactions arrive in later checkpoints");
+    }
+    let other = objects.points.len() + objects.lines.len() + objects.planes.len()
+        + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
+        + objects.nurbscurves.len() + objects.nurbssurfaces.len() + objects.breps.len()
+        + objects.elements.len() + objects.components.len() + objects.sheets.len() + objects.instances.len();
+    if other != 0 || objects.meshes.is_empty() || objects.meshes.len() > 64 {
+        return Err("This checkpoint accepts 1–64 meshes and no other geometry types");
+    }
+    let mut guids = HashSet::new();
+    for mesh in &objects.meshes {
+        if mesh.guid.is_empty() || !guids.insert(mesh.guid.as_str()) {
+            return Err("Every mesh needs a distinct source GUID");
+        }
+        validate_mesh(mesh)?;
+    }
+    let mut placed = HashSet::new();
+    for entry in &message.xforms {
+        let matrix = &entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix;
+        if !guids.contains(entry.guid.as_str()) || !placed.insert(entry.guid.as_str())
+            || !crate::placement::valid(matrix)
+        {
+            return Err("Invalid mesh placement");
+        }
+    }
+    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
+        let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
+        if names != guids || root.children.len() != guids.len()
+            || root.children.iter().any(|node| !node.children.is_empty()) {
+            return Err("This checkpoint needs one flat tree row per mesh");
+        }
+    }
+    Ok(())
+}
+
+fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
+    if mesh.vertices.len() > 10_000 || mesh.faces.is_empty() || mesh.faces.len() > 10_000 {
+        return Err("A mesh needs faces and at most 10,000 vertices and faces");
+    }
+    if mesh.color_mode != 0 { return Err("Per-face and per-vertex colours arrive later"); }
+    for (&key, vertex) in &mesh.vertices {
+        if key > u32::MAX as u64 || [vertex.x, vertex.y, vertex.z].iter().any(|v| !v.is_finite()) {
+            return Err("Invalid vertex key or coordinate");
+        }
+    }
+    for (&key, face) in &mesh.faces {
+        if key > u32::MAX as u64 || !(3..=4).contains(&face.vertices.len()) || !face.holes.is_empty()
+            || face.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
+            return Err("This checkpoint needs triangles or quads with existing vertices and no holes");
+        }
+    }
+    for (key, triangles) in &mesh.triangulation {
+        if !mesh.faces.contains_key(key) || triangles.vertices.len() % 3 != 0
+            || triangles.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
+            return Err("Invalid stored triangulation");
+        }
+    }
+    Ok(())
+}
+```
+
+</details>
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/29b-placements-09.rs"
 ```
 
-### 10. `src/document.rs`
-
-Accept placements while keeping the other unsupported source families explicit.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
-        return Err("Placements, definitions and interactions arrive in later checkpoints");
-```
-
-</details>
-
-Replace that block with:
-
-```rust
+```text
 --8<-- "journey/code/29b-placements-10.rs"
 ```
 
-### 11. `src/document.rs`
-
-Reject unknown, duplicate, incomplete, non-finite or projective placement records before kernel construction.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
+```text
+--8<-- "journey/code/29b-placements-11.rs"
 ```
 
 </details>
 
-Replace that block with:
+<details>
+<summary>Supplied validation fixture</summary>
 
-```rust
---8<-- "journey/code/29b-placements-11.rs"
-```
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
-### 12. `src/placement_load_tests.rs`
+### 8. `src/placement_load_tests.rs`
 
-Reject all malformed placement families using actual encoded messages.
+Optional authoring fixture. Reject all malformed placement families using actual encoded messages.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/29b-placements-12.rs"
 ```
 
-### 13. `src/lib.rs`
+</details>
+
+### 9. `src/lib.rs`
 
 Compile the malformed-input checks.
 
@@ -228,10 +466,10 @@ mod snapshot_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/29b-placements-13.rs"
+--8<-- "journey/code/29b-placements-13.rs" skip=33
 ```
 
 ## Run and check
@@ -240,25 +478,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the reopen checks below. Valid stored placements restore the objects; an invalid matrix must reject the document before changing live rows.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Reopen source geometry with its placement.](../screenshots/journey/29b-placements-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for reopen source geometry with its placement.](../screenshots/journey/29b-placements.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -294,8 +528,8 @@ Change the malformed-placement check’s projective matrix into a finite transla
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 29b-placements
-npm --prefix ../session_tests run course -- save 29b-placements
+npm --prefix ../session_tests run course -- check 3.13.3
+npm --prefix ../session_tests run course -- save 3.13.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -314,7 +548,7 @@ The production session stores local placements keyed by object GUID and composes
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 29b-placements
+npm --prefix ../session_tests run course -- capture 3.13.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

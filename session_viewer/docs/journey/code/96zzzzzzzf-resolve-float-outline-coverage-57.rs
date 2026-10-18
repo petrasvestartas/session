@@ -1,0 +1,1 @@
+_revision,false,(self.clipping.borrow().enabled&&!self.clipping.borrow().rows.is_empty()).then_some(&self.targets.primitive.view)

@@ -1,0 +1,406 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 6,
+  "title": "Picking and selection",
+  "first": "42-window",
+  "end_before": "46-tool-panel",
+  "lessons": [
+    {
+      "id": "42-window",
+      "title": "A bounded integer picking pass",
+      "page": "journey/consolidation/42-window.md",
+      "steps": [
+        "42-window",
+        "42a-id",
+        "42b-ink",
+        "42c-path",
+        "42d-owners",
+        "42e-pass",
+        "42f-mesh",
+        "42g-image",
+        "42h-owner",
+        "42i-copy",
+        "42j-read",
+        "42k-input"
+      ],
+      "checkpoint": "42k-input"
+    },
+    {
+      "id": "43-ticket",
+      "title": "Accept a hit only for its current view",
+      "page": "journey/consolidation/43-ticket.md",
+      "steps": [
+        "43-ticket",
+        "43a-flight",
+        "43b-view"
+      ],
+      "checkpoint": "43b-view"
+    },
+    {
+      "id": "44-topology",
+      "title": "Pick original faces, edges and controls",
+      "page": "journey/consolidation/44-topology.md",
+      "steps": [
+        "44-topology",
+        "44a-tags",
+        "44b-sources",
+        "44c-resolve",
+        "44d-pulling",
+        "44e-pipeline",
+        "44f-metadata",
+        "44g-edge-ink",
+        "44h-mode-gpu",
+        "44i-ink-highlight",
+        "44ia-original-ink",
+        "44j-face-highlight",
+        "44k-selection",
+        "44l-input"
+      ],
+      "checkpoint": "44l-input"
+    },
+    {
+      "id": "45-order",
+      "title": "Ordered multi-selection and atomic edits",
+      "page": "journey/consolidation/45-order.md",
+      "steps": [
+        "45-order",
+        "45a-batch",
+        "45b-membership",
+        "45bb-cycle",
+        "45c-input"
+      ],
+      "checkpoint": "45c-input"
+    }
+  ],
+  "old_step_to_lesson": {
+    "42-window": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42-window"
+    },
+    "42a-id": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42a-id"
+    },
+    "42b-ink": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42b-ink"
+    },
+    "42c-path": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42c-path"
+    },
+    "42d-owners": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42d-owners"
+    },
+    "42e-pass": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42e-pass"
+    },
+    "42f-mesh": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42f-mesh"
+    },
+    "42g-image": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42g-image"
+    },
+    "42h-owner": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42h-owner"
+    },
+    "42i-copy": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42i-copy"
+    },
+    "42j-read": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42j-read"
+    },
+    "42k-input": {
+      "lesson": "42-window",
+      "anchor": "checkpoint-42k-input"
+    },
+    "43-ticket": {
+      "lesson": "43-ticket",
+      "anchor": "checkpoint-43-ticket"
+    },
+    "43a-flight": {
+      "lesson": "43-ticket",
+      "anchor": "checkpoint-43a-flight"
+    },
+    "43b-view": {
+      "lesson": "43-ticket",
+      "anchor": "checkpoint-43b-view"
+    },
+    "44-topology": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44-topology"
+    },
+    "44a-tags": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44a-tags"
+    },
+    "44b-sources": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44b-sources"
+    },
+    "44c-resolve": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44c-resolve"
+    },
+    "44d-pulling": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44d-pulling"
+    },
+    "44e-pipeline": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44e-pipeline"
+    },
+    "44f-metadata": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44f-metadata"
+    },
+    "44g-edge-ink": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44g-edge-ink"
+    },
+    "44h-mode-gpu": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44h-mode-gpu"
+    },
+    "44i-ink-highlight": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44i-ink-highlight"
+    },
+    "44ia-original-ink": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44ia-original-ink"
+    },
+    "44j-face-highlight": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44j-face-highlight"
+    },
+    "44k-selection": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44k-selection"
+    },
+    "44l-input": {
+      "lesson": "44-topology",
+      "anchor": "checkpoint-44l-input"
+    },
+    "45-order": {
+      "lesson": "45-order",
+      "anchor": "checkpoint-45-order"
+    },
+    "45a-batch": {
+      "lesson": "45-order",
+      "anchor": "checkpoint-45a-batch"
+    },
+    "45b-membership": {
+      "lesson": "45-order",
+      "anchor": "checkpoint-45b-membership"
+    },
+    "45bb-cycle": {
+      "lesson": "45-order",
+      "anchor": "checkpoint-45bb-cycle"
+    },
+    "45c-input": {
+      "lesson": "45-order",
+      "anchor": "checkpoint-45c-input"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/gpu/pick.rs",
+      "session_viewer/src/app/selection.rs",
+      "session_viewer/src/engine/gpu/faces.rs",
+      "session_viewer/src/app/walk/mesh_topology.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "42-window",
+      "path": "screenshots/journey/42-window.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42a-id",
+      "path": "screenshots/journey/42a-id.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42b-ink",
+      "path": "screenshots/journey/42b-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42c-path",
+      "path": "screenshots/journey/42c-path.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42d-owners",
+      "path": "screenshots/journey/42d-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42e-pass",
+      "path": "screenshots/journey/42e-pass.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42f-mesh",
+      "path": "screenshots/journey/42f-mesh.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42g-image",
+      "path": "screenshots/journey/42g-image.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42h-owner",
+      "path": "screenshots/journey/42h-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42i-copy",
+      "path": "screenshots/journey/42i-copy.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42j-read",
+      "path": "screenshots/journey/42j-read.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "42k-input",
+      "path": "screenshots/journey/42k-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "43-ticket",
+      "path": "screenshots/journey/43-ticket.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "43a-flight",
+      "path": "screenshots/journey/43a-flight.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "43b-view",
+      "path": "screenshots/journey/43b-view.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44-topology",
+      "path": "screenshots/journey/44-topology.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44a-tags",
+      "path": "screenshots/journey/44a-tags.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44b-sources",
+      "path": "screenshots/journey/44b-sources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44c-resolve",
+      "path": "screenshots/journey/44c-resolve.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44d-pulling",
+      "path": "screenshots/journey/44d-pulling.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44e-pipeline",
+      "path": "screenshots/journey/44e-pipeline.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44f-metadata",
+      "path": "screenshots/journey/44f-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44g-edge-ink",
+      "path": "screenshots/journey/44g-edge-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44h-mode-gpu",
+      "path": "screenshots/journey/44h-mode-gpu.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44i-ink-highlight",
+      "path": "screenshots/journey/44i-ink-highlight.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44ia-original-ink",
+      "path": "screenshots/journey/44ia-original-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44j-face-highlight",
+      "path": "screenshots/journey/44j-face-highlight.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44k-selection",
+      "path": "screenshots/journey/44k-selection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "44l-input",
+      "path": "screenshots/journey/44l-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "45-order",
+      "path": "screenshots/journey/45-order.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "45a-batch",
+      "path": "screenshots/journey/45a-batch.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "45b-membership",
+      "path": "screenshots/journey/45b-membership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "45bb-cycle",
+      "path": "screenshots/journey/45bb-cycle.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "45c-input",
+      "path": "screenshots/journey/45c-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

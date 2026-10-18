@@ -14,7 +14,7 @@ pub(crate) fn browse(
         model.completion_visible = true;
     }
     let focused = model.command_open || response.has_focus() || response.lost_focus();
-    if !focused || !model.completion_visible || choices.is_empty() {
+    if !focused || !model.completion_visible || choices.is_empty() || !model.options.is_empty() {
         return None;
     }
     model.completion = model.completion.min(choices.len() - 1);
@@ -54,9 +54,8 @@ pub(crate) fn browse(
     } else {
         None
     };
-    if !commands.choosing_option(&model.completion_prefix) {
-        complete = popup(ui, model, controls, &choices, response, keys.browse).or(complete);
-    }
+    // the list shows the verbs, or the options of the verb typed
+    complete = popup(ui, model, controls, &choices, response, keys.browse).or(complete);
     complete
 }
 

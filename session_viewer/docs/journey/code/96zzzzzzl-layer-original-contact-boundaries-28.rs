@@ -1,0 +1,1 @@
+finite_screen(position),rise);

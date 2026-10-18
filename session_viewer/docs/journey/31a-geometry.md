@@ -1,4 +1,6 @@
-# 31a · Give immutable GPU geometry one owner
+# 3.15.2 · Give immutable GPU geometry one owner
+
+**Chapter 3 · Documents, editing and ownership · Section 3.15 · Incremental GPU settings** · [Contents](contents.md)
 
 **Typing: 19–38 minutes.** [Estimate](typing-load.md).
 
@@ -31,7 +33,7 @@ pub mod gpu_mesh;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/31a-geometry-02.rs"
@@ -39,52 +41,34 @@ Replace that block with:
 
 ### 3. `src/gpu_mesh.rs`
 
-Use a shared geometry owner.
+Use a shared geometry owner. Keep only the geometry owner beside the object bind group. Accept an existing geometry owner while keeping object settings independent. Return one draw row without copying its shared geometry. Delegate immutable bindings and indexed drawing to the geometry owner.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
 use crate::scene::Object;
-```
+use wgpu::util::DeviceExt;
 
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/31a-geometry-03.rs"
-```
-
-### 4. `src/gpu_mesh.rs`
-
-Keep only the geometry owner beside the object bind group.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+pub struct GpuMesh {
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
     index_count: u32,
-```
+    model_group: wgpu::BindGroup,
+}
 
-</details>
+fn settings(object: &Object, selected: bool) -> [u8; 80] {
+    let mut bytes = [0; 80];
+    for (index, value) in object.model.m.iter().enumerate() {
+        bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
+    }
+    let flag: f32 = if selected { 1.0 } else { 0.0 };
+    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
+    bytes
+}
 
-Replace that block with:
-
-```rust
---8<-- "journey/code/31a-geometry-04.rs"
-```
-
-### 5. `src/gpu_mesh.rs`
-
-Accept an existing geometry owner while keeping object settings independent.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+impl GpuMesh {
+    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
         let mesh = &object.mesh;
         let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
         for vertex in mesh.vertices() {
@@ -103,55 +87,109 @@ Accept an existing geometry owner while keeping object settings independent.
             contents: &bytes,
             usage: wgpu::BufferUsages::INDEX,
         });
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/31a-geometry-05.rs"
-```
-
-### 6. `src/gpu_mesh.rs`
-
-Return one draw row without copying its shared geometry.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+        let bytes = settings(object, selected);
+        let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("object placement"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+        let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("object placement"),
+            layout,
+            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
+        });
         Self { vertices, indices, model_group, index_count: mesh.indices().len() as u32 }
-```
+    }
 
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/31a-geometry-06.rs"
-```
-
-### 7. `src/gpu_mesh.rs`
-
-Delegate immutable bindings and indexed drawing to the geometry owner.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_bind_group(1, &self.model_group, &[]);
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
         pass.draw_indexed(0..self.index_count, 0, 0..1);
+    }
+}
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use crate::{gpu_geometry::GpuGeometry, scene::Object};
+use std::rc::Rc;
+use wgpu::util::DeviceExt;
+
+pub struct GpuMesh {
+    pub geometry: Rc<GpuGeometry>,
+    model_group: wgpu::BindGroup,
+}
+
+fn settings(object: &Object, selected: bool) -> [u8; 80] {
+    let mut bytes = [0; 80];
+    for (index, value) in object.model.m.iter().enumerate() {
+        bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
+    }
+    let flag: f32 = if selected { 1.0 } else { 0.0 };
+    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
+    bytes
+}
+
+impl GpuMesh {
+    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
+        let geometry = Rc::new(GpuGeometry::upload(device, Rc::clone(&object.mesh)));
+        Self::with_geometry(device, layout, object, selected, geometry)
+    }
+
+    pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
+        object: &Object, selected: bool, geometry: Rc<GpuGeometry>) -> Self
+    {
+        let bytes = settings(object, selected);
+        let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("object placement"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+        let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("object placement"),
+            layout,
+            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
+        });
+        Self { geometry, model_group }
+    }
+
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_bind_group(1, &self.model_group, &[]);
+        self.geometry.draw(pass);
+    }
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/31a-geometry-03.rs"
+```
+
+```text
+--8<-- "journey/code/31a-geometry-04.rs"
+```
+
+```text
+--8<-- "journey/code/31a-geometry-05.rs"
+```
+
+```text
+--8<-- "journey/code/31a-geometry-06.rs"
+```
+
+```text
 --8<-- "journey/code/31a-geometry-07.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -159,25 +197,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the GPU ownership checks below. Two object rows sharing a display must share vertex/index storage while keeping separate uniforms.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Give immutable GPU geometry one owner.](../screenshots/journey/31a-geometry-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+The native GPU draws retained source geometry with placement and selection settings; world picking and selected pixels agree.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for give immutable gpu geometry one owner.](../screenshots/journey/31a-geometry.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -213,8 +249,8 @@ Follow Rc::clone from a geometry owner into two GPU rows. Predict the strong own
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 31a-geometry
-npm --prefix ../session_tests run course -- save 31a-geometry
+npm --prefix ../session_tests run course -- check 3.15.2
+npm --prefix ../session_tests run course -- save 3.15.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -233,7 +269,7 @@ This is the ownership boundary needed for cached uploads and later definition in
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 31a-geometry
+npm --prefix ../session_tests run course -- capture 3.15.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

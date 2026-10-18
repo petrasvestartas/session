@@ -1,0 +1,5 @@
+    ("Example Smooth", || Action::AddNormals(crate::normal_example::Mode::Smooth)),
+    ("Example Winding", || Action::AddNormals(crate::normal_example::Mode::Winding)),
+    ("Controls", || Action::Controls(true)),
+    ("Controls On", || Action::Controls(true)),
+    ("Controls Off", || Action::Controls(false)),

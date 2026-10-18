@@ -1,0 +1,1 @@
+struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, eye:vec4<f32>, }

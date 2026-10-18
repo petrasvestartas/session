@@ -1,6 +1,8 @@
-# 34b · Describe a viewer run without keeping its document
+# 4.2.3 · Describe a viewer run without keeping its document
 
-**Typing: 25–49 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 11–21 minutes.** [Estimate](typing-load.md).
 
 Create a report that survives losing the GPU. `Context` stores page/browser details and dimensions. `Report` stores that context, run identity, timestamps and outcome; it owns no document or device.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/34b-report-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/diagnostic_tests.rs`
 
-Check the actual JSON field names, round trip and independence of a retained snapshot.
+Optional authoring fixture. Check the actual JSON field names, round trip and independence of a retained snapshot.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34b-report-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -41,11 +50,25 @@ pub mod gpu_fault;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod diagnostic;
+#[cfg(test)]
+mod diagnostic_tests;
+pub mod gpu_fault;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34b-report-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +76,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the report checks below. Serialize a report and inspect its flat JSON header; changing a cloned snapshot must not change the live value. Browser metadata is connected later.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Describe a viewer run without keeping its document.](../screenshots/journey/34b-report-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for describe a viewer run without keeping its document.](../screenshots/journey/34b-report.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -107,8 +126,8 @@ Remove serde(flatten), run the JSON assertion, and explain how the public format
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34b-report
-npm --prefix ../session_tests run course -- save 34b-report
+npm --prefix ../session_tests run course -- check 4.2.3
+npm --prefix ../session_tests run course -- save 4.2.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -129,7 +148,7 @@ Chrome verifies the inherited real GPU-loss and restart acceptance, then capture
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34b-report
+npm --prefix ../session_tests run course -- capture 4.2.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+        self.dots.capacity()*4+self.dot_colours.capacity()*16+self.pens.capacity()*

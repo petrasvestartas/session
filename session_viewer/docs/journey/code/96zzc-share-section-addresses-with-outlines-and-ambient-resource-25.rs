@@ -1,0 +1,1 @@
+assert_eq!(r.cap_usage()[0],16)

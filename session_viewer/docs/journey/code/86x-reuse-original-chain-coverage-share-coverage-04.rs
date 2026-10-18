@@ -1,0 +1,1 @@
+pub fn shader() -> String { crate::finite_project_source::expand(include_str!("chain.wgsl")) }

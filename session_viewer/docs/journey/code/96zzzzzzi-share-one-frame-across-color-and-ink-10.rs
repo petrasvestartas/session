@@ -1,0 +1,1 @@
+ink.draw(pass,view,
