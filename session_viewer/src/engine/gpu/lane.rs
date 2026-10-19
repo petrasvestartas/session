@@ -83,6 +83,7 @@ pub struct Registered {
 pub const REGISTRY: &[Registered] = &[
     super::vectors::REGISTERED, // register:vectors
     super::planes::REGISTERED,  // register:planes
+    super::matrices::REGISTERED, // register:matrices
 ];
 
 /// How many lanes are registered.

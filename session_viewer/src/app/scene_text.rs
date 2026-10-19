@@ -70,6 +70,22 @@ impl Scene {
         self.restore_text_visibility(gpu);
     }
 
+    /// Give the titles of the matrices just walked their text rows.
+    pub fn add_matrix_titles(&mut self, gpu: &mut Gpu) {
+        let titles = std::mem::take(&mut self.matrix_titles);
+
+        if titles.is_empty() {
+            return;
+        }
+
+        for (key, label) in titles {
+            self.register_text(key, label, true);
+        }
+
+        self.upload_to(gpu);
+        self.restore_text_visibility(gpu);
+    }
+
     /// Reuse the row for `key`, or add a new one.
     pub(crate) fn register_text(&mut self, key: String, mut label: TextLabel, active: bool) {
         for text in &mut self.texts {

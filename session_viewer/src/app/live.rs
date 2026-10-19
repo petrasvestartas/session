@@ -364,7 +364,7 @@ impl LiveSource {
         };
 
         super::feedback::phase("decode", started, n as u64, url);
-        if session.lookup.is_empty() && session.instance_lookup.is_empty() {
+        if session.lookup.is_empty() && session.instance_lookup.is_empty() && !crate::app::walk::matrix::holds_matrix(&session) {
             self.forget(url, format!("{url} holds no geometry ({n} bytes); skipped"));
             return;
         }

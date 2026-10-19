@@ -126,6 +126,7 @@ impl State {
         crate::app::feedback::phase("walk", t0, 0, &self.scene.docs[index].name);
         // only the new rows go to the GPU
         self.scene.upload_to(&mut self.gpu);
+        self.scene.add_matrix_titles(&mut self.gpu); // register:matrices
         crate::app::feedback::phase("upload", t1, 0, &self.scene.docs[index].name);
         crate::app::feedback::diagnostic(
             "scene",

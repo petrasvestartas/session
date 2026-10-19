@@ -35,6 +35,7 @@ pub mod ui; // register:ui
 pub mod upload; // register:upload
 pub mod vectors; // register:vectors
 pub mod planes; // register:planes
+pub mod matrices; // register:matrices
 pub mod view; // register:view
 mod widget; // register:widget
 mod widget_mesh; // register:widget_mesh
@@ -443,6 +444,7 @@ pub(crate) fn lane_shaders() -> Vec<(&'static str, &'static str)> {
     out.extend_from_slice(glyphs::SHADERS); // register:markers
     out.extend_from_slice(vectors::SHADERS); // register:strokes
     out.extend_from_slice(planes::SHADERS); // register:planes
+    out.extend_from_slice(matrices::SHADERS); // register:matrices
     out
 }
 

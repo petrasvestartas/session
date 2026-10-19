@@ -13,11 +13,15 @@ pub use text::SceneText; // register:scene_text
 use crate::app::walk::bounds::{Baselines, file_extent, mark_sheet, planar_band};
 use crate::app::walk::brep_shapes::SharedWalks;
 use crate::app::walk::mesh::Lap;
+use crate::app::walk::matrix;
+use crate::app::walk::plane::unit;
 use crate::app::walk::{Walk, WalkCx, is_drawable, walk_geometry};
+use crate::engine::gpu::matrices::MatrixRows;
+use crate::engine::text::{TextLabel, TextPlacement};
 use crate::engine::gpu::patch::{Counts, LaneId, Span};
 use crate::engine::gpu::{Gpu, Instance, ObjectRow, Pick, Upload};
 use rows::{Cap, DocState, FREE, Footprint, Ids, Note, SINK, Spans, Staged, TOMB, Tomb};
-use session_rust::{Geometry, Session, TreeNode, Xform};
+use session_rust::{Geometry, Point, Session, TreeNode, Vector, Xform};
 use std::cell::RefCell;
 use std::collections::{HashMap, HashSet};
 use std::rc::{Rc, Weak};
@@ -108,6 +112,7 @@ pub struct Scene {
     pub(crate) edge_steps: HashMap<(usize, String), crate::app::layers::EdgeStep>, // edge each (document, step) added; register:editing
     pub(crate) groups: HashSet<(usize, Rc<str>)>, // (document, tree node guid) of each group
     pub(crate) text_rows: Vec<u32>, // text rows an undo, redo or delete showed or hid, for the GPU
+    pub(crate) matrix_titles: Vec<(String, crate::engine::text::TextLabel)>, // titles of matrices just walked, waiting for their text rows; register:matrices
     pub(crate) released: HashMap<usize, Released>, // documents drawn without their kernel objects; register:release
     asked: RefCell<Vec<usize>>, // released documents a read-only path needs; register:release
     stream_ceiling: u32,        // most streamed points on the page; register:stream
@@ -191,6 +196,7 @@ impl Scene {
             edge_steps: HashMap::new(), // register:editing
             groups: HashSet::new(),
             text_rows: Vec::new(),
+            matrix_titles: Vec::new(), // register:matrices
             released: HashMap::new(),        // register:release
             asked: RefCell::new(Vec::new()), // register:release
             stream_ceiling: 0,               // register:stream
@@ -528,6 +534,7 @@ impl Scene {
         }
 
         self.add_instances(index, &session, &place, &world, &mut placed); // register:instancing
+        self.add_matrices(index, &session, &place, &world, &mut placed); // register:matrices
         drop(shapes);
         lap.mark("objects");
 
@@ -751,6 +758,67 @@ fn placement(world: &HashMap<String, Xform>, place: &Xform, guid: &str) -> Xform
     match world.get(guid) {
         Some(local) => place * local,
         None => place.clone(),
+    }
+}
+
+impl Scene {
+    /// Rows for the kernel matrices a document stores as components; the shader draws their cells, their titles wait in `matrix_titles`.
+    fn add_matrices<'s>(
+        &mut self,
+        doc: usize,
+        session: &'s Session,
+        place: &Xform,
+        world: &HashMap<String, Xform>,
+        placed: &mut HashMap<&'s str, u32>,
+    ) {
+        for component in session.objects.components.iter() {
+            if !matrix::is_matrix(component) {
+                continue;
+            }
+
+            let guid = component.guid.as_str();
+            let flags = if self.hidden.contains(&(doc, Rc::from(guid))) {
+                Instance::FLAG_HIDDEN
+            } else {
+                0
+            };
+            let object_place = placement(world, place, guid);
+            let row = self.push_row(doc, guid, object_place.clone(), flags);
+            placed.insert(guid, row);
+            let start = self.uploaded.plus(Counts::of(&self.tables));
+            let walked = matrix::walk(self.tables.lanes.get_mut::<MatrixRows>(), component, row);
+            let end = self.uploaded.plus(Counts::of(&self.tables));
+            self.feet[row as usize] = self.spans.foot(Span {
+                start,
+                count: end.minus(start),
+            });
+            self.tables.obj.rows.last_mut().unwrap().bounds = walked.bounds;
+
+            // the title above the cells, lying on the matrix's plane
+            if let Some((text, corner, height, color)) = matrix::title(component) {
+                let at = object_place.transform_point(&Point::new(corner[0], corner[1], corner[2]));
+                let right = object_place.transform_vector(&Vector::new(1.0, 0.0, 0.0));
+                let up = object_place.transform_vector(&Vector::new(0.0, 1.0, 0.0));
+                let scale = right.magnitude();
+                let label = TextLabel {
+                    id: 0,
+                    object: None,
+                    text,
+                    font_size: 18.0,
+                    line_height: 26.0,
+                    color,
+                    placement: TextPlacement::WorldPlane {
+                        world: [at[0], at[1], at[2]],
+                        right: unit([right[0], right[1], right[2]]),
+                        up: unit([up[0], up[1], up[2]]),
+                        world_height: height * scale,
+                        plate: false,
+                    },
+                    clip: None,
+                };
+                self.matrix_titles.push((format!("matrix-title/{doc}/{guid}"), label));
+            }
+        }
     }
 }
 

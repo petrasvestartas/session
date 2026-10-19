@@ -443,7 +443,7 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
             return;
         }
 
-        if session.lookup.is_empty() && session.instance_lookup.is_empty() {
+        if session.lookup.is_empty() && session.instance_lookup.is_empty() && !crate::app::walk::matrix::holds_matrix(&session) {
             log::warn!("'{}' holds no geometry ({n} bytes); skipped", item.file);
             failed = true;
             continue;

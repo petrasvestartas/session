@@ -29,6 +29,7 @@ pub mod frames;
 pub mod mesh;
 pub mod mesh_ink;
 pub mod mesh_topology;
+pub mod matrix; // register:matrices
 pub mod plane;
 pub mod points;
 pub mod sheet; // register:sheets

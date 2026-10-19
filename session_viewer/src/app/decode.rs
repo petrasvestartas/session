@@ -325,6 +325,11 @@ pub async fn session_from_body(url: &str, body: Body, vertices: bool) -> Result<
                 15 => {
                     object!(fallible s, r, f, proto::Element, validate::element, Element, elements)
                 }
+                // components: kept whole; a kernel Matrix among them is drawn by the matrix lane
+                16 => {
+                    let source: proto::Component = r.message(f)?;
+                    s.objects.components.push(session_rust::Component::from_proto(source));
+                }
                 18 => instance(&mut s, &mut r, f, &mut folds)?,
                 _ => continue,
             }
