@@ -103,14 +103,14 @@ impl LiveSource {
         }
     }
 
-    /// The scene's view, the first time only: a reload keeps the camera.
-    pub fn take_view(&mut self) -> Option<crate::camera::View> {
+    /// The scene's view and grid, the first time only: a reload keeps the camera.
+    pub fn take_opening(&mut self) -> Option<(Option<crate::camera::View>, bool)> {
         if self.viewed {
             return None;
         }
 
         self.viewed = true;
-        self.manifest.as_ref().and_then(|manifest| manifest.view)
+        self.manifest.as_ref().map(|manifest| (manifest.view, manifest.grid))
     }
 
     /// Watch a named scene's manifest, announced on the same relay as view_live.

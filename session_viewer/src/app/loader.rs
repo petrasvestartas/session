@@ -202,8 +202,8 @@ async fn post_live(src: &mut LiveSource) -> bool {
 
     clear_scene();
 
-    if let Some(view) = src.take_view() {
-        post(Msg::View(view));
+    if let Some((view, grid)) = src.take_opening() {
+        post(Msg::Open(view, grid));
     }
 
     for doc in docs {
@@ -319,11 +319,9 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
     };
     log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
 
-    // the scene's own view, on the first load only: a reload keeps the camera
-    if replacement.is_none()
-        && let Some(view) = manifest.view
-    {
-        post(Msg::View(view));
+    // the scene's own view and grid, on the first load only: a reload keeps the camera
+    if replacement.is_none() {
+        post(Msg::Open(manifest.view, manifest.grid));
     }
 
     let mut files = 0u32;

@@ -52,6 +52,8 @@ pub struct Manifest {
     pub live: bool, // reload whenever it is published again, like view_live
     #[serde(default)]
     pub view: Option<crate::camera::View>, // the camera the scene opens with
+    #[serde(default = "scene_grid")]
+    pub grid: bool, // the floor grid; false hides it
 }
 
 impl Item {
@@ -220,6 +222,11 @@ fn text_up() -> [f64; 3] {
     [0.0, 1.0, 0.0]
 }
 
+/// Scenes show the floor grid unless they say otherwise.
+fn scene_grid() -> bool {
+    true
+}
+
 /// Texts have a plate unless they say otherwise.
 fn text_plate() -> bool {
     true
@@ -369,8 +376,10 @@ mod tests {
         let empty = Manifest::parse(b"items: []").unwrap();
         assert!(!empty.live);
         assert_eq!(empty.view, None);
-        let watched = Manifest::parse(b"items: []\nlive: true\nview: top").unwrap();
+        assert!(empty.grid);
+        let watched = Manifest::parse(b"items: []\nlive: true\nview: top\ngrid: false").unwrap();
         assert!(watched.live);
+        assert!(!watched.grid);
         assert_eq!(watched.view, Some(crate::camera::View::Top));
         assert!(Manifest::parse(b"items: []\nview: sideways").is_err());
         assert!(Manifest::parse(b"texts: [{text: label, height: 2}]").is_err());

@@ -170,10 +170,14 @@ impl State {
         self.touch();
     }
 
-    /// Turn the camera to the scene's view; the fit that follows still frames it.
-    pub fn open_with_view(&mut self, view: crate::camera::View) {
-        self.camera.set_view(view);
-        self.load_camera = self.camera.pose();
+    /// Turn the camera to the scene's view and show or hide the floor grid; the fit that follows still frames it.
+    pub fn open_scene(&mut self, view: Option<crate::camera::View>, grid: bool) {
+        if let Some(view) = view {
+            self.camera.set_view(view);
+            self.load_camera = self.camera.pose();
+        }
+
+        self.gpu.view.show_grid = grid;
         self.touch();
     }
 

@@ -44,7 +44,7 @@ pub enum Msg {
     Texts(Vec<app::manifest::TextItem>), // text labels to place; register:scene_text
     Clear,                         // empty the scene
     Fit,                           // frame the camera on everything
-    View(camera::View),            // turn the camera to a standard view before the scene shows
+    Open(Option<camera::View>, bool), // the scene's view and floor grid, before it shows
     StreamedCloud(Box<StreamedInit>), // a point cloud starts streaming; register:stream
     CloudChunk(CloudChunk),        // more points arrived; register:stream
     CloudQueryBatch(app::cloud_query::Batch), // points asked for on click; register:cloud_query
@@ -181,7 +181,7 @@ impl ApplicationHandler<Msg> for App {
             Msg::Ready(_) => {}
             Msg::Clear => state.clear(),
             Msg::Fit => state.fit_loaded(),
-            Msg::View(view) => state.open_with_view(view),
+            Msg::Open(view, grid) => state.open_scene(view, grid),
             Msg::File(doc, source) => state.append(doc, source),
             Msg::Hydrated(back) => state.hydrated(*back), // register:editing
             Msg::Fonts(faces) => self.use_fonts(faces),   // register:loading
