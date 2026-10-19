@@ -1,0 +1,1 @@
+colour(input.colour,input.radius,input.position.xy-input.centre).a

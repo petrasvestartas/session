@@ -1,0 +1,1 @@
+    e.apply(Action::SelectAll).unwrap(); e.selected_part=Some(crate::pick_sources::Part::Face(0)); e.apply(Action::BeginTool(Shape::Move)).unwrap(); assert!(e.transform_preview.is_some()); e.apply(Action::CancelTool).unwrap();

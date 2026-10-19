@@ -1,0 +1,2 @@
+    pub fn set(&mut self,device:&wgpu::Device,mark:Option<&Mark>)->Result<(),&'static str>{self.set_at(device,mark,[0.;3]).map(|_|())}
+    pub fn set_at(&mut self,device:&wgpu::Device,mark:Option<&Mark>,anchor:[f64;3])->Result<bool,&'static str>{

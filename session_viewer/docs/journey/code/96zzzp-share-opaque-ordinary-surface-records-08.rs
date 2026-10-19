@@ -1,0 +1,1 @@
+if self.slots.instances()==0{0}else{self.slots.allocated_bytes()}

@@ -1,0 +1,2 @@
+        let compatible=geometry_changed||self.space.as_ref().is_some_and(|space|meshes.iter().all(|mesh|self.ordinary.get(&mesh.id).is_some_and(|(slot,row)|*slot>0&&*slot<space.end()&&space.local_slot(*slot)==[*row,mesh.primitive_base()])));
+        let limit=crate::object_rows::capacity(device);

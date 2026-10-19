@@ -1,0 +1,1 @@
+crate::pyramid_gpu::Pyramid::with_samples(&self.device,self.samples())

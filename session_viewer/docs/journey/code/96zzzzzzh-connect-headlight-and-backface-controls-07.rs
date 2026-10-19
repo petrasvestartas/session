@@ -1,0 +1,1 @@
+opacity:1.,arctic:false,lit:false,backfaces:false,

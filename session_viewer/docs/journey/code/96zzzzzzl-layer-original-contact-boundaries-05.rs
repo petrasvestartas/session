@@ -1,0 +1,1 @@
+array_stride:if varying{8}else{0}

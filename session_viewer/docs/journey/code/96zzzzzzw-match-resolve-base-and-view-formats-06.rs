@@ -1,0 +1,1 @@
+depth: image("scene depth", crate::depth::FORMAT, crate::depth::FORMAT),

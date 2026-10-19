@@ -1,0 +1,1 @@
+        Ok(Self{window,id,repeat,_callback:callback})

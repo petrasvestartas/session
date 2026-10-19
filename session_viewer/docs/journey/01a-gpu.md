@@ -1,4 +1,6 @@
-# 01a · Paint the first GPU frame
+# 1.1.2 · Paint the first GPU frame
+
+**Chapter 1 · Browser, Rust and the GPU · Section 1.1 · Rust and the first GPU frame** · [Contents](contents.md)
 
 **Typing: 30–59 minutes.** [Estimate](typing-load.md).
 
@@ -31,7 +33,7 @@ pub fn start() -> Result<(), JsValue> {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/01a-gpu-01.rs"
@@ -63,19 +65,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The canvas stays white. Change `wgpu::Color::WHITE` to `wgpu::Color::BLACK`, save, and check that it turns black. Restore WHITE. These pixels now come from the GPU.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Paint the first GPU frame.](../screenshots/journey/01a-gpu-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for paint the first gpu frame.](../screenshots/journey/01a-gpu.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -111,8 +115,8 @@ Remove the inner braces around the render pass and keep its named binding alive 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 01a-gpu
-npm --prefix ../session_tests run course -- save 01a-gpu
+npm --prefix ../session_tests run course -- check 1.1.2
+npm --prefix ../session_tests run course -- save 1.1.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

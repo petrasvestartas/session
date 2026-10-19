@@ -1,0 +1,1 @@
+                buffers: &[crate::draw_slots::layout()],

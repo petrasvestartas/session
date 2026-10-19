@@ -1,0 +1,1 @@
+triangles:u32,shared:bool,group:Option<wgpu::BindGroup>}

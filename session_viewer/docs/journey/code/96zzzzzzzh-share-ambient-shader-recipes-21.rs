@@ -1,0 +1,1 @@
+T,T::Float{filterable:false},samples==4),textur

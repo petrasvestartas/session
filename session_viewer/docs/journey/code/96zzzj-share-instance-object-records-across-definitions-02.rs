@@ -1,0 +1,1 @@
+struct Batch {geometry:Rc<GpuGeometry>,count:u32,first_slot:u32}

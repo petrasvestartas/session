@@ -1,4 +1,6 @@
-# 32b · Count each shared GPU buffer once
+# 3.16.3 · Count each shared GPU buffer once
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 7–14 minutes.** [Estimate](typing-load.md).
 
@@ -21,7 +23,7 @@ Read actual buffer sizes, including initialization alignment.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32b-gpu-01.rs"
@@ -40,7 +42,7 @@ Report the independent settings buffer owned by one GPU row.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32b-gpu-02.rs"
@@ -60,7 +62,7 @@ mod tests {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32b-gpu-03.rs"
@@ -79,7 +81,7 @@ Distinguish live document resources from cumulative upload/write counters.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32b-gpu-04.rs"
@@ -98,10 +100,10 @@ Expose live document buffer sizes without adding runtime controls.
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32b-gpu-05.rs"
+--8<-- "journey/code/32b-gpu-05.rs" skip=66
 ```
 
 ## Run and check
@@ -110,25 +112,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the GPU accounting checks below. Live document buffer bytes must count shared allocations once; cumulative upload counters do not fall when owners drop.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Count each shared GPU buffer once.](../screenshots/journey/32b-gpu-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for count each shared gpu buffer once.](../screenshots/journey/32b-gpu.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -164,8 +162,8 @@ For three u16 indices, calculate six payload bytes and eight allocated upload by
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32b-gpu
-npm --prefix ../session_tests run course -- save 32b-gpu
+npm --prefix ../session_tests run course -- check 3.16.3
+npm --prefix ../session_tests run course -- save 3.16.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -184,7 +182,7 @@ Production accounting also includes packed arenas, textures, staging and rendere
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32b-gpu
+npm --prefix ../session_tests run course -- capture 3.16.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

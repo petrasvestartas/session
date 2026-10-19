@@ -27,7 +27,7 @@ module.exports = async (original, helpers) => {
                 'Promise.all(window.__life.devices.map(device => device.queue.onSubmittedWorkDone())).then(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))', awaitPromise: true});
             const readyBy = Date.now() + 20000;
             while (Date.now() < readyBy) {
-                const image = await page.evaluate(() => document.querySelector('canvas').toDataURL());
+                const image = await require('./canvas-image.cjs')(page.locator('canvas'));
                 const pixels = require('pngjs').PNG.sync.read(Buffer.from(image.split(',')[1], 'base64'));
                 if (pixels.data[0] === 255 && pixels.data[1] === 255 && pixels.data[2] === 255) {
                     let coloured = 0;

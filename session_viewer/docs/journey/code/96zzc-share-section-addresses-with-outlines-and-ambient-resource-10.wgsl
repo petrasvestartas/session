@@ -1,0 +1,1 @@
+    @location(1) primitive: vec2<u32>,

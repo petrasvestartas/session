@@ -1,0 +1,1 @@
+model.action=Some((state.owner.map_or_else(||row.ids.clone(),|id|vec![id]),ui.input(|input|input.modifiers.shift)));

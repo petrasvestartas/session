@@ -1,4 +1,6 @@
-# 34gba · Own diagnostic page transitions
+# 4.2.18 · Own diagnostic page transitions
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 25–50 minutes.** [Estimate](typing-load.md).
 
@@ -31,11 +33,23 @@ mod timer;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(target_arch = "wasm32")]
+mod report_lifecycle;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gba-lifecycle-02.rs"
 ```
+
+</details>
 
 ### 3. `src/browser_report.rs`
 
@@ -50,11 +64,23 @@ Install metadata lifecycle ownership before scheduling heartbeat; denied listene
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    if let Err(error) = crate::report_lifecycle::install() { let _ = observe("diagnostic", &format!("Lifecycle unavailable: {error:?}")); }
+    if let Err(error) = start_periodic() { let _ = observe("diagnostic", &format!("Heartbeat unavailable: {error:?}")); }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gba-lifecycle-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -62,25 +88,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 In the debug console, run `window.dispatchEvent(new PageTransitionEvent("pagehide", {persisted: true}))`, then the same for `"pageshow"`. Download `Report`: the transitions are recorded and the healthy outcome stays Ready.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Own diagnostic page transitions.](../screenshots/journey/34gba-lifecycle-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for own diagnostic page transitions.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -116,8 +138,8 @@ Dispatch persisted pagehide/pageshow and compare them with a final pagehide. Rep
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gba-lifecycle
-npm --prefix ../session_tests run course -- save 34gba-lifecycle
+npm --prefix ../session_tests run course -- check 4.2.18
+npm --prefix ../session_tests run course -- save 4.2.18
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -138,7 +160,7 @@ Chrome separately counts metadata/GPU bindings, proves cached pause/resume, heal
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gba-lifecycle
+npm --prefix ../session_tests run course -- capture 4.2.18
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

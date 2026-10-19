@@ -1,0 +1,1 @@
+self.geometry.get(&crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue), &object.mesh)

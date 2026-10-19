@@ -1,0 +1,1 @@
+  let m=(&session_rust::Xform::from_matrix(transform.map(f64::from))*&local).to_f32();

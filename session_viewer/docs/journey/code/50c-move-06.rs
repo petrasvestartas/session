@@ -1,0 +1,7 @@
+    ("Snap Mid", || Action::Snap(crate::snap::Setting::Mode(crate::snap::MID))),
+    ("Snap Center", || Action::Snap(crate::snap::Setting::Mode(crate::snap::CENTER))),
+    ("Snap Perp", || Action::Snap(crate::snap::Setting::Mode(crate::snap::PERP))),
+    ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
+    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
+    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
+    ("Example Box", || Action::AddBox),

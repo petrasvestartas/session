@@ -1,0 +1,1 @@
+self.cloud_view.set(crate::cloud_gpu::View::anchored(camera,self.anchor()))

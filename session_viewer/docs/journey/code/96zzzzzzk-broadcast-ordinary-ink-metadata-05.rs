@@ -1,0 +1,1 @@
+format:wgpu::TextureFormat,varying:bool){self.varying=varying;self.finite

@@ -1,0 +1,1 @@
+        self.edge=false;self.target=None;self.mesh=None;let yellow

@@ -1,6 +1,8 @@
-# 34ba · Keep recent events without losing the first failure
+# 4.2.4 · Keep recent events without losing the first failure
 
-**Typing: 30–60 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 14–27 minutes.** [Estimate](typing-load.md).
 
 Keep recent observations and the first fatal reason separately. `VecDeque` is a queue: pop its oldest entry before appending when it reaches 24 events. The first-failure field survives that rotation.
 
@@ -10,53 +12,44 @@ Continue from [Describe a viewer run without keeping its document](34b-report.md
 
 ### 1. `src/diagnostic.rs`
 
-Describe an observation separately from its bounded owner and preserve its relative timing.
+Describe an observation separately from its bounded owner and preserve its relative timing. Retain the recent event window separately from the first failure, so rotation cannot erase it. Validate relative time, bound observation text/history, and make failure survive later milestones and event rotation.
 
 <details>
 <summary>Locate the existing block</summary>
 
 ```rust
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Context {
+    pub page: String,
+    pub browser: String,
+    pub secure_context: bool,
+    pub webgpu: bool,
+    pub viewport: [u32; 2],
+    pub canvas: [u32; 2],
+    pub device_pixel_ratio: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Outcome { Running, Ready, Closed, Failed }
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Report {
-```
-
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/34ba-events-01.rs"
-```
-
-### 2. `src/diagnostic.rs`
-
-Retain the recent event window separately from the first failure, so rotation cannot erase it.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+    pub version: u32,
+    pub tab: String,
+    pub started: String,
+    pub last_seen: String,
+    pub outcome: Outcome,
+    #[serde(flatten)]
     pub context: Context,
 }
-```
 
-</details>
-
-Replace that block with:
-
-```rust
---8<-- "journey/code/34ba-events-02.rs"
-```
-
-### 3. `src/diagnostic.rs`
-
-Validate relative time, bound observation text/history, and make failure survive later milestones and event rotation.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
+impl Report {
+    pub fn new(tab: String, started: String, context: Context) -> Self {
         Self { version: 1, tab, last_seen: started.clone(), started, outcome: Outcome::Running, context }
     }
 }
@@ -64,20 +57,107 @@ Validate relative time, bound observation text/history, and make failure survive
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Context {
+    pub page: String,
+    pub browser: String,
+    pub secure_context: bool,
+    pub webgpu: bool,
+    pub viewport: [u32; 2],
+    pub canvas: [u32; 2],
+    pub device_pixel_ratio: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Outcome { Running, Ready, Closed, Failed }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Event {
+    pub time: String,
+    pub elapsed_ms: f64,
+    pub kind: String,
+    pub message: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Report {
+    pub version: u32,
+    pub tab: String,
+    pub started: String,
+    pub last_seen: String,
+    pub outcome: Outcome,
+    #[serde(flatten)]
+    pub context: Context,
+    events: std::collections::VecDeque<Event>,
+    failure: Option<Event>,
+}
+
+impl Report {
+    pub fn new(tab: String, started: String, context: Context) -> Self {
+        Self { version: 1, tab, last_seen: started.clone(), started, outcome: Outcome::Running,
+            context, events: Default::default(), failure: None }
+    }
+
+    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
+
+    pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {
+        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 { return Err("Invalid elapsed time"); }
+        let event = Event { time, elapsed_ms, kind: kind.chars().take(64).collect(), message: message.chars().take(4096).collect() };
+        self.last_seen.clone_from(&event.time);
+        if kind == "fatal" {
+            if self.failure.is_none() { self.failure = Some(event.clone()); }
+            self.outcome = Outcome::Failed;
+        } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
+            self.outcome = Outcome::Ready;
+        }
+        if self.events.len() == 24 { self.events.pop_front(); }
+        self.events.push_back(event);
+        Ok(())
+    }
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/34ba-events-01.rs"
+```
+
+```text
+--8<-- "journey/code/34ba-events-02.rs"
+```
+
+```text
 --8<-- "journey/code/34ba-events-03.rs"
 ```
 
-### 4. `src/diagnostic_tests.rs`
+</details>
 
-Prove bounded history/text, retained first failure, ready-state semantics and atomic rejection of invalid timing.
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 2. `src/diagnostic_tests.rs`
+
+Optional authoring fixture. Prove bounded history/text, retained first failure, ready-state semantics and atomic rejection of invalid timing.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 use crate::diagnostic::{Context, Outcome, Report};
 
 fn context() -> Context {
@@ -109,11 +189,13 @@ fn report_snapshot_keeps_its_own_context() {
 
 </details>
 
-Replace that block with:
+After that block, append this supplied code:
 
-```rust
---8<-- "journey/code/34ba-events-04.rs"
+```text
+--8<-- "journey/code/34ba-events-04.rs" skip=1382
 ```
+
+</details>
 
 ## Run and check
 
@@ -121,25 +203,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the event checks below. After 30 observations, exactly 24 remain, while the first fatal reason is preserved separately. Recording a success must not clear failure.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Keep recent events without losing the first failure.](../screenshots/journey/34ba-events-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for keep recent events without losing the first failure.](../screenshots/journey/34ba-events.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -173,8 +251,8 @@ Store failure only in the recent queue and run the rotation test. Then remove th
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34ba-events
-npm --prefix ../session_tests run course -- save 34ba-events
+npm --prefix ../session_tests run course -- check 4.2.4
+npm --prefix ../session_tests run course -- save 4.2.4
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -195,7 +273,7 @@ Chrome verifies inherited real GPU loss, cancellation and restart, then captures
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34ba-events
+npm --prefix ../session_tests run course -- capture 4.2.4
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

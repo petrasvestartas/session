@@ -1,6 +1,8 @@
-# 32gd · Reject stale or inconsistent source batches atomically
+# 3.16.24 · Reject stale or inconsistent source batches atomically
 
-**Typing: 25–49 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
+
+**Typing: 0–0 minutes.** [Estimate](typing-load.md).
 
 Test atomic source restoration across independent imported origins. Change the second source version and require both origins to remain cold. Then give a retained row the wrong original source GUID and require refusal.
 
@@ -8,24 +10,31 @@ Test atomic source restoration across independent imported origins. Change the s
 
 Continue from [Prove source restoration preserves display and history](32gc-roundtrip.md). [Save or recover your work](recovery.md).
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 1. `src/rehydrate_tests.rs`
 
-Reject the entire candidate batch before adopting any source and preserve displayed owners.
+Optional authoring fixture. Reject the entire candidate batch before adopting any source and preserve displayed owners.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 use crate::editor::{Action, Editor};
 ```
 
 </details>
 
-Replace that block with:
+After that block, append this supplied code:
 
-```rust
---8<-- "journey/code/32gd-rejections-01.rs"
+```text
+--8<-- "journey/code/32gd-rejections-01.rs" skip=37
 ```
+
+</details>
 
 ## Run and check
 
@@ -33,25 +42,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the rejection checks below. A wrong file version, source identity or release key must leave all editable owners unchanged.
+Source-restoration rejection is covered by optional fixtures. The browser still shows the existing Unload Sources behavior; automatic restoration is connected later.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Reject stale or inconsistent source batches atomically.](../screenshots/journey/32gd-rejections-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for reject stale or inconsistent source batches atomically.](../screenshots/journey/32gd-rejections.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -75,7 +80,7 @@ Study estimate, including typing and experiments: 1–2 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Change the second candidate in a two-origin batch to malformed bytes. Predict why validating all candidates first keeps the first origin cold.
+Unload an imported source and confirm its cached drawing stays visible. In the supplied two-origin example, trace why a malformed second candidate is rejected before the first origin is adopted. This is a code-reading exercise; native execution is optional.
 
 </details>
 
@@ -85,8 +90,8 @@ Change the second candidate in a two-origin batch to malformed bytes. Predict wh
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gd-rejections
-npm --prefix ../session_tests run course -- save 32gd-rejections
+npm --prefix ../session_tests run course -- check 3.16.24
+npm --prefix ../session_tests run course -- save 3.16.24
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -107,7 +112,7 @@ The browser checks the existing command-only unload behavior and retained drawin
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gd-rejections
+npm --prefix ../session_tests run course -- capture 3.16.24
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

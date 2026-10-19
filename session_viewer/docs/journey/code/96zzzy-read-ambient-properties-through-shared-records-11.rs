@@ -1,0 +1,1 @@
+draw};let draw=create(false);let record_draw=create(true);Self{draw,record_draw,radius}

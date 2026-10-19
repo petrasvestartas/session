@@ -1,0 +1,1 @@
+Self {written_bytes:Default::default(),texture,view}

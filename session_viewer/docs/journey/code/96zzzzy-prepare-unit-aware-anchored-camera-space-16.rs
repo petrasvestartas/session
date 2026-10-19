@@ -1,0 +1,1 @@
+        let inverse = self.view_projection_anchored(self.target).inverse()?;

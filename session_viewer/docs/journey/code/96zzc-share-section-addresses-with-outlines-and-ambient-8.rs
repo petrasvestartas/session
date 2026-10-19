@@ -1,0 +1,1 @@
+pass.set_bind_group(0,group,&[]);pass.set_bind_group(1,clipping,&[]);pass.draw

@@ -1,0 +1,2 @@
+ rows.truncate(2);let held=table.buffer.buf.clone();let binding=table.group.clone();assert!(!table.set(&ctx,&layout,&rows).unwrap());assert_eq!(table.written_bytes,0);assert_eq!(table.buffer.len(),2);assert_eq!(table.buffer.buf,held);assert_eq!(table.group,binding);assert_eq!(table.allocated_bytes(),capacity);check(&table,&rows);
+ rows[0][68..72].copy_from_slice(&0x80000003u32.to_ne_bytes());rows.truncate(1);table.set(&ctx,&layout,&rows).unwrap();assert_eq!(table.written_bytes,BYTES as u64);assert_eq!(table.buffer.len(),1);check(&table,&rows);

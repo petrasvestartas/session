@@ -1,8 +1,18 @@
 # Course release: command-line checkpoints
 
-**All 225 current checkpoints build and pass their scripted checks in visible Chrome 153.0.8010.36.** They cover lessons 01–32 plus placement, source-ownership, save/reopen, loading/recovery, GPU ownership and document-close follow-ups, and the short dock sequence from font setup through command handoff. Every interactive feature check types into the viewer’s actual egui command field. Canvas picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo shortcuts start in lesson 26a; H/S are introduced with visibility. Focused command text retains its own keys.
+**79 of 1361 current checkpoints have fresh build and Chrome evidence. Remaining browser acceptance is pending.** Subjects 00–97 are authored; browser acceptance is counted only when signatures match the updated source and checker. Every interactive feature check types into the viewer’s actual egui command field. Picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo start in lesson 26a; H/S join with visibility. Focused command text retains its editing keys.
 
-This is the opening of the full viewer course. The [remaining lesson checklist](roadmap.md) and [destination contract](destination.md) still govern completion.
+All subjects 00–97 are authored, ending with a maintained-runtime comparison. Before the October 9 update, the stored-evidence audit passed 980 checkpoint records: 980 WebAssembly builds, 980 optimized browser bundles, 949 native test suites and 979 actual native frames. The [local check evidence](local-checks.md) gives their scope and reproduction commands. The [lesson checklist](roadmap.md) and [destination contract](destination.md) track browser acceptance separately. The [maintained scene checks](current-native-scenes.md) cover both available floor files and the original dome output. The final maintained-runtime Chrome contract passes at DPR 1/2; broader browser acceptance and matched Lenovo measurements remain pending.
+
+The verification notes below record earlier runs. The initial whole-course audit found 354 current records and 626 missing or stale records; those earlier gaps were resolved before the October 9 changes. New source and dependency-fingerprint changes require renewed matching evidence. Historical Chrome runs do not verify changed endpoints. The summary above reports fresh evidence, and lessons identify native rendering separately from browser acceptance.
+
+## October 9 viewer update
+
+The [current-viewer guide](current-viewer.md) covers separate Element Attributes/Interactions, independent layer lamps, panel selection Fit, correct Close semantics and `?nogrid=1`. The live viewer/Wood dependency closure now invalidates stale acceptance. Historical destination hashes and images remain preserved. Canonical checkpoints 53u and 92o retain matching 315- and 784-test evidence. The ten new 96i–96r checkpoints pass native/WASM/optimized-bundle/frame checks: 804 tests each through 96p, 808 at 96q, and 809 at 96r. The final 97 endpoint also passes 809 tests after the cumulative update. All thirteen stored signatures match. Ten authoring tests and current-course structure also pass. The [local evidence](local-checks.md) records the exact scope; other earlier build records need renewed verification.
+
+## Final browser acceptance, October 9
+
+The final maintained-runtime endpoint passes the complete interaction/release contract and actual rendering checks in visible Chrome 153.0.8010.36 at DPR 1/2. The four-solid fixture includes one generated nameplate. Capture now uses the correct five-object total, actual single-selection and measurement answers, completed pointer/Fit delivery, and `%20` spaces in startup command URLs. Failure diagnostics retain inspected state, console and network messages. The [local evidence](local-checks.md) records the scope and remaining cases. The 96q/96r captures separately validate the imported-feature bridge and exact command completion in the handwritten runtime. The final contract also covers positive three-point Close and its 1,200 mm perimeter. These runs do not establish Lenovo performance.
 
 ## Lesson clarity revision
 
@@ -10,7 +20,7 @@ Each current lesson has one focused exercise. All main explanations were reviewe
 
 The first GPU lesson is now two complete runnable steps: paint a white GPU frame (30–59 minutes of typing), then separate presentation with bounded sizing and error feedback (28–56 minutes). That first GPU split preserved all 120 then-published code endpoints. Consecutive white pictures are explicitly declared and independently captured; no artificial view change is used to suggest new behavior.
 
-All 225 current checkpoints fit the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. The roadmap separates these completed teaching splits from the 57 remaining planned feature subjects.
+Every authored checkpoint fits the one-hour typing limit at the conservative planning rate. Reading, reasoning and experiments take additional time. All subjects are authored; the roadmap records their pending acceptance checks.
 
 ## Command-panel typing split
 
@@ -101,7 +111,7 @@ The scene comparison excludes the command strip. When a key opens completion ove
 
 ## Screenshot evidence
 
-Each lesson includes its own Chrome capture from the reconstructed optimized release browser bundle. The verifier uses `trunk build --release` and refuses stored web evidence without that flag. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, including their local helper dependencies, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`. Screenshots are included only while their source and checker fingerprints match.
+A lesson includes a Chrome capture only while its source and checker fingerprints match; the current source-bound total is reported in the summary above. Other lessons use explicitly labelled native illustrations and await fresh browser acceptance. The verifier uses `trunk build --release` and refuses stored web evidence without that flag. The capture file records source and bundle fingerprints, common and optional checkpoint checker hashes, including their local helper dependencies, Chrome version, timestamp, viewport conditions and scene hash in `screenshots/journey/browser.json`.
 
 The initial browser viewport is 900 × 760 CSS pixels at display density 1. The evidence records that viewport, the canvas bounds and the final screenshot viewport. Resize and Fit checks also change the window size. Linux WebGPU uses the flags documented in `open-chrome.sh`. This verifies those scripted cases on this machine; it does not establish complete browser or hardware coverage.
 

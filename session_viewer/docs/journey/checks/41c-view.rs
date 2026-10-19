@@ -676,7 +676,8 @@ fn prove_normal_pixels(device: &wgpu::Device, queue: &wgpu::Queue, format: wgpu:
 }
 
 fn prove_normal_diagnostics(device: &wgpu::Device, queue: &wgpu::Queue, format: wgpu::TextureFormat) {
-    use viewer_journey::{normal_example::{self, Mode}, prepared::PreparedMesh, scene::Scene, camera::{Camera, Projection}};
+    use normal_example::Mode;
+    use viewer_journey::{prepared::PreparedMesh, scene::Scene, camera::{Camera, Projection}};
     let encode = |v: f64| ((if v <= 0.0031308 { v * 12.92 } else { 1.055 * v.powf(1.0 / 2.4) - 0.055 }) * 255.0).round() as i16;
     for projection in [Projection::Perspective, Projection::Orthographic] { for density in [1, 2] {
         let size = [640 * density, 480 * density]; let mut camera = Camera::default(); camera.projection = projection;
@@ -695,4 +696,31 @@ fn prove_normal_diagnostics(device: &wgpu::Device, queue: &wgpu::Queue, format: 
             assert_eq!(renderer.stats(), before, "Normal visualization must reuse all geometry and object settings");
         }
     } }
+}
+
+// Private GPU specimens; the learner adds the command specimens in the next checkpoint.
+mod normal_example {
+use session_rust::{Color, Mesh, Point};
+
+#[derive(Clone, Copy)]
+pub enum Mode { Sharp, Smooth, Winding }
+
+pub fn specimen(mode: Mode) -> Mesh {
+    let winding = matches!(mode, Mode::Winding);
+    let xs: &[f64] = if winding { &[-0.7, 0.0, 0.7] } else { &[-0.7, 0.7] };
+    let mut points: Vec<Point> = xs.iter().map(|&x| Point::new(x, -0.5, 0.0)).chain(xs.iter().map(|&x| Point::new(x, 0.5, 0.0))).collect();
+    if winding { points.extend([Point::new(0.0, -0.5, 0.0), Point::new(0.0, 0.5, 0.0)]); }
+    let faces = if winding { vec![vec![0, 1, 4, 3], vec![6, 7, 5, 2]] } else { vec![vec![0, 1, 3, 2]] };
+    let mut mesh = Mesh::from_vertices_and_faces(points, faces); mesh.set_objectcolor(Color::new(0.5, 0.5, 0.5, 1.0));
+    if matches!(mode, Mode::Smooth) {
+        for key in mesh.vertices() {
+            let right = key == 1 || key == 3;
+            mesh.set_vertex_attribute(key, "nx", if right { 1.0 } else { 0.0 });
+            mesh.set_vertex_attribute(key, "ny", 0.0);
+            mesh.set_vertex_attribute(key, "nz", if right { 0.0 } else { 1.0 });
+        }
+    }
+    mesh
+}
+
 }

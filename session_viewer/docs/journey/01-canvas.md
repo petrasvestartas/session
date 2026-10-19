@@ -1,4 +1,6 @@
-# 01 · A page that Rust can reach
+# 1.1.1 · A page that Rust can reach
+
+**Chapter 1 · Browser, Rust and the GPU · Section 1.1 · Rust and the first GPU frame** · [Contents](contents.md)
 
 **Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
@@ -44,19 +46,13 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The window is white. In the browser console, evaluate `document.getElementById("status").textContent`. It should say “Rust is running. The canvas is ready.” Rust has started; GPU drawing comes next.
-
-**Verified checkpoint in Chrome.**
-
-![Actual browser result: A page that Rust can reach.](../screenshots/journey/01-canvas-browser.png)
-
-[Verification scope](release.md).
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -90,8 +86,8 @@ Change the sentence passed to `set_text_content`, save, and read the hidden stat
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 01-canvas
-npm --prefix ../session_tests run course -- save 01-canvas
+npm --prefix ../session_tests run course -- check 1.1.1
+npm --prefix ../session_tests run course -- save 1.1.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

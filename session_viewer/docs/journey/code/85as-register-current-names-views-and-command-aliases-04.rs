@@ -1,0 +1,5 @@
+    ("Select Edge", || Action::PickMode(crate::pick_sources::Mode::Edge)),
+    ("Select Control", || Action::PickMode(crate::pick_sources::Mode::Control)),
+    ("Escape",||Action::Escape),
+    ("Delete", || Action::Delete),
+    ("Undo", || Action::Undo),

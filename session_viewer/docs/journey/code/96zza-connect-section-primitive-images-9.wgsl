@@ -1,0 +1,1 @@
+@location(1) section_depth:vec2<f32>,@location(2) primitive:vec2<u32>,@builtin(frag_depth)

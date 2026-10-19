@@ -1,0 +1,1 @@
+previous: [u8; 160],primitive_base:u32,xray:bool

@@ -1,0 +1,1 @@
+32+16+16*self.rows.len()as u64+self.lookup.as_ref().map_or(0,|state|state.bytes())

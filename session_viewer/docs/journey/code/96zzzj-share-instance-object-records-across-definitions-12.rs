@@ -1,0 +1,1 @@
+assert_eq!(u32::from_ne_bytes(slots[16..20].try_into().unwrap()),1);

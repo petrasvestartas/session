@@ -1,0 +1,1 @@
+fn count_corner(position:vec3<f32>,plane:u32,object:ObjectSettings)->CountOut{

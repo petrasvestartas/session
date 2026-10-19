@@ -1,0 +1,1 @@
+        Self::layout_depth(device, format, &crate::stroke::shader(), 44, 6,

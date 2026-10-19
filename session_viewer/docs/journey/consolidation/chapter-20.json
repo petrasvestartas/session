@@ -1,0 +1,1039 @@
+{
+  "status": "consolidated prose and coverage; integration and current runtime/visual acceptance pending",
+  "chapter": 20,
+  "title": "Shared GPU rendering",
+  "first": "96zh-bind-the-shared-geometry-as-storage",
+  "end_before": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+  "lessons": [
+    {
+      "id": "96zh-bind-the-shared-geometry-as-storage",
+      "title": "Shared surface geometry and finite visibility addresses",
+      "page": "journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md",
+      "steps": [
+        "96zh-bind-the-shared-geometry-as-storage",
+        "96zi-read-source-vertices-through-one-shader-helper",
+        "96zj-activate-shared-vertex-pulling-for-color",
+        "96zk-assign-frame-triangle-ranges",
+        "96zl-own-the-integer-primitive-image",
+        "96zm-write-triangle-addresses-beside-color",
+        "96zn-bind-visible-triangle-addresses-for-ink",
+        "96zo-describe-ink-depth-and-surface-slack",
+        "96zp-fit-a-neighboring-surface-along-the-stroke",
+        "96zq-own-a-cropped-primitive-image-for-picks",
+        "96zr-share-crop-and-clipping-bindings-for-pulled-picks",
+        "96zs-write-first-pick-primitives-from-shared-geometry",
+        "96zt-fit-surface-depth-beneath-a-point-disc",
+        "96zu-test-the-disc-center-against-a-surface",
+        "96zv-carry-the-rasterized-triangle-gradient-to-ink",
+        "96zw-connect-surface-fitted-point-visibility",
+        "96zx-test-the-rasterized-neighbors-at-the-stroke-source",
+        "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion",
+        "96zz-separate-hidden-ink-color-from-pick-ownership",
+        "96zza-connect-section-primitive-images",
+        "96zzb-read-section-visibility-from-one-image"
+      ],
+      "checkpoint": "96zzb-read-section-visibility-from-one-image"
+    },
+    {
+      "id": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "title": "Physical formats, shared section inputs and display defaults",
+      "page": "journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md",
+      "steps": [
+        "96zzc-share-section-addresses-with-outlines-and-ambient",
+        "96zzd-pack-surface-position-normal-and-color",
+        "96zze-retain-rgba-in-prepared-displays",
+        "96zzf-start-with-current-browser-display-defaults"
+      ],
+      "checkpoint": "96zzf-start-with-current-browser-display-defaults"
+    },
+    {
+      "id": "96zzg-grow-buffers-without-losing-rows",
+      "title": "Shared arenas, object records and source preparation",
+      "page": "journey/consolidation/96zzg-grow-buffers-without-losing-rows.md",
+      "steps": [
+        "96zzg-grow-buffers-without-losing-rows",
+        "96zzh-prepare-shared-compact-mesh-ranges",
+        "96zzi-upload-compact-ranges-to-shared-gpu-storage",
+        "96zzj-share-the-object-record-layout",
+        "96zzk-borrow-the-current-arena-buffers",
+        "96zzl-read-shared-ranges-through-object-records",
+        "96zzm-connect-the-renderer-to-one-mesh-arena",
+        "96zzn-describe-eight-byte-draw-slots",
+        "96zzo-read-instance-properties-through-draw-slots",
+        "96zzp-classify-contact-fill-shading",
+        "96zzq-open-files-through-one-measured-session-reader",
+        "96zzr-route-current-close-and-opacity-commands",
+        "96zzs-reuse-full-source-preparation-for-editor-and-reload",
+        "96zzt-share-the-current-selection-yellow"
+      ],
+      "checkpoint": "96zzt-share-the-current-selection-yellow"
+    },
+    {
+      "id": "96zzu-separate-primitive-addresses-from-selection",
+      "title": "Slots, independent instance owners and stable record updates",
+      "page": "journey/consolidation/96zzu-separate-primitive-addresses-from-selection.md",
+      "steps": [
+        "96zzu-separate-primitive-addresses-from-selection",
+        "96zzv-bind-the-own-row-slot-for-ordinary-surfaces",
+        "96zzw-reload-scenes-through-the-existing-publication-owner",
+        "96zzx-update-only-changed-slot-runs",
+        "96zzy-share-one-slot-buffer-across-surface-draws",
+        "96zzz-prepare-the-integer-primitive-slot-texture",
+        "96zzza-describe-slot-and-triangle-runs",
+        "96zzzb-read-slot-runs-and-lookup-texels",
+        "96zzzc-reuse-and-merge-free-slot-ranges",
+        "96zzzd-follow-arena-growth-with-slot-headroom",
+        "96zzze-report-only-changed-instance-slots",
+        "96zzzf-project-triangles-at-their-physical-addresses",
+        "96zzzg-clear-the-current-arctic-background",
+        "96zzzh-share-changed-record-runs",
+        "96zzzi-prepare-one-shared-object-record-table",
+        "96zzzj-share-instance-object-records-across-definitions",
+        "96zzzk-reuse-checked-curve-control-coordinates",
+        "96zzzl-publish-allocator-texels-through-the-integer-table",
+        "96zzzm-resolve-physical-triangles-with-integer-slots",
+        "96zzzn-batch-shared-geometry-with-original-ownership",
+        "96zzzo-shrink-record-ranges-without-rewriting-live-prefixes",
+        "96zzzp-share-opaque-ordinary-surface-records",
+        "96zzzq-blend-ordinary-surface-records",
+        "96zzzr-share-transparent-instance-records"
+      ],
+      "checkpoint": "96zzzr-share-transparent-instance-records"
+    },
+    {
+      "id": "96zzzs-allocate-stable-object-record-rows",
+      "title": "Original picks, ambient metadata and cap consumers",
+      "page": "journey/consolidation/96zzzs-allocate-stable-object-record-rows.md",
+      "steps": [
+        "96zzzs-allocate-stable-object-record-rows",
+        "96zzzt-retain-live-surface-record-rows",
+        "96zzzu-prepare-shared-record-pick-consumers",
+        "96zzzv-pick-originals-through-shared-records",
+        "96zzzw-read-source-faces-through-shared-records",
+        "96zzzx-pack-existing-ambient-radius-in-object-records",
+        "96zzzy-read-ambient-properties-through-shared-records",
+        "96zzzz-share-the-object-record-shader-schema",
+        "96zzzza-prepare-shared-record-triangle-projection",
+        "96zzzzb-project-triangles-through-shared-records",
+        "96zzzzc-prepare-shared-record-cap-counting",
+        "96zzzzd-prepare-cap-plane-and-arena-bindings",
+        "96zzzze-count-cap-color-through-shared-records",
+        "96zzzzf-prepare-shared-record-cap-picks",
+        "96zzzzg-own-shared-record-cap-pick-resources",
+        "96zzzzh-pick-caps-through-shared-records"
+      ],
+      "checkpoint": "96zzzzh-pick-caps-through-shared-records"
+    },
+    {
+      "id": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "title": "Retained allocation, live lookup and safe reclamation",
+      "page": "journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md",
+      "steps": [
+        "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+        "96zzzzj-prepare-exact-arena-slot-definitions",
+        "96zzzzk-retain-live-allocator-member-runs",
+        "96zzzzl-prepare-one-plan-for-draw-slots-and-lookup",
+        "96zzzzm-prepare-one-owner-for-live-address-updates",
+        "96zzzzn-adopt-retained-gpu-slots-and-physical-bases",
+        "96zzzzo-separate-projection-rows-and-arena-offsets",
+        "96zzzzp-prepare-lookup-selected-triangle-projection",
+        "96zzzzq-prepare-the-lookup-projection-pipeline",
+        "96zzzzr-own-current-lookup-projection-bindings",
+        "96zzzzs-project-live-triangles-through-the-lookup",
+        "96zzzzt-plan-reusable-arena-spans",
+        "96zzzzu-reuse-retired-arena-record-ranges",
+        "96zzzzv-upload-reused-arena-spans-in-place",
+        "96zzzzw-reclaim-ranges-after-the-last-gpu-lease",
+        "96zzzzx-retire-empty-arena-ranges-after-tail-trimming"
+      ],
+      "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming"
+    }
+  ],
+  "old_step_to_lesson": {
+    "96zh-bind-the-shared-geometry-as-storage": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zh-bind-the-shared-geometry-as-storage"
+    },
+    "96zi-read-source-vertices-through-one-shader-helper": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zi-read-source-vertices-through-one-shader-helper"
+    },
+    "96zj-activate-shared-vertex-pulling-for-color": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zj-activate-shared-vertex-pulling-for-color"
+    },
+    "96zk-assign-frame-triangle-ranges": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zk-assign-frame-triangle-ranges"
+    },
+    "96zl-own-the-integer-primitive-image": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zl-own-the-integer-primitive-image"
+    },
+    "96zm-write-triangle-addresses-beside-color": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zm-write-triangle-addresses-beside-color"
+    },
+    "96zn-bind-visible-triangle-addresses-for-ink": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zn-bind-visible-triangle-addresses-for-ink"
+    },
+    "96zo-describe-ink-depth-and-surface-slack": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zo-describe-ink-depth-and-surface-slack"
+    },
+    "96zp-fit-a-neighboring-surface-along-the-stroke": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zp-fit-a-neighboring-surface-along-the-stroke"
+    },
+    "96zq-own-a-cropped-primitive-image-for-picks": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zq-own-a-cropped-primitive-image-for-picks"
+    },
+    "96zr-share-crop-and-clipping-bindings-for-pulled-picks": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zr-share-crop-and-clipping-bindings-for-pulled-picks"
+    },
+    "96zs-write-first-pick-primitives-from-shared-geometry": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zs-write-first-pick-primitives-from-shared-geometry"
+    },
+    "96zt-fit-surface-depth-beneath-a-point-disc": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zt-fit-surface-depth-beneath-a-point-disc"
+    },
+    "96zu-test-the-disc-center-against-a-surface": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zu-test-the-disc-center-against-a-surface"
+    },
+    "96zv-carry-the-rasterized-triangle-gradient-to-ink": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zv-carry-the-rasterized-triangle-gradient-to-ink"
+    },
+    "96zw-connect-surface-fitted-point-visibility": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zw-connect-surface-fitted-point-visibility"
+    },
+    "96zx-test-the-rasterized-neighbors-at-the-stroke-source": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zx-test-the-rasterized-neighbors-at-the-stroke-source"
+    },
+    "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zy-connect-fitted-surfaces-and-exact-stroke-occlusion"
+    },
+    "96zz-separate-hidden-ink-color-from-pick-ownership": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zz-separate-hidden-ink-color-from-pick-ownership"
+    },
+    "96zza-connect-section-primitive-images": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zza-connect-section-primitive-images"
+    },
+    "96zzb-read-section-visibility-from-one-image": {
+      "lesson": "96zh-bind-the-shared-geometry-as-storage",
+      "anchor": "checkpoint-96zzb-read-section-visibility-from-one-image"
+    },
+    "96zzc-share-section-addresses-with-outlines-and-ambient": {
+      "lesson": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "anchor": "checkpoint-96zzc-share-section-addresses-with-outlines-and-ambient"
+    },
+    "96zzd-pack-surface-position-normal-and-color": {
+      "lesson": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "anchor": "checkpoint-96zzd-pack-surface-position-normal-and-color"
+    },
+    "96zze-retain-rgba-in-prepared-displays": {
+      "lesson": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "anchor": "checkpoint-96zze-retain-rgba-in-prepared-displays"
+    },
+    "96zzf-start-with-current-browser-display-defaults": {
+      "lesson": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "anchor": "checkpoint-96zzf-start-with-current-browser-display-defaults"
+    },
+    "96zzg-grow-buffers-without-losing-rows": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzg-grow-buffers-without-losing-rows"
+    },
+    "96zzh-prepare-shared-compact-mesh-ranges": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzh-prepare-shared-compact-mesh-ranges"
+    },
+    "96zzi-upload-compact-ranges-to-shared-gpu-storage": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzi-upload-compact-ranges-to-shared-gpu-storage"
+    },
+    "96zzj-share-the-object-record-layout": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzj-share-the-object-record-layout"
+    },
+    "96zzk-borrow-the-current-arena-buffers": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzk-borrow-the-current-arena-buffers"
+    },
+    "96zzl-read-shared-ranges-through-object-records": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzl-read-shared-ranges-through-object-records"
+    },
+    "96zzm-connect-the-renderer-to-one-mesh-arena": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzm-connect-the-renderer-to-one-mesh-arena"
+    },
+    "96zzn-describe-eight-byte-draw-slots": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzn-describe-eight-byte-draw-slots"
+    },
+    "96zzo-read-instance-properties-through-draw-slots": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzo-read-instance-properties-through-draw-slots"
+    },
+    "96zzp-classify-contact-fill-shading": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzp-classify-contact-fill-shading"
+    },
+    "96zzq-open-files-through-one-measured-session-reader": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzq-open-files-through-one-measured-session-reader"
+    },
+    "96zzr-route-current-close-and-opacity-commands": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzr-route-current-close-and-opacity-commands"
+    },
+    "96zzs-reuse-full-source-preparation-for-editor-and-reload": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzs-reuse-full-source-preparation-for-editor-and-reload"
+    },
+    "96zzt-share-the-current-selection-yellow": {
+      "lesson": "96zzg-grow-buffers-without-losing-rows",
+      "anchor": "checkpoint-96zzt-share-the-current-selection-yellow"
+    },
+    "96zzu-separate-primitive-addresses-from-selection": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzu-separate-primitive-addresses-from-selection"
+    },
+    "96zzv-bind-the-own-row-slot-for-ordinary-surfaces": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzv-bind-the-own-row-slot-for-ordinary-surfaces"
+    },
+    "96zzw-reload-scenes-through-the-existing-publication-owner": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzw-reload-scenes-through-the-existing-publication-owner"
+    },
+    "96zzx-update-only-changed-slot-runs": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzx-update-only-changed-slot-runs"
+    },
+    "96zzy-share-one-slot-buffer-across-surface-draws": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzy-share-one-slot-buffer-across-surface-draws"
+    },
+    "96zzz-prepare-the-integer-primitive-slot-texture": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzz-prepare-the-integer-primitive-slot-texture"
+    },
+    "96zzza-describe-slot-and-triangle-runs": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzza-describe-slot-and-triangle-runs"
+    },
+    "96zzzb-read-slot-runs-and-lookup-texels": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzb-read-slot-runs-and-lookup-texels"
+    },
+    "96zzzc-reuse-and-merge-free-slot-ranges": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzc-reuse-and-merge-free-slot-ranges"
+    },
+    "96zzzd-follow-arena-growth-with-slot-headroom": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzd-follow-arena-growth-with-slot-headroom"
+    },
+    "96zzze-report-only-changed-instance-slots": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzze-report-only-changed-instance-slots"
+    },
+    "96zzzf-project-triangles-at-their-physical-addresses": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzf-project-triangles-at-their-physical-addresses"
+    },
+    "96zzzg-clear-the-current-arctic-background": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzg-clear-the-current-arctic-background"
+    },
+    "96zzzh-share-changed-record-runs": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzh-share-changed-record-runs"
+    },
+    "96zzzi-prepare-one-shared-object-record-table": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzi-prepare-one-shared-object-record-table"
+    },
+    "96zzzj-share-instance-object-records-across-definitions": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzj-share-instance-object-records-across-definitions"
+    },
+    "96zzzk-reuse-checked-curve-control-coordinates": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzk-reuse-checked-curve-control-coordinates"
+    },
+    "96zzzl-publish-allocator-texels-through-the-integer-table": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzl-publish-allocator-texels-through-the-integer-table"
+    },
+    "96zzzm-resolve-physical-triangles-with-integer-slots": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzm-resolve-physical-triangles-with-integer-slots"
+    },
+    "96zzzn-batch-shared-geometry-with-original-ownership": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzn-batch-shared-geometry-with-original-ownership"
+    },
+    "96zzzo-shrink-record-ranges-without-rewriting-live-prefixes": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzo-shrink-record-ranges-without-rewriting-live-prefixes"
+    },
+    "96zzzp-share-opaque-ordinary-surface-records": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzp-share-opaque-ordinary-surface-records"
+    },
+    "96zzzq-blend-ordinary-surface-records": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzq-blend-ordinary-surface-records"
+    },
+    "96zzzr-share-transparent-instance-records": {
+      "lesson": "96zzu-separate-primitive-addresses-from-selection",
+      "anchor": "checkpoint-96zzzr-share-transparent-instance-records"
+    },
+    "96zzzs-allocate-stable-object-record-rows": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzs-allocate-stable-object-record-rows"
+    },
+    "96zzzt-retain-live-surface-record-rows": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzt-retain-live-surface-record-rows"
+    },
+    "96zzzu-prepare-shared-record-pick-consumers": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzu-prepare-shared-record-pick-consumers"
+    },
+    "96zzzv-pick-originals-through-shared-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzv-pick-originals-through-shared-records"
+    },
+    "96zzzw-read-source-faces-through-shared-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzw-read-source-faces-through-shared-records"
+    },
+    "96zzzx-pack-existing-ambient-radius-in-object-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzx-pack-existing-ambient-radius-in-object-records"
+    },
+    "96zzzy-read-ambient-properties-through-shared-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzy-read-ambient-properties-through-shared-records"
+    },
+    "96zzzz-share-the-object-record-shader-schema": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzz-share-the-object-record-shader-schema"
+    },
+    "96zzzza-prepare-shared-record-triangle-projection": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzza-prepare-shared-record-triangle-projection"
+    },
+    "96zzzzb-project-triangles-through-shared-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzzb-project-triangles-through-shared-records"
+    },
+    "96zzzzc-prepare-shared-record-cap-counting": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzzc-prepare-shared-record-cap-counting"
+    },
+    "96zzzzd-prepare-cap-plane-and-arena-bindings": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzzd-prepare-cap-plane-and-arena-bindings"
+    },
+    "96zzzze-count-cap-color-through-shared-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzze-count-cap-color-through-shared-records"
+    },
+    "96zzzzf-prepare-shared-record-cap-picks": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzzf-prepare-shared-record-cap-picks"
+    },
+    "96zzzzg-own-shared-record-cap-pick-resources": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzzg-own-shared-record-cap-pick-resources"
+    },
+    "96zzzzh-pick-caps-through-shared-records": {
+      "lesson": "96zzzs-allocate-stable-object-record-rows",
+      "anchor": "checkpoint-96zzzzh-pick-caps-through-shared-records"
+    },
+    "96zzzzi-adapt-incremental-slots-to-pulled-draws": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzi-adapt-incremental-slots-to-pulled-draws"
+    },
+    "96zzzzj-prepare-exact-arena-slot-definitions": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzj-prepare-exact-arena-slot-definitions"
+    },
+    "96zzzzk-retain-live-allocator-member-runs": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzk-retain-live-allocator-member-runs"
+    },
+    "96zzzzl-prepare-one-plan-for-draw-slots-and-lookup": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzl-prepare-one-plan-for-draw-slots-and-lookup"
+    },
+    "96zzzzm-prepare-one-owner-for-live-address-updates": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzm-prepare-one-owner-for-live-address-updates"
+    },
+    "96zzzzn-adopt-retained-gpu-slots-and-physical-bases": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzn-adopt-retained-gpu-slots-and-physical-bases"
+    },
+    "96zzzzo-separate-projection-rows-and-arena-offsets": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzo-separate-projection-rows-and-arena-offsets"
+    },
+    "96zzzzp-prepare-lookup-selected-triangle-projection": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzp-prepare-lookup-selected-triangle-projection"
+    },
+    "96zzzzq-prepare-the-lookup-projection-pipeline": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzq-prepare-the-lookup-projection-pipeline"
+    },
+    "96zzzzr-own-current-lookup-projection-bindings": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzr-own-current-lookup-projection-bindings"
+    },
+    "96zzzzs-project-live-triangles-through-the-lookup": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzs-project-live-triangles-through-the-lookup"
+    },
+    "96zzzzt-plan-reusable-arena-spans": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzt-plan-reusable-arena-spans"
+    },
+    "96zzzzu-reuse-retired-arena-record-ranges": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzu-reuse-retired-arena-record-ranges"
+    },
+    "96zzzzv-upload-reused-arena-spans-in-place": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzv-upload-reused-arena-spans-in-place"
+    },
+    "96zzzzw-reclaim-ranges-after-the-last-gpu-lease": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzw-reclaim-ranges-after-the-last-gpu-lease"
+    },
+    "96zzzzx-retire-empty-arena-ranges-after-tail-trimming": {
+      "lesson": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "anchor": "checkpoint-96zzzzx-retire-empty-arena-ranges-after-tail-trimming"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/gpu/arena.rs",
+      "session_viewer/src/engine/gpu/buffers.rs",
+      "session_viewer/src/engine/gpu/objects.rs",
+      "session_viewer/src/engine/gpu/slots.rs",
+      "session_viewer/src/engine/gpu/instanced.rs",
+      "session_viewer/src/engine/gpu/faces.rs",
+      "session_viewer/src/engine/gpu/clip.rs",
+      "session_viewer/src/engine/gpu/triangle_tiles.rs",
+      "session_viewer/src/app/scene_sync/tombs.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "96zh-bind-the-shared-geometry-as-storage",
+      "path": "screenshots/journey/96zh-bind-the-shared-geometry-as-storage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zi-read-source-vertices-through-one-shader-helper",
+      "path": "screenshots/journey/96zi-read-source-vertices-through-one-shader-helper.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zj-activate-shared-vertex-pulling-for-color",
+      "path": "screenshots/journey/96zj-activate-shared-vertex-pulling-for-color.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zk-assign-frame-triangle-ranges",
+      "path": "screenshots/journey/96zk-assign-frame-triangle-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zl-own-the-integer-primitive-image",
+      "path": "screenshots/journey/96zl-own-the-integer-primitive-image.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zm-write-triangle-addresses-beside-color",
+      "path": "screenshots/journey/96zm-write-triangle-addresses-beside-color.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zn-bind-visible-triangle-addresses-for-ink",
+      "path": "screenshots/journey/96zn-bind-visible-triangle-addresses-for-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zo-describe-ink-depth-and-surface-slack",
+      "path": "screenshots/journey/96zo-describe-ink-depth-and-surface-slack.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zp-fit-a-neighboring-surface-along-the-stroke",
+      "path": "screenshots/journey/96zp-fit-a-neighboring-surface-along-the-stroke.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zq-own-a-cropped-primitive-image-for-picks",
+      "path": "screenshots/journey/96zq-own-a-cropped-primitive-image-for-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zr-share-crop-and-clipping-bindings-for-pulled-picks",
+      "path": "screenshots/journey/96zr-share-crop-and-clipping-bindings-for-pulled-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zs-write-first-pick-primitives-from-shared-geometry",
+      "path": "screenshots/journey/96zs-write-first-pick-primitives-from-shared-geometry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zt-fit-surface-depth-beneath-a-point-disc",
+      "path": "screenshots/journey/96zt-fit-surface-depth-beneath-a-point-disc.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zu-test-the-disc-center-against-a-surface",
+      "path": "screenshots/journey/96zu-test-the-disc-center-against-a-surface.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zv-carry-the-rasterized-triangle-gradient-to-ink",
+      "path": "screenshots/journey/96zv-carry-the-rasterized-triangle-gradient-to-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zw-connect-surface-fitted-point-visibility",
+      "path": "screenshots/journey/96zw-connect-surface-fitted-point-visibility.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zx-test-the-rasterized-neighbors-at-the-stroke-source",
+      "path": "screenshots/journey/96zx-test-the-rasterized-neighbors-at-the-stroke-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zy-connect-fitted-surfaces-and-exact-stroke-occlusion",
+      "path": "screenshots/journey/96zy-connect-fitted-surfaces-and-exact-stroke-occlusion.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zz-separate-hidden-ink-color-from-pick-ownership",
+      "path": "screenshots/journey/96zz-separate-hidden-ink-color-from-pick-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zza-connect-section-primitive-images",
+      "path": "screenshots/journey/96zza-connect-section-primitive-images.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzb-read-section-visibility-from-one-image",
+      "path": "screenshots/journey/96zzb-read-section-visibility-from-one-image.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzc-share-section-addresses-with-outlines-and-ambient",
+      "path": "screenshots/journey/96zzc-share-section-addresses-with-outlines-and-ambient.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzd-pack-surface-position-normal-and-color",
+      "path": "screenshots/journey/96zzd-pack-surface-position-normal-and-color.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zze-retain-rgba-in-prepared-displays",
+      "path": "screenshots/journey/96zze-retain-rgba-in-prepared-displays.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzf-start-with-current-browser-display-defaults",
+      "path": "screenshots/journey/96zzf-start-with-current-browser-display-defaults.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzg-grow-buffers-without-losing-rows",
+      "path": "screenshots/journey/96zzg-grow-buffers-without-losing-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzh-prepare-shared-compact-mesh-ranges",
+      "path": "screenshots/journey/96zzh-prepare-shared-compact-mesh-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzi-upload-compact-ranges-to-shared-gpu-storage",
+      "path": "screenshots/journey/96zzi-upload-compact-ranges-to-shared-gpu-storage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzj-share-the-object-record-layout",
+      "path": "screenshots/journey/96zzj-share-the-object-record-layout.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzk-borrow-the-current-arena-buffers",
+      "path": "screenshots/journey/96zzk-borrow-the-current-arena-buffers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzl-read-shared-ranges-through-object-records",
+      "path": "screenshots/journey/96zzl-read-shared-ranges-through-object-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzm-connect-the-renderer-to-one-mesh-arena",
+      "path": "screenshots/journey/96zzm-connect-the-renderer-to-one-mesh-arena.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzn-describe-eight-byte-draw-slots",
+      "path": "screenshots/journey/96zzn-describe-eight-byte-draw-slots.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzo-read-instance-properties-through-draw-slots",
+      "path": "screenshots/journey/96zzo-read-instance-properties-through-draw-slots.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzp-classify-contact-fill-shading",
+      "path": "screenshots/journey/96zzp-classify-contact-fill-shading.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzq-open-files-through-one-measured-session-reader",
+      "path": "screenshots/journey/96zzq-open-files-through-one-measured-session-reader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzr-route-current-close-and-opacity-commands",
+      "path": "screenshots/journey/96zzr-route-current-close-and-opacity-commands.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzs-reuse-full-source-preparation-for-editor-and-reload",
+      "path": "screenshots/journey/96zzs-reuse-full-source-preparation-for-editor-and-reload.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzt-share-the-current-selection-yellow",
+      "path": "screenshots/journey/96zzt-share-the-current-selection-yellow.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzu-separate-primitive-addresses-from-selection",
+      "path": "screenshots/journey/96zzu-separate-primitive-addresses-from-selection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzv-bind-the-own-row-slot-for-ordinary-surfaces",
+      "path": "screenshots/journey/96zzv-bind-the-own-row-slot-for-ordinary-surfaces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzw-reload-scenes-through-the-existing-publication-owner",
+      "path": "screenshots/journey/96zzw-reload-scenes-through-the-existing-publication-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzx-update-only-changed-slot-runs",
+      "path": "screenshots/journey/96zzx-update-only-changed-slot-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzy-share-one-slot-buffer-across-surface-draws",
+      "path": "screenshots/journey/96zzy-share-one-slot-buffer-across-surface-draws.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzz-prepare-the-integer-primitive-slot-texture",
+      "path": "screenshots/journey/96zzz-prepare-the-integer-primitive-slot-texture.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzza-describe-slot-and-triangle-runs",
+      "path": "screenshots/journey/96zzza-describe-slot-and-triangle-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzb-read-slot-runs-and-lookup-texels",
+      "path": "screenshots/journey/96zzzb-read-slot-runs-and-lookup-texels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzc-reuse-and-merge-free-slot-ranges",
+      "path": "screenshots/journey/96zzzc-reuse-and-merge-free-slot-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzd-follow-arena-growth-with-slot-headroom",
+      "path": "screenshots/journey/96zzzd-follow-arena-growth-with-slot-headroom.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzze-report-only-changed-instance-slots",
+      "path": "screenshots/journey/96zzze-report-only-changed-instance-slots.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzf-project-triangles-at-their-physical-addresses",
+      "path": "screenshots/journey/96zzzf-project-triangles-at-their-physical-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzg-clear-the-current-arctic-background",
+      "path": "screenshots/journey/96zzzg-clear-the-current-arctic-background.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzh-share-changed-record-runs",
+      "path": "screenshots/journey/96zzzh-share-changed-record-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzi-prepare-one-shared-object-record-table",
+      "path": "screenshots/journey/96zzzi-prepare-one-shared-object-record-table.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzj-share-instance-object-records-across-definitions",
+      "path": "screenshots/journey/96zzzj-share-instance-object-records-across-definitions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzk-reuse-checked-curve-control-coordinates",
+      "path": "screenshots/journey/96zzzk-reuse-checked-curve-control-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzl-publish-allocator-texels-through-the-integer-table",
+      "path": "screenshots/journey/96zzzl-publish-allocator-texels-through-the-integer-table.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzm-resolve-physical-triangles-with-integer-slots",
+      "path": "screenshots/journey/96zzzm-resolve-physical-triangles-with-integer-slots.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzn-batch-shared-geometry-with-original-ownership",
+      "path": "screenshots/journey/96zzzn-batch-shared-geometry-with-original-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzo-shrink-record-ranges-without-rewriting-live-prefixes",
+      "path": "screenshots/journey/96zzzo-shrink-record-ranges-without-rewriting-live-prefixes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzp-share-opaque-ordinary-surface-records",
+      "path": "screenshots/journey/96zzzp-share-opaque-ordinary-surface-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzq-blend-ordinary-surface-records",
+      "path": "screenshots/journey/96zzzq-blend-ordinary-surface-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzr-share-transparent-instance-records",
+      "path": "screenshots/journey/96zzzr-share-transparent-instance-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzs-allocate-stable-object-record-rows",
+      "path": "screenshots/journey/96zzzs-allocate-stable-object-record-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzt-retain-live-surface-record-rows",
+      "path": "screenshots/journey/96zzzt-retain-live-surface-record-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzu-prepare-shared-record-pick-consumers",
+      "path": "screenshots/journey/96zzzu-prepare-shared-record-pick-consumers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzv-pick-originals-through-shared-records",
+      "path": "screenshots/journey/96zzzv-pick-originals-through-shared-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzw-read-source-faces-through-shared-records",
+      "path": "screenshots/journey/96zzzw-read-source-faces-through-shared-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzx-pack-existing-ambient-radius-in-object-records",
+      "path": "screenshots/journey/96zzzx-pack-existing-ambient-radius-in-object-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzy-read-ambient-properties-through-shared-records",
+      "path": "screenshots/journey/96zzzy-read-ambient-properties-through-shared-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzz-share-the-object-record-shader-schema",
+      "path": "screenshots/journey/96zzzz-share-the-object-record-shader-schema.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzza-prepare-shared-record-triangle-projection",
+      "path": "screenshots/journey/96zzzza-prepare-shared-record-triangle-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzb-project-triangles-through-shared-records",
+      "path": "screenshots/journey/96zzzzb-project-triangles-through-shared-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzc-prepare-shared-record-cap-counting",
+      "path": "screenshots/journey/96zzzzc-prepare-shared-record-cap-counting.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzd-prepare-cap-plane-and-arena-bindings",
+      "path": "screenshots/journey/96zzzzd-prepare-cap-plane-and-arena-bindings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzze-count-cap-color-through-shared-records",
+      "path": "screenshots/journey/96zzzze-count-cap-color-through-shared-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzf-prepare-shared-record-cap-picks",
+      "path": "screenshots/journey/96zzzzf-prepare-shared-record-cap-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzg-own-shared-record-cap-pick-resources",
+      "path": "screenshots/journey/96zzzzg-own-shared-record-cap-pick-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzh-pick-caps-through-shared-records",
+      "path": "screenshots/journey/96zzzzh-pick-caps-through-shared-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzi-adapt-incremental-slots-to-pulled-draws",
+      "path": "screenshots/journey/96zzzzi-adapt-incremental-slots-to-pulled-draws.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzj-prepare-exact-arena-slot-definitions",
+      "path": "screenshots/journey/96zzzzj-prepare-exact-arena-slot-definitions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzk-retain-live-allocator-member-runs",
+      "path": "screenshots/journey/96zzzzk-retain-live-allocator-member-runs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzl-prepare-one-plan-for-draw-slots-and-lookup",
+      "path": "screenshots/journey/96zzzzl-prepare-one-plan-for-draw-slots-and-lookup.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzm-prepare-one-owner-for-live-address-updates",
+      "path": "screenshots/journey/96zzzzm-prepare-one-owner-for-live-address-updates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzn-adopt-retained-gpu-slots-and-physical-bases",
+      "path": "screenshots/journey/96zzzzn-adopt-retained-gpu-slots-and-physical-bases.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzo-separate-projection-rows-and-arena-offsets",
+      "path": "screenshots/journey/96zzzzo-separate-projection-rows-and-arena-offsets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzp-prepare-lookup-selected-triangle-projection",
+      "path": "screenshots/journey/96zzzzp-prepare-lookup-selected-triangle-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzq-prepare-the-lookup-projection-pipeline",
+      "path": "screenshots/journey/96zzzzq-prepare-the-lookup-projection-pipeline.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzr-own-current-lookup-projection-bindings",
+      "path": "screenshots/journey/96zzzzr-own-current-lookup-projection-bindings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzs-project-live-triangles-through-the-lookup",
+      "path": "screenshots/journey/96zzzzs-project-live-triangles-through-the-lookup.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzt-plan-reusable-arena-spans",
+      "path": "screenshots/journey/96zzzzt-plan-reusable-arena-spans.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzu-reuse-retired-arena-record-ranges",
+      "path": "screenshots/journey/96zzzzu-reuse-retired-arena-record-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzv-upload-reused-arena-spans-in-place",
+      "path": "screenshots/journey/96zzzzv-upload-reused-arena-spans-in-place.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzw-reclaim-ranges-after-the-last-gpu-lease",
+      "path": "screenshots/journey/96zzzzw-reclaim-ranges-after-the-last-gpu-lease.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzx-retire-empty-arena-ranges-after-tail-trimming",
+      "path": "screenshots/journey/96zzzzx-retire-empty-arena-ranges-after-tail-trimming.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Earlier course-only lane/record/finite-AA abstractions remain staged where divergent; current production extraction and matched acceptance are pending."
+  ]
+}

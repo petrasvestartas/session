@@ -1,6 +1,8 @@
-# 34gbb · Keep each heartbeat pause reason separate
+# 4.2.19 · Keep each heartbeat pause reason separate
 
-**Typing: 22–43 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 10–19 minutes.** [Estimate](typing-load.md).
 
 Give heartbeat scheduling three independent reasons to pause: hidden, frozen and cached. Clearing one reason must leave the others intact. Final closure permanently prevents resumption.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/34gbb-suspension-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/suspension_tests.rs`
 
-Check overlapping reasons, initial hidden state, duplicate delivery and final closure that cannot resume.
+Optional authoring fixture. Check overlapping reasons, initial hidden state, duplicate delivery and final closure that cannot resume.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34gbb-suspension-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -41,11 +50,24 @@ pub mod diagnostic;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+pub mod suspension;
+#[cfg(test)]
+mod suspension_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gbb-suspension-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +75,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks. Every remaining pause reason prevents resumption, and clearing all reasons permits it. A closed policy stays closed.
+Inspect the supplied state fixtures. Every remaining pause reason prevents resumption, and clearing all reasons permits it. A closed policy stays closed.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Keep each heartbeat pause reason separate.](../screenshots/journey/34gbb-suspension-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for keep each heartbeat pause reason separate.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +123,8 @@ Change the first test to clear Frozen last. Predict which earlier clear remains 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gbb-suspension
-npm --prefix ../session_tests run course -- save 34gbb-suspension
+npm --prefix ../session_tests run course -- check 4.2.19
+npm --prefix ../session_tests run course -- save 4.2.19
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +145,7 @@ This preparation step retains the preceding browser drawing and lifecycle behavi
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gbb-suspension
+npm --prefix ../session_tests run course -- capture 4.2.19
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

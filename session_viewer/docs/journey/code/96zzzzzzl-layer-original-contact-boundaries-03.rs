@@ -1,0 +1,1 @@
+source_metadata(stride,picking,grid,varying)

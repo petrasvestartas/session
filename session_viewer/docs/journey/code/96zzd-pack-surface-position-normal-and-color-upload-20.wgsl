@@ -1,0 +1,1 @@
+var<storage,read> physical_vertices:array<PackedVertex>;

@@ -1,0 +1,1 @@
+finite_visible(pixel,axis,depths,flags,sag)

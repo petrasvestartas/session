@@ -1,0 +1,2 @@
+    pub fn set(&mut self,device:&wgpu::Device,draft:Option<&Draft>)->Result<(),&'static str>{self.set_at(device,draft,[0.;3])}
+    pub fn set_at(&mut self,device:&wgpu::Device,draft:Option<&Draft>,anchor:[f64;3])->Result<(),&'static str>{

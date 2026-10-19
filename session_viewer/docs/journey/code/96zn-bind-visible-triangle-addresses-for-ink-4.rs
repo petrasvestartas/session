@@ -1,0 +1,1 @@
+wgpu::BindingResource::TextureView(&tables.caps)},wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&tables.primitive)}]

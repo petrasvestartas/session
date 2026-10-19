@@ -1,0 +1,1 @@
+let originals = self.control_owners.iter().copied().filter(|id| !self.paths.iter().any(|r|r.id==*id && r.controls_visible)).map(|id| (id, false));

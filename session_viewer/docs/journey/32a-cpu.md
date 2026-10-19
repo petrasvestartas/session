@@ -1,4 +1,6 @@
-# 32a · Count shared CPU displays once
+# 3.16.2 · Count shared CPU displays once
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 30–60 minutes.** [Estimate](typing-load.md).
 
@@ -21,7 +23,7 @@ Count allocated display-vector capacity rather than just occupied elements.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32a-cpu-01.rs"
@@ -40,7 +42,7 @@ Inspect active and retained snapshot roots without creating new owners.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32a-cpu-02.rs"
@@ -59,7 +61,7 @@ Expose borrowed live geometry owners for accounting and weak lifetime checks.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32a-cpu-03.rs"
@@ -88,7 +90,7 @@ pub mod mesh;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32a-cpu-05.rs"
@@ -107,10 +109,10 @@ Publish accounting only through private canvas diagnostics.
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32a-cpu-06.rs"
+--8<-- "journey/code/32a-cpu-06.rs" skip=81
 ```
 
 ## Run and check
@@ -119,25 +121,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the CPU accounting checks below. One display shared by active rows and history must be counted once, while every row remains counted.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Count shared CPU displays once.](../screenshots/journey/32a-cpu-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for count shared cpu displays once.](../screenshots/journey/32a-cpu.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -173,8 +171,8 @@ Compare a Vec with length three and capacity sixteen. Explain why its payload al
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32a-cpu
-npm --prefix ../session_tests run course -- save 32a-cpu
+npm --prefix ../session_tests run course -- check 3.16.2
+npm --prefix ../session_tests run course -- save 3.16.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -193,7 +191,7 @@ Production source accounting covers every kernel geometry family and cached scan
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32a-cpu
+npm --prefix ../session_tests run course -- capture 3.16.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

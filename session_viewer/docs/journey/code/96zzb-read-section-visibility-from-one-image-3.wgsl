@@ -1,0 +1,1 @@
+ if(clip_is_cap(ink_primitive(pixel,0u))){fit_at=source_at;}

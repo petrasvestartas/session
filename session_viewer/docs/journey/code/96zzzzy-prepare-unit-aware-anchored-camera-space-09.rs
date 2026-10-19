@@ -1,0 +1,1 @@
+        let near = distance * NEAR_FRACTION;

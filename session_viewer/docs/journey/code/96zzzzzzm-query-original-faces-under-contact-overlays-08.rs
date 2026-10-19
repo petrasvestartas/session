@@ -1,0 +1,1 @@
+if !mesh.source_faces||geometry.source.parts.triangles.is_empty()

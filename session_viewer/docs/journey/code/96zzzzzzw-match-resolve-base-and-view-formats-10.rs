@@ -1,0 +1,1 @@
+Targets::with_formats(&device,[640,480],output_format,format,1)

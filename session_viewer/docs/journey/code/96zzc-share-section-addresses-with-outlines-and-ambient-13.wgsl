@@ -1,0 +1,1 @@
+var source_primitives:texture_2d<u32>;

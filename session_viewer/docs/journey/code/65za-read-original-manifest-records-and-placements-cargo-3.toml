@@ -1,0 +1,8 @@
+serde_yaml_ng = "=0.10.0"
+toml = { version = "=0.8.23", optional = true }
+
+[features]
+json-sessions = []
+toml-manifests = ["dep:toml"]
+
+[dev-dependencies]

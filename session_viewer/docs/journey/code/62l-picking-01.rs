@@ -1,0 +1,7 @@
+    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
+    text_error:std::cell::RefCell<Option<String>>,
+    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
+    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
+    format:wgpu::TextureFormat,
+    pub device: wgpu::Device,

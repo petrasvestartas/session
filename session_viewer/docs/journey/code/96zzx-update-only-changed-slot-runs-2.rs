@@ -1,0 +1,1 @@
+previous:Vec<Slot>,pub written_bytes:u64}

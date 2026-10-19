@@ -1,0 +1,1 @@
+local.unclipped(std::array::from_fn(|i|world[i]+(right[i]*x-up[i]*y)*unit))

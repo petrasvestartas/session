@@ -1,4 +1,6 @@
-# 34gdd · Measure the selected file read
+# 4.2.29 · Measure the selected file read
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 4–7 minutes.** [Estimate](typing-load.md).
 
@@ -23,11 +25,28 @@ Measure an actual completed read only after its ticket is accepted.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        let started = crate::browser_phase::now();
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        let accepted = request.borrow_mut().finish(id);
+        if !accepted { return; }
+        let bytes = result.as_ref().map_or(0, |buffer| js_sys::Uint8Array::new(buffer).length() as u64);
+        crate::browser_phase::finish(if result.is_ok() { "file read" } else { "file read failed" },
+            started, bytes, &file.name());
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gdd-read-01.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -35,25 +54,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Open a file, then type `Report`. Its phases list includes `file read`, the read duration, actual bytes and filename.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Measure the selected file read.](../screenshots/journey/34gdd-read-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for measure the selected file read.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -85,8 +102,8 @@ Cancel a pending Open. Its late read must add neither a file nor a measurement.
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gdd-read
-npm --prefix ../session_tests run course -- save 34gdd-read
+npm --prefix ../session_tests run course -- check 4.2.29
+npm --prefix ../session_tests run course -- save 4.2.29
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -107,7 +124,7 @@ Chrome holds actual file reads to verify measured success, failure, cancellation
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gdd-read
+npm --prefix ../session_tests run course -- capture 4.2.29
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

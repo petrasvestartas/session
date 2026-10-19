@@ -3,6 +3,7 @@
             Projection::Orthographic => {
                 let h = self.distance * HALF_FOV.tan();
                 let w = h * self.aspect;
-                Xform::orthographic(-w, w, -h, h, -far, far)
+                let depth_range = (self.distance + 2.0 * self.radius).max(1.0e-6);
+                Xform::orthographic(-w, w, -h, h, -depth_range, depth_range)
             }
         };

@@ -1,0 +1,1 @@
+::Wgsl(if target.samples==4 {include_str!("text_plane.wgsl").replace("@location(0) uv:","@location(0) @interpolate(perspective,sample) uv:").replace("@location(1) color:","@location(1) @interpolate(perspective,sample) color:").replace("@location(5) original:","@location(5) @interpolate(perspective,sample) original:").into()}else{include_s

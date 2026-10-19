@@ -14,7 +14,7 @@ module.exports = async (original, helpers) => {
                 && JSON.parse(window.wasmBindings.diagnostic_snapshot()).outcome === 'ready');
             const value = async name => JSON.parse(await page.locator('canvas').getAttribute(name));
             const quiet = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(120); };
-            const image = async () => { await quiet(); const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+            const image = async () => { await quiet(); const url = await require('./canvas-image.cjs')(page.locator('canvas'));
                 return PNG.sync.read(Buffer.from(url.split(',')[1], 'base64')); };
             const at = (image, matrix, p) => {
                 const clip = [0, 1, 2, 3].map(row => p.reduce((v, x, axis) => v + matrix[axis * 4 + row] * x, matrix[12 + row]));

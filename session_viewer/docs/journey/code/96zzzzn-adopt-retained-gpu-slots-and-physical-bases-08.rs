@@ -1,0 +1,1 @@
+change=Some(space.update(&definitions,&touched,arena));

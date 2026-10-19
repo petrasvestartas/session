@@ -1,4 +1,6 @@
-# 38 · Validate an original NURBS curve before sampling
+# 5.4.1 · Validate an original NURBS curve before sampling
+
+**Chapter 5 · Lines, points and curves · Section 5.4 · NURBS curves** · [Contents](contents.md)
 
 **Typing: 17–34 minutes.** [Estimate](typing-load.md).
 
@@ -31,21 +33,41 @@ pub mod controls;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+pub mod curve;
+#[cfg(test)]
+mod curve_layout_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/38-layout-02.rs"
 ```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/curve_layout_tests.rs`
 
 Copy valid original domains, unchanged sources and malformed-layout refusal checks.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/38-layout-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +75,25 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run curve layout checks against valid, periodic, rational and maliciously incomplete inputs.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Validate an original NURBS curve before sampling.](../screenshots/journey/38-layout-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+This checkpoint was rendered independently and has the same native comparison frame as [Identify controls on the original curve owner](37e-controls.md). Use its state checks and browser exercise to assess the changed behavior.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for validate an original nurbs curve before sampling.](../screenshots/journey/37d-render.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [5.3.5 · Draw original point rows and count their resources](37d-render.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +125,8 @@ Set the stride to usize::MAX. Validation must return an error without slicing or
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 38-layout
-npm --prefix ../session_tests run course -- save 38-layout
+npm --prefix ../session_tests run course -- check 5.4.1
+npm --prefix ../session_tests run course -- save 5.4.1
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +147,7 @@ Chrome retains point and connected rendering while native checks guard original 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 38-layout
+npm --prefix ../session_tests run course -- capture 5.4.1
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

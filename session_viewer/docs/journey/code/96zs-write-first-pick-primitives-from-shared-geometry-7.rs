@@ -1,0 +1,1 @@
+clipping:&wgpu::BindGroup,clipping_buffer:&wgpu::Buffer,caps:

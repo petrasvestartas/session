@@ -1,0 +1,2 @@
+        let mut strokes=self.strokes()?;let model=crate::render_space::placed(&plane.matrix64(),anchor);
+        for stroke in &mut strokes{for p in [&mut stroke.start,&mut stroke.end]{let values=model.transform_point(&session_rust::Point::new(f64::from(p[0]),f64::from(p[1]),f64::from(p[2]))).to_f32();

@@ -2,6 +2,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const assert = require('node:assert/strict');
+const {spawnSync} = require('node:child_process');
 const {chromium} = require('playwright');
 const {PNG} = require('pngjs');
 const browserFingerprint = require('./journey/checks/fingerprint.cjs');
@@ -14,7 +15,7 @@ const hash = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
 // Drawing pixels exclude CSS borders and focus outlines from neighbouring controls.
 async function drawing(page) {
-    const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+    const url = await require('./journey/checks/browser/canvas-image.cjs')(page.locator('canvas'));
     const pixels = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
     const ui = await page.locator('canvas').getAttribute('data-command-ui');
     // Compare the scene above the folded dock; text, caret and history are separate UI state.
@@ -24,6 +25,7 @@ async function drawing(page) {
 
 
 async function focusCommand(page) {
+    await page.bringToFront();
     await page.waitForFunction(() => {
         const canvas = document.querySelector('canvas');
         const ui = JSON.parse(canvas?.getAttribute('data-command-ui') || '{}');
@@ -40,18 +42,34 @@ async function focusCommand(page) {
     await page.waitForFunction(() => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).focused);
 }
 
-async function command(page, line) {
+async function command(page, line, options = {}) {
     await focusCommand(page);
-    const previous = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui')).history.length;
-    await page.keyboard.press('ControlOrMeta+A');
-    await page.keyboard.type(line);
+    await page.evaluate(() => {
+        if (window.courseKeyTrace) return;
+        window.courseKeyTrace = [];
+        for (const type of ['keydown', 'keyup', 'pointerdown', 'pointerup']) window.addEventListener(type, event => {
+            const ui = JSON.parse(document.querySelector('canvas')?.getAttribute('data-command-ui') || '{}');
+            window.courseKeyTrace.push([event.type, event.key || '', !!event.ctrlKey, ui.command, ui.focused]);
+            if (window.courseKeyTrace.length > 100) window.courseKeyTrace.shift();
+        });
+    });
+    const before = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui'));
+    const previous = before.history.length;
+    if (before.command) await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.type(line, {delay: 60});
+    await page.waitForFunction(line => JSON.parse(document.querySelector('canvas').getAttribute('data-command-ui')).command === line, line).catch(async error => {
+        const actual = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui')).command;
+        throw new Error(`Typed ${JSON.stringify(line)}, but the command field contains ${JSON.stringify(actual)}; key trace: ${JSON.stringify(await page.evaluate(() => window.courseKeyTrace))}`, {cause: error});
+    });
     await page.keyboard.press('Enter');
     await page.waitForTimeout(120);
     const ui = JSON.parse(await page.locator('canvas').getAttribute('data-command-ui'));
-    assert.equal(ui.history.length, Math.min(200, previous + 1), 'Exactly one command must be submitted');
-    assert.equal(ui.command, '', 'Enter must submit and clear the command field');
-    assert(ui.history.at(-1)?.startsWith('> ' + line + '\n'), 'The dock must record the typed command: ' + line);
-    assert(!ui.history.at(-1).includes('Unknown command'), 'The checkpoint must implement ' + line);
+    assert.equal(ui.history.length, Math.min(200, previous + 1), 'Exactly one command must be submitted: ' + JSON.stringify(ui.history));
+    assert.equal(ui.command, '', 'Enter must submit and clear the command field: ' + line + '; history: ' + JSON.stringify(ui.history.at(-1)));
+    const recorded = [options.canonical || line, line.replace(/^CPlane(?=\s|$)/i, 'Construction Plane')];
+    assert(recorded.some(text => ui.history.at(-1)?.startsWith('> ' + text + '\n')),
+        'The dock must record the typed command or its explicit plane alias: ' + line + '; actual: ' + ui.history.at(-1));
+    assert(options.allowUnknown || !ui.history.at(-1).includes('Unknown command'), 'The checkpoint must implement ' + line);
 }
 
 async function fitted(page) {
@@ -68,7 +86,7 @@ async function fitted(page) {
     await page.waitForTimeout(200);
     assert.equal(await drawing(page), result, 'Fit must recover the same view after panning');
 
-    const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+    const url = await require('./journey/checks/browser/canvas-image.cjs')(page.locator('canvas'));
     const {data, width, height} = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
     let count = 0;
     for (let y = 0; y < height - 30; y++) {
@@ -92,7 +110,7 @@ async function projection(page) {
         const before = await drawing(page);
         if (mode === 'Perspective') assert.notEqual(before, ortho, 'Projection must change depth-dependent scale');
         else assert.equal(before, ortho, 'Projection round-trip must restore all scene pixels');
-        const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+        const url = await require('./journey/checks/browser/canvas-image.cjs')(page.locator('canvas'));
         const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
         const orange = [];
         for (let y = 0; y < image.height - 34; y++) for (let x = 0; x < image.width; x++) {
@@ -106,7 +124,7 @@ async function projection(page) {
         await page.mouse.click(box.x + (x + .5) * box.width / image.width, box.y + (y + .5) * box.height / image.height);
         await page.waitForTimeout(120);
         assert.notEqual(await drawing(page), before, 'A visible beam must be selectable in ' + mode);
-        const selected = PNG.sync.read(Buffer.from((await page.locator('canvas').evaluate(c => c.toDataURL())).split(',')[1], 'base64'));
+        const selected = PNG.sync.read(Buffer.from((await require('./journey/checks/browser/canvas-image.cjs')(page.locator('canvas'))).split(',')[1], 'base64'));
         let yellow = 0;
         for (let i = 0; i < selected.width * (selected.height - 34) * 4; i += 4) {
             const [r, g, b] = selected.data.subarray(i, i + 3);
@@ -119,7 +137,39 @@ async function projection(page) {
     }
 }
 
+function prepareSample(step) {
+    const folder = path.resolve('target', `course-${step.id}`);
+    const example = path.join(folder, 'examples/sample.rs');
+    if (!fs.existsSync(example)) return;
+    const now = new Date();
+    const fresh = directory => {
+        for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
+            const file = path.join(directory, entry.name);
+            if (entry.isDirectory()) fresh(file);
+            else if (entry.isFile()) fs.utimesSync(file, now, now);
+        }
+    };
+    fresh(path.join(folder, 'src'));
+    for (const file of [example, path.join(folder, 'Cargo.toml')]) fs.utimesSync(file, now, now);
+    const log = path.resolve('target/course-checks', `${step.id}-browser-fixture.log`);
+    const descriptor = fs.openSync(log, 'w');
+    let result;
+    try {
+        result = spawnSync('buildslot', ['timeout', '10m', 'prlimit', '--data=6442450944', '--',
+            'cargo', 'run', '--example', 'sample', '--locked', '--target', 'x86_64-unknown-linux-gnu', '-j4'], {
+            cwd: folder,
+            env: {...process.env, RUSTC_WRAPPER: '', CARGO_NET_OFFLINE: 'true', REGEN_PROTO: '0',
+                CARGO_BUILD_JOBS: '4', CARGO_TARGET_DIR: path.resolve('target/course-build')},
+            stdio: ['ignore', descriptor, descriptor]
+        });
+    } finally { fs.closeSync(descriptor); }
+    assert(!result.error && result.status === 0, `${step.id}: sample preparation failed; read ${log}`);
+    assert(fs.statSync(path.join(folder, 'sample.pb')).size > 0, `${step.id}: empty sample`);
+    console.log(`${step.id}: original browser specimen rebuilt from this checkpoint`);
+}
+
 async function capture() {
+    for (const step of course.steps.filter(step => !selected.length || selected.includes(step.id))) prepareSample(step);
 
     const args = process.env.VIEWER_CHROME_ARGS ? JSON.parse(process.env.VIEWER_CHROME_ARGS)
         : process.platform === 'linux' ? ['--enable-unsafe-webgpu', '--enable-features=Vulkan,DefaultANGLEVulkan,VulkanFromANGLE', '--disable-vulkan-surface', '--ozone-platform=x11'] : [];
@@ -128,9 +178,11 @@ async function capture() {
     const saved = path.join(output, 'browser.json');
     const records = selected.length && fs.existsSync(saved) ? JSON.parse(fs.readFileSync(saved))
         : {browser: browser.version(), headless, args, captured: new Date().toISOString(), steps: {}};
+    let page, checkpoint;
+    const errors = [], messages = [];
     try {
-        const page = await browser.newPage({viewport: {width: 900, height: 760}, deviceScaleFactor: 1});
-        const errors = [];
+        page = await browser.newPage({viewport: {width: 900, height: 760}, deviceScaleFactor: 1});
+        page.on('requestfailed', request => messages.push({url: request.url(), error: request.failure()}));
         page.on('pageerror', error => errors.push(error.message));
         page.on('console', message => {
             if (message.type() === 'error') errors.push(`${message.text()} ${message.location().url}`);
@@ -138,7 +190,8 @@ async function capture() {
         const base = process.env.JOURNEY_URL || 'http://127.0.0.1:8781/';
         for (const step of course.steps.filter(step => !selected.length || selected.includes(step.id))) {
             const id = step.id;
-            errors.length = 0;
+            checkpoint = id;
+            errors.length = 0; messages.length = 0;
             await page.setViewportSize({width: 900, height: 760});
             await page.goto(new URL(`${id}/dist/`, base).href);
             await page.waitForFunction(() => {
@@ -155,13 +208,13 @@ async function capture() {
             if (id !== '01-canvas') {
                 assert.deepEqual(await page.locator('canvas').evaluate(c => ({width: c.width, height: c.height})),
                     viewport, id + ': GPU image must match the initial window at display density 1');
-                const url = await page.locator('canvas').evaluate(c => c.toDataURL());
+                const url = await require('./journey/checks/browser/canvas-image.cjs')(page.locator('canvas'));
                 const pixels = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
                 assert.deepEqual([...pixels.data.subarray(0, 4)], [255, 255, 255, 255],
                     id + ': the initial GPU background must be white');
             }
             if (id === '03a-panel') {
-                const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+                const url = await require('./journey/checks/browser/canvas-image.cjs')(page.locator('canvas'));
                 const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
                 const pixel = (x, y) => [...image.data.subarray((y * image.width + x) * 4, (y * image.width + x) * 4 + 3)];
                 const pink = [0.9, 0.25, 0.45].map(value => Math.round(255 * (1.055 * value ** (1 / 2.4) - 0.055)));
@@ -242,6 +295,7 @@ async function capture() {
                     await command(page, 'Open');
                     await (await choosing).setFiles(`target/course-${id}/${action.file}`);
                     await page.waitForFunction(() => document.querySelector('#status')?.textContent === 'File imported. Undo removes the entire import.');
+                    if (action.fit) await command(page, 'Fit');
                     await page.waitForTimeout(200);
                     const imported = await drawing(page);
                     assert.notEqual(imported, before, 'Import must draw new objects');
@@ -323,6 +377,20 @@ async function capture() {
             console.log(`${id}: browser checks and screenshot passed`);
         }
         fs.writeFileSync(path.join(output, 'browser.json'), JSON.stringify(records, null, 2) + '\n');
+    } catch (error) {
+        if (page && checkpoint) {
+            const file = path.join('target/course-checks', `${checkpoint}-browser-failure`);
+            const state = await page.evaluate(() => ({
+                status: document.querySelector('#status')?.textContent,
+                canvas: Object.fromEntries([...document.querySelector('canvas').attributes]
+                    .filter(attribute => attribute.name.startsWith('data-'))
+                    .map(attribute => [attribute.name, attribute.value])),
+            })).catch(() => null);
+            fs.writeFileSync(file + '.json', JSON.stringify({url: page.url(), browser: browser.version(), args, errors, messages, state}, null, 2) + '\n');
+            await page.screenshot({path: file + '.png'}).catch(() => {});
+            console.error(`Browser diagnostics: ${file}.json`);
+        }
+        throw error;
     } finally {
         await browser.close();
     }

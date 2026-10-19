@@ -1,0 +1,1 @@
+format,&crate::finite_project_source::expand(include_str!("guide.wgsl")),48

@@ -1,0 +1,2 @@
+ pub fn set(&mut self,device:&wgpu::Device,meshes:&[GpuMesh]){self.set_records(device,meshes,None)}
+ pub fn set_records(&mut self,device:&wgpu::Device,meshes:&[GpuMesh],records:Option<&crate::instance_gpu::Lane>){

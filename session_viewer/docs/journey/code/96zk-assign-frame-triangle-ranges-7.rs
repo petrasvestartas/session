@@ -1,0 +1,1 @@
+u32::from_ne_bytes(self.previous[64..68].try_into().unwrap())&1!=0

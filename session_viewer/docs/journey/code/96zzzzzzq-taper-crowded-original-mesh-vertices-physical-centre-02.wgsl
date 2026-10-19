@@ -1,0 +1,1 @@
+@location(1) @interpolate(flat) centre: vec2<f32>

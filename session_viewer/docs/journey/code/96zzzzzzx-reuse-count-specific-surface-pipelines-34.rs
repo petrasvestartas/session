@@ -1,0 +1,1 @@
+s:crate::sample_pipelines::Variants<(wgpu::RenderPipeline,wgpu::RenderPipeline)>

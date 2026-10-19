@@ -1,0 +1,1 @@
+{let(vertices,indices)=row.geometry.buffers();(vertices,indices,row.model_buffer().clone(),row.packed()[..64].try_into().unwrap())}

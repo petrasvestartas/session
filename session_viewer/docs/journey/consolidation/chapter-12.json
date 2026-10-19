@@ -1,0 +1,1090 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 12,
+  "title": "Files and streaming",
+  "first": "66-read-scene-manifests",
+  "end_before": "69-validate-original-definition-references",
+  "lessons": [
+    {
+      "id": "66-read-scene-manifests",
+      "title": "Complete viewer files and published scene sources",
+      "page": "journey/consolidation/66-read-scene-manifests.md",
+      "steps": [
+        "66-read-scene-manifests",
+        "66a-compare-live-byte-revisions",
+        "66b-validate-source-records-before-allocation",
+        "66ba-validate-one-nurbs-knot-axis",
+        "66bb-read-bounded-json-count-and-knot-fields",
+        "66bc-match-json-control-layout-to-declared-counts",
+        "66bd-walk-json-records-within-a-depth-limit",
+        "66be-validate-original-points-lines-and-placements",
+        "66bf-validate-original-mesh-indices-and-vertex-attributes",
+        "66bg-validate-curve-and-surface-control-addresses",
+        "66bh-validate-cloud-columns-and-octree-addresses",
+        "66bi-validate-brep-element-payloads-and-shared-definitions",
+        "66bj-validate-the-complete-original-protobuf-session",
+        "66bk-connect-retained-session-validation-and-independent-witnesses",
+        "66c-describe-the-saved-scene-metadata",
+        "66d-encode-decode-the-viewer-file",
+        "66e-give-copied-lines-independent-identities",
+        "66f-snapshot-geometry-types",
+        "66g-retain-geometry-free-document-headers",
+        "66h-inventory-saved-document-namespaces",
+        "66i-map-saved-source-identities",
+        "66j-store-cloud-size-as-presentation",
+        "66k-prepare-saved-documents",
+        "66l-save-document-display-settings",
+        "66m-save-the-complete-supported-scene",
+        "66n-prepare-document-sources",
+        "66o-prepare-every-supported-geometry-row",
+        "66p-adopt-a-complete-source-document",
+        "66q-restore-world-labels-layer-links",
+        "66r-restore-scoped-presentation-settings",
+        "66s-reopen-a-complete-viewer-file",
+        "66t-prepare-file-adoption-live-history",
+        "66u-share-repeated-source-placements",
+        "66v-start-an-empty-scene-without-examples",
+        "66w-assemble-placed-manifest-entries",
+        "66x-resolve-scene-live-urls",
+        "66y-retain-validated-live-source-revisions",
+        "66z-fetch-bounded-source-bodies",
+        "66aa-read-a-complete-url-source-revision",
+        "66ab-own-cancel-the-url-loader",
+        "66ac-accept-only-current-url-completions",
+        "66ad-watch-published-source-changes",
+        "66ae-inspect-published-source-identities",
+        "66af-connect-browser-save-open-url-adoption"
+      ],
+      "checkpoint": "66af-connect-browser-save-open-url-adoption"
+    },
+    {
+      "id": "67-supply-checked-array-layout-readers",
+      "title": "Locate original arrays without downloading their bodies",
+      "page": "journey/consolidation/67-supply-checked-array-layout-readers.md",
+      "steps": [
+        "67-supply-checked-array-layout-readers",
+        "67sa-locate-original-cloud-and-sheet-array-fields",
+        "67sb-convert-bounded-doubles-and-cache-metadata-windows",
+        "67sc-decode-packed-arrays-for-existing-gpu-owners",
+        "67sd-descend-bounded-original-protobuf-messages",
+        "67se-find-coordinate-arrays-without-downloading-their-bodies",
+        "67sf-validate-sheet-side-array-lengths",
+        "67sg-collect-original-octree-node-columns",
+        "67sh-check-octree-bounds-and-unique-child-ownership",
+        "67si-validate-complete-octrees-before-range-streaming"
+      ],
+      "checkpoint": "67si-validate-complete-octrees-before-range-streaming"
+    },
+    {
+      "id": "66za-own-original-range-read-permits",
+      "title": "Bounded scheduling, exact replies and cancellation",
+      "page": "journey/consolidation/66za-own-original-range-read-permits.md",
+      "steps": [
+        "66za-own-original-range-read-permits",
+        "67a-queue-range-reads-in-arrival-order",
+        "67b-validate-exact-http-range-replies",
+        "67c-retain-original-point-page-values",
+        "67d-own-cancellable-range-requests",
+        "67e-time-out-stalled-source-reads",
+        "67f-bound-incoming-range-body-chunks",
+        "67g-request-and-accept-one-source-interval",
+        "67h-keep-range-revisions-and-background-results",
+        "67hza-queue-original-source-range-reads",
+        "67hzb-probe-original-source-array-layouts",
+        "67hzc-read-original-cloud-node-tables",
+        "67i-read-source-arrays-through-the-bounded-queue",
+        "67j-keep-original-ranged-source-identity",
+        "67k-prepare-a-revision-bound-remote-source",
+        "67l-fetch-precise-coordinates-and-original-ids",
+        "67m-cancel-range-work-when-its-runtime-closes"
+      ],
+      "checkpoint": "67m-cancel-range-work-when-its-runtime-closes"
+    },
+    {
+      "id": "68-reserve-page-bytes-before-reading",
+      "title": "Charged residency and current streamed pages",
+      "page": "journey/consolidation/68-reserve-page-bytes-before-reading.md",
+      "steps": [
+        "68-reserve-page-bytes-before-reading",
+        "68a-keep-shared-pages-alive-during-eviction",
+        "68b-evict-unpinned-pages-in-access-order",
+        "68c-reject-late-source-generations",
+        "68d-bound-source-prefixes-and-decode-work",
+        "68e-validate-original-streamed-presentation",
+        "68f-reuse-a-checked-source-probe",
+        "68fa-validate-complete-source-metadata",
+        "68g-slice-original-pages-without-losing-attributes",
+        "68h-prepare-shared-remote-source-owners",
+        "68i-keep-independent-streamed-placements",
+        "68j-pin-coarse-pages-and-adopt-checked-ranges",
+        "68k-supply-coarse-and-detailed-page-specimens",
+        "68l-insert-streamed-rows-on-the-current-layer",
+        "68m-carry-source-placement-through-scene-operations",
+        "68n-resolve-compact-picks-to-original-point-ids",
+        "68o-account-for-original-and-retained-source-data",
+        "68p-keep-original-attributes-in-ranged-pages",
+        "68q-retain-page-owners-beside-gpu-buffers",
+        "68r-describe-resident-and-streamed-draw-rows",
+        "68s-draw-shared-source-pages-at-independent-placements",
+        "68t-validate-encoded-source-metadata",
+        "68u-decode-bounded-cancellable-source-streams",
+        "68v-refuse-conflicting-source-encoding-revisions",
+        "68w-adopt-remote-original-revisions-independently",
+        "68x-prepare-a-coarse-pin-and-bounded-prefix",
+        "68y-redraw-before-reusing-evicted-page-addresses",
+        "68z-continue-pages-only-for-current-source-owners",
+        "68aa-own-cancellation-for-each-published-source",
+        "68ab-choose-bounded-range-loading-for-large-originals",
+        "68ac-connect-current-pages-to-the-browser-renderer"
+      ],
+      "checkpoint": "68ac-connect-current-pages-to-the-browser-renderer"
+    }
+  ],
+  "old_step_to_lesson": {
+    "66-read-scene-manifests": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66-read-scene-manifests"
+    },
+    "66a-compare-live-byte-revisions": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66a-compare-live-byte-revisions"
+    },
+    "66b-validate-source-records-before-allocation": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66b-validate-source-records-before-allocation"
+    },
+    "66ba-validate-one-nurbs-knot-axis": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66ba-validate-one-nurbs-knot-axis"
+    },
+    "66bb-read-bounded-json-count-and-knot-fields": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bb-read-bounded-json-count-and-knot-fields"
+    },
+    "66bc-match-json-control-layout-to-declared-counts": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bc-match-json-control-layout-to-declared-counts"
+    },
+    "66bd-walk-json-records-within-a-depth-limit": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bd-walk-json-records-within-a-depth-limit"
+    },
+    "66be-validate-original-points-lines-and-placements": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66be-validate-original-points-lines-and-placements"
+    },
+    "66bf-validate-original-mesh-indices-and-vertex-attributes": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes"
+    },
+    "66bg-validate-curve-and-surface-control-addresses": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bg-validate-curve-and-surface-control-addresses"
+    },
+    "66bh-validate-cloud-columns-and-octree-addresses": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bh-validate-cloud-columns-and-octree-addresses"
+    },
+    "66bi-validate-brep-element-payloads-and-shared-definitions": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions"
+    },
+    "66bj-validate-the-complete-original-protobuf-session": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bj-validate-the-complete-original-protobuf-session"
+    },
+    "66bk-connect-retained-session-validation-and-independent-witnesses": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses"
+    },
+    "66c-describe-the-saved-scene-metadata": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66c-describe-the-saved-scene-metadata"
+    },
+    "66d-encode-decode-the-viewer-file": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66d-encode-decode-the-viewer-file"
+    },
+    "66e-give-copied-lines-independent-identities": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66e-give-copied-lines-independent-identities"
+    },
+    "66f-snapshot-geometry-types": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66f-snapshot-geometry-types"
+    },
+    "66g-retain-geometry-free-document-headers": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66g-retain-geometry-free-document-headers"
+    },
+    "66h-inventory-saved-document-namespaces": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66h-inventory-saved-document-namespaces"
+    },
+    "66i-map-saved-source-identities": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66i-map-saved-source-identities"
+    },
+    "66j-store-cloud-size-as-presentation": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66j-store-cloud-size-as-presentation"
+    },
+    "66k-prepare-saved-documents": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66k-prepare-saved-documents"
+    },
+    "66l-save-document-display-settings": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66l-save-document-display-settings"
+    },
+    "66m-save-the-complete-supported-scene": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66m-save-the-complete-supported-scene"
+    },
+    "66n-prepare-document-sources": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66n-prepare-document-sources"
+    },
+    "66o-prepare-every-supported-geometry-row": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66o-prepare-every-supported-geometry-row"
+    },
+    "66p-adopt-a-complete-source-document": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66p-adopt-a-complete-source-document"
+    },
+    "66q-restore-world-labels-layer-links": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66q-restore-world-labels-layer-links"
+    },
+    "66r-restore-scoped-presentation-settings": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66r-restore-scoped-presentation-settings"
+    },
+    "66s-reopen-a-complete-viewer-file": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66s-reopen-a-complete-viewer-file"
+    },
+    "66t-prepare-file-adoption-live-history": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66t-prepare-file-adoption-live-history"
+    },
+    "66u-share-repeated-source-placements": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66u-share-repeated-source-placements"
+    },
+    "66v-start-an-empty-scene-without-examples": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66v-start-an-empty-scene-without-examples"
+    },
+    "66w-assemble-placed-manifest-entries": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66w-assemble-placed-manifest-entries"
+    },
+    "66x-resolve-scene-live-urls": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66x-resolve-scene-live-urls"
+    },
+    "66y-retain-validated-live-source-revisions": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66y-retain-validated-live-source-revisions"
+    },
+    "66z-fetch-bounded-source-bodies": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66z-fetch-bounded-source-bodies"
+    },
+    "66aa-read-a-complete-url-source-revision": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66aa-read-a-complete-url-source-revision"
+    },
+    "66ab-own-cancel-the-url-loader": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66ab-own-cancel-the-url-loader"
+    },
+    "66ac-accept-only-current-url-completions": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66ac-accept-only-current-url-completions"
+    },
+    "66ad-watch-published-source-changes": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66ad-watch-published-source-changes"
+    },
+    "66ae-inspect-published-source-identities": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66ae-inspect-published-source-identities"
+    },
+    "66af-connect-browser-save-open-url-adoption": {
+      "lesson": "66-read-scene-manifests",
+      "anchor": "checkpoint-66af-connect-browser-save-open-url-adoption"
+    },
+    "67-supply-checked-array-layout-readers": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67-supply-checked-array-layout-readers"
+    },
+    "67sa-locate-original-cloud-and-sheet-array-fields": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sa-locate-original-cloud-and-sheet-array-fields"
+    },
+    "67sb-convert-bounded-doubles-and-cache-metadata-windows": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sb-convert-bounded-doubles-and-cache-metadata-windows"
+    },
+    "67sc-decode-packed-arrays-for-existing-gpu-owners": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sc-decode-packed-arrays-for-existing-gpu-owners"
+    },
+    "67sd-descend-bounded-original-protobuf-messages": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sd-descend-bounded-original-protobuf-messages"
+    },
+    "67se-find-coordinate-arrays-without-downloading-their-bodies": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67se-find-coordinate-arrays-without-downloading-their-bodies"
+    },
+    "67sf-validate-sheet-side-array-lengths": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sf-validate-sheet-side-array-lengths"
+    },
+    "67sg-collect-original-octree-node-columns": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sg-collect-original-octree-node-columns"
+    },
+    "67sh-check-octree-bounds-and-unique-child-ownership": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67sh-check-octree-bounds-and-unique-child-ownership"
+    },
+    "67si-validate-complete-octrees-before-range-streaming": {
+      "lesson": "67-supply-checked-array-layout-readers",
+      "anchor": "checkpoint-67si-validate-complete-octrees-before-range-streaming"
+    },
+    "66za-own-original-range-read-permits": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-66za-own-original-range-read-permits"
+    },
+    "67a-queue-range-reads-in-arrival-order": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67a-queue-range-reads-in-arrival-order"
+    },
+    "67b-validate-exact-http-range-replies": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67b-validate-exact-http-range-replies"
+    },
+    "67c-retain-original-point-page-values": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67c-retain-original-point-page-values"
+    },
+    "67d-own-cancellable-range-requests": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67d-own-cancellable-range-requests"
+    },
+    "67e-time-out-stalled-source-reads": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67e-time-out-stalled-source-reads"
+    },
+    "67f-bound-incoming-range-body-chunks": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67f-bound-incoming-range-body-chunks"
+    },
+    "67g-request-and-accept-one-source-interval": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67g-request-and-accept-one-source-interval"
+    },
+    "67h-keep-range-revisions-and-background-results": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67h-keep-range-revisions-and-background-results"
+    },
+    "67hza-queue-original-source-range-reads": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67hza-queue-original-source-range-reads"
+    },
+    "67hzb-probe-original-source-array-layouts": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67hzb-probe-original-source-array-layouts"
+    },
+    "67hzc-read-original-cloud-node-tables": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67hzc-read-original-cloud-node-tables"
+    },
+    "67i-read-source-arrays-through-the-bounded-queue": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67i-read-source-arrays-through-the-bounded-queue"
+    },
+    "67j-keep-original-ranged-source-identity": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67j-keep-original-ranged-source-identity"
+    },
+    "67k-prepare-a-revision-bound-remote-source": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67k-prepare-a-revision-bound-remote-source"
+    },
+    "67l-fetch-precise-coordinates-and-original-ids": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67l-fetch-precise-coordinates-and-original-ids"
+    },
+    "67m-cancel-range-work-when-its-runtime-closes": {
+      "lesson": "66za-own-original-range-read-permits",
+      "anchor": "checkpoint-67m-cancel-range-work-when-its-runtime-closes"
+    },
+    "68-reserve-page-bytes-before-reading": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68-reserve-page-bytes-before-reading"
+    },
+    "68a-keep-shared-pages-alive-during-eviction": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68a-keep-shared-pages-alive-during-eviction"
+    },
+    "68b-evict-unpinned-pages-in-access-order": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68b-evict-unpinned-pages-in-access-order"
+    },
+    "68c-reject-late-source-generations": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68c-reject-late-source-generations"
+    },
+    "68d-bound-source-prefixes-and-decode-work": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68d-bound-source-prefixes-and-decode-work"
+    },
+    "68e-validate-original-streamed-presentation": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68e-validate-original-streamed-presentation"
+    },
+    "68f-reuse-a-checked-source-probe": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68f-reuse-a-checked-source-probe"
+    },
+    "68fa-validate-complete-source-metadata": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68fa-validate-complete-source-metadata"
+    },
+    "68g-slice-original-pages-without-losing-attributes": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68g-slice-original-pages-without-losing-attributes"
+    },
+    "68h-prepare-shared-remote-source-owners": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68h-prepare-shared-remote-source-owners"
+    },
+    "68i-keep-independent-streamed-placements": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68i-keep-independent-streamed-placements"
+    },
+    "68j-pin-coarse-pages-and-adopt-checked-ranges": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68j-pin-coarse-pages-and-adopt-checked-ranges"
+    },
+    "68k-supply-coarse-and-detailed-page-specimens": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68k-supply-coarse-and-detailed-page-specimens"
+    },
+    "68l-insert-streamed-rows-on-the-current-layer": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68l-insert-streamed-rows-on-the-current-layer"
+    },
+    "68m-carry-source-placement-through-scene-operations": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68m-carry-source-placement-through-scene-operations"
+    },
+    "68n-resolve-compact-picks-to-original-point-ids": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68n-resolve-compact-picks-to-original-point-ids"
+    },
+    "68o-account-for-original-and-retained-source-data": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68o-account-for-original-and-retained-source-data"
+    },
+    "68p-keep-original-attributes-in-ranged-pages": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68p-keep-original-attributes-in-ranged-pages"
+    },
+    "68q-retain-page-owners-beside-gpu-buffers": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68q-retain-page-owners-beside-gpu-buffers"
+    },
+    "68r-describe-resident-and-streamed-draw-rows": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68r-describe-resident-and-streamed-draw-rows"
+    },
+    "68s-draw-shared-source-pages-at-independent-placements": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68s-draw-shared-source-pages-at-independent-placements"
+    },
+    "68t-validate-encoded-source-metadata": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68t-validate-encoded-source-metadata"
+    },
+    "68u-decode-bounded-cancellable-source-streams": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68u-decode-bounded-cancellable-source-streams"
+    },
+    "68v-refuse-conflicting-source-encoding-revisions": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68v-refuse-conflicting-source-encoding-revisions"
+    },
+    "68w-adopt-remote-original-revisions-independently": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68w-adopt-remote-original-revisions-independently"
+    },
+    "68x-prepare-a-coarse-pin-and-bounded-prefix": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68x-prepare-a-coarse-pin-and-bounded-prefix"
+    },
+    "68y-redraw-before-reusing-evicted-page-addresses": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68y-redraw-before-reusing-evicted-page-addresses"
+    },
+    "68z-continue-pages-only-for-current-source-owners": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68z-continue-pages-only-for-current-source-owners"
+    },
+    "68aa-own-cancellation-for-each-published-source": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68aa-own-cancellation-for-each-published-source"
+    },
+    "68ab-choose-bounded-range-loading-for-large-originals": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68ab-choose-bounded-range-loading-for-large-originals"
+    },
+    "68ac-connect-current-pages-to-the-browser-renderer": {
+      "lesson": "68-reserve-page-bytes-before-reading",
+      "anchor": "checkpoint-68ac-connect-current-pages-to-the-browser-renderer"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/manifest.rs",
+      "session_viewer/src/app/session_io.rs",
+      "session_viewer/src/app/stream.rs",
+      "session_viewer/src/app/range_gate.rs",
+      "session_viewer/src/app/fetch.rs",
+      "session_viewer/src/app/loader.rs",
+      "session_viewer/src/app/live.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "66-read-scene-manifests",
+      "path": "screenshots/journey/66-read-scene-manifests.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66a-compare-live-byte-revisions",
+      "path": "screenshots/journey/66a-compare-live-byte-revisions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66b-validate-source-records-before-allocation",
+      "path": "screenshots/journey/66b-validate-source-records-before-allocation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66ba-validate-one-nurbs-knot-axis",
+      "path": "screenshots/journey/66ba-validate-one-nurbs-knot-axis.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bb-read-bounded-json-count-and-knot-fields",
+      "path": "screenshots/journey/66bb-read-bounded-json-count-and-knot-fields.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bc-match-json-control-layout-to-declared-counts",
+      "path": "screenshots/journey/66bc-match-json-control-layout-to-declared-counts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bd-walk-json-records-within-a-depth-limit",
+      "path": "screenshots/journey/66bd-walk-json-records-within-a-depth-limit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66be-validate-original-points-lines-and-placements",
+      "path": "screenshots/journey/66be-validate-original-points-lines-and-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bf-validate-original-mesh-indices-and-vertex-attributes",
+      "path": "screenshots/journey/66bf-validate-original-mesh-indices-and-vertex-attributes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bg-validate-curve-and-surface-control-addresses",
+      "path": "screenshots/journey/66bg-validate-curve-and-surface-control-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bh-validate-cloud-columns-and-octree-addresses",
+      "path": "screenshots/journey/66bh-validate-cloud-columns-and-octree-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bi-validate-brep-element-payloads-and-shared-definitions",
+      "path": "screenshots/journey/66bi-validate-brep-element-payloads-and-shared-definitions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bj-validate-the-complete-original-protobuf-session",
+      "path": "screenshots/journey/66bj-validate-the-complete-original-protobuf-session.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66bk-connect-retained-session-validation-and-independent-witnesses",
+      "path": "screenshots/journey/66bk-connect-retained-session-validation-and-independent-witnesses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66c-describe-the-saved-scene-metadata",
+      "path": "screenshots/journey/66c-describe-the-saved-scene-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66d-encode-decode-the-viewer-file",
+      "path": "screenshots/journey/66d-encode-decode-the-viewer-file.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66e-give-copied-lines-independent-identities",
+      "path": "screenshots/journey/66e-give-copied-lines-independent-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66f-snapshot-geometry-types",
+      "path": "screenshots/journey/66f-snapshot-geometry-types.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66g-retain-geometry-free-document-headers",
+      "path": "screenshots/journey/66g-retain-geometry-free-document-headers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66h-inventory-saved-document-namespaces",
+      "path": "screenshots/journey/66h-inventory-saved-document-namespaces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66i-map-saved-source-identities",
+      "path": "screenshots/journey/66i-map-saved-source-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66j-store-cloud-size-as-presentation",
+      "path": "screenshots/journey/66j-store-cloud-size-as-presentation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66k-prepare-saved-documents",
+      "path": "screenshots/journey/66k-prepare-saved-documents.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66l-save-document-display-settings",
+      "path": "screenshots/journey/66l-save-document-display-settings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66m-save-the-complete-supported-scene",
+      "path": "screenshots/journey/66m-save-the-complete-supported-scene.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66n-prepare-document-sources",
+      "path": "screenshots/journey/66n-prepare-document-sources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66o-prepare-every-supported-geometry-row",
+      "path": "screenshots/journey/66o-prepare-every-supported-geometry-row.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66p-adopt-a-complete-source-document",
+      "path": "screenshots/journey/66p-adopt-a-complete-source-document.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66q-restore-world-labels-layer-links",
+      "path": "screenshots/journey/66q-restore-world-labels-layer-links.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66r-restore-scoped-presentation-settings",
+      "path": "screenshots/journey/66r-restore-scoped-presentation-settings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66s-reopen-a-complete-viewer-file",
+      "path": "screenshots/journey/66s-reopen-a-complete-viewer-file.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66t-prepare-file-adoption-live-history",
+      "path": "screenshots/journey/66t-prepare-file-adoption-live-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66u-share-repeated-source-placements",
+      "path": "screenshots/journey/66u-share-repeated-source-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66v-start-an-empty-scene-without-examples",
+      "path": "screenshots/journey/66v-start-an-empty-scene-without-examples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66w-assemble-placed-manifest-entries",
+      "path": "screenshots/journey/66w-assemble-placed-manifest-entries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66x-resolve-scene-live-urls",
+      "path": "screenshots/journey/66x-resolve-scene-live-urls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66y-retain-validated-live-source-revisions",
+      "path": "screenshots/journey/66y-retain-validated-live-source-revisions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66z-fetch-bounded-source-bodies",
+      "path": "screenshots/journey/66z-fetch-bounded-source-bodies.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66aa-read-a-complete-url-source-revision",
+      "path": "screenshots/journey/66aa-read-a-complete-url-source-revision.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66ab-own-cancel-the-url-loader",
+      "path": "screenshots/journey/66ab-own-cancel-the-url-loader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66ac-accept-only-current-url-completions",
+      "path": "screenshots/journey/66ac-accept-only-current-url-completions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66ad-watch-published-source-changes",
+      "path": "screenshots/journey/66ad-watch-published-source-changes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66ae-inspect-published-source-identities",
+      "path": "screenshots/journey/66ae-inspect-published-source-identities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66af-connect-browser-save-open-url-adoption",
+      "path": "screenshots/journey/66af-connect-browser-save-open-url-adoption.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67-supply-checked-array-layout-readers",
+      "path": "screenshots/journey/67-supply-checked-array-layout-readers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sa-locate-original-cloud-and-sheet-array-fields",
+      "path": "screenshots/journey/67sa-locate-original-cloud-and-sheet-array-fields.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sb-convert-bounded-doubles-and-cache-metadata-windows",
+      "path": "screenshots/journey/67sb-convert-bounded-doubles-and-cache-metadata-windows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sc-decode-packed-arrays-for-existing-gpu-owners",
+      "path": "screenshots/journey/67sc-decode-packed-arrays-for-existing-gpu-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sd-descend-bounded-original-protobuf-messages",
+      "path": "screenshots/journey/67sd-descend-bounded-original-protobuf-messages.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67se-find-coordinate-arrays-without-downloading-their-bodies",
+      "path": "screenshots/journey/67se-find-coordinate-arrays-without-downloading-their-bodies.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sf-validate-sheet-side-array-lengths",
+      "path": "screenshots/journey/67sf-validate-sheet-side-array-lengths.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sg-collect-original-octree-node-columns",
+      "path": "screenshots/journey/67sg-collect-original-octree-node-columns.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67sh-check-octree-bounds-and-unique-child-ownership",
+      "path": "screenshots/journey/67sh-check-octree-bounds-and-unique-child-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67si-validate-complete-octrees-before-range-streaming",
+      "path": "screenshots/journey/67si-validate-complete-octrees-before-range-streaming.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "66za-own-original-range-read-permits",
+      "path": "screenshots/journey/66za-own-original-range-read-permits.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67a-queue-range-reads-in-arrival-order",
+      "path": "screenshots/journey/67a-queue-range-reads-in-arrival-order.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67b-validate-exact-http-range-replies",
+      "path": "screenshots/journey/67b-validate-exact-http-range-replies.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67c-retain-original-point-page-values",
+      "path": "screenshots/journey/67c-retain-original-point-page-values.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67d-own-cancellable-range-requests",
+      "path": "screenshots/journey/67d-own-cancellable-range-requests.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67e-time-out-stalled-source-reads",
+      "path": "screenshots/journey/67e-time-out-stalled-source-reads.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67f-bound-incoming-range-body-chunks",
+      "path": "screenshots/journey/67f-bound-incoming-range-body-chunks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67g-request-and-accept-one-source-interval",
+      "path": "screenshots/journey/67g-request-and-accept-one-source-interval.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67h-keep-range-revisions-and-background-results",
+      "path": "screenshots/journey/67h-keep-range-revisions-and-background-results.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67hza-queue-original-source-range-reads",
+      "path": "screenshots/journey/67hza-queue-original-source-range-reads.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67hzb-probe-original-source-array-layouts",
+      "path": "screenshots/journey/67hzb-probe-original-source-array-layouts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67hzc-read-original-cloud-node-tables",
+      "path": "screenshots/journey/67hzc-read-original-cloud-node-tables.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67i-read-source-arrays-through-the-bounded-queue",
+      "path": "screenshots/journey/67i-read-source-arrays-through-the-bounded-queue.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67j-keep-original-ranged-source-identity",
+      "path": "screenshots/journey/67j-keep-original-ranged-source-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67k-prepare-a-revision-bound-remote-source",
+      "path": "screenshots/journey/67k-prepare-a-revision-bound-remote-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67l-fetch-precise-coordinates-and-original-ids",
+      "path": "screenshots/journey/67l-fetch-precise-coordinates-and-original-ids.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "67m-cancel-range-work-when-its-runtime-closes",
+      "path": "screenshots/journey/67m-cancel-range-work-when-its-runtime-closes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68-reserve-page-bytes-before-reading",
+      "path": "screenshots/journey/68-reserve-page-bytes-before-reading.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68a-keep-shared-pages-alive-during-eviction",
+      "path": "screenshots/journey/68a-keep-shared-pages-alive-during-eviction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68b-evict-unpinned-pages-in-access-order",
+      "path": "screenshots/journey/68b-evict-unpinned-pages-in-access-order.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68c-reject-late-source-generations",
+      "path": "screenshots/journey/68c-reject-late-source-generations.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68d-bound-source-prefixes-and-decode-work",
+      "path": "screenshots/journey/68d-bound-source-prefixes-and-decode-work.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68e-validate-original-streamed-presentation",
+      "path": "screenshots/journey/68e-validate-original-streamed-presentation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68f-reuse-a-checked-source-probe",
+      "path": "screenshots/journey/68f-reuse-a-checked-source-probe.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68fa-validate-complete-source-metadata",
+      "path": "screenshots/journey/68fa-validate-complete-source-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68g-slice-original-pages-without-losing-attributes",
+      "path": "screenshots/journey/68g-slice-original-pages-without-losing-attributes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68h-prepare-shared-remote-source-owners",
+      "path": "screenshots/journey/68h-prepare-shared-remote-source-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68i-keep-independent-streamed-placements",
+      "path": "screenshots/journey/68i-keep-independent-streamed-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68j-pin-coarse-pages-and-adopt-checked-ranges",
+      "path": "screenshots/journey/68j-pin-coarse-pages-and-adopt-checked-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68k-supply-coarse-and-detailed-page-specimens",
+      "path": "screenshots/journey/68k-supply-coarse-and-detailed-page-specimens.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68l-insert-streamed-rows-on-the-current-layer",
+      "path": "screenshots/journey/68l-insert-streamed-rows-on-the-current-layer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68m-carry-source-placement-through-scene-operations",
+      "path": "screenshots/journey/68m-carry-source-placement-through-scene-operations.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68n-resolve-compact-picks-to-original-point-ids",
+      "path": "screenshots/journey/68n-resolve-compact-picks-to-original-point-ids.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68o-account-for-original-and-retained-source-data",
+      "path": "screenshots/journey/68o-account-for-original-and-retained-source-data.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68p-keep-original-attributes-in-ranged-pages",
+      "path": "screenshots/journey/68p-keep-original-attributes-in-ranged-pages.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68q-retain-page-owners-beside-gpu-buffers",
+      "path": "screenshots/journey/68q-retain-page-owners-beside-gpu-buffers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68r-describe-resident-and-streamed-draw-rows",
+      "path": "screenshots/journey/68r-describe-resident-and-streamed-draw-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68s-draw-shared-source-pages-at-independent-placements",
+      "path": "screenshots/journey/68s-draw-shared-source-pages-at-independent-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68t-validate-encoded-source-metadata",
+      "path": "screenshots/journey/68t-validate-encoded-source-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68u-decode-bounded-cancellable-source-streams",
+      "path": "screenshots/journey/68u-decode-bounded-cancellable-source-streams.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68v-refuse-conflicting-source-encoding-revisions",
+      "path": "screenshots/journey/68v-refuse-conflicting-source-encoding-revisions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68w-adopt-remote-original-revisions-independently",
+      "path": "screenshots/journey/68w-adopt-remote-original-revisions-independently.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68x-prepare-a-coarse-pin-and-bounded-prefix",
+      "path": "screenshots/journey/68x-prepare-a-coarse-pin-and-bounded-prefix.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68y-redraw-before-reusing-evicted-page-addresses",
+      "path": "screenshots/journey/68y-redraw-before-reusing-evicted-page-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68z-continue-pages-only-for-current-source-owners",
+      "path": "screenshots/journey/68z-continue-pages-only-for-current-source-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68aa-own-cancellation-for-each-published-source",
+      "path": "screenshots/journey/68aa-own-cancellation-for-each-published-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68ab-choose-bounded-range-loading-for-large-originals",
+      "path": "screenshots/journey/68ab-choose-bounded-range-loading-for-large-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "68ac-connect-current-pages-to-the-browser-renderer",
+      "path": "screenshots/journey/68ac-connect-current-pages-to-the-browser-renderer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Course generic charged-page/LRU eviction semantics differ from maintained point/segment ceilings and whole-file byte budgets; reconciliation pending."
+  ]
+}

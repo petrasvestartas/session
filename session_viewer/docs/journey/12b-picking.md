@@ -1,4 +1,6 @@
-# 12b · Find the nearest triangle at a scene point
+# 2.8.3 · Find the nearest triangle at a scene point
+
+**Chapter 2 · Geometry, camera and selection · Section 2.8 · Selection and CPU queries** · [Contents](contents.md)
 
 **Typing: 28–56 minutes.** [Estimate](typing-load.md).
 
@@ -36,7 +38,7 @@ pub mod renderer;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/13-picking-fullscreen-1.rs"
@@ -48,25 +50,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks below. The nearer object wins the overlap; removing it reveals the far object; empty and invalid positions return None.
+Inspect the supplied state fixtures. The nearer object wins the overlap; removing it reveals the far object; empty and invalid positions return None.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Find the nearest triangle at a scene point.](../screenshots/journey/12b-picking-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for find the nearest triangle at a scene point.](../screenshots/journey/12b-picking.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -98,8 +96,8 @@ In the overlap test, remove the near object before the first query. The far obje
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 12b-picking
-npm --prefix ../session_tests run course -- save 12b-picking
+npm --prefix ../session_tests run course -- check 2.8.3
+npm --prefix ../session_tests run course -- save 2.8.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).

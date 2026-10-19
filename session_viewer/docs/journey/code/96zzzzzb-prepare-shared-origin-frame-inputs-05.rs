@@ -1,0 +1,2 @@
+    pub fn frame(&mut self,queue:&wgpu::Queue,matrix:[f32;16],height:u32,density:f32){self.frame_anchored(queue,matrix,[0.;3],height,density)}
+    pub fn frame_anchored(&mut self,queue:&wgpu::Queue,matrix:[f32;16],anchor:[f64;3],height:u32,density:f32){let matrix=

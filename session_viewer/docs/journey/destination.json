@@ -1,6 +1,6 @@
 {
-  "reference": "viewer-2026-09-28-local",
-  "description": "Fingerprint of the current working viewer, including local changes. This is not a Git release or a claim that all acceptance cases have passed.",
+  "reference": "viewer-2026-10-08-local",
+  "description": "Reviewed local maintained viewer source snapshot. Subject 96 checks the full declared Rust closure and actual registry; subject 97 links the maintained browser runtime. Browser acceptance and remote freshness remain unverified.",
   "courses": [
     {
       "id": "01",
@@ -15,7 +15,7 @@
         "13"
       ],
       "goal": "Draw a mesh, move its camera and identify a selected object.",
-      "status": "opening lessons available; remainder pending"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     },
     {
       "id": "02",
@@ -33,7 +33,7 @@
         "11"
       ],
       "goal": "Add curves, points, CAD faces and text while retaining source identity.",
-      "status": "pending conversion"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     },
     {
       "id": "03",
@@ -47,7 +47,7 @@
         "19"
       ],
       "goal": "Load, stream, instance and release real scenes without losing their meaning.",
-      "status": "pending conversion"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     },
     {
       "id": "04",
@@ -62,7 +62,7 @@
         "30"
       ],
       "goal": "Connect gestures, snapping, panels and document transactions.",
-      "status": "pending conversion"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     },
     {
       "id": "05",
@@ -76,7 +76,7 @@
         "31"
       ],
       "goal": "Reach every existing command, shape, surface, annotation and split tool.",
-      "status": "pending conversion"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     },
     {
       "id": "06",
@@ -90,7 +90,7 @@
         "36"
       ],
       "goal": "Preserve finite visibility, section caps, outlines, ambient occlusion and transparency.",
-      "status": "pending conversion"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     },
     {
       "id": "07",
@@ -99,7 +99,7 @@
         "37"
       ],
       "goal": "Compare behavior, appearance, resource use and final source coverage against the reference.",
-      "status": "pending conversion"
+      "status": "cumulative lessons authored through97; final browser acceptance pending"
     }
   ],
   "features": [
@@ -494,1366 +494,1207 @@
   "files": {
     "src/app/agent.rs": {
       "sha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/clipping.rs": {
       "sha256": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1",
-      "introduced_in": "18b",
       "course": "06"
     },
     "src/app/cloud_query.rs": {
       "sha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
-      "introduced_in": "15",
       "course": "03"
     },
     "src/app/command/mod.rs": {
-      "sha256": "15fb4c55988b301ee591bf1493086e7e1e79d655f57668b30ea4aa35941eb9d9",
-      "introduced_in": "23",
+      "sha256": "4e7ae69c626379e2e2ca8383a0cdec283ff59c4376bf4b09d3e5b27bf7546f52",
       "course": "05"
     },
     "src/app/command/tests.rs": {
-      "sha256": "b8965679c3496fc6c5824e9651c21f33d1bbdf57824d67c82a78cc3ae3ad7d41",
-      "introduced_in": "23",
+      "sha256": "14d3077dd1df32bd221e8e8991d920dde8b796fdf723235af8150405a2ba26c3",
       "course": "05"
+    },
+    "src/app/command/tool/choices.rs": {
+      "sha256": "2b128f729985b18c0901ebe6dd8780d54abf701394b020da3c3408f3b2b3841f",
+      "course": "07"
     },
     "src/app/command/tool/cut.rs": {
-      "sha256": "571565c2441be1732213f9227500a53ee143fb1bc15f78e3f4b55440796d700f",
-      "introduced_in": "23a",
+      "sha256": "d0d00438f5ec9230dd73cb19b14c3ad5cd65c043c294bc341c477e81f4ed5a5f",
       "course": "05"
     },
+    "src/app/command/tool/elements.rs": {
+      "sha256": "99402767aa9c517acc6a56f9c59eb0032128e3d595e7cb38b397c2b3cda207ea",
+      "course": "07"
+    },
     "src/app/command/tool/gather.rs": {
-      "sha256": "19b2ddb17a4b427a55abe96543b6f5ae2a2796902cd0cb6171842f9dfe5a38ab",
-      "introduced_in": "23a",
+      "sha256": "acb5cc3b8b424c5c0889fed4ccb994f3a13da0d4de10dcc0944f05fd932d913a",
       "course": "05"
     },
     "src/app/command/tool/options.rs": {
       "sha256": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/tool/shape.rs": {
       "sha256": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/tool/surfacing.rs": {
       "sha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/tool.rs": {
-      "sha256": "705779efd2b11363d914f409691aabbaba274a3f4c7b6b9006e784b732aa77a7",
-      "introduced_in": "23",
+      "sha256": "c08608743e48879cab82f76157d5f028215af1848cd5b9eeefc343f039001b1b",
       "course": "05"
     },
     "src/app/command/verbs/add_edge.rs": {
       "sha256": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed",
-      "introduced_in": "30",
       "course": "04"
     },
     "src/app/command/verbs/add_group.rs": {
       "sha256": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d",
-      "introduced_in": "30",
       "course": "04"
     },
     "src/app/command/verbs/arctic.rs": {
-      "sha256": "95f95a67ac4392bf55209266b6a8a36e4aeb425bb3b845703ca08a599cf48ae5",
-      "introduced_in": "33",
+      "sha256": "04637eef3834bfb9c9d76d415d30f7803d857a267ad4472c91117dabbb374f39",
       "course": "06"
     },
     "src/app/command/verbs/area.rs": {
       "sha256": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e",
-      "introduced_in": "23d",
       "course": "05"
     },
     "src/app/command/verbs/arrow.rs": {
       "sha256": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/arrowhead.rs": {
       "sha256": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87",
-      "introduced_in": "23d",
       "course": "05"
     },
     "src/app/command/verbs/attributes.rs": {
       "sha256": "fce74a2b0aa462ef5dbe89df296564fd852bb489378ac14cd8b88f9085982095",
-      "introduced_in": "35",
       "course": "06"
     },
     "src/app/command/verbs/block_with_hole.rs": {
       "sha256": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2",
-      "introduced_in": "23b",
       "course": "05"
     },
+    "src/app/command/verbs/bounding_box.rs": {
+      "sha256": "5baa3e329f91c9c6a2be572e4f8752e8f49effbbf564e3230bd00d8fbfb21479",
+      "course": "07"
+    },
     "src/app/command/verbs/box.rs": {
-      "sha256": "f06362ef0a09f9bba68c0e71d9b1e15ae61348cc271b47241ec95c8386346414",
-      "introduced_in": "23b",
+      "sha256": "0f6b98541d82ea317acd703a136d8a5962bee64fe5f07150db36945c4443e986",
       "course": "05"
     },
     "src/app/command/verbs/capsule.rs": {
       "sha256": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/clipping_plane.rs": {
-      "sha256": "40410fe2185e075b030cf8dec671689cf5fa024ae45587e74e54defe79ce4c23",
-      "introduced_in": "23",
+      "sha256": "400dc33be2b869ae93c0a981c17116fba56672dc6326ac50efb23ff71e7bc294",
       "course": "05"
     },
     "src/app/command/verbs/close.rs": {
       "sha256": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/cone.rs": {
       "sha256": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992",
-      "introduced_in": "23b",
       "course": "05"
+    },
+    "src/app/command/verbs/construction_plane.rs": {
+      "sha256": "078a4a7462a809f4b71978ac5579ecb8b9844eb41ccc9ad121a7efeab67aaa23",
+      "course": "07"
     },
     "src/app/command/verbs/controls.rs": {
       "sha256": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/copy.rs": {
-      "sha256": "07093bb482eee8a932a0e3d105b871d3c7242758d4f251aafc11feb6ae437e74",
-      "introduced_in": "23a",
+      "sha256": "4a68665fd4ad435fb2f6591cb670cbb8cd13c5279ef5f26f690c60d4e3e7ac55",
       "course": "05"
     },
     "src/app/command/verbs/curve.rs": {
       "sha256": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/cylinder.rs": {
       "sha256": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/delete.rs": {
       "sha256": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/dodecahedron.rs": {
       "sha256": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/edge.rs": {
       "sha256": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7",
-      "introduced_in": "23a",
       "course": "05"
+    },
+    "src/app/command/verbs/element_beam.rs": {
+      "sha256": "b99b68f91c511f4fd1d8443b72de9c81670ba48ff7bebb9fdf10366845057e00",
+      "course": "07"
+    },
+    "src/app/command/verbs/element_beam_variable.rs": {
+      "sha256": "b0898d92d19ec629a2c673cb7a64a452e1bc182e09a98cf66ac7d9d299ce6bba",
+      "course": "07"
+    },
+    "src/app/command/verbs/element_block.rs": {
+      "sha256": "751684bcc9a7581e90fe2f2dc6f74b5f33fc0bda14a95ae9a4a10ee98d8ad601",
+      "course": "07"
+    },
+    "src/app/command/verbs/element_column.rs": {
+      "sha256": "e3a32d979a0de748ea4440f488b0e9493cfb4238d6492eb25043fec32d2fefbb",
+      "course": "07"
+    },
+    "src/app/command/verbs/element_plate.rs": {
+      "sha256": "0d984d66a5a49c347e6801ca7d0d8dace30ddec622ca9d4a02bd8046ad12ab07",
+      "course": "07"
+    },
+    "src/app/command/verbs/element_support.rs": {
+      "sha256": "4781d8a89d967bcc99dd142eee41066f85b6cf99fd46347f36ae340716379ea6",
+      "course": "07"
     },
     "src/app/command/verbs/escape.rs": {
       "sha256": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/explode.rs": {
       "sha256": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/extend/reach.rs": {
-      "sha256": "e748688bf400262d35869cbcfb1b0dbf4c09503beafcd6045cdec83869e0d36b",
-      "introduced_in": "23a",
+      "sha256": "37f9ed15f0b4148bebc6788829a6fc8bca4a558201348c145cdbd670d5e18a34",
       "course": "05"
     },
     "src/app/command/verbs/extend.rs": {
       "sha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/extrude.rs": {
       "sha256": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/face.rs": {
       "sha256": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/fit.rs": {
       "sha256": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/geometry.rs": {
-      "sha256": "f006d173078eca6fabb000994ca7a4dda0ec4d73a72d19b604bb07ad28697aa9",
-      "introduced_in": "23",
+      "sha256": "d1612ae09503003fca3792ad9e4fcac3666069f7f3781ca8b59de7d9653ae586",
       "course": "05"
+    },
+    "src/app/command/verbs/grid_snap.rs": {
+      "sha256": "ab63e5d6f45c37d9b8b15ea8535d8386da1cdcce725b2a3398ccdc41e01b06c7",
+      "course": "07"
     },
     "src/app/command/verbs/hide.rs": {
       "sha256": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/icosahedron.rs": {
       "sha256": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/layers.rs": {
-      "sha256": "f31cf18134ad1caee0a1909a71257ddfef84cbd9e01d6b804be8082f6d2c97f7",
-      "introduced_in": "30",
+      "sha256": "a0168bfe8c941fee7fba32c9a259c9f847640f24baa958d38383948843f6db6f",
       "course": "04"
     },
     "src/app/command/verbs/length.rs": {
       "sha256": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204",
-      "introduced_in": "23d",
       "course": "05"
+    },
+    "src/app/command/verbs/length_bounding_box.rs": {
+      "sha256": "654498f77d15404be2ef63a4a6f96138186e2eb4d4799bae01310e8b89439fb3",
+      "course": "07"
     },
     "src/app/command/verbs/line.rs": {
       "sha256": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/loft.rs": {
       "sha256": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/measure.rs": {
-      "sha256": "12fa7e399a0fa869b6d9ac5de75ece87f28dc8cb3b33c2a476f87da2d720feb6",
-      "introduced_in": "23d",
+      "sha256": "004c72cbad5f8a24e7ae6141528997ce1e8deecb2e2caa22af68b34d5133c28d",
       "course": "05"
     },
     "src/app/command/verbs/measure_distance.rs": {
-      "sha256": "6565d774da35e906dbcc55c49132bb4583c61eab7675d993ff964c8b95ce4dc1",
-      "introduced_in": "23d",
+      "sha256": "2b3813e899954595d609de0357984c5b5f01a8f7f031e6320ccffde088001421",
       "course": "05"
     },
     "src/app/command/verbs/mod.rs": {
-      "sha256": "8e0588133ece1a5b23782c4747a2afb7c8a5722a1db1a7b59d9b64f18e6668f7",
-      "introduced_in": "23",
+      "sha256": "591a2198c42ed49075064bf05cbc381a774a6b0b9b424393bfd158ace68e242b",
       "course": "05"
     },
     "src/app/command/verbs/move.rs": {
       "sha256": "884f591bcde1cb18537f34b02a6a271e921fcd44aec30eb0f3da69017fd57b3a",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_curve_arc.rs": {
       "sha256": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_curve_circle.rs": {
       "sha256": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_curve_ellipse.rs": {
       "sha256": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_curve_parabola.rs": {
       "sha256": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_surface_4_points.rs": {
       "sha256": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_surface_loft.rs": {
       "sha256": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_surface_network.rs": {
       "sha256": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_surface_revolve.rs": {
       "sha256": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_surface_sweep1.rs": {
       "sha256": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/nurbs_surface_sweep2.rs": {
       "sha256": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992",
-      "introduced_in": "23c",
       "course": "05"
     },
     "src/app/command/verbs/object.rs": {
       "sha256": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/octahedron.rs": {
       "sha256": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/opacity.rs": {
       "sha256": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8",
-      "introduced_in": "36",
       "course": "06"
     },
     "src/app/command/verbs/open.rs": {
       "sha256": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/orient_3_points.rs": {
-      "sha256": "d5b39d9290d1d361422e02e49f622f639465ac7dcd8bb3ab2843d36a6508cf41",
-      "introduced_in": "23a",
+      "sha256": "943bea38cb8607eef2153cbaa1e20260a2a09531bd5d469a2bc525ed35cc9f9d",
       "course": "05"
     },
     "src/app/command/verbs/outline.rs": {
-      "sha256": "feed6356b85a2ae9381e4a2cd0c60e8fb9a69094d46e68648810700da7dd9164",
-      "introduced_in": "33",
+      "sha256": "537e232c2f91846dec99eb3e6e30e016f482577b1ef82a62c4f4f8a115566053",
       "course": "06"
     },
     "src/app/command/verbs/point.rs": {
       "sha256": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/polyline.rs": {
       "sha256": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/project_to_plane.rs": {
-      "sha256": "f8ebee6b9898efc015c01e339aad660a05caaf4c1c2cc5f58311022f5857caaa",
-      "introduced_in": "23d",
+      "sha256": "11dc267a1a5d36b974f4723fca487c38c958cc3ac2a0f926e81f99507e6904bb",
       "course": "05"
     },
     "src/app/command/verbs/pyramid.rs": {
       "sha256": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/quad_sphere.rs": {
       "sha256": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/redo.rs": {
       "sha256": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0",
-      "introduced_in": "23",
       "course": "05"
+    },
+    "src/app/command/verbs/report.rs": {
+      "sha256": "8b8e73ef4da70c6221cbec41e75f54db70a5d39df05ee29c19b35efb8afe9a63",
+      "course": "07"
     },
     "src/app/command/verbs/rotate.rs": {
       "sha256": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/save.rs": {
       "sha256": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/scale.rs": {
       "sha256": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2",
-      "introduced_in": "23a",
       "course": "05"
     },
+    "src/app/command/verbs/select_all.rs": {
+      "sha256": "d2b9ff13e098ef0653bb3bec0d3a8ec7f9f219e4028ca726e7d7cfcec62db670",
+      "course": "07"
+    },
     "src/app/command/verbs/select_by_name.rs": {
-      "sha256": "c02e0cfadcce0e09c14e0ab7a6e9ca6f41b6d73a317bd47e72107eda126a305a",
-      "introduced_in": "23a",
+      "sha256": "90d070cb338b3a721a4501e777bf9ff048cfc368fe5d98fd1facbab18531001c",
       "course": "05"
     },
     "src/app/command/verbs/select_lasso.rs": {
-      "sha256": "630ad0c6a90f4708fb73984666549e3fad3765aa7f38d0c3141b2f523440f2d9",
-      "introduced_in": "23a",
+      "sha256": "dcef1e302ab9bea2353e2f85fa391b35117f6f7f97c153beb7901744a0571a7b",
       "course": "05"
     },
     "src/app/command/verbs/select_small.rs": {
       "sha256": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/selecting.rs": {
-      "sha256": "e47be19e2d899ba20c44a54125c54db72852a8a18cb541ddb2cfc0eaa9dcd257",
-      "introduced_in": "23a",
+      "sha256": "49b3172f3487531566fae3e4c955d9a438a0e153cf37d7f29a622bc070a48d27",
       "course": "05"
     },
     "src/app/command/verbs/show.rs": {
       "sha256": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/command/verbs/snap.rs": {
-      "sha256": "24af34535bc6698b47895a0ace3fde80673bcb364b4df13ca8ff93338476619c",
-      "introduced_in": "24",
+      "sha256": "e85c98cc314cab74c8b9bcb74cf1d32429e49b49c76cf2c83f8a2e929b35603d",
       "course": "04"
     },
     "src/app/command/verbs/sphere.rs": {
       "sha256": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/split.rs": {
       "sha256": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a",
-      "introduced_in": "31",
       "course": "05"
     },
     "src/app/command/verbs/tetrahedron.rs": {
       "sha256": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/text.rs": {
       "sha256": "7e0f56386df9eff853a325856005ba2670af975edbd7203e60a3dbb70bd030a7",
-      "introduced_in": "23d",
       "course": "05"
     },
     "src/app/command/verbs/torus.rs": {
       "sha256": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08",
-      "introduced_in": "23b",
       "course": "05"
     },
     "src/app/command/verbs/trim/parts.rs": {
-      "sha256": "03044c7bf9a268ec0a97d54a7697857e6d9be8579e8676f39d885876c57c9fe7",
-      "introduced_in": "23a",
+      "sha256": "d78d99b59d5da7cf85de9cff7d9b161ac01c3b107d6b50fd0a67966f4f4ba71b",
       "course": "05"
     },
     "src/app/command/verbs/trim.rs": {
       "sha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
-      "introduced_in": "23a",
       "course": "05"
     },
     "src/app/command/verbs/undo.rs": {
       "sha256": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa",
-      "introduced_in": "23",
       "course": "05"
+    },
+    "src/app/command/verbs/view.rs": {
+      "sha256": "a025bf0d864aeb1bfc1c993df44e112118c86e290797a687f22935a442f30e39",
+      "course": "07"
     },
     "src/app/command/verbs/volume.rs": {
       "sha256": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9",
-      "introduced_in": "23d",
       "course": "05"
     },
     "src/app/coords.rs": {
-      "sha256": "00fcfd07f46747bbf52fc1ca5d5193ddb9fc5085c9c0a0386974eadc6a8ae90f",
-      "introduced_in": "23",
+      "sha256": "3b19ba73fee97ed22f48b7d5fe04bfc1090f1c31ca21c44265e936893a0e447c",
       "course": "05"
     },
     "src/app/cplane.rs": {
-      "sha256": "75512fc7a82666d0ff133710b1ce7a80efd955cad8043beb110c7a0f270a516d",
-      "introduced_in": "21",
+      "sha256": "4cc6d3d6ddeed8baef51fd8e49ea8809156b9bdb8105b114ad1b906273e3ea26",
       "course": "04"
     },
     "src/app/decode.rs": {
-      "sha256": "35dc356fe01f07c732420959b3ea1f023db81c29b71632579a2e269e920c150d",
-      "introduced_in": "14",
+      "sha256": "b2047d2ed43e60b4d2173e65f800902f005290cadb3edb6fdf19ed0ec0a6aa79",
       "course": "03"
     },
     "src/app/deform.rs": {
-      "sha256": "8d840f8694deb7024cbd4dc2111bdf083b8aad9c665a623e3c97eea6fb68b208",
-      "introduced_in": "21",
+      "sha256": "ed009f15ba5ace800914b14e78252b5990d76f001049fa667397ba361633959a",
       "course": "04"
     },
     "src/app/edit.rs": {
-      "sha256": "047be9e4cecb171d5e3c1cfc5223d18249e1a77dcc499ad0ea28465e0e145da1",
-      "introduced_in": "21",
+      "sha256": "d0c36d47d04b958dccf64c8a841120e3cb10ab52210978235486daaab6242693",
       "course": "04"
     },
     "src/app/feedback.rs": {
-      "sha256": "097c1c56a970e1c85212dce54f2e05b82314f770a47985285028153de2beb180",
-      "introduced_in": "12",
+      "sha256": "951457335d199ede0babce3425fb62466a0e717d12cee30816fd13f749058e53",
       "course": "01"
     },
     "src/app/fetch.rs": {
-      "sha256": "567e1a92e66387d70311da9eca2f26e03335fa24cf3e58e281e2b29b1c2517c5",
-      "introduced_in": "14",
+      "sha256": "57d886ea78208f2bb19ffa13a1a252af18ccfddc7a17cd7c9432a981a1560fed",
       "course": "03"
     },
     "src/app/fonts.rs": {
       "sha256": "d51582cbb4566c5efb172401510ed2d33675a20a0b63f0a54d9218fa7ee14e6a",
-      "introduced_in": "14",
       "course": "03"
+    },
+    "src/app/gesture/box_select.rs": {
+      "sha256": "f52620890c23afa10a99d046a9985fccaa8b15639c972a46a0fae94a2bf88044",
+      "course": "07"
     },
     "src/app/gesture/control.rs": {
       "sha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/gesture/gizmo.rs": {
       "sha256": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/gesture/mod.rs": {
-      "sha256": "b924a263ba1154f3ce102a29a587f4b743a7424004b0a8e7e5fe76d6aa4d01f4",
-      "introduced_in": "12",
+      "sha256": "a592ddc3964fa3b7732c08d9ac9339491980235e3f8273f9bcf75d0c043218e3",
       "course": "01"
     },
     "src/app/gesture/object.rs": {
       "sha256": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/gizmo.rs": {
-      "sha256": "eec36fe4e363642e79226f272593c5f334ee81d70b46b8ebec1b985fdb9440a2",
-      "introduced_in": "21",
+      "sha256": "397a00a8a1f4cda1f34ba244a40f5a842f27b1c83d7affc298d0f4276d396340",
       "course": "04"
     },
     "src/app/hierarchy.rs": {
       "sha256": "f9be4b8387f640cc43716c78ebb4ce9803c1210a8dbbb646ed432b8c2dd2aa06",
-      "introduced_in": "26",
       "course": "04"
     },
     "src/app/input.rs": {
-      "sha256": "824c85f50f13e46b3f5277017eb2f22725a06f0383aafe9f7e4088e5f6df7d84",
-      "introduced_in": "12",
+      "sha256": "8dbcf36cc41b9ccb88a925c86c423396eaa572bd730e23d7b3f8df0e956392c1",
       "course": "01"
     },
     "src/app/inspection/source_memory.rs": {
       "sha256": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d",
-      "introduced_in": "16",
       "course": "03"
     },
     "src/app/inspection.rs": {
-      "sha256": "93fc213d35f8cc91374729ceeb3638b7cf91feb6a6e6b46f539e50f8176550ec",
-      "introduced_in": "12",
+      "sha256": "90233b7df0162410776599c7c867422923bc8399b275b635b19a53a4b0d3b527",
       "course": "01"
     },
     "src/app/keys.rs": {
-      "sha256": "4a363e9f973110a0020652de0a2cd60253689627e859c6497e1a1b366eac05f5",
-      "introduced_in": "12",
+      "sha256": "28abcbf79f108564e48b4c61ee96b8521b69062d467d2c5c2ad787e6c230289a",
       "course": "01"
     },
     "src/app/knobs.rs": {
-      "sha256": "68069deb0df10a7eb8e1d325104b9249e1ba3c3db84268909252269e8bcc2b69",
-      "introduced_in": "06",
+      "sha256": "b9dba07b897e6498d0a4210dca1b909365a82f46df32eb1a2e8dfd712889d99a",
       "course": "02"
     },
     "src/app/layers.rs": {
-      "sha256": "2a0bb251e3597f2a88c338d3b06371fe67f072eb6702fbea6f47d8b2b6f3b05e",
-      "introduced_in": "21",
+      "sha256": "29a5033a046b65b22679b5f2ff1c15ab150cdc01dab1ddd8ffb721dda206e90f",
       "course": "04"
     },
     "src/app/live.rs": {
-      "sha256": "f3d69e924dbce5ca3d6678cbc178dc301f28c1229b25cad232e931a63b70f7b8",
-      "introduced_in": "14",
+      "sha256": "c219787e600906040aedf875182a61635b03e64839c3797b6c9a4eddded7c9c4",
       "course": "03"
     },
+    "src/app/live_revision.rs": {
+      "sha256": "91680efc998ea6d91d59bf46380fa938b3f1b9b8a3e9d4be7835096a6bb13c60",
+      "course": "07"
+    },
     "src/app/loader.rs": {
-      "sha256": "348e681d296607f70fc543d3406bb70ad91aced0117e0f688dce00391f2336cc",
-      "introduced_in": "14",
+      "sha256": "61e21d567eba5f336a45f8cae5b6e3d7c51438315cfb447ec73c9ff5604f50f7",
       "course": "03"
     },
     "src/app/manifest.rs": {
       "sha256": "ab020e177195951fa7d07d8f132f93de2b41d23c51d6625d19486658baef8228",
-      "introduced_in": "14",
       "course": "03"
     },
     "src/app/mesh_preview.rs": {
       "sha256": "15b91c43c69603b92b4769b9b5125adff214a18d87aa6c106ad243596734a2a6",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/mod.rs": {
-      "sha256": "9230043eab09b73b1d7adb5000afb2c9cc749b7de19246267e6129685d38931d",
-      "introduced_in": "06",
+      "sha256": "04abc83e1eb68b834c79ae79aef314124a8dbc3b96432ed5fda3b470742c0e63",
       "course": "02"
     },
     "src/app/modeling.rs": {
-      "sha256": "c21d7e5abe785a5ad9868f255665e5dbc1e88c8a054364f76d43038c261e575b",
-      "introduced_in": "23",
+      "sha256": "9602db54b323bd4b81ad7c3b724ea45cf6372760436a9bd8d43cc3443580d646",
       "course": "05"
     },
     "src/app/range_gate.rs": {
       "sha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
-      "introduced_in": "14",
       "course": "03"
     },
     "src/app/route.rs": {
       "sha256": "009e6ae7e824edebe981be1d31c30dabafb89ae227aec188113f680bfa6dc2b9",
-      "introduced_in": "12",
       "course": "01"
     },
     "src/app/scene.rs": {
-      "sha256": "ff210ec764bcfb580b579aed88c6c3e2d037675b8c2a03ac5c071ab195e6728c",
-      "introduced_in": "12",
+      "sha256": "d630530b8261489c5f2b7d933863d557640848d350dd03082349054797c67958",
       "course": "01"
     },
     "src/app/scene_instances.rs": {
-      "sha256": "46a9e5d03a56b846559c45d25391384fe98b80c9763930efb43f79809bb1bf99",
-      "introduced_in": "21",
+      "sha256": "28b6e84eb4f4d151c4886509106f8c226af3d0d90f0dce43eebf8d1d1f4d229c",
       "course": "04"
     },
     "src/app/scene_release.rs": {
       "sha256": "b886d822f51516d904726d7ab2380447da7b8dd99f112c87d406ef54732fd95e",
-      "introduced_in": "16",
       "course": "03"
     },
     "src/app/scene_rows.rs": {
       "sha256": "ba1297dcf12cdafbfb8f67e78bf724dac18d4e62217b78a93c508bd628816fb9",
-      "introduced_in": "12",
       "course": "01"
     },
     "src/app/scene_sync/allocation.rs": {
       "sha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync/commands_tests.rs": {
-      "sha256": "6c3595d2be15452edcf881a7e9e8b8ee268d8024ad123febc2de5140d983a961",
-      "introduced_in": "23",
+      "sha256": "2b33a31d6e9052b3ad33fccdefbbbb4ad3321c65606508b4e2a9d7b49d608b7a",
       "course": "05"
     },
     "src/app/scene_sync/compaction.rs": {
       "sha256": "88ed380ea1c71a52bbe1183db3c0211f5071cc99b5e3de0b152964e0130c6246",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync/editing_tests.rs": {
       "sha256": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/scene_sync/nodes.rs": {
       "sha256": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync/notes.rs": {
       "sha256": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync/panel_tests.rs": {
       "sha256": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4",
-      "introduced_in": "26",
       "course": "04"
     },
     "src/app/scene_sync/preview.rs": {
       "sha256": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/scene_sync/split_tests.rs": {
       "sha256": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70",
-      "introduced_in": "31",
       "course": "05"
     },
     "src/app/scene_sync/testing.rs": {
       "sha256": "83d168317384b5c57762de28f76f1766532404417a6a15f58fb46b76f566300f",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync/tests.rs": {
       "sha256": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync/tombs.rs": {
       "sha256": "19f07889c96d7b33cdf35668d7dbb3a6520ee2e01c75bc35d8a9373b04c3f3a4",
-      "introduced_in": "20",
       "course": "04"
     },
     "src/app/scene_sync.rs": {
-      "sha256": "d590a8da5e32137a31b22656e94981015673a1f619073cbca90d5bba88786eb7",
-      "introduced_in": "20",
+      "sha256": "9ac67a93c1df2b7a920cb4d6a0002fa329ca841a9a5c2eabde7bf0c0ba93c2d9",
       "course": "04"
     },
     "src/app/scene_text.rs": {
       "sha256": "b519d58bf6b0829e157f338300cf704f7986377cb1091294beb7f4c5e8863c8c",
-      "introduced_in": "17",
       "course": "03"
     },
     "src/app/selection.rs": {
       "sha256": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
-      "introduced_in": "12",
       "course": "01"
     },
     "src/app/session_io.rs": {
-      "sha256": "8488e218d4bd75f7cf413a5aa180235920ab2f1608a73902fc6adbdb3c28d4b1",
-      "introduced_in": "23",
+      "sha256": "ca46739b5e8d4ff3fe5b5bd22b2d35ab76d0a55c0af3ec2a4ce38ec97c3b87be",
       "course": "05"
     },
     "src/app/sheet_query.rs": {
       "sha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
-      "introduced_in": "19",
       "course": "03"
     },
     "src/app/snap.rs": {
-      "sha256": "71e75f4a7336c8767ab9ed2c6911a9fe4cf31ca7e7efb3c1be1920b5d92b4f51",
-      "introduced_in": "21",
+      "sha256": "174fe242e49e33d825acecf477d771a2ed4a7a0bdd7120c25938ee90241ec7cd",
       "course": "04"
     },
     "src/app/splitting.rs": {
-      "sha256": "0f005ee170fe6d5855e53a634c9127f20c0c9a779293462ddf5a4afa88befe52",
-      "introduced_in": "31",
+      "sha256": "50840e7f5750aa42a0e9058427dbea29beac8247b700b69e1fae7885f540b513",
       "course": "05"
     },
     "src/app/stream.rs": {
       "sha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
-      "introduced_in": "15",
       "course": "03"
     },
     "src/app/surface_preview.rs": {
       "sha256": "8e2f19c43e4de23aebf1d1b79d53c317dc09020374fedc0b64c01102eda47b88",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/app/touch.rs": {
       "sha256": "6e45e9c59952bcfb102bc98ac9cd0c243d042c52a623d330605ef6b1b3ac6460",
-      "introduced_in": "12",
       "course": "01"
     },
     "src/app/ui/command_line/tests.rs": {
-      "sha256": "a132a9f0a2a8e7a42840f4092b810a10a9ff4c97642507f9e89892e3d0ae4ebe",
-      "introduced_in": "23",
+      "sha256": "362220990b55ef4d018480b0391715e168ef536ac1f28a2416cfb4e3eb2e154f",
       "course": "05"
     },
     "src/app/ui/command_line.rs": {
-      "sha256": "59ee846f03aa05c2e22fd73dfa4928631c4aef42071ad167b4f7b77b294eb790",
-      "introduced_in": "23",
+      "sha256": "e1465627dfb1b6afa326bbed8ce025de3ec0daa4ec4f0d34504099475e3d1bc0",
       "course": "05"
     },
     "src/app/ui/graph.rs": {
       "sha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
-      "introduced_in": "30",
       "course": "04"
     },
     "src/app/ui/layers.rs": {
-      "sha256": "c6f85936550b0e8a28d0eada680573157ebff041eb49a2208261faba93903931",
-      "introduced_in": "30",
+      "sha256": "3ed1b04e06c3b56d6ff39c0880be39c0944dcb4fc5847bce2adb127050da96ba",
       "course": "04"
     },
     "src/app/ui/mod.rs": {
-      "sha256": "e2426aeb7450304746110658b049d025cbe9c30885c4957f80927e4bbf44f7ce",
-      "introduced_in": "22",
+      "sha256": "e281d789a462716213d8ec44b3faec0f9cca7abd65cdb6c3b1306895f9d97c59",
       "course": "04"
     },
     "src/app/ui/number_box.rs": {
       "sha256": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7",
-      "introduced_in": "22",
       "course": "04"
     },
     "src/app/ui/overlay.rs": {
-      "sha256": "ea7d454773201bfaf85e3f7ee1392da9e8872e69937d030bcc708f508cab64d2",
-      "introduced_in": "22",
+      "sha256": "99e66230fe357a9922134146603afb7043628bff4a0a4e69b16fe52863812739",
       "course": "04"
     },
     "src/app/ui/phone.rs": {
       "sha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
-      "introduced_in": "23",
       "course": "05"
     },
     "src/app/ui/pointer.rs": {
       "sha256": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e",
-      "introduced_in": "22",
       "course": "04"
     },
     "src/app/ui/theme.rs": {
-      "sha256": "19c2f468fd41280c9b3d30268199d88b979163e6e65c8b020ed046fb43911f2d",
-      "introduced_in": "22",
+      "sha256": "a45673d3ff48b2114846750a22e2ced36f22dbfd7b1e11752914ecbd54b71f3d",
       "course": "04"
     },
     "src/app/validate.rs": {
       "sha256": "c7e6e4fbe33ea7af6898a18b92758df01f46cb43ea2aacd09d5da346a57623be",
-      "introduced_in": "14",
       "course": "03"
     },
     "src/app/walk/bounds.rs": {
       "sha256": "257a8f622f4ba277e235ae73c69e59b14c8a6cc2ffc52b9ed07076e25868991b",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/brep.rs": {
-      "sha256": "e347b0907e044cb3ce4dfa25ed3fbc627e4ac03f38b79a32df2c38561c05174c",
-      "introduced_in": "06",
+      "sha256": "00c7607b73b9b72b24db975ec0fe330af585052ba90edc10780c6a8149b774b0",
       "course": "02"
     },
     "src/app/walk/brep_edges.rs": {
-      "sha256": "1ee027e413f94eeb28b6d17baaa694d063d8e57977a20a6a7dd19af8f8861fc5",
-      "introduced_in": "06",
+      "sha256": "2a19dd35e93bf62103e9549fc16f9c9d0fe6859a68be424b970d60dea17b5d2d",
       "course": "02"
     },
     "src/app/walk/brep_orient.rs": {
       "sha256": "71ad922bb931e0e51a3c6387de5feacc6de094d6e0821292efd84ba79921e2f4",
-      "introduced_in": "06",
       "course": "02"
+    },
+    "src/app/walk/brep_shapes.rs": {
+      "sha256": "db0104e6e0ac057e4c150c4e4cc986fd77c267697dda521f36086b5d554ee567",
+      "course": "07"
     },
     "src/app/walk/cloud.rs": {
       "sha256": "813e12a5731d575101f15a1f18c5d5db2759ab400ba0d8e1701b7047f37207ce",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/curves.rs": {
-      "sha256": "820eb6ace35c0f4450733a7bdd945e8aee8f1292762044d572230bbf1b6057a1",
-      "introduced_in": "06",
+      "sha256": "4da38304e6eb4dbed57d0406fe36a9dc4da823eb4f044d4434160983792756d7",
       "course": "02"
     },
     "src/app/walk/encode.rs": {
       "sha256": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/frames.rs": {
-      "sha256": "80b64ff2220318eb0b91b68aeb2a8e87b3930d0c2aa0e372db3ed77110250a3f",
-      "introduced_in": "06",
+      "sha256": "1bf83056cc5e36a94514c86ab43ef13d7a10ad9b9de62cfc8df847e3dbd33d8f",
       "course": "02"
     },
     "src/app/walk/mesh.rs": {
       "sha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/mesh_ink.rs": {
-      "sha256": "07ddde05a2f5c483add83a819ece2b0cc8d3bc5be94d944ade113cc3fd096a55",
-      "introduced_in": "06",
+      "sha256": "15f78f7c51146d9e50cfd233db5f6d84bdb1a75d50100f8e1d0f8de7c670f8c6",
       "course": "02"
     },
     "src/app/walk/mesh_topology.rs": {
       "sha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/mod.rs": {
-      "sha256": "adaa16bad9e65e33cef1f240604817dc78730f577ddd6b500bea7dcdaaaa6ac5",
-      "introduced_in": "06",
+      "sha256": "c54b87be104babcf19783a62559dd979f51b231359ef785d009df6474d431f50",
       "course": "02"
     },
     "src/app/walk/plane.rs": {
       "sha256": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/points.rs": {
       "sha256": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330",
-      "introduced_in": "06",
       "course": "02"
     },
     "src/app/walk/sheet.rs": {
       "sha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
-      "introduced_in": "19",
       "course": "03"
     },
     "src/camera.rs": {
-      "sha256": "7e22a3f5d6cb65a41ad00e958bbeb8a21eb861eb5f736169d325066d83e751d0",
-      "introduced_in": "02",
+      "sha256": "2eb0d51723129bdea1cddc3f35760217923959afe2a50dfe1fc6e129c8a3d58f",
       "course": "01"
+    },
+    "src/command_dock/mod.rs": {
+      "sha256": "c41184b767cb4947bf33bfe8ded268a6d3c7185870a6fa71054a588c002a90d4",
+      "course": "07"
+    },
+    "src/command_dock/theme.rs": {
+      "sha256": "2064473cf413d0be10ca1f71440db34e11912c30893a360f11e446a5ffa2099d",
+      "course": "07"
+    },
+    "src/command_dock/view.rs": {
+      "sha256": "2b6c7b55d1257a7be5736edd22e69194655b6e14d4dfbffe5c1c01e86456f204",
+      "course": "07"
     },
     "src/engine/gpu/ambient_warm.rs": {
       "sha256": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/engine/gpu/arena.rs": {
-      "sha256": "e0545af54db2e754000a628b1aab8c54c3b114e330e5417a32765639ec20299d",
-      "introduced_in": "04a",
+      "sha256": "7f0d4e53f55d3a1bf384da7ac7781766b8faf4e9f7038ab0dc2c29bb7f6e6441",
       "course": "01"
     },
     "src/engine/gpu/backdrop.rs": {
-      "sha256": "9813218b1bd6db60a79c8a76edc4b804276feb5b3fc871043bf74d45f1883962",
-      "introduced_in": "01",
+      "sha256": "afb51eaef8ce003e22ab9b4ce0e0af2c1ee786c98b98ceb22992f2a3edf4d6bc",
       "course": "01"
     },
     "src/engine/gpu/buffers.rs": {
       "sha256": "f226f75be1899a1540a4f80d4491019aa873aeed811dc73d0573405927a13f2c",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/gpu/clip/editing_tests.rs": {
       "sha256": "ad0a23dda8ba3b14a7f55db51001d3bd61d24ec51cbea0552babcce6e206044d",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/engine/gpu/clip/pipelines.rs": {
       "sha256": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73",
-      "introduced_in": "18b",
       "course": "06"
     },
     "src/engine/gpu/clip/tests.rs": {
       "sha256": "9f7a926a7e0e57d623a226d9baf781287d0ad6da3c4b0c9108d2612fcdd8d691",
-      "introduced_in": "18b",
       "course": "06"
     },
     "src/engine/gpu/clip.rs": {
       "sha256": "e0b31a38015a8c5bc31c404261ae46757e0655774413de0fd5ab92bb2282d99a",
-      "introduced_in": "18b",
       "course": "06"
     },
     "src/engine/gpu/cloud.rs": {
       "sha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
-      "introduced_in": "04d",
       "course": "02"
     },
     "src/engine/gpu/device.rs": {
-      "sha256": "4d2d64bf04126b9399d1c73d6bed1268220fbba0aad43293c6cf2bc6870761d2",
-      "introduced_in": "01",
+      "sha256": "6d8d81150175551c886ba7dc412b384c2ef9be30fbc9ffc3fff53cbff6f67a1c",
       "course": "01"
     },
     "src/engine/gpu/faces.rs": {
-      "sha256": "16d20aa7dad0364a83d3f027a05ab0df8ccd95481fac77262c312395def8a2f0",
-      "introduced_in": "04a",
+      "sha256": "b48b373d830c28cb9e9456e421390d7f326b4910c9608f487dcf1834be78ff71",
       "course": "01"
     },
     "src/engine/gpu/frame.rs": {
-      "sha256": "7de00ea9118242eb50a8daa10f7107398d8644cad746489f2c78a35c7faa1f37",
-      "introduced_in": "01",
+      "sha256": "2a492fe36f15db4201a687a1d06e120945d38410a075375fece6ec1d3d4323fb",
       "course": "01"
     },
     "src/engine/gpu/glyphs.rs": {
       "sha256": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970",
-      "introduced_in": "04c",
       "course": "02"
     },
     "src/engine/gpu/hull.rs": {
       "sha256": "42571ee70a810306267f2f1574e593819231f5633e245dc64f5460d5ff8679ad",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/gpu/instance.rs": {
-      "sha256": "62ab0c50ae123817985cd2aaf46a732d951bc8443c20bc22e7869ec8a98aba06",
-      "introduced_in": "01",
+      "sha256": "89198da7abf06d41040aae716580d539eab2eed5b4e68763f348c5b7de31bd70",
       "course": "01"
     },
     "src/engine/gpu/instanced.rs": {
       "sha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
-      "introduced_in": "18a",
       "course": "03"
     },
     "src/engine/gpu/lane.rs": {
-      "sha256": "692caf646bc1b13a31e7ee400cf02bb31d36c7865798f486b043a514681d198e",
-      "introduced_in": "01",
+      "sha256": "2e16f454ed7cbc29a0422d180ec3eb8aa9adbe7503f7425eadf24765dcfea838",
       "course": "01"
     },
     "src/engine/gpu/lod.rs": {
       "sha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
-      "introduced_in": "04d",
       "course": "02"
     },
     "src/engine/gpu/mod.rs": {
-      "sha256": "0261a219c64dd8acd70824cf7dafde84a85db6258eb00f1d6d2359acb50595f3",
-      "introduced_in": "01",
+      "sha256": "994339d5f4eb05eaee30be2c0352c7033d4b686afd6cad0c1e2ea84204d06035",
       "course": "01"
     },
     "src/engine/gpu/objects.rs": {
       "sha256": "58abc890347f29a8d3deb9b7651e3a43b4444a1e1429bf3de830ceb54516e7d5",
-      "introduced_in": "01",
       "course": "01"
+    },
+    "src/engine/gpu/pacing.rs": {
+      "sha256": "9e5916950f6658ad02b28aae1e009cfdc4546c4a4c4ba24c59c9194a7675b427",
+      "course": "07"
     },
     "src/engine/gpu/pass.rs": {
       "sha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/gpu/patch.rs": {
       "sha256": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100",
-      "introduced_in": "03",
       "course": "01"
     },
     "src/engine/gpu/pick.rs": {
       "sha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
-      "introduced_in": "12",
       "course": "01"
     },
+    "src/engine/gpu/planes.rs": {
+      "sha256": "f0e509a16d84aa675ffd8c6b335a2a4f6074f120690881e4b1eae202a22e1f61",
+      "course": "07"
+    },
     "src/engine/gpu/present.rs": {
-      "sha256": "f8a94a0410f908e02466ccd70a95183792881f612aa21475c712a4d7cf161ae5",
-      "introduced_in": "01",
+      "sha256": "ff2820ea362b9fad33463c03007deb90a72f22bf84f68f9c53356f31b7e61f79",
       "course": "01"
     },
     "src/engine/gpu/render.rs": {
       "sha256": "48150fc2c3afa9a453af5fa0d0aa35768ed42ee57454a3c46ef0016a518dfabc",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/gpu/segments.rs": {
-      "sha256": "30f125a35ba4cecc0d7dbd5dc03ddadd859af5db659124dcad5ce8b617627b75",
-      "introduced_in": "04b",
+      "sha256": "e0d9532d31ce5ffd592eff3c0ca47300e81aca229408fd39a7d248176118ad2a",
       "course": "02"
     },
     "src/engine/gpu/slots.rs": {
       "sha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/engine/gpu/splat.rs": {
       "sha256": "13c99ea37920f0dd4c39750deba7e57d274268b366c3cd56d2a938dec113fa3e",
-      "introduced_in": "04d",
       "course": "02"
     },
     "src/engine/gpu/ssao/pipelines.rs": {
       "sha256": "e1c9ee95daa6fa83ae924519bd7f07a759e3f8d00c939f3dd1bce749ded218f3",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/engine/gpu/ssao/tests.rs": {
       "sha256": "474fdf5ec95cab2ef4f6a6d2d19528c344e1f3abb4f94cec8ff7ce442fb2e5ae",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/engine/gpu/ssao.rs": {
-      "sha256": "57ba54e3e6e2298f007f85579f9e7e5f266d7b344f0b9b7bcc95ad3943808844",
-      "introduced_in": "32",
+      "sha256": "932d34fde6d1d92a37c449e9f3b7c921e3aed63308c7427ac72e080c6c909830",
       "course": "06"
     },
     "src/engine/gpu/surface_outline/tests.rs": {
-      "sha256": "3c25a1f9c080bcc0267b31d3dabdbbfc45ef67c82e35435360b07e13945c08c4",
-      "introduced_in": "17",
+      "sha256": "d669e0da39d775ce45b86a1b01b54f8969b288b92a7cdb76b2941575f8f8940d",
       "course": "03"
     },
     "src/engine/gpu/surface_outline.rs": {
-      "sha256": "60fcf2752fe4511339d48c97d8ab61f8204eb36bebc45858fe8c82a35fb06a85",
-      "introduced_in": "17",
+      "sha256": "08e790732dcd0ff16abe734be9d13b63dc26e6825f9d1d7578645ee529e4db03",
       "course": "03"
     },
     "src/engine/gpu/targets.rs": {
       "sha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/gpu/text.rs": {
       "sha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
-      "introduced_in": "11",
       "course": "02"
     },
     "src/engine/gpu/text_outline.rs": {
       "sha256": "8444903f4b6c8132375822bd8d95eb5e06b51e023cb3487a730e90c5b3b842a1",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/engine/gpu/text_plane.rs": {
       "sha256": "641063fe094b466de058a601013f47e3227955eb63ccc0d42564f1b0b8a6063c",
-      "introduced_in": "11",
       "course": "02"
     },
     "src/engine/gpu/text_plate.rs": {
       "sha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
-      "introduced_in": "11",
       "course": "02"
     },
     "src/engine/gpu/timing.rs": {
       "sha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/engine/gpu/triangle_tiles.rs": {
-      "sha256": "37760c3323066f4ebfbc83459e7e9d5f52afd72f954fb0dc0475829b99f9c088",
-      "introduced_in": "04a",
+      "sha256": "9e337004028bc94be8f79c5007ad7d04711967c1ea5d093fa6b3cb882123e2c9",
       "course": "01"
     },
     "src/engine/gpu/ui.rs": {
       "sha256": "a74d2783ebbb7404e496ceeb01d62671f48018e3173837c66e0f83720cadb263",
-      "introduced_in": "22",
       "course": "04"
     },
     "src/engine/gpu/upload.rs": {
       "sha256": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/gpu/upload_padding.rs": {
-      "sha256": "de1d8c9d55c3fca4b7dcc41170a97eba02863af55ba6a29ff216af680ac586e5",
-      "introduced_in": "20",
+      "sha256": "f713558ae631388ee310c7d6e3e9178eba12f383111cf2fba5f9ccd184fa1f52",
       "course": "04"
     },
     "src/engine/gpu/vectors.rs": {
       "sha256": "3672753ca6999917f1e9069206b7f767bf02b7dd11d30961047272d3ccd69cd8",
-      "introduced_in": "04b",
       "course": "02"
     },
     "src/engine/gpu/view.rs": {
-      "sha256": "7a6e73e94910dadf5284fc96d9f963e09e7910a8b3ec81d8846746d83e7f9b7d",
-      "introduced_in": "01",
+      "sha256": "dec8a12c4a27401682d4a506590d107ffe762f1253af19774409e8d32e3879f1",
       "course": "01"
     },
     "src/engine/gpu/widget.rs": {
       "sha256": "7227605387d824dd13210d70101a818ed95f9525a000bca1dc796dd7d21d0104",
-      "introduced_in": "25",
       "course": "04"
     },
     "src/engine/gpu/widget_mesh.rs": {
       "sha256": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306",
-      "introduced_in": "25",
       "course": "04"
     },
     "src/engine/mod.rs": {
       "sha256": "f9d05dbaaa0d9b2f6289a368e9c06657159eb8d9a0880936acaa682f736d97d9",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/performance.rs": {
-      "sha256": "fefe09116b3e2d186ce4b84f583ed1c5422353b6fbeefe457e2e556bab3f5905",
-      "introduced_in": "01",
+      "sha256": "de679efdb2e8adf6e257324ce37d6026649654d7d4c4a7ab38dcf1b46d5bd5d8",
       "course": "01"
     },
     "src/engine/pipelines/bindings.rs": {
       "sha256": "7799e0467c095eea09730a0fc7c34847dfd8409dc1280ddda0bf171d35a77509",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/engine/pipelines/layouts.rs": {
-      "sha256": "bb4f17f583456c45b928173258ce0e74711f02e8312c825ed64f129a133910f0",
-      "introduced_in": "01",
+      "sha256": "2152f1a6ab2fe4fd17e7d3a3eea01606dcab2a6b80ba69bf0760a216d42d3f45",
       "course": "01"
     },
     "src/engine/pipelines/mod.rs": {
-      "sha256": "9953257f6c10ca5fcf86e7b2981902817ab0fe486025d97cecfe301748c13bab",
-      "introduced_in": "01",
+      "sha256": "50590524bc796a7839dbf7fc075ad278909b53050fdb47c6e721d5d9f6c1bee5",
       "course": "01"
     },
     "src/engine/text.rs": {
       "sha256": "918ec5b3bcc2a775c81e348d25b943299bc19d2d6ffd9b7ca647c10c9299591c",
-      "introduced_in": "10",
       "course": "02"
     },
     "src/lib.rs": {
-      "sha256": "174f2c83594dd362f114064227d234a8a664fbb681bcf6815f7079c3403dc5f1",
-      "introduced_in": "00",
+      "sha256": "12a3ae5e9c08583ed1088714889ba96bebd7fde315d0e4c0370692a2b12457ab",
       "course": "01"
     },
     "src/selftest/lifecycle.rs": {
       "sha256": "01744a1500c73dbeb25e4caa46aec8c82ee240ba706b76895363169dd864991a",
-      "introduced_in": "37",
+      "course": "07"
+    },
+    "src/selftest/oracle.rs": {
+      "sha256": "65e4c530ed8d341c7f1a4bbc5f2691861945e4828bb7056dc74e7202177455f3",
+      "course": "07"
+    },
+    "src/selftest/profile.rs": {
+      "sha256": "2b52005f3fb4218f2e4f35f462ded89fea6fad5c214718b9902be6cebdd5356d",
       "course": "07"
     },
     "src/selftest.rs": {
-      "sha256": "147c1947a1fa6dc1120aae747d1ad16cbebae598be51bd5c266d25c7abe88cb8",
-      "introduced_in": "37",
+      "sha256": "dec37fbc978002c1184181627769ac0c6daeec91da64b13373ef1d33bdaa08fc",
       "course": "07"
     },
     "src/shaders/ambient_composite.wgsl": {
       "sha256": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/shaders/ambient_depth.wgsl": {
       "sha256": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/shaders/ambient_geometry.wgsl": {
       "sha256": "3168319a5398a270b4c89d13342e16bb2f4353f97fce0341a2d500728f9868ee",
-      "introduced_in": "32",
       "course": "06"
+    },
+    "src/shaders/arrow.wgsl": {
+      "sha256": "73cd0ec57df2490b9b3099c56fbb9930c4667f8eb55080a400ca98b4e8c0b2a1",
+      "course": "07"
     },
     "src/shaders/background.wgsl": {
       "sha256": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/shaders/cap.wgsl": {
       "sha256": "1892c0314d7ed98949f6f56711e2cb002ec29b2c1c1c46ff9c4b31357ef7bde9",
-      "introduced_in": "18b",
       "course": "06"
     },
     "src/shaders/clip.wgsl": {
       "sha256": "56aae3cacb18a7c036e05833264577d8ee181f29c25af56d2f96ac2582df01d1",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/shaders/face_coverage.wgsl": {
       "sha256": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16",
-      "introduced_in": "17",
       "course": "03"
     },
     "src/shaders/glyph.wgsl": {
       "sha256": "7a1ed8abcaa5ab684ebe31cea2fbece63df6248057aed2e84d0ce8e9cc5e4471",
-      "introduced_in": "04c",
       "course": "02"
     },
     "src/shaders/grid.wgsl": {
-      "sha256": "cd8d59e36c18d5359bff4c8eab12d5f57b5430587f2d366a4abe4651676610c5",
-      "introduced_in": "02",
+      "sha256": "67daedfc89ed5b5553d2061429a4d725d1bc12b7f8e503d04bf1d709befc21fb",
       "course": "01"
     },
     "src/shaders/ink_visibility.wgsl": {
-      "sha256": "4bf96d7bb44419aba47a0cf5081d0e132a4c23b350e644e7c243a2a3c77e4c80",
-      "introduced_in": "04b",
+      "sha256": "3423dfccfef9d924b4329d0b973554dc47bb77b7f7725c9a045c5181398a055e",
       "course": "02"
     },
     "src/shaders/normals.wgsl": {
       "sha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
-      "introduced_in": "01",
       "course": "01"
     },
     "src/shaders/physical.wgsl": {
       "sha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35",
-      "introduced_in": "01",
       "course": "01"
     },
+    "src/shaders/plane.wgsl": {
+      "sha256": "e9934e566c2cdb31ce648cd0f221f1ba7728df130f15fe8e69b8eba44d452312",
+      "course": "07"
+    },
     "src/shaders/project_triangles.wgsl": {
-      "sha256": "922addeb33ff28e546dcea72283e63f17a358e7d9d8a92f032641c6c96d17ba9",
-      "introduced_in": "04a",
+      "sha256": "60f8ca735f51e5b977b0d977f55cf7f71fe5b841409ea4765de8dc6687867224",
       "course": "01"
     },
     "src/shaders/projected_triangle.wgsl": {
       "sha256": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/shaders/ribbon.wgsl": {
-      "sha256": "ffccd57d1ed78920ddee9904e20cb16e73ab065d1072eec7eece93c2e41cfc28",
-      "introduced_in": "04b",
+      "sha256": "f19427f01f8eeda0bd8200457f326717d972eaa4c8bc349c339c45243300f617",
       "course": "02"
     },
     "src/shaders/scan_triangle_tiles.wgsl": {
       "sha256": "d04d5a98009c0d253b4e5ef5c5751b8ee48239878e800753eb99e5f856e02ed0",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/shaders/scene.wgsl": {
-      "sha256": "3a3089eb4ce44e4149a670d7d988392c7702a1d98ff9bc948aa12f0330385bd5",
-      "introduced_in": "01",
+      "sha256": "e17b1d992b7c986e48abececae70cb1be1edc356125a0ae1f2805cd6a6a73281",
       "course": "01"
     },
     "src/shaders/slot_table.wgsl": {
       "sha256": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/shaders/sphere.wgsl": {
       "sha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
-      "introduced_in": "04c",
       "course": "02"
     },
     "src/shaders/splat.wgsl": {
       "sha256": "38fa50b2d6aedcf8dd923f534a21b6f05fc4a94c32b6855e2d2ecd6b3559eda4",
-      "introduced_in": "04d",
       "course": "02"
     },
     "src/shaders/splat_resolve.wgsl": {
       "sha256": "529a0f871e59615087bce401df552a09243406da12240c3c84c64663a9decc0a",
-      "introduced_in": "04d",
       "course": "02"
     },
     "src/shaders/ssao.wgsl": {
       "sha256": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f",
-      "introduced_in": "32",
       "course": "06"
     },
     "src/shaders/surface_outline.wgsl": {
       "sha256": "446689ea45e5cf0fd03011250271a296eddf4942ad9e0dfd4432c8b57b089885",
-      "introduced_in": "17",
       "course": "03"
     },
     "src/shaders/text_outline.wgsl": {
       "sha256": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/shaders/text_plane.wgsl": {
       "sha256": "56c0dcf2431ff25d546d3b46dd6038823035744ac939c3895d7fcbe372073248",
-      "introduced_in": "11",
       "course": "02"
     },
     "src/shaders/text_plate.wgsl": {
       "sha256": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd",
-      "introduced_in": "11",
       "course": "02"
     },
     "src/shaders/triangle.wgsl": {
-      "sha256": "a0567b117e3f381e73c32941dd53ee9ff3bc465b43f9c180cfb31025de571bb6",
-      "introduced_in": "04a",
+      "sha256": "ea26805ce07269fb242562ea71dec4fee114794d5cf24d385c2f1c2e9516960b",
       "course": "01"
     },
     "src/shaders/triangle_tiles.wgsl": {
       "sha256": "21bf7777d18bf7e506f97c0a31d4ab5a64bf6e062ffe0698dd67402806876c0f",
-      "introduced_in": "04a",
       "course": "01"
     },
     "src/shaders/vector.wgsl": {
-      "sha256": "6630bd14ac6a9aad1db980553b736c0417db98675dd967b468b4e306d6c54491",
-      "introduced_in": "04b",
+      "sha256": "b67a636f91ab079c58e80361c5ed8782764acd47e133045a94c50f412b72030a",
       "course": "02"
     },
     "src/shaders/widget.wgsl": {
       "sha256": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0",
-      "introduced_in": "25",
       "course": "04"
+    },
+    "src/state/box_select.rs": {
+      "sha256": "3b0fda742185f5e1fac8836aa094707ccf7a66cba115300b52e1b40520c5c07d",
+      "course": "07"
     },
     "src/state/clipping.rs": {
       "sha256": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148",
-      "introduced_in": "18b",
       "course": "06"
     },
     "src/state/cloud_query.rs": {
       "sha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
-      "introduced_in": "15",
       "course": "03"
     },
     "src/state/drag.rs": {
-      "sha256": "1b3305eff3d5c0764aee61fd6fd45b8c2c5b65387c4dec5c9cd1661dbd3f9c99",
-      "introduced_in": "21",
+      "sha256": "e94d90344c4cc68710cf5abcb2cdffc31aca7d7a53d0f3f49e093b0380a2e061",
       "course": "04"
     },
     "src/state/drawing.rs": {
-      "sha256": "eef73ccb94df49001ce825ca60dec40a59e06653aa7109c86c419619ab05a064",
-      "introduced_in": "23",
+      "sha256": "002139c15068a0b99bf58f4e98c06ab76d639a9632e387e221b26ce6b403cebf",
       "course": "05"
     },
     "src/state/edit.rs": {
-      "sha256": "00e4482715c457bd95740d8b8b3aee1213c76aaa38016bdbcd43187aaa951ac2",
-      "introduced_in": "21",
+      "sha256": "ae99d6455cb03aacc2402cb5d8a6c292894add723f88453d145cd4a27bf866bd",
       "course": "04"
     },
     "src/state/features.rs": {
-      "sha256": "b065e506a73440cadb735f583407e689db962ba1e55a6b71873c588cd564221d",
-      "introduced_in": "12",
+      "sha256": "346212c4f10751e092ab484d2e91988454c832fb39d1751d1cc365aa6ff86a53",
       "course": "01"
     },
     "src/state/hydrate.rs": {
       "sha256": "5425a603e63bc9090e2f9e7cbc8e16afff75aa6a9382295fe1911b95a90e6b5f",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/state/number_box.rs": {
       "sha256": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1",
-      "introduced_in": "21",
       "course": "04"
     },
     "src/state/panel.rs": {
       "sha256": "cc0b346697295d8d2a7107a4cec365b5b9147997f761c165e977629a5c7bf30d",
-      "introduced_in": "30",
       "course": "04"
     },
     "src/state/sheet_query.rs": {
       "sha256": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038",
-      "introduced_in": "19",
       "course": "03"
     },
     "src/state/splitting.rs": {
       "sha256": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924",
-      "introduced_in": "31",
       "course": "05"
     },
     "src/state/text.rs": {
       "sha256": "48ea023bdaee730f0d55bff43ef28937d6370a973bbd0819b5e484c66f7ced68",
-      "introduced_in": "17",
       "course": "03"
     },
     "src/state/tool.rs": {
-      "sha256": "2ce8b418bb29c005bcee6fb0833fbba752797e2cc87db2499df670e1cbb10bb3",
-      "introduced_in": "23",
+      "sha256": "044fd2c8f01f1ce7995d89f04022de261609f9e65e552b4d3485c74f190c2889",
       "course": "05"
     },
     "src/state.rs": {
-      "sha256": "5240ca229d250cdb741116d271bae94d9f1f5e3b3b4009fc31f7806408eb49da",
-      "introduced_in": "12",
+      "sha256": "077735d967ba111f014be46652ef98f4fc389eaa7b57c530a88f7d8d80cefad4",
       "course": "01"
     },
     "src/text_quality.rs": {
       "sha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
-      "introduced_in": "11",
       "course": "02"
     }
   },
   "inputs": {
-    "Cargo.toml": "7cb878294f25d0cf42d200515d9924f62f46efb4cd00569d1757a957e6a523ba",
-    "Cargo.lock": "8bdb390f9bfbf051014554335c05f2fdfa9e13706367f8c4ddf9a06753747acd",
+    "Cargo.toml": "f3c4a4e33279d03a069b041b21d5b25be8c5f2c1846adbf406c693fc40234002",
+    "Cargo.lock": "9b313409fa85751cba3224e7902022ee6a9420f7fdeaf69acf13c0ec62a6d9de",
     "build.rs": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
-    "index.html": "d662e8298ee33172307871d991cb3e05e3b35653346e18e5989817996a59b8e9",
-    "Trunk.toml": "4149fcfdc6d8ea940d09f6cae2407425dabf0b1960a57a907324ba65fa3168be",
+    "index.html": "fd308bc334190d76723135c1c82b4cd0d0343f3dff0dda573bf338aa5d3961b0",
+    "Trunk.toml": "e36cf10ae1b9029bdcaa6b55468bef4dab8a3211db52763dcfc1e7521bebb9f8",
     "docs/lessons/37/assets/course-boxes.pb": "13c1284574a097d81baf11a467b6287b05e58def99e5de8042ed4a4ae2b742c7",
     "docs/screenshots/steps/37-native.png": "612c7f1a958f3647da22fe0d6a7519d27d6b3e7462f8883476d9ba5237524cd0"
   },
@@ -1866,11 +1707,13 @@
     "src/app/command/verbs/arrowhead.rs",
     "src/app/command/verbs/attributes.rs",
     "src/app/command/verbs/block_with_hole.rs",
+    "src/app/command/verbs/bounding_box.rs",
     "src/app/command/verbs/box.rs",
     "src/app/command/verbs/capsule.rs",
     "src/app/command/verbs/clipping_plane.rs",
     "src/app/command/verbs/close.rs",
     "src/app/command/verbs/cone.rs",
+    "src/app/command/verbs/construction_plane.rs",
     "src/app/command/verbs/controls.rs",
     "src/app/command/verbs/copy.rs",
     "src/app/command/verbs/curve.rs",
@@ -1878,22 +1721,31 @@
     "src/app/command/verbs/delete.rs",
     "src/app/command/verbs/dodecahedron.rs",
     "src/app/command/verbs/edge.rs",
+    "src/app/command/verbs/element_beam.rs",
+    "src/app/command/verbs/element_beam_variable.rs",
+    "src/app/command/verbs/element_block.rs",
+    "src/app/command/verbs/element_column.rs",
+    "src/app/command/verbs/element_plate.rs",
+    "src/app/command/verbs/element_support.rs",
     "src/app/command/verbs/escape.rs",
     "src/app/command/verbs/explode.rs",
-    "src/app/command/verbs/extend/reach.rs",
     "src/app/command/verbs/extend.rs",
+    "src/app/command/verbs/extend/reach.rs",
     "src/app/command/verbs/extrude.rs",
     "src/app/command/verbs/face.rs",
     "src/app/command/verbs/fit.rs",
     "src/app/command/verbs/geometry.rs",
+    "src/app/command/verbs/grid_snap.rs",
     "src/app/command/verbs/hide.rs",
     "src/app/command/verbs/icosahedron.rs",
     "src/app/command/verbs/layers.rs",
     "src/app/command/verbs/length.rs",
+    "src/app/command/verbs/length_bounding_box.rs",
     "src/app/command/verbs/line.rs",
     "src/app/command/verbs/loft.rs",
     "src/app/command/verbs/measure.rs",
     "src/app/command/verbs/measure_distance.rs",
+    "src/app/command/verbs/mod.rs",
     "src/app/command/verbs/move.rs",
     "src/app/command/verbs/nurbs_curve_arc.rs",
     "src/app/command/verbs/nurbs_curve_circle.rs",
@@ -1917,9 +1769,11 @@
     "src/app/command/verbs/pyramid.rs",
     "src/app/command/verbs/quad_sphere.rs",
     "src/app/command/verbs/redo.rs",
+    "src/app/command/verbs/report.rs",
     "src/app/command/verbs/rotate.rs",
     "src/app/command/verbs/save.rs",
     "src/app/command/verbs/scale.rs",
+    "src/app/command/verbs/select_all.rs",
     "src/app/command/verbs/select_by_name.rs",
     "src/app/command/verbs/select_lasso.rs",
     "src/app/command/verbs/select_small.rs",
@@ -1931,9 +1785,10 @@
     "src/app/command/verbs/tetrahedron.rs",
     "src/app/command/verbs/text.rs",
     "src/app/command/verbs/torus.rs",
-    "src/app/command/verbs/trim/parts.rs",
     "src/app/command/verbs/trim.rs",
+    "src/app/command/verbs/trim/parts.rs",
     "src/app/command/verbs/undo.rs",
+    "src/app/command/verbs/view.rs",
     "src/app/command/verbs/volume.rs"
   ],
   "quality": [
@@ -1997,5 +1852,12 @@
       "required": "Browser gestures and visual comparisons pass, every feature is mapped, and any intentional source difference has a reviewed explanation.",
       "status": "pending acceptance run"
     }
-  ]
+  ],
+  "registry": {
+    "source": "current-command-registry.json",
+    "names": 85,
+    "static_options": 115,
+    "aliases": 15,
+    "scope": "Actual compiled parser observations; browser actions require separate acceptance."
+  }
 }

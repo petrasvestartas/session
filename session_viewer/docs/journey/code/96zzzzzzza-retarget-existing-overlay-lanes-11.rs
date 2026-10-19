@@ -1,0 +1,1 @@
+gs");self.set_samples(device,self.samples);

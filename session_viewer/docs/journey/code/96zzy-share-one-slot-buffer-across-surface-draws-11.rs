@@ -1,0 +1,1 @@
+Batch {geometry:geometry.clone(),records:buffer,group,bytes,count:records.len() as u32,first_slot}

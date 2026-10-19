@@ -1,0 +1,2 @@
+    canvas.set_attribute("data-render-origin",&serde_json::to_string(&renderer.anchor()).unwrap())?;
+    canvas.set_attribute("data-camera-target",&serde_json::to_string(&editor.camera.target).unwrap())?;

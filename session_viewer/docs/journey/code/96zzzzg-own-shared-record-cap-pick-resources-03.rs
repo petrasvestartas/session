@@ -1,0 +1,1 @@
+pub struct Pick{geometry:crate::cap_geometry::Geometry,crop:Option<wgpu::Buffer>,pipes:

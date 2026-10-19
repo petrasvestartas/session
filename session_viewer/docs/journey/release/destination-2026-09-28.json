@@ -1,0 +1,2001 @@
+{
+  "reference": "viewer-2026-09-28-local",
+  "description": "Fingerprint of the current working viewer, including local changes. This is not a Git release or a claim that all acceptance cases have passed.",
+  "courses": [
+    {
+      "id": "01",
+      "title": "A small viewer you understand",
+      "reference_steps": [
+        "00",
+        "01",
+        "02",
+        "03",
+        "04a",
+        "12",
+        "13"
+      ],
+      "goal": "Draw a mesh, move its camera and identify a selected object.",
+      "status": "opening lessons available; remainder pending"
+    },
+    {
+      "id": "02",
+      "title": "Geometry that reads clearly",
+      "reference_steps": [
+        "04b",
+        "04c",
+        "04d",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11"
+      ],
+      "goal": "Add curves, points, CAD faces and text while retaining source identity.",
+      "status": "pending conversion"
+    },
+    {
+      "id": "03",
+      "title": "Documents that stay reliable",
+      "reference_steps": [
+        "14",
+        "15",
+        "16",
+        "17",
+        "18a",
+        "19"
+      ],
+      "goal": "Load, stream, instance and release real scenes without losing their meaning.",
+      "status": "pending conversion"
+    },
+    {
+      "id": "04",
+      "title": "Editing that can be undone",
+      "reference_steps": [
+        "20",
+        "21",
+        "22",
+        "24",
+        "25",
+        "26",
+        "30"
+      ],
+      "goal": "Connect gestures, snapping, panels and document transactions.",
+      "status": "pending conversion"
+    },
+    {
+      "id": "05",
+      "title": "The modeling toolbox",
+      "reference_steps": [
+        "23",
+        "23a",
+        "23b",
+        "23c",
+        "23d",
+        "31"
+      ],
+      "goal": "Reach every existing command, shape, surface, annotation and split tool.",
+      "status": "pending conversion"
+    },
+    {
+      "id": "06",
+      "title": "The rendering quality we have now",
+      "reference_steps": [
+        "18",
+        "18b",
+        "32",
+        "33",
+        "35",
+        "36"
+      ],
+      "goal": "Preserve finite visibility, section caps, outlines, ambient occlusion and transparency.",
+      "status": "pending conversion"
+    },
+    {
+      "id": "07",
+      "title": "Prove the complete viewer",
+      "reference_steps": [
+        "37"
+      ],
+      "goal": "Compare behavior, appearance, resource use and final source coverage against the reference.",
+      "status": "pending conversion"
+    }
+  ],
+  "features": [
+    {
+      "id": "00",
+      "course": "01",
+      "title": "00 \u00b7 Load Rust in the browser",
+      "reference": "00-environment.md",
+      "purpose": "Create the browser page and the Rust entry point.",
+      "acceptance": "Why does a successful Rust build not yet give us a picture?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "01",
+      "course": "01",
+      "title": "01 \u00b7 First WebGPU frame",
+      "reference": "01-first-frame.md",
+      "purpose": "Connect the GPU, allocate its shared resources and draw the first offscreen frame.",
+      "acceptance": "Why should changing the background shader change lesson.ppm, while changing a camera target need not change a uniform background?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "02",
+      "course": "01",
+      "title": "02 \u00b7 Camera",
+      "reference": "02-camera.md",
+      "purpose": "Implement orbit, pan and zoom, and turn a camera into a projection.",
+      "acceptance": "Which data should change when you orbit, and which should remain unchanged?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "03",
+      "course": "01",
+      "title": "03 \u00b7 Object rows and identity",
+      "reference": "03-identity.md",
+      "purpose": "Give displayed objects stable rows, placement and identity.",
+      "acceptance": "Why is a triangle number insufficient to identify the object you selected?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "04a",
+      "course": "01",
+      "title": "04a \u00b7 Meshes on the GPU",
+      "reference": "04a-meshes.md",
+      "purpose": "Pack meshes into shared GPU storage and draw indexed triangles.",
+      "acceptance": "What must agree when Rust writes a vertex and the shader reads it?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "04b",
+      "course": "02",
+      "title": "04b \u00b7 Strokes and arrows",
+      "reference": "04b-strokes.md",
+      "purpose": "Draw readable strokes and arrows with width and visibility rules.",
+      "acceptance": "Why can a thick edge disappear when compared only with the depth at a neighbouring pixel?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "04c",
+      "course": "02",
+      "title": "04c \u00b7 Markers",
+      "reference": "04c-markers.md",
+      "purpose": "Render points and control markers with identifiable owners.",
+      "acceptance": "What is the difference between a marker\u2019s display slot and its original control identity?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "04d",
+      "course": "02",
+      "title": "04d \u00b7 Point clouds",
+      "reference": "04d-clouds.md",
+      "purpose": "Organize point clouds and draw the detail needed for the current view.",
+      "acceptance": "Why should selecting an original cloud point not depend only on the points currently drawn?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "05",
+      "course": "02",
+      "title": "05 \u00b7 Depth and visible ink",
+      "reference": "05-visibility.md",
+      "purpose": "Trace how surfaces decide whether nearby ink is visible.",
+      "acceptance": "Why can two nearby pixels on one face have different valid depths?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "06",
+      "course": "02",
+      "title": "06 \u00b7 CAD face rules",
+      "reference": "06-cad-contract.md",
+      "purpose": "Translate editable CAD geometry into display records with source identity.",
+      "acceptance": "Which representation would you edit to change a face, and which would you rebuild afterwards?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "07",
+      "course": "02",
+      "title": "07 \u00b7 Shared boundaries",
+      "reference": "07-boundaries.md",
+      "purpose": "Follow the sampling and ordering of a shared CAD boundary.",
+      "acceptance": "Why can independently sampling two mathematically identical edges leave a crack?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "08",
+      "course": "02",
+      "title": "08 \u00b7 Trims, holes and periodic seams",
+      "reference": "08-trimming.md",
+      "purpose": "Trace trims and holes from surface coordinates to displayed faces.",
+      "acceptance": "Why do we need an edge\u2019s use on a face as well as the three-dimensional edge itself?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "09",
+      "course": "02",
+      "title": "09 \u00b7 Normals and shading",
+      "reference": "09-normals.md",
+      "purpose": "Check face winding and the normals used for shading.",
+      "acceptance": "How can inconsistent face orientation become a visible shading problem?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "10",
+      "course": "02",
+      "title": "10 \u00b7 Text shaping",
+      "reference": "10-text-layout.md",
+      "purpose": "Turn text into shaped glyph runs and measured positions.",
+      "acceptance": "Why can character count not determine the width of a label?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "11",
+      "course": "02",
+      "title": "11 \u00b7 Text rendering",
+      "reference": "11-text-rendering.md",
+      "purpose": "Render shaped text, its coverage and its placement in the scene.",
+      "acceptance": "Which part must run again when the text changes, and which work can a placement-only change reuse?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "12",
+      "course": "01",
+      "title": "12 \u00b7 The viewer shell and picking",
+      "reference": "12-picking.md",
+      "purpose": "Connect browser events, redraw requests and asynchronous picking.",
+      "acceptance": "Why must an old pick result be rejected after the camera or scene changes?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "13",
+      "course": "01",
+      "title": "13 \u00b7 Source controls and cloud picks",
+      "reference": "13-controls.md",
+      "purpose": "Connect control selection and cloud picks to original source identities.",
+      "acceptance": "Why should a control pick return an original identity instead of a marker-buffer index?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "14",
+      "course": "03",
+      "title": "14 \u00b7 Loading scenes",
+      "reference": "14-loading.md",
+      "purpose": "Load a scene description and publish its geometry to the viewer.",
+      "acceptance": "If a replacement scene is malformed, what should happen to the scene already on screen?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "15",
+      "course": "03",
+      "title": "15 \u00b7 Publication and streamed reads",
+      "reference": "15-publication.md",
+      "purpose": "Read large published files through metadata and selected byte ranges.",
+      "acceptance": "Why must metadata and later byte ranges refer to the same published file version?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "16",
+      "course": "03",
+      "title": "16 \u00b7 Resource accounting and release",
+      "reference": "16-accounting.md",
+      "purpose": "Track shared CPU/GPU allocations and release resources at the right time.",
+      "acceptance": "Why can dropping a CPU reference fail to return the corresponding GPU allocation immediately?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "17",
+      "course": "03",
+      "title": "17 \u00b7 Source faces, text objects and one silhouette",
+      "reference": "17-source-presentation.md",
+      "purpose": "Present selected source faces, labels and a consistent silhouette.",
+      "acceptance": "How can one source object drawn in many pieces still receive one meaningful nameplate?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "18",
+      "course": "06",
+      "title": "18 \u00b7 Finite-triangle visibility",
+      "reference": "18-finite-visibility.md",
+      "purpose": "Build screen-tile lists for precise triangle visibility tests.",
+      "acceptance": "What goes wrong if a triangle\u2019s infinite plane is treated as the triangle itself?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "18a",
+      "course": "03",
+      "title": "18a \u00b7 Instancing",
+      "reference": "18a-instancing.md",
+      "purpose": "Prepare shared geometry for drawing at multiple placements.",
+      "acceptance": "What can two identical chairs share, and what must remain separate?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "18b",
+      "course": "06",
+      "title": "18b \u00b7 Clipping planes and section caps",
+      "reference": "18b-clipping.md",
+      "purpose": "Apply clipping planes and draw the cut surfaces of eligible solids.",
+      "acceptance": "Why does changing a clipping plane not mean that we have permanently split the source model?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "19",
+      "course": "03",
+      "title": "19 \u00b7 Sheets: batched drawings with lazy metadata",
+      "reference": "19-sheets.md",
+      "purpose": "Draw batched sheets while looking up detailed entity information on demand.",
+      "acceptance": "How can one sheet object still let you identify a particular drawn entity?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "20",
+      "course": "04",
+      "title": "20 \u00b7 The document and its rows",
+      "reference": "20-history.md",
+      "purpose": "Connect document transactions, undo/redo and display synchronization.",
+      "acceptance": "When undo restores a removed object, why must more than the visible pixels be restored?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "21",
+      "course": "04",
+      "title": "21 \u00b7 Direct editing",
+      "reference": "21-editing.md",
+      "purpose": "Implement direct editing, previews, cancellation and final commits.",
+      "acceptance": "What should differ between cancelling a drag and releasing it to accept the edit?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "22",
+      "course": "04",
+      "title": "22 \u00b7 The egui layer",
+      "reference": "22-runtime-helpers.md",
+      "purpose": "Draw the egui interface above the scene and manage its resources.",
+      "acceptance": "Why must the interface pass preserve the scene colour already in the target?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "23",
+      "course": "05",
+      "title": "23 \u00b7 The command line: one verb per file",
+      "reference": "23-geometry-commands.md",
+      "purpose": "Connect command words and options to application actions.",
+      "acceptance": "Where should a command such as a display toggle hand off its work?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "23a",
+      "course": "05",
+      "title": "23a \u00b7 Tools that ask for points",
+      "reference": "23a-tools.md",
+      "purpose": "Build interactive tools that ask for a sequence of points or choices.",
+      "acceptance": "Why should the first and second points of Move be different tool states?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "23b",
+      "course": "05",
+      "title": "23b \u00b7 Shapes",
+      "reference": "23b-shapes.md",
+      "purpose": "Construct shapes from the dimensions and frame collected by a tool.",
+      "acceptance": "What would you inspect if the accepted box differs from its preview?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "23c",
+      "course": "05",
+      "title": "23c \u00b7 Surfacing",
+      "reference": "23c-surfacing.md",
+      "purpose": "Turn selected curves and surfacing choices into new surface geometry.",
+      "acceptance": "Why can reordering the same loft sections change the result?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "23d",
+      "course": "05",
+      "title": "23d \u00b7 Annotate and measure",
+      "reference": "23d-annotate-measure.md",
+      "purpose": "Measure geometry and display the resulting annotations.",
+      "acceptance": "Why do distance and displacement answer different questions?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "24",
+      "course": "04",
+      "title": "24 \u00b7 Snapping",
+      "reference": "24-placed-controls.md",
+      "purpose": "Connect the Snap command to the snapping system introduced during direct editing.",
+      "acceptance": "Why should the snap aperture be measured in pixels rather than fixed world units?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "25",
+      "course": "04",
+      "title": "25 \u00b7 Draw a solid, readable gumball",
+      "reference": "25-gumball.md",
+      "purpose": "Render identifiable gumball handles with a clear on-screen shape.",
+      "acceptance": "Why do the gumball and a scene mesh need separate depth behavior?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "26",
+      "course": "04",
+      "title": "26 \u00b7 The nested session panel",
+      "reference": "26-nested-panel.md",
+      "purpose": "Represent a nested scene as expandable panel rows.",
+      "acceptance": "What does collapsing a group change, and what should it leave untouched?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "30",
+      "course": "04",
+      "title": "30 \u00b7 The layers panel and the layer tree",
+      "reference": "30-layer-tree.md",
+      "purpose": "Apply layer visibility and selection through shared source identities.",
+      "acceptance": "Why should hiding a group use the same identity mapping as selection?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "31",
+      "course": "05",
+      "title": "31 \u00b7 Split curves and faces",
+      "reference": "31-splitting.md",
+      "purpose": "Connect splitting tools, cutters and the resulting geometry edits.",
+      "acceptance": "How would you distinguish a wrong split from a correct split that is displayed incorrectly?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "32",
+      "course": "06",
+      "title": "32 \u00b7 Ambient occlusion",
+      "reference": "32-colors-lighting.md",
+      "purpose": "Estimate ambient occlusion using depth data and a depth pyramid.",
+      "acceptance": "Why can a camera change require new occlusion work even if no geometry was edited?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "33",
+      "course": "06",
+      "title": "33 \u00b7 GTAO, Arctic and Outline",
+      "reference": "33-contact-shadows.md",
+      "purpose": "Connect Arctic, outline and contact-shading controls to render state.",
+      "acceptance": "Which data should remain unchanged when you switch a lighting style?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "35",
+      "course": "06",
+      "title": "35 \u00b7 Element features",
+      "reference": "35-attributes.md",
+      "purpose": "Show or hide element features through the shared display state.",
+      "acceptance": "Why can rebuilding feature rows require clearing selection or controls?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "36",
+      "course": "06",
+      "title": "36 \u00b7 Translucent faces and Opacity",
+      "reference": "36-translucent-faces.md",
+      "purpose": "Expose face opacity through the command and state layers.",
+      "acceptance": "Why is parsing a valid opacity number not enough to make transparency correct?",
+      "status": "reference exists; short lessons pending"
+    },
+    {
+      "id": "37",
+      "course": "07",
+      "title": "37 \u00b7 Self-test: the finished viewer",
+      "reference": "37-command-dock.md",
+      "purpose": "Exercise the finished viewer from a scene file through GPU output.",
+      "acceptance": "If a selected object moves on screen, how would you establish that the edit really changed the document?",
+      "status": "reference exists; short lessons pending"
+    }
+  ],
+  "files": {
+    "src/app/agent.rs": {
+      "sha256": "555a699f8286aaefa426d3a0f9704e1444f9a4af2ccb7105c41c40dadcb5455b",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/clipping.rs": {
+      "sha256": "33047462339a5d4fe32742d38e1ca8e364aea126186fd107f1007fbf4158a8e1",
+      "introduced_in": "18b",
+      "course": "06"
+    },
+    "src/app/cloud_query.rs": {
+      "sha256": "96e5ea670b083218e2105e0f2ffa0578cc5c25050b8ce3ee790d00dc3c401f0c",
+      "introduced_in": "15",
+      "course": "03"
+    },
+    "src/app/command/mod.rs": {
+      "sha256": "15fb4c55988b301ee591bf1493086e7e1e79d655f57668b30ea4aa35941eb9d9",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/tests.rs": {
+      "sha256": "b8965679c3496fc6c5824e9651c21f33d1bbdf57824d67c82a78cc3ae3ad7d41",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/tool/cut.rs": {
+      "sha256": "571565c2441be1732213f9227500a53ee143fb1bc15f78e3f4b55440796d700f",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/tool/gather.rs": {
+      "sha256": "19b2ddb17a4b427a55abe96543b6f5ae2a2796902cd0cb6171842f9dfe5a38ab",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/tool/options.rs": {
+      "sha256": "b86ccb79060e5159fbba2cd57d7b0fd22c14ca8472ab499f03bdbd5e1971e938",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/tool/shape.rs": {
+      "sha256": "54c275cb3c8e5fbd4c0e3ea4a47910ca1ffcd5e92405d8055ff5088e05f049e7",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/tool/surfacing.rs": {
+      "sha256": "ef9ef71fcb065485333be2ad358e832de162c3acb30a754a73009b22fc8df7ce",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/tool.rs": {
+      "sha256": "705779efd2b11363d914f409691aabbaba274a3f4c7b6b9006e784b732aa77a7",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/add_edge.rs": {
+      "sha256": "90e9e807c4a56b5b10bf5f1c3ad35326a5ffcda043043b62680068dc6b5585ed",
+      "introduced_in": "30",
+      "course": "04"
+    },
+    "src/app/command/verbs/add_group.rs": {
+      "sha256": "193f4e783390255a028dc24581a66659b2c82602e20a67f06d42d70540b8c10d",
+      "introduced_in": "30",
+      "course": "04"
+    },
+    "src/app/command/verbs/arctic.rs": {
+      "sha256": "95f95a67ac4392bf55209266b6a8a36e4aeb425bb3b845703ca08a599cf48ae5",
+      "introduced_in": "33",
+      "course": "06"
+    },
+    "src/app/command/verbs/area.rs": {
+      "sha256": "9951cf47f2ba308fca8b14e79d0b21dd9de84ec71328f50c808bac970571b73e",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/arrow.rs": {
+      "sha256": "cd80826f3f4170566ac9d72ee72fc24399c137a761282b1211392e1d2e187997",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/arrowhead.rs": {
+      "sha256": "33d52b895d61bd9754cfdbc590e867bb60ce7efa3dc8f8a208e99ff1b6114c87",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/attributes.rs": {
+      "sha256": "fce74a2b0aa462ef5dbe89df296564fd852bb489378ac14cd8b88f9085982095",
+      "introduced_in": "35",
+      "course": "06"
+    },
+    "src/app/command/verbs/block_with_hole.rs": {
+      "sha256": "ef3b9abac04888315e6cb616f95cad7a296ffef58c5f3d417ed812379b2816e2",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/box.rs": {
+      "sha256": "f06362ef0a09f9bba68c0e71d9b1e15ae61348cc271b47241ec95c8386346414",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/capsule.rs": {
+      "sha256": "193edcbb4eff8c02c47ee461fdc0cee1ea7ad98777e882472dba3b5c1918e3f5",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/clipping_plane.rs": {
+      "sha256": "40410fe2185e075b030cf8dec671689cf5fa024ae45587e74e54defe79ce4c23",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/close.rs": {
+      "sha256": "6ecb9cf60556c359550c1c85dab54700a98b31f9883dd9317e6d1129241a24c5",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/cone.rs": {
+      "sha256": "c3021c10760195345f67555ed9db7920c58a0a7c19ad925f1a9bcb5d912e0992",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/controls.rs": {
+      "sha256": "12bf2eb1ef670991804bbefcab39aeb3f450037d96981f973494f403b88fd909",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/copy.rs": {
+      "sha256": "07093bb482eee8a932a0e3d105b871d3c7242758d4f251aafc11feb6ae437e74",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/curve.rs": {
+      "sha256": "00f85352d925c0196603c314a63090d359081f5b5aaafe635356d4ec1dc4ded1",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/cylinder.rs": {
+      "sha256": "8c69c4c8a45352d92b7963fa59a247594e67b9d5fee09b985f288fbdeb53744f",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/delete.rs": {
+      "sha256": "c573604cbdc1487b2b94c8430ae04b4a2dae3421b11a6fdf02176de202d4ec19",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/dodecahedron.rs": {
+      "sha256": "ce468793396a169f84b3c5454f931cfbeecfa6d07993604c1f4b7c192d0a431a",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/edge.rs": {
+      "sha256": "fe7666c920dddffd7b9e195121966ea519aba55b7716f86b26ae3788b05e90c7",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/escape.rs": {
+      "sha256": "0e7a4072d6a64c4e1b5c5b76cae3d3da6a563461379be9222ea035ad132965d1",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/explode.rs": {
+      "sha256": "353e44e0cc9953f0e06aead9eeb42cfc9605bbcb8caa72941b945d16f732c7ac",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/extend/reach.rs": {
+      "sha256": "e748688bf400262d35869cbcfb1b0dbf4c09503beafcd6045cdec83869e0d36b",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/extend.rs": {
+      "sha256": "c86295b7fd4314a6ba86581c4ea12d142d0f867ff7698c4b542ce3b0ffe33de3",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/extrude.rs": {
+      "sha256": "ebc559cd931a5803c1236d521509e929fa11f0e3b987e5eaa0167f2cd0ff2428",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/face.rs": {
+      "sha256": "c5dc6a0907e7ce3239eb3396036c96c1370f2ff4e6a8df355d453660f8e05bc7",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/fit.rs": {
+      "sha256": "b1181698ef63b6facb5c50203928959d9b5f54087dea0e0e76cf065567ec719d",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/geometry.rs": {
+      "sha256": "f006d173078eca6fabb000994ca7a4dda0ec4d73a72d19b604bb07ad28697aa9",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/hide.rs": {
+      "sha256": "c4a8c1c4fb3d20b2768e3903841ccfae51c8fd8fb7d6b30b1ec3ab61cbdca800",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/icosahedron.rs": {
+      "sha256": "02407c66c611d0b1961e5726196cfe944082ab19fd4e49a11d22c7e40c458765",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/layers.rs": {
+      "sha256": "f31cf18134ad1caee0a1909a71257ddfef84cbd9e01d6b804be8082f6d2c97f7",
+      "introduced_in": "30",
+      "course": "04"
+    },
+    "src/app/command/verbs/length.rs": {
+      "sha256": "64a425e2e952b2daa0ec729235f2702934bb81f472b17f8c140b26415a618204",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/line.rs": {
+      "sha256": "cce63f69a0a8c3dd422e67bf1fec62075bdd6aef55b0a9a79a6f53191d2a278e",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/loft.rs": {
+      "sha256": "0bd5c5e9169fc10b067629df1567ba2abfbae68aba97148b226e2ad16e96f818",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/measure.rs": {
+      "sha256": "12fa7e399a0fa869b6d9ac5de75ece87f28dc8cb3b33c2a476f87da2d720feb6",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/measure_distance.rs": {
+      "sha256": "6565d774da35e906dbcc55c49132bb4583c61eab7675d993ff964c8b95ce4dc1",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/mod.rs": {
+      "sha256": "8e0588133ece1a5b23782c4747a2afb7c8a5722a1db1a7b59d9b64f18e6668f7",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/move.rs": {
+      "sha256": "884f591bcde1cb18537f34b02a6a271e921fcd44aec30eb0f3da69017fd57b3a",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_curve_arc.rs": {
+      "sha256": "c6b50ac35e93520029884440498e0d17f9c2daf09e82c2b77ed3db66f372d7a1",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_curve_circle.rs": {
+      "sha256": "207decf5247f2fec9b84cf70ff0319e2f646b3af082459825628a098729718d1",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_curve_ellipse.rs": {
+      "sha256": "5140c1af03b1e011512258bc60901b04cde23222a780829b0328d0e7518dcce0",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_curve_parabola.rs": {
+      "sha256": "47f3b6a61efdf230fb1d03658b44aacd5268e69d1a359d1cb40d8654d21542b7",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_surface_4_points.rs": {
+      "sha256": "20464c6908c865053e38d7a9eb953e05f00cb02112262296a1fb36817bdf8981",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_surface_loft.rs": {
+      "sha256": "108be02d75b82e2f5ac6f34c13dd46b638ccee81314bca8ad6051970d16a588f",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_surface_network.rs": {
+      "sha256": "7f94d0f5074736b627f761b7b812ff4abc05592fe9ec4bf142410f2cc9643854",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_surface_revolve.rs": {
+      "sha256": "b447738bee31531180d016dabf2e77d93e30583c85812485114f7bf34850276c",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_surface_sweep1.rs": {
+      "sha256": "aa18f91aa0a35fb3b552f3bd41bad8e9a2ed565751254adc58b511904b137b84",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/nurbs_surface_sweep2.rs": {
+      "sha256": "750b15d8349ce66719eb982dfd85abd590a9f122cbbbf19b676d2ae2b5e04992",
+      "introduced_in": "23c",
+      "course": "05"
+    },
+    "src/app/command/verbs/object.rs": {
+      "sha256": "fcce94137a4f68c8e9c54617caaca0f7ede2828780203cf8413ef5fff76813b8",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/octahedron.rs": {
+      "sha256": "203d8f4f5afb243be5ffcce6abdf3bf379d5abc8519b1c5b12aafaf10cca7f86",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/opacity.rs": {
+      "sha256": "0db647dcb96fa436c851edb2ef728df150fc8ef0681aac483481f0ff1c286ab8",
+      "introduced_in": "36",
+      "course": "06"
+    },
+    "src/app/command/verbs/open.rs": {
+      "sha256": "7b71238ac03238c84d483701c161649ecbabe1ed6681025c81408f8862f76b43",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/orient_3_points.rs": {
+      "sha256": "d5b39d9290d1d361422e02e49f622f639465ac7dcd8bb3ab2843d36a6508cf41",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/outline.rs": {
+      "sha256": "feed6356b85a2ae9381e4a2cd0c60e8fb9a69094d46e68648810700da7dd9164",
+      "introduced_in": "33",
+      "course": "06"
+    },
+    "src/app/command/verbs/point.rs": {
+      "sha256": "d77b9be0208a33c75ed0134e99ca50815f2613fbbeb728adb33c30ad14306b0a",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/polyline.rs": {
+      "sha256": "15a7f496a783fe8864fbc1a090a1c3ea884a2cedff7320ecf0fb85136c59e93d",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/project_to_plane.rs": {
+      "sha256": "f8ebee6b9898efc015c01e339aad660a05caaf4c1c2cc5f58311022f5857caaa",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/pyramid.rs": {
+      "sha256": "a1de9a501bdaf8b12212a51da89160d5abb6d49f437529ed8582678ba31919cd",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/quad_sphere.rs": {
+      "sha256": "d801aa84e8d8c513d89483113c3076389b14c67eb613aae40f7b970af13d96ba",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/redo.rs": {
+      "sha256": "cc5ded7fc9d8c23b2e2638d5c48910a2ac6ad83a2815aa2976907d53511eded0",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/rotate.rs": {
+      "sha256": "814e405ba0eac925a1322fc88fa7918e0d436cc291f4ab322cb5ae6dca4911c8",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/save.rs": {
+      "sha256": "d2ed39ab8cc2f6755f5155a75269a1a097988799f161fe174587927e90084ad5",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/scale.rs": {
+      "sha256": "bc3f8280720976d74fd46bd4447da41ed63943c014dc62d2d75fbeada88ac5c2",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/select_by_name.rs": {
+      "sha256": "c02e0cfadcce0e09c14e0ab7a6e9ca6f41b6d73a317bd47e72107eda126a305a",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/select_lasso.rs": {
+      "sha256": "630ad0c6a90f4708fb73984666549e3fad3765aa7f38d0c3141b2f523440f2d9",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/select_small.rs": {
+      "sha256": "d4591b944daf9036df7f6854083adf9fb1f593e410d61ee141f1cdd98ee4ab5e",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/selecting.rs": {
+      "sha256": "e47be19e2d899ba20c44a54125c54db72852a8a18cb541ddb2cfc0eaa9dcd257",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/show.rs": {
+      "sha256": "b55d0061a288fb54d8de3faf65e56df41a9ea98b3f2b353acb1802b9d52c9803",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/snap.rs": {
+      "sha256": "24af34535bc6698b47895a0ace3fde80673bcb364b4df13ca8ff93338476619c",
+      "introduced_in": "24",
+      "course": "04"
+    },
+    "src/app/command/verbs/sphere.rs": {
+      "sha256": "75e2438143ed9c3f6875596c517211e14000f8525376bf166e52372e82f4ef91",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/split.rs": {
+      "sha256": "8c029c76b77546dd5fb8831693397b48ef16852ed1379253c2a028349f99b54a",
+      "introduced_in": "31",
+      "course": "05"
+    },
+    "src/app/command/verbs/tetrahedron.rs": {
+      "sha256": "f09e06bacd0c09b5b2c7b8b569c93267a4df5cf0fefab653868d154a0b02bd15",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/text.rs": {
+      "sha256": "7e0f56386df9eff853a325856005ba2670af975edbd7203e60a3dbb70bd030a7",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/command/verbs/torus.rs": {
+      "sha256": "c64075764f74caf608a647bcfe27aa1537c4b85cc091071cf3728c457f288c08",
+      "introduced_in": "23b",
+      "course": "05"
+    },
+    "src/app/command/verbs/trim/parts.rs": {
+      "sha256": "03044c7bf9a268ec0a97d54a7697857e6d9be8579e8676f39d885876c57c9fe7",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/trim.rs": {
+      "sha256": "60c27bce49c24b3867c658171267e1c159c24e0c1293de34067711f2c7c4b72d",
+      "introduced_in": "23a",
+      "course": "05"
+    },
+    "src/app/command/verbs/undo.rs": {
+      "sha256": "6e82fd3e78bf7d00c006740fd49264bb5d83c18957758bec545fab9ca09210aa",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/command/verbs/volume.rs": {
+      "sha256": "310b7d44e53155c80a823aa411e758d3171a1c8b3a3bdbf273113c36430c0ad9",
+      "introduced_in": "23d",
+      "course": "05"
+    },
+    "src/app/coords.rs": {
+      "sha256": "00fcfd07f46747bbf52fc1ca5d5193ddb9fc5085c9c0a0386974eadc6a8ae90f",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/cplane.rs": {
+      "sha256": "75512fc7a82666d0ff133710b1ce7a80efd955cad8043beb110c7a0f270a516d",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/decode.rs": {
+      "sha256": "35dc356fe01f07c732420959b3ea1f023db81c29b71632579a2e269e920c150d",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/deform.rs": {
+      "sha256": "8d840f8694deb7024cbd4dc2111bdf083b8aad9c665a623e3c97eea6fb68b208",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/edit.rs": {
+      "sha256": "047be9e4cecb171d5e3c1cfc5223d18249e1a77dcc499ad0ea28465e0e145da1",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/feedback.rs": {
+      "sha256": "097c1c56a970e1c85212dce54f2e05b82314f770a47985285028153de2beb180",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/fetch.rs": {
+      "sha256": "567e1a92e66387d70311da9eca2f26e03335fa24cf3e58e281e2b29b1c2517c5",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/fonts.rs": {
+      "sha256": "d51582cbb4566c5efb172401510ed2d33675a20a0b63f0a54d9218fa7ee14e6a",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/gesture/control.rs": {
+      "sha256": "e58ecb9d4da6bda5216ac2693a3d319be7f9fc386f80afb2d6e5f8df012b2f22",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/gesture/gizmo.rs": {
+      "sha256": "6ff5f1d9cbd6eb5830a0e80c46813699ec9a195bfc7f1476c342d064b6bd850c",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/gesture/mod.rs": {
+      "sha256": "b924a263ba1154f3ce102a29a587f4b743a7424004b0a8e7e5fe76d6aa4d01f4",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/gesture/object.rs": {
+      "sha256": "009f27a8d77f8a767e90187456824324f27fb70d0256d30eb2af9503ad8806c5",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/gizmo.rs": {
+      "sha256": "eec36fe4e363642e79226f272593c5f334ee81d70b46b8ebec1b985fdb9440a2",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/hierarchy.rs": {
+      "sha256": "f9be4b8387f640cc43716c78ebb4ce9803c1210a8dbbb646ed432b8c2dd2aa06",
+      "introduced_in": "26",
+      "course": "04"
+    },
+    "src/app/input.rs": {
+      "sha256": "824c85f50f13e46b3f5277017eb2f22725a06f0383aafe9f7e4088e5f6df7d84",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/inspection/source_memory.rs": {
+      "sha256": "0828d7ad8d7b3c0ec05422be79edec175739a05e7f6fe94341d77aa10e12541d",
+      "introduced_in": "16",
+      "course": "03"
+    },
+    "src/app/inspection.rs": {
+      "sha256": "93fc213d35f8cc91374729ceeb3638b7cf91feb6a6e6b46f539e50f8176550ec",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/keys.rs": {
+      "sha256": "4a363e9f973110a0020652de0a2cd60253689627e859c6497e1a1b366eac05f5",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/knobs.rs": {
+      "sha256": "68069deb0df10a7eb8e1d325104b9249e1ba3c3db84268909252269e8bcc2b69",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/layers.rs": {
+      "sha256": "2a0bb251e3597f2a88c338d3b06371fe67f072eb6702fbea6f47d8b2b6f3b05e",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/live.rs": {
+      "sha256": "f3d69e924dbce5ca3d6678cbc178dc301f28c1229b25cad232e931a63b70f7b8",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/loader.rs": {
+      "sha256": "348e681d296607f70fc543d3406bb70ad91aced0117e0f688dce00391f2336cc",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/manifest.rs": {
+      "sha256": "ab020e177195951fa7d07d8f132f93de2b41d23c51d6625d19486658baef8228",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/mesh_preview.rs": {
+      "sha256": "15b91c43c69603b92b4769b9b5125adff214a18d87aa6c106ad243596734a2a6",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/mod.rs": {
+      "sha256": "9230043eab09b73b1d7adb5000afb2c9cc749b7de19246267e6129685d38931d",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/modeling.rs": {
+      "sha256": "c21d7e5abe785a5ad9868f255665e5dbc1e88c8a054364f76d43038c261e575b",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/range_gate.rs": {
+      "sha256": "7191b2de72b0b5e97074c977abbb9ee6b4d62c383f225c55148913528cb9ce1a",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/route.rs": {
+      "sha256": "009e6ae7e824edebe981be1d31c30dabafb89ae227aec188113f680bfa6dc2b9",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/scene.rs": {
+      "sha256": "ff210ec764bcfb580b579aed88c6c3e2d037675b8c2a03ac5c071ab195e6728c",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/scene_instances.rs": {
+      "sha256": "46a9e5d03a56b846559c45d25391384fe98b80c9763930efb43f79809bb1bf99",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/scene_release.rs": {
+      "sha256": "b886d822f51516d904726d7ab2380447da7b8dd99f112c87d406ef54732fd95e",
+      "introduced_in": "16",
+      "course": "03"
+    },
+    "src/app/scene_rows.rs": {
+      "sha256": "ba1297dcf12cdafbfb8f67e78bf724dac18d4e62217b78a93c508bd628816fb9",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/scene_sync/allocation.rs": {
+      "sha256": "ecb2566170adffa7450aced660683e5bf6bb5e910f95a3d8161ee4359b29ad13",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync/commands_tests.rs": {
+      "sha256": "6c3595d2be15452edcf881a7e9e8b8ee268d8024ad123febc2de5140d983a961",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/scene_sync/compaction.rs": {
+      "sha256": "88ed380ea1c71a52bbe1183db3c0211f5071cc99b5e3de0b152964e0130c6246",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync/editing_tests.rs": {
+      "sha256": "0e8e6b90788ae1d45ddc2f03cbfaf5e807b1e7c9b47e66e97df70bbad8af8826",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/scene_sync/nodes.rs": {
+      "sha256": "9c70230b1bd744d5c476938d594ae2be256c3b39b815b147707cb05759ddfbd4",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync/notes.rs": {
+      "sha256": "fa02d60b45d4f74823d75f6786780f7b24448cdf17664b9fdfa4e7f66f21a3ba",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync/panel_tests.rs": {
+      "sha256": "4beba4f873594d0aa0dc1836720ad18739c0124a13ad0c0884fff5e4095f17c4",
+      "introduced_in": "26",
+      "course": "04"
+    },
+    "src/app/scene_sync/preview.rs": {
+      "sha256": "9df6f4543433ac9da0cdd853ae93ead478a40404a4b824096d22235c23341e8e",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/scene_sync/split_tests.rs": {
+      "sha256": "ef2a718cb61c31593c0d5d255604635ce33ad7a1a639f9e0a408ec21dd9c6b70",
+      "introduced_in": "31",
+      "course": "05"
+    },
+    "src/app/scene_sync/testing.rs": {
+      "sha256": "83d168317384b5c57762de28f76f1766532404417a6a15f58fb46b76f566300f",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync/tests.rs": {
+      "sha256": "30b78b84c2cd80a13cdb33f4cc68bac04645a05596b74216999df4e98a9d22bf",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync/tombs.rs": {
+      "sha256": "19f07889c96d7b33cdf35668d7dbb3a6520ee2e01c75bc35d8a9373b04c3f3a4",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_sync.rs": {
+      "sha256": "d590a8da5e32137a31b22656e94981015673a1f619073cbca90d5bba88786eb7",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/app/scene_text.rs": {
+      "sha256": "b519d58bf6b0829e157f338300cf704f7986377cb1091294beb7f4c5e8863c8c",
+      "introduced_in": "17",
+      "course": "03"
+    },
+    "src/app/selection.rs": {
+      "sha256": "3d635d3895cb8b9446d1b0b6771e6377c625985a599574fef0eee8f56cbe83cb",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/session_io.rs": {
+      "sha256": "8488e218d4bd75f7cf413a5aa180235920ab2f1608a73902fc6adbdb3c28d4b1",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/sheet_query.rs": {
+      "sha256": "9ff2b40923abe62148dbf2ac355ea7f6db00a3a0402a6f2cf1dbaacaa6916ab7",
+      "introduced_in": "19",
+      "course": "03"
+    },
+    "src/app/snap.rs": {
+      "sha256": "71e75f4a7336c8767ab9ed2c6911a9fe4cf31ca7e7efb3c1be1920b5d92b4f51",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/splitting.rs": {
+      "sha256": "0f005ee170fe6d5855e53a634c9127f20c0c9a779293462ddf5a4afa88befe52",
+      "introduced_in": "31",
+      "course": "05"
+    },
+    "src/app/stream.rs": {
+      "sha256": "17b125e85e513f0d16ee7bba163a178a41901a9e4205886b9227729ee5203299",
+      "introduced_in": "15",
+      "course": "03"
+    },
+    "src/app/surface_preview.rs": {
+      "sha256": "8e2f19c43e4de23aebf1d1b79d53c317dc09020374fedc0b64c01102eda47b88",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/app/touch.rs": {
+      "sha256": "6e45e9c59952bcfb102bc98ac9cd0c243d042c52a623d330605ef6b1b3ac6460",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/app/ui/command_line/tests.rs": {
+      "sha256": "a132a9f0a2a8e7a42840f4092b810a10a9ff4c97642507f9e89892e3d0ae4ebe",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/ui/command_line.rs": {
+      "sha256": "59ee846f03aa05c2e22fd73dfa4928631c4aef42071ad167b4f7b77b294eb790",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/ui/graph.rs": {
+      "sha256": "6ed37b504001f80ab29a864567ff78fa8125a997cf4b179d538e8b580c7f11b9",
+      "introduced_in": "30",
+      "course": "04"
+    },
+    "src/app/ui/layers.rs": {
+      "sha256": "c6f85936550b0e8a28d0eada680573157ebff041eb49a2208261faba93903931",
+      "introduced_in": "30",
+      "course": "04"
+    },
+    "src/app/ui/mod.rs": {
+      "sha256": "e2426aeb7450304746110658b049d025cbe9c30885c4957f80927e4bbf44f7ce",
+      "introduced_in": "22",
+      "course": "04"
+    },
+    "src/app/ui/number_box.rs": {
+      "sha256": "d38b57f74e9bb3ea749111bff86d8ef67fab2bcdd1293664c487bab08619b7e7",
+      "introduced_in": "22",
+      "course": "04"
+    },
+    "src/app/ui/overlay.rs": {
+      "sha256": "ea7d454773201bfaf85e3f7ee1392da9e8872e69937d030bcc708f508cab64d2",
+      "introduced_in": "22",
+      "course": "04"
+    },
+    "src/app/ui/phone.rs": {
+      "sha256": "40633a8dc3394a6898d30d324b19912f7002505720777a94a5d3fd64a3d32182",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/app/ui/pointer.rs": {
+      "sha256": "7172927a19316efaa813fff3b3963d68fb5228e968f2c6e9ee55bb26cd60323e",
+      "introduced_in": "22",
+      "course": "04"
+    },
+    "src/app/ui/theme.rs": {
+      "sha256": "19c2f468fd41280c9b3d30268199d88b979163e6e65c8b020ed046fb43911f2d",
+      "introduced_in": "22",
+      "course": "04"
+    },
+    "src/app/validate.rs": {
+      "sha256": "c7e6e4fbe33ea7af6898a18b92758df01f46cb43ea2aacd09d5da346a57623be",
+      "introduced_in": "14",
+      "course": "03"
+    },
+    "src/app/walk/bounds.rs": {
+      "sha256": "257a8f622f4ba277e235ae73c69e59b14c8a6cc2ffc52b9ed07076e25868991b",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/brep.rs": {
+      "sha256": "e347b0907e044cb3ce4dfa25ed3fbc627e4ac03f38b79a32df2c38561c05174c",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/brep_edges.rs": {
+      "sha256": "1ee027e413f94eeb28b6d17baaa694d063d8e57977a20a6a7dd19af8f8861fc5",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/brep_orient.rs": {
+      "sha256": "71ad922bb931e0e51a3c6387de5feacc6de094d6e0821292efd84ba79921e2f4",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/cloud.rs": {
+      "sha256": "813e12a5731d575101f15a1f18c5d5db2759ab400ba0d8e1701b7047f37207ce",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/curves.rs": {
+      "sha256": "820eb6ace35c0f4450733a7bdd945e8aee8f1292762044d572230bbf1b6057a1",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/encode.rs": {
+      "sha256": "a925576401ada960e52a28d669f7bee634c5c4213cc74207846c3a5a22af3a83",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/frames.rs": {
+      "sha256": "80b64ff2220318eb0b91b68aeb2a8e87b3930d0c2aa0e372db3ed77110250a3f",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/mesh.rs": {
+      "sha256": "a070c4a31a303339687adfffd579446e31f33d44c4a3a5c4ca49cd216265e060",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/mesh_ink.rs": {
+      "sha256": "07ddde05a2f5c483add83a819ece2b0cc8d3bc5be94d944ade113cc3fd096a55",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/mesh_topology.rs": {
+      "sha256": "9a207b8d0152661e846568bbf5971c3c24fdf5b33e3d5bf4acf6b5e925846ddc",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/mod.rs": {
+      "sha256": "adaa16bad9e65e33cef1f240604817dc78730f577ddd6b500bea7dcdaaaa6ac5",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/plane.rs": {
+      "sha256": "9be8bd22c56cb84393584e3fa969723563805be0350b49db1a9aea04ec58c30d",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/points.rs": {
+      "sha256": "af7baa2ff846c8ede26274635f105bd34377cf2aa63576424ff53da843d38330",
+      "introduced_in": "06",
+      "course": "02"
+    },
+    "src/app/walk/sheet.rs": {
+      "sha256": "c5148556dd5a0ff2688c63316b89c53ac79fbb747bd8d70de706ed2fbbff115f",
+      "introduced_in": "19",
+      "course": "03"
+    },
+    "src/camera.rs": {
+      "sha256": "7e22a3f5d6cb65a41ad00e958bbeb8a21eb861eb5f736169d325066d83e751d0",
+      "introduced_in": "02",
+      "course": "01"
+    },
+    "src/engine/gpu/ambient_warm.rs": {
+      "sha256": "94bb4b260a7875b4c82be81acd8131e3cee556020f3cc5145608ec33d6f52585",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/engine/gpu/arena.rs": {
+      "sha256": "e0545af54db2e754000a628b1aab8c54c3b114e330e5417a32765639ec20299d",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/engine/gpu/backdrop.rs": {
+      "sha256": "9813218b1bd6db60a79c8a76edc4b804276feb5b3fc871043bf74d45f1883962",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/buffers.rs": {
+      "sha256": "f226f75be1899a1540a4f80d4491019aa873aeed811dc73d0573405927a13f2c",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/clip/editing_tests.rs": {
+      "sha256": "ad0a23dda8ba3b14a7f55db51001d3bd61d24ec51cbea0552babcce6e206044d",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/engine/gpu/clip/pipelines.rs": {
+      "sha256": "483249eef637d0deff02d1e80d96ad5ab56247e18e76faeff2fdc26cd4fdab73",
+      "introduced_in": "18b",
+      "course": "06"
+    },
+    "src/engine/gpu/clip/tests.rs": {
+      "sha256": "9f7a926a7e0e57d623a226d9baf781287d0ad6da3c4b0c9108d2612fcdd8d691",
+      "introduced_in": "18b",
+      "course": "06"
+    },
+    "src/engine/gpu/clip.rs": {
+      "sha256": "e0b31a38015a8c5bc31c404261ae46757e0655774413de0fd5ab92bb2282d99a",
+      "introduced_in": "18b",
+      "course": "06"
+    },
+    "src/engine/gpu/cloud.rs": {
+      "sha256": "ebf520f190ed3924efa465cdeac6d743ee9c2f1db337067955ba08d96959e3a5",
+      "introduced_in": "04d",
+      "course": "02"
+    },
+    "src/engine/gpu/device.rs": {
+      "sha256": "4d2d64bf04126b9399d1c73d6bed1268220fbba0aad43293c6cf2bc6870761d2",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/faces.rs": {
+      "sha256": "16d20aa7dad0364a83d3f027a05ab0df8ccd95481fac77262c312395def8a2f0",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/engine/gpu/frame.rs": {
+      "sha256": "7de00ea9118242eb50a8daa10f7107398d8644cad746489f2c78a35c7faa1f37",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/glyphs.rs": {
+      "sha256": "f992838e16e6792174214bd4ab67040e33026b9d471fad5b988ebd0597716970",
+      "introduced_in": "04c",
+      "course": "02"
+    },
+    "src/engine/gpu/hull.rs": {
+      "sha256": "42571ee70a810306267f2f1574e593819231f5633e245dc64f5460d5ff8679ad",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/instance.rs": {
+      "sha256": "62ab0c50ae123817985cd2aaf46a732d951bc8443c20bc22e7869ec8a98aba06",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/instanced.rs": {
+      "sha256": "f6fe9bb471dcf30fcc81534c6b20ebfbc1755c9cb0cea0edadf6272ab9e673db",
+      "introduced_in": "18a",
+      "course": "03"
+    },
+    "src/engine/gpu/lane.rs": {
+      "sha256": "692caf646bc1b13a31e7ee400cf02bb31d36c7865798f486b043a514681d198e",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/lod.rs": {
+      "sha256": "75dc349e43f44ca3bbbcc26a88f7bc3d56189a4268b0a2e3523e7903e9148a08",
+      "introduced_in": "04d",
+      "course": "02"
+    },
+    "src/engine/gpu/mod.rs": {
+      "sha256": "0261a219c64dd8acd70824cf7dafde84a85db6258eb00f1d6d2359acb50595f3",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/objects.rs": {
+      "sha256": "58abc890347f29a8d3deb9b7651e3a43b4444a1e1429bf3de830ceb54516e7d5",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/pass.rs": {
+      "sha256": "cce6cc842567b136d01ab84d8ef1e39a5b149063128a5df932babf6950c80dc6",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/patch.rs": {
+      "sha256": "00d8fae175ca925c7e48b8304c702550b1633f56747b4130ef22d6218cd97100",
+      "introduced_in": "03",
+      "course": "01"
+    },
+    "src/engine/gpu/pick.rs": {
+      "sha256": "8dae0bfee0fd18e17ab90b1c0a61cb028af4d87bac29badb72a08c0325ea65f0",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/engine/gpu/present.rs": {
+      "sha256": "f8a94a0410f908e02466ccd70a95183792881f612aa21475c712a4d7cf161ae5",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/render.rs": {
+      "sha256": "48150fc2c3afa9a453af5fa0d0aa35768ed42ee57454a3c46ef0016a518dfabc",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/segments.rs": {
+      "sha256": "30f125a35ba4cecc0d7dbd5dc03ddadd859af5db659124dcad5ce8b617627b75",
+      "introduced_in": "04b",
+      "course": "02"
+    },
+    "src/engine/gpu/slots.rs": {
+      "sha256": "ef303f3f3e534502a9d90561955d840c091dcf9b2f1f69fea4f5540fbbfc18fd",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/engine/gpu/splat.rs": {
+      "sha256": "13c99ea37920f0dd4c39750deba7e57d274268b366c3cd56d2a938dec113fa3e",
+      "introduced_in": "04d",
+      "course": "02"
+    },
+    "src/engine/gpu/ssao/pipelines.rs": {
+      "sha256": "e1c9ee95daa6fa83ae924519bd7f07a759e3f8d00c939f3dd1bce749ded218f3",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/engine/gpu/ssao/tests.rs": {
+      "sha256": "474fdf5ec95cab2ef4f6a6d2d19528c344e1f3abb4f94cec8ff7ce442fb2e5ae",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/engine/gpu/ssao.rs": {
+      "sha256": "57ba54e3e6e2298f007f85579f9e7e5f266d7b344f0b9b7bcc95ad3943808844",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/engine/gpu/surface_outline/tests.rs": {
+      "sha256": "3c25a1f9c080bcc0267b31d3dabdbbfc45ef67c82e35435360b07e13945c08c4",
+      "introduced_in": "17",
+      "course": "03"
+    },
+    "src/engine/gpu/surface_outline.rs": {
+      "sha256": "60fcf2752fe4511339d48c97d8ab61f8204eb36bebc45858fe8c82a35fb06a85",
+      "introduced_in": "17",
+      "course": "03"
+    },
+    "src/engine/gpu/targets.rs": {
+      "sha256": "f16908f3fd299e876687d0894374a440820ed713d3adc57689765f9991d2f140",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/text.rs": {
+      "sha256": "ac22022ad4c3820c2a834ce060286094f24d7a0a7a30633eac4a26231cfa054a",
+      "introduced_in": "11",
+      "course": "02"
+    },
+    "src/engine/gpu/text_outline.rs": {
+      "sha256": "8444903f4b6c8132375822bd8d95eb5e06b51e023cb3487a730e90c5b3b842a1",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/engine/gpu/text_plane.rs": {
+      "sha256": "641063fe094b466de058a601013f47e3227955eb63ccc0d42564f1b0b8a6063c",
+      "introduced_in": "11",
+      "course": "02"
+    },
+    "src/engine/gpu/text_plate.rs": {
+      "sha256": "b7ec607e1759845577f9c10596ebfea2377bef4f3777ced791f0592f6a71a9c1",
+      "introduced_in": "11",
+      "course": "02"
+    },
+    "src/engine/gpu/timing.rs": {
+      "sha256": "9165356ffbe6773316ddcfa7bd4e68c7e7ecd36892eba36a7dcb9d8760ef8ccc",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/engine/gpu/triangle_tiles.rs": {
+      "sha256": "37760c3323066f4ebfbc83459e7e9d5f52afd72f954fb0dc0475829b99f9c088",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/engine/gpu/ui.rs": {
+      "sha256": "a74d2783ebbb7404e496ceeb01d62671f48018e3173837c66e0f83720cadb263",
+      "introduced_in": "22",
+      "course": "04"
+    },
+    "src/engine/gpu/upload.rs": {
+      "sha256": "d8a88e7f7fcd03c316981bdaddee78ec6f6986be87e69bcf0f298c9b172dab5f",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/upload_padding.rs": {
+      "sha256": "de1d8c9d55c3fca4b7dcc41170a97eba02863af55ba6a29ff216af680ac586e5",
+      "introduced_in": "20",
+      "course": "04"
+    },
+    "src/engine/gpu/vectors.rs": {
+      "sha256": "3672753ca6999917f1e9069206b7f767bf02b7dd11d30961047272d3ccd69cd8",
+      "introduced_in": "04b",
+      "course": "02"
+    },
+    "src/engine/gpu/view.rs": {
+      "sha256": "7a6e73e94910dadf5284fc96d9f963e09e7910a8b3ec81d8846746d83e7f9b7d",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/gpu/widget.rs": {
+      "sha256": "7227605387d824dd13210d70101a818ed95f9525a000bca1dc796dd7d21d0104",
+      "introduced_in": "25",
+      "course": "04"
+    },
+    "src/engine/gpu/widget_mesh.rs": {
+      "sha256": "89d73dd598c5a0f7639409e724f3df910c09f3ffcf21de16f0cbbd8e669c7306",
+      "introduced_in": "25",
+      "course": "04"
+    },
+    "src/engine/mod.rs": {
+      "sha256": "f9d05dbaaa0d9b2f6289a368e9c06657159eb8d9a0880936acaa682f736d97d9",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/performance.rs": {
+      "sha256": "fefe09116b3e2d186ce4b84f583ed1c5422353b6fbeefe457e2e556bab3f5905",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/pipelines/bindings.rs": {
+      "sha256": "7799e0467c095eea09730a0fc7c34847dfd8409dc1280ddda0bf171d35a77509",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/pipelines/layouts.rs": {
+      "sha256": "bb4f17f583456c45b928173258ce0e74711f02e8312c825ed64f129a133910f0",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/pipelines/mod.rs": {
+      "sha256": "9953257f6c10ca5fcf86e7b2981902817ab0fe486025d97cecfe301748c13bab",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/engine/text.rs": {
+      "sha256": "918ec5b3bcc2a775c81e348d25b943299bc19d2d6ffd9b7ca647c10c9299591c",
+      "introduced_in": "10",
+      "course": "02"
+    },
+    "src/lib.rs": {
+      "sha256": "174f2c83594dd362f114064227d234a8a664fbb681bcf6815f7079c3403dc5f1",
+      "introduced_in": "00",
+      "course": "01"
+    },
+    "src/selftest/lifecycle.rs": {
+      "sha256": "01744a1500c73dbeb25e4caa46aec8c82ee240ba706b76895363169dd864991a",
+      "introduced_in": "37",
+      "course": "07"
+    },
+    "src/selftest.rs": {
+      "sha256": "147c1947a1fa6dc1120aae747d1ad16cbebae598be51bd5c266d25c7abe88cb8",
+      "introduced_in": "37",
+      "course": "07"
+    },
+    "src/shaders/ambient_composite.wgsl": {
+      "sha256": "15eab6b52a9dff22c38cb505ff7462b5b4cd6bdbe3e5223716902a231b9dd6d8",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/shaders/ambient_depth.wgsl": {
+      "sha256": "80258c80084418bc9211c6c31438cc52d0944509a23418f9e9af4a7765d84cac",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/shaders/ambient_geometry.wgsl": {
+      "sha256": "3168319a5398a270b4c89d13342e16bb2f4353f97fce0341a2d500728f9868ee",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/shaders/background.wgsl": {
+      "sha256": "ea62408626759db7cf4a3756d83dbbd5aead2621aeee028f4c54de4310ef2aa6",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/shaders/cap.wgsl": {
+      "sha256": "1892c0314d7ed98949f6f56711e2cb002ec29b2c1c1c46ff9c4b31357ef7bde9",
+      "introduced_in": "18b",
+      "course": "06"
+    },
+    "src/shaders/clip.wgsl": {
+      "sha256": "56aae3cacb18a7c036e05833264577d8ee181f29c25af56d2f96ac2582df01d1",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/shaders/face_coverage.wgsl": {
+      "sha256": "e4b37b7fa30f5cf6237a0aa7e20287ad36b3cdd07893e43899e2bc33fb1ddd16",
+      "introduced_in": "17",
+      "course": "03"
+    },
+    "src/shaders/glyph.wgsl": {
+      "sha256": "7a1ed8abcaa5ab684ebe31cea2fbece63df6248057aed2e84d0ce8e9cc5e4471",
+      "introduced_in": "04c",
+      "course": "02"
+    },
+    "src/shaders/grid.wgsl": {
+      "sha256": "cd8d59e36c18d5359bff4c8eab12d5f57b5430587f2d366a4abe4651676610c5",
+      "introduced_in": "02",
+      "course": "01"
+    },
+    "src/shaders/ink_visibility.wgsl": {
+      "sha256": "4bf96d7bb44419aba47a0cf5081d0e132a4c23b350e644e7c243a2a3c77e4c80",
+      "introduced_in": "04b",
+      "course": "02"
+    },
+    "src/shaders/normals.wgsl": {
+      "sha256": "1776ddecbef8a7ca5454216697fb4d4aff07e631ea3452a885b6a47df8056733",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/shaders/physical.wgsl": {
+      "sha256": "197265d033815c44654368907825505fd55b03ee29cbb3ffa7bf04d3a4dd6c35",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/shaders/project_triangles.wgsl": {
+      "sha256": "922addeb33ff28e546dcea72283e63f17a358e7d9d8a92f032641c6c96d17ba9",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/projected_triangle.wgsl": {
+      "sha256": "3e569eabf25978668964bec693e0e250d8e634900fdd4d14808db6338a815b73",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/ribbon.wgsl": {
+      "sha256": "ffccd57d1ed78920ddee9904e20cb16e73ab065d1072eec7eece93c2e41cfc28",
+      "introduced_in": "04b",
+      "course": "02"
+    },
+    "src/shaders/scan_triangle_tiles.wgsl": {
+      "sha256": "d04d5a98009c0d253b4e5ef5c5751b8ee48239878e800753eb99e5f856e02ed0",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/scene.wgsl": {
+      "sha256": "3a3089eb4ce44e4149a670d7d988392c7702a1d98ff9bc948aa12f0330385bd5",
+      "introduced_in": "01",
+      "course": "01"
+    },
+    "src/shaders/slot_table.wgsl": {
+      "sha256": "0837fcc793e41b6706c3e00b7dde58972fe4fa9364d3227c8f1f5a193a17fdcc",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/sphere.wgsl": {
+      "sha256": "4a4bbdb2853a6525beab037611cb9b2135ce42ad881154b8ab1d46c8e2c24a4a",
+      "introduced_in": "04c",
+      "course": "02"
+    },
+    "src/shaders/splat.wgsl": {
+      "sha256": "38fa50b2d6aedcf8dd923f534a21b6f05fc4a94c32b6855e2d2ecd6b3559eda4",
+      "introduced_in": "04d",
+      "course": "02"
+    },
+    "src/shaders/splat_resolve.wgsl": {
+      "sha256": "529a0f871e59615087bce401df552a09243406da12240c3c84c64663a9decc0a",
+      "introduced_in": "04d",
+      "course": "02"
+    },
+    "src/shaders/ssao.wgsl": {
+      "sha256": "abc35b0b2547741b4d092f9778b74932a2e035b23125d7feddffe19a71bc765f",
+      "introduced_in": "32",
+      "course": "06"
+    },
+    "src/shaders/surface_outline.wgsl": {
+      "sha256": "446689ea45e5cf0fd03011250271a296eddf4942ad9e0dfd4432c8b57b089885",
+      "introduced_in": "17",
+      "course": "03"
+    },
+    "src/shaders/text_outline.wgsl": {
+      "sha256": "c06b165b85ee2a0bd20d0348f1aea3d1ce811a7fd76d66911380ef62fa8be03e",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/text_plane.wgsl": {
+      "sha256": "56c0dcf2431ff25d546d3b46dd6038823035744ac939c3895d7fcbe372073248",
+      "introduced_in": "11",
+      "course": "02"
+    },
+    "src/shaders/text_plate.wgsl": {
+      "sha256": "5721973099036446bcd3310cb4ea28eb522b109009236602f4c00d757900b4cd",
+      "introduced_in": "11",
+      "course": "02"
+    },
+    "src/shaders/triangle.wgsl": {
+      "sha256": "a0567b117e3f381e73c32941dd53ee9ff3bc465b43f9c180cfb31025de571bb6",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/triangle_tiles.wgsl": {
+      "sha256": "21bf7777d18bf7e506f97c0a31d4ab5a64bf6e062ffe0698dd67402806876c0f",
+      "introduced_in": "04a",
+      "course": "01"
+    },
+    "src/shaders/vector.wgsl": {
+      "sha256": "6630bd14ac6a9aad1db980553b736c0417db98675dd967b468b4e306d6c54491",
+      "introduced_in": "04b",
+      "course": "02"
+    },
+    "src/shaders/widget.wgsl": {
+      "sha256": "4337efb0b24e1fa1116db7dc9fb6690e3745433168a704ff7edd71597416f8d0",
+      "introduced_in": "25",
+      "course": "04"
+    },
+    "src/state/clipping.rs": {
+      "sha256": "0b49d749ae19ee39f8adf3a26607b3743b6e0ce7958eef7b86f56afba36d2148",
+      "introduced_in": "18b",
+      "course": "06"
+    },
+    "src/state/cloud_query.rs": {
+      "sha256": "5aa517e86ec917b672f38e4feb4e698c19addf6dbcd498987e777eb9c8ada999",
+      "introduced_in": "15",
+      "course": "03"
+    },
+    "src/state/drag.rs": {
+      "sha256": "1b3305eff3d5c0764aee61fd6fd45b8c2c5b65387c4dec5c9cd1661dbd3f9c99",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/state/drawing.rs": {
+      "sha256": "eef73ccb94df49001ce825ca60dec40a59e06653aa7109c86c419619ab05a064",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/state/edit.rs": {
+      "sha256": "00e4482715c457bd95740d8b8b3aee1213c76aaa38016bdbcd43187aaa951ac2",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/state/features.rs": {
+      "sha256": "b065e506a73440cadb735f583407e689db962ba1e55a6b71873c588cd564221d",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/state/hydrate.rs": {
+      "sha256": "5425a603e63bc9090e2f9e7cbc8e16afff75aa6a9382295fe1911b95a90e6b5f",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/state/number_box.rs": {
+      "sha256": "c32afcd959720c2010f60127f2be1315f468f502146935d39468e9fa5f88b9c1",
+      "introduced_in": "21",
+      "course": "04"
+    },
+    "src/state/panel.rs": {
+      "sha256": "cc0b346697295d8d2a7107a4cec365b5b9147997f761c165e977629a5c7bf30d",
+      "introduced_in": "30",
+      "course": "04"
+    },
+    "src/state/sheet_query.rs": {
+      "sha256": "fc2d5fff6c5e5d794ee31d4f438e71b87e1043f45b0c36439f837d7f0691d038",
+      "introduced_in": "19",
+      "course": "03"
+    },
+    "src/state/splitting.rs": {
+      "sha256": "a8d8586f1b203bc82040a37b1d52b314fd3f03a9f1a5abb766999ea76d6f4924",
+      "introduced_in": "31",
+      "course": "05"
+    },
+    "src/state/text.rs": {
+      "sha256": "48ea023bdaee730f0d55bff43ef28937d6370a973bbd0819b5e484c66f7ced68",
+      "introduced_in": "17",
+      "course": "03"
+    },
+    "src/state/tool.rs": {
+      "sha256": "2ce8b418bb29c005bcee6fb0833fbba752797e2cc87db2499df670e1cbb10bb3",
+      "introduced_in": "23",
+      "course": "05"
+    },
+    "src/state.rs": {
+      "sha256": "5240ca229d250cdb741116d271bae94d9f1f5e3b3b4009fc31f7806408eb49da",
+      "introduced_in": "12",
+      "course": "01"
+    },
+    "src/text_quality.rs": {
+      "sha256": "7fef20819989ace4919f20705cdda904656fe960ea557028e9a5dc7b34b68edc",
+      "introduced_in": "11",
+      "course": "02"
+    }
+  },
+  "inputs": {
+    "Cargo.toml": "7cb878294f25d0cf42d200515d9924f62f46efb4cd00569d1757a957e6a523ba",
+    "Cargo.lock": "8bdb390f9bfbf051014554335c05f2fdfa9e13706367f8c4ddf9a06753747acd",
+    "build.rs": "868449c0976bf081f2a3bdf270c1ca0842f923b33a9b9e34dfcb0804c7f5363f",
+    "index.html": "d662e8298ee33172307871d991cb3e05e3b35653346e18e5989817996a59b8e9",
+    "Trunk.toml": "4149fcfdc6d8ea940d09f6cae2407425dabf0b1960a57a907324ba65fa3168be",
+    "docs/lessons/37/assets/course-boxes.pb": "13c1284574a097d81baf11a467b6287b05e58def99e5de8042ed4a4ae2b742c7",
+    "docs/screenshots/steps/37-native.png": "612c7f1a958f3647da22fe0d6a7519d27d6b3e7462f8883476d9ba5237524cd0"
+  },
+  "commands": [
+    "src/app/command/verbs/add_edge.rs",
+    "src/app/command/verbs/add_group.rs",
+    "src/app/command/verbs/arctic.rs",
+    "src/app/command/verbs/area.rs",
+    "src/app/command/verbs/arrow.rs",
+    "src/app/command/verbs/arrowhead.rs",
+    "src/app/command/verbs/attributes.rs",
+    "src/app/command/verbs/block_with_hole.rs",
+    "src/app/command/verbs/box.rs",
+    "src/app/command/verbs/capsule.rs",
+    "src/app/command/verbs/clipping_plane.rs",
+    "src/app/command/verbs/close.rs",
+    "src/app/command/verbs/cone.rs",
+    "src/app/command/verbs/controls.rs",
+    "src/app/command/verbs/copy.rs",
+    "src/app/command/verbs/curve.rs",
+    "src/app/command/verbs/cylinder.rs",
+    "src/app/command/verbs/delete.rs",
+    "src/app/command/verbs/dodecahedron.rs",
+    "src/app/command/verbs/edge.rs",
+    "src/app/command/verbs/escape.rs",
+    "src/app/command/verbs/explode.rs",
+    "src/app/command/verbs/extend/reach.rs",
+    "src/app/command/verbs/extend.rs",
+    "src/app/command/verbs/extrude.rs",
+    "src/app/command/verbs/face.rs",
+    "src/app/command/verbs/fit.rs",
+    "src/app/command/verbs/geometry.rs",
+    "src/app/command/verbs/hide.rs",
+    "src/app/command/verbs/icosahedron.rs",
+    "src/app/command/verbs/layers.rs",
+    "src/app/command/verbs/length.rs",
+    "src/app/command/verbs/line.rs",
+    "src/app/command/verbs/loft.rs",
+    "src/app/command/verbs/measure.rs",
+    "src/app/command/verbs/measure_distance.rs",
+    "src/app/command/verbs/move.rs",
+    "src/app/command/verbs/nurbs_curve_arc.rs",
+    "src/app/command/verbs/nurbs_curve_circle.rs",
+    "src/app/command/verbs/nurbs_curve_ellipse.rs",
+    "src/app/command/verbs/nurbs_curve_parabola.rs",
+    "src/app/command/verbs/nurbs_surface_4_points.rs",
+    "src/app/command/verbs/nurbs_surface_loft.rs",
+    "src/app/command/verbs/nurbs_surface_network.rs",
+    "src/app/command/verbs/nurbs_surface_revolve.rs",
+    "src/app/command/verbs/nurbs_surface_sweep1.rs",
+    "src/app/command/verbs/nurbs_surface_sweep2.rs",
+    "src/app/command/verbs/object.rs",
+    "src/app/command/verbs/octahedron.rs",
+    "src/app/command/verbs/opacity.rs",
+    "src/app/command/verbs/open.rs",
+    "src/app/command/verbs/orient_3_points.rs",
+    "src/app/command/verbs/outline.rs",
+    "src/app/command/verbs/point.rs",
+    "src/app/command/verbs/polyline.rs",
+    "src/app/command/verbs/project_to_plane.rs",
+    "src/app/command/verbs/pyramid.rs",
+    "src/app/command/verbs/quad_sphere.rs",
+    "src/app/command/verbs/redo.rs",
+    "src/app/command/verbs/rotate.rs",
+    "src/app/command/verbs/save.rs",
+    "src/app/command/verbs/scale.rs",
+    "src/app/command/verbs/select_by_name.rs",
+    "src/app/command/verbs/select_lasso.rs",
+    "src/app/command/verbs/select_small.rs",
+    "src/app/command/verbs/selecting.rs",
+    "src/app/command/verbs/show.rs",
+    "src/app/command/verbs/snap.rs",
+    "src/app/command/verbs/sphere.rs",
+    "src/app/command/verbs/split.rs",
+    "src/app/command/verbs/tetrahedron.rs",
+    "src/app/command/verbs/text.rs",
+    "src/app/command/verbs/torus.rs",
+    "src/app/command/verbs/trim/parts.rs",
+    "src/app/command/verbs/trim.rs",
+    "src/app/command/verbs/undo.rs",
+    "src/app/command/verbs/volume.rs"
+  ],
+  "quality": [
+    {
+      "name": "Camera and browser",
+      "required": "Orbit, pan, zoom, resize and high-DPI rendering; keyboard focus, mouse and touch; device errors are visible.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Identity and selection",
+      "required": "Objects, source faces, edges, points and controls map back to the correct original; stale asynchronous picks are rejected.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "CAD ink",
+      "required": "Shared boundaries, trims, holes, periodic seams, normals and finite-triangle occlusion preserve the crafted edge appearance.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Text",
+      "required": "Shaping, symbols, label placement, source text and outlines remain readable at the reference views.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Large scenes",
+      "required": "Point clouds, streamed reads, sheets, instancing and released documents preserve IDs and bounded resource use.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Transactions",
+      "required": "Preview, accept, cancel, undo and redo agree with the document and displayed geometry.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Tools",
+      "required": "Every command implementation in the source inventory has a demonstrated invocation, result and cancellation/error case where applicable.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Panels and input",
+      "required": "Layer trees, nested panels, command input, snapping and gumball agree on selection and respect pointer/keyboard ownership.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Presentation",
+      "required": "Opaque and translucent faces, section caps, silhouettes, Arctic, ambient occlusion and feature controls match representative reference scenes.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Persistence",
+      "required": "Save and open preserve supported geometry, placement, identity, layers and document data.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Performance",
+      "required": "Compare frame time, peak GPU allocations and release-after-replacement on the same hardware, viewport and scene; record agreed tolerances before accepting differences.",
+      "status": "pending acceptance run"
+    },
+    {
+      "name": "Release",
+      "required": "Browser gestures and visual comparisons pass, every feature is mapped, and any intentional source difference has a reviewed explanation.",
+      "status": "pending acceptance run"
+    }
+  ]
+}

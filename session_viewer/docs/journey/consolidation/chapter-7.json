@@ -1,0 +1,655 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 7,
+  "title": "Drawing, snapping and transform tools",
+  "first": "46-tool-panel",
+  "end_before": "52-tree",
+  "lessons": [
+    {
+      "id": "46-tool-panel",
+      "title": "Active tools own their command input",
+      "page": "journey/consolidation/46-tool-panel.md",
+      "steps": [
+        "46-tool-panel"
+      ],
+      "checkpoint": "46-tool-panel"
+    },
+    {
+      "id": "47-registry",
+      "title": "Typed commands and host requests",
+      "page": "journey/consolidation/47-registry.md",
+      "steps": [
+        "47-registry",
+        "47a-actions",
+        "47b-parse",
+        "47c-route"
+      ],
+      "checkpoint": "47c-route"
+    },
+    {
+      "id": "48-coordinates",
+      "title": "Construction-plane drafts and one final commit",
+      "page": "journey/consolidation/48-coordinates.md",
+      "steps": [
+        "48-coordinates",
+        "48a-draft",
+        "48b-preview",
+        "48c-commit",
+        "48d-input"
+      ],
+      "checkpoint": "48d-input"
+    },
+    {
+      "id": "49-settings",
+      "title": "Precise snapping with derived search caches",
+      "page": "journey/consolidation/49-settings.md",
+      "steps": [
+        "49-settings",
+        "49a-math",
+        "49b-sources",
+        "49c-bins",
+        "49d-index",
+        "49e-cache",
+        "49ea-state",
+        "49f-input"
+      ],
+      "checkpoint": "49f-input"
+    },
+    {
+      "id": "50-placements",
+      "title": "Temporary transforms with a fixed baseline",
+      "page": "journey/consolidation/50-placements.md",
+      "steps": [
+        "50-placements",
+        "50a-preview",
+        "50b-display",
+        "50c-move",
+        "50d-ownership"
+      ],
+      "checkpoint": "50d-ownership"
+    },
+    {
+      "id": "51-handles",
+      "title": "Handles, numeric edits and source-part deformation",
+      "page": "journey/consolidation/51-handles.md",
+      "steps": [
+        "51-handles",
+        "51a-rays",
+        "51b-pivot",
+        "51c-hit",
+        "51d-grab",
+        "51e-transform",
+        "51ez-pack-and-sample-local-handle-vertices",
+        "51f-mesh",
+        "51g-layout",
+        "51h-shader",
+        "51i-image",
+        "51j-pipelines",
+        "51k-tile",
+        "51l-upload",
+        "51m-prepare",
+        "51n-draw",
+        "51o-renderer",
+        "51p-part-points",
+        "51q-deform",
+        "51r-part-preview",
+        "51s-edit-owner",
+        "51t-capture",
+        "51u-selection",
+        "51v-press",
+        "51w-release",
+        "51x-number-model",
+        "51y-number-field",
+        "51z-number-submit",
+        "51za-panel",
+        "51zb-presentation",
+        "51zc-pointer",
+        "51zd-interruption",
+        "51ze-ledger",
+        "51zf-handles"
+      ],
+      "checkpoint": "51zf-handles"
+    }
+  ],
+  "old_step_to_lesson": {
+    "46-tool-panel": {
+      "lesson": "46-tool-panel",
+      "anchor": "checkpoint-46-tool-panel"
+    },
+    "47-registry": {
+      "lesson": "47-registry",
+      "anchor": "checkpoint-47-registry"
+    },
+    "47a-actions": {
+      "lesson": "47-registry",
+      "anchor": "checkpoint-47a-actions"
+    },
+    "47b-parse": {
+      "lesson": "47-registry",
+      "anchor": "checkpoint-47b-parse"
+    },
+    "47c-route": {
+      "lesson": "47-registry",
+      "anchor": "checkpoint-47c-route"
+    },
+    "48-coordinates": {
+      "lesson": "48-coordinates",
+      "anchor": "checkpoint-48-coordinates"
+    },
+    "48a-draft": {
+      "lesson": "48-coordinates",
+      "anchor": "checkpoint-48a-draft"
+    },
+    "48b-preview": {
+      "lesson": "48-coordinates",
+      "anchor": "checkpoint-48b-preview"
+    },
+    "48c-commit": {
+      "lesson": "48-coordinates",
+      "anchor": "checkpoint-48c-commit"
+    },
+    "48d-input": {
+      "lesson": "48-coordinates",
+      "anchor": "checkpoint-48d-input"
+    },
+    "49-settings": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49-settings"
+    },
+    "49a-math": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49a-math"
+    },
+    "49b-sources": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49b-sources"
+    },
+    "49c-bins": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49c-bins"
+    },
+    "49d-index": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49d-index"
+    },
+    "49e-cache": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49e-cache"
+    },
+    "49ea-state": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49ea-state"
+    },
+    "49f-input": {
+      "lesson": "49-settings",
+      "anchor": "checkpoint-49f-input"
+    },
+    "50-placements": {
+      "lesson": "50-placements",
+      "anchor": "checkpoint-50-placements"
+    },
+    "50a-preview": {
+      "lesson": "50-placements",
+      "anchor": "checkpoint-50a-preview"
+    },
+    "50b-display": {
+      "lesson": "50-placements",
+      "anchor": "checkpoint-50b-display"
+    },
+    "50c-move": {
+      "lesson": "50-placements",
+      "anchor": "checkpoint-50c-move"
+    },
+    "50d-ownership": {
+      "lesson": "50-placements",
+      "anchor": "checkpoint-50d-ownership"
+    },
+    "51-handles": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51-handles"
+    },
+    "51a-rays": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51a-rays"
+    },
+    "51b-pivot": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51b-pivot"
+    },
+    "51c-hit": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51c-hit"
+    },
+    "51d-grab": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51d-grab"
+    },
+    "51e-transform": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51e-transform"
+    },
+    "51ez-pack-and-sample-local-handle-vertices": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51ez-pack-and-sample-local-handle-vertices"
+    },
+    "51f-mesh": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51f-mesh"
+    },
+    "51g-layout": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51g-layout"
+    },
+    "51h-shader": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51h-shader"
+    },
+    "51i-image": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51i-image"
+    },
+    "51j-pipelines": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51j-pipelines"
+    },
+    "51k-tile": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51k-tile"
+    },
+    "51l-upload": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51l-upload"
+    },
+    "51m-prepare": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51m-prepare"
+    },
+    "51n-draw": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51n-draw"
+    },
+    "51o-renderer": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51o-renderer"
+    },
+    "51p-part-points": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51p-part-points"
+    },
+    "51q-deform": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51q-deform"
+    },
+    "51r-part-preview": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51r-part-preview"
+    },
+    "51s-edit-owner": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51s-edit-owner"
+    },
+    "51t-capture": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51t-capture"
+    },
+    "51u-selection": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51u-selection"
+    },
+    "51v-press": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51v-press"
+    },
+    "51w-release": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51w-release"
+    },
+    "51x-number-model": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51x-number-model"
+    },
+    "51y-number-field": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51y-number-field"
+    },
+    "51z-number-submit": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51z-number-submit"
+    },
+    "51za-panel": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51za-panel"
+    },
+    "51zb-presentation": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51zb-presentation"
+    },
+    "51zc-pointer": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51zc-pointer"
+    },
+    "51zd-interruption": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51zd-interruption"
+    },
+    "51ze-ledger": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51ze-ledger"
+    },
+    "51zf-handles": {
+      "lesson": "51-handles",
+      "anchor": "checkpoint-51zf-handles"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/command/mod.rs",
+      "session_viewer/src/app/command/tool.rs",
+      "session_viewer/src/app/cplane.rs",
+      "session_viewer/src/app/snap.rs",
+      "session_viewer/src/app/gizmo.rs",
+      "session_viewer/src/engine/gpu/widget.rs",
+      "session_viewer/src/app/deform.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "46-tool-panel",
+      "path": "screenshots/journey/46-tool-panel.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "47-registry",
+      "path": "screenshots/journey/47-registry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "47a-actions",
+      "path": "screenshots/journey/47a-actions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "47b-parse",
+      "path": "screenshots/journey/47b-parse.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "47c-route",
+      "path": "screenshots/journey/47c-route.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "48-coordinates",
+      "path": "screenshots/journey/48-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "48a-draft",
+      "path": "screenshots/journey/48a-draft.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "48b-preview",
+      "path": "screenshots/journey/48b-preview.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "48c-commit",
+      "path": "screenshots/journey/48c-commit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "48d-input",
+      "path": "screenshots/journey/48d-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49-settings",
+      "path": "screenshots/journey/49-settings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49a-math",
+      "path": "screenshots/journey/49a-math.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49b-sources",
+      "path": "screenshots/journey/49b-sources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49c-bins",
+      "path": "screenshots/journey/49c-bins.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49d-index",
+      "path": "screenshots/journey/49d-index.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49e-cache",
+      "path": "screenshots/journey/49e-cache.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49ea-state",
+      "path": "screenshots/journey/49ea-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "49f-input",
+      "path": "screenshots/journey/49f-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "50-placements",
+      "path": "screenshots/journey/50-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "50a-preview",
+      "path": "screenshots/journey/50a-preview.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "50b-display",
+      "path": "screenshots/journey/50b-display.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "50c-move",
+      "path": "screenshots/journey/50c-move.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "50d-ownership",
+      "path": "screenshots/journey/50d-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51-handles",
+      "path": "screenshots/journey/51-handles.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51a-rays",
+      "path": "screenshots/journey/51a-rays.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51b-pivot",
+      "path": "screenshots/journey/51b-pivot.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51c-hit",
+      "path": "screenshots/journey/51c-hit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51d-grab",
+      "path": "screenshots/journey/51d-grab.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51e-transform",
+      "path": "screenshots/journey/51e-transform.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51ez-pack-and-sample-local-handle-vertices",
+      "path": "screenshots/journey/51ez-pack-and-sample-local-handle-vertices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51f-mesh",
+      "path": "screenshots/journey/51f-mesh.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51g-layout",
+      "path": "screenshots/journey/51g-layout.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51h-shader",
+      "path": "screenshots/journey/51h-shader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51i-image",
+      "path": "screenshots/journey/51i-image.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51j-pipelines",
+      "path": "screenshots/journey/51j-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51k-tile",
+      "path": "screenshots/journey/51k-tile.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51l-upload",
+      "path": "screenshots/journey/51l-upload.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51m-prepare",
+      "path": "screenshots/journey/51m-prepare.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51n-draw",
+      "path": "screenshots/journey/51n-draw.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51o-renderer",
+      "path": "screenshots/journey/51o-renderer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51p-part-points",
+      "path": "screenshots/journey/51p-part-points.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51q-deform",
+      "path": "screenshots/journey/51q-deform.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51r-part-preview",
+      "path": "screenshots/journey/51r-part-preview.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51s-edit-owner",
+      "path": "screenshots/journey/51s-edit-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51t-capture",
+      "path": "screenshots/journey/51t-capture.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51u-selection",
+      "path": "screenshots/journey/51u-selection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51v-press",
+      "path": "screenshots/journey/51v-press.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51w-release",
+      "path": "screenshots/journey/51w-release.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51x-number-model",
+      "path": "screenshots/journey/51x-number-model.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51y-number-field",
+      "path": "screenshots/journey/51y-number-field.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51z-number-submit",
+      "path": "screenshots/journey/51z-number-submit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51za-panel",
+      "path": "screenshots/journey/51za-panel.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51zb-presentation",
+      "path": "screenshots/journey/51zb-presentation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51zc-pointer",
+      "path": "screenshots/journey/51zc-pointer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51zd-interruption",
+      "path": "screenshots/journey/51zd-interruption.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51ze-ledger",
+      "path": "screenshots/journey/51ze-ledger.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "51zf-handles",
+      "path": "screenshots/journey/51zf-handles.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

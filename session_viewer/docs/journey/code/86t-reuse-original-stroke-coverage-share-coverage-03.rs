@@ -1,0 +1,1 @@
+#include "stroke_coverage.wgsl"

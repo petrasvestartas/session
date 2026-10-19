@@ -1,0 +1,1 @@
+output.flat_ends = source.flat_ends;

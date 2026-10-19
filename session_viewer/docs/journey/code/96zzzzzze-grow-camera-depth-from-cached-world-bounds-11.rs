@@ -1,0 +1,1 @@
+        crate::browser_rebase::prepare(&mut renderer,&mut editor)?;

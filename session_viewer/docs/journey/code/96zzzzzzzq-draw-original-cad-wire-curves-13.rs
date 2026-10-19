@@ -1,0 +1,1 @@
+}}segments}).chain(std::mem::take(&mut self.sources.wire_segments)))

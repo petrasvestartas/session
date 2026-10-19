@@ -1,0 +1,1 @@
+let selected=state.owner.map_or_else(||row.ids.iter().any(|id|model.selected.contains(id)),|id|model.selected.contains(&id));

@@ -1,0 +1,1 @@
+crate::draw_slots::sentinel_shader(),crate::object_record::shader(),concat!

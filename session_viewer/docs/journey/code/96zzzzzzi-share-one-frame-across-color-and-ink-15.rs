@@ -1,0 +1,1 @@
+ink.pick(device,pass,view,

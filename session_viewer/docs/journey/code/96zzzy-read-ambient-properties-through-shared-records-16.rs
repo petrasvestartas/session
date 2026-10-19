@@ -1,0 +1,1 @@
+self.ambient_rows.ground,[self.pyramid_revision,clip_revision],Some(&self.instances));

@@ -1,0 +1,5 @@
+    AddCloud,
+    AddCad,
+    AddInstances,
+    AddText(crate::text::TextPlacement),
+    AddSurface,

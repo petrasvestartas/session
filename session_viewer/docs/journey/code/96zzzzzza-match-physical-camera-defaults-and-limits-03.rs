@@ -1,0 +1,1 @@
+self.distance=(distance*1.05).max(1.0e-6/self.unit.to_meters());

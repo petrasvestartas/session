@@ -1,0 +1,1 @@
+let attributes=wgpu::vertex_attr_array![0=>Float32x3,2=>Uint32];let draw=device.create_render_pipeline

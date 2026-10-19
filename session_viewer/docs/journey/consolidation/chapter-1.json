@@ -1,0 +1,198 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 1,
+  "title": "Browser, Rust and the GPU",
+  "first": "01-canvas",
+  "end_before": "05-vertices",
+  "lessons": [
+    {
+      "id": "01-canvas",
+      "title": "Rust and the first GPU frame",
+      "page": "journey/consolidation/01-canvas.md",
+      "steps": [
+        "01-canvas",
+        "01a-gpu"
+      ],
+      "checkpoint": "01a-gpu"
+    },
+    {
+      "id": "02-clear",
+      "title": "Browser presentation",
+      "page": "journey/consolidation/02-clear.md",
+      "steps": [
+        "02-clear"
+      ],
+      "checkpoint": "02-clear"
+    },
+    {
+      "id": "03-triangle",
+      "title": "Shaders and the command dock",
+      "page": "journey/consolidation/03-triangle.md",
+      "steps": [
+        "03-triangle",
+        "03a-fonts",
+        "03a-paint",
+        "03a-panel",
+        "03b-memory",
+        "03b-state",
+        "03c-history",
+        "03ca-typing",
+        "03cb-submit",
+        "03cc-edit",
+        "03cd-vocabulary",
+        "03ce-complete",
+        "03cf-accept",
+        "03cg-keys",
+        "03ch-popup",
+        "03ci-browse",
+        "03cj-prepare",
+        "03ck-rects",
+        "03ck-pointer",
+        "03cl-wheel",
+        "03c-layout",
+        "03co-align",
+        "03cp-options",
+        "03cn-handoff",
+        "03d-input"
+      ],
+      "checkpoint": "03d-input"
+    },
+    {
+      "id": "04-input",
+      "title": "Commands that change the view",
+      "page": "journey/consolidation/04-input.md",
+      "steps": [
+        "04-input"
+      ],
+      "checkpoint": "04-input"
+    }
+  ],
+  "old_step_to_lesson": {
+    "01-canvas": {
+      "lesson": "01-canvas",
+      "anchor": "checkpoint-01-canvas"
+    },
+    "01a-gpu": {
+      "lesson": "01-canvas",
+      "anchor": "checkpoint-01a-gpu"
+    },
+    "02-clear": {
+      "lesson": "02-clear",
+      "anchor": "checkpoint-02-clear"
+    },
+    "03-triangle": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03-triangle"
+    },
+    "03a-fonts": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03a-fonts"
+    },
+    "03a-paint": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03a-paint"
+    },
+    "03a-panel": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03a-panel"
+    },
+    "03b-memory": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03b-memory"
+    },
+    "03b-state": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03b-state"
+    },
+    "03c-history": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03c-history"
+    },
+    "03ca-typing": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03ca-typing"
+    },
+    "03cb-submit": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cb-submit"
+    },
+    "03cc-edit": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cc-edit"
+    },
+    "03cd-vocabulary": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cd-vocabulary"
+    },
+    "03ce-complete": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03ce-complete"
+    },
+    "03cf-accept": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cf-accept"
+    },
+    "03cg-keys": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cg-keys"
+    },
+    "03ch-popup": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03ch-popup"
+    },
+    "03ci-browse": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03ci-browse"
+    },
+    "03cj-prepare": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cj-prepare"
+    },
+    "03ck-rects": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03ck-rects"
+    },
+    "03ck-pointer": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03ck-pointer"
+    },
+    "03cl-wheel": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cl-wheel"
+    },
+    "03c-layout": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03c-layout"
+    },
+    "03co-align": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03co-align"
+    },
+    "03cp-options": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cp-options"
+    },
+    "03cn-handoff": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03cn-handoff"
+    },
+    "03d-input": {
+      "lesson": "03-triangle",
+      "anchor": "checkpoint-03d-input"
+    },
+    "04-input": {
+      "lesson": "04-input",
+      "anchor": "checkpoint-04-input"
+    }
+  },
+  "implementation_contract": "Original course.json steps, ordered edits, snippet paths, checkpoint IDs and generated archive pages remain authoritative. Each pilot page embeds the full original Type sections with stable checkpoint anchors. This file does not replace the executable Course model.",
+  "production_boundary": {
+    "startup": "session_viewer/src/lib.rs",
+    "gpu_setup": "session_viewer/src/engine/gpu/device.rs",
+    "renderer_note": "src/renderer.rs exists only in the learner checkpoints; maintained drawing lives in engine/gpu and engine/pipelines.",
+    "shared_dock": "session_viewer/src/command_dock/mod.rs",
+    "ui_adapter": "session_viewer/src/app/ui/command_line.rs",
+    "shader_boundary": "Chapter 1 triangle.wgsl is staging. Production shader composition in engine/pipelines/mod.rs and generated build output is introduced by later dependencies.",
+    "background_boundary": "04-input Background is a staging exercise; production State currently supplies CLEAR through FrameInput."
+  }
+}

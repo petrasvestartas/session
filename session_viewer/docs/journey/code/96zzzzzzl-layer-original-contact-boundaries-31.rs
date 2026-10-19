@@ -1,0 +1,1 @@
+depths:vec2<f32>,flags:u32,picking:bool,sag:vec2<f32>)->f32{

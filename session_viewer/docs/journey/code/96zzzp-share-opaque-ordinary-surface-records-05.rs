@@ -1,0 +1,1 @@
+if all_slots.is_empty()&&self.slots.instances()>0{self.slots.clear(&ctx,true);}

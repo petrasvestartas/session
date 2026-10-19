@@ -1,0 +1,1 @@
+if self.varying{count*2}else{count.min(1)}{return Err

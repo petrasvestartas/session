@@ -1,0 +1,1 @@
+        if let Err(error)=display(&mut renderer,&editor){report(error);return;}

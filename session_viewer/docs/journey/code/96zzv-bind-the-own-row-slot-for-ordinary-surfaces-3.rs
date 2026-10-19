@@ -1,0 +1,1 @@
+@location(0) row:u32,@location(1) slot_base:u32

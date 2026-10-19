@@ -1,0 +1,1 @@
+                markers.push(ControlMarker::new(row.id, crate::pick_sources::Part::SourceControl(control.id), center));

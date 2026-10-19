@@ -1,0 +1,2 @@
+    if name=="View Lighting"||name=="View Backfaces" {let on=crate::element_input::visibility(&words[count..])?;return Ok(Command::Editor(if name=="View Lighting"{Action::Lighting(on)}else{Action::Backfaces(on)}));}
+    if name=="Arctic"{

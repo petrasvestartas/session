@@ -1,0 +1,1 @@
+else if let Some(count)=value.as_f64().filter(|v| *v >= 0. && *v <= u32::MAX as f64 && v.fract() == 0.){sample_forced=Some(count as u32);}

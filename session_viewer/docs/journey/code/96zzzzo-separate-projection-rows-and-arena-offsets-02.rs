@@ -1,0 +1,1 @@
+let object=object_at(row);

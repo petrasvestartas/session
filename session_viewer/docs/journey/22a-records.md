@@ -1,4 +1,6 @@
-# 22a · Validate a raw mesh record
+# 3.6.2 · Validate a raw mesh record
+
+**Chapter 3 · Documents, editing and ownership · Section 3.6 · Shortcuts and asynchronous files** · [Contents](contents.md)
 
 **Typing: 26–51 minutes.** [Estimate](typing-load.md).
 
@@ -28,7 +30,7 @@ session_rust = { path = "../../../session_rust", default-features = false }
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
 --8<-- "journey/code/23-import-dock-01.toml"
@@ -57,43 +59,41 @@ pub mod navigation;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/22a-records-register.rs"
+--8<-- "journey/code/22a-records-register.rs" skip=20
 ```
 
 ## Run and check
 
-After typing the manifest, run this from `session_viewer` to select the fixed dependency versions. It updates Cargo.lock, preserves the previous lock, and installs any supplied binary font assets. It does not write implementation code:
+Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 22a-records
+npm --prefix ../session_tests run course -- dependencies 3.6.2
 ```
 
 In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks. A valid box passes; non-finite coordinates and missing vertex references are rejected.
+Inspect the supplied state fixtures. A valid box passes; non-finite coordinates and missing vertex references are rejected.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Validate a raw mesh record.](../screenshots/journey/22a-records-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for validate a raw mesh record.](../screenshots/journey/21a-wheel.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [3.5.2 · Convert wheel units to camera zoom](21a-wheel.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -115,7 +115,7 @@ Study estimate, including typing and experiments: 0.75–1.25 hours.
 <details>
 <summary>Optional experiment</summary>
 
-Change one face vertex key to a missing key in the native check. Predict rejection before running it.
+Inspect the supplied record-validation fixture. Change one face vertex key to a missing key on paper and predict why the loader rejects it.
 
 </details>
 
@@ -125,8 +125,8 @@ Change one face vertex key to a missing key in the native check. Predict rejecti
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 22a-records
-npm --prefix ../session_tests run course -- save 22a-records
+npm --prefix ../session_tests run course -- check 3.6.2
+npm --prefix ../session_tests run course -- save 3.6.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -145,7 +145,7 @@ Native checks validate raw mesh records. Chrome retains the earlier wheel and co
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 22a-records
+npm --prefix ../session_tests run course -- capture 3.6.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+self.batches.values().map(|b|b.records.size()).sum::<u64>()+if self.batches.is_empty(){0}else{self.slots.allocated_bytes()}

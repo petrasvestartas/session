@@ -1,0 +1,1 @@
+input.half_width,input.finite_axis_value,input.finite_pixel);

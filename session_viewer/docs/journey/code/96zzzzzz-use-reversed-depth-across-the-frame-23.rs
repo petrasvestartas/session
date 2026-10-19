@@ -1,0 +1,1 @@
+rectangle.depth.unwrap_or(crate::depth::NEAR as f32)

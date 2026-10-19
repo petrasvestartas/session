@@ -1,0 +1,1 @@
+unpack4x8unorm(vertex.color),oct32_decode(vertex.normal),object

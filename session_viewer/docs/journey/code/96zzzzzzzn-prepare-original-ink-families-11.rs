@@ -1,0 +1,1 @@
+(self.sources.bytes()+self.mesh_ink.ranges.bytes()+self.markers.ranges.bytes()) as u64

@@ -1,6 +1,8 @@
-# 34gc · Bound browser failure messages
+# 4.2.23 · Bound browser failure messages
 
-**Typing: 19–38 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 9–17 minutes.** [Estimate](typing-load.md).
 
 Limit each failure detail to 2048 characters and its source path to 1024. Keep line and column numbers; remove source query strings and fragments.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/34gc-messages-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/error_message_tests.rs`
 
-Check Unicode bounds, source positions, omitted query strings and missing-detail fallbacks.
+Optional authoring fixture. Check Unicode bounds, source positions, omitted query strings and missing-detail fallbacks.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34gc-messages-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -41,11 +50,24 @@ pub mod startup;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+pub mod error_message;
+#[cfg(test)]
+mod error_message_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gc-messages-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +75,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks. Long Unicode messages remain below the report limit, source positions survive, and missing details have readable labels.
+Inspect the supplied state fixtures. Long Unicode messages remain below the report limit, source positions survive, and missing details have readable labels.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Bound browser failure messages.](../screenshots/journey/34gc-messages-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for bound browser failure messages.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +123,8 @@ Pass an emoji message and a source URL containing both a query and fragment. Pre
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gc-messages
-npm --prefix ../session_tests run course -- save 34gc-messages
+npm --prefix ../session_tests run course -- check 4.2.23
+npm --prefix ../session_tests run course -- save 4.2.23
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +145,7 @@ The preceding browser behavior remains unchanged; diagnostic message formatting 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gc-messages
+npm --prefix ../session_tests run course -- capture 4.2.23
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+sert_with(||crate::outline_gpu::Outline::with_samples(&self.text_context(),self.format,self.targets.samples)

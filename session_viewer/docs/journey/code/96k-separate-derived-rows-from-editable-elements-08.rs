@@ -1,0 +1,1 @@
+ids:doc.nodes.iter().filter(|node|!node.derived).filter_map(|node|node.object)

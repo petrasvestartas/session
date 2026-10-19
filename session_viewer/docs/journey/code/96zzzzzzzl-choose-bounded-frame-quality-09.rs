@@ -1,0 +1,2 @@
+    let samples=crate::sample_quality::samples(renderer.has_solids(),[size.width,size.height],sample_forced,sample_budget,size.width as f32/rect.width().max(1.)as f32,crate::browser_recovery::reduced());
+    renderer.set_samples(samples);

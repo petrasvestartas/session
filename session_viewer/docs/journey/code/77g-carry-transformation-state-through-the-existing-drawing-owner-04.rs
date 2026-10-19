@@ -1,0 +1,5 @@
+    gizmo_hover:Option<crate::gizmo::Handle>,
+    pub edit_preview: Option<crate::edit_preview::Preview>,
+    pub transform_preview:Option<crate::gizmo_edit::Preview>,
+    pub snapping: crate::snap::Settings,
+    snap_index: Option<crate::snap_index::Index>,

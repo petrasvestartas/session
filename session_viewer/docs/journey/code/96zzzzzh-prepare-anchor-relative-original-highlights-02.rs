@@ -1,0 +1,1 @@
+GpuMesh::upload_at(device,layout,&object,true,anchor)

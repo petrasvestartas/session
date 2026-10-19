@@ -1,0 +1,1 @@
+fn settings(scene: &Scene, row: &crate::sheet_source::Row, base: u32, selected: bool,anchor:[f64;3])

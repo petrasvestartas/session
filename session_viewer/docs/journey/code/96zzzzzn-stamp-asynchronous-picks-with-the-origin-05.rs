@@ -1,0 +1,1 @@
+density:density.to_bits(),origin:origin.map(f64::to_bits) })

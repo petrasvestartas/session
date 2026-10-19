@@ -1,4 +1,6 @@
-# 34gde · Measure a completed CPU operation
+# 4.2.30 · Measure a completed CPU operation
+
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
 
 **Typing: 11–22 minutes.** [Estimate](typing-load.md).
 
@@ -31,21 +33,42 @@ pub mod report_recency;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod load_measure;
+#[cfg(test)]
+mod load_measure_tests;
+pub mod report_recency;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34gde-measure-02.rs"
 ```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/load_measure_tests.rs`
 
 Copy deterministic checks for the clock boundary.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34gde-measure-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +76,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the checks. Success and failure both keep their original result while valid clocks record one completed phase.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Measure a completed CPU operation.](../screenshots/journey/34gde-measure-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for measure a completed cpu operation.](../screenshots/journey/34gba-lifecycle.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [4.2.18 · Own diagnostic page transitions](34gba-lifecycle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +124,8 @@ Give the test clock a backwards pair of samples. The result stays unchanged and 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34gde-measure
-npm --prefix ../session_tests run course -- save 34gde-measure
+npm --prefix ../session_tests run course -- check 4.2.30
+npm --prefix ../session_tests run course -- save 4.2.30
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +146,7 @@ Chrome keeps the existing file-read and import behavior while the portable timin
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34gde-measure
+npm --prefix ../session_tests run course -- capture 4.2.30
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

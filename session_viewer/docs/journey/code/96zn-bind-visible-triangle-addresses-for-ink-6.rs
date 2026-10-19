@@ -1,0 +1,1 @@
+&&c==&tables.caps&&i==&tables.primitive){return}

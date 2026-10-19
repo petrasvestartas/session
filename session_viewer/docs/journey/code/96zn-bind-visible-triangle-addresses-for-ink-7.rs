@@ -1,0 +1,1 @@
+depth.clone(),tables.caps.clone(),tables.primitive.clone(),group)

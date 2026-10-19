@@ -1,0 +1,1 @@
+bind_group_layouts:&[Some(&layout),Some(&clipping)]

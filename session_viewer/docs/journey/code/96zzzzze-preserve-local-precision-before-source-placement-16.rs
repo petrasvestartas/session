@@ -1,0 +1,1 @@
+let points:Vec<_>=row.points_at(anchor).iter().map(session_rust::Point::to_f32).collect();

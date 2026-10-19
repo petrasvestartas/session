@@ -1,0 +1,1 @@
+settings.map(|s|s.strokes_on_at(plane,anchor))

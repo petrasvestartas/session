@@ -1,0 +1,1 @@
+        if self.pick_mode != mode { self.cancel_pick(); self.pick_mode = mode; }

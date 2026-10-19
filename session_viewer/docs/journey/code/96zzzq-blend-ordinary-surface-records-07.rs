@@ -1,0 +1,1 @@
+if !self.instances.draw_ordinary(&mut pass,mesh)

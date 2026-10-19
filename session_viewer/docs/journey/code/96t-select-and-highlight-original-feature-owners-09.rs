@@ -1,0 +1,1 @@
+self.select_objects(eligible,additive);self.apply(Action::FitSelected)?;return Ok(Change::Preview);

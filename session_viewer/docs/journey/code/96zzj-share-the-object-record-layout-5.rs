@@ -1,0 +1,1 @@
+primitive_base:u32) -> Record

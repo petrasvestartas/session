@@ -1,0 +1,1 @@
+fn fs_cap(in:CapVertex,@builtin(sample_index) sample:u32)->CapOut {

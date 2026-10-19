@@ -1,0 +1,1 @@
+let group=self.group(device,&self.query,tables,depth);pass.set_pipeline(&self.pick);

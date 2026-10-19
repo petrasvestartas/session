@@ -1,0 +1,1 @@
+let view=crate::surface_view::layout(device);

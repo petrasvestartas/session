@@ -1,0 +1,1 @@
+let groups=[Some(&view),Some(&model),Some(&clip),Some(&geometry)];let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&groups[..if shared{4}else{3}],immediate_size:0});

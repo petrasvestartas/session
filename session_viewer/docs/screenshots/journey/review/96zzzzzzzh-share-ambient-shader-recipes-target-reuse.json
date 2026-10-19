@@ -1,0 +1,252 @@
+{
+  "status": "actual one-sample browser attachment reuse, real resize, full sources and original picks passed",
+  "results": [
+    {
+      "inherited": {
+        "density": 1,
+        "results": [
+          {
+            "name": "ordinary",
+            "projection": "Orthographic",
+            "shading": {
+              "colour": [
+                244,
+                90,
+                90
+              ],
+              "interior": 33229,
+              "darker": 928
+            },
+            "owners": [
+              4
+            ]
+          },
+          {
+            "name": "ordinary",
+            "projection": "Perspective",
+            "shading": {
+              "colour": [
+                244,
+                90,
+                90
+              ],
+              "interior": 31435,
+              "darker": 919
+            },
+            "owners": [
+              4
+            ]
+          },
+          {
+            "name": "instances",
+            "projection": "Orthographic",
+            "owners": [
+              8,
+              9
+            ]
+          },
+          {
+            "name": "instances",
+            "projection": "Perspective",
+            "owners": [
+              8,
+              9
+            ]
+          }
+        ]
+      },
+      "resize": {
+        "density": 1,
+        "resizes": [
+          {
+            "size": {
+              "width": 620,
+              "height": 420
+            },
+            "added": [
+              {
+                "label": "scene depth",
+                "size": [
+                  620,
+                  420,
+                  1
+                ],
+                "format": "depth32float",
+                "samples": 1,
+                "usage": 20
+              },
+              {
+                "label": "physical triangle addresses",
+                "size": [
+                  620,
+                  420,
+                  1
+                ],
+                "format": "rg16uint",
+                "samples": 1,
+                "usage": 21
+              }
+            ]
+          },
+          {
+            "size": {
+              "width": 480,
+              "height": 360
+            },
+            "added": [
+              {
+                "label": "scene depth",
+                "size": [
+                  480,
+                  360,
+                  1
+                ],
+                "format": "depth32float",
+                "samples": 1,
+                "usage": 20
+              },
+              {
+                "label": "physical triangle addresses",
+                "size": [
+                  480,
+                  360,
+                  1
+                ],
+                "format": "rg16uint",
+                "samples": 1,
+                "usage": 21
+              }
+            ]
+          }
+        ],
+        "exactReturn": true,
+        "sameExtentAllocations": 0,
+        "sourceAndGeometryUnchanged": true
+      }
+    },
+    {
+      "inherited": {
+        "density": 2,
+        "results": [
+          {
+            "name": "ordinary",
+            "projection": "Orthographic",
+            "shading": {
+              "colour": [
+                244,
+                90,
+                90
+              ],
+              "interior": 136385,
+              "darker": 1946
+            },
+            "owners": [
+              4
+            ]
+          },
+          {
+            "name": "ordinary",
+            "projection": "Perspective",
+            "shading": {
+              "colour": [
+                244,
+                90,
+                90
+              ],
+              "interior": 128784,
+              "darker": 2027
+            },
+            "owners": [
+              4
+            ]
+          },
+          {
+            "name": "instances",
+            "projection": "Orthographic",
+            "owners": [
+              8,
+              9
+            ]
+          },
+          {
+            "name": "instances",
+            "projection": "Perspective",
+            "owners": [
+              8,
+              9
+            ]
+          }
+        ]
+      },
+      "resize": {
+        "density": 2,
+        "resizes": [
+          {
+            "size": {
+              "width": 620,
+              "height": 420
+            },
+            "added": [
+              {
+                "label": "scene depth",
+                "size": [
+                  1240,
+                  840,
+                  1
+                ],
+                "format": "depth32float",
+                "samples": 1,
+                "usage": 20
+              },
+              {
+                "label": "physical triangle addresses",
+                "size": [
+                  1240,
+                  840,
+                  1
+                ],
+                "format": "rg16uint",
+                "samples": 1,
+                "usage": 21
+              }
+            ]
+          },
+          {
+            "size": {
+              "width": 480,
+              "height": 360
+            },
+            "added": [
+              {
+                "label": "scene depth",
+                "size": [
+                  960,
+                  720,
+                  1
+                ],
+                "format": "depth32float",
+                "samples": 1,
+                "usage": 20
+              },
+              {
+                "label": "physical triangle addresses",
+                "size": [
+                  960,
+                  720,
+                  1
+                ],
+                "format": "rg16uint",
+                "samples": 1,
+                "usage": 21
+              }
+            ]
+          }
+        ],
+        "exactReturn": true,
+        "sameExtentAllocations": 0,
+        "sourceAndGeometryUnchanged": true
+      }
+    }
+  ],
+  "scope": "Actual GPU descriptors observed passively. Native API old-parent replacement is separate; browser already avoids redundant resize calls. No four-sample viewer/FPS claim."
+}

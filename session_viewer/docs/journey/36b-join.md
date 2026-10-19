@@ -1,4 +1,6 @@
-# 36b · Project neighbours for bounded stroke joins
+# 5.2.3 · Project neighbours for bounded stroke joins
+
+**Chapter 5 · Lines, points and curves · Section 5.2 · Connected paths and arrows** · [Contents](contents.md)
 
 **Typing: 13–25 minutes.** [Estimate](typing-load.md).
 
@@ -31,11 +33,23 @@ use std::rc::Rc;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub const SHADER: &str = include_str!("chain.wgsl");
+use std::rc::Rc;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/36b-join-02.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -43,25 +57,25 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 The actual drawing device validates the WGSL helper module. Vertex drawing follows next.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Project neighbours for bounded stroke joins.](../screenshots/journey/36b-join-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+This checkpoint was rendered independently and has the same native comparison frame as [Link adjacent spans and headed ends](36a-links.md). Use its state checks and browser exercise to assess the changed behavior.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for project neighbours for bounded stroke joins.](../screenshots/journey/35cb-render.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [5.1.6 · Connect the stroke lane to the document renderer](35cb-render.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -93,8 +107,8 @@ Compare previous/current and current/next directions at a shared endpoint. Both 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 36b-join
-npm --prefix ../session_tests run course -- save 36b-join
+npm --prefix ../session_tests run course -- check 5.2.3
+npm --prefix ../session_tests run course -- save 5.2.3
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -115,7 +129,7 @@ Chrome retains the existing verified line while the connected shader is introduc
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 36b-join
+npm --prefix ../session_tests run course -- capture 5.2.3
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+geometry_changed:bool

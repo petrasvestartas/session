@@ -1,0 +1,1 @@
+self.allocation_parts().into_iter().sum()

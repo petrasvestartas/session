@@ -1,0 +1,1 @@
+ pipeline:crate::sample_pipelines::Variants<Pipeline

@@ -1,0 +1,1 @@
+                let ends=ends.map(|p|{let p=row.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));crate::render_space::relative(crate::clipping_geometry::array(&p),anchor)});

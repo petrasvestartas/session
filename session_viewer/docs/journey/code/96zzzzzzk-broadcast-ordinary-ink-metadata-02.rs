@@ -1,0 +1,1 @@
+if self.finite.is_some(){self.reset_flags(device)?;}

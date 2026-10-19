@@ -43,7 +43,9 @@ module.exports = async (original, helpers) => {
         await helpers.command(page, 'Redo');
         const acceptedState = await state(), acceptedImage = await helpers.drawing(page);
         await open(Buffer.from([0xff]));
-        await page.waitForFunction(() => document.getElementById('status').textContent.includes('Invalid session protobuf'));
+        await page.waitForFunction(() => document.getElementById('status').textContent.startsWith('Cannot open file:')
+            && JSON.parse(window.wasmBindings.diagnostic_snapshot()).phases.some(phase => phase.name === 'decode failed'));
+        assert.match(await page.locator('#status').textContent(), /failed to decode Protobuf message: invalid varint/);
         const failed = await phases();
         assert.deepEqual(failed.map(phase => phase.name), [...names, 'decode failed']);
         assert.equal(failed.at(-1).bytes, 1);

@@ -1,0 +1,1 @@
+self.0.upgrade()?.borrow().clone()

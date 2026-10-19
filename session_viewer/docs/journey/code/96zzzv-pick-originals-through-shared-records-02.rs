@@ -1,0 +1,1 @@
+pass.set_pipeline(pipeline);self.records.bind(pass);

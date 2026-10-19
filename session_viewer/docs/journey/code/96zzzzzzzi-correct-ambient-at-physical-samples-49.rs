@@ -1,0 +1,1 @@
+let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::with_samples(&self.device,self.format,self.targets.samples));owner.set_samples(&self.device,self.targets.samples);

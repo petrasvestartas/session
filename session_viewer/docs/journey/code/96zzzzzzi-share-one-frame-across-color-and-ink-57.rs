@@ -1,0 +1,1 @@
+self.highlight.points(&mut pass,&self.view_group)

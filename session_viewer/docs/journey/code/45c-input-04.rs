@@ -1,0 +1,8 @@
+                    "example arrow" => Action::AddArrow,
+                    "example triangle" => Action::ToggleExtra,
+                    "select next" => Action::SelectNext,
+                    "select all" => Action::SelectAll,
+                    "select none" => Action::Picked(None),
+                    "select object" => Action::PickMode(crate::pick_sources::Mode::Object),
+                    "select face" => Action::PickMode(crate::pick_sources::Mode::Face),
+                    "select edge" => Action::PickMode(crate::pick_sources::Mode::Edge),

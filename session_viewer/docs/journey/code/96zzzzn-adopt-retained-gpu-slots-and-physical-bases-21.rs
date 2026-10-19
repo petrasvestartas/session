@@ -1,0 +1,1 @@
+position<run.cap as usize&&(position>=run.len as usize||self.rows.get(run.start as usize+position)!=Some(row))

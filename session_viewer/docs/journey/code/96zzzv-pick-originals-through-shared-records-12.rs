@@ -1,0 +1,1 @@
+caps,&self.crop,clipping_buffer,records.map(|rows|(rows,&self.record_pipeline)))]);

@@ -1,0 +1,1 @@
+            if records.is_some_and(|records|records.bind_record(pass,mesh)){pass.set_pipeline(&self.record_pipeline);}else{pass.set_pipeline(&self.pipeline);mesh.bind_model(pass);}pass.set_bind_group(2,&row.group,&[]);

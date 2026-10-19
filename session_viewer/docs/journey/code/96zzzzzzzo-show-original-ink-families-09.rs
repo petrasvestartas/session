@@ -1,0 +1,1 @@
+Self {edge:false,target:None,mesh:None,

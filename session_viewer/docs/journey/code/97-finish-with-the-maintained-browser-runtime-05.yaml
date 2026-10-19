@@ -1,0 +1,5 @@
+name: "course original comparison"
+items:
+  - file: "assets/pb/course-comparison.pb"
+    name: "original pedestal"
+    at: [0, 0, 0]

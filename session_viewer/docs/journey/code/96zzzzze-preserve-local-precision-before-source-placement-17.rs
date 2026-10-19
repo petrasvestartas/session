@@ -1,0 +1,2 @@
+pub fn position(scene:&Scene,owner:ObjectId,id:u32)->Option<session_rust::Point> {position_at(scene,owner,id,[0.;3])}
+pub fn position_at(scene:&Scene,owner:ObjectId,id:u32,anchor:[f64;3])->Option<session_rust::Point> {

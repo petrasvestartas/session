@@ -1,0 +1,7 @@
+    highlight_pipeline: wgpu::RenderPipeline,
+    highlight: crate::highlight::Highlight,
+    preview: crate::tool_preview::Preview,
+    widget: crate::widget::Widget,
+    meshes: Vec<GpuMesh>,
+    geometry: crate::geometry_cache::GeometryCache,
+    settings_allocations: usize,

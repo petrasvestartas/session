@@ -1,6 +1,8 @@
-# 32fa · Ask whether an editable source is available
+# 3.16.8 · Ask whether an editable source is available
 
-**Typing: 14–27 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
+
+**Typing: 5–10 minutes.** [Estimate](typing-load.md).
 
 Introduce `geometry()` and `source()` before making source storage optional. Both return borrowed optional owners. At this stage every row still has geometry; generated rows have no imported-session provenance.
 
@@ -22,7 +24,7 @@ impl Object {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32fa-access-01.rs"
@@ -41,7 +43,7 @@ Require original editable geometry instead of silently exporting display floats.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32fa-access-02.rs"
@@ -49,50 +51,145 @@ Replace that block with:
 
 ### 3. `src/memory.rs`
 
-Count kernel owners only when they are available.
+Count kernel owners only when they are available. Keep provenance absence independent of row/display accounting.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 <details>
-<summary>Locate the existing block</summary>
+<summary>Locate this block</summary>
 
 ```rust
+        count[5] += 1;
+        for object in scene.objects() {
+            count[0] += 1;
             sources.insert(Rc::as_ptr(&object.geometry));
+            if displays.insert(Rc::as_ptr(&object.mesh)) { count[4] += object.mesh.payload_bytes(); }
+            if let Some(source) = &object.source {
+                if documents.insert(Rc::as_ptr(&source.document)) {
+                    for mesh in &source.document.objects.meshes { sources.insert(Rc::as_ptr(mesh)); }
+                }
 ```
 
 </details>
 
-Replace that block with:
+Replace it with:
 
 ```rust
+        count[5] += 1;
+        for object in scene.objects() {
+            count[0] += 1;
+            if let Some(geometry) = object.geometry() { sources.insert(Rc::as_ptr(geometry)); }
+            if displays.insert(Rc::as_ptr(&object.mesh)) { count[4] += object.mesh.payload_bytes(); }
+            if let Some(source) = object.source() {
+                if documents.insert(Rc::as_ptr(&source.document)) {
+                    for mesh in &source.document.objects.meshes { sources.insert(Rc::as_ptr(mesh)); }
+                }
+```
+
+<details>
+<summary>Complete updated block reference</summary>
+
+```rust
+use crate::{mesh::Mesh, scene::Scene};
+use std::{collections::HashSet, rc::Rc};
+
+pub fn cpu<'a>(scenes: impl IntoIterator<Item = &'a Scene>,
+    gpu_displays: impl IntoIterator<Item = &'a Rc<Mesh>>) -> [usize; 6]
+{
+    let (mut sources, mut documents, mut displays) = (HashSet::new(), HashSet::new(), HashSet::new());
+    let mut count = [0; 6];
+    for scene in scenes {
+        count[5] += 1;
+        for object in scene.objects() {
+            count[0] += 1;
+            if let Some(geometry) = object.geometry() { sources.insert(Rc::as_ptr(geometry)); }
+            if displays.insert(Rc::as_ptr(&object.mesh)) { count[4] += object.mesh.payload_bytes(); }
+            if let Some(source) = object.source() {
+                if documents.insert(Rc::as_ptr(&source.document)) {
+                    for mesh in &source.document.objects.meshes { sources.insert(Rc::as_ptr(mesh)); }
+                }
+            }
+        }
+    }
+    for display in gpu_displays {
+        if displays.insert(Rc::as_ptr(display)) { count[4] += display.payload_bytes(); }
+    }
+    count[1] = sources.len(); count[2] = documents.len(); count[3] = displays.len();
+    count
+}
+
+pub fn gpu<'a>(rows: impl IntoIterator<Item = &'a crate::gpu_mesh::GpuMesh>) -> [u64; 4] {
+    let mut geometry = HashSet::new();
+    let mut count = [0; 4];
+    for row in rows {
+        if geometry.insert(Rc::as_ptr(&row.geometry)) {
+            count[0] += 1; count[1] += row.geometry.allocated_bytes();
+        }
+        count[2] += 1; count[3] += row.settings_bytes();
+    }
+    count
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shared_snapshots_count_spare_capacity_once() {
+        let scene = Scene::demo(); let saved = scene.clone();
+        let baseline = cpu([&scene], std::iter::empty());
+        let shared = cpu([&scene, &saved], std::iter::empty());
+        assert_eq!(shared[0], 4); assert_eq!(shared[5], 2);
+        assert_eq!(&shared[1..5], &baseline[1..5]);
+        let mut vertices = Vec::with_capacity(16); vertices.extend([[0.0; 6]; 3]);
+        let mut indices = Vec::with_capacity(16); indices.extend([0, 1, 2]);
+        let extra = Rc::new(Mesh::new(vertices, indices).unwrap());
+        let retained = cpu([&scene], [&extra, &extra]);
+        assert_eq!(retained[3], baseline[3] + 1);
+        assert_eq!(retained[4], baseline[4] + 16 * 24 + 16 * 2);
+    }
+
+    #[test]
+    fn a_document_retains_sources_whose_display_row_was_removed() {
+        let mut scene = Scene::demo();
+        scene.import(crate::document::load(&crate::specimen::bytes()).unwrap()).unwrap();
+        let id = scene.objects()[2].id; scene.remove(id);
+        let count = cpu([&scene], std::iter::empty());
+        assert_eq!(&count[..4], &[4, 5, 1, 4]);
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/32fa-access-03.rs"
 ```
 
-### 4. `src/memory.rs`
-
-Keep provenance absence independent of row/display accounting.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-            if let Some(source) = &object.source {
+```text
+--8<-- "journey/code/32fa-access-04.rs"
 ```
 
 </details>
 
-Replace that block with:
+<details>
+<summary>Supplied validation fixture</summary>
 
-```rust
---8<-- "journey/code/32fa-access-04.rs"
-```
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
-### 5. `src/source_tests.rs`
+### 4. `src/source_tests.rs`
 
-Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion.
+Optional authoring fixture. Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 fn generated_source_and_display_survive_move_and_history() {
     let mut editor = Editor::default();
     editor.apply(Action::AddBox).unwrap();
@@ -120,20 +217,27 @@ fn generated_source_and_display_survive_move_and_history() {
 
 </details>
 
-Replace that block with:
+Update the existing block with this supplied code; keep unchanged lines:
 
-```rust
+```text
 --8<-- "journey/code/32fa-access-05.rs"
 ```
 
-### 6. `src/source_tests.rs`
+</details>
 
-Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 5. `src/source_tests.rs`
+
+Optional authoring fixture. Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 fn imported_source_survives_a_change_of_display_row() {
     let mut editor = Editor::default();
     editor.apply(Action::Import(specimen::bytes())).unwrap();
@@ -153,20 +257,27 @@ fn imported_source_survives_a_change_of_display_row() {
 
 </details>
 
-Replace that block with:
+Update the existing block with this supplied code; keep unchanged lines:
 
-```rust
+```text
 --8<-- "journey/code/32fa-access-06.rs"
 ```
 
-### 7. `src/imported_source_tests.rs`
+</details>
 
-Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 6. `src/imported_source_tests.rs`
+
+Optional authoring fixture. Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 fn import_shares_the_retained_sessions_source_allocation() {
     let mut editor = Editor::default();
     editor.apply(Action::Import(specimen::bytes())).unwrap();
@@ -185,20 +296,27 @@ fn import_shares_the_retained_sessions_source_allocation() {
 
 </details>
 
-Replace that block with:
+Update the existing block with this supplied code; keep unchanged lines:
 
-```rust
+```text
 --8<-- "journey/code/32fa-access-07.rs"
 ```
 
-### 8. `src/snapshot_tests.rs`
+</details>
 
-Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 7. `src/snapshot_tests.rs`
+
+Optional authoring fixture. Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 fn snapshot_uses_live_local_sources_and_separate_placements() {
     let mut editor = Editor::default();
     editor.apply(Action::SelectNext).unwrap();
@@ -225,11 +343,13 @@ fn snapshot_uses_live_local_sources_and_separate_placements() {
 
 </details>
 
-Replace that block with:
+Update the existing block with this supplied code; keep unchanged lines:
 
-```rust
+```text
 --8<-- "journey/code/32fa-access-08.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -237,25 +357,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the source-access checks below. Saving and accounting borrow the available source through its accessor rather than owning another copy.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Ask whether an editable source is available.](../screenshots/journey/32fa-access-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for ask whether an editable source is available.](../screenshots/journey/32fa-access.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -291,8 +407,8 @@ Compare Rc::clone(row.geometry().unwrap()) with merely calling row.geometry(). P
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32fa-access
-npm --prefix ../session_tests run course -- save 32fa-access
+npm --prefix ../session_tests run course -- check 3.16.8
+npm --prefix ../session_tests run course -- save 3.16.8
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -311,7 +427,7 @@ Source release needs an explicit absence state and reload ownership. These borro
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32fa-access
+npm --prefix ../session_tests run course -- capture 3.16.8
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

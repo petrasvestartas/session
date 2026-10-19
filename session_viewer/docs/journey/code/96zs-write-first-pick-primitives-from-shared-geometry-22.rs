@@ -1,0 +1,1 @@
+let before=primitive_pixels(&gpu,&gpu.primitive.texture);

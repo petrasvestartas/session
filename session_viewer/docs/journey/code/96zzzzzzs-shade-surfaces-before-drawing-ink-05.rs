@@ -1,0 +1,45 @@
+use crate::{cap_gpu_tests::{renderer,wait},scene::Scene,camera::{Camera,Projection}};
+use session_rust::{Color,Point,Session,Xform,proto};
+use prost::Message;
+use std::rc::Rc;
+
+fn camera(projection:Projection)->Camera{let mut c=Camera::default();c.isometric();c.distance=3.;c.radius=1.;c.target=[0.,0.,-0.5];c.aspect=4./3.;c.projection=projection;c}
+fn document()->Session{let mut mesh=crate::cap_gpu_tests::source(false);mesh.set_objectcolor(Color::new(0.2,0.4,0.6,1.));let mut d=Session::new("Original contacts and authored drawing colours");d.add_mesh(mesh,None);d}
+fn scene(d:&Session)->Scene{let mut s=Scene::empty();crate::scene_document::import(&mut s,&d.to_proto().encode_to_vec(),"",&Xform::identity(),0.).unwrap();s}
+fn snapshot(s:&Scene)->(Vec<proto::Session>,serde_json::Value){let b=crate::archive::Bundle::decode(&crate::scene_archive::save(s).unwrap()).unwrap();(b.documents.iter().map(|v|proto::Session::decode(v.as_slice()).unwrap()).collect(),serde_json::to_value(b.metadata).unwrap())}
+fn pixels(g:&mut super::Renderer,c:&Camera,size:[u32;2])->Vec<u8>{crate::widget_tests::pixels(g,&c.uniform(),size)}
+fn at<'a>(image:&'a[u8],size:[u32;2],p:[usize;2])->&'a[u8]{let i=(p[1]*size[0]as usize+p[0])*4;&image[i..i+4]}
+fn shadow(g:&mut super::Renderer,c:&Camera,size:[u32;2])->([usize;2],[f64;3]){
+ g.set_ambient(false);let plain=pixels(g,c,size);g.set_ambient(true);let shaded=pixels(g,c,size);
+ let i=plain.chunks_exact(4).zip(shaded.chunks_exact(4)).enumerate().filter(|(_, (a,b))|a[..3]==[255,255,255]&&b[..3].iter().all(|v|*v<235)).min_by_key(|(_,(_,b))|b[0]).map(|(i,_)|i).expect("Actual virtual-ground contact shadow");let p=[i%size[0]as usize,i/size[0]as usize];
+ let mut m=Xform::identity();m.m=c.uniform().map(f64::from);let inverse=m.inverse().unwrap();let unproject=|z|inverse.transform_point(&Point::new((p[0]as f64+0.5)*2./size[0]as f64-1.,1.-(p[1]as f64+0.5)*2./size[1]as f64,z));let a=unproject(0.);let b=unproject(1.);let t=(-0.8-a[2])/(b[2]-a[2]);(p,std::array::from_fn(|i|a[i]+t*(b[i]-a[i])))
+}
+fn export(name:&str,s:&Scene,image:&[u8],size:[u32;2],world:[f64;3]){if let Some(root)=std::env::var_os("VIEWER_AMBIENT_ORDER_PROOF_DIR"){use std::io::Write;let root=std::path::Path::new(&root);std::fs::create_dir_all(root).unwrap();std::fs::write(root.join(format!("{name}.session")),crate::scene_archive::save(s).unwrap()).unwrap();let mut f=std::fs::File::create(root.join(format!("{name}.ppm"))).unwrap();write!(f,"P6\n{} {}\n255\n",size[0],size[1]).unwrap();for p in image.chunks_exact(4){f.write_all(&p[..3]).unwrap();}std::fs::write(root.join(format!("{name}.json")),serde_json::to_vec_pretty(&serde_json::json!({"viewport":size,"worldMm":world})).unwrap()).unwrap();}}
+
+#[test]
+fn actual_original_ink_keeps_authored_colour_over_ambient_contacts(){
+ let mut g=renderer(&scene(&document()));
+ for projection in[Projection::Perspective,Projection::Orthographic]{let c=camera(projection);for density in[1u32,2]{let size=[320*density,240*density];g.resize(crate::viewport::Viewport{width:size[0],height:size[1]});g.set_density(density as f32);g.set_scene(&scene(&document()),None);let(p,world)=shadow(&mut g,&c,size);
+  for kind in["point","line","path"]{let mut d=document();let colour=Color::new(0.8,0.1,0.2,1.);let right=c.orientation.rotate_vector(session_rust::Vector::x_axis());let ends=[-0.08,0.08].map(|t|Point::new(world[0]+right[0]*t,world[1]+right[1]*t,world[2]+right[2]*t));match kind{
+   "point"=>{let mut q=Point::new(world[0],world[1],world[2]);q.width=11.;q.pointcolor=colour;d.add_point(q,None);},
+   "line"=>{let mut q=session_rust::Line::new(ends[0][0],ends[0][1],ends[0][2],ends[1][0],ends[1][1],ends[1][2]);q.width=7.;q.linecolor=colour;d.add_line(q,None);},
+   _=>{let mut q=session_rust::Polyline::new(ends.to_vec());q.width=7.;q.linecolor=colour;d.add_polyline(q,None).unwrap();}
+  }
+  let bytes=d.to_proto().encode_to_vec();let mut e=crate::editor::Editor::default();e.apply(crate::editor::Action::ReplaceAt(bytes.clone(),Rc::new(crate::reload_url::ReloadUrl::new("test:ambient-order".into())))).unwrap();e.camera=camera(projection);let original=snapshot(&e.scene);let owner=match kind{"point"=>e.scene.points()[0].id,"line"=>e.scene.lines()[0].id,_=>e.scene.paths()[0].id};g.set_scene(&e.scene,None);let uploads=g.stats()[0];g.set_ambient(false);let plain=pixels(&mut g,&c,size);assert_eq!(at(&plain,size,p),[204,26,51,255]);g.set_ambient(true);let image=pixels(&mut g,&c,size);assert_eq!(at(&image,size,p),[204,26,51,255],"Ambient shading precedes actual original {kind} colour");assert!(pixels(&mut g,&c,size)==image,"A complete frame is stable");assert_eq!(snapshot(&e.scene),original);
+  g.set_pick_mode(crate::pick_sources::Mode::Object);g.request_pick(super::contact_feature_tests::project(c.uniform(),world),c.uniform()).unwrap();wait(&g);let picked=g.take_pick(c.uniform()).unwrap().unwrap().and_then(|v|g.resolve_pick(&e.scene,v)).unwrap();assert_eq!(picked.owner,owner);assert_eq!(picked.part,crate::pick_sources::Part::Object);
+  let old=e.scene.placement(owner).unwrap();e.scene.translate(owner,[0.1,0.,0.]).unwrap();g.set_scene(&e.scene,None);assert!(pixels(&mut g,&c,size)!=image);e.scene.place_owner(owner,old).unwrap();g.set_scene(&e.scene,None);assert!(pixels(&mut g,&c,size)==image);assert_eq!(g.stats()[0],uploads);assert_eq!(snapshot(&e.scene),original);
+  if kind=="point"{let name=format!("point-{}-dpr{density}",if projection==Projection::Perspective{"perspective"}else{"orthographic"});export(&name,&e.scene,&image,size,world);let retained=e.scene.objects()[0].mesh.clone();let weak=Rc::downgrade(e.scene.objects()[0].geometry().unwrap());e.apply(crate::editor::Action::UnloadSources).unwrap();assert!(weak.upgrade().is_none());assert!(Rc::ptr_eq(&retained,&e.scene.objects()[0].mesh));g.set_scene(&e.scene,None);assert!(pixels(&mut g,&c,size)==image);let keys=e.reload_keys();e.hydrate(keys.into_iter().map(|k|(k,bytes.clone())).collect()).unwrap();assert_eq!(snapshot(&e.scene),original);assert_eq!(e.camera.view_projection().m,c.view_projection().m);g.set_scene(&e.scene,None);assert!(pixels(&mut g,&c,size)==image);assert_eq!(g.stats()[0],uploads);}
+  }
+ }}
+}
+
+fn isolated_widget(g:&super::Renderer,size:[u32;2])->Vec<u8>{
+ let t=g.device.create_texture(&wgpu::TextureDescriptor{label:Some("actual independent widget reference"),size:wgpu::Extent3d{width:size[0],height:size[1],depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::COPY_SRC,view_formats:&[]});let view=t.create_view(&Default::default());let mut e=g.device.create_command_encoder(&Default::default());
+ {let _pass=e.begin_render_pass(&wgpu::RenderPassDescriptor{label:None,color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],..Default::default()});}g.widget.draw(&mut e,&view);
+ let pitch=(size[0]*4).div_ceil(256)*256;let b=g.device.create_buffer(&wgpu::BufferDescriptor{label:None,size:u64::from(pitch)*u64::from(size[1]),usage:wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::MAP_READ,mapped_at_creation:false});e.copy_texture_to_buffer(t.as_image_copy(),wgpu::TexelCopyBufferInfo{buffer:&b,layout:wgpu::TexelCopyBufferLayout{offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(size[1])}},t.size());g.queue.submit([e.finish()]);let(tx,rx)=std::sync::mpsc::channel();b.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());wait(g);rx.recv().unwrap().unwrap();let mapped=b.slice(..).get_mapped_range();let image=mapped.chunks_exact(pitch as usize).flat_map(|r|r[..size[0]as usize*4].iter().copied()).collect();drop(mapped);b.unmap();image
+}
+#[test]
+fn actual_widget_overlay_matches_its_independent_gpu_reference(){
+ let s=scene(&document());let original=snapshot(&s);let mut g=renderer(&s);
+ for projection in[Projection::Perspective,Projection::Orthographic]{for density in[1u32,2]{let size=[320*density,240*density];g.resize(crate::viewport::Viewport{width:size[0],height:size[1]});g.set_density(density as f32);let mut c=camera(projection);let(_,world)=shadow(&mut g,&c,size);c.target=world;g.set_gizmo(&c,Some(world),-1.);let usage=g.gizmo_usage();let uploads=g.stats()[0];let picks=g.pick_usage();let reference=isolated_widget(&g,size);g.set_ambient(true);let image=pixels(&mut g,&c,size);let mut opaque=0;let mut changed=0;for(a,b)in reference.chunks_exact(4).zip(image.chunks_exact(4)){if a[3]==255{opaque+=1;if a[..3]!=b[..3]{changed+=1;}}}assert!(opaque>100);assert_eq!(changed,0,"All opaque production widget pixels keep their actual independent GPU colour");assert_eq!(g.gizmo_usage()[..3],usage[..3]);assert_eq!(g.stats()[0],uploads);assert_eq!(g.pick_usage(),picks);assert_eq!(snapshot(&s),original);let name=format!("widget-{}-dpr{density}",if projection==Projection::Perspective{"perspective"}else{"orthographic"});export(&name,&s,&image,size,world);g.set_gizmo(&c,None,-1.);assert_eq!(g.gizmo_usage()[1],0);}}
+}

@@ -1,0 +1,1 @@
+let view = buffer(crate::surface_view::BYTES); let crop = buffer(80);

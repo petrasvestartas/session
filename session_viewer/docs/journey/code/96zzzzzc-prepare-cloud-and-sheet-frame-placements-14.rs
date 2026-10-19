@@ -1,0 +1,1 @@
+settings(scene, row, base, selected.contains(&row.id),anchor)

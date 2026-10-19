@@ -1,0 +1,1 @@
+pick.encode(device,encoder,image,window,view,clipping,meshes,&self.targets,self.planes,records);

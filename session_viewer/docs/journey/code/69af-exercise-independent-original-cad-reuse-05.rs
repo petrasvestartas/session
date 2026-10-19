@@ -1,0 +1,5 @@
+    ("Example CAD",||Action::AddCad),
+    ("Example Instances",||Action::AddInstances),
+    ("Example Shape Reuse",||Action::AddShapeReuse),
+    ("Example Scene Text",||Action::AddText(crate::text::TextPlacement::WorldPlane {world:[-1.5,0.,1.],right:[1.,0.,0.],up:[0.,1.,0.],world_height:0.22})),
+    ("Example Billboard",||Action::AddText(crate::text::TextPlacement::WorldBillboard {world:[-1.5,0.,1.],world_height:0.22})),

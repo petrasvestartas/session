@@ -60,7 +60,7 @@ module.exports = async (page, helpers) => {
             // Inspect actual GPU pixels above the command strip: all must be white.
             const {PNG} = require('pngjs');
             const canvas = page.locator('canvas');
-            const url = await canvas.evaluate(canvas => canvas.toDataURL());
+            const url = await require('./canvas-image.cjs')(canvas);
             const pixels = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
             const rows = pixels.height - Math.ceil(34 * pixels.width / (await canvas.boundingBox()).width);
             for (let offset = 0; offset < pixels.width * rows * 4; offset += 4) {

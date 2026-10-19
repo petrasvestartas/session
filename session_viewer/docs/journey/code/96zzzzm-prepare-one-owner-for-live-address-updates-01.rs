@@ -1,0 +1,1 @@
+    pub fn set(&mut self,device:&wgpu::Device,queue:&wgpu::Queue,meshes:&mut[GpuMesh],instances:&std::collections::HashSet<crate::scene::ObjectId>,_geometry_changed:bool)->Result<(),&'static str> {

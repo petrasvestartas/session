@@ -1,0 +1,1 @@
+pub fn points(&self, pass: &mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup)

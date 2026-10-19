@@ -1,0 +1,1 @@
+self.strokes.enable_finite(device,format,true);for lane in [&mut self.paths,

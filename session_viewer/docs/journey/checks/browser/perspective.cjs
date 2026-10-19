@@ -3,7 +3,7 @@ const {PNG} = require('pngjs');
 
 module.exports = async (page, {command, drawing, step}) => {
     const centre = async () => {
-        const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+        const url = await require('./canvas-image.cjs')(page.locator('canvas'));
         const image = PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
         const offset = (Math.floor(image.height / 2) * image.width + Math.floor(image.width / 2)) * 4;
         return [...image.data.subarray(offset, offset + 3)];

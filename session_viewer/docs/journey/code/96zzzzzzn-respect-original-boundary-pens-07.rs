@@ -1,0 +1,1 @@
+        self.pens.capacity()*std::mem::size_of::<crate::mesh_pens::Pen>()+self.faces.capacity()

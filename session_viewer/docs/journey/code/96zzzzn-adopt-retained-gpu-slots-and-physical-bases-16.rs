@@ -1,0 +1,1 @@
+if self.slots.instances()==0{0}else{self.slots.allocated_bytes()},self.lookup.as_ref().map_or(0,|table|table.allocated_bytes())]}

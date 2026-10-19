@@ -1,0 +1,1 @@
+self.batches=batches;self.ordinary=ordinary;Ok(())

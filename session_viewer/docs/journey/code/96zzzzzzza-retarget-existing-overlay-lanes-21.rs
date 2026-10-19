@@ -1,0 +1,30 @@
+use super::*;
+fn frame(device:&wgpu::Device,queue:&wgpu::Queue,lane:&Lane,target:&crate::frame_targets::Targets,view:&wgpu::BindGroup)->Vec<u8> {
+ let output=device.create_texture(&wgpu::TextureDescriptor {label:Some("actual overlay samples"),size:wgpu::Extent3d {width:128,height:96,depth_or_array_layers:1},mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::COPY_SRC,view_formats:&[]});let single=output.create_view(&Default::default());let mut encoder=device.create_command_encoder(&Default::default());{
+  let mut attachments=vec![Some(wgpu::RenderPassColorAttachment {view:target.color(&single),resolve_target:None,depth_slice:None,ops:wgpu::Operations {load:wgpu::LoadOp::Clear(wgpu::Color::WHITE),store:wgpu::StoreOp::Store}})];if lane.recipe.2 {attachments.push(Some(wgpu::RenderPassColorAttachment {view:&target.primitive.view,resolve_target:None,depth_slice:None,ops:wgpu::Operations {load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}}));}
+  let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("real overlay draw"),color_attachments:&attachments,depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&target.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Clear(0.),store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});lane.draw(&mut pass,view);
+ }target.resolve(&mut encoder,&single);let buffer=device.create_buffer(&wgpu::BufferDescriptor {label:None,size:128*96*4,usage:wgpu::BufferUsages::MAP_READ|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false});encoder.copy_texture_to_buffer(output.as_image_copy(),wgpu::TexelCopyBufferInfo {buffer:&buffer,layout:wgpu::TexelCopyBufferLayout {offset:0,bytes_per_row:Some(512),rows_per_image:Some(96)}},output.size());queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());device.poll(wgpu::PollType::Wait {submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();rx.recv().unwrap().unwrap();let pixels=buffer.slice(..).get_mapped_range().to_vec();buffer.unmap();pixels
+}
+#[test]
+fn actual_overlay_colours_retarget_lazily_without_reuploading_vertices_or_queries() {
+ use wgpu::util::DeviceExt;
+ let r=crate::cap_gpu_tests::renderer(&crate::scene::Scene::empty());let device=&r.device;let queue=&r.queue;
+ let uniform=device.create_buffer_init(&wgpu::util::BufferInitDescriptor {label:None,contents:&crate::surface_view::bytes(session_rust::Xform::identity().m.map(|v|v as f32),[0.,1.,0.,0.],[128,96],1.),usage:wgpu::BufferUsages::UNIFORM});let view=crate::gpu_layout::group(device,&crate::surface_view::layout(device),&uniform);
+ let one=crate::frame_targets::Targets::new(device,[128,96],wgpu::TextureFormat::Rgba8Unorm,1);let four=crate::frame_targets::Targets::new(device,[128,96],wgpu::TextureFormat::Rgba8Unorm,4);
+ let storage=|size|device.create_buffer(&wgpu::BufferDescriptor {label:None,size,usage:wgpu::BufferUsages::STORAGE,mapped_at_creation:false});
+ let tables=crate::finite_ink::Tables {projected:storage(96),tiles:storage(32),primitive:four.primitive.view.clone()};
+ let mut empty=Lane::new(device,wgpu::TextureFormat::Rgba8Unorm);empty.enable_finite(device,wgpu::TextureFormat::Rgba8Unorm,false);empty.set_samples(device,4);
+ empty.finite_frame(device,&tables,&four.depth);assert!(empty.data.is_empty());assert!(empty.vertices.is_none());assert_eq!(empty.samples,4);
+ empty.set(device,[crate::stroke::Stroke {start:[-0.7,0.,0.5],end:[0.7,0.,0.5],width:8.,colour:[1.,0.,0.,1.]}]).unwrap();empty.finite_frame(device,&tables,&four.depth);
+ empty.set(device,std::iter::empty()).unwrap();empty.set_samples(device,4);empty.finite_frame(device,&tables,&one.depth);assert!(empty.data.is_empty());
+ let root=std::path::Path::new("overlay-pixels");
+ for case in 0..6 {
+  let mut lane=match case {0=>Lane::new(device,wgpu::TextureFormat::Rgba8Unorm),1=>Lane::joined(device,wgpu::TextureFormat::Rgba8Unorm),2=>Lane::markers(device,wgpu::TextureFormat::Rgba8Unorm),3=>Lane::guides(device,wgpu::TextureFormat::Rgba8Unorm),4=>Lane::overlay(device,wgpu::TextureFormat::Rgba8Unorm),_=>Lane::grid(device,wgpu::TextureFormat::Rgba8Unorm)};
+  let original=lane.pipeline.active.clone();let pick=lane.pick_pipeline.clone();lane.set_samples(device,4);assert_eq!(lane.pipeline.samples,1,"An empty lane must not compile4x");assert!(lane.pipeline.alternate.is_none());
+  let stroke=crate::stroke::Stroke {start:[-0.7,0.,0.5],end:[0.7,0.,0.5],width:8.,colour:[1.,0.,0.,1.]};
+  match case {1=>lane.set_chains(device,[crate::chain::Segment {stroke,previous:stroke.start,next:stroke.end,heads:3}]).unwrap(),2=>lane.set_points(device,[crate::marker::Marker {center:[0.,0.,0.5],diameter:28.,colour:[1.,0.,0.,1.]}]).unwrap(),3=>lane.set_guides(device,&[crate::guide_gpu::Segment {stroke,dashed:true}]).unwrap(),_=>lane.set(device,[stroke]).unwrap()}
+  assert_eq!(lane.pipeline.samples,4);let alternate=lane.pipeline.active.clone();assert_ne!(alternate,original);assert_eq!(lane.pick_pipeline,pick);
+  lane.set_ids(device,[[17,1]]).unwrap();let vertices=lane.vertices.clone();let ids=lane.ids.clone();let data=lane.data.clone();let uploads=[lane.uploads,lane.uploaded_bytes];let first=frame(device,queue,&lane,&four,&view);assert!(first.chunks_exact(4).filter(|p|p[1]<250).count()>30,"Actual nonempty overlay family{case}");crate::sample_test_proof::write(root.join(format!("family-{case}.rgba")),&first).unwrap();
+  lane.set_samples(device,1);assert_eq!(lane.pipeline.active,original);let single=frame(device,queue,&lane,&one,&view);assert!(single.chunks_exact(4).any(|p|p[1]<250));lane.set_samples(device,4);assert_eq!(lane.pipeline.active,alternate);assert!(frame(device,queue,&lane,&four,&view)==first);assert_eq!(lane.vertices,vertices);assert_eq!(lane.ids,ids);assert_eq!(lane.data,data);assert_eq!([lane.uploads,lane.uploaded_bytes],uploads);assert_eq!(lane.pick_pipeline,pick);
+ }
+}

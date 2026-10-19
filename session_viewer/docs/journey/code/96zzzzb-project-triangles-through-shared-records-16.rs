@@ -1,0 +1,2 @@
+        self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id)),self.meshes.iter().filter(|row|!self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
+        self.tiles.borrow_mut().set_records(&self.device,&self.meshes,Some(&self.instances));

@@ -1,0 +1,1 @@
+let mut stroke=row.stroke_at(anchor);

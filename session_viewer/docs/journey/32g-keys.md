@@ -1,4 +1,6 @@
-# 32g · Identify the source release a reload belongs to
+# 3.16.20 · Identify the source release a reload belongs to
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 19–37 minutes.** [Estimate](typing-load.md).
 
@@ -21,10 +23,10 @@ pub mod reload_url;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/32g-keys-01.rs"
+--8<-- "journey/code/32g-keys-01.rs" skip=20
 ```
 
 ### 2. `src/rehydrate.rs`
@@ -50,7 +52,7 @@ Request each active imported release once without duplicating its geometry.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32g-keys-03.rs"
@@ -62,25 +64,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the reload-key checks below. A key from a closed import must not match a new import of identical bytes; changing the release epoch must also reject it. No fetch is connected yet.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Identify the source release a reload belongs to.](../screenshots/journey/32g-keys-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for identify the source release a reload belongs to.](../screenshots/journey/32g-keys.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -114,8 +112,8 @@ Compare two imports of the same file. Explain why sharing the byte version must 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32g-keys
-npm --prefix ../session_tests run course -- save 32g-keys
+npm --prefix ../session_tests run course -- check 3.16.20
+npm --prefix ../session_tests run course -- save 3.16.20
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -136,7 +134,7 @@ The browser checks the existing command-only unload behavior and retained drawin
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32g-keys
+npm --prefix ../session_tests run course -- capture 3.16.20
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

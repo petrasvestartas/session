@@ -1,0 +1,1162 @@
+{
+  "date": "2026-10-15",
+  "reason": "Move the already-taught measurement unit to the first unit-aware camera lesson; keep one unit definition and value. Ten earlier cumulative source endpoints change; later endpoints remain byte-identical.",
+  "changedEndpoints": [
+    "96zzzzy-prepare-unit-aware-anchored-camera-space",
+    "96zzzzz-prepare-precise-anchor-relative-object-records",
+    "96zzzzza-prepare-anchor-relative-original-ink",
+    "96zzzzzb-prepare-shared-origin-frame-inputs",
+    "96zzzzzc-prepare-cloud-and-sheet-frame-placements",
+    "96zzzzzd-prepare-local-temporary-overlays",
+    "96zzzzze-preserve-local-precision-before-source-placement",
+    "96zzzzzf-prepare-precise-construction-grid-origins",
+    "96zzzzzg-initialize-object-records-in-the-local-frame",
+    "96zzzzzh-prepare-anchor-relative-original-highlights"
+  ],
+  "originalSteps": [
+    {
+      "id": "96zzzzy-prepare-unit-aware-anchored-camera-space",
+      "title": "Prepare unit-aware anchored camera space",
+      "page": "journey/96zzzzy-prepare-unit-aware-anchored-camera-space.md",
+      "hours": [
+        0.8,
+        1
+      ],
+      "goal": "Keep scene coordinates precise while expressing the camera projection in physical metres.",
+      "trace": "Scene coordinate − scene anchor → physical metres → camera view → clip coordinate",
+      "question": "Why subtract the anchor before converting the position to f32?",
+      "answer": "Narrowing a large coordinate first can erase a small displacement permanently. Subtracting in double precision keeps the local displacement available to the GPU.",
+      "result": "The camera prepares equivalent mm/metre and anchor-relative projections without changing document ownership.",
+      "experiment": "Run Fit, Pan Right, Fit, View Perspective and View Orthographic, and verify that navigation and original picking still work. In the typed code, compare physically equivalent mm/metre camera inputs and predict a distant anchor-relative fractional displacement. GPU anchor adoption follows later.",
+      "production": "Explicit unit conversion and anchored camera projection are prepared. Shared GPU rebasing and reversed depth across all consumers remain required.",
+      "story": "The document owns its coordinates and file unit. Convert scene distances to metres only while building the camera matrix. For a distant drawing, subtract the shared scene anchor in double precision before multiplying by the unit scale. Multiplying all clip components by one nonzero factor leaves their divided coordinates unchanged. Divide the perspective matrix by the unit scale so inverse consumers keep their numeric range. CPU rays invert around the precise target, form their direction locally and restore the world origin afterward. The ordinary matrix uses a zero anchor; later GPU consumers will adopt the same anchor together. Depth remains forward at this checkpoint.",
+      "checks": "",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/camera.rs",
+          "before": "pub const NEAR_FRACTION:f64=1.0e-4;",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-01.rs",
+          "why": "Name the file unit and its conversion to physical metres once."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "pub struct Camera {",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-02.rs",
+          "why": "Retain the file unit with camera state; source geometry stays in scene units."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "            target: [0.0; 3],",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-03.rs",
+          "why": "Start with the maintained viewer’s millimetre file unit."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "    pub fn view_projection(&self) -> Xform {",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-04.rs",
+          "why": "Build one unit-aware matrix, subtracting the anchor before narrowing any coordinate."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        let target = Point::new(self.target[0], self.target[1], self.target[2]);",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-05.rs",
+          "why": "Look at the target relative to the shared scene anchor in metres."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "            self.target[0] - forward[0] * self.distance,",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-06.rs",
+          "why": "Keep eye and target in the same physical coordinate space."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "            self.target[1] - forward[1] * self.distance,",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-07.rs",
+          "why": "Keep eye and target in the same physical coordinate space."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "            self.target[2] - forward[2] * self.distance,",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-08.rs",
+          "why": "Keep eye and target in the same physical coordinate space."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        let near = self.distance * NEAR_FRACTION;",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-09.rs",
+          "why": "Scale the near plane with the physical eye distance."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        let far = (self.distance * 10.0).max(self.distance + 2.0 * reach);",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-10.rs",
+          "why": "Convert the shared scene/grid reach once."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "                let h = self.distance * HALF_FOV.tan();",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-11.rs",
+          "why": "Express the orthographic image size in metres."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "                let depth_range = (self.distance + 2.0 * reach).max(1.0e-6);",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-12.rs",
+          "why": "Retain the existing scene-unit minimum reach during this coordinate preparation."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        Xform::translation(shift[0],shift[1],0.) * projection * view",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-13.rs",
+          "why": "Convert incoming anchor-relative scene vertices to metres in the same matrix."
+        },
+        {
+          "path": "src/lib.rs",
+          "before": "mod camera;",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-14.rs",
+          "why": "Keep the optional coordinate fixtures outside required coding."
+        },
+        {
+          "path": "src/camera_space_tests.rs",
+          "before": null,
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-15.rs",
+          "why": "Supply equivalent physical mm/metre projection/rays and distant submillimetre detail after f32 camera upload.",
+          "copy": true
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        let inverse = self.view_projection().inverse()?;",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-16.rs",
+          "why": "Invert around the precise camera target so large absolute translations cannot spoil ray construction."
+        },
+        {
+          "path": "src/camera.rs",
+          "before": "        Some(Ray { origin, direction: delta.normalized(), max_distance })",
+          "snippet": "journey/code/96zzzzy-prepare-unit-aware-anchored-camera-space-17.rs",
+          "why": "Compute ray direction and extent locally, then restore the precise scene-space origin."
+        }
+      ],
+      "frame": "journey/checks/94-comparison.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "assets": [
+        "assets/pb/course-instance-features.pb",
+        "assets/pb/course-feature-pick.pb"
+      ],
+      "lock": "journey/release/94-Cargo.lock",
+      "browser_check": "journey/checks/browser/arena-empty.cjs",
+      "browser_actions": [],
+      "browser_result_status": "No point tool is running"
+    },
+    {
+      "id": "96zzzzzi-share-one-camera-and-measurement-unit",
+      "title": "Share one camera and measurement unit",
+      "page": "journey/96zzzzzi-share-one-camera-and-measurement-unit.md",
+      "hours": [
+        0.1,
+        0.25
+      ],
+      "goal": "Use one scene unit for projection and measurement labels.",
+      "trace": "camera.unit → physical projection scale and measurement suffix",
+      "question": "What happens if measurement keeps an independent unit field?",
+      "answer": "Projection and labels can disagree about the same scene. One camera-owned value gives them a shared interpretation without changing document coordinates.",
+      "result": "The camera owns the scene unit used by projection and measurements.",
+      "experiment": "Draw a line, select it and measure Length. Undo and Redo the line, then measure again. Trace the measurement call to camera.unit; the default scene still uses millimetres.",
+      "production": "One scene unit owner is connected. The earlier unit introduction remains an audit item; precise CPU queries, asynchronous pick snapshots and complete browser rebasing follow.",
+      "story": "Move the already written unit-suffix method to the camera unit. Keep measurement callers on an alias of that same type. Remove the editor’s second unit field and read camera.unit when measuring selected originals or a distance.",
+      "checks": "",
+      "tests": true,
+      "edits": [
+        {
+          "path": "src/camera.rs",
+          "before": "impl Unit {pub fn to_meters(self)->f64 {match self {Self::Millimeters=>0.001,Self::Meters=>1.}}}",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-01.rs",
+          "why": "Move the unit suffix method already written for measurements to the existing camera unit.",
+          "copy": true
+        },
+        {
+          "path": "src/measure_mark.rs",
+          "before": "#[derive(Clone, Copy, Debug, PartialEq)]\npub enum Unit {\n    Millimeters,\n    Meters,\n}\nimpl Unit {\n    pub fn suffix(self, power: usize) -> &'static str {\n        let values = match self {\n            Self::Millimeters => [\"mm\", \"mm²\", \"mm³\"],\n            Self::Meters => [\"m\", \"m²\", \"m³\"],\n        };\n        values[power.clamp(1, 3) - 1]\n    }\n}\n",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-02.rs",
+          "why": "Keep one unit definition and preserve the existing measurement type name as an alias."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": ",pub unit:crate::measure_mark::Unit",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-03.rs",
+          "why": "Remove the independent editor unit value."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": ",unit:crate::measure_mark::Unit::Millimeters",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-04.rs",
+          "why": "Use the camera’s existing default scene unit."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "kind,self.unit",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-05.rs",
+          "why": "Measure selected originals using the same scene unit as projection."
+        },
+        {
+          "path": "src/editor.rs",
+          "before": "points[1],self.unit",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-06.rs",
+          "why": "Give distance annotations that same unit interpretation."
+        },
+        {
+          "path": "src/measure_tests.rs",
+          "before": "    e.unit = Unit::Meters;",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-07.rs",
+          "why": "Retain all existing area, volume, original-face and open-shape assertions under the shared unit owner.",
+          "copy": true
+        },
+        {
+          "path": "src/measure_tests.rs",
+          "before": "use crate::{\n    editor::{Action, Editor},\n    measure_mark::{Kind, Unit},\n    scene::Scene,\n};\nuse session_rust::{Geometry, Point, Xform};\nuse std::rc::Rc;\nfn editor() -> Editor {\n    let mut e = Editor::default();\n    e.apply(Action::Close).unwrap();\n    e\n}\nfn command(e: &mut Editor, text: &str) -> Result<(), String> {\n    let action = if let Some(a) = e.tool_line(text) {\n        a.map_err(str::to_owned)?\n    } else {\n        let crate::commands::Command::Editor(a) = crate::commands::parse(text)? else {\n            return Err(\"Editor action\".into());\n        };\n        a\n    };\n    e.apply(action).map_err(|m| {\n        if m == \"Shape input invalid\" {\n            e.tool_status.clone()\n        } else {\n            m.into()\n        }\n    })?;\n    Ok(())\n}\n#[test]\nfn bounding_box_is_an_original_wire_box_with_world_lengths_exact_archive_and_one_undo() {\n    let mut e = editor();\n    command(&mut e, \"Line w1000000000.125,23,31 w1000000006.125,29,31\").unwrap();\n    let old = e.scene.lines()[0].prepared.source.clone();\n    command(&mut e, \"Select All\").unwrap();\n    command(&mut e, \"Bounding Box\").unwrap();\n    let row = &e.scene.objects()[0];\n    let target = row.id;\n    let Some(Geometry::OBB(source)) = &row.original else {\n        panic!(\"Original box\")\n    };\n    assert_eq!(source.center[0], 1000000003.125);\n    assert_eq!(\n        [\n            source.half_size[0],\n            source.half_size[1],\n            source.half_size[2]\n        ],\n        [3., 3., 0.]\n    );\n    assert_eq!(row.model.m, Xform::identity().m);\n    assert!(row.mesh.indices().is_empty());\n    assert_eq!(row.mesh.parts.edges.len(), 12);\n    let proto = source.to_proto();\n    command(&mut e, \"Length BoundingBox\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"X 6 · Y 6 · Z 0 mm\");\n    assert_eq!(e.selected_objects(), [target]);\n    assert!(Rc::ptr_eq(&old, &e.scene.lines()[0].prepared.source));\n    let mut restored = Scene::empty();\n    crate::scene_document::open(\n        &mut restored,\n        &crate::scene_archive::save(&e.scene).unwrap(),\n    )\n    .unwrap();\n    let Some(Geometry::OBB(source)) = &restored.objects()[0].original else {\n        panic!(\"Reopened original box\")\n    };\n    assert_eq!(source.to_proto(), proto);\n    assert!(restored.objects()[0].mesh.indices().is_empty());\n    command(&mut e, \"Undo\").unwrap();\n    assert!(e.scene.objects().is_empty());\n    assert!(e.mark.is_none());\n    command(&mut e, \"Redo\").unwrap();\n    assert_eq!(e.scene.objects().len(), 1);\n}\n#[test]\nfn selection_measurements_use_placed_originals_and_preserve_scene_history_and_sources() {\n    let mut e = editor();\n    command(&mut e, \"Line w0,0,0 w3,4,0\").unwrap();\n    let line = e.scene.lines()[0].id;\n    e.scene\n        .place_owner(line, Xform::scale_xyz(2., 3., 1.))\n        .unwrap();\n    let old = e.scene.lines()[0].prepared.source.clone();\n    command(&mut e, \"Point w1,1,1\").unwrap();\n    command(&mut e, \"Undo\").unwrap();\n    e.select_objects([line], false);\n    command(&mut e, \"Length\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"13.416 mm\");\n    assert!(Rc::ptr_eq(&old, &e.scene.lines()[0].prepared.source));\n    command(&mut e, \"Length BoundingBox\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"X 6 · Y 12 · Z 0 mm\");\n    command(&mut e, \"Redo\").unwrap();\n    assert_eq!(e.scene.points().len(), 1);\n    assert!(e.mark.is_none());\n}\n#[test]\nfn area_volume_face_units_and_open_refusal_follow_original_geometry() {\n    let mut e = editor();\n    command(&mut e, \"Box w0,0,0 2 2 0.4\").unwrap();\n    let target = e.scene.objects()[0].id;\n    e.select_objects([target], false);\n    command(&mut e, \"Area\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"11.2 mm²\");\n    command(&mut e, \"Volume\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"1.6 mm³\");\n    e.camera.unit = Unit::Meters;\n    command(&mut e, \"Volume\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"1.6 m³\");\n    let source = e.scene.objects()[0].cad.as_ref().unwrap().source.clone();\n    e.apply(Action::PickedTarget(Some(crate::pick_sources::Target {\n        owner: target,\n        part: crate::pick_sources::Part::Face(0),\n    })))\n    .unwrap();\n    command(&mut e, \"Area\").unwrap();\n    let area =\n        crate::measure_area::compute_area(&Geometry::BRep(source), &Xform::identity(), Some(0))\n            .unwrap();\n    assert_eq!(\n        e.mark.as_ref().unwrap().label,\n        format!(\"{} m²\", crate::measure_math::to_text(area))\n    );\n    let surface = Rc::new(\n        crate::patch_geometry::patch(&[\n            Point::new(3., 0., 0.),\n            Point::new(4., 0., 0.),\n            Point::new(4., 1., 0.),\n            Point::new(3., 1., 0.),\n        ])\n        .unwrap(),\n    );\n    let id = e.scene.insert_surface(surface).unwrap();\n    e.select_objects([id], false);\n    assert!(command(&mut e, \"Volume\").is_err());\n    assert!(e.mark.is_none());\n    assert!(\n        e.scene\n            .objects()\n            .iter()\n            .find(|r| r.id == id)\n            .unwrap()\n            .surface\n            .is_some()\n    );\n}\n#[test]\nfn distance_accepts_world_relative_and_plane_inputs_without_creating_originals() {\n    let mut e = editor();\n    command(&mut e, \"CPlane XZ\").unwrap();\n    command(&mut e, \"Measure Distance w0,0,0 w3,4,0\").unwrap();\n    assert_eq!(e.mark.as_ref().unwrap().label, \"5 mm\");\n    assert!(e.tool_status.contains(\"dx 3 · dy 4 · dz 0\"));\n    assert!(e.scene.lines().is_empty());\n    assert!(e.scene.objects().is_empty());\n    command(&mut e, \"Snap Off\").unwrap();\n    command(&mut e, \"Measure Distance\").unwrap();\n    assert!(e.snapping.objects);\n    command(&mut e, \"0,0,0\").unwrap();\n    command(&mut e, \"@3,4,0\").unwrap();\n    assert_eq!(\n        e.mark.as_ref().unwrap().points,\n        vec![[0., 0., 0.], [3., 0., 4.]]\n    );\n    assert_eq!(e.mark.as_ref().unwrap().label, \"5 mm\");\n    assert!(e.draft.is_none());\n    e.apply(Action::Zoom(1.1)).unwrap();\n    assert!(e.mark.is_some());\n    command(&mut e, \"Escape\").unwrap();\n    assert!(e.mark.is_none());\n    assert!(e.scene.lines().is_empty());\n}\n#[test]\nfn invalid_measurement_arguments_keep_pending_answers_and_redo_and_no_source_proxy_is_measured() {\n    let mut e = editor();\n    command(&mut e, \"Line w0,0,0 w1,0,0\").unwrap();\n    command(&mut e, \"Point w1,1,1\").unwrap();\n    command(&mut e, \"Undo\").unwrap();\n    e.select_objects([], false);\n    assert!(command(&mut e, \"BoundingBox\").is_err());\n    assert!(command(&mut e, \"Length\").is_err());\n    assert!(crate::commands::parse(\"Length BoundingBox extra\").is_err());\n    command(&mut e, \"Curve\").unwrap();\n    command(&mut e, \"w0,0,0\").unwrap();\n    assert!(command(&mut e, \"Measure Distance bad\").is_err());\n    assert_eq!(e.draft.as_ref().unwrap().points.len(), 1);\n    command(&mut e, \"Escape\").unwrap();\n    command(&mut e, \"Redo\").unwrap();\n    assert_eq!(e.scene.points().len(), 1);\n    let id = crate::bounds_original::insert(\n        &mut e.scene,\n        Rc::new(crate::bounds_original::box_geometry(\n            &crate::bounds::Bounds {\n                min: [0.; 3],\n                max: [1.; 3],\n            },\n        )),\n    )\n    .unwrap();\n    e.select_objects([id], false);\n    assert!(command(&mut e, \"Area\").is_err());\n    assert!(command(&mut e, \"Volume\").is_err());\n    assert!(command(&mut e, \"Length\").is_err());\n}\n#[test]\nfn temporary_annotation_ids_do_not_collide_with_scene_labels_or_gain_pick_owners() {\n    let (mark, _) = crate::measure_mark::distance([0.; 3], [3., 4., 0.], Unit::Millimeters);\n    let mut existing = mark.labels(&[]);\n    existing[0].id = u32::MAX;\n    let labels = mark.labels(&existing);\n    assert_eq!(labels.len(), 3);\n    assert!(labels.iter().all(|l| l.object.is_none()));\n    let ids = labels\n        .iter()\n        .map(|l| l.id)\n        .collect::<std::collections::HashSet<_>>();\n    assert_eq!(ids.len(), 3);\n    assert!(\n        labels\n            .iter()\n            .all(|l| existing.iter().all(|old| old.id != l.id))\n    );\n    assert_eq!(labels[0].text, \"5 mm\");\n    assert_eq!(labels[1].text, \"■\");\n}\n",
+          "snippet": "journey/code/96zzzzzi-share-one-camera-and-measurement-unit-08.rs",
+          "why": "Supply one unit/measurement/camera-inverse/original-source and exact Undo/Redo fixture while retaining earlier measurement assertions.",
+          "copy": true
+        }
+      ],
+      "frame": "journey/checks/94-comparison.rs",
+      "frame_constructor": "make_renderer(device, queue, format)",
+      "browser_status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "assets": [
+        "assets/pb/course-instance-features.pb",
+        "assets/pb/course-feature-pick.pb"
+      ],
+      "lock": "journey/release/94-Cargo.lock",
+      "browser_check": "journey/checks/browser/arena-empty.cjs",
+      "browser_actions": [],
+      "browser_result_status": "No point tool is running"
+    }
+  ],
+  "builds": {
+    "96zzzzy-prepare-unit-aware-anchored-camera-space": {
+      "source": "86bb1a196c639c17ab217fe326ee8c36b14fbd02f48e3909db6a89486ace8f2e",
+      "commands": [
+        {
+          "name": "96zzzzy-prepare-unit-aware-anchored-camera-space-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzy-prepare-unit-aware-anchored-camera-space-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzy-prepare-unit-aware-anchored-camera-space-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzy-prepare-unit-aware-anchored-camera-space-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzz-prepare-precise-anchor-relative-object-records": {
+      "source": "b9a4977b95c4e765a008505914dffd29ed372b7f60a2872cea90530e8d87ebcd",
+      "commands": [
+        {
+          "name": "96zzzzz-prepare-precise-anchor-relative-object-records-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzz-prepare-precise-anchor-relative-object-records-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzz-prepare-precise-anchor-relative-object-records-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzz-prepare-precise-anchor-relative-object-records-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzza-prepare-anchor-relative-original-ink": {
+      "source": "f60cd41e15b397e0773d1b24a87056a89532abb20a855adfcba025ae28d4ba53",
+      "commands": [
+        {
+          "name": "96zzzzza-prepare-anchor-relative-original-ink-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzza-prepare-anchor-relative-original-ink-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzza-prepare-anchor-relative-original-ink-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzza-prepare-anchor-relative-original-ink-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzzb-prepare-shared-origin-frame-inputs": {
+      "source": "7b7d6834169dd76a2ea6996e67bbe1e794624f09bdee73971879439c81496249",
+      "commands": [
+        {
+          "name": "96zzzzzb-prepare-shared-origin-frame-inputs-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzb-prepare-shared-origin-frame-inputs-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzb-prepare-shared-origin-frame-inputs-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzb-prepare-shared-origin-frame-inputs-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzzc-prepare-cloud-and-sheet-frame-placements": {
+      "source": "551151ecfda9993e60a066104ff310b217d1cae4b8c150af3a31e24b86b87ced",
+      "commands": [
+        {
+          "name": "96zzzzzc-prepare-cloud-and-sheet-frame-placements-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzc-prepare-cloud-and-sheet-frame-placements-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzc-prepare-cloud-and-sheet-frame-placements-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzc-prepare-cloud-and-sheet-frame-placements-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzzd-prepare-local-temporary-overlays": {
+      "source": "9d237a27401798fab1e35737b0911e65cc020994c12d22dbcf93cd0600ffa895",
+      "commands": [
+        {
+          "name": "96zzzzzd-prepare-local-temporary-overlays-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzd-prepare-local-temporary-overlays-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzd-prepare-local-temporary-overlays-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzd-prepare-local-temporary-overlays-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzze-preserve-local-precision-before-source-placement": {
+      "source": "efd9248c6e56cad399f830cf1299c60b90d534b84ca56431d83f2250cd9dfd59",
+      "commands": [
+        {
+          "name": "96zzzzze-preserve-local-precision-before-source-placement-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzze-preserve-local-precision-before-source-placement-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzze-preserve-local-precision-before-source-placement-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzze-preserve-local-precision-before-source-placement-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzzf-prepare-precise-construction-grid-origins": {
+      "source": "26af44ab6ac79dab0a84307bec31a1f3f602c357cdc9a783b6035e93201d2074",
+      "commands": [
+        {
+          "name": "96zzzzzf-prepare-precise-construction-grid-origins-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzf-prepare-precise-construction-grid-origins-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzf-prepare-precise-construction-grid-origins-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzf-prepare-precise-construction-grid-origins-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzzg-initialize-object-records-in-the-local-frame": {
+      "source": "9e3960dd6430054b49efe1539e71161ad093bbc62e540e0ad2b458b36d3cdb9a",
+      "commands": [
+        {
+          "name": "96zzzzzg-initialize-object-records-in-the-local-frame-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzg-initialize-object-records-in-the-local-frame-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzg-initialize-object-records-in-the-local-frame-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzg-initialize-object-records-in-the-local-frame-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    },
+    "96zzzzzh-prepare-anchor-relative-original-highlights": {
+      "source": "f80e760ca06a3c77b6da996a4cbe63bb1f8c5049a51761a39002569c9fc0a9df",
+      "commands": [
+        {
+          "name": "96zzzzzh-prepare-anchor-relative-original-highlights-wasm",
+          "args": [
+            "cargo",
+            "build",
+            "--lib",
+            "--locked",
+            "--target",
+            "wasm32-unknown-unknown",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzh-prepare-anchor-relative-original-highlights-tests",
+          "args": [
+            "cargo",
+            "test",
+            "--lib",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzh-prepare-anchor-relative-original-highlights-web",
+          "args": [
+            "trunk",
+            "build",
+            "--release",
+            "--public-url",
+            "./"
+          ],
+          "returncode": 0
+        },
+        {
+          "name": "96zzzzzh-prepare-anchor-relative-original-highlights-frame",
+          "args": [
+            "cargo",
+            "run",
+            "--example",
+            "frame",
+            "--locked",
+            "--target",
+            "x86_64-unknown-linux-gnu",
+            "-j4"
+          ],
+          "returncode": 0
+        }
+      ],
+      "browser": "not verified",
+      "pixels": {
+        "sha256": "b9f417a69dfd05694bc1074eef6c03db46dd9b71672b6f8c9dead67f78757a0f"
+      }
+    }
+  },
+  "browser": {
+    "96zzzzy-prepare-unit-aware-anchored-camera-space": {
+      "source": "86bb1a196c639c17ab217fe326ee8c36b14fbd02f48e3909db6a89486ace8f2e",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-14T23:11:40.431Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzy-prepare-unit-aware-anchored-camera-space-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "95f25c8ee7c62e87fc6c31d35b4782128f7854752edd54bdbd6c066a1d54ba6c",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzz-prepare-precise-anchor-relative-object-records": {
+      "source": "b9a4977b95c4e765a008505914dffd29ed372b7f60a2872cea90530e8d87ebcd",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-14T23:19:09.655Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzz-prepare-precise-anchor-relative-object-records-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "5a76a924ff4518c83082a550c035b8fb79ed80640113a2d8b08661e9de82cbe7",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzza-prepare-anchor-relative-original-ink": {
+      "source": "f60cd41e15b397e0773d1b24a87056a89532abb20a855adfcba025ae28d4ba53",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-14T23:26:36.808Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzza-prepare-anchor-relative-original-ink-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "c7b5936c82a4def61793a8f9570c4f9da9687a1648e27041e75aee5941b781cf",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzzb-prepare-shared-origin-frame-inputs": {
+      "source": "7b7d6834169dd76a2ea6996e67bbe1e794624f09bdee73971879439c81496249",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-14T23:34:06.003Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzzb-prepare-shared-origin-frame-inputs-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "36402305d110c55616ee39eba0da7fd33230f20e4beac371c85cc7ea3579fc32",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzzc-prepare-cloud-and-sheet-frame-placements": {
+      "source": "551151ecfda9993e60a066104ff310b217d1cae4b8c150af3a31e24b86b87ced",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-14T23:41:35.835Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzzc-prepare-cloud-and-sheet-frame-placements-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "84df9d34eeb3968b668caeec001b334a13fed2764b76987bcca0a28eacb6be8a",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzzd-prepare-local-temporary-overlays": {
+      "source": "9d237a27401798fab1e35737b0911e65cc020994c12d22dbcf93cd0600ffa895",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-14T23:51:34.584Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzzd-prepare-local-temporary-overlays-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "e9a82fbe0d9b8f0134834fc382e6c1ee1f0a4a2295f574d8590041c8bec3d8d6",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzze-preserve-local-precision-before-source-placement": {
+      "source": "efd9248c6e56cad399f830cf1299c60b90d534b84ca56431d83f2250cd9dfd59",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-15T00:12:40.198Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzze-preserve-local-precision-before-source-placement-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "77f12174bc106c84ba0408291f44e30a3276a3c5b8db13310ff7e633456e279d",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzzf-prepare-precise-construction-grid-origins": {
+      "source": "26af44ab6ac79dab0a84307bec31a1f3f602c357cdc9a783b6035e93201d2074",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-15T00:20:20.252Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzzf-prepare-precise-construction-grid-origins-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "f09db53563c5fc89ae4f4443ab466c11fe59e5c1e05a20fa6e33be45706cdac9",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzzg-initialize-object-records-in-the-local-frame": {
+      "source": "9e3960dd6430054b49efe1539e71161ad093bbc62e540e0ad2b458b36d3cdb9a",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-15T00:30:56.600Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzzg-initialize-object-records-in-the-local-frame-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "96c56f48990751206d8c02be2deb62b907993282ffe109834334e55a4a5307eb",
+      "commands": [],
+      "keyboardRoundtrip": false
+    },
+    "96zzzzzh-prepare-anchor-relative-original-highlights": {
+      "source": "f80e760ca06a3c77b6da996a4cbe63bb1f8c5049a51761a39002569c9fc0a9df",
+      "checker": "c3798c494d2de95a20d2f629a662e6b6b10394a1bbb09f157956bdc61fe37c66",
+      "extraChecker": "16c6960647427f675a4a82573070c3b090c271164520ee60a6a7d7a64ec6ca18",
+      "browser": "153.0.8010.36",
+      "headless": false,
+      "captured": "2026-10-15T00:40:39.483Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "747b865801184e34535a527d39ce19bcc9b1fe409bafb997551038bc4538d656",
+      "file": "96zzzzzh-prepare-anchor-relative-original-highlights-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "33c71356ef743a77791f3e4f092a12ea8d0b0618893f91c0c9f507fe7f546335",
+      "commands": [],
+      "keyboardRoundtrip": false
+    }
+  },
+  "images": {
+    "96zzzzy-prepare-unit-aware-anchored-camera-space": {
+      "96zzzzy-prepare-unit-aware-anchored-camera-space.png": "screenshots/journey/history/2026-10-15-units/96zzzzy-prepare-unit-aware-anchored-camera-space.png",
+      "96zzzzy-prepare-unit-aware-anchored-camera-space-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzy-prepare-unit-aware-anchored-camera-space-browser.png"
+    },
+    "96zzzzz-prepare-precise-anchor-relative-object-records": {
+      "96zzzzz-prepare-precise-anchor-relative-object-records.png": "screenshots/journey/history/2026-10-15-units/96zzzzz-prepare-precise-anchor-relative-object-records.png",
+      "96zzzzz-prepare-precise-anchor-relative-object-records-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzz-prepare-precise-anchor-relative-object-records-browser.png"
+    },
+    "96zzzzza-prepare-anchor-relative-original-ink": {
+      "96zzzzza-prepare-anchor-relative-original-ink.png": "screenshots/journey/history/2026-10-15-units/96zzzzza-prepare-anchor-relative-original-ink.png",
+      "96zzzzza-prepare-anchor-relative-original-ink-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzza-prepare-anchor-relative-original-ink-browser.png"
+    },
+    "96zzzzzb-prepare-shared-origin-frame-inputs": {
+      "96zzzzzb-prepare-shared-origin-frame-inputs.png": "screenshots/journey/history/2026-10-15-units/96zzzzzb-prepare-shared-origin-frame-inputs.png",
+      "96zzzzzb-prepare-shared-origin-frame-inputs-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzzb-prepare-shared-origin-frame-inputs-browser.png"
+    },
+    "96zzzzzc-prepare-cloud-and-sheet-frame-placements": {
+      "96zzzzzc-prepare-cloud-and-sheet-frame-placements.png": "screenshots/journey/history/2026-10-15-units/96zzzzzc-prepare-cloud-and-sheet-frame-placements.png",
+      "96zzzzzc-prepare-cloud-and-sheet-frame-placements-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzzc-prepare-cloud-and-sheet-frame-placements-browser.png"
+    },
+    "96zzzzzd-prepare-local-temporary-overlays": {
+      "96zzzzzd-prepare-local-temporary-overlays.png": "screenshots/journey/history/2026-10-15-units/96zzzzzd-prepare-local-temporary-overlays.png",
+      "96zzzzzd-prepare-local-temporary-overlays-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzzd-prepare-local-temporary-overlays-browser.png"
+    },
+    "96zzzzze-preserve-local-precision-before-source-placement": {
+      "96zzzzze-preserve-local-precision-before-source-placement.png": "screenshots/journey/history/2026-10-15-units/96zzzzze-preserve-local-precision-before-source-placement.png",
+      "96zzzzze-preserve-local-precision-before-source-placement-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzze-preserve-local-precision-before-source-placement-browser.png"
+    },
+    "96zzzzzf-prepare-precise-construction-grid-origins": {
+      "96zzzzzf-prepare-precise-construction-grid-origins.png": "screenshots/journey/history/2026-10-15-units/96zzzzzf-prepare-precise-construction-grid-origins.png",
+      "96zzzzzf-prepare-precise-construction-grid-origins-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzzf-prepare-precise-construction-grid-origins-browser.png"
+    },
+    "96zzzzzg-initialize-object-records-in-the-local-frame": {
+      "96zzzzzg-initialize-object-records-in-the-local-frame.png": "screenshots/journey/history/2026-10-15-units/96zzzzzg-initialize-object-records-in-the-local-frame.png",
+      "96zzzzzg-initialize-object-records-in-the-local-frame-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzzg-initialize-object-records-in-the-local-frame-browser.png"
+    },
+    "96zzzzzh-prepare-anchor-relative-original-highlights": {
+      "96zzzzzh-prepare-anchor-relative-original-highlights.png": "screenshots/journey/history/2026-10-15-units/96zzzzzh-prepare-anchor-relative-original-highlights.png",
+      "96zzzzzh-prepare-anchor-relative-original-highlights-browser.png": "screenshots/journey/history/2026-10-15-units/96zzzzzh-prepare-anchor-relative-original-highlights-browser.png"
+    }
+  }
+}

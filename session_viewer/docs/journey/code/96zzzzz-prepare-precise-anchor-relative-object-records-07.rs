@@ -1,0 +1,1 @@
+Self { translation:object.model.m[12..15].try_into().unwrap(),anchor:[0.;3],geometry, model_group, id: object.id, model, previous: bytes,

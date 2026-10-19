@@ -1,0 +1,1 @@
+std::array::from_fn(|i|(if mask&(1<<i)==0{bounds.min[i]}else{bounds.max[i]})-view.origin[i])

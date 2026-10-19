@@ -1,0 +1,2 @@
+crate::stroke::Stroke { start: crate::render_space::relative(crate::clipping_geometry::array(&start),anchor),
+            end: crate::render_space::relative(crate::clipping_geometry::array(&end),anchor),

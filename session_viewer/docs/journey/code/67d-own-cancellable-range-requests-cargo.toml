@@ -1,0 +1,43 @@
+[package]
+name = "viewer_journey"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
+
+[dependencies]
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
+prost = "=0.14.4"
+sha2 = "=0.10.8"
+uuid = { version = "=1.26.1", features = ["v4", "js"] }
+js-sys = "=0.3.105"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+session_rust = { path = "../../../session_rust", default-features = false }
+getrandom = { version = "=0.2.17", features = ["js"] }
+
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = { version = "1.0", features = ["float_roundtrip"] }
+
+glyphon = "=0.11.0"
+anyhow = "=1.0.104"
+ttf-parser = {version="=0.25.1",default-features=false}
+
+serde_yaml_ng = "=0.10.0"
+toml = { version = "=0.8.23", optional = true }
+
+[features]
+json-sessions = []
+toml-manifests = ["dep:toml"]
+
+[dev-dependencies]
+pollster = "=0.4.0"
+log = "=0.4.34"

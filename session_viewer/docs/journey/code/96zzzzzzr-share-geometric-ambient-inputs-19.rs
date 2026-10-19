@@ -1,0 +1,1 @@
+pub fn clear(&mut self){self.state=None;self.cached=None;self.error=None;}

@@ -1,0 +1,1 @@
+edge_colour.unwrap_or(colour)

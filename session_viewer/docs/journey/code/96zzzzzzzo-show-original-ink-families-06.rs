@@ -1,0 +1,1 @@
+self.strokes.draw(&mut pass,&self.view_group);if self.ink_visibility.lines{self.sheets.draw(&mut pass);}

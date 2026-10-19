@@ -1,0 +1,1 @@
+assert!(scene.objects()[0].mesh.parts.pens.is_empty());assert!(scene.objects()[0].mesh.parts.dots.is_empty());assert!(scene.objects()[0].mesh.parts.dot_colours.is_empty());

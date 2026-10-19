@@ -1,0 +1,1 @@
+self.clouds.borrow().as_ref(),self.ink_visibility.lines.then_some(&self.sheets),Some(&tables)

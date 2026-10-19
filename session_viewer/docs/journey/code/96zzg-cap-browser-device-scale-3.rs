@@ -1,0 +1,1 @@
+crate::browser_recovery::density(crate::browser_defaults::scale(window.device_pixel_ratio()))

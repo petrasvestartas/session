@@ -1,0 +1,1 @@
+factor:(last/first).clamp(0.1,10.)

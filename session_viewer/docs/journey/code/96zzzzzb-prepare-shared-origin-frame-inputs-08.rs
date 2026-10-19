@@ -1,0 +1,1 @@
+clipping.frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);

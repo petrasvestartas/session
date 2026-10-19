@@ -1,0 +1,3 @@
+nwrap();
+  if state.images.source_radius.texture.sample_count()!=self.pipes.samples {state.images.retarget_sources(device,self.pipes.samples);state.groups=Groups::new(device,&self.pipes.active,&state.images,&self.frame,self.pipes.samples);state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes.active,&state.images,depth,sections,&self.frame,clip));self.cached=None;self.preparations+=1;}
+if state

@@ -1,0 +1,5 @@
+    pub view:Rc<crate::view_flags::Flags>,
+    pub forest:crate::hierarchy::Forest,
+    texts:Vec<crate::scene_label::Row>,
+    points: Vec<PointObject>,
+    paths: Vec<PathObject>,

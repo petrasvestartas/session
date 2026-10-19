@@ -1,0 +1,1 @@
+sampled(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0),samples

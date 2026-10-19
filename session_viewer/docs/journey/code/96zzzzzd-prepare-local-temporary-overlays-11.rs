@@ -1,0 +1,2 @@
+    pub fn overlay(&self)->crate::guide_gpu::Overlay {self.overlay_at([0.;3])}
+    pub fn overlay_at(&self,anchor:[f64;3])->crate::guide_gpu::Overlay{let mut overlay=crate::guide_gpu::Overlay::at(anchor);

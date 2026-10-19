@@ -1,0 +1,1293 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 17,
+  "title": "GPU visibility, clipping and sections",
+  "first": "86-copy-finite-tile-allocation-rules",
+  "end_before": "89-copy-density-scaled-depth-reduction",
+  "lessons": [
+    {
+      "id": "86-copy-finite-tile-allocation-rules",
+      "title": "Bounded projected triangles and tile lists",
+      "page": "journey/consolidation/86-copy-finite-tile-allocation-rules.md",
+      "steps": [
+        "86-copy-finite-tile-allocation-rules",
+        "86ma-grow-projection-and-reference-pools-from-demand",
+        "86a-copy-maintained-projection-and-scan-recipes",
+        "86b-copy-the-project-recipe",
+        "86ba-clip-original-triangles-before-dividing-by-depth",
+        "86bb-write-bounded-projected-triangle-records-on-the-gpu",
+        "86c-project-existing-original-mesh-buffers",
+        "86d-copy-the-triangle-tiles-recipe",
+        "86da-count-conservative-triangle-coverage-per-tile",
+        "86db-fill-bounded-original-triangle-reference-lists",
+        "86e-count-and-fill-original-triangle-references",
+        "86f-copy-the-scan-triangle-tiles-recipe",
+        "86fa-scan-tile-blocks-and-their-block-totals",
+        "86fb-finalize-bounded-tile-list-offsets-and-demand",
+        "86fc-assemble-and-validate-the-bounded-scan-shader",
+        "86g-wake-only-after-a-tile-report-arrives",
+        "86h-read-actual-pool-demand-asynchronously",
+        "86i-describe-explicit-finite-gpu-layouts",
+        "86j-build-compute-and-count-pipeline-helpers",
+        "86k-connect-projection-count-scan-and-fill-pipelines",
+        "86l-own-bounded-finite-tile-resources",
+        "86m-allocate-empty-tile-placeholders",
+        "86n-witness-original-buffers-and-world-placement",
+        "86o-release-obsolete-tile-lists-and-bindings",
+        "86p-grow-lists-only-from-actual-demand",
+        "86q-rasterize-bounded-tile-counts-and-references",
+        "86r-cache-projection-and-finish-current-reports"
+      ],
+      "checkpoint": "86r-cache-projection-and-finish-current-reports"
+    },
+    {
+      "id": "86s-test-visibility-at-the-original-center-line",
+      "title": "Finite ink visibility and original colour/pick ownership",
+      "page": "journey/consolidation/86s-test-visibility-at-the-original-center-line.md",
+      "steps": [
+        "86s-test-visibility-at-the-original-center-line",
+        "86t-reuse-original-stroke-coverage",
+        "86u-carry-stroke-axis-and-depth",
+        "86v-reuse-original-stroke-integer-coverage",
+        "86w-keep-stroke-crop-ownership-aligned",
+        "86x-reuse-original-chain-coverage",
+        "86y-carry-chain-axis-and-depth",
+        "86z-reuse-original-chain-integer-coverage",
+        "86aa-keep-chain-crop-ownership-aligned",
+        "86ab-reuse-original-marker-coverage",
+        "86ac-carry-marker-axis-and-depth",
+        "86ad-reuse-original-marker-integer-coverage",
+        "86ae-keep-marker-crop-ownership-aligned",
+        "86af-assemble-one-shared-finite-shader-predicate",
+        "86ag-own-finite-color-and-integer-pipelines",
+        "86ah-build-finite-shader-pipelines-with-original-layouts",
+        "86ai-bind-finite-coverage-for-original-families",
+        "86aj-reuse-bindings-and-draw-original-owners",
+        "86ak-expose-original-gpu-models-to-projection",
+        "86al-connect-finite-visibility-to-all-original-ink-lanes",
+        "86am-separate-integer-depth-writers-and-sampled-ink",
+        "86an-own-tile-state-before-color-and-first-picks",
+        "86ao-split-opaque-finite-ink-and-cloud-composition",
+        "86ap-observe-actual-derived-tile-resources",
+        "86aq-exercise-finite-color-and-original-picking"
+      ],
+      "checkpoint": "86aq-exercise-finite-color-and-original-picking"
+    },
+    {
+      "id": "87-copy-current-original-plane-modes",
+      "title": "Original clipping half-spaces across drawing families",
+      "page": "journey/consolidation/87-copy-current-original-plane-modes.md",
+      "steps": [
+        "87-copy-current-original-plane-modes",
+        "87sa-describe-clipping-construction-choices-once",
+        "87sb-construct-and-reverse-original-clipping-planes",
+        "87sc-derive-placed-world-half-spaces-from-original-planes",
+        "87a-gather-six-visible-original-world-planes",
+        "87b-copy-the-maintained-clipping-uniform-layout",
+        "87c-copy-conditioned-screen-and-hatch-projections",
+        "87ca-project-a-stable-hatch-coordinate-onto-a-plane",
+        "87cb-fill-one-bounded-clipping-uniform-from-original-planes",
+        "87cc-match-the-clipping-uniform-and-sample-conventions",
+        "87cd-apply-shared-original-half-space-tests",
+        "87ce-compute-clipping-coverage-in-framebuffer-sample-space",
+        "87cf-address-section-depth-and-original-cap-records",
+        "87d-parse-strict-clipping-modes-and-presentation-switches",
+        "87e-preserve-mode-prefixes-in-generic-point-drafts",
+        "87f-build-original-clipping-planes-through-the-shared-tool",
+        "87g-own-clipping-presentation-and-one-history-transaction",
+        "87h-route-clipping-plane-and-preserve-pending-points",
+        "87i-own-one-shared-clipping-gpu-uniform",
+        "87j-retain-clipping-state-beside-the-renderer",
+        "87k-prepare-shared-clipping-shader-declarations",
+        "87l-connect-mesh-and-instance-color-half-spaces",
+        "87m-prepare-explicit-original-mesh-pick-clipping",
+        "87n-bind-shared-clipping-before-the-first-integer-request",
+        "87o-preserve-sparse-source-face-ids-across-the-cut",
+        "87p-invalidate-selected-masks-on-clipping-changes",
+        "87q-share-clipping-at-finite-original-center-lines",
+        "87r-cache-explicit-original-plane-ink-flags",
+        "87s-bind-original-flags-without-changing-instance-strides",
+        "87t-keep-stroke-color-and-pick-exemptions-aligned",
+        "87u-keep-chain-color-and-pick-exemptions-aligned",
+        "87v-keep-marker-color-and-pick-exemptions-aligned",
+        "87w-resolve-locked-and-selected-original-plane-boundaries",
+        "87x-clip-cached-original-point-cloud-discs",
+        "87y-clip-original-sheet-pens-and-integer-entities",
+        "87z-clip-text-anchors-with-all-six-original-planes",
+        "87aa-observe-actual-clipping-resources-and-errors",
+        "87ab-exercise-original-clipping-color-and-picking"
+      ],
+      "checkpoint": "87ab-exercise-original-clipping-color-and-picking"
+    },
+    {
+      "id": "88-copy-original-closedness-and-winding",
+      "title": "Verified closed sections and exact cap picks",
+      "page": "journey/consolidation/88-copy-original-closedness-and-winding.md",
+      "steps": [
+        "88-copy-original-closedness-and-winding",
+        "88a-cache-verified-original-solids-weakly",
+        "88b-copy-conservative-plane-crossing-bounds",
+        "88c-cache-local-bounds-and-apply-placement-once",
+        "88d-carry-closedness-and-dense-cap-addresses",
+        "88e-count-original-closed-solid-crossings",
+        "88f-count-exact-original-cap-pick-candidates",
+        "88g-copy-section-coverage-and-hatch-filtering",
+        "88ga-fade-hatch-detail-and-detect-section-boundaries",
+        "88gb-shade-sections-with-shared-original-depth-and-sample-ownership",
+        "88h-adapt-color-sections-to-forward-depth",
+        "88i-return-original-integer-section-owners",
+        "88j-own-lazy-section-images",
+        "88k-build-compatible-section-render-pipelines",
+        "88l-add-signed-counts-and-grey-hatch-color",
+        "88m-build-bounded-integer-section-pipelines",
+        "88n-own-bounded-cap-pick-storage",
+        "88o-prepare-exact-cap-crop-and-owners",
+        "88p-draw-cap-count-nearest-owner-and-integer-id",
+        "88q-own-section-caches-and-placeholders",
+        "88r-gather-crossing-original-owners",
+        "88s-prepare-active-section-images",
+        "88t-draw-the-closed-union-and-section-depth",
+        "88u-route-exact-original-cap-picks-and-allocation",
+        "88v-connect-sections-after-opaque-originals",
+        "88x-expose-section-data-to-finite-ink-tables",
+        "88y-cache-finite-section-bindings",
+        "88z-retain-ink-exactly-on-sloping-sections",
+        "88aa-hide-original-ink-behind-visible-caps",
+        "88ab-pick-sections-before-any-color-frame",
+        "88ac-observe-actual-section-owners-and-errors",
+        "88ad-exercise-original-sections-bores-and-ink"
+      ],
+      "checkpoint": "88ad-exercise-original-sections-bores-and-ink"
+    }
+  ],
+  "old_step_to_lesson": {
+    "86-copy-finite-tile-allocation-rules": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86-copy-finite-tile-allocation-rules"
+    },
+    "86ma-grow-projection-and-reference-pools-from-demand": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86ma-grow-projection-and-reference-pools-from-demand"
+    },
+    "86a-copy-maintained-projection-and-scan-recipes": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86a-copy-maintained-projection-and-scan-recipes"
+    },
+    "86b-copy-the-project-recipe": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86b-copy-the-project-recipe"
+    },
+    "86ba-clip-original-triangles-before-dividing-by-depth": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86ba-clip-original-triangles-before-dividing-by-depth"
+    },
+    "86bb-write-bounded-projected-triangle-records-on-the-gpu": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86bb-write-bounded-projected-triangle-records-on-the-gpu"
+    },
+    "86c-project-existing-original-mesh-buffers": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86c-project-existing-original-mesh-buffers"
+    },
+    "86d-copy-the-triangle-tiles-recipe": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86d-copy-the-triangle-tiles-recipe"
+    },
+    "86da-count-conservative-triangle-coverage-per-tile": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86da-count-conservative-triangle-coverage-per-tile"
+    },
+    "86db-fill-bounded-original-triangle-reference-lists": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86db-fill-bounded-original-triangle-reference-lists"
+    },
+    "86e-count-and-fill-original-triangle-references": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86e-count-and-fill-original-triangle-references"
+    },
+    "86f-copy-the-scan-triangle-tiles-recipe": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86f-copy-the-scan-triangle-tiles-recipe"
+    },
+    "86fa-scan-tile-blocks-and-their-block-totals": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86fa-scan-tile-blocks-and-their-block-totals"
+    },
+    "86fb-finalize-bounded-tile-list-offsets-and-demand": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86fb-finalize-bounded-tile-list-offsets-and-demand"
+    },
+    "86fc-assemble-and-validate-the-bounded-scan-shader": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86fc-assemble-and-validate-the-bounded-scan-shader"
+    },
+    "86g-wake-only-after-a-tile-report-arrives": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86g-wake-only-after-a-tile-report-arrives"
+    },
+    "86h-read-actual-pool-demand-asynchronously": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86h-read-actual-pool-demand-asynchronously"
+    },
+    "86i-describe-explicit-finite-gpu-layouts": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86i-describe-explicit-finite-gpu-layouts"
+    },
+    "86j-build-compute-and-count-pipeline-helpers": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86j-build-compute-and-count-pipeline-helpers"
+    },
+    "86k-connect-projection-count-scan-and-fill-pipelines": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86k-connect-projection-count-scan-and-fill-pipelines"
+    },
+    "86l-own-bounded-finite-tile-resources": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86l-own-bounded-finite-tile-resources"
+    },
+    "86m-allocate-empty-tile-placeholders": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86m-allocate-empty-tile-placeholders"
+    },
+    "86n-witness-original-buffers-and-world-placement": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86n-witness-original-buffers-and-world-placement"
+    },
+    "86o-release-obsolete-tile-lists-and-bindings": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86o-release-obsolete-tile-lists-and-bindings"
+    },
+    "86p-grow-lists-only-from-actual-demand": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86p-grow-lists-only-from-actual-demand"
+    },
+    "86q-rasterize-bounded-tile-counts-and-references": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86q-rasterize-bounded-tile-counts-and-references"
+    },
+    "86r-cache-projection-and-finish-current-reports": {
+      "lesson": "86-copy-finite-tile-allocation-rules",
+      "anchor": "checkpoint-86r-cache-projection-and-finish-current-reports"
+    },
+    "86s-test-visibility-at-the-original-center-line": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86s-test-visibility-at-the-original-center-line"
+    },
+    "86t-reuse-original-stroke-coverage": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86t-reuse-original-stroke-coverage"
+    },
+    "86u-carry-stroke-axis-and-depth": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86u-carry-stroke-axis-and-depth"
+    },
+    "86v-reuse-original-stroke-integer-coverage": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86v-reuse-original-stroke-integer-coverage"
+    },
+    "86w-keep-stroke-crop-ownership-aligned": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86w-keep-stroke-crop-ownership-aligned"
+    },
+    "86x-reuse-original-chain-coverage": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86x-reuse-original-chain-coverage"
+    },
+    "86y-carry-chain-axis-and-depth": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86y-carry-chain-axis-and-depth"
+    },
+    "86z-reuse-original-chain-integer-coverage": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86z-reuse-original-chain-integer-coverage"
+    },
+    "86aa-keep-chain-crop-ownership-aligned": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86aa-keep-chain-crop-ownership-aligned"
+    },
+    "86ab-reuse-original-marker-coverage": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ab-reuse-original-marker-coverage"
+    },
+    "86ac-carry-marker-axis-and-depth": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ac-carry-marker-axis-and-depth"
+    },
+    "86ad-reuse-original-marker-integer-coverage": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ad-reuse-original-marker-integer-coverage"
+    },
+    "86ae-keep-marker-crop-ownership-aligned": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ae-keep-marker-crop-ownership-aligned"
+    },
+    "86af-assemble-one-shared-finite-shader-predicate": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86af-assemble-one-shared-finite-shader-predicate"
+    },
+    "86ag-own-finite-color-and-integer-pipelines": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ag-own-finite-color-and-integer-pipelines"
+    },
+    "86ah-build-finite-shader-pipelines-with-original-layouts": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts"
+    },
+    "86ai-bind-finite-coverage-for-original-families": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ai-bind-finite-coverage-for-original-families"
+    },
+    "86aj-reuse-bindings-and-draw-original-owners": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86aj-reuse-bindings-and-draw-original-owners"
+    },
+    "86ak-expose-original-gpu-models-to-projection": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ak-expose-original-gpu-models-to-projection"
+    },
+    "86al-connect-finite-visibility-to-all-original-ink-lanes": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes"
+    },
+    "86am-separate-integer-depth-writers-and-sampled-ink": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86am-separate-integer-depth-writers-and-sampled-ink"
+    },
+    "86an-own-tile-state-before-color-and-first-picks": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86an-own-tile-state-before-color-and-first-picks"
+    },
+    "86ao-split-opaque-finite-ink-and-cloud-composition": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ao-split-opaque-finite-ink-and-cloud-composition"
+    },
+    "86ap-observe-actual-derived-tile-resources": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86ap-observe-actual-derived-tile-resources"
+    },
+    "86aq-exercise-finite-color-and-original-picking": {
+      "lesson": "86s-test-visibility-at-the-original-center-line",
+      "anchor": "checkpoint-86aq-exercise-finite-color-and-original-picking"
+    },
+    "87-copy-current-original-plane-modes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87-copy-current-original-plane-modes"
+    },
+    "87sa-describe-clipping-construction-choices-once": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87sa-describe-clipping-construction-choices-once"
+    },
+    "87sb-construct-and-reverse-original-clipping-planes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87sb-construct-and-reverse-original-clipping-planes"
+    },
+    "87sc-derive-placed-world-half-spaces-from-original-planes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87sc-derive-placed-world-half-spaces-from-original-planes"
+    },
+    "87a-gather-six-visible-original-world-planes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87a-gather-six-visible-original-world-planes"
+    },
+    "87b-copy-the-maintained-clipping-uniform-layout": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87b-copy-the-maintained-clipping-uniform-layout"
+    },
+    "87c-copy-conditioned-screen-and-hatch-projections": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87c-copy-conditioned-screen-and-hatch-projections"
+    },
+    "87ca-project-a-stable-hatch-coordinate-onto-a-plane": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87ca-project-a-stable-hatch-coordinate-onto-a-plane"
+    },
+    "87cb-fill-one-bounded-clipping-uniform-from-original-planes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87cb-fill-one-bounded-clipping-uniform-from-original-planes"
+    },
+    "87cc-match-the-clipping-uniform-and-sample-conventions": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87cc-match-the-clipping-uniform-and-sample-conventions"
+    },
+    "87cd-apply-shared-original-half-space-tests": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87cd-apply-shared-original-half-space-tests"
+    },
+    "87ce-compute-clipping-coverage-in-framebuffer-sample-space": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87ce-compute-clipping-coverage-in-framebuffer-sample-space"
+    },
+    "87cf-address-section-depth-and-original-cap-records": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87cf-address-section-depth-and-original-cap-records"
+    },
+    "87d-parse-strict-clipping-modes-and-presentation-switches": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87d-parse-strict-clipping-modes-and-presentation-switches"
+    },
+    "87e-preserve-mode-prefixes-in-generic-point-drafts": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87e-preserve-mode-prefixes-in-generic-point-drafts"
+    },
+    "87f-build-original-clipping-planes-through-the-shared-tool": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87f-build-original-clipping-planes-through-the-shared-tool"
+    },
+    "87g-own-clipping-presentation-and-one-history-transaction": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87g-own-clipping-presentation-and-one-history-transaction"
+    },
+    "87h-route-clipping-plane-and-preserve-pending-points": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87h-route-clipping-plane-and-preserve-pending-points"
+    },
+    "87i-own-one-shared-clipping-gpu-uniform": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87i-own-one-shared-clipping-gpu-uniform"
+    },
+    "87j-retain-clipping-state-beside-the-renderer": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87j-retain-clipping-state-beside-the-renderer"
+    },
+    "87k-prepare-shared-clipping-shader-declarations": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87k-prepare-shared-clipping-shader-declarations"
+    },
+    "87l-connect-mesh-and-instance-color-half-spaces": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87l-connect-mesh-and-instance-color-half-spaces"
+    },
+    "87m-prepare-explicit-original-mesh-pick-clipping": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87m-prepare-explicit-original-mesh-pick-clipping"
+    },
+    "87n-bind-shared-clipping-before-the-first-integer-request": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87n-bind-shared-clipping-before-the-first-integer-request"
+    },
+    "87o-preserve-sparse-source-face-ids-across-the-cut": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87o-preserve-sparse-source-face-ids-across-the-cut"
+    },
+    "87p-invalidate-selected-masks-on-clipping-changes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87p-invalidate-selected-masks-on-clipping-changes"
+    },
+    "87q-share-clipping-at-finite-original-center-lines": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87q-share-clipping-at-finite-original-center-lines"
+    },
+    "87r-cache-explicit-original-plane-ink-flags": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87r-cache-explicit-original-plane-ink-flags"
+    },
+    "87s-bind-original-flags-without-changing-instance-strides": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87s-bind-original-flags-without-changing-instance-strides"
+    },
+    "87t-keep-stroke-color-and-pick-exemptions-aligned": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87t-keep-stroke-color-and-pick-exemptions-aligned"
+    },
+    "87u-keep-chain-color-and-pick-exemptions-aligned": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87u-keep-chain-color-and-pick-exemptions-aligned"
+    },
+    "87v-keep-marker-color-and-pick-exemptions-aligned": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87v-keep-marker-color-and-pick-exemptions-aligned"
+    },
+    "87w-resolve-locked-and-selected-original-plane-boundaries": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87w-resolve-locked-and-selected-original-plane-boundaries"
+    },
+    "87x-clip-cached-original-point-cloud-discs": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87x-clip-cached-original-point-cloud-discs"
+    },
+    "87y-clip-original-sheet-pens-and-integer-entities": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87y-clip-original-sheet-pens-and-integer-entities"
+    },
+    "87z-clip-text-anchors-with-all-six-original-planes": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87z-clip-text-anchors-with-all-six-original-planes"
+    },
+    "87aa-observe-actual-clipping-resources-and-errors": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87aa-observe-actual-clipping-resources-and-errors"
+    },
+    "87ab-exercise-original-clipping-color-and-picking": {
+      "lesson": "87-copy-current-original-plane-modes",
+      "anchor": "checkpoint-87ab-exercise-original-clipping-color-and-picking"
+    },
+    "88-copy-original-closedness-and-winding": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88-copy-original-closedness-and-winding"
+    },
+    "88a-cache-verified-original-solids-weakly": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88a-cache-verified-original-solids-weakly"
+    },
+    "88b-copy-conservative-plane-crossing-bounds": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88b-copy-conservative-plane-crossing-bounds"
+    },
+    "88c-cache-local-bounds-and-apply-placement-once": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88c-cache-local-bounds-and-apply-placement-once"
+    },
+    "88d-carry-closedness-and-dense-cap-addresses": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88d-carry-closedness-and-dense-cap-addresses"
+    },
+    "88e-count-original-closed-solid-crossings": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88e-count-original-closed-solid-crossings"
+    },
+    "88f-count-exact-original-cap-pick-candidates": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88f-count-exact-original-cap-pick-candidates"
+    },
+    "88g-copy-section-coverage-and-hatch-filtering": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88g-copy-section-coverage-and-hatch-filtering"
+    },
+    "88ga-fade-hatch-detail-and-detect-section-boundaries": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88ga-fade-hatch-detail-and-detect-section-boundaries"
+    },
+    "88gb-shade-sections-with-shared-original-depth-and-sample-ownership": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88gb-shade-sections-with-shared-original-depth-and-sample-ownership"
+    },
+    "88h-adapt-color-sections-to-forward-depth": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88h-adapt-color-sections-to-forward-depth"
+    },
+    "88i-return-original-integer-section-owners": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88i-return-original-integer-section-owners"
+    },
+    "88j-own-lazy-section-images": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88j-own-lazy-section-images"
+    },
+    "88k-build-compatible-section-render-pipelines": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88k-build-compatible-section-render-pipelines"
+    },
+    "88l-add-signed-counts-and-grey-hatch-color": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88l-add-signed-counts-and-grey-hatch-color"
+    },
+    "88m-build-bounded-integer-section-pipelines": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88m-build-bounded-integer-section-pipelines"
+    },
+    "88n-own-bounded-cap-pick-storage": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88n-own-bounded-cap-pick-storage"
+    },
+    "88o-prepare-exact-cap-crop-and-owners": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88o-prepare-exact-cap-crop-and-owners"
+    },
+    "88p-draw-cap-count-nearest-owner-and-integer-id": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88p-draw-cap-count-nearest-owner-and-integer-id"
+    },
+    "88q-own-section-caches-and-placeholders": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88q-own-section-caches-and-placeholders"
+    },
+    "88r-gather-crossing-original-owners": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88r-gather-crossing-original-owners"
+    },
+    "88s-prepare-active-section-images": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88s-prepare-active-section-images"
+    },
+    "88t-draw-the-closed-union-and-section-depth": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88t-draw-the-closed-union-and-section-depth"
+    },
+    "88u-route-exact-original-cap-picks-and-allocation": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88u-route-exact-original-cap-picks-and-allocation"
+    },
+    "88v-connect-sections-after-opaque-originals": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88v-connect-sections-after-opaque-originals"
+    },
+    "88x-expose-section-data-to-finite-ink-tables": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88x-expose-section-data-to-finite-ink-tables"
+    },
+    "88y-cache-finite-section-bindings": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88y-cache-finite-section-bindings"
+    },
+    "88z-retain-ink-exactly-on-sloping-sections": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88z-retain-ink-exactly-on-sloping-sections"
+    },
+    "88aa-hide-original-ink-behind-visible-caps": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88aa-hide-original-ink-behind-visible-caps"
+    },
+    "88ab-pick-sections-before-any-color-frame": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88ab-pick-sections-before-any-color-frame"
+    },
+    "88ac-observe-actual-section-owners-and-errors": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88ac-observe-actual-section-owners-and-errors"
+    },
+    "88ad-exercise-original-sections-bores-and-ink": {
+      "lesson": "88-copy-original-closedness-and-winding",
+      "anchor": "checkpoint-88ad-exercise-original-sections-bores-and-ink"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/gpu/triangle_tiles.rs",
+      "session_viewer/src/shaders/project_triangles.wgsl",
+      "session_viewer/src/shaders/ink_visibility.wgsl",
+      "session_viewer/src/shaders/ribbon.wgsl",
+      "session_viewer/src/shaders/vector.wgsl",
+      "session_viewer/src/engine/gpu/clip.rs",
+      "session_viewer/src/shaders/cap.wgsl",
+      "session_viewer/src/engine/gpu/render.rs",
+      "session_viewer/src/engine/gpu/pass.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "86-copy-finite-tile-allocation-rules",
+      "path": "screenshots/journey/86-copy-finite-tile-allocation-rules.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ma-grow-projection-and-reference-pools-from-demand",
+      "path": "screenshots/journey/86ma-grow-projection-and-reference-pools-from-demand.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86a-copy-maintained-projection-and-scan-recipes",
+      "path": "screenshots/journey/86a-copy-maintained-projection-and-scan-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86b-copy-the-project-recipe",
+      "path": "screenshots/journey/86b-copy-the-project-recipe.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ba-clip-original-triangles-before-dividing-by-depth",
+      "path": "screenshots/journey/86ba-clip-original-triangles-before-dividing-by-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86bb-write-bounded-projected-triangle-records-on-the-gpu",
+      "path": "screenshots/journey/86bb-write-bounded-projected-triangle-records-on-the-gpu.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86c-project-existing-original-mesh-buffers",
+      "path": "screenshots/journey/86c-project-existing-original-mesh-buffers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86d-copy-the-triangle-tiles-recipe",
+      "path": "screenshots/journey/86d-copy-the-triangle-tiles-recipe.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86da-count-conservative-triangle-coverage-per-tile",
+      "path": "screenshots/journey/86da-count-conservative-triangle-coverage-per-tile.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86db-fill-bounded-original-triangle-reference-lists",
+      "path": "screenshots/journey/86db-fill-bounded-original-triangle-reference-lists.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86e-count-and-fill-original-triangle-references",
+      "path": "screenshots/journey/86e-count-and-fill-original-triangle-references.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86f-copy-the-scan-triangle-tiles-recipe",
+      "path": "screenshots/journey/86f-copy-the-scan-triangle-tiles-recipe.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86fa-scan-tile-blocks-and-their-block-totals",
+      "path": "screenshots/journey/86fa-scan-tile-blocks-and-their-block-totals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86fb-finalize-bounded-tile-list-offsets-and-demand",
+      "path": "screenshots/journey/86fb-finalize-bounded-tile-list-offsets-and-demand.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86fc-assemble-and-validate-the-bounded-scan-shader",
+      "path": "screenshots/journey/86fc-assemble-and-validate-the-bounded-scan-shader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86g-wake-only-after-a-tile-report-arrives",
+      "path": "screenshots/journey/86g-wake-only-after-a-tile-report-arrives.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86h-read-actual-pool-demand-asynchronously",
+      "path": "screenshots/journey/86h-read-actual-pool-demand-asynchronously.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86i-describe-explicit-finite-gpu-layouts",
+      "path": "screenshots/journey/86i-describe-explicit-finite-gpu-layouts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86j-build-compute-and-count-pipeline-helpers",
+      "path": "screenshots/journey/86j-build-compute-and-count-pipeline-helpers.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86k-connect-projection-count-scan-and-fill-pipelines",
+      "path": "screenshots/journey/86k-connect-projection-count-scan-and-fill-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86l-own-bounded-finite-tile-resources",
+      "path": "screenshots/journey/86l-own-bounded-finite-tile-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86m-allocate-empty-tile-placeholders",
+      "path": "screenshots/journey/86m-allocate-empty-tile-placeholders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86n-witness-original-buffers-and-world-placement",
+      "path": "screenshots/journey/86n-witness-original-buffers-and-world-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86o-release-obsolete-tile-lists-and-bindings",
+      "path": "screenshots/journey/86o-release-obsolete-tile-lists-and-bindings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86p-grow-lists-only-from-actual-demand",
+      "path": "screenshots/journey/86p-grow-lists-only-from-actual-demand.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86q-rasterize-bounded-tile-counts-and-references",
+      "path": "screenshots/journey/86q-rasterize-bounded-tile-counts-and-references.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86r-cache-projection-and-finish-current-reports",
+      "path": "screenshots/journey/86r-cache-projection-and-finish-current-reports.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86s-test-visibility-at-the-original-center-line",
+      "path": "screenshots/journey/86s-test-visibility-at-the-original-center-line.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86t-reuse-original-stroke-coverage",
+      "path": "screenshots/journey/86t-reuse-original-stroke-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86u-carry-stroke-axis-and-depth",
+      "path": "screenshots/journey/86u-carry-stroke-axis-and-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86v-reuse-original-stroke-integer-coverage",
+      "path": "screenshots/journey/86v-reuse-original-stroke-integer-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86w-keep-stroke-crop-ownership-aligned",
+      "path": "screenshots/journey/86w-keep-stroke-crop-ownership-aligned.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86x-reuse-original-chain-coverage",
+      "path": "screenshots/journey/86x-reuse-original-chain-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86y-carry-chain-axis-and-depth",
+      "path": "screenshots/journey/86y-carry-chain-axis-and-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86z-reuse-original-chain-integer-coverage",
+      "path": "screenshots/journey/86z-reuse-original-chain-integer-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86aa-keep-chain-crop-ownership-aligned",
+      "path": "screenshots/journey/86aa-keep-chain-crop-ownership-aligned.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ab-reuse-original-marker-coverage",
+      "path": "screenshots/journey/86ab-reuse-original-marker-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ac-carry-marker-axis-and-depth",
+      "path": "screenshots/journey/86ac-carry-marker-axis-and-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ad-reuse-original-marker-integer-coverage",
+      "path": "screenshots/journey/86ad-reuse-original-marker-integer-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ae-keep-marker-crop-ownership-aligned",
+      "path": "screenshots/journey/86ae-keep-marker-crop-ownership-aligned.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86af-assemble-one-shared-finite-shader-predicate",
+      "path": "screenshots/journey/86af-assemble-one-shared-finite-shader-predicate.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ag-own-finite-color-and-integer-pipelines",
+      "path": "screenshots/journey/86ag-own-finite-color-and-integer-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ah-build-finite-shader-pipelines-with-original-layouts",
+      "path": "screenshots/journey/86ah-build-finite-shader-pipelines-with-original-layouts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ai-bind-finite-coverage-for-original-families",
+      "path": "screenshots/journey/86ai-bind-finite-coverage-for-original-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86aj-reuse-bindings-and-draw-original-owners",
+      "path": "screenshots/journey/86aj-reuse-bindings-and-draw-original-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ak-expose-original-gpu-models-to-projection",
+      "path": "screenshots/journey/86ak-expose-original-gpu-models-to-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86al-connect-finite-visibility-to-all-original-ink-lanes",
+      "path": "screenshots/journey/86al-connect-finite-visibility-to-all-original-ink-lanes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86am-separate-integer-depth-writers-and-sampled-ink",
+      "path": "screenshots/journey/86am-separate-integer-depth-writers-and-sampled-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86an-own-tile-state-before-color-and-first-picks",
+      "path": "screenshots/journey/86an-own-tile-state-before-color-and-first-picks.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ao-split-opaque-finite-ink-and-cloud-composition",
+      "path": "screenshots/journey/86ao-split-opaque-finite-ink-and-cloud-composition.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86ap-observe-actual-derived-tile-resources",
+      "path": "screenshots/journey/86ap-observe-actual-derived-tile-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "86aq-exercise-finite-color-and-original-picking",
+      "path": "screenshots/journey/86aq-exercise-finite-color-and-original-picking.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87-copy-current-original-plane-modes",
+      "path": "screenshots/journey/87-copy-current-original-plane-modes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87sa-describe-clipping-construction-choices-once",
+      "path": "screenshots/journey/87sa-describe-clipping-construction-choices-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87sb-construct-and-reverse-original-clipping-planes",
+      "path": "screenshots/journey/87sb-construct-and-reverse-original-clipping-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87sc-derive-placed-world-half-spaces-from-original-planes",
+      "path": "screenshots/journey/87sc-derive-placed-world-half-spaces-from-original-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87a-gather-six-visible-original-world-planes",
+      "path": "screenshots/journey/87a-gather-six-visible-original-world-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87b-copy-the-maintained-clipping-uniform-layout",
+      "path": "screenshots/journey/87b-copy-the-maintained-clipping-uniform-layout.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87c-copy-conditioned-screen-and-hatch-projections",
+      "path": "screenshots/journey/87c-copy-conditioned-screen-and-hatch-projections.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87ca-project-a-stable-hatch-coordinate-onto-a-plane",
+      "path": "screenshots/journey/87ca-project-a-stable-hatch-coordinate-onto-a-plane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87cb-fill-one-bounded-clipping-uniform-from-original-planes",
+      "path": "screenshots/journey/87cb-fill-one-bounded-clipping-uniform-from-original-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87cc-match-the-clipping-uniform-and-sample-conventions",
+      "path": "screenshots/journey/87cc-match-the-clipping-uniform-and-sample-conventions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87cd-apply-shared-original-half-space-tests",
+      "path": "screenshots/journey/87cd-apply-shared-original-half-space-tests.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87ce-compute-clipping-coverage-in-framebuffer-sample-space",
+      "path": "screenshots/journey/87ce-compute-clipping-coverage-in-framebuffer-sample-space.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87cf-address-section-depth-and-original-cap-records",
+      "path": "screenshots/journey/87cf-address-section-depth-and-original-cap-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87d-parse-strict-clipping-modes-and-presentation-switches",
+      "path": "screenshots/journey/87d-parse-strict-clipping-modes-and-presentation-switches.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87e-preserve-mode-prefixes-in-generic-point-drafts",
+      "path": "screenshots/journey/87e-preserve-mode-prefixes-in-generic-point-drafts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87f-build-original-clipping-planes-through-the-shared-tool",
+      "path": "screenshots/journey/87f-build-original-clipping-planes-through-the-shared-tool.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87g-own-clipping-presentation-and-one-history-transaction",
+      "path": "screenshots/journey/87g-own-clipping-presentation-and-one-history-transaction.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87h-route-clipping-plane-and-preserve-pending-points",
+      "path": "screenshots/journey/87h-route-clipping-plane-and-preserve-pending-points.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87i-own-one-shared-clipping-gpu-uniform",
+      "path": "screenshots/journey/87i-own-one-shared-clipping-gpu-uniform.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87j-retain-clipping-state-beside-the-renderer",
+      "path": "screenshots/journey/87j-retain-clipping-state-beside-the-renderer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87k-prepare-shared-clipping-shader-declarations",
+      "path": "screenshots/journey/87k-prepare-shared-clipping-shader-declarations.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87l-connect-mesh-and-instance-color-half-spaces",
+      "path": "screenshots/journey/87l-connect-mesh-and-instance-color-half-spaces.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87m-prepare-explicit-original-mesh-pick-clipping",
+      "path": "screenshots/journey/87m-prepare-explicit-original-mesh-pick-clipping.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87n-bind-shared-clipping-before-the-first-integer-request",
+      "path": "screenshots/journey/87n-bind-shared-clipping-before-the-first-integer-request.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87o-preserve-sparse-source-face-ids-across-the-cut",
+      "path": "screenshots/journey/87o-preserve-sparse-source-face-ids-across-the-cut.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87p-invalidate-selected-masks-on-clipping-changes",
+      "path": "screenshots/journey/87p-invalidate-selected-masks-on-clipping-changes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87q-share-clipping-at-finite-original-center-lines",
+      "path": "screenshots/journey/87q-share-clipping-at-finite-original-center-lines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87r-cache-explicit-original-plane-ink-flags",
+      "path": "screenshots/journey/87r-cache-explicit-original-plane-ink-flags.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87s-bind-original-flags-without-changing-instance-strides",
+      "path": "screenshots/journey/87s-bind-original-flags-without-changing-instance-strides.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87t-keep-stroke-color-and-pick-exemptions-aligned",
+      "path": "screenshots/journey/87t-keep-stroke-color-and-pick-exemptions-aligned.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87u-keep-chain-color-and-pick-exemptions-aligned",
+      "path": "screenshots/journey/87u-keep-chain-color-and-pick-exemptions-aligned.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87v-keep-marker-color-and-pick-exemptions-aligned",
+      "path": "screenshots/journey/87v-keep-marker-color-and-pick-exemptions-aligned.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87w-resolve-locked-and-selected-original-plane-boundaries",
+      "path": "screenshots/journey/87w-resolve-locked-and-selected-original-plane-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87x-clip-cached-original-point-cloud-discs",
+      "path": "screenshots/journey/87x-clip-cached-original-point-cloud-discs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87y-clip-original-sheet-pens-and-integer-entities",
+      "path": "screenshots/journey/87y-clip-original-sheet-pens-and-integer-entities.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87z-clip-text-anchors-with-all-six-original-planes",
+      "path": "screenshots/journey/87z-clip-text-anchors-with-all-six-original-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87aa-observe-actual-clipping-resources-and-errors",
+      "path": "screenshots/journey/87aa-observe-actual-clipping-resources-and-errors.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "87ab-exercise-original-clipping-color-and-picking",
+      "path": "screenshots/journey/87ab-exercise-original-clipping-color-and-picking.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88-copy-original-closedness-and-winding",
+      "path": "screenshots/journey/88-copy-original-closedness-and-winding.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88a-cache-verified-original-solids-weakly",
+      "path": "screenshots/journey/88a-cache-verified-original-solids-weakly.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88b-copy-conservative-plane-crossing-bounds",
+      "path": "screenshots/journey/88b-copy-conservative-plane-crossing-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88c-cache-local-bounds-and-apply-placement-once",
+      "path": "screenshots/journey/88c-cache-local-bounds-and-apply-placement-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88d-carry-closedness-and-dense-cap-addresses",
+      "path": "screenshots/journey/88d-carry-closedness-and-dense-cap-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88e-count-original-closed-solid-crossings",
+      "path": "screenshots/journey/88e-count-original-closed-solid-crossings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88f-count-exact-original-cap-pick-candidates",
+      "path": "screenshots/journey/88f-count-exact-original-cap-pick-candidates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88g-copy-section-coverage-and-hatch-filtering",
+      "path": "screenshots/journey/88g-copy-section-coverage-and-hatch-filtering.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88ga-fade-hatch-detail-and-detect-section-boundaries",
+      "path": "screenshots/journey/88ga-fade-hatch-detail-and-detect-section-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88gb-shade-sections-with-shared-original-depth-and-sample-ownership",
+      "path": "screenshots/journey/88gb-shade-sections-with-shared-original-depth-and-sample-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88h-adapt-color-sections-to-forward-depth",
+      "path": "screenshots/journey/88h-adapt-color-sections-to-forward-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88i-return-original-integer-section-owners",
+      "path": "screenshots/journey/88i-return-original-integer-section-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88j-own-lazy-section-images",
+      "path": "screenshots/journey/88j-own-lazy-section-images.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88k-build-compatible-section-render-pipelines",
+      "path": "screenshots/journey/88k-build-compatible-section-render-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88l-add-signed-counts-and-grey-hatch-color",
+      "path": "screenshots/journey/88l-add-signed-counts-and-grey-hatch-color.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88m-build-bounded-integer-section-pipelines",
+      "path": "screenshots/journey/88m-build-bounded-integer-section-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88n-own-bounded-cap-pick-storage",
+      "path": "screenshots/journey/88n-own-bounded-cap-pick-storage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88o-prepare-exact-cap-crop-and-owners",
+      "path": "screenshots/journey/88o-prepare-exact-cap-crop-and-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88p-draw-cap-count-nearest-owner-and-integer-id",
+      "path": "screenshots/journey/88p-draw-cap-count-nearest-owner-and-integer-id.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88q-own-section-caches-and-placeholders",
+      "path": "screenshots/journey/88q-own-section-caches-and-placeholders.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88r-gather-crossing-original-owners",
+      "path": "screenshots/journey/88r-gather-crossing-original-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88s-prepare-active-section-images",
+      "path": "screenshots/journey/88s-prepare-active-section-images.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88t-draw-the-closed-union-and-section-depth",
+      "path": "screenshots/journey/88t-draw-the-closed-union-and-section-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88u-route-exact-original-cap-picks-and-allocation",
+      "path": "screenshots/journey/88u-route-exact-original-cap-picks-and-allocation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88v-connect-sections-after-opaque-originals",
+      "path": "screenshots/journey/88v-connect-sections-after-opaque-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88x-expose-section-data-to-finite-ink-tables",
+      "path": "screenshots/journey/88x-expose-section-data-to-finite-ink-tables.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88y-cache-finite-section-bindings",
+      "path": "screenshots/journey/88y-cache-finite-section-bindings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88z-retain-ink-exactly-on-sloping-sections",
+      "path": "screenshots/journey/88z-retain-ink-exactly-on-sloping-sections.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88aa-hide-original-ink-behind-visible-caps",
+      "path": "screenshots/journey/88aa-hide-original-ink-behind-visible-caps.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88ab-pick-sections-before-any-color-frame",
+      "path": "screenshots/journey/88ab-pick-sections-before-any-color-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88ac-observe-actual-section-owners-and-errors",
+      "path": "screenshots/journey/88ac-observe-actual-section-owners-and-errors.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "88ad-exercise-original-sections-bores-and-ink",
+      "path": "screenshots/journey/88ad-exercise-original-sections-bores-and-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Retained early finite predicate/stroke-chain AA implementations are staged; actual ribbon/vector algorithm reconciliation and current matched visual acceptance remain pending."
+  ]
+}

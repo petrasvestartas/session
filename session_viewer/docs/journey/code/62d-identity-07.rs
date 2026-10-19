@@ -1,0 +1,5 @@
+            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
+            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.prepared.source.guid()))
+            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
+    }
+

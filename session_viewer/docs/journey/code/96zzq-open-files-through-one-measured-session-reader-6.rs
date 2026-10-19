@@ -1,0 +1,1 @@
+    let document=run_result("kernel",size,clock,observe,||Session::from_proto(message).map(Rc::new).map_err(|e|e.to_string()))?;

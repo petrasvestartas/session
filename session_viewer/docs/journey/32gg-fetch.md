@@ -1,4 +1,6 @@
-# 32gg · Read a source response within its byte limit
+# 3.16.28 · Read a source response within its byte limit
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 24–47 minutes.** [Estimate](typing-load.md).
 
@@ -16,16 +18,27 @@ Enable only the browser types used by streaming and cancellation.
 <summary>Locate the existing block</summary>
 
 ```toml
-"Url", "HtmlAnchorElement"]
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement"] }
 ```
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/32gg-fetch-01.toml"
 ```
+
+</details>
 
 ### 2. `src/lib.rs`
 
@@ -41,7 +54,7 @@ mod browser;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32gg-fetch-02.rs"
@@ -63,25 +76,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the bounded-fetch checks below. Oversized or incomplete bodies must fail before source adoption. The fetch is not a viewer command yet.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Read a source response within its byte limit.](../screenshots/journey/32gg-fetch-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for read a source response within its byte limit.](../screenshots/journey/32gg-fetch.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -117,8 +126,8 @@ Remove the incremental limit in a scratch copy. Explain what a response without 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gg-fetch
-npm --prefix ../session_tests run course -- save 32gg-fetch
+npm --prefix ../session_tests run course -- check 3.16.28
+npm --prefix ../session_tests run course -- save 3.16.28
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -137,7 +146,7 @@ The browser checks existing command-only unloading and retained drawing. The new
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gg-fetch
+npm --prefix ../session_tests run course -- capture 3.16.28
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

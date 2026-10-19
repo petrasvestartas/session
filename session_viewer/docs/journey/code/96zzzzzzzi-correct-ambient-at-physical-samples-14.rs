@@ -1,0 +1,1 @@
+w(device,&self.pipes.active,&images

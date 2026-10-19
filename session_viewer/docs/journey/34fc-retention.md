@@ -1,6 +1,8 @@
-# 34fc · Preserve unsupported telemetry while pruning
+# 4.2.14 · Preserve unsupported telemetry while pruning
 
-**Typing: 26–51 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 11–22 minutes.** [Estimate](typing-load.md).
 
 Separate retaining raw evidence from adopting it. The strict reader rejects newer schemas; using that accepted list to prune storage would also delete newer telemetry.
 
@@ -21,11 +23,31 @@ pub const MAX_BYTES: usize = 1024 * 1024;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+
+pub fn retention_time(text: &str, now: f64, parse: impl Fn(&str) -> f64) -> Option<f64> {
+    if text.len() > MAX_BYTES || !now.is_finite() || now < 0.0 { return None; }
+    let value: serde_json::Value = serde_json::from_str(text).ok()?;
+    if value.get("version")?.as_u64()? == 0 { return None; }
+    let seen = value.get("lastSeen")?.as_str()?;
+    if seen.is_empty() || seen.chars().count() > 64 { return None; }
+    let time = parse(seen);
+    (time.is_finite() && time <= now).then_some(time)
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34fc-retention-01.rs"
 ```
+
+</details>
 
 ### 2. `src/report_storage.rs`
 
@@ -43,20 +65,44 @@ Retain raw supported or unsupported bounded JSON by header time; a failed read a
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        let now = js_sys::Date::now(); let mut old = Vec::new();
+        for key in keys.iter().filter(|key| *key != &self.key) {
+            let Ok(Some(text)) = storage.get_item(key) else { return false; };
+            if let Some(time) = crate::report_store::retention_time(&text, now, js_sys::Date::parse) {
+                old.push((time, key.clone()));
+            }
+        }
+        old.sort_by(|a, b| b.0.total_cmp(&a.0));
+        let keep: Vec<_> = old.iter().take(2).map(|(_, key)| key).collect();
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34fc-retention-02.rs"
 ```
 
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 3. `src/report_store_tests.rs`
 
-Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.
+Optional authoring fixture. Prove unsupported fields/versions remain dateable without admission, with unchanged input and bounded header parsing.
 
 <details>
 <summary>Locate the existing block</summary>
 
-```rust
+```text
 use crate::{diagnostic::Report, diagnostic_shape_tests::report, report_store::{decode, MAX_BYTES}};
 
 #[test]
@@ -92,11 +138,13 @@ fn stored_json_bounds_bytes_events_and_text() {
 
 </details>
 
-Replace that block with:
+After that block, append this supplied code:
 
-```rust
---8<-- "journey/code/34fc-retention-03.rs"
+```text
+--8<-- "journey/code/34fc-retention-03.rs" skip=1952
 ```
+
+</details>
 
 ## Run and check
 
@@ -104,25 +152,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the retention checks below. A retained newer-format report must keep its original JSON bytes, while the strict reader still refuses to adopt it.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Preserve unsupported telemetry while pruning.](../screenshots/journey/34fc-retention-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for preserve unsupported telemetry while pruning.](../screenshots/journey/34fc-retention.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -156,8 +200,8 @@ Replace the retention-header loop with reports() again, then inspect the saved f
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34fc-retention
-npm --prefix ../session_tests run course -- save 34fc-retention
+npm --prefix ../session_tests run course -- check 4.2.14
+npm --prefix ../session_tests run course -- save 4.2.14
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -178,7 +222,7 @@ Chrome preserves exact raw JSON from a newer-format report through actual prunin
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34fc-retention
+npm --prefix ../session_tests run course -- capture 4.2.14
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

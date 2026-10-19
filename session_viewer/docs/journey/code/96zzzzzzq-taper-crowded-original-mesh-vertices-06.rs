@@ -1,0 +1,1 @@
+if marker.diameter == 0.0 || marker.values()

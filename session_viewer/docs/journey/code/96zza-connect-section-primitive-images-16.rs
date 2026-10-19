@@ -1,0 +1,1 @@
+concat!(include_str!("physical.wgsl"),"\n",include_str!("clip.wgsl")))

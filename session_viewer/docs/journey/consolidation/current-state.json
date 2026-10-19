@@ -1,0 +1,48 @@
+{
+  "scope": "Complete the full 22-chapter consolidation, production renderer reconciliation, runtime/performance and reload/grid plan",
+  "chaptersConsolidated": 14,
+  "chaptersTotal": 22,
+  "readerFacingLessons": 691,
+  "preservedCheckpointsIncludingReference": 1361,
+  "proposedReaderLessons": 111,
+  "sourceMap": "/home/petras/code/code_cpp/wood_research/session/session_viewer/docs/journey/production-course-map.json",
+  "pilot": "/home/petras/code/code_cpp/wood_research/session/session_viewer/docs/journey/consolidation/chapter-1.json",
+  "evidenceRoot": "/tmp/viewer-consolidation-20261017",
+  "modelsUsed": {
+    "editor": "gpt-6.1-sol / medium",
+    "inventory": "gpt-6-luna / medium"
+  },
+  "runtimeChanged": false,
+  "protectedFilesUnchanged": 304,
+  "checks": {
+    "courseTools": "21 passed including source synchronization; guarded, zero swap",
+    "pilotReplay": "all 29 original endpoints replay; 179 original Type snippet includes retained",
+    "docs": "Final strict Vite build PASS: 126.710 s, 1.5 GiB peak, zero swap. Optional gzip-size report disabled after guarded failure; failed output/log retained.",
+    "ui": "Four lessons, main navigation, contents, overview, setup, daily plan, coverage tables, historical captions, implementation disclosure and legacy link inspected. Published only on localhost8788.",
+    "cli": "reference 1.3 reconstructs unchanged 03d-input in isolated /tmp output; learner workspace untouched.",
+    "mapping": "111 authored lessons exactly cover1360 learner checkpoints plus97 reference",
+    "phase3docs": "Strict build PASS124.311s,1.5GiB,zero swap; localhost published. Initial browser check used stale app module; reload fixed missing new page. No runtime checks invalidated.",
+    "phase3ui": "26 pages DOM passed, all26 screenshots individually inspected in /tmp/viewer-consolidation-phase-3/ui/inspection.json",
+    "ribbonContract": "2 CPU/WGSL tests passed; native newtrial compiles. Endpoint actual1test failed at soleoldnearcutwhiteassertion; end-on/reversal/pick/source checks precedingpassed. Log preserved, not acceptance."
+  },
+  "currentDefects": [
+    "Production ribbon integration GPU policy reconciliation; cloud density observation needs matched production proof",
+    "CAD visual acceptance pending; stopped job not restarted",
+    "Original Plane/pen/cloud completeness and runtime/performance measurements pending",
+    "Maintained/course reload camera and explicit-only base-grid behavior pending"
+  ],
+  "onlyHeavy": {
+    "category": "docs",
+    "label": "consolidation-docs-phase-4",
+    "log": "/tmp/viewer-consolidation-phase-4/docs.log"
+  },
+  "next": "Complete phase3 owned UI inspection, production-ribbon focused GPU test, phase4 strict docs build. Full display/runtime/reload plan remains active.",
+  "pilotBatchComplete": true,
+  "fullPlanComplete": false,
+  "activeAssignments": {
+    "implementation": "production near-cut policy witness and bounded adapter fixes, gpt-6.1-sol / high",
+    "inventory": "cloud/marker/control source defaults, gpt-6-luna / medium"
+  },
+  "chaptersPublished": 9,
+  "publishedReaderLessons": 1012
+}

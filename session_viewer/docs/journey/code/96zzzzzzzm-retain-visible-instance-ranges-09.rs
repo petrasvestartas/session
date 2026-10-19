@@ -1,0 +1,1 @@
+count:u32,verts:u32,ranges:&crate::ink_ranges::Runs)->bool

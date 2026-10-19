@@ -1,0 +1,5 @@
+    ("Polyline Rectangle",||Action::BeginTool(crate::tool::Shape::Rectangle)),
+    ("Polyline Polygon",||Action::BeginTool(crate::tool::Shape::Polygon {sides:6})),
+    ("Clipping Plane",||Action::Clipping(crate::clipping_input::Request::Begin(crate::clipping_geometry::Mode::Normal))),
+    ("Construction Plane",||Action::PlaneMenu),
+    ("Hide",||Action::Hide),

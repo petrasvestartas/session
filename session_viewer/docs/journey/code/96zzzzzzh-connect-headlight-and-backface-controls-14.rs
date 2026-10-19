@@ -1,0 +1,1 @@
+renderer.set_opacity(editor.opacity);renderer.set_lighting(editor.lit,editor.backfaces);renderer.set_ambient(editor.arctic);

@@ -15,7 +15,7 @@ module.exports = async (original, helpers) => {
             const paths = () => value('data-path-gpu'), markers = () => value('data-point-gpu');
             const quiet = async () => { await page.keyboard.press('Escape'); await page.waitForTimeout(120); };
             const pixels = async () => {
-                await quiet(); const url = await page.locator('canvas').evaluate(canvas => canvas.toDataURL());
+                await quiet(); const url = await require('./canvas-image.cjs')(page.locator('canvas'));
                 return PNG.sync.read(Buffer.from(url.split(',')[1], 'base64'));
             };
             const project = async (point, image) => {
@@ -55,7 +55,7 @@ module.exports = async (original, helpers) => {
             await helpers.command(page, 'Controls On'); await helpers.command(page, 'Undo'); await quiet();
             assert.equal(await helpers.drawing(page), empty); assert.deepEqual((await paths()).slice(0, 2), [0, 0]);
             await helpers.command(page, 'Redo'); await shape(true); assert.equal(await helpers.drawing(page), controlled);
-            await helpers.command(page, 'Save'); assert.match((await value('data-command-ui')).history.at(-1), /cannot save line objects yet/);
+            await require('./save-ink.cjs')(page, helpers, /cannot save line objects yet/);
             const beforePaths = await paths(), beforeMarkers = await markers(); await helpers.command(page, 'Close');
             assert.deepEqual(await value('data-curve-cpu'), [0, 0, 0, 0]); assert.equal(await page.locator('canvas').getAttribute('data-control-count'), '0');
             assert.deepEqual(await paths(), [0, 0, beforePaths[2], beforePaths[3]]); assert.deepEqual(await markers(), [0, 0, beforeMarkers[2], beforeMarkers[3]]);

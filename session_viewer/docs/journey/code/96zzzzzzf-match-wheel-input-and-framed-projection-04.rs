@@ -1,0 +1,1 @@
+    pub fn zoom(&mut self, factor: f64) {

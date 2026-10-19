@@ -1,0 +1,1 @@
+    let message=run_result("decode",size,clock,observe,||proto::Session::decode(bytes).map_err(|_|"Invalid session protobuf".to_owned()))?;

@@ -1,0 +1,1 @@
+Ok(Self { vertices, normals, alphas, indices, spacing:0.,parts: Default::default() })

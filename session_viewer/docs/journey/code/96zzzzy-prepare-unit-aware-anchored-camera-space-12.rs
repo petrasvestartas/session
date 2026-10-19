@@ -1,0 +1,1 @@
+                let depth_range = (distance + 2.0 * reach).max(1.0e-6*scale);

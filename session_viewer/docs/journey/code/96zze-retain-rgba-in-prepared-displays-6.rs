@@ -1,0 +1,1 @@
+pub fn pack(vertex:[f32;6],normal:[f32;3],alpha:f32)->[u32;5]

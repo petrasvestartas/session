@@ -1,0 +1,1 @@
+model:model(row),count,triangles,shared:current(row).is_some(),group:None

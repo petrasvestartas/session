@@ -1,0 +1,1 @@
+        self.set_source_ink(scene);

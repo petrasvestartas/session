@@ -1,0 +1,1 @@
+pub fn instance_allocations(&self)->[u64;3]

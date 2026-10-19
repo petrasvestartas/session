@@ -1,0 +1,30 @@
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Session Viewer</title>
+  <link rel="icon" href="data:,">
+  <link data-trunk rel="rust" data-wasm-opt="0">
+  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
+  <link data-trunk rel="copy-dir" href="assets/pb" data-target-path="assets/pb">
+  <link data-trunk rel="copy-file" href="view_local.yaml">
+  <link data-trunk rel="copy-file" href="assets/diagnostics.js">
+  <script src="diagnostics.js" defer></script>
+  <style>
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; }
+    canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+    canvas:focus, canvas:focus-visible { outline: none; }
+    #viewer-status:empty { display: none; }
+    #viewer-error:not([hidden]) { position: fixed; inset: 0; padding: 25vh 15vw; background: #111e; color: white; font: 16px/1.5 system-ui; z-index: 20; }
+    #viewer-status { position: fixed; bottom: 12px; left: 12px; color: white; background: #222b; font: 14px system-ui; padding: 4px 8px; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div id="viewer-error" role="alert" hidden><p id="viewer-error-message"></p><p>Reload the page to retry. The Report command downloads diagnostics while the command dock is available.</p></div>
+  <canvas id="canvas" tabindex="0" role="application" aria-label="3D viewer. Click selects; right drag orbits. Type commands, Enter executes, Escape cancels."></canvas>
+  <input id="command-agent" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" tabindex="-1" aria-hidden="true" style="position: fixed; bottom: 0; left: 0; width: 1px; height: 1px; opacity: 0; border: 0; padding: 0; font-size: 16px; pointer-events: none;">
+  <div id="viewer-status" role="status" aria-live="polite"></div>
+  <script>
+    document.getElementById("canvas").addEventListener("contextmenu", function (event) { event.preventDefault(); });
+  </script>
+</body>
+</html>

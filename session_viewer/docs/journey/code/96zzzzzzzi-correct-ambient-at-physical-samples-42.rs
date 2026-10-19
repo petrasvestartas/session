@@ -1,0 +1,1 @@
+rs=std::array::from_fn(|i|{let buffer=device.c

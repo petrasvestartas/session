@@ -1,0 +1,6 @@
+    ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
+    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
+    ("Text",||Action::TextBegin(String::new())),
+    ("Arrow",||Action::BeginTool(crate::tool::Shape::Arrow)),
+    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
+    ("BoundingBox",||Action::BoundingBox),

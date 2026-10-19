@@ -1,0 +1,1 @@
+ pipeline, recipe:(format,depth,physical),samples:1, 

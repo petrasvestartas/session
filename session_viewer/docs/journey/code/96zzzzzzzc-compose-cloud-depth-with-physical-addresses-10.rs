@@ -1,0 +1,1 @@
+4<f32>,@location(1) primitive:vec2u,@builtin(

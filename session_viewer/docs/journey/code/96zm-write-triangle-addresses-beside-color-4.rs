@@ -1,0 +1,1 @@
+write_mask:wgpu::ColorWrites::ALL}),Some(crate::primitive_image::target(primitive_write))],

@@ -1,0 +1,5 @@
+
+[dependencies]
+current_viewer = { package = "session_viewer", path = "../.." }
+wood = { path = "../../../../wood/rust" }
+wasm-bindgen = "=0.2.128"

@@ -1,4 +1,6 @@
-# 32gb · Adopt restored source owners as one residency change
+# 3.16.22 · Adopt restored source owners as one residency change
+
+**Chapter 3 · Documents, editing and ownership · Section 3.16 · Source ownership and restoration** · [Contents](contents.md)
 
 **Typing: 16–32 minutes.** [Estimate](typing-load.md).
 
@@ -21,7 +23,7 @@ Restore editable owners without replacing display, metadata, identity or placeme
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32gb-adopt-01.rs"
@@ -40,7 +42,7 @@ Check current release ownership and all source rows before any candidate is adop
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/32gb-adopt-02.rs"
@@ -52,25 +54,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the adoption checks below. A bad second candidate must restore neither source. Valid candidates restore editable owners without changing display, placement or history.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Adopt restored source owners as one residency change.](../screenshots/journey/32gb-adopt-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for adopt restored source owners as one residency change.](../screenshots/journey/32gb-adopt.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -108,8 +106,8 @@ Move the adoption loop ahead of candidate validation in a scratch copy. Explain 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 32gb-adopt
-npm --prefix ../session_tests run course -- save 32gb-adopt
+npm --prefix ../session_tests run course -- check 3.16.22
+npm --prefix ../session_tests run course -- save 3.16.22
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -128,7 +126,7 @@ The browser checks the existing command-only unload behavior and retained drawin
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 32gb-adopt
+npm --prefix ../session_tests run course -- capture 3.16.22
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

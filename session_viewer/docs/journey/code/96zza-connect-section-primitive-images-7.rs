@@ -1,0 +1,1 @@
+.draw(&mut encoder,view,&self.primitive.view,&self.depth,&self.view_group,&clip_group

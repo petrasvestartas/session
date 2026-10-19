@@ -1,0 +1,2 @@
+    pub(crate) fn arena(&self)->Option<&Rc<RefCell<crate::mesh_arena::Arena>>> {match &self.storage {Storage::Shared(arena)=>Some(arena),Storage::Owned{..}=>None}}
+    pub fn allocated_bytes(&self)->u64{

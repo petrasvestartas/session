@@ -1,4 +1,6 @@
     pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
+    pub(crate) options: Vec<(String, String)>,      // the running command's buttons: label, line it runs
+    pub(crate) options_rect: Option<egui::Rect>,    // where those buttons are, for taps
 }
 
 /// One clickable control and where it was drawn, for browser tests.

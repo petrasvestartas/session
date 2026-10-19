@@ -1,6 +1,8 @@
-# 29a · Write a snapshot from the editable sources
+# 3.13.2 · Write a snapshot from the editable sources
 
-**Typing: 30–60 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.13 · Stable identity and saving** · [Contents](contents.md)
+
+**Typing: 13–26 minutes.** [Estimate](typing-load.md).
 
 Build Save bytes from live scene objects, including generated and edited objects and excluding deleted rows.
 
@@ -21,21 +23,28 @@ fn validate(message: &proto::Session) -> Result<(), &'static str> {
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/29a-snapshot-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/snapshot_tests.rs`
 
-Check live row membership, source topology/attributes, separate placement and untouched history.
+Optional authoring fixture. Check live row membership, source topology/attributes, separate placement and untouched history.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/29a-snapshot-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -51,10 +60,10 @@ mod file_identity_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/29a-snapshot-03.rs"
+--8<-- "journey/code/29a-snapshot-03.rs" skip=38
 ```
 
 ## Run and check
@@ -63,25 +72,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the snapshot checks below. Serialization must read original source coordinates and separate placements without changing the live editor. Browser Save is connected in lesson 29d.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Write a snapshot from the editable sources.](../screenshots/journey/29a-snapshot-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for write a snapshot from the editable sources.](../screenshots/journey/29a-snapshot.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -117,8 +122,8 @@ Change the box placement in the check, then predict whether mesh vertices or the
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 29a-snapshot
-npm --prefix ../session_tests run course -- save 29a-snapshot
+npm --prefix ../session_tests run course -- check 3.13.2
+npm --prefix ../session_tests run course -- save 3.13.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -137,7 +142,7 @@ The production serializer combines editable source objects and placements rather
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 29a-snapshot
+npm --prefix ../session_tests run course -- capture 3.13.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

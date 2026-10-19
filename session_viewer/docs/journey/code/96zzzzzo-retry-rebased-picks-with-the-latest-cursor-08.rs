@@ -1,0 +1,1 @@
+        self.cancel_pick(); self.faces.clear();

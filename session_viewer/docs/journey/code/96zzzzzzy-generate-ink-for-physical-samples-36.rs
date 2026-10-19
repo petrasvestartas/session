@@ -1,0 +1,1 @@
+varying:bool,samples:u32,view:&wgpu::BindGroupLayout

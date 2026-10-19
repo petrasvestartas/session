@@ -1,5 +1,7 @@
 # Learn through our command line
 
+[October 9 current-viewer update](current-viewer.md): Element Attributes and Element Interactions are separate; parent lamps preserve child state; panel selection fits. Close finishes a curve, and comparison grid settings use `?nogrid=1`.
+
 **Every interactive checkpoint uses the viewer’s own Rust/egui command dock.** Type a command in the white field and press Enter. The lessons and browser checks use that route for features; picking and camera gestures still happen on the drawing.
 
 The white canvas fills the browser window from lesson 01. The dock sits inside that canvas; lesson titles and explanations stay in these documentation pages.
@@ -15,7 +17,7 @@ Start with these lessons, in order:
 | [03d · Type into the dock](03d-input.md) | How browser keys become text and submitted lines |
 | [04 · Change the picture](04-input.md) | How a submitted command changes application state |
 
-Each page gives its typing estimate and complete source changes. The opening dock stages draw and organise the interface; keyboard input becomes usable in 03d. Each step stays within one hour of conservative typing.
+Each page gives its typing estimate and complete source changes. The opening dock stages draw and organise the interface; keyboard input is added through 03ca–03d. Each step stays within one hour of conservative typing.
 
 ## Follow one command
 
@@ -61,7 +63,7 @@ These local links require the course bundle server:
 - [Change the background](http://127.0.0.1:8781/04-input/dist/).
 - [Use commands in the projection checkpoint](http://127.0.0.1:8781/25-projection/dist/).
 
-The lesson pages include their own Chrome captures. [Release evidence](release.md) describes the exact checks and remaining limitations. The full viewer course continues according to the [complete lesson checklist](roadmap.md); these opening checkpoints do not yet contain all production features.
+The lesson pages distinguish actual Chrome captures from native render images. [Release evidence](release.md) describes the exact checks and remaining limitations. The full viewer course continues according to the [complete lesson checklist](roadmap.md); these opening checkpoints do not yet contain all production features.
 
 ## Reproduce the checks
 
@@ -92,4 +94,4 @@ For a production fix, name the command or gesture, the scene file, browser, obse
 
 Maintainer `verify` and `capture` reconstruct the reference under `target`. Their passing result checks the published lesson; validate your handwritten project separately before claiming its bug is fixed.
 
-Canvas Delete runs the same undoable Delete action as the command. `BoundingBox` adds one world axis aligned wire box around the current selection; Undo removes it. `Length BoundingBox` reports its X, Y and Z extents in scene units without editing the document. Their cumulative implementation belongs with the later selection and measurement lessons.
+Canvas Delete runs the same undoable Delete action as the command. `BoundingBox` adds one world axis aligned wire box around the current selection; Undo removes it. `Length BoundingBox` reports its X, Y and Z extents in scene units without editing the document. Follow the [original measurement and box exercises](84m-exercise-original-boxes-and-temporary-distance-annotations.md), the [current command integration](85ay-exercise-current-original-commands-together.md), and the [maintained runtime endpoint](97-finish-with-the-maintained-browser-runtime.md).

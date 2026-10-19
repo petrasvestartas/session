@@ -1,0 +1,588 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 10,
+  "title": "Text and labels",
+  "first": "60-fonts",
+  "end_before": "63-radius",
+  "lessons": [
+    {
+      "id": "60-fonts",
+      "title": "Explicit fonts and source label placement",
+      "page": "journey/consolidation/60-fonts.md",
+      "steps": [
+        "60-fonts",
+        "60a-labels",
+        "60b-coverage"
+      ],
+      "checkpoint": "60b-coverage"
+    },
+    {
+      "id": "60ba-validation",
+      "title": "Validated shaping and revision-based reuse",
+      "page": "journey/consolidation/60ba-validation.md",
+      "steps": [
+        "60ba-validation",
+        "60bb-shaping",
+        "60c-document",
+        "60d-reuse",
+        "60e-font-reload",
+        "60f-diagnostics",
+        "60g-text-shaping"
+      ],
+      "checkpoint": "60g-text-shaping"
+    },
+    {
+      "id": "61-atlas",
+      "title": "A shared glyph atlas and lazy text drawing",
+      "page": "journey/consolidation/61-atlas.md",
+      "steps": [
+        "61-atlas",
+        "61a-coverage",
+        "61b-specimen",
+        "61c-renderer",
+        "61d-glyphs"
+      ],
+      "checkpoint": "61d-glyphs"
+    },
+    {
+      "id": "62-source",
+      "title": "Original world labels, plates and integer picks",
+      "page": "journey/consolidation/62-source.md",
+      "steps": [
+        "62-source",
+        "62a-placements",
+        "62b-bounds",
+        "62c-rows",
+        "62d-identity",
+        "62e-rectangles",
+        "62f-gpu-support",
+        "62g-plane-shader",
+        "62h-plate-shader",
+        "62i-coverage",
+        "62ia-project-an-original-label-into-framebuffer-coordinates",
+        "62ib-give-nameplate-vertices-one-gpu-owner",
+        "62ic-build-nameplate-color-and-object-id-pipelines",
+        "62id-own-and-release-nameplate-draw-resources",
+        "62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system",
+        "62if-place-the-plate-around-the-shaped-label",
+        "62ig-give-world-text-a-bounded-coverage-cache",
+        "62ih-choose-bounded-glyph-raster-resolution",
+        "62ii-rasterize-the-shaped-run-into-owned-coverage-bytes",
+        "62ij-upload-and-bind-one-world-text-coverage-texture",
+        "62ik-build-the-world-plane-text-quad",
+        "62il-build-world-text-color-and-id-pipelines",
+        "62im-own-the-world-text-buffer-and-pipeline-lifetime",
+        "62in-rebuild-only-invalid-world-text-cache-entries",
+        "62io-prepare-and-draw-the-retained-world-text-planes",
+        "62ip-collect-anchored-and-overlay-glyph-work-separately",
+        "62iq-give-the-text-lane-its-retained-resource-owners",
+        "62ir-construct-and-rebuild-the-text-lane-once",
+        "62is-reset-the-text-lane-and-record-scoped-preparation-costs",
+        "62it-prepare-glyphs-only-when-the-witness-changes",
+        "62iu-draw-the-prepared-text-passes-in-order",
+        "62j-frame-pass",
+        "62k-lane-labels",
+        "62l-picking",
+        "62m-whole-fonts",
+        "62n-diagnostics",
+        "62o-labels"
+      ],
+      "checkpoint": "62o-labels"
+    }
+  ],
+  "old_step_to_lesson": {
+    "60-fonts": {
+      "lesson": "60-fonts",
+      "anchor": "checkpoint-60-fonts"
+    },
+    "60a-labels": {
+      "lesson": "60-fonts",
+      "anchor": "checkpoint-60a-labels"
+    },
+    "60b-coverage": {
+      "lesson": "60-fonts",
+      "anchor": "checkpoint-60b-coverage"
+    },
+    "60ba-validation": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60ba-validation"
+    },
+    "60bb-shaping": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60bb-shaping"
+    },
+    "60c-document": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60c-document"
+    },
+    "60d-reuse": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60d-reuse"
+    },
+    "60e-font-reload": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60e-font-reload"
+    },
+    "60f-diagnostics": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60f-diagnostics"
+    },
+    "60g-text-shaping": {
+      "lesson": "60ba-validation",
+      "anchor": "checkpoint-60g-text-shaping"
+    },
+    "61-atlas": {
+      "lesson": "61-atlas",
+      "anchor": "checkpoint-61-atlas"
+    },
+    "61a-coverage": {
+      "lesson": "61-atlas",
+      "anchor": "checkpoint-61a-coverage"
+    },
+    "61b-specimen": {
+      "lesson": "61-atlas",
+      "anchor": "checkpoint-61b-specimen"
+    },
+    "61c-renderer": {
+      "lesson": "61-atlas",
+      "anchor": "checkpoint-61c-renderer"
+    },
+    "61d-glyphs": {
+      "lesson": "61-atlas",
+      "anchor": "checkpoint-61d-glyphs"
+    },
+    "62-source": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62-source"
+    },
+    "62a-placements": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62a-placements"
+    },
+    "62b-bounds": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62b-bounds"
+    },
+    "62c-rows": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62c-rows"
+    },
+    "62d-identity": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62d-identity"
+    },
+    "62e-rectangles": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62e-rectangles"
+    },
+    "62f-gpu-support": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62f-gpu-support"
+    },
+    "62g-plane-shader": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62g-plane-shader"
+    },
+    "62h-plate-shader": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62h-plate-shader"
+    },
+    "62i-coverage": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62i-coverage"
+    },
+    "62ia-project-an-original-label-into-framebuffer-coordinates": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ia-project-an-original-label-into-framebuffer-coordinates"
+    },
+    "62ib-give-nameplate-vertices-one-gpu-owner": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ib-give-nameplate-vertices-one-gpu-owner"
+    },
+    "62ic-build-nameplate-color-and-object-id-pipelines": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ic-build-nameplate-color-and-object-id-pipelines"
+    },
+    "62id-own-and-release-nameplate-draw-resources": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62id-own-and-release-nameplate-draw-resources"
+    },
+    "62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system"
+    },
+    "62if-place-the-plate-around-the-shaped-label": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62if-place-the-plate-around-the-shaped-label"
+    },
+    "62ig-give-world-text-a-bounded-coverage-cache": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ig-give-world-text-a-bounded-coverage-cache"
+    },
+    "62ih-choose-bounded-glyph-raster-resolution": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ih-choose-bounded-glyph-raster-resolution"
+    },
+    "62ii-rasterize-the-shaped-run-into-owned-coverage-bytes": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ii-rasterize-the-shaped-run-into-owned-coverage-bytes"
+    },
+    "62ij-upload-and-bind-one-world-text-coverage-texture": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ij-upload-and-bind-one-world-text-coverage-texture"
+    },
+    "62ik-build-the-world-plane-text-quad": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ik-build-the-world-plane-text-quad"
+    },
+    "62il-build-world-text-color-and-id-pipelines": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62il-build-world-text-color-and-id-pipelines"
+    },
+    "62im-own-the-world-text-buffer-and-pipeline-lifetime": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62im-own-the-world-text-buffer-and-pipeline-lifetime"
+    },
+    "62in-rebuild-only-invalid-world-text-cache-entries": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62in-rebuild-only-invalid-world-text-cache-entries"
+    },
+    "62io-prepare-and-draw-the-retained-world-text-planes": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62io-prepare-and-draw-the-retained-world-text-planes"
+    },
+    "62ip-collect-anchored-and-overlay-glyph-work-separately": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ip-collect-anchored-and-overlay-glyph-work-separately"
+    },
+    "62iq-give-the-text-lane-its-retained-resource-owners": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62iq-give-the-text-lane-its-retained-resource-owners"
+    },
+    "62ir-construct-and-rebuild-the-text-lane-once": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62ir-construct-and-rebuild-the-text-lane-once"
+    },
+    "62is-reset-the-text-lane-and-record-scoped-preparation-costs": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62is-reset-the-text-lane-and-record-scoped-preparation-costs"
+    },
+    "62it-prepare-glyphs-only-when-the-witness-changes": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62it-prepare-glyphs-only-when-the-witness-changes"
+    },
+    "62iu-draw-the-prepared-text-passes-in-order": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62iu-draw-the-prepared-text-passes-in-order"
+    },
+    "62j-frame-pass": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62j-frame-pass"
+    },
+    "62k-lane-labels": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62k-lane-labels"
+    },
+    "62l-picking": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62l-picking"
+    },
+    "62m-whole-fonts": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62m-whole-fonts"
+    },
+    "62n-diagnostics": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62n-diagnostics"
+    },
+    "62o-labels": {
+      "lesson": "62-source",
+      "anchor": "checkpoint-62o-labels"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/text.rs",
+      "session_viewer/src/engine/gpu/text.rs",
+      "session_viewer/src/engine/gpu/text_plane.rs",
+      "session_viewer/src/engine/gpu/text_plate.rs",
+      "session_viewer/src/app/scene_text.rs",
+      "session_viewer/src/app/fonts.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "60-fonts",
+      "path": "screenshots/journey/60-fonts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60a-labels",
+      "path": "screenshots/journey/60a-labels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60b-coverage",
+      "path": "screenshots/journey/60b-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60ba-validation",
+      "path": "screenshots/journey/60ba-validation.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60bb-shaping",
+      "path": "screenshots/journey/60bb-shaping.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60c-document",
+      "path": "screenshots/journey/60c-document.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60d-reuse",
+      "path": "screenshots/journey/60d-reuse.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60e-font-reload",
+      "path": "screenshots/journey/60e-font-reload.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60f-diagnostics",
+      "path": "screenshots/journey/60f-diagnostics.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "60g-text-shaping",
+      "path": "screenshots/journey/60g-text-shaping.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "61-atlas",
+      "path": "screenshots/journey/61-atlas.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "61a-coverage",
+      "path": "screenshots/journey/61a-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "61b-specimen",
+      "path": "screenshots/journey/61b-specimen.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "61c-renderer",
+      "path": "screenshots/journey/61c-renderer.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "61d-glyphs",
+      "path": "screenshots/journey/61d-glyphs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62-source",
+      "path": "screenshots/journey/62-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62a-placements",
+      "path": "screenshots/journey/62a-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62b-bounds",
+      "path": "screenshots/journey/62b-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62c-rows",
+      "path": "screenshots/journey/62c-rows.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62d-identity",
+      "path": "screenshots/journey/62d-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62e-rectangles",
+      "path": "screenshots/journey/62e-rectangles.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62f-gpu-support",
+      "path": "screenshots/journey/62f-gpu-support.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62g-plane-shader",
+      "path": "screenshots/journey/62g-plane-shader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62h-plate-shader",
+      "path": "screenshots/journey/62h-plate-shader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62i-coverage",
+      "path": "screenshots/journey/62i-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ia-project-an-original-label-into-framebuffer-coordinates",
+      "path": "screenshots/journey/62ia-project-an-original-label-into-framebuffer-coordinates.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ib-give-nameplate-vertices-one-gpu-owner",
+      "path": "screenshots/journey/62ib-give-nameplate-vertices-one-gpu-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ic-build-nameplate-color-and-object-id-pipelines",
+      "path": "screenshots/journey/62ic-build-nameplate-color-and-object-id-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62id-own-and-release-nameplate-draw-resources",
+      "path": "screenshots/journey/62id-own-and-release-nameplate-draw-resources.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system",
+      "path": "screenshots/journey/62ie-upload-nameplate-rectangles-in-one-physical-coordinate-system.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62if-place-the-plate-around-the-shaped-label",
+      "path": "screenshots/journey/62if-place-the-plate-around-the-shaped-label.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ig-give-world-text-a-bounded-coverage-cache",
+      "path": "screenshots/journey/62ig-give-world-text-a-bounded-coverage-cache.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ih-choose-bounded-glyph-raster-resolution",
+      "path": "screenshots/journey/62ih-choose-bounded-glyph-raster-resolution.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ii-rasterize-the-shaped-run-into-owned-coverage-bytes",
+      "path": "screenshots/journey/62ii-rasterize-the-shaped-run-into-owned-coverage-bytes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ij-upload-and-bind-one-world-text-coverage-texture",
+      "path": "screenshots/journey/62ij-upload-and-bind-one-world-text-coverage-texture.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ik-build-the-world-plane-text-quad",
+      "path": "screenshots/journey/62ik-build-the-world-plane-text-quad.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62il-build-world-text-color-and-id-pipelines",
+      "path": "screenshots/journey/62il-build-world-text-color-and-id-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62im-own-the-world-text-buffer-and-pipeline-lifetime",
+      "path": "screenshots/journey/62im-own-the-world-text-buffer-and-pipeline-lifetime.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62in-rebuild-only-invalid-world-text-cache-entries",
+      "path": "screenshots/journey/62in-rebuild-only-invalid-world-text-cache-entries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62io-prepare-and-draw-the-retained-world-text-planes",
+      "path": "screenshots/journey/62io-prepare-and-draw-the-retained-world-text-planes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ip-collect-anchored-and-overlay-glyph-work-separately",
+      "path": "screenshots/journey/62ip-collect-anchored-and-overlay-glyph-work-separately.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62iq-give-the-text-lane-its-retained-resource-owners",
+      "path": "screenshots/journey/62iq-give-the-text-lane-its-retained-resource-owners.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62ir-construct-and-rebuild-the-text-lane-once",
+      "path": "screenshots/journey/62ir-construct-and-rebuild-the-text-lane-once.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62is-reset-the-text-lane-and-record-scoped-preparation-costs",
+      "path": "screenshots/journey/62is-reset-the-text-lane-and-record-scoped-preparation-costs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62it-prepare-glyphs-only-when-the-witness-changes",
+      "path": "screenshots/journey/62it-prepare-glyphs-only-when-the-witness-changes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62iu-draw-the-prepared-text-passes-in-order",
+      "path": "screenshots/journey/62iu-draw-the-prepared-text-passes-in-order.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62j-frame-pass",
+      "path": "screenshots/journey/62j-frame-pass.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62k-lane-labels",
+      "path": "screenshots/journey/62k-lane-labels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62l-picking",
+      "path": "screenshots/journey/62l-picking.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62m-whole-fonts",
+      "path": "screenshots/journey/62m-whole-fonts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62n-diagnostics",
+      "path": "screenshots/journey/62n-diagnostics.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "62o-labels",
+      "path": "screenshots/journey/62o-labels.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

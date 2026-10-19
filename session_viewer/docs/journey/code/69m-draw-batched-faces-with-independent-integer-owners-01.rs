@@ -1,0 +1,6 @@
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    instances:crate::instance_gpu::Lane,
+    instance_rows:std::collections::HashSet<ObjectId>,
+    pipeline: wgpu::RenderPipeline,
+    highlight_pipeline: wgpu::RenderPipeline,

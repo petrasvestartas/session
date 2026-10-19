@@ -1,0 +1,1 @@
+assert!((120..=135).contains(&face[1])&&(120..=135).contains(&face[2]),"one blended face, without a second back face: {face:?}");assert_eq!(pick(&mut r,[0.,0.]).unwrap()[0],owner.value());

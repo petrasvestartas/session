@@ -1,0 +1,4 @@
+log = "=0.4.34"
+
+[[example]]
+name = "reference"

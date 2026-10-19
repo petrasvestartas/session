@@ -1,4 +1,6 @@
-# 37e · Identify controls on the original curve owner
+# 5.3.7 · Identify controls on the original curve owner
+
+**Chapter 5 · Lines, points and curves · Section 5.3 · Original points and controls** · [Contents](contents.md)
 
 **Typing: 19–37 minutes.** [Estimate](typing-load.md).
 
@@ -31,21 +33,41 @@ pub mod marker;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+pub mod controls;
+#[cfg(test)]
+mod control_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/37e-controls-02.rs"
 ```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/control_tests.rs`
 
 Copy original rational precision, owner release, dimension and malicious-layout checks.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/37e-controls-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +75,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
+Inspect original-owner and rational control tests. Control references share their curve and resolve an exact indexed coordinate.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Identify controls on the original curve owner.](../screenshots/journey/37e-controls-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for identify controls on the original curve owner.](../screenshots/journey/37d-render.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [5.3.5 · Draw original point rows and count their resources](37d-render.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -103,8 +123,8 @@ Use rational controls whose weight is two. Display positions divide by the weigh
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 37e-controls
-npm --prefix ../session_tests run course -- save 37e-controls
+npm --prefix ../session_tests run course -- check 5.3.7
+npm --prefix ../session_tests run course -- save 5.3.7
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -125,7 +145,7 @@ Chrome retains the original point example while native checks establish indexed 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 37e-controls
+npm --prefix ../session_tests run course -- capture 5.3.7
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

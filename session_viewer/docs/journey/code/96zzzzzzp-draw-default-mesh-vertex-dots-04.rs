@@ -1,0 +1,2 @@
+        if value!=0. {for(side,key)in [topology.edges[i].0,topology.edges[i].1].into_iter().enumerate(){let dot=&mut vertices[slots.slot(key)];if *dot==u32::MAX {*dot=(i*2+side)as u32;}}}
+        let pair=topology.edge_faces[i]

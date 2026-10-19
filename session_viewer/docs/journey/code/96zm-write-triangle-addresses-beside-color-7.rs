@@ -1,0 +1,1 @@
+targets:&[Some(format.into()),Some(crate::primitive_image::target(true))]

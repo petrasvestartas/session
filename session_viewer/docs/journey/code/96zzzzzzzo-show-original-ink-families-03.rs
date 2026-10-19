@@ -1,0 +1,1 @@
+let mut renderer = Self {ink_visibility:Default::default(),surface_options:

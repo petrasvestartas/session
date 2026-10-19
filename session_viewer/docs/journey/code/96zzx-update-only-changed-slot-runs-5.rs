@@ -1,0 +1,1 @@
+self.written_bytes+=batch.slots.written_bytes;

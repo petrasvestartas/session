@@ -1,8 +1,10 @@
 # What the finished course must preserve
 
+Historical destination contracts remain preserved. Use the [dated current comparison](current-viewer-2026-10-11.json) and [current behavior guide](current-viewer.md) for the latest source; final handwritten parity and browser acceptance are distinct.
+
 The destination is the current working viewer, including its local changes. This inventory is an acceptance contract, not a statement that the short course is finished. A source fingerprint detects changes; it does not prove visual or behavioral equivalence.
 
-Reference: `viewer-2026-09-28-local`. 271 source files and 77 command implementation files are inventoried. Every one has a destination; the complete source remains in the existing reference course.
+Reference: `viewer-2026-10-08-local`. The [current inventory](inventory.md) accounts for 304 viewer source/build files plus 109 kernel and 13 Wood Rust files. The [upstream audit](latest-commit-audit.md) confirms the latest remote viewer commit and complete linked Wood Rust subtree. The compiled registry supplies 85 command names, 115 static options and 15 aliases. Subject 97 links the maintained browser runtime; real-browser acceptance remains pending. The September 28 snapshot is retained under `journey/release/`.
 
 The September 29 [browser-recovery fixes](../debugging.md) must also be taught and verified before this contract is complete. Their production code is ahead of the frozen reference. Acceptance includes a downloadable diagnostic after device loss, recovery of saved context after an interrupted run, no GPU submissions after loss, and feature ownership that follows the Wood interaction's first argument.
 
@@ -14,9 +16,10 @@ The white canvas fills the browser window from the first lesson. Teaching text s
 
 The completed course must also teach these current requirements:
 
-- Typing starts a command without first clicking the field. Feature shortcuts give way to named commands such as `View Top`, `View Side`, `View Show Edges` and `View Outline`.
+- Typing starts a command without first clicking the field. Named commands include `View Top`, `View Side`, `View Show Edges` and `View Outline`.
+- Finished drawings emit explicit world coordinates, such as `line w0,0,0 w1,1,1`, so a fixed construction plane is applied once.
 - Mouse and phone camera gestures remain. A right click repeats the last command; a right drag moves the camera.
-- New scenes start with element features off and face opacity at `0.95`. `Element Features On` reveals the features; `Opacity` changes the shared face setting.
+- New scenes start with element features off and desktop face opacity at `0.95` (phone `1`). `Element Features On` reveals the features; `Opacity` changes the shared face setting.
 - Loading and saving preserve each object’s `is_visible` and `is_locked`. Hidden objects stay hidden, and locked objects cannot be edited through selection.
 - Object colours follow their tree node or nearest coloured parent unless explicitly overridden. Curved edges retain their own curve geometry.
 - Congruent BReps within one document reuse a prepared display walk after rigid placement. Replay preserves row/edge identities, normals and facing data; mirrors and different shapes remain distinct. Recordings end with document preparation, and a translated full circle keeps the same display chord count.

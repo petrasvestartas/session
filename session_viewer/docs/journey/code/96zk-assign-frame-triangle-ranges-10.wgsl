@@ -1,0 +1,1 @@
+out.selected=object.selection.x&1u;

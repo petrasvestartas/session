@@ -1,0 +1,1 @@
+{pass.set_pipeline(&self.surfaces.active.0

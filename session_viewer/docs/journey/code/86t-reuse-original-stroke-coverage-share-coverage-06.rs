@@ -1,0 +1,1 @@
+        Self::layout(device, format, &crate::stroke::shader(), 44, 6,

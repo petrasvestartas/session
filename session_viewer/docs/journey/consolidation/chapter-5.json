@@ -1,0 +1,516 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 5,
+  "title": "Lines, points and curves",
+  "first": "35-stroke",
+  "end_before": "42-window",
+  "lessons": [
+    {
+      "id": "35-stroke",
+      "title": "Original lines and a screen-space stroke lane",
+      "page": "journey/consolidation/35-stroke.md",
+      "steps": [
+        "35-stroke",
+        "35a-document",
+        "35b-extrude",
+        "35c-lane",
+        "35ca-sync",
+        "35cb-render",
+        "35d-input"
+      ],
+      "checkpoint": "35d-input"
+    },
+    {
+      "id": "36-chain",
+      "title": "Joined paths and headed ends",
+      "page": "journey/consolidation/36-chain.md",
+      "steps": [
+        "36-chain",
+        "36a-links",
+        "36b-join",
+        "36ba-body",
+        "36bb-heads",
+        "36c-lane",
+        "36d-document",
+        "36db-placement",
+        "36da-render",
+        "36e-input"
+      ],
+      "checkpoint": "36e-input"
+    },
+    {
+      "id": "37-point",
+      "title": "Original point markers and curve control identities",
+      "page": "journey/consolidation/37-point.md",
+      "steps": [
+        "37-point",
+        "37a-disc",
+        "37b-lane",
+        "37c-document",
+        "37d-render",
+        "37da-input",
+        "37e-controls"
+      ],
+      "checkpoint": "37e-controls"
+    },
+    {
+      "id": "38-layout",
+      "title": "NURBS source ownership and derived samples",
+      "page": "journey/consolidation/38-layout.md",
+      "steps": [
+        "38-layout",
+        "38a-samples",
+        "38b-source",
+        "38c-controls",
+        "38d-input"
+      ],
+      "checkpoint": "38d-input"
+    },
+    {
+      "id": "39-visible",
+      "title": "One visibility policy and shared surface depth",
+      "page": "journey/consolidation/39-visible.md",
+      "steps": [
+        "39-visible",
+        "39a-depth"
+      ],
+      "checkpoint": "39a-depth"
+    },
+    {
+      "id": "40-colour",
+      "title": "Original mesh colours and large index buffers",
+      "page": "journey/consolidation/40-colour.md",
+      "steps": [
+        "40-colour",
+        "40a-input",
+        "40b-indices"
+      ],
+      "checkpoint": "40b-indices"
+    },
+    {
+      "id": "41-normals",
+      "title": "Normals, placement and a depth-correct construction grid",
+      "page": "journey/consolidation/41-normals.md",
+      "steps": [
+        "41-normals",
+        "41a-placement",
+        "41b-drawing",
+        "41c-view",
+        "41ca-input",
+        "41d-grid",
+        "41e-drawing",
+        "41f-input"
+      ],
+      "checkpoint": "41f-input"
+    }
+  ],
+  "old_step_to_lesson": {
+    "35-stroke": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35-stroke"
+    },
+    "35a-document": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35a-document"
+    },
+    "35b-extrude": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35b-extrude"
+    },
+    "35c-lane": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35c-lane"
+    },
+    "35ca-sync": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35ca-sync"
+    },
+    "35cb-render": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35cb-render"
+    },
+    "35d-input": {
+      "lesson": "35-stroke",
+      "anchor": "checkpoint-35d-input"
+    },
+    "36-chain": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36-chain"
+    },
+    "36a-links": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36a-links"
+    },
+    "36b-join": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36b-join"
+    },
+    "36ba-body": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36ba-body"
+    },
+    "36bb-heads": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36bb-heads"
+    },
+    "36c-lane": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36c-lane"
+    },
+    "36d-document": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36d-document"
+    },
+    "36db-placement": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36db-placement"
+    },
+    "36da-render": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36da-render"
+    },
+    "36e-input": {
+      "lesson": "36-chain",
+      "anchor": "checkpoint-36e-input"
+    },
+    "37-point": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37-point"
+    },
+    "37a-disc": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37a-disc"
+    },
+    "37b-lane": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37b-lane"
+    },
+    "37c-document": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37c-document"
+    },
+    "37d-render": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37d-render"
+    },
+    "37da-input": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37da-input"
+    },
+    "37e-controls": {
+      "lesson": "37-point",
+      "anchor": "checkpoint-37e-controls"
+    },
+    "38-layout": {
+      "lesson": "38-layout",
+      "anchor": "checkpoint-38-layout"
+    },
+    "38a-samples": {
+      "lesson": "38-layout",
+      "anchor": "checkpoint-38a-samples"
+    },
+    "38b-source": {
+      "lesson": "38-layout",
+      "anchor": "checkpoint-38b-source"
+    },
+    "38c-controls": {
+      "lesson": "38-layout",
+      "anchor": "checkpoint-38c-controls"
+    },
+    "38d-input": {
+      "lesson": "38-layout",
+      "anchor": "checkpoint-38d-input"
+    },
+    "39-visible": {
+      "lesson": "39-visible",
+      "anchor": "checkpoint-39-visible"
+    },
+    "39a-depth": {
+      "lesson": "39-visible",
+      "anchor": "checkpoint-39a-depth"
+    },
+    "40-colour": {
+      "lesson": "40-colour",
+      "anchor": "checkpoint-40-colour"
+    },
+    "40a-input": {
+      "lesson": "40-colour",
+      "anchor": "checkpoint-40a-input"
+    },
+    "40b-indices": {
+      "lesson": "40-colour",
+      "anchor": "checkpoint-40b-indices"
+    },
+    "41-normals": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41-normals"
+    },
+    "41a-placement": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41a-placement"
+    },
+    "41b-drawing": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41b-drawing"
+    },
+    "41c-view": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41c-view"
+    },
+    "41ca-input": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41ca-input"
+    },
+    "41d-grid": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41d-grid"
+    },
+    "41e-drawing": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41e-drawing"
+    },
+    "41f-input": {
+      "lesson": "41-normals",
+      "anchor": "checkpoint-41f-input"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/app/walk/curves.rs",
+      "session_viewer/src/engine/gpu/segments.rs",
+      "session_viewer/src/shaders/ribbon.wgsl",
+      "session_viewer/src/shaders/vector.wgsl",
+      "session_viewer/src/app/walk/points.rs",
+      "session_viewer/src/shaders/glyph.wgsl",
+      "session_viewer/src/shaders/ink_visibility.wgsl",
+      "session_viewer/src/shaders/triangle.wgsl",
+      "session_viewer/src/shaders/grid.wgsl"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "35-stroke",
+      "path": "screenshots/journey/35-stroke.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "35a-document",
+      "path": "screenshots/journey/35a-document.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "35b-extrude",
+      "path": "screenshots/journey/35b-extrude.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "35c-lane",
+      "path": "screenshots/journey/35c-lane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "35ca-sync",
+      "path": "screenshots/journey/35ca-sync.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "35cb-render",
+      "path": "screenshots/journey/35cb-render.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "35d-input",
+      "path": "screenshots/journey/35d-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36-chain",
+      "path": "screenshots/journey/36-chain.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36a-links",
+      "path": "screenshots/journey/36a-links.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36b-join",
+      "path": "screenshots/journey/36b-join.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36ba-body",
+      "path": "screenshots/journey/36ba-body.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36bb-heads",
+      "path": "screenshots/journey/36bb-heads.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36c-lane",
+      "path": "screenshots/journey/36c-lane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36d-document",
+      "path": "screenshots/journey/36d-document.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36db-placement",
+      "path": "screenshots/journey/36db-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36da-render",
+      "path": "screenshots/journey/36da-render.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "36e-input",
+      "path": "screenshots/journey/36e-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37-point",
+      "path": "screenshots/journey/37-point.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37a-disc",
+      "path": "screenshots/journey/37a-disc.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37b-lane",
+      "path": "screenshots/journey/37b-lane.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37c-document",
+      "path": "screenshots/journey/37c-document.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37d-render",
+      "path": "screenshots/journey/37d-render.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37da-input",
+      "path": "screenshots/journey/37da-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "37e-controls",
+      "path": "screenshots/journey/37e-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "38-layout",
+      "path": "screenshots/journey/38-layout.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "38a-samples",
+      "path": "screenshots/journey/38a-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "38b-source",
+      "path": "screenshots/journey/38b-source.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "38c-controls",
+      "path": "screenshots/journey/38c-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "38d-input",
+      "path": "screenshots/journey/38d-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "39-visible",
+      "path": "screenshots/journey/39-visible.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "39a-depth",
+      "path": "screenshots/journey/39a-depth.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "40-colour",
+      "path": "screenshots/journey/40-colour.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "40a-input",
+      "path": "screenshots/journey/40a-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "40b-indices",
+      "path": "screenshots/journey/40b-indices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41-normals",
+      "path": "screenshots/journey/41-normals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41a-placement",
+      "path": "screenshots/journey/41a-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41b-drawing",
+      "path": "screenshots/journey/41b-drawing.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41c-view",
+      "path": "screenshots/journey/41c-view.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41ca-input",
+      "path": "screenshots/journey/41ca-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41d-grid",
+      "path": "screenshots/journey/41d-grid.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41e-drawing",
+      "path": "screenshots/journey/41e-drawing.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "41f-input",
+      "path": "screenshots/journey/41f-input.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Known course stroke/chain anti-aliasing divergence remains under bounded production-source diagnosis; early local shaders are staged."
+  ]
+}

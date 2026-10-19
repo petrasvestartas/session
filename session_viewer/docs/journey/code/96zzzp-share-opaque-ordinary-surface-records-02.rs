@@ -1,0 +1,1 @@
+Self {pipeline,layout,batches:BTreeMap::new(),records,ordinary:Default::default(),slots:

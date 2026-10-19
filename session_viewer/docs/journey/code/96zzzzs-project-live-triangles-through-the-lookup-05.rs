@@ -1,0 +1,2 @@
+  let lookup=crate::projection_lookup::Bindings::source(meshes,records);let lookup_view=lookup.and_then(|records|records.lookup.as_ref()).map(|table|&table.view);
+  if witness==self.witness&&self.lookup.as_ref().map(|state|&state.table)==lookup_view{return}

@@ -1,0 +1,1 @@
+batch.slots.bind(pass,0,1);batch.geometry.draw_pulled(pass,batch.count);

@@ -1,0 +1,52 @@
+{
+  "source": "aa67116d858fcc27ea61b9a52c05732fe888012143a3af61c413a48f72e1b953",
+  "scope": "Actual Native-exported original Session protobufs. Single cube has original+x lighting normals and geometric+z top; shared source has two actual definition instances, one mirrored/nonuniform. All fields retained; eligible standalone source release is distinct from currently ineligible definition-instance unload.",
+  "fixtures": {
+    "single": {
+      "proto": "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",
+      "sourceSha256": "30fde1dd5478e9b3616d1a4386ebd506d317603c2a8618b9863380dab8ac1e38"
+    },
+    "shared": {
+      "proto": "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",
+      "sourceSha256": "b6e7bc3be5e48a50c000a46354b4c82e47c2081089ea1468a860ee479de67939"
+    }
+  },
+  "nativeReferences": {
+    "authored-normal-top-dpr1": {
+      "file": "review/ambient-inputs-authored-normal-top-dpr1-native-2026-10-16.png",
+      "sha256": "12e91fee8ab32fc4c85dff000177863fa36e63a421663c747bbd0451e1ebf9f0",
+      "sourceSha256": "30fde1dd5478e9b3616d1a4386ebd506d317603c2a8618b9863380dab8ac1e38",
+      "scope": "Actual320x240NativeGPU Rgba8Unorm readback. Top/perspective names without DPR1 suffix use density2; shared/released use density1. All six pictures individually directly viewed or exact matches to individually viewed current runtime pictures."
+    },
+    "authored-normal-perspective-dpr1": {
+      "file": "review/ambient-inputs-authored-normal-perspective-dpr1-native-2026-10-16.png",
+      "sha256": "aa4669e3a8ce8ce694c45ae4f329fcd5527a86f02e7a8ae8d8094849e48b1499",
+      "sourceSha256": "828801752de79e9f7288286756fe40d9c4521e1ff256eeb58a1f0bc15945cbb9",
+      "scope": "Actual320x240NativeGPU Rgba8Unorm readback. Top/perspective names without DPR1 suffix use density2; shared/released use density1. All six pictures individually directly viewed or exact matches to individually viewed current runtime pictures."
+    },
+    "released-original-inputs": {
+      "file": "review/ambient-inputs-released-original-inputs-native-2026-10-16.png",
+      "sha256": "12e91fee8ab32fc4c85dff000177863fa36e63a421663c747bbd0451e1ebf9f0",
+      "sourceSha256": "74bb95e74bf02b0690edcfc9ea917242fe9e1bd013294c74a1cfa9b62ce12504",
+      "scope": "Actual320x240NativeGPU Rgba8Unorm readback. Top/perspective names without DPR1 suffix use density2; shared/released use density1. All six pictures individually directly viewed or exact matches to individually viewed current runtime pictures."
+    },
+    "authored-normal-top": {
+      "file": "review/ambient-inputs-authored-normal-top-native-2026-10-16.png",
+      "sha256": "bcb09cadca2cf172bc6f49664dc8be6c24d26dee38b37f881a955081b0183642",
+      "sourceSha256": "a6a6461b066b538130f37526487f9f2d37515220b0fead523870880aa0b0f982",
+      "scope": "Actual320x240NativeGPU Rgba8Unorm readback. Top/perspective names without DPR1 suffix use density2; shared/released use density1. All six pictures individually directly viewed or exact matches to individually viewed current runtime pictures."
+    },
+    "authored-normal-perspective": {
+      "file": "review/ambient-inputs-authored-normal-perspective-native-2026-10-16.png",
+      "sha256": "44314da977b3f0f3851e023c45c87e2502ba43dd59224ef363dce03f73c79866",
+      "sourceSha256": "952e60a0360c3850c07db9cf97145c35d01237f75b33b755c43b7d15115cce17",
+      "scope": "Actual320x240NativeGPU Rgba8Unorm readback. Top/perspective names without DPR1 suffix use density2; shared/released use density1. All six pictures individually directly viewed or exact matches to individually viewed current runtime pictures."
+    },
+    "shared-contact-radii": {
+      "file": "review/ambient-inputs-shared-contact-radii-native-2026-10-16.png",
+      "sha256": "09897714d12862071c48e55e95870e8370f635c206d72bbc056cb2fafc5f6e7b",
+      "sourceSha256": "b6e7bc3be5e48a50c000a46354b4c82e47c2081089ea1468a860ee479de67939",
+      "scope": "Actual320x240NativeGPU Rgba8Unorm readback. Top/perspective names without DPR1 suffix use density2; shared/released use density1. All six pictures individually directly viewed or exact matches to individually viewed current runtime pictures."
+    }
+  }
+}

@@ -1,0 +1,1044 @@
+{
+  "status": "Reader route integrated; runtime and visual acceptance remain separately tracked in production-course-map.json",
+  "chapter": 3,
+  "title": "Documents, editing and ownership",
+  "first": "17-solid",
+  "end_before": "33-owner",
+  "lessons": [
+    {
+      "id": "17-solid",
+      "title": "Kernel geometry and a single editor owner",
+      "page": "journey/consolidation/17-solid.md",
+      "steps": [
+        "17-solid",
+        "18-light",
+        "18a-editor",
+        "18b-actions",
+        "19-actions"
+      ],
+      "checkpoint": "19-actions"
+    },
+    {
+      "id": "19a-viewport",
+      "title": "One drawing size and one captured gesture",
+      "page": "journey/consolidation/19a-viewport.md",
+      "steps": [
+        "19a-viewport",
+        "20-resize",
+        "20a-press",
+        "20b-release",
+        "20c-motion",
+        "21-gestures",
+        "21a-wheel",
+        "22-shortcuts"
+      ],
+      "checkpoint": "22-shortcuts"
+    },
+    {
+      "id": "22a-records",
+      "title": "Validated files, bounds and useful projections",
+      "page": "journey/consolidation/22a-records.md",
+      "steps": [
+        "22a-records",
+        "22b-session",
+        "22c-decode",
+        "22d-import",
+        "22e-file-reader",
+        "23-import",
+        "23a-bounds",
+        "23b-fit-camera",
+        "24-fit",
+        "24a-projection",
+        "24b-projection-actions",
+        "25-projection",
+        "26-selected",
+        "26a-keys"
+      ],
+      "checkpoint": "26a-keys"
+    },
+    {
+      "id": "27-placement",
+      "title": "Local sources, world placement and display caches",
+      "page": "journey/consolidation/27-placement.md",
+      "steps": [
+        "27-placement",
+        "27a-world",
+        "27b-model",
+        "27c-move",
+        "27d-history",
+        "28-record",
+        "28a-imported",
+        "28b-generated",
+        "28c-ownership"
+      ],
+      "checkpoint": "28c-ownership"
+    },
+    {
+      "id": "29-identity",
+      "title": "Save, replace and asynchronous transaction results",
+      "page": "journey/consolidation/29-identity.md",
+      "steps": [
+        "29-identity",
+        "29a-snapshot",
+        "29b-placements",
+        "29c-roundtrip",
+        "29d-save",
+        "30-feedback",
+        "30a-tickets",
+        "30b-cancel",
+        "30c-replace",
+        "30d-bridge",
+        "30e-recovery"
+      ],
+      "checkpoint": "30e-recovery"
+    },
+    {
+      "id": "31-settings",
+      "title": "Shared GPU geometry and releasable source ownership",
+      "page": "journey/consolidation/31-settings.md",
+      "steps": [
+        "31-settings",
+        "31a-geometry",
+        "31b-cache",
+        "31c-incremental",
+        "32-history",
+        "32a-cpu",
+        "32b-gpu",
+        "32c-close",
+        "32d-command",
+        "32e-release",
+        "32f-metadata",
+        "32fa-access",
+        "32fb-boundary",
+        "32fc-version",
+        "32fd-origin",
+        "32fe-location",
+        "32ff-bridge",
+        "32fg-state",
+        "32fh-policy",
+        "32fi-history",
+        "32fj-proof",
+        "32fk-command",
+        "32fl-guards"
+      ],
+      "checkpoint": "32fl-guards"
+    },
+    {
+      "id": "32g-keys",
+      "title": "Restore exact sources and replay the captured edit",
+      "page": "journey/consolidation/32g-keys.md",
+      "steps": [
+        "32g-keys",
+        "32ga-prepare",
+        "32gb-adopt",
+        "32gc-roundtrip",
+        "32gd-rejections",
+        "32ge-stale",
+        "32gf-request",
+        "32gfa-ownership",
+        "32gg-fetch",
+        "32gga-flight",
+        "32ggb-delivery",
+        "32gh-command",
+        "32gha-cancel",
+        "32gi-capture",
+        "32gia-scope",
+        "32gib-move",
+        "32giba-delete",
+        "32gibb-reply",
+        "32gic-owner",
+        "32gica-reply",
+        "32gicb-bridge",
+        "32gid-complete",
+        "32gie-response",
+        "32gif-auto",
+        "32gj-precision",
+        "32gja-failures"
+      ],
+      "checkpoint": "32gja-failures"
+    }
+  ],
+  "old_step_to_lesson": {
+    "17-solid": {
+      "lesson": "17-solid",
+      "anchor": "checkpoint-17-solid"
+    },
+    "18-light": {
+      "lesson": "17-solid",
+      "anchor": "checkpoint-18-light"
+    },
+    "18a-editor": {
+      "lesson": "17-solid",
+      "anchor": "checkpoint-18a-editor"
+    },
+    "18b-actions": {
+      "lesson": "17-solid",
+      "anchor": "checkpoint-18b-actions"
+    },
+    "19-actions": {
+      "lesson": "17-solid",
+      "anchor": "checkpoint-19-actions"
+    },
+    "19a-viewport": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-19a-viewport"
+    },
+    "20-resize": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-20-resize"
+    },
+    "20a-press": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-20a-press"
+    },
+    "20b-release": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-20b-release"
+    },
+    "20c-motion": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-20c-motion"
+    },
+    "21-gestures": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-21-gestures"
+    },
+    "21a-wheel": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-21a-wheel"
+    },
+    "22-shortcuts": {
+      "lesson": "19a-viewport",
+      "anchor": "checkpoint-22-shortcuts"
+    },
+    "22a-records": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-22a-records"
+    },
+    "22b-session": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-22b-session"
+    },
+    "22c-decode": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-22c-decode"
+    },
+    "22d-import": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-22d-import"
+    },
+    "22e-file-reader": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-22e-file-reader"
+    },
+    "23-import": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-23-import"
+    },
+    "23a-bounds": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-23a-bounds"
+    },
+    "23b-fit-camera": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-23b-fit-camera"
+    },
+    "24-fit": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-24-fit"
+    },
+    "24a-projection": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-24a-projection"
+    },
+    "24b-projection-actions": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-24b-projection-actions"
+    },
+    "25-projection": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-25-projection"
+    },
+    "26-selected": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-26-selected"
+    },
+    "26a-keys": {
+      "lesson": "22a-records",
+      "anchor": "checkpoint-26a-keys"
+    },
+    "27-placement": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-27-placement"
+    },
+    "27a-world": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-27a-world"
+    },
+    "27b-model": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-27b-model"
+    },
+    "27c-move": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-27c-move"
+    },
+    "27d-history": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-27d-history"
+    },
+    "28-record": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-28-record"
+    },
+    "28a-imported": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-28a-imported"
+    },
+    "28b-generated": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-28b-generated"
+    },
+    "28c-ownership": {
+      "lesson": "27-placement",
+      "anchor": "checkpoint-28c-ownership"
+    },
+    "29-identity": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-29-identity"
+    },
+    "29a-snapshot": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-29a-snapshot"
+    },
+    "29b-placements": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-29b-placements"
+    },
+    "29c-roundtrip": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-29c-roundtrip"
+    },
+    "29d-save": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-29d-save"
+    },
+    "30-feedback": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-30-feedback"
+    },
+    "30a-tickets": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-30a-tickets"
+    },
+    "30b-cancel": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-30b-cancel"
+    },
+    "30c-replace": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-30c-replace"
+    },
+    "30d-bridge": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-30d-bridge"
+    },
+    "30e-recovery": {
+      "lesson": "29-identity",
+      "anchor": "checkpoint-30e-recovery"
+    },
+    "31-settings": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-31-settings"
+    },
+    "31a-geometry": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-31a-geometry"
+    },
+    "31b-cache": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-31b-cache"
+    },
+    "31c-incremental": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-31c-incremental"
+    },
+    "32-history": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32-history"
+    },
+    "32a-cpu": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32a-cpu"
+    },
+    "32b-gpu": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32b-gpu"
+    },
+    "32c-close": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32c-close"
+    },
+    "32d-command": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32d-command"
+    },
+    "32e-release": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32e-release"
+    },
+    "32f-metadata": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32f-metadata"
+    },
+    "32fa-access": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fa-access"
+    },
+    "32fb-boundary": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fb-boundary"
+    },
+    "32fc-version": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fc-version"
+    },
+    "32fd-origin": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fd-origin"
+    },
+    "32fe-location": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fe-location"
+    },
+    "32ff-bridge": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32ff-bridge"
+    },
+    "32fg-state": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fg-state"
+    },
+    "32fh-policy": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fh-policy"
+    },
+    "32fi-history": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fi-history"
+    },
+    "32fj-proof": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fj-proof"
+    },
+    "32fk-command": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fk-command"
+    },
+    "32fl-guards": {
+      "lesson": "31-settings",
+      "anchor": "checkpoint-32fl-guards"
+    },
+    "32g-keys": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32g-keys"
+    },
+    "32ga-prepare": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32ga-prepare"
+    },
+    "32gb-adopt": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gb-adopt"
+    },
+    "32gc-roundtrip": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gc-roundtrip"
+    },
+    "32gd-rejections": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gd-rejections"
+    },
+    "32ge-stale": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32ge-stale"
+    },
+    "32gf-request": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gf-request"
+    },
+    "32gfa-ownership": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gfa-ownership"
+    },
+    "32gg-fetch": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gg-fetch"
+    },
+    "32gga-flight": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gga-flight"
+    },
+    "32ggb-delivery": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32ggb-delivery"
+    },
+    "32gh-command": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gh-command"
+    },
+    "32gha-cancel": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gha-cancel"
+    },
+    "32gi-capture": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gi-capture"
+    },
+    "32gia-scope": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gia-scope"
+    },
+    "32gib-move": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gib-move"
+    },
+    "32giba-delete": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32giba-delete"
+    },
+    "32gibb-reply": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gibb-reply"
+    },
+    "32gic-owner": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gic-owner"
+    },
+    "32gica-reply": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gica-reply"
+    },
+    "32gicb-bridge": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gicb-bridge"
+    },
+    "32gid-complete": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gid-complete"
+    },
+    "32gie-response": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gie-response"
+    },
+    "32gif-auto": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gif-auto"
+    },
+    "32gj-precision": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gj-precision"
+    },
+    "32gja-failures": {
+      "lesson": "32g-keys",
+      "anchor": "checkpoint-32gja-failures"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity."
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "17-solid",
+      "path": "screenshots/journey/17-solid.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "18-light",
+      "path": "screenshots/journey/18-light.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "18a-editor",
+      "path": "screenshots/journey/18a-editor.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "18b-actions",
+      "path": "screenshots/journey/18b-actions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "19-actions",
+      "path": "screenshots/journey/19-actions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "19a-viewport",
+      "path": "screenshots/journey/19a-viewport.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "20-resize",
+      "path": "screenshots/journey/20-resize.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "20a-press",
+      "path": "screenshots/journey/20a-press.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "20b-release",
+      "path": "screenshots/journey/20b-release.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "20c-motion",
+      "path": "screenshots/journey/20c-motion.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "21-gestures",
+      "path": "screenshots/journey/21-gestures.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "21a-wheel",
+      "path": "screenshots/journey/21a-wheel.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "22-shortcuts",
+      "path": "screenshots/journey/22-shortcuts.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "22a-records",
+      "path": "screenshots/journey/22a-records.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "22b-session",
+      "path": "screenshots/journey/22b-session.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "22c-decode",
+      "path": "screenshots/journey/22c-decode.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "22d-import",
+      "path": "screenshots/journey/22d-import.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "22e-file-reader",
+      "path": "screenshots/journey/22e-file-reader.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "23-import",
+      "path": "screenshots/journey/23-import.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "23a-bounds",
+      "path": "screenshots/journey/23a-bounds.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "23b-fit-camera",
+      "path": "screenshots/journey/23b-fit-camera.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "24-fit",
+      "path": "screenshots/journey/24-fit.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "24a-projection",
+      "path": "screenshots/journey/24a-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "24b-projection-actions",
+      "path": "screenshots/journey/24b-projection-actions.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "25-projection",
+      "path": "screenshots/journey/25-projection.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "26-selected",
+      "path": "screenshots/journey/26-selected.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "26a-keys",
+      "path": "screenshots/journey/26a-keys.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "27-placement",
+      "path": "screenshots/journey/27-placement.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "27a-world",
+      "path": "screenshots/journey/27a-world.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "27b-model",
+      "path": "screenshots/journey/27b-model.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "27c-move",
+      "path": "screenshots/journey/27c-move.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "27d-history",
+      "path": "screenshots/journey/27d-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "28-record",
+      "path": "screenshots/journey/28-record.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "28a-imported",
+      "path": "screenshots/journey/28a-imported.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "28b-generated",
+      "path": "screenshots/journey/28b-generated.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "28c-ownership",
+      "path": "screenshots/journey/28c-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "29-identity",
+      "path": "screenshots/journey/29-identity.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "29a-snapshot",
+      "path": "screenshots/journey/29a-snapshot.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "29b-placements",
+      "path": "screenshots/journey/29b-placements.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "29c-roundtrip",
+      "path": "screenshots/journey/29c-roundtrip.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "29d-save",
+      "path": "screenshots/journey/29d-save.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "30-feedback",
+      "path": "screenshots/journey/30-feedback.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "30a-tickets",
+      "path": "screenshots/journey/30a-tickets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "30b-cancel",
+      "path": "screenshots/journey/30b-cancel.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "30c-replace",
+      "path": "screenshots/journey/30c-replace.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "30d-bridge",
+      "path": "screenshots/journey/30d-bridge.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "30e-recovery",
+      "path": "screenshots/journey/30e-recovery.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "31-settings",
+      "path": "screenshots/journey/31-settings.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "31a-geometry",
+      "path": "screenshots/journey/31a-geometry.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "31b-cache",
+      "path": "screenshots/journey/31b-cache.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "31c-incremental",
+      "path": "screenshots/journey/31c-incremental.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32-history",
+      "path": "screenshots/journey/32-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32a-cpu",
+      "path": "screenshots/journey/32a-cpu.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32b-gpu",
+      "path": "screenshots/journey/32b-gpu.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32c-close",
+      "path": "screenshots/journey/32c-close.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32d-command",
+      "path": "screenshots/journey/32d-command.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32e-release",
+      "path": "screenshots/journey/32e-release.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32f-metadata",
+      "path": "screenshots/journey/32f-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fa-access",
+      "path": "screenshots/journey/32fa-access.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fb-boundary",
+      "path": "screenshots/journey/32fb-boundary.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fc-version",
+      "path": "screenshots/journey/32fc-version.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fd-origin",
+      "path": "screenshots/journey/32fd-origin.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fe-location",
+      "path": "screenshots/journey/32fe-location.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32ff-bridge",
+      "path": "screenshots/journey/32ff-bridge.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fg-state",
+      "path": "screenshots/journey/32fg-state.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fh-policy",
+      "path": "screenshots/journey/32fh-policy.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fi-history",
+      "path": "screenshots/journey/32fi-history.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fj-proof",
+      "path": "screenshots/journey/32fj-proof.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fk-command",
+      "path": "screenshots/journey/32fk-command.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32fl-guards",
+      "path": "screenshots/journey/32fl-guards.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32g-keys",
+      "path": "screenshots/journey/32g-keys.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32ga-prepare",
+      "path": "screenshots/journey/32ga-prepare.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gb-adopt",
+      "path": "screenshots/journey/32gb-adopt.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gc-roundtrip",
+      "path": "screenshots/journey/32gc-roundtrip.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gd-rejections",
+      "path": "screenshots/journey/32gd-rejections.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32ge-stale",
+      "path": "screenshots/journey/32ge-stale.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gf-request",
+      "path": "screenshots/journey/32gf-request.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gfa-ownership",
+      "path": "screenshots/journey/32gfa-ownership.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gg-fetch",
+      "path": "screenshots/journey/32gg-fetch.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gga-flight",
+      "path": "screenshots/journey/32gga-flight.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32ggb-delivery",
+      "path": "screenshots/journey/32ggb-delivery.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gh-command",
+      "path": "screenshots/journey/32gh-command.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gha-cancel",
+      "path": "screenshots/journey/32gha-cancel.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gi-capture",
+      "path": "screenshots/journey/32gi-capture.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gia-scope",
+      "path": "screenshots/journey/32gia-scope.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gib-move",
+      "path": "screenshots/journey/32gib-move.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32giba-delete",
+      "path": "screenshots/journey/32giba-delete.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gibb-reply",
+      "path": "screenshots/journey/32gibb-reply.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gic-owner",
+      "path": "screenshots/journey/32gic-owner.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gica-reply",
+      "path": "screenshots/journey/32gica-reply.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gicb-bridge",
+      "path": "screenshots/journey/32gicb-bridge.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gid-complete",
+      "path": "screenshots/journey/32gid-complete.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gie-response",
+      "path": "screenshots/journey/32gie-response.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gif-auto",
+      "path": "screenshots/journey/32gif-auto.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gj-precision",
+      "path": "screenshots/journey/32gj-precision.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "32gja-failures",
+      "path": "screenshots/journey/32gja-failures.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch."
+  ]
+}

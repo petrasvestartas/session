@@ -1,0 +1,584 @@
+# 15.4.1 · Build a surface through original curve networks
+
+**Chapter 15 · Transforms and surface construction · Section 15.4 · Curve networks and projection planes** · [Contents](contents.md)
+
+**Typing: 17–33 minutes.** [Estimate](typing-load.md).
+
+Connect the complete network helpers and retain the four-boundary Coons path. Register the original recipe and validate the final fitted surface.
+
+## Type
+
+Continue from [Fit the original Gordon surface](79zze-fit-the-original-gordon-surface.md). [Save or recover your work](recovery.md).
+
+### 1. `src/network_geometry.rs`
+
+Extend this original owner with today’s complete helper.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```rust
+    for (c, column) in stacks.iter().enumerate() {
+        for d in 0..column.cv_count() {
+            surface.set_cv(c, d, &column.get_cv(d).unwrap_or_default());
+        }
+    }
+
+    Ok(surface)
+}
+```
+
+</details>
+
+After that block, type:
+
+```rust
+/// The surface through a grid of curves: Coons for four boundaries, else a Gordon surface.
+pub fn network(input: &[NurbsCurve]) -> Result<NurbsSurface, String> {
+    let two = "Network curves must cross in two directions";
+
+    if input.len() > 32 {
+        return Err("A network takes at most 32 curves".into());
+    }
+
+    if input.len() < 4 {
+        return Err(two.into());
+    }
+
+    let mut cross = crossings(input);
+    let (mut us, mut vs) = directions(&cross)?;
+    let curves = oriented(input, &mut us, &mut vs, &mut cross)?;
+
+    if us.len() == 2 && vs.len() == 2 {
+        let edge = Primitives::create_edge(
+            &curves[us[0]],
+            &curves[vs[1]],
+            &curves[us[1]],
+            &curves[vs[0]],
+        );
+
+        if edge.is_valid() {
+            return Ok(edge);
+        }
+    }
+
+    fitted(sampled(&curves, &us, &vs, &cross))
+}
+
+pub static RECIPE: Recipe = Recipe {
+    name: "Nurbs Surface Network",
+    chips: &[("Finish", ""), ("Cancel", "Escape")],
+    steps: &[Step::Curves {
+        prompt: "select the network curves, both directions",
+        min: 2, // fewer than four is refused with the reason
+        max: 32,
+    }],
+    axis: crate::gather_input::no_axis,
+    build,
+};
+
+/// The surface through the picked network.
+fn build(input: &Input) -> Result<Made, String> {
+    let network_curves = curves(&input.curves[0]);
+    let surface = network(&network_curves)?;
+    Ok(Made {
+        geometries: vec![checked(surface, "network")?],
+        message: format!(
+            "Built a NURBS surface through {}",
+            count(network_curves.len(), "curve")
+        ),
+    })
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
+--8<-- "journey/code/80-build-a-surface-through-two-directions-of-original-curves-1.rs"
+```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 2. `src/network_geometry.rs`
+
+Supply only the unchanged original validation fixtures.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```text
+use crate::gather_input::{Input, Made, Recipe, Step};
+use crate::surfacing::{checked, count, curves, diagonal};
+use session_rust::nurbsknot::{CurveInterpStyle, CurveNurbsKnotStyle};
+use session_rust::{NurbsCurve, NurbsSurface, Point, Primitives};
+
+const DENSITY: usize = 6; // samples per span between crossings
+const MOST: usize = 64; // samples per direction at most
+
+/// Where two curves cross: the parameter on each, when they come within `tolerance`.
+fn crossing(
+    a: &NurbsCurve,
+    b: &NurbsCurve,
+    boxes: (&[[f64; 3]; 2], &[[f64; 3]; 2]),
+    tolerance: f64,
+) -> Option<(f64, f64)> {
+    let (one, two) = boxes;
+
+    if (0..3).any(|k| one[0][k] > two[1][k] + tolerance || two[0][k] > one[1][k] + tolerance) {
+        return None;
+    }
+
+    let (s, t) = a.closest_parameters_curve(b);
+    (a.point_at(s).distance(&b.point_at(t), None) <= tolerance).then_some((s, t))
+}
+
+/// The low and high corners of a curve's control points.
+fn bounds(curve: &NurbsCurve) -> [[f64; 3]; 2] {
+    let mut low = [f64::MAX; 3];
+    let mut high = [f64::MIN; 3];
+
+    for p in (0..curve.cv_count()).filter_map(|i| curve.get_cv(i)) {
+        for k in 0..3 {
+            low[k] = low[k].min(p[k]);
+            high[k] = high[k].max(p[k]);
+        }
+    }
+
+    [low, high]
+}
+
+/// The curve through `points` at even parameters.
+fn interpolated(points: &[Point]) -> NurbsCurve {
+    NurbsCurve::create_interpolated(
+        points,
+        CurveNurbsKnotStyle::Uniform,
+        CurveInterpStyle::Rhino,
+    )
+}
+
+/// `curve` at `x` of its domain.
+fn at(curve: &NurbsCurve, x: f64) -> Point {
+    let (t0, t1) = curve.domain();
+    curve.point_at(t0 + x * (t1 - t0))
+}
+
+/// The piecewise-linear map from even stations 0..1 to `params`, at `x`.
+fn station(params: &[f64], x: f64) -> f64 {
+    let last = params.len() - 1;
+    let at = (x * last as f64).clamp(0.0, last as f64);
+    let low = (at.floor() as usize).min(last - 1);
+    let s = at - low as f64;
+    params[low] + (params[low + 1] - params[low]) * s
+}
+
+/// Samples between crossings: `DENSITY` per span, at most `MOST` in all, crossings included.
+fn sample_count(crossings: usize) -> usize {
+    let spans = crossings - 1;
+    DENSITY.min((MOST - 1) / spans).max(1) * spans + 1
+}
+
+type Crossings = Vec<Vec<Option<f64>>>;
+
+fn crossings(input: &[NurbsCurve]) -> Crossings {
+    let points: Vec<Point> = input
+        .iter()
+        .flat_map(|curve| (0..curve.cv_count()).filter_map(|i| curve.get_cv(i)))
+        .collect();
+    let tolerance = 1e-3 * diagonal(&points);
+    let boxes: Vec<[[f64; 3]; 2]> = input.iter().map(bounds).collect();
+    let count = input.len();
+    let mut cross = vec![vec![None; count]; count];
+
+    for i in 0..count {
+        for j in i + 1..count {
+            if let Some((s, t)) = crossing(&input[i], &input[j], (&boxes[i], &boxes[j]), tolerance)
+            {
+                cross[i][j] = Some(s);
+                cross[j][i] = Some(t);
+            }
+        }
+    }
+
+    cross
+}
+
+fn directions(cross: &Crossings) -> Result<(Vec<usize>, Vec<usize>), String> {
+    let two = "Network curves must cross in two directions";
+    let count = cross.len();
+    // two directions: crossing curves take opposite sides, the first picked is u
+    let mut side: Vec<Option<bool>> = vec![None; count];
+    side[0] = Some(false);
+    let mut queue = vec![0];
+
+    while let Some(i) = queue.pop() {
+        for j in 0..count {
+            if cross[i][j].is_none() {
+                continue;
+            }
+
+            match side[j] {
+                None => {
+                    side[j] = side[i].map(|s| !s);
+                    queue.push(j);
+                }
+                Some(s) if Some(s) == side[i] => {
+                    return Err("Two curves of the same direction cross".into());
+                }
+                _ => {}
+            }
+        }
+    }
+
+    if side.iter().any(Option::is_none) {
+        return Err(two.into());
+    }
+
+    let us: Vec<usize> = (0..count).filter(|&i| side[i] == Some(false)).collect();
+    let vs: Vec<usize> = (0..count).filter(|&i| side[i] == Some(true)).collect();
+
+    if us.len() < 2 || vs.len() < 2 {
+        return Err(two.into());
+    }
+
+    if us
+        .iter()
+        .any(|&i| vs.iter().any(|&j| cross[i][j].is_none()))
+    {
+        return Err("Every curve must cross each curve of the other direction once".into());
+    }
+
+    Ok((us, vs))
+}
+
+fn oriented(
+    input: &[NurbsCurve], us: &mut [usize], vs: &mut [usize], cross: &mut Crossings,
+) -> Result<Vec<NurbsCurve>, String> {
+    // v curves in order along the first u curve, u curves along the first v curve
+    let first = us[0];
+    let along = |row: usize, a: usize, b: usize| {
+        cross[row][a]
+            .unwrap()
+            .total_cmp(&cross[row][b].unwrap())
+            .then(a.cmp(&b)) // ties keep index order, as a stable sort would
+    };
+    vs.sort_unstable_by(|&a, &b| along(first, a, b));
+    let lead = vs[0];
+    us.sort_unstable_by(|&a, &b| along(lead, a, b));
+    let mut curves: Vec<NurbsCurve> = input.to_vec();
+
+    // each curve runs so its crossings increase
+    for (own, others) in [(&*us, &*vs), (&*vs, &*us)] {
+        for &i in own.iter() {
+            let params: Vec<f64> = others.iter().map(|&j| cross[i][j].unwrap()).collect();
+
+            if params.windows(2).all(|pair| pair[0] < pair[1]) {
+                continue;
+            }
+
+            if !params.windows(2).all(|pair| pair[0] > pair[1]) {
+                return Err("Every curve must cross each curve of the other direction once".into());
+            }
+
+            let (t0, t1) = curves[i].domain();
+            curves[i].reverse();
+            curves[i].set_domain(t0, t1);
+
+            for &j in others.iter() {
+                cross[i][j] = cross[i][j].map(|t| t0 + t1 - t);
+            }
+        }
+    }
+
+    Ok(curves)
+}
+
+struct Samples {
+    across_u: Vec<Vec<Point>>,
+    across_v: Vec<Vec<Point>>,
+    tensor: Vec<Vec<Point>>,
+}
+
+fn sampled(
+    curves: &[NurbsCurve], us: &[usize], vs: &[usize], cross: &Crossings,
+) -> Samples {
+    let (rows, columns) = (us.len(), vs.len());
+    // u curve i crosses v curve j at s[i][j] on the u curve and r[i][j] on the v curve
+    let s: Vec<Vec<f64>> = us
+        .iter()
+        .map(|&i| vs.iter().map(|&j| cross[i][j].unwrap()).collect())
+        .collect();
+    let r: Vec<Vec<f64>> = vs
+        .iter()
+        .map(|&j| us.iter().map(|&i| cross[j][i].unwrap()).collect())
+        .collect();
+    let crossings: Vec<Vec<Point>> = (0..rows)
+        .map(|i| {
+            (0..columns)
+                .map(|j| {
+                    let a = curves[us[i]].point_at(s[i][j]);
+                    let b = curves[vs[j]].point_at(r[j][i]);
+                    Point::new(
+                        (a[0] + b[0]) / 2.0,
+                        (a[1] + b[1]) / 2.0,
+                        (a[2] + b[2]) / 2.0,
+                    )
+                })
+                .collect()
+        })
+        .collect();
+    let (kx, ky) = (sample_count(columns), sample_count(rows));
+    let xs: Vec<f64> = (0..kx).map(|a| a as f64 / (kx - 1) as f64).collect();
+    let ys: Vec<f64> = (0..ky).map(|b| b as f64 / (ky - 1) as f64).collect();
+    // lofts across each family and the tensor through the crossings, sampled
+    let across_u: Vec<Vec<Point>> = xs
+        .iter()
+        .map(|x| {
+            let column: Vec<Point> = (0..rows)
+                .map(|i| curves[us[i]].point_at(station(&s[i], *x)))
+                .collect();
+            let curve = interpolated(&column);
+            ys.iter().map(|y| at(&curve, *y)).collect()
+        })
+        .collect();
+    let across_v: Vec<Vec<Point>> = ys
+        .iter()
+        .map(|y| {
+            let row: Vec<Point> = (0..columns)
+                .map(|j| curves[vs[j]].point_at(station(&r[j], *y)))
+                .collect();
+            let curve = interpolated(&row);
+            xs.iter().map(|x| at(&curve, *x)).collect()
+        })
+        .collect();
+    let lines: Vec<NurbsCurve> = (0..columns)
+        .map(|j| {
+            interpolated(
+                &(0..rows)
+                    .map(|i| crossings[i][j].clone())
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+    let tensor: Vec<Vec<Point>> = ys
+        .iter()
+        .map(|y| {
+            let row: Vec<Point> = lines.iter().map(|line| at(line, *y)).collect();
+            let curve = interpolated(&row);
+            xs.iter().map(|x| at(&curve, *x)).collect()
+        })
+        .collect();
+    Samples { across_u, across_v, tensor }
+}
+
+fn fitted(samples: Samples) -> Result<NurbsSurface, String> {
+    let Samples { across_u, across_v, tensor } = samples;
+    let (kx, ky) = (across_u.len(), across_v.len());
+    // fit: rows through the samples, then columns through the rows' control points
+    let fitted: Vec<NurbsCurve> = (0..ky)
+        .map(|b| {
+            let row: Vec<Point> = (0..kx)
+                .map(|a| {
+                    let (p, q, t) = (&across_u[a][b], &across_v[b][a], &tensor[b][a]);
+                    Point::new(p[0] + q[0] - t[0], p[1] + q[1] - t[1], p[2] + q[2] - t[2])
+                })
+                .collect();
+            interpolated(&row)
+        })
+        .collect();
+    let width = fitted[0].cv_count();
+    let stacks: Vec<NurbsCurve> = (0..width)
+        .map(|c| {
+            interpolated(
+                &fitted
+                    .iter()
+                    .filter_map(|row| row.get_cv(c))
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect();
+    let (Some(u), Some(v)) = (fitted.first(), stacks.first()) else {
+        return Err("The network surface could not be fitted".into());
+    };
+    let mut surface = NurbsSurface::new(3, false, u.order(), v.order(), width, v.cv_count());
+
+    for i in 0..surface.nurbsknot_count(0) {
+        surface.set_nurbsknot(0, i, u.nurbsknot(i).unwrap_or_default());
+    }
+
+    for i in 0..surface.nurbsknot_count(1) {
+        surface.set_nurbsknot(1, i, v.nurbsknot(i).unwrap_or_default());
+    }
+
+    for (c, column) in stacks.iter().enumerate() {
+        for d in 0..column.cv_count() {
+            surface.set_cv(c, d, &column.get_cv(d).unwrap_or_default());
+        }
+    }
+
+    Ok(surface)
+}
+
+/// The surface through a grid of curves: Coons for four boundaries, else a Gordon surface.
+pub fn network(input: &[NurbsCurve]) -> Result<NurbsSurface, String> {
+    let two = "Network curves must cross in two directions";
+
+    if input.len() > 32 {
+        return Err("A network takes at most 32 curves".into());
+    }
+
+    if input.len() < 4 {
+        return Err(two.into());
+    }
+
+    let mut cross = crossings(input);
+    let (mut us, mut vs) = directions(&cross)?;
+    let curves = oriented(input, &mut us, &mut vs, &mut cross)?;
+
+    if us.len() == 2 && vs.len() == 2 {
+        let edge = Primitives::create_edge(
+            &curves[us[0]],
+            &curves[vs[1]],
+            &curves[us[1]],
+            &curves[vs[0]],
+        );
+
+        if edge.is_valid() {
+            return Ok(edge);
+        }
+    }
+
+    fitted(sampled(&curves, &us, &vs, &cross))
+}
+
+pub static RECIPE: Recipe = Recipe {
+    name: "Nurbs Surface Network",
+    chips: &[("Finish", ""), ("Cancel", "Escape")],
+    steps: &[Step::Curves {
+        prompt: "select the network curves, both directions",
+        min: 2, // fewer than four is refused with the reason
+        max: 32,
+    }],
+    axis: crate::gather_input::no_axis,
+    build,
+};
+
+/// The surface through the picked network.
+fn build(input: &Input) -> Result<Made, String> {
+    let network_curves = curves(&input.curves[0]);
+    let surface = network(&network_curves)?;
+    Ok(Made {
+        geometries: vec![checked(surface, "network")?],
+        message: format!(
+            "Built a NURBS surface through {}",
+            count(network_curves.len(), "curve")
+        ),
+    })
+}
+```
+
+</details>
+
+After that block, append this supplied code:
+
+```text
+--8<-- "journey/code/80-build-a-surface-through-two-directions-of-original-curves-2.rs" skip=11853
+```
+
+</details>
+
+## Run and check
+
+Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:
+
+```sh
+npm --prefix ../session_tests run course -- dependencies 15.4.1
+```
+
+In your project:
+
+```sh
+cd workspace/journey
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+```
+
+Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
+
+The complete original network-surface recipe compiles; its editing/input connection follows later.
+
+### Recorded visual result
+
+**Previous native render — current verification pending.**
+
+The smooth surface and its original sections remain visible.
+
+![Native renderer output for build a surface through original curve networks.](../screenshots/journey/79zza-sample-original-network-curve-stations.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [15.3.8 · Sample original network curve stations](79zza-sample-original-network-curve-stations.md). It does not demonstrate a new feature by itself.
+
+<details>
+<summary>Code explanation and diagram</summary>
+
+
+
+original curve crossings → ordered stations → sampled lofts → fitted surface.
+
+
+
+Why keep the four-boundary path?
+
+The existing kernel edge constructor directly describes that supported case. Larger grids use the Gordon construction just written.
+
+Study estimate, including typing and experiments: 0.5–1 hours.
+
+</details>
+
+<details>
+<summary>Optional experiment</summary>
+
+Compare four boundaries, shuffled rulings and refused crossing graphs.
+
+</details>
+
+<details>
+<summary>Check and save your work</summary>
+
+Restore experimental edits, then run from `session_viewer`:
+
+```sh
+npm --prefix ../session_tests run course -- check 15.4.1
+npm --prefix ../session_tests run course -- save 15.4.1
+```
+
+Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
+
+</details>
+
+<details>
+<summary>Viewer coverage and verification</summary>
+
+
+
+The preceding loft/sweep contract remains authored and unrun. The final network/patch contract adds four-corner retry, one Undo/Redo, current aliases and the same rendered original network and patch exercise. Actual browser execution remains required.
+
+[Full validation scope](release.md).
+
+To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
+
+```sh
+npm --prefix ../session_tests run course -- capture 15.4.1
+```
+
+This uses the verified reference bundle; it does not check or change your typed project.
+
+</details>

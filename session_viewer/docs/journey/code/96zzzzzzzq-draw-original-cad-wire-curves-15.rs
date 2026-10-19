@@ -1,0 +1,1 @@
+for edge in prepared.edges.iter_mut().chain(&mut prepared.wires)

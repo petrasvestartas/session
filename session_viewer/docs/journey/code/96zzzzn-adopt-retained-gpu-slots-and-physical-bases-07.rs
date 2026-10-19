@@ -1,0 +1,1 @@
+members.filter(|(members,arena)|complete&&compatible&&crate::instance_members::bounded

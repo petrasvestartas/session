@@ -1,0 +1,1 @@
+self.grid.draw(&mut pass,&self.view_group)

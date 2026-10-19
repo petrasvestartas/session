@@ -1,0 +1,1 @@
+        let a = crate::controls::position(source,index-1).map_err(|_|"Curve control extent exceeds the display range")?; let b = crate::controls::position(source,index).map_err(|_|"Curve control extent exceeds the display range")?;

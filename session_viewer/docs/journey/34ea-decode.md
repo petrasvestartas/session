@@ -1,6 +1,8 @@
-# 34ea · Admit only supported bounded saved JSON
+# 4.2.8 · Admit only supported bounded saved JSON
 
-**Typing: 27–53 minutes.** [Estimate](typing-load.md).
+**Chapter 4 · Browser lifetime and recovery · Section 4.2 · GPU diagnostics and recovery** · [Contents](contents.md)
+
+**Typing: 7–14 minutes.** [Estimate](typing-load.md).
 
 Admit saved JSON through one boundary. First reject input above one MiB. Then inspect its raw keys and version, decode it as `Report`, and run the typed shape validator.
 
@@ -18,15 +20,22 @@ Create the file and type:
 --8<-- "journey/code/34ea-decode-01.rs"
 ```
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 2. `src/report_store_tests.rs`
 
-Prove actual stored JSON admission and byte/text/schema boundaries.
+Optional authoring fixture. Prove actual stored JSON admission and byte/text/schema boundaries.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/34ea-decode-02.rs"
 ```
+
+</details>
 
 ### 3. `src/lib.rs`
 
@@ -41,11 +50,25 @@ pub mod diagnostic;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod report_store;
+#[cfg(test)]
+mod report_store_tests;
+pub mod diagnostic;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/34ea-decode-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -53,25 +76,21 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the decoder checks below. Supported JSON at the byte limit is accepted; oversized, unknown-schema or inconsistent JSON is rejected before storage adoption.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Admit only supported bounded saved JSON.](../screenshots/journey/34ea-decode-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for admit only supported bounded saved json.](../screenshots/journey/34ea-decode.png)
 
-Run the state checks on your computer from your project folder:
-
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -105,8 +124,8 @@ Remove the raw-field whitelist, add an unknown telemetry field and explain why a
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 34ea-decode
-npm --prefix ../session_tests run course -- save 34ea-decode
+npm --prefix ../session_tests run course -- check 4.2.8
+npm --prefix ../session_tests run course -- save 4.2.8
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -127,7 +146,7 @@ Native tests validate actual saved JSON boundaries and unsupported schema. Chrom
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 34ea-decode
+npm --prefix ../session_tests run course -- capture 4.2.8
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

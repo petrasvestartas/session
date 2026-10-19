@@ -1,0 +1,1 @@
+s.window, &layouts.uniform], "vert

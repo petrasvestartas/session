@@ -1,0 +1,1 @@
+Output(position, colour, centre, radius)

@@ -1,0 +1,57 @@
+use crate::{editor::{Action, Editor}, scene::Scene};
+use prost::Message;
+use session_rust::{Element, Geometry, Mesh, Point, Polyline, Session, Xform};
+use session_rust::element::ElementFeature;
+
+#[test]
+fn original_feature_visibility_colour_and_point_styles_survive_projection() {
+    let mut element = Element::new("styled");
+    element.set_geometry(Mesh::create_box(2., 2., 2.));
+    let mut line = Polyline::new(vec![Point::new(3., 0., 0.), Point::new(5., 0., 0.)]);
+    line.width = 7.;
+    line.is_visible = false;
+    line.is_locked = true;
+    line.linecolor = session_rust::Color::new(0.2, 0.6, 0.8, 1.);
+    line.arrowhead = session_rust::Arrowhead::END;
+    element.add_feature(ElementFeature::new("axis", -1, vec![line.clone()], "axis"));
+    let mut hidden = ElementFeature::new("cut", -1, vec![line.clone()], "hidden");
+    hidden.visible = false;
+    element.add_feature(hidden);
+    let mut dot = line.clone();
+    dot.coords = vec![6., 1., 0., 6., 1., 0.];
+    element.add_feature(ElementFeature::new("drill", -1, vec![dot], "dot"));
+    element.add_feature(ElementFeature::new("cut", -1, vec![line.clone()], "visible cut"));
+    let mut session = Session::new("styles");
+    let node = session.add_element(element, None);
+    let guid = node.borrow().name.clone();
+    session.xforms.insert(guid.clone(), Xform::translation(10., 20., 30.));
+    let bytes = session.to_proto().encode_to_vec();
+    let mut editor = Editor::default();
+    editor.scene = Scene::empty();
+    crate::scene_document::import(&mut editor.scene, &bytes, "styles", &Xform::identity(), 0.).unwrap();
+    assert_eq!(editor.scene.paths().len(), 2);
+    assert_eq!(editor.scene.points().len(), 1);
+    let path = &editor.scene.paths()[0];
+    assert_eq!(path.prepared.width, 2.);
+    assert_eq!(path.prepared.colour, [0.2, 0.6, 0.8, 1.]);
+    assert_eq!(path.prepared.heads, 0);
+    assert!(!editor.scene.visible(path.id));
+    assert!(editor.scene.visible(editor.scene.paths()[1].id), "Feature visibility and the original owner govern displays, not standalone outline flags");
+    let point = &editor.scene.points()[0];
+    assert_eq!(point.marker().diameter, 12.);
+    assert_eq!(point.marker().center, [16., 21., 30.]);
+    assert_eq!(point.marker().colour, [0.2, 0.6, 0.8, 1.]);
+    let owner = editor.scene.objects()[0].id;
+    assert_eq!(crate::feature_owner::display_owner(&editor.scene, point.id), Some(owner));
+    editor.apply(Action::ElementAttributes(Some(true))).unwrap();
+    assert!(editor.scene.visible(editor.scene.paths()[0].id));
+    assert_eq!(editor.scene.paths().len(), 2, "a global toggle cannot resurrect an invisible source feature");
+    let retained = editor.scene.objects()[0].original.as_ref().unwrap();
+    let Geometry::Element(original) = retained else { panic!("original Element"); };
+    assert!(!original.features[1].visible);
+    assert_eq!(original.features[0].outlines[0].width, 7.);
+    assert!(!original.features[0].outlines[0].is_visible);
+    assert!(original.features[0].outlines[0].is_locked);
+    assert_eq!(original.features[0].outlines[0].arrowhead, session_rust::Arrowhead::END);
+    assert_eq!(original.features[0].outlines[0].linecolor.to_f32(), [0.2, 0.6, 0.8, 1.]);
+}

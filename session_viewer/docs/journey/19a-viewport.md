@@ -1,4 +1,6 @@
-# 19a · Measure a safe drawing size
+# 3.3.2 · Measure a safe drawing size
+
+**Chapter 3 · Documents, editing and ownership · Section 3.3 · Browser input and drawing size** · [Contents](contents.md)
 
 **Typing: 19–37 minutes.** [Estimate](typing-load.md).
 
@@ -36,7 +38,7 @@ pub mod renderer;
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/20-resize-fullscreen-1.rs"
@@ -48,25 +50,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run the state checks. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.
+Inspect the supplied state fixtures. Density two doubles pixel dimensions without stretching the view; the GPU cap preserves proportions; hidden sizes are rejected.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Measure a safe drawing size.](../screenshots/journey/19a-viewport-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+![Native renderer output for measure a safe drawing size.](../screenshots/journey/18b-actions.png)
 
-Run the state checks on your computer from your project folder:
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+This reference image is shared with [3.2.3 · Apply document and view actions in Rust](18b-actions.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -98,8 +98,8 @@ Change the dense-display test ratio to 4.0 and lower the device limit to 1024. P
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 19a-viewport
-npm --prefix ../session_tests run course -- save 19a-viewport
+npm --prefix ../session_tests run course -- check 3.3.2
+npm --prefix ../session_tests run course -- save 3.3.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -118,7 +118,7 @@ Native tests establish bounded density-aware sizing. Chrome independently retain
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 19a-viewport
+npm --prefix ../session_tests run course -- capture 3.3.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

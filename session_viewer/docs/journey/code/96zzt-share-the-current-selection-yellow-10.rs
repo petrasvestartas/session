@@ -1,0 +1,1 @@
+assert_eq!(p, &[255,255,0], "The preview uses current selection yellow: {p:?}");

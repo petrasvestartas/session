@@ -1,4 +1,6 @@
-# 03ci · Browse matching names
+# 1.3.16 · Browse matching names
+
+**Chapter 1 · Browser, Rust and the GPU · Section 1.3 · Shaders and the command dock** · [Contents](contents.md)
 
 **Typing: 23–45 minutes.** [Estimate](typing-load.md).
 
@@ -23,7 +25,7 @@ Report that arrow browsing is connected.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ci-browse-direct-01.rs"
@@ -43,7 +45,7 @@ pub(crate) fn finish(
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ci-browse-direct-02.rs"
@@ -66,7 +68,7 @@ Use browse for arrow keys, Tab and popup choices.
 
 </details>
 
-Replace that block with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 --8<-- "journey/code/03ci-browse-direct-03.rs"
@@ -78,19 +80,25 @@ In your project:
 
 ```sh
 cd workspace/journey
-cargo build --lib --locked --target wasm32-unknown-unknown -j4
-CARGO_BUILD_JOBS=4 trunk serve --port 8780
+cargo build --lib --locked --target wasm32-unknown-unknown -j1
+CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Press ArrowDown in the empty field. Help appears. Escape clears it.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Browse matching names.](../screenshots/journey/03ci-browse-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+This checkpoint was rendered independently and has the same native comparison frame as [Show matching commands](03ch-popup.md). Use its state checks and browser exercise to assess the changed behavior.
+
+![Native renderer output for browse matching names.](../screenshots/journey/03-triangle.png)
+
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [1.3.1 · Give the GPU three corners](03-triangle.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -122,8 +130,8 @@ Press ArrowDown twice in the empty field. The one-item list should wrap to Help 
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 03ci-browse
-npm --prefix ../session_tests run course -- save 03ci-browse
+npm --prefix ../session_tests run course -- check 1.3.16
+npm --prefix ../session_tests run course -- save 1.3.16
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -142,7 +150,7 @@ This step connects one responsibility of the production command dock. Scene comm
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 03ci-browse
+npm --prefix ../session_tests run course -- capture 1.3.16
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

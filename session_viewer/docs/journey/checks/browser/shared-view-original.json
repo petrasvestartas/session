@@ -1,0 +1,545 @@
+{
+  "scope": "The identical saved six-input-line/two-NURBS archive plus one original point, captured from accepted1325. Exact image hashes and actual GPUDevice.createBuffer/GPUQueue.writeBuffer observations at640x480/DPR1/2, declared Isometric/Fit, flat source colors and no grid/outline. No GPU frame-rate claim.",
+  "archive": "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YTAzLTkwZjgtZmRiNTBlODkzNjAzEiRmZDE2NWE2My03YmMzLTRmMTEtOTI2Mi1lNjhjZDc4ODg5YTQaJDZlZjViZWU5LWJlNjctNGVkZC1iODZhLWFjZjczNjcxMTFhMCJyCiQ0NzI4ODM4Yy03ZDgwLTQ2YzItOTk5MC0xMWYwYzAzYjk2OGYSJDQ2NmJkODU3LTA0NWEtNGY0MS1hMDBhLTU1OTY1MGVhZGYxYxokNmVmNWJlZTktYmU2Ny00ZWRkLWI4NmEtYWNmNzM2NzExMWEwInIKJDEwOGMxOGY0LWRhN2QtNDk3Ni1iZWRlLWMxZjE2ODhjYWYwZhIkNWM1YTdmMzUtYmM1NS00YWI4LThhMDUtNGMxMTZmOGU5ODZmGiQ2ZWY1YmVlOS1iZTY3LTRlZGQtYjg2YS1hY2Y3MzY3MTExYTAicgokM2YyZWY1ZDktN2JmMy00ZmJlLWE3ZTYtMjViNzUxNGJlN2ZhEiQ1ZjViYTIyYy1kNjhjLTQzNjEtYWZhOS03NzNhODZiYzMzYTEaJDZlZjViZWU5LWJlNjctNGVkZC1iODZhLWFjZjczNjcxMTFhMCJyCiQxYWZlMTViZS04ZmFhLTQ4MjgtODFhZC1jNTM1YmFjZjQxNjESJDA5YTE5MjMyLTg4YTctNDY1YS1hMDE0LWM3ODJlYjI0YjEyNBokNmVmNWJlZTktYmU2Ny00ZWRkLWI4NmEtYWNmNzM2NzExMWEwInIKJGEwZWRhYTllLTM2OTItNGNlYS05YmJlLTIyZGU2MDA5ZjQ1MhIkYTk5MzBhZDYtMTI2ZC00MWRmLTlmZWEtMjAzNTk2M2VlZTVjGiQ2ZWY1YmVlOS1iZTY3LTRlZGQtYjg2YS1hY2Y3MzY3MTExYTAicgokZmZkODM4Y2UtYjUyNS00YzJkLWEzYjctOTAwMjg1NTJkYTE5EiRlYWNkNWM4NC03YTNiLTRhOTktYjI5ZC04YWUwY2U3M2I4MTkaJDZlZjViZWU5LWJlNjctNGVkZC1iODZhLWFjZjczNjcxMTFhMBLsAXsiY3JlYXRlZF9kb2MiOjAsImN1cnJlbnRfbGF5ZXIiOm51bGwsImRvY3VtZW50cyI6W3sibmFtZSI6IkNyZWF0ZWQiLCJwbGFjZSI6WzEuMCwwLjAsMC4wLDAuMCwwLjAsMS4wLDAuMCwwLjAsMC4wLDAuMCwxLjAsMC4wLDAuMCwwLjAsMC4wLDEuMF0sInBvaW50X3B4IjowLjB9XSwiaGlkZGVuIjpbXSwibG9ja2VkIjpbXSwiY29sb3JzIjpbXSwiZWRnZV9jb2xvcnMiOltdLCJ0ZXh0cyI6W10sImdyb3VwcyI6W119",
+  "archiveSha256": "04f8f872a7c22b47c63546a3715c983da622764b1711c2a372016fe0f6851c74",
+  "parent": "96zzzzzzh-connect-headlight-and-backface-controls",
+  "parentSource": "df325ea0926e617c41d53fe0501baf07798520f03a48b7b1f547156ba82e3602",
+  "baseline": {
+    "1": {
+      "stats": {
+        "armed": false,
+        "created": {
+          "finite projected placeholder": {
+            "count": 1,
+            "bytes": 96
+          },
+          "finite tile placeholder": {
+            "count": 1,
+            "bytes": 16
+          },
+          "finite view dimensions": {
+            "count": 1,
+            "bytes": 32
+          },
+          "triangle.tiles.report": {
+            "count": 1,
+            "bytes": 16
+          },
+          "shared object records": {
+            "count": 2,
+            "bytes": 528
+          },
+          "instance draw slots": {
+            "count": 2,
+            "bytes": 32
+          },
+          "stroke view": {
+            "count": 13,
+            "bytes": 1040
+          },
+          "handle mesh": {
+            "count": 1,
+            "bytes": 371520
+          },
+          "handle placement": {
+            "count": 1,
+            "bytes": 96
+          },
+          "view transform and normal diagnostic": {
+            "count": 1,
+            "bytes": 96
+          },
+          "pick view": {
+            "count": 2,
+            "bytes": 176
+          },
+          "sheet view": {
+            "count": 1,
+            "bytes": 80
+          },
+          "section canvas frame": {
+            "count": 1,
+            "bytes": 16
+          },
+          "current original clipping planes": {
+            "count": 1,
+            "bytes": 448
+          },
+          "stroke instances": {
+            "count": 4,
+            "bytes": 13936
+          },
+          "original ink clipping flags": {
+            "count": 4,
+            "bytes": 1268
+          },
+          "ink IDs": {
+            "count": 4,
+            "bytes": 2536
+          },
+          "arena compact vertices": {
+            "count": 5,
+            "bytes": 186540
+          },
+          "arena indices": {
+            "count": 5,
+            "bytes": 216100
+          },
+          "object placement": {
+            "count": 4,
+            "bytes": 704
+          },
+          "lookup projection interval": {
+            "count": 2,
+            "bytes": 32
+          },
+          "egui_uniform_buffer": {
+            "count": 1,
+            "bytes": 16
+          },
+          "egui_vertex_buffer": {
+            "count": 1,
+            "bytes": 20480
+          },
+          "egui_index_buffer": {
+            "count": 1,
+            "bytes": 12288
+          },
+          "finite projected triangles": {
+            "count": 2,
+            "bytes": 1591104
+          },
+          "finite triangle tile lists": {
+            "count": 2,
+            "bytes": 2292000
+          }
+        },
+        "writes": {
+          "view transform and normal diagnostic": {
+            "count": 42,
+            "bytes": 4032
+          },
+          "stroke view": {
+            "count": 126,
+            "bytes": 10080
+          },
+          "sheet view": {
+            "count": 42,
+            "bytes": 3360
+          },
+          "egui_index_buffer": {
+            "count": 42,
+            "bytes": 103704
+          },
+          "egui_vertex_buffer": {
+            "count": 42,
+            "bytes": 181520
+          }
+        }
+      },
+      "before": "dba94440993b8beeeb77ee9b7af19047f23ca3b34defc1e3179a66994d99497a",
+      "originals": {
+        "lines": [
+          [
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              2,
+              1,
+              1
+            ]
+          ],
+          [
+            [
+              2,
+              0,
+              0
+            ],
+            [
+              2,
+              2,
+              2
+            ]
+          ],
+          [
+            [
+              2,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              1,
+              2,
+              1
+            ]
+          ],
+          [
+            [
+              0,
+              2,
+              0
+            ],
+            [
+              2,
+              2,
+              2
+            ]
+          ],
+          [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              2,
+              0
+            ]
+          ]
+        ],
+        "points": [
+          [
+            2.5,
+            0.5,
+            1
+          ]
+        ],
+        "polylines": []
+      },
+      "placements": [
+        [
+          "ObjectId(10)",
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        ],
+        [
+          "ObjectId(11)",
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      ],
+      "uploads": [
+        4,
+        4,
+        0,
+        0
+      ]
+    },
+    "2": {
+      "stats": {
+        "armed": false,
+        "created": {
+          "finite projected placeholder": {
+            "count": 1,
+            "bytes": 96
+          },
+          "finite tile placeholder": {
+            "count": 1,
+            "bytes": 16
+          },
+          "finite view dimensions": {
+            "count": 1,
+            "bytes": 32
+          },
+          "triangle.tiles.report": {
+            "count": 1,
+            "bytes": 16
+          },
+          "shared object records": {
+            "count": 2,
+            "bytes": 528
+          },
+          "instance draw slots": {
+            "count": 2,
+            "bytes": 32
+          },
+          "stroke view": {
+            "count": 13,
+            "bytes": 1040
+          },
+          "handle mesh": {
+            "count": 1,
+            "bytes": 371520
+          },
+          "handle placement": {
+            "count": 1,
+            "bytes": 96
+          },
+          "view transform and normal diagnostic": {
+            "count": 1,
+            "bytes": 96
+          },
+          "pick view": {
+            "count": 2,
+            "bytes": 176
+          },
+          "sheet view": {
+            "count": 1,
+            "bytes": 80
+          },
+          "section canvas frame": {
+            "count": 1,
+            "bytes": 16
+          },
+          "current original clipping planes": {
+            "count": 1,
+            "bytes": 448
+          },
+          "stroke instances": {
+            "count": 4,
+            "bytes": 13936
+          },
+          "original ink clipping flags": {
+            "count": 4,
+            "bytes": 1268
+          },
+          "ink IDs": {
+            "count": 4,
+            "bytes": 2536
+          },
+          "arena compact vertices": {
+            "count": 5,
+            "bytes": 186540
+          },
+          "arena indices": {
+            "count": 5,
+            "bytes": 216100
+          },
+          "object placement": {
+            "count": 4,
+            "bytes": 704
+          },
+          "lookup projection interval": {
+            "count": 2,
+            "bytes": 32
+          },
+          "egui_uniform_buffer": {
+            "count": 1,
+            "bytes": 16
+          },
+          "egui_vertex_buffer": {
+            "count": 1,
+            "bytes": 20480
+          },
+          "egui_index_buffer": {
+            "count": 1,
+            "bytes": 12288
+          },
+          "finite projected triangles": {
+            "count": 2,
+            "bytes": 1591104
+          },
+          "finite triangle tile lists": {
+            "count": 2,
+            "bytes": 5985632
+          }
+        },
+        "writes": {
+          "view transform and normal diagnostic": {
+            "count": 42,
+            "bytes": 4032
+          },
+          "stroke view": {
+            "count": 126,
+            "bytes": 10080
+          },
+          "sheet view": {
+            "count": 42,
+            "bytes": 3360
+          },
+          "egui_index_buffer": {
+            "count": 42,
+            "bytes": 102624
+          },
+          "egui_vertex_buffer": {
+            "count": 42,
+            "bytes": 177920
+          }
+        }
+      },
+      "before": "9ace4c8cf8050d0be61bb51c44048b54837f97dd0c6d0069757f11427f125d18",
+      "originals": {
+        "lines": [
+          [
+            [
+              0,
+              1,
+              0
+            ],
+            [
+              2,
+              1,
+              1
+            ]
+          ],
+          [
+            [
+              2,
+              0,
+              0
+            ],
+            [
+              2,
+              2,
+              2
+            ]
+          ],
+          [
+            [
+              2,
+              0,
+              0
+            ],
+            [
+              0,
+              0,
+              0
+            ]
+          ],
+          [
+            [
+              1,
+              0,
+              0
+            ],
+            [
+              1,
+              2,
+              1
+            ]
+          ],
+          [
+            [
+              0,
+              2,
+              0
+            ],
+            [
+              2,
+              2,
+              2
+            ]
+          ],
+          [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              2,
+              0
+            ]
+          ]
+        ],
+        "points": [
+          [
+            2.5,
+            0.5,
+            1
+          ]
+        ],
+        "polylines": []
+      },
+      "placements": [
+        [
+          "ObjectId(11)",
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        ],
+        [
+          "ObjectId(12)",
+          [
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            1
+          ]
+        ]
+      ],
+      "uploads": [
+        4,
+        4,
+        0,
+        0
+      ]
+    }
+  }
+}

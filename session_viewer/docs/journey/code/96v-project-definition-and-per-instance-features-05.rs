@@ -1,0 +1,1 @@
+if scene.instances.contains_key(&id) || scene.objects().iter().any(|row| row.id == id

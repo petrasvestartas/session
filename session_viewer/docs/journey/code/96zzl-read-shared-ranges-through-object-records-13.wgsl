@@ -1,0 +1,1 @@
+fn mesh_vertex(occurrence:u32,first:u32)->MeshInput

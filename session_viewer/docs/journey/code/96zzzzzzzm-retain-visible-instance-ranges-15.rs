@@ -1,0 +1,1 @@
+ink.draw(&mut pass,view,vertices,flags,1,if stride==72 {18}else{6},&Default::default())

@@ -1,0 +1,1 @@
+for mesh in self.meshes.iter().filter(|row|self.opacity.get()<1.||!self.instance_rows.contains(&row.id)) {if !(self.opacity.get()>=1.&&self.instances.draw_ordinary(&mut pass,mesh)){pass.set_pipeline(&self.pipeline);self.instances.bind_own(&mut pass);mesh.draw_pulled(&mut pass);}}

@@ -1,0 +1,2 @@
+    pub fn strokes_on(self,plane:crate::cplane::CPlane)->Result<Vec<Stroke>,&'static str>{self.strokes_on_at(plane,[0.;3])}
+    pub fn strokes_on_at(self,plane:crate::cplane::CPlane,anchor:[f64;3])->Result<Vec<Stroke>,&'static str>{

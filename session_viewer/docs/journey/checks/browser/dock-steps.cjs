@@ -7,7 +7,7 @@ module.exports=async(page,{step})=>{
  const state=()=>canvas.evaluate(c=>JSON.parse(c.getAttribute('data-command-ui')||'{}'));
  const text=async value=>page.waitForFunction(value=>{const c=document.querySelector('canvas');return (JSON.parse(c.getAttribute('data-command-ui')||'{}').command??c.getAttribute('data-command'))===value;},value);
  const history=async()=>canvas.evaluate(c=>JSON.parse(c.getAttribute('data-command-ui')||'{}').history??JSON.parse(c.getAttribute('data-history')||'[]'));
- const start=await canvas.evaluate(c=>c.toDataURL());
+ const start=await require('./canvas-image.cjs')(canvas);
  const before=PNG.sync.read(Buffer.from(start.split(',')[1],'base64'));
  if(stage===0){let ink=0;for(let y=before.height-200;y<before.height;y++)for(let x=0;x<280;x++){const i=(y*before.width+x)*4;if([...before.data.subarray(i,i+3)].every(c=>c<180))ink++;}assert(ink>300,'Retained history must render actual text');return;}
  await page.mouse.click(8,8);await page.keyboard.type('g');await text('g');await page.keyboard.press('Backspace');await text('');
@@ -49,7 +49,7 @@ module.exports=async(page,{step})=>{
   await page.mouse.move((field[0]+field[2])/2,(field[1]+field[3])/2);
   await page.mouse.wheel(0,120);await text('Help');await page.keyboard.press('Escape');await text('');
  }
- const after=PNG.sync.read(Buffer.from((await canvas.evaluate(c=>c.toDataURL())).split(',')[1],'base64'));
+ const after=PNG.sync.read(Buffer.from((await require('./canvas-image.cjs')(canvas)).split(',')[1],'base64'));
  assert.deepEqual(after.data.subarray(0,440*before.width*4),before.data.subarray(0,440*before.width*4),'Command input must preserve scene pixels');
  assert.equal(await page.locator('button,input:not([type=file])').count(),0);
  // Finish with the lesson's visible result, after the broader input checks.

@@ -1,0 +1,1 @@
+uniform, view_group, depth, primitive, strokes

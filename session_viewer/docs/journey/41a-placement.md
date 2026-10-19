@@ -1,4 +1,6 @@
-# 41a · Transform normals with nonuniform surface placement
+# 5.7.2 · Transform normals with nonuniform surface placement
+
+**Chapter 5 · Lines, points and curves · Section 5.7 · Normals and construction grids** · [Contents](contents.md)
 
 **Typing: 9–18 minutes.** [Estimate](typing-load.md).
 
@@ -22,11 +24,35 @@ Prepare bounded cofactor columns for oriented affine normal transformation.
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+
+pub fn matrix(model: &session_rust::Xform) -> Result<[f32; 16], &'static str> {
+    if !crate::placement::valid(&model.m) { return Err("Normal placement needs a finite affine matrix"); }
+    let column = |index: usize| [model.m[index * 4], model.m[index * 4 + 1], model.m[index * 4 + 2]];
+    let cross = |a: [f64; 3], b: [f64; 3]| [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    let [a, b, c] = [column(0), column(1), column(2)];
+    let columns = [cross(b, c), cross(c, a), cross(a, b)];
+    let scale = columns.iter().flatten().map(|v| v.abs()).fold(0.0, f64::max);
+    let mut matrix = [0.0; 16];
+    if scale > 0.0 {
+        for col in 0..3 { for row in 0..3 { matrix[col * 4 + row] = (columns[col][row] / scale) as f32; } }
+    }
+    matrix[15] = 1.0; Ok(matrix)
+}
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/41a-placement-01.rs"
 ```
+
+</details>
 
 ### 2. `src/lib.rs`
 
@@ -41,21 +67,40 @@ pub mod normals;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
+#[cfg(test)]
+mod normal_matrix_tests;
+```
+
+<details>
+<summary>Optional patch references</summary>
+
+Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+
+```text
 --8<-- "journey/code/41a-placement-02.rs"
 ```
+
+</details>
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/normal_matrix_tests.rs`
 
 Copy perpendicularity, translation independence, winding, collapse and finite-range checks.
 
-Copy this check file:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/41a-placement-03.rs"
 ```
+
+</details>
 
 ## Run and check
 
@@ -63,25 +108,25 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
-Run perpendicularity, reflection, flattening and extreme-scale tests. Translation does not change the normal matrix.
+Inspect perpendicularity, reflection, flattening and extreme-scale tests. Translation does not change the normal matrix.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Transform normals with nonuniform surface placement.](../screenshots/journey/41a-placement-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+This checkpoint was rendered independently and has the same native comparison frame as [Retain checked source normals beside display positions](41-normals.md). Use its state checks and browser exercise to assess the changed behavior.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for transform normals with nonuniform surface placement.](../screenshots/journey/37d-render.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
+
+This reference image is shared with [5.3.5 · Draw original point rows and count their resources](37d-render.md). It does not demonstrate a new feature by itself.
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -113,8 +158,8 @@ Shear and scale two source tangents differently. Their transformed cross product
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 41a-placement
-npm --prefix ../session_tests run course -- save 41a-placement
+npm --prefix ../session_tests run course -- check 5.7.2
+npm --prefix ../session_tests run course -- save 5.7.2
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -135,7 +180,7 @@ Actual Chrome draws two adjacent source faces with separate red and blue colours
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 41a-placement
+npm --prefix ../session_tests run course -- capture 5.7.2
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

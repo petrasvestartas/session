@@ -1,6 +1,8 @@
-# 28c · Prove source ownership survives editing
+# 3.12.4 · Prove source ownership survives editing
 
-**Typing: 20–40 minutes.** [Estimate](typing-load.md).
+**Chapter 3 · Documents, editing and ownership · Section 3.12 · Owned source meshes** · [Contents](contents.md)
+
+**Typing: 1–1 minutes.** [Estimate](typing-load.md).
 
 Now test the complete boundary rather than only the constructor. A moved object is still the same source shape. Its placement changes, but editing must not bake that placement into either the kernel vertices or drawing arrays.
 
@@ -8,15 +10,22 @@ Now test the complete boundary rather than only the constructor. A moved object 
 
 Continue from [Give generated objects the same source owner](28b-generated.md). [Save or recover your work](recovery.md).
 
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
 ### 1. `src/source_tests.rs`
 
-Check source and display allocations, original vertices, placement history and retained file provenance.
+Optional authoring fixture. Check source and display allocations, original vertices, placement history and retained file provenance.
 
-Create the file and type:
+Copy this supplied file:
 
-```rust
+```text
 --8<-- "journey/code/28c-ownership-01.rs"
 ```
+
+</details>
 
 ### 2. `src/lib.rs`
 
@@ -32,10 +41,10 @@ mod prepared_tests;
 
 </details>
 
-Replace that block with:
+After that block, type:
 
 ```rust
---8<-- "journey/code/28c-ownership-02.rs"
+--8<-- "journey/code/28c-ownership-02.rs" skip=33
 ```
 
 ## Run and check
@@ -44,25 +53,23 @@ In your project:
 
 ```sh
 cd workspace/journey
-REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j4
-REGEN_PROTO=0 CARGO_BUILD_JOBS=4 trunk serve --port 8780
+REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
+REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
 Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running; saving rebuilds it.
 
 Run the ownership checks below. Move, Undo and Redo must retain the same source and display allocations; only placement and history change.
 
-**Verified checkpoint in Chrome.**
+### Recorded visual result
 
-![Actual browser result: Prove source ownership survives editing.](../screenshots/journey/28c-ownership-browser.png)
+**Previous native render — current verification pending.**
 
-[Verification scope](release.md).
+The native renderer runs the same Editor actions and checks world picking, visible selection pixels and object area.
 
-Run the state checks on your computer from your project folder:
+![Native renderer output for prove source ownership survives editing.](../screenshots/journey/28c-ownership.png)
 
-```sh
-REGEN_PROTO=0 cargo test --lib --locked --target host-tuple -j4
-```
+*This recorded image predates a source or checker change. Rebuild this checkpoint before using it as current evidence; browser controls require separate acceptance.*
 
 <details>
 <summary>Code explanation and diagram</summary>
@@ -98,8 +105,8 @@ In the generated-box check, add a second Move with a different offset and anothe
 Restore experimental edits, then run from `session_viewer`:
 
 ```sh
-npm --prefix ../session_tests run course -- check 28c-ownership
-npm --prefix ../session_tests run course -- save 28c-ownership
+npm --prefix ../session_tests run course -- check 3.12.4
+npm --prefix ../session_tests run course -- save 3.12.4
 ```
 
 Source comparison leaves your project untouched. [Save and recovery instructions](recovery.md).
@@ -118,7 +125,7 @@ Prove source ownership survives editing. These commands run in the actual dock; 
 To reproduce the scripted acceptance of the reference checkpoint, run from `session_viewer` with the [course bundle server](release.md#reproduce) running on port 8781:
 
 ```sh
-npm --prefix ../session_tests run course -- capture 28c-ownership
+npm --prefix ../session_tests run course -- capture 3.12.4
 ```
 
 This uses the verified reference bundle; it does not check or change your typed project.

@@ -1,0 +1,1 @@
+entry_point: Some(if shared {"pick_record_vertex"}else{"pick_vertex"})

@@ -1,0 +1,1 @@
+for mesh in meshes { mesh.draw_pulled(&mut pass); }

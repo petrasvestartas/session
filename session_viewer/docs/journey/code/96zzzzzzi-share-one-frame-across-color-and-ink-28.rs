@@ -1,0 +1,1 @@
+self.paths.draw(pass,view)

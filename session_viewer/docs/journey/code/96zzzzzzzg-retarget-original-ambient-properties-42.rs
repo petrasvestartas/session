@@ -1,0 +1,1 @@
+mals,at,sample).xy*2.0

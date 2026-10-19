@@ -1,0 +1,1 @@
+self.measurement.draw(&mut pass,&self.view_group)

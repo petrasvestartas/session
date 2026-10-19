@@ -1,0 +1,1 @@
+entry_point:Some(if shared {"vs_record"}else{"vs_main"})

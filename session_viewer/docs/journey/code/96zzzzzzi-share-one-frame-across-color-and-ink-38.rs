@@ -1,0 +1,1 @@
+pub fn draw(&self,pass:&mut wgpu::RenderPass<'_>,view:&wgpu::BindGroup)

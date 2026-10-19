@@ -1,0 +1,1 @@
+Self { source_faces:style.source_faces,translation:object.model

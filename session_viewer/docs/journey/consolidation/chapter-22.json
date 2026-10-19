@@ -1,0 +1,535 @@
+{
+  "status": "consolidated prose and coverage; integration and current runtime/visual acceptance pending",
+  "chapter": 22,
+  "title": "Surface lighting, contact and display quality",
+  "first": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+  "end_before": "97-finish-with-the-maintained-browser-runtime",
+  "lessons": [
+    {
+      "id": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+      "title": "Original surface colours and lighting controls",
+      "page": "journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md",
+      "steps": [
+        "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+        "96zzzzzzh-connect-headlight-and-backface-controls"
+      ],
+      "checkpoint": "96zzzzzzh-connect-headlight-and-backface-controls"
+    },
+    {
+      "id": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "title": "Contact fills and original face queries",
+      "page": "journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md",
+      "steps": [
+        "96zzzzzzi-share-one-frame-across-color-and-ink",
+        "96zzzzzzj-fill-original-contact-polygons",
+        "96zzzzzzk-broadcast-ordinary-ink-metadata",
+        "96zzzzzzl-layer-original-contact-boundaries",
+        "96zzzzzzm-query-original-faces-under-contact-overlays"
+      ],
+      "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays"
+    },
+    {
+      "id": "96zzzzzzn-respect-original-boundary-pens",
+      "title": "Original boundary pens, joins and vertex markers",
+      "page": "journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md",
+      "steps": [
+        "96zzzzzzn-respect-original-boundary-pens",
+        "96zzzzzzo-close-original-boundary-joins",
+        "96zzzzzzp-draw-default-mesh-vertex-dots",
+        "96zzzzzzq-taper-crowded-original-mesh-vertices"
+      ],
+      "checkpoint": "96zzzzzzq-taper-crowded-original-mesh-vertices"
+    },
+    {
+      "id": "96zzzzzzr-share-geometric-ambient-inputs",
+      "title": "Original ambient inputs and real pass ordering",
+      "page": "journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md",
+      "steps": [
+        "96zzzzzzr-share-geometric-ambient-inputs",
+        "96zzzzzzs-shade-surfaces-before-drawing-ink",
+        "96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+      ],
+      "checkpoint": "96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+    },
+    {
+      "id": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "title": "Coherent multisampling and frame-resource ownership",
+      "page": "journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md",
+      "steps": [
+        "96zzzzzzu-keep-depth-and-address-samples-separate",
+        "96zzzzzzv-reuse-coherent-frame-targets",
+        "96zzzzzzw-match-resolve-base-and-view-formats",
+        "96zzzzzzx-reuse-count-specific-surface-pipelines",
+        "96zzzzzzy-generate-ink-for-physical-samples",
+        "96zzzzzzz-cache-ink-pipelines-with-independent-queries",
+        "96zzzzzzza-retarget-existing-overlay-lanes",
+        "96zzzzzzzb-read-section-crossings-at-each-sample",
+        "96zzzzzzzc-compose-cloud-depth-with-physical-addresses",
+        "96zzzzzzzca-cache-cloud-and-sheet-samples",
+        "96zzzzzzzd-retarget-cached-text",
+        "96zzzzzzze-cache-outline-section-recipes",
+        "96zzzzzzzf-resolve-float-outline-coverage",
+        "96zzzzzzzg-retarget-original-ambient-properties",
+        "96zzzzzzzh-share-ambient-shader-recipes",
+        "96zzzzzzzi-correct-ambient-at-physical-samples",
+        "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+        "96zzzzzzzk-retarget-the-complete-colour-frame",
+        "96zzzzzzzl-choose-bounded-frame-quality"
+      ],
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality"
+    },
+    {
+      "id": "96zzzzzzzm-retain-visible-instance-ranges",
+      "title": "Original display controls and remaining integration boundaries",
+      "page": "journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
+      "steps": [
+        "96zzzzzzzm-retain-visible-instance-ranges",
+        "96zzzzzzzn-prepare-original-ink-families",
+        "96zzzzzzzo-show-original-ink-families",
+        "96zzzzzzzp-apply-semantic-view-controls",
+        "96zzzzzzzq-draw-original-cad-wire-curves"
+      ],
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves"
+    }
+  ],
+  "old_step_to_lesson": {
+    "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms": {
+      "lesson": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+      "anchor": "checkpoint-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms"
+    },
+    "96zzzzzzh-connect-headlight-and-backface-controls": {
+      "lesson": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+      "anchor": "checkpoint-96zzzzzzh-connect-headlight-and-backface-controls"
+    },
+    "96zzzzzzi-share-one-frame-across-color-and-ink": {
+      "lesson": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "anchor": "checkpoint-96zzzzzzi-share-one-frame-across-color-and-ink"
+    },
+    "96zzzzzzj-fill-original-contact-polygons": {
+      "lesson": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "anchor": "checkpoint-96zzzzzzj-fill-original-contact-polygons"
+    },
+    "96zzzzzzk-broadcast-ordinary-ink-metadata": {
+      "lesson": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "anchor": "checkpoint-96zzzzzzk-broadcast-ordinary-ink-metadata"
+    },
+    "96zzzzzzl-layer-original-contact-boundaries": {
+      "lesson": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "anchor": "checkpoint-96zzzzzzl-layer-original-contact-boundaries"
+    },
+    "96zzzzzzm-query-original-faces-under-contact-overlays": {
+      "lesson": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "anchor": "checkpoint-96zzzzzzm-query-original-faces-under-contact-overlays"
+    },
+    "96zzzzzzn-respect-original-boundary-pens": {
+      "lesson": "96zzzzzzn-respect-original-boundary-pens",
+      "anchor": "checkpoint-96zzzzzzn-respect-original-boundary-pens"
+    },
+    "96zzzzzzo-close-original-boundary-joins": {
+      "lesson": "96zzzzzzn-respect-original-boundary-pens",
+      "anchor": "checkpoint-96zzzzzzo-close-original-boundary-joins"
+    },
+    "96zzzzzzp-draw-default-mesh-vertex-dots": {
+      "lesson": "96zzzzzzn-respect-original-boundary-pens",
+      "anchor": "checkpoint-96zzzzzzp-draw-default-mesh-vertex-dots"
+    },
+    "96zzzzzzq-taper-crowded-original-mesh-vertices": {
+      "lesson": "96zzzzzzn-respect-original-boundary-pens",
+      "anchor": "checkpoint-96zzzzzzq-taper-crowded-original-mesh-vertices"
+    },
+    "96zzzzzzr-share-geometric-ambient-inputs": {
+      "lesson": "96zzzzzzr-share-geometric-ambient-inputs",
+      "anchor": "checkpoint-96zzzzzzr-share-geometric-ambient-inputs"
+    },
+    "96zzzzzzs-shade-surfaces-before-drawing-ink": {
+      "lesson": "96zzzzzzr-share-geometric-ambient-inputs",
+      "anchor": "checkpoint-96zzzzzzs-shade-surfaces-before-drawing-ink"
+    },
+    "96zzzzzzt-keep-contact-ambient-inputs-on-originals": {
+      "lesson": "96zzzzzzr-share-geometric-ambient-inputs",
+      "anchor": "checkpoint-96zzzzzzt-keep-contact-ambient-inputs-on-originals"
+    },
+    "96zzzzzzu-keep-depth-and-address-samples-separate": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate"
+    },
+    "96zzzzzzv-reuse-coherent-frame-targets": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzv-reuse-coherent-frame-targets"
+    },
+    "96zzzzzzw-match-resolve-base-and-view-formats": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzw-match-resolve-base-and-view-formats"
+    },
+    "96zzzzzzx-reuse-count-specific-surface-pipelines": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzx-reuse-count-specific-surface-pipelines"
+    },
+    "96zzzzzzy-generate-ink-for-physical-samples": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzy-generate-ink-for-physical-samples"
+    },
+    "96zzzzzzz-cache-ink-pipelines-with-independent-queries": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzz-cache-ink-pipelines-with-independent-queries"
+    },
+    "96zzzzzzza-retarget-existing-overlay-lanes": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzza-retarget-existing-overlay-lanes"
+    },
+    "96zzzzzzzb-read-section-crossings-at-each-sample": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzb-read-section-crossings-at-each-sample"
+    },
+    "96zzzzzzzc-compose-cloud-depth-with-physical-addresses": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzc-compose-cloud-depth-with-physical-addresses"
+    },
+    "96zzzzzzzca-cache-cloud-and-sheet-samples": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzca-cache-cloud-and-sheet-samples"
+    },
+    "96zzzzzzzd-retarget-cached-text": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzd-retarget-cached-text"
+    },
+    "96zzzzzzze-cache-outline-section-recipes": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzze-cache-outline-section-recipes"
+    },
+    "96zzzzzzzf-resolve-float-outline-coverage": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzf-resolve-float-outline-coverage"
+    },
+    "96zzzzzzzg-retarget-original-ambient-properties": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzg-retarget-original-ambient-properties"
+    },
+    "96zzzzzzzh-share-ambient-shader-recipes": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzh-share-ambient-shader-recipes"
+    },
+    "96zzzzzzzi-correct-ambient-at-physical-samples": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzi-correct-ambient-at-physical-samples"
+    },
+    "96zzzzzzzj-cache-physical-depth-pyramid-inputs": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzj-cache-physical-depth-pyramid-inputs"
+    },
+    "96zzzzzzzk-retarget-the-complete-colour-frame": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzk-retarget-the-complete-colour-frame"
+    },
+    "96zzzzzzzl-choose-bounded-frame-quality": {
+      "lesson": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "anchor": "checkpoint-96zzzzzzzl-choose-bounded-frame-quality"
+    },
+    "96zzzzzzzm-retain-visible-instance-ranges": {
+      "lesson": "96zzzzzzzm-retain-visible-instance-ranges",
+      "anchor": "checkpoint-96zzzzzzzm-retain-visible-instance-ranges"
+    },
+    "96zzzzzzzn-prepare-original-ink-families": {
+      "lesson": "96zzzzzzzm-retain-visible-instance-ranges",
+      "anchor": "checkpoint-96zzzzzzzn-prepare-original-ink-families"
+    },
+    "96zzzzzzzo-show-original-ink-families": {
+      "lesson": "96zzzzzzzm-retain-visible-instance-ranges",
+      "anchor": "checkpoint-96zzzzzzzo-show-original-ink-families"
+    },
+    "96zzzzzzzp-apply-semantic-view-controls": {
+      "lesson": "96zzzzzzzm-retain-visible-instance-ranges",
+      "anchor": "checkpoint-96zzzzzzzp-apply-semantic-view-controls"
+    },
+    "96zzzzzzzq-draw-original-cad-wire-curves": {
+      "lesson": "96zzzzzzzm-retain-visible-instance-ranges",
+      "anchor": "checkpoint-96zzzzzzzq-draw-original-cad-wire-curves"
+    }
+  },
+  "implementation_contract": "Every original course.json checkpoint remains once in contiguous source order. Original course.json, snippet includes and archive pages are unchanged. Each retained lesson embeds full original Type sections with stable checkpoint anchors. Commands select the final original checkpoint.",
+  "production_boundary": {
+    "classification": "staged from production concepts; named divergences remain explicit in each lesson",
+    "owners": [
+      "src/state.rs",
+      "src/camera.rs",
+      "src/app/scene.rs",
+      "src/engine/gpu/mod.rs"
+    ],
+    "note": "Course renderer/browser owners are instructional. Maintained shader algorithms and pipeline owners remain the production destination; this prose batch does not establish rendering parity.",
+    "source_references": [
+      "session_viewer/src/engine/gpu/render.rs",
+      "session_viewer/src/engine/gpu/pass.rs",
+      "session_viewer/src/engine/gpu/targets.rs",
+      "session_viewer/src/engine/gpu/frame.rs",
+      "session_viewer/src/engine/gpu/view.rs",
+      "session_viewer/src/engine/pipelines/mod.rs",
+      "session_viewer/src/shaders/triangle.wgsl",
+      "session_viewer/src/shaders/ribbon.wgsl",
+      "session_viewer/src/shaders/vector.wgsl",
+      "session_viewer/src/shaders/ink_visibility.wgsl",
+      "session_viewer/src/app/scene.rs",
+      "session_viewer/build.rs"
+    ]
+  },
+  "representative_evidence": [
+    {
+      "checkpoint": "96zzzzzzg-share-current-surface-lighting-and-camera-uniforms",
+      "path": "screenshots/journey/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzh-connect-headlight-and-backface-controls",
+      "path": "screenshots/journey/96zzzzzzh-connect-headlight-and-backface-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzi-share-one-frame-across-color-and-ink",
+      "path": "screenshots/journey/96zzzzzzi-share-one-frame-across-color-and-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzj-fill-original-contact-polygons",
+      "path": "screenshots/journey/96zzzzzzj-fill-original-contact-polygons.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzk-broadcast-ordinary-ink-metadata",
+      "path": "screenshots/journey/96zzzzzzk-broadcast-ordinary-ink-metadata.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzl-layer-original-contact-boundaries",
+      "path": "screenshots/journey/96zzzzzzl-layer-original-contact-boundaries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzm-query-original-faces-under-contact-overlays",
+      "path": "screenshots/journey/96zzzzzzm-query-original-faces-under-contact-overlays.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzn-respect-original-boundary-pens",
+      "path": "screenshots/journey/96zzzzzzn-respect-original-boundary-pens.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzo-close-original-boundary-joins",
+      "path": "screenshots/journey/96zzzzzzo-close-original-boundary-joins.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzp-draw-default-mesh-vertex-dots",
+      "path": "screenshots/journey/96zzzzzzp-draw-default-mesh-vertex-dots.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzq-taper-crowded-original-mesh-vertices",
+      "path": "screenshots/journey/96zzzzzzq-taper-crowded-original-mesh-vertices.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzr-share-geometric-ambient-inputs",
+      "path": "screenshots/journey/96zzzzzzr-share-geometric-ambient-inputs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzs-shade-surfaces-before-drawing-ink",
+      "path": "screenshots/journey/96zzzzzzs-shade-surfaces-before-drawing-ink.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzt-keep-contact-ambient-inputs-on-originals",
+      "path": "screenshots/journey/96zzzzzzt-keep-contact-ambient-inputs-on-originals.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzu-keep-depth-and-address-samples-separate",
+      "path": "screenshots/journey/96zzzzzzu-keep-depth-and-address-samples-separate.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzv-reuse-coherent-frame-targets",
+      "path": "screenshots/journey/96zzzzzzv-reuse-coherent-frame-targets.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzw-match-resolve-base-and-view-formats",
+      "path": "screenshots/journey/96zzzzzzw-match-resolve-base-and-view-formats.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzx-reuse-count-specific-surface-pipelines",
+      "path": "screenshots/journey/96zzzzzzx-reuse-count-specific-surface-pipelines.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzy-generate-ink-for-physical-samples",
+      "path": "screenshots/journey/96zzzzzzy-generate-ink-for-physical-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzz-cache-ink-pipelines-with-independent-queries",
+      "path": "screenshots/journey/96zzzzzzz-cache-ink-pipelines-with-independent-queries.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzza-retarget-existing-overlay-lanes",
+      "path": "screenshots/journey/96zzzzzzza-retarget-existing-overlay-lanes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzb-read-section-crossings-at-each-sample",
+      "path": "screenshots/journey/96zzzzzzzb-read-section-crossings-at-each-sample.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzc-compose-cloud-depth-with-physical-addresses",
+      "path": "screenshots/journey/96zzzzzzzc-compose-cloud-depth-with-physical-addresses.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzca-cache-cloud-and-sheet-samples",
+      "path": "screenshots/journey/96zzzzzzzca-cache-cloud-and-sheet-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzd-retarget-cached-text",
+      "path": "screenshots/journey/96zzzzzzzd-retarget-cached-text.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzze-cache-outline-section-recipes",
+      "path": "screenshots/journey/96zzzzzzze-cache-outline-section-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzf-resolve-float-outline-coverage",
+      "path": "screenshots/journey/96zzzzzzzf-resolve-float-outline-coverage.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzg-retarget-original-ambient-properties",
+      "path": "screenshots/journey/96zzzzzzzg-retarget-original-ambient-properties.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzh-share-ambient-shader-recipes",
+      "path": "screenshots/journey/96zzzzzzzh-share-ambient-shader-recipes.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzi-correct-ambient-at-physical-samples",
+      "path": "screenshots/journey/96zzzzzzzi-correct-ambient-at-physical-samples.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzj-cache-physical-depth-pyramid-inputs",
+      "path": "screenshots/journey/96zzzzzzzj-cache-physical-depth-pyramid-inputs.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzk-retarget-the-complete-colour-frame",
+      "path": "screenshots/journey/96zzzzzzzk-retarget-the-complete-colour-frame.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "path": "screenshots/journey/96zzzzzzzl-choose-bounded-frame-quality.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzm-retain-visible-instance-ranges",
+      "path": "screenshots/journey/96zzzzzzzm-retain-visible-instance-ranges.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzn-prepare-original-ink-families",
+      "path": "screenshots/journey/96zzzzzzzn-prepare-original-ink-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzo-show-original-ink-families",
+      "path": "screenshots/journey/96zzzzzzzo-show-original-ink-families.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzp-apply-semantic-view-controls",
+      "path": "screenshots/journey/96zzzzzzzp-apply-semantic-view-controls.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/96zzzzzzzq-draw-original-cad-wire-curves.png",
+      "status": "historical record; not inspected in this consolidation; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "path": "screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality-0.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "path": "screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality-1.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "path": "screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality-2.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzl-choose-bounded-frame-quality",
+      "path": "screenshots/journey/review/96zzzzzzzl-choose-bounded-frame-quality-quality-3.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-0.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-1.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-2.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-3.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-4.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-5.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-6.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    },
+    {
+      "checkpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
+      "path": "screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-cad-wire-7.png",
+      "status": "historical supplied source-bound component/quality frame; not individually inspected in this batch; current acceptance pending"
+    }
+  ],
+  "remaining_defects": [
+    "Current endpoint runtime and visual acceptance pending integrator queue.",
+    "No embedded figures: historical screenshots were not individually inspected in this batch.",
+    "Earlier course-only lane/record/finite-AA abstractions remain staged where divergent; current production extraction and matched acceptance are pending.",
+    "Latest-camera preservation during scene reload and unchanged base world-grid plane remain a later implementation/acceptance batch, including in-flight camera motion and floating-origin rebases.",
+    "Element startup-default mismatch unresolved: historical course Attributes Off/Interactions On versus maintained Scene attributes=true/interactions=true.",
+    "Private quality, Plane and runtime proposals retain uncompiled status until explicitly integrated and evidenced; no new acceptance claimed by this prose batch."
+  ],
+  "comparison_reference": "97-finish-with-the-maintained-browser-runtime"
+}

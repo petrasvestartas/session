@@ -1,0 +1,1 @@
+return ambient_vertex(input.position,input.colour,input.normal,object);

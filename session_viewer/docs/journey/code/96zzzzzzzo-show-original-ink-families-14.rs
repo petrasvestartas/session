@@ -1,0 +1,1 @@
+self.highlight.ink(&mut pass,&self.view_group,self.ink_visibility);

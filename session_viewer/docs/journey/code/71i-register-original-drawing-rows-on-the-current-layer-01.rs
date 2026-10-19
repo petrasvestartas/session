@@ -1,0 +1,5 @@
+    pub view:Rc<crate::view_flags::Flags>,
+    pub forest:crate::hierarchy::Forest,
+    sheets:Vec<crate::sheet_source::Row>,
+    streamed:Vec<crate::range_cloud::Row>,
+    clouds:Vec<crate::cloud::Row>,

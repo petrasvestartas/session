@@ -1,0 +1,48 @@
+,"Actual4x horizontal section and full solid share the same outer silhouette");crate::sample_test_proof::write(root.join("uncut-four.rgba"),uncut).unwrap();
+}
+
+
+fn read_ambient_samples(r:&Renderer,metadata:&std::collections::HashMap<u32,(f32,[u8;2])>)->serde_json::Value {
+ let (properties,work,_)=r.ambient.borrow().as_ref().unwrap().actual_sample_inputs();
+ let module=r.device.create_shader_module(wgpu::ShaderModuleDescriptor {label:Some("actual four ambient source samples"),source:wgpu::ShaderSource::Wgsl(r#"
+@group(0) @binding(0) var depths:texture_depth_multisampled_2d;
+@group(0) @binding(1) var primitives:texture_multisampled_2d<u32>;
+@group(0) @binding(2) var radii:texture_multisampled_2d<f32>;
+@group(0) @binding(3) var normals:texture_multisampled_2d<f32>;
+@group(0) @binding(4) var<storage,read_write> output:array<vec4u>;
+@group(0) @binding(5) var<storage,read> corrections:array<u32>;
+@group(0) @binding(6) var<storage,read> flags:array<u32>;
+@group(0) @binding(7) var<storage,read> tiles:array<u32>;
+@group(0) @binding(8) var<storage,read> draw:array<u32>;
+@compute @workgroup_size(64) fn read_samples(@builtin(global_invocation_id) id:vec3u) {
+ let i=id.x;if i>=320u*240u*4u{return;}let p=i/4u;let at=vec2i(i32(p%320u),i32(p/320u));let sample=i%4u;
+ output[i*2u]=vec4u(textureLoad(primitives,at,i32(sample)).xy,bitcast<u32>(textureLoad(depths,at,i32(sample))),bitcast<u32>(textureLoad(radii,at,i32(sample)).x));
+ output[i*2u+1u]=vec4u(bitcast<vec2u>(textureLoad(normals,at,i32(sample)).xy),corrections[p],flags[(p/320u/16u)*20u+(p%320u)/16u]);
+ if i==0u {output[614400u]=vec4u(draw[0],draw[1],arrayLength(&flags),arrayLength(&tiles));output[614401u]=vec4u(draw[2],draw[3],0,0);}
+ if i<300u {let tile=tiles[i];output[614402u+i]=vec4u(tile,flags[min(tile,299u)],0,0);}
+}"#.into())});
+ let pipeline=r.device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {label:None,layout:None,module:&module,entry_point:Some("read_samples"),compilation_options:Default::default(),cache:None});let size=(614402+300)*16;
+ let output=r.device.create_buffer(&wgpu::BufferDescriptor {label:None,size,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_SRC,mapped_at_creation:false});let read=r.device.create_buffer(&wgpu::BufferDescriptor {label:None,size,usage:wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::MAP_READ,mapped_at_creation:false});
+ let views=[&r.targets.depth,&r.targets.primitive.view,&properties[0],&properties[1]];let mut entries=views.into_iter().enumerate().map(|(i,view)|wgpu::BindGroupEntry {binding:i as u32,resource:wgpu::BindingResource::TextureView(view)}).collect::<Vec<_>>();entries.push(wgpu::BindGroupEntry {binding:4,resource:output.as_entire_binding()});for(i,buffer)in work.iter().enumerate(){entries.push(wgpu::BindGroupEntry {binding:5+i as u32,resource:buffer.as_entire_binding()});}
+ let group=r.device.create_bind_group(&wgpu::BindGroupDescriptor {label:None,layout:&pipeline.get_bind_group_layout(0),entries:&entries});let mut encoder=r.device.create_command_encoder(&Default::default());{let mut pass=encoder.begin_compute_pass(&Default::default());pass.set_pipeline(&pipeline);pass.set_bind_group(0,&group,&[]);pass.dispatch_workgroups((320*240*4u32).div_ceil(64),1,1);}encoder.copy_buffer_to_buffer(&output,0,&read,0,size);r.queue.submit([encoder.finish()]);let(tx,rx)=std::sync::mpsc::channel();read.slice(..).map_async(wgpu::MapMode::Read,move|v|tx.send(v).unwrap());crate::cap_gpu_tests::wait(r);rx.recv().unwrap().unwrap();let bytes=read.slice(..).get_mapped_range();let word=|at:usize|u32::from_ne_bytes(bytes[at*4..at*4+4].try_into().unwrap());let mut covered=0;let mut mixed=0;let mut distinct_radii=0;let mut corrected=0;
+ for pixel in 0..320*240 {let mut ids=[0;4];let mut radii=[0;4];for sample in 0..4 {let at=(pixel*4+sample)*8;let id=word(at)|(word(at+1)<<16);let depth=f32::from_bits(word(at+2));let radius=f32::from_bits(word(at+3));let n=[f32::from_bits(word(at+4)),f32::from_bits(word(at+5))];assert!(depth.is_finite()&&(0.0..=1.0).contains(&depth));ids[sample]=id;radii[sample]=radius.to_bits();
+  if id==0 {assert_eq!(depth,0.);assert_eq!(radius,0.);assert_eq!(n,[0.;2]);}else{covered+=1;let (expected,normal)=metadata.get(&id).unwrap_or_else(||panic!("Invented physical address{id}"));assert_eq!(radius,*expected,"Actual original radius at physical{id},sample{sample}");for j in 0..2 {assert!((((n[j]*255.).round()as i32)-i32::from(normal[j])).abs()<=1,"Actual geometric normal at physical{id},sample{sample}: {n:?} vs{normal:?}");}}
+ }if ids.iter().any(|id|*id!=ids[0]){mixed+=1;}if radii.iter().filter(|r|**r!=0).any(|a|radii.iter().any(|b|*b!=0&&b!=a)){distinct_radii+=1;}if word(pixel*32+6)!=0{corrected+=1;}}
+ let header=614400*4;let vertices=word(header);let instances=word(header+1);assert_eq!(vertices,6);assert!(instances>0&&instances<=300*4&&instances%4==0,"Real sparse correction draw: {instances}");assert_eq!(word(header+2),300);assert_eq!(word(header+3),300);assert_eq!([word(header+4),word(header+5)],[0,0]);let mut tiles=std::collections::HashSet::new();for i in 0..instances as usize/4 {let at=(614402+i)*4;let tile=word(at);assert!(tile<300&&tiles.insert(tile),"Unique bounded correction tiles");assert_eq!(word(at+1),1);}
+ assert!(covered>10000&&mixed>100&&distinct_radii>0&&corrected>0,"Actual4samples: covered{covered},mixed{mixed},distinct original radii{distinct_radii},corrected{corrected}");drop(bytes);read.unmap();serde_json::json!({"coveredSamples":covered,"mixedPrimitivePixels":mixed,"mixedOriginalRadiusPixels":distinct_radii,"correctedPixels":corrected,"indirectInstances":instances,"uniqueEdgeTiles":tiles.len()})
+}
+fn ambient_face_metadata(r:&Renderer,scene:&Scene)->std::collections::HashMap<u32,(f32,[u8;2])> {
+ let mut out=std::collections::HashMap::new();for mesh in &r.meshes {let object=scene.objects().iter().find(|o|o.id==mesh.id).unwrap();let radius=f32::from_ne_bytes(mesh.packed()[crate::object_record::RANGE+8..crate::object_record::RANGE+12].try_into().unwrap());assert!(radius>0.);for(i,tri)in mesh.geometry.source.indices().chunks_exact(3).enumerate(){let p=tri.iter().map(|index|{let v=mesh.geometry.source.vertices()[*index as usize];object.model.transform_point(&session_rust::Point::new(v[0]as f64,v[1]as f64,v[2]as f64))}).collect::<Vec<_>>();let a=std::array::from_fn::<_,3,_>(|j|p[1][j]-p[0][j]);let b=std::array::from_fn::<_,3,_>(|j|p[2][j]-p[0][j]);let n=[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];let sum=n.iter().map(|x|x.abs()).sum::<f64>();let e=[n[0]/sum,n[1]/sum];let e=if n[2]<0. {[(1.-e[1].abs())*if e[0]>=0.{1.}else{-1.},(1.-e[0].abs())*if e[1]>=0.{1.}else{-1.}]}else{e};let normal=e.map(|v|((v*0.5+0.5)*255.).round()as u8);assert!(out.insert(mesh.primitive_base()+1+i as u32,(radius,normal)).is_none());}}
+ out
+}
+
+#[test]
+fn actual_four_sample_ambient_reads_original_properties_and_executes_sparse_corrections() {
+ let mut scene=Scene::empty();let mut big=crate::cap_gpu_tests::source(false);big.set_objectcolor(session_rust::Color::new(0.2,0.4,0.6,1.));scene.insert(crate::prepared::PreparedMesh::new(big).unwrap()).unwrap();let mut small=crate::cap_gpu_tests::source(false);small.transform(&(&session_rust::Xform::translation(0.4,0.25,0.35)*&session_rust::Xform::scale_xyz(0.45,0.45,0.45)));small.set_objectcolor(session_rust::Color::new(0.25,0.7,0.2,1.));scene.insert(crate::prepared::PreparedMesh::new(small).unwrap()).unwrap();
+ let mut r=crate::cap_gpu_tests::renderer(&scene);retarget_basic_fixture(&mut r,4);r.set_ambient(true);let mut camera=crate::camera::Camera::default();camera.isometric();camera.aspect=4./3.;camera.target=[0.,0.,-0.3];camera.distance=3.;let transform=camera.uniform();let first=crate::cap_gpu_tests::pixels_at(&r,transform);assert_eq!(r.ambient_error(),None);let metadata=ambient_face_metadata(&r,&scene);let samples=read_ambient_samples(&r,&metadata);let (_,_,coarse)=r.ambient.borrow().as_ref().unwrap().actual_sample_inputs();let uploads=r.stats()[0];let geometry=r.meshes.iter().map(|m|Rc::clone(&m.geometry)).collect::<Vec<_>>();let original=scene.objects().iter().map(|o|o.geometry().unwrap().to_proto()).collect::<Vec<_>>();
+ let root=std::path::Path::new("ambient-pixels");crate::sample_test_proof::write(root.join("four.rgba"),&first).unwrap();crate::sample_test_proof::write(root.join("samples.json"),serde_json::to_vec_pretty(&samples).unwrap()).unwrap();let mut single=Vec::new();
+ for count in [4,1,4] {retarget_basic_fixture(&mut r,count);let pixels=crate::cap_gpu_tests::pixels_at(&r,transform);assert_eq!(r.ambient_error(),None);let (_,_,retained)=r.ambient.borrow().as_ref().unwrap().actual_sample_inputs();assert_eq!(retained,coarse,"Changing count retains all actual coarse ambient images");if count==4 {assert!(pixels==first);}else{single=pixels;}assert_eq!(r.stats()[0],uploads);}
+ crate::sample_test_proof::write(root.join("one.rgba"),single).unwrap();let repeated=read_ambient_samples(&r,&metadata);assert_eq!(repeated,samples,"Actual correction counters reset per changed frame and return to the same bounded work");
+ r.instances.ordinary.clear();r.set_ambient(false);r.set_ambient(true);let uniforms=crate::cap_gpu_tests::pixels_at(&r,transform);assert!(uniforms==first,"Exact4x ordinary/shared ambient source properties");r.set_ambient(false);let plain=crate::cap_gpu_tests::pixels_at(&r,transform);assert!(plain!=first);crate::sample_test_proof::write(root.join("plain-four.rgba"),plain).unwrap();for ((mesh,before),source)in r.meshes.iter().zip(&geometry).zip(&original){assert!(Rc::ptr_eq(&mesh.geometry,before));assert_eq!(&scene.objects().iter().find(|o|o.id==mesh.id).unwrap().geometry().unwrap().to_proto(),source);}
+}
+

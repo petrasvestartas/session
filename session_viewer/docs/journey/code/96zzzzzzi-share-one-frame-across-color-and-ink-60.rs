@@ -1,0 +1,1 @@
+self.guides.draw(&mut pass,&self.view_group)

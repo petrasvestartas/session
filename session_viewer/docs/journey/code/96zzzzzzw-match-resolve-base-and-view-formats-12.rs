@@ -1,0 +1,1 @@
+Targets::with_formats(&self.device,self.size,self.output_format,self.format,self.targets.samples)

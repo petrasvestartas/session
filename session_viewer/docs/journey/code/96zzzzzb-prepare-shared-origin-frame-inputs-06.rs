@@ -1,0 +1,1 @@
+anchor,height,pixel_scale:

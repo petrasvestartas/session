@@ -1,0 +1,1 @@
+@vertex fn vs_count(@location(0) position:vec3<f32>,@builtin(instance_index) plane:u32)->CountOut{return count_corner(position,plane,object_at(0u));}

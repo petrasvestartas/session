@@ -1,0 +1,7 @@
+    snap_index: Option<crate::snap_index::Index>,
+    pub draft: Option<crate::tool::Draft>,
+    pub construction_plane:Option<crate::cplane::CPlane>,
+    pub plane_menu:bool,
+    pub plane_only:bool,
+    pub tool_status: String,
+    pub scene: Scene,

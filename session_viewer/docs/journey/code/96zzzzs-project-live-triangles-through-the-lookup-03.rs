@@ -1,0 +1,1 @@
+Self{lookup:None,projected,buffer,pipes,

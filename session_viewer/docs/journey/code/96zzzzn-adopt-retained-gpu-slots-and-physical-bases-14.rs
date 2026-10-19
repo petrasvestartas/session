@@ -1,0 +1,1 @@
+  self.written_bytes.set(0);let previous=self.texture.clone();
