@@ -26,7 +26,8 @@ pub const NEAR_FRACTION: f64 = 1.0e-4;
 const GRID_HALF: f64 = 5000.0;
 
 /// A named standard view.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum View {
     Front,
     Back,

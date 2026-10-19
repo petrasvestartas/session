@@ -34,6 +34,10 @@ pub struct TextItem {
     pub height: f64,  // letter height in world units
     #[serde(default)]
     pub camera_facing: bool, // always face the camera
+    #[serde(default = "text_plate")]
+    pub plate: bool, // a black plate behind the glyphs; lying texts only
+    #[serde(default)]
+    pub color: Option<[u8; 4]>, // ink rgba; white on a plate, black without one
 }
 
 /// The parsed scene file.
@@ -44,6 +48,10 @@ pub struct Manifest {
     pub items: Vec<Item>, // geometry files
     #[serde(default)]
     pub texts: Vec<TextItem>, // world texts
+    #[serde(default)]
+    pub live: bool, // reload whenever it is published again, like view_live
+    #[serde(default)]
+    pub view: Option<crate::camera::View>, // the camera the scene opens with
 }
 
 impl Item {
@@ -212,6 +220,11 @@ fn text_up() -> [f64; 3] {
     [0.0, 1.0, 0.0]
 }
 
+/// Texts have a plate unless they say otherwise.
+fn text_plate() -> bool {
+    true
+}
+
 /// A translation matrix.
 fn translation(at: [f64; 3]) -> Xform {
     Xform::translation(at[0], at[1], at[2])
@@ -348,6 +361,18 @@ mod tests {
         assert_eq!(text.at, [0.0; 3]);
         assert_eq!(text.right, [1.0, 0.0, 0.0]);
         assert_eq!(text.up, [0.0, 1.0, 0.0]);
+        assert!(text.plate);
+        assert_eq!(text.color, None);
+        let bare = Manifest::parse(b"items: []\ntexts: [{text: '1.5', height: 2, plate: false, color: [0, 0, 255, 255]}]").unwrap();
+        assert!(!bare.texts[0].plate);
+        assert_eq!(bare.texts[0].color, Some([0, 0, 255, 255]));
+        let empty = Manifest::parse(b"items: []").unwrap();
+        assert!(!empty.live);
+        assert_eq!(empty.view, None);
+        let watched = Manifest::parse(b"items: []\nlive: true\nview: top").unwrap();
+        assert!(watched.live);
+        assert_eq!(watched.view, Some(crate::camera::View::Top));
+        assert!(Manifest::parse(b"items: []\nview: sideways").is_err());
         assert!(Manifest::parse(b"texts: [{text: label, height: 2}]").is_err());
         assert!(Manifest::parse(b"items: []\ntexts: [{text: label}]").is_err());
     }

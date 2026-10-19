@@ -702,6 +702,7 @@ pub(crate) mod tests {
                 right: [1.0, 0.0, 0.0],
                 up: [0.0, 1.0, 0.0],
                 world_height: 2.0,
+                plate: true,
             },
             clip: None,
         }

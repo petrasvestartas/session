@@ -95,6 +95,7 @@ impl State {
                     right,
                     up,
                     world_height,
+                    ..
                 } => (world, right, up, world_height),
                 TextPlacement::WorldBillboard {
                     world,

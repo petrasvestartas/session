@@ -54,6 +54,8 @@ pub enum TextPlacement {
         right: [f64; 3],   // unit axis along the text
         up: [f64; 3],      // unit axis up the text
         world_height: f64, // em height, world units
+        #[serde(default = "plated")]
+        plate: bool, // a black plate behind the glyphs
     },
     WorldBillboard {
         // facing the camera, world-sized
@@ -61,6 +63,11 @@ pub enum TextPlacement {
         world: [f64; 3],
         world_height: f64, // em height, world units
     },
+}
+
+/// World-plane texts have a plate unless they say otherwise.
+fn plated() -> bool {
+    true
 }
 
 /// The object a label belongs to, for picks and selection.
@@ -336,6 +343,7 @@ fn validate_label(label: &TextLabel) -> anyhow::Result<()> {
             right,
             up,
             world_height,
+            ..
         } => {
             world.iter().all(finite_f64)
                 && valid_plane_axes(right, up)

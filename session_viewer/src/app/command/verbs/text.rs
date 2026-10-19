@@ -148,6 +148,7 @@ fn label(text: &str, point: &Point, right: [f64; 3], up: [f64; 3], height: f64) 
             right,
             up,
             world_height: height,
+            plate: true,
         },
         clip: None,
     }

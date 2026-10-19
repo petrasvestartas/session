@@ -36,6 +36,7 @@ impl Scene {
                     right: text.right,
                     up: text.up,
                     world_height: text.height,
+                    plate: text.plate,
                 }
             };
             self.register_text(
@@ -46,7 +47,7 @@ impl Scene {
                     text: text.text,
                     font_size: 18.0,
                     line_height: 26.0,
-                    color: [255; 4],
+                    color: text.color.unwrap_or(if text.plate { [255; 4] } else { [0, 0, 0, 255] }),
                     placement,
                     clip: None,
                 },

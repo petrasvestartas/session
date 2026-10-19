@@ -170,6 +170,13 @@ impl State {
         self.touch();
     }
 
+    /// Turn the camera to the scene's view; the fit that follows still frames it.
+    pub fn open_with_view(&mut self, view: crate::camera::View) {
+        self.camera.set_view(view);
+        self.load_camera = self.camera.pose();
+        self.touch();
+    }
+
     /// Fit the camera, unless the user already moved it.
     pub fn fit_loaded(&mut self) {
         // unchanged since loading started?

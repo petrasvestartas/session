@@ -158,6 +158,14 @@ pub async fn boot(window: Arc<Window>, proxy: EventLoopProxy<Msg>) {
 
     let mut loaded = false;
 
+    // a named scene whose manifest says `live: true` is loaded and followed by the watcher
+    if live.is_none()
+        && let (Some(route), Some(promise)) = (&route, &early)
+        && manifest_is_live(promise).await
+    {
+        live = Some(LiveSource::watching(route.manifest.clone()));
+    }
+
     if let Some(src) = live.as_mut() {
         log::info!("live: watching {} every {:.0} ms", src.url, src.poll_ms);
         loaded = post_live(src).await;
@@ -194,6 +202,10 @@ async fn post_live(src: &mut LiveSource) -> bool {
 
     clear_scene();
 
+    if let Some(view) = src.take_view() {
+        post(Msg::View(view));
+    }
+
     for doc in docs {
         post(Msg::File(doc, None));
     }
@@ -228,6 +240,14 @@ async fn load_replacement(route: SceneRoute, generation: u64) {
 /// True when a newer load has started since.
 fn stale_load(generation: u64) -> bool {
     LOAD_GENERATION.get() != generation
+}
+
+/// True when the prefetched manifest asks to be watched live.
+async fn manifest_is_live(promise: &js_sys::Promise) -> bool {
+    match wasm_bindgen_futures::JsFuture::from(promise.clone()).await {
+        Ok(bytes) => Manifest::parse(&js_sys::Uint8Array::new(&bytes).to_vec()).is_ok_and(|manifest| manifest.live),
+        Err(_) => false,
+    }
 }
 
 /// Start fetching the manifest now; the promise resolves to its bytes.
@@ -298,6 +318,13 @@ async fn load_route(route: &SceneRoute, replacement: Option<u64>, early: Option<
         }
     };
     log::info!("scene '{}': {} items", manifest.name, manifest.items.len());
+
+    // the scene's own view, on the first load only: a reload keeps the camera
+    if replacement.is_none()
+        && let Some(view) = manifest.view
+    {
+        post(Msg::View(view));
+    }
 
     let mut files = 0u32;
 

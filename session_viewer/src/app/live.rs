@@ -91,6 +91,7 @@ pub struct LiveSource {
     pending: bool,                              // a change waits to be shown
     notify: Option<Notify>,                     // relay connection
     notify_url: Option<String>,                 // relay opened after the first scene
+    viewed: bool,                               // the scene's view was applied
 }
 
 impl LiveSource {
@@ -100,6 +101,22 @@ impl LiveSource {
             Some(manifest) => manifest.texts.clone(),
             None => Vec::new(),
         }
+    }
+
+    /// The scene's view, the first time only: a reload keeps the camera.
+    pub fn take_view(&mut self) -> Option<crate::camera::View> {
+        if self.viewed {
+            return None;
+        }
+
+        self.viewed = true;
+        self.manifest.as_ref().and_then(|manifest| manifest.view)
+    }
+
+    /// Watch a named scene's manifest, announced on the same relay as view_live.
+    pub fn watching(url: String) -> Self {
+        let notify_url = (!is_local_url(&url)).then(|| DEFAULT_NOTIFY.to_string());
+        Self::new(url, DEFAULT_POLL_SECONDS, notify_url)
     }
 
     /// The live source from the page URL, None when off or a named scene.
@@ -141,6 +158,11 @@ impl LiveSource {
             (false, Some(u)) if u.starts_with("https://") => Some(u),
             (false, _) => Some(DEFAULT_NOTIFY.to_string()),
         };
+        Some(Self::new(url, seconds, notify_url))
+    }
+
+    /// A source polled every `seconds`, woken early by the relay when there is one.
+    fn new(url: String, seconds: f64, notify_url: Option<String>) -> Self {
         let poll_ms = seconds * 1000.0;
         // with a relay, look at its flag often
         let tick_ms = if notify_url.is_some() {
@@ -148,7 +170,7 @@ impl LiveSource {
         } else {
             poll_ms as i32
         };
-        Some(Self {
+        Self {
             url,
             tick_ms,
             poll_ms,
@@ -161,7 +183,8 @@ impl LiveSource {
             pending: false,
             notify: None,
             notify_url,
-        })
+            viewed: false,
+        }
     }
 
     /// Log a message once until it changes.

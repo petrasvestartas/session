@@ -6,6 +6,7 @@ struct Vertex {
     @location(2) @interpolate(flat) clip: vec4<f32>, // screen box the label is cut to
     @location(3) @interpolate(flat) object: u32, // object row + 1, or 0
     @location(4) @interpolate(flat) selected: f32, // 1 when selected
+    @location(5) @interpolate(flat) plate: f32, // 1 with a black plate behind the glyphs
 }
 
 @group(0) @binding(0) var coverage_texture: texture_2d<f32>; // rasterized glyphs
@@ -16,10 +17,10 @@ struct Vertex {
 
 // Pack the vertex attributes.
 fn plane_vertex(position: vec4<f32>, uv: vec2<f32>, color: vec4<f32>, clip: vec4<f32>,
-                object: u32, selected: f32) -> Vertex {
+                object: u32, selected: f32, plate: f32) -> Vertex {
     var out: Vertex;
     out.position = position; out.uv = uv; out.color = color; out.clip = clip;
-    out.object = object; out.selected = selected;
+    out.object = object; out.selected = selected; out.plate = plate;
     return out;
 }
 
@@ -27,16 +28,16 @@ fn plane_vertex(position: vec4<f32>, uv: vec2<f32>, color: vec4<f32>, clip: vec4
 // Vertices arrive already in clip space.
 fn vs_main(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
            @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
-           @location(4) object: u32, @location(5) selected: f32) -> Vertex {
-    return plane_vertex(position, uv, color, clip, object, selected);
+           @location(4) object: u32, @location(5) selected: f32, @location(6) plate: f32) -> Vertex {
+    return plane_vertex(position, uv, color, clip, object, selected, plate);
 }
 
 @vertex
 // The same, mapped into the pick window.
 fn vs_id(@location(0) position: vec4<f32>, @location(1) uv: vec2<f32>,
          @location(2) color: vec4<f32>, @location(3) clip: vec4<f32>,
-         @location(4) object: u32, @location(5) selected: f32) -> Vertex {
-    return plane_vertex(pick * position, uv, color, clip, object, selected);
+         @location(4) object: u32, @location(5) selected: f32, @location(6) plate: f32) -> Vertex {
+    return plane_vertex(pick * position, uv, color, clip, object, selected, plate);
 }
 
 // Signed distance to the rounded plate edge, in texture pixels.
@@ -47,7 +48,7 @@ fn plate_distance(uv: vec2<f32>) -> f32 {
     return length(max(q, vec2<f32>(0.0))) + min(max(q.x, q.y), 0.0) - radius;
 }
 
-// Glyph color over a black plate, yellow when selected.
+// Glyph color over a black plate, yellow when selected; the glyphs alone without a plate.
 @fragment
 fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
     // outside the clip box
@@ -59,7 +60,10 @@ fn fs_main(in: Vertex) -> @location(0) vec4<f32> {
     let distance = plate_distance(in.uv);
     let plate_coverage = clamp(0.5 - distance / max(fwidth(distance), 0.001), 0.0, 1.0);
     let background = vec3<f32>(in.selected, in.selected, 0.0);
-    return vec4<f32>(mix(background, in.color.rgb, coverage), in.color.a * plate_coverage);
+    let plated = vec4<f32>(mix(background, in.color.rgb, coverage), in.color.a * plate_coverage);
+    // no plate: the ink, as opaque as the glyph covers the pixel; chosen without a branch, fwidth needs uniform flow
+    let bare = vec4<f32>(in.color.rgb, in.color.a * coverage);
+    return select(bare, plated, in.plate >= 0.5);
 }
 
 @fragment
