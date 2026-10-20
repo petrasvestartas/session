@@ -110,7 +110,7 @@ jobs:
       shell: bash
       run: |
         [ -d session_cpp/build ] || exit 0
-        current_cmake=$(cmake --version | sed -n '1s/^cmake version //p')
+        current_cmake=$(cmake --version | tr -d '\r' | sed -n '1s/^cmake version //p')
         stale=""
         while IFS= read -r -d '' cache; do
           cached_cmake=$(sed -n 's/^CMAKE_CACHE_\(MAJOR\|MINOR\|PATCH\)_VERSION:INTERNAL=//p' "$cache" | tr -d '\r' | paste -sd . -)
