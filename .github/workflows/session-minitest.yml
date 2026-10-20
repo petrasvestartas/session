@@ -103,21 +103,40 @@ jobs:
         key: cpp-${{ matrix.os }}-${{ runner.arch }}-${{ hashFiles('session_cpp/CMakeLists.txt', 'session_cpp/src/**', 'session_cpp/generated/**', 'session_cpp/main*.cpp', 'session_cpp/*.h', 'session_cpp/session_proto/**') }}
         restore-keys: cpp-${{ matrix.os }}-${{ runner.arch }}-
 
-    # Belt and braces for the same class of failure: any restored build/ whose recorded cmake is
-    # gone (a runner image moving its toolchain, not just the arch flip above) is discarded rather
-    # than handed to make. Cheap - it only reads one line of CMakeCache.txt.
+    # Runner updates can invalidate paths or CMake's generated FetchContent scripts.
+    # Check nested caches too: protobuf's subbuild records its own Git executable.
     - name: Discard a C++ build dir from a different toolchain
-      if: (matrix.language == 'cpp' || matrix.language == 'full') && runner.os != 'Windows'
+      if: matrix.language == 'cpp' || matrix.language == 'full'
       shell: bash
       run: |
-        cache="session_cpp/build/CMakeCache.txt"
-        [ -f "$cache" ] || exit 0
-        cm=$(sed -n 's/^CMAKE_COMMAND:INTERNAL=//p' "$cache" | head -1)
-        if [ -n "$cm" ] && [ ! -x "$cm" ]; then
-          echo "cached build/ records cmake at '$cm', which is not executable here - discarding"
+        [ -d session_cpp/build ] || exit 0
+        current_cmake=$(cmake --version | sed -n '1s/^cmake version //p')
+        stale=""
+        while IFS= read -r -d '' cache; do
+          cached_cmake=$(sed -n 's/^CMAKE_CACHE_\(MAJOR\|MINOR\|PATCH\)_VERSION:INTERNAL=//p' "$cache" | tr -d '\r' | paste -sd . -)
+          if [ -n "$cached_cmake" ] && [ "$cached_cmake" != "$current_cmake" ]; then
+            stale="CMake version changed: $cached_cmake -> $current_cmake"
+            break
+          fi
+          for key in CMAKE_COMMAND GIT_EXECUTABLE; do
+            path=$(sed -n "s/^$key:[A-Z]*=//p" "$cache" | tr -d '\r' | head -1)
+            [ -n "$path" ] || continue
+            if ! version=$("$path" --version 2>/dev/null); then
+              stale="$key cannot run: $path"
+              break
+            fi
+            if [ "$key" = GIT_EXECUTABLE ] && [[ ! "$version" =~ ^git\ version\ [0-9] ]]; then
+              stale="Git version unavailable: $path"
+              break
+            fi
+          done
+          [ -z "$stale" ] || break
+        done < <(find session_cpp/build -name CMakeCache.txt -print0)
+        if [ -n "$stale" ]; then
+          echo "$stale - discarding cached build/"
           rm -rf session_cpp/build
         else
-          echo "cached build/ toolchain looks valid (cmake: ${cm:-none recorded})"
+          echo "cached build/ toolchain looks valid"
         fi
 
     # ============ SETUP ============
