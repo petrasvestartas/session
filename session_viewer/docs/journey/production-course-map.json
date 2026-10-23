@@ -4,7 +4,7 @@
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
   "endpointStatus": "Current97d native1060/1060, optimized bundle and finite Matrix, Camera/Plane and Joined acceptance pass. FinalCAD original callback accepted1/18;17remain.15partial feature checklists and global release0/5 remain open.",
-  "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+  "courseSha256": "a0e3163a416e2c869fb42408bbedc7578e12f74d97b689238cc486d768bf364f",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -22153,7 +22153,7 @@
     },
     "docsCurrent": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
     "readerCompilerProof": {
-      "status": "Compiler-only lane:41/101 endpoints,82/202 phases passed",
+      "status": "Compiler-only lane:57/101 endpoints,115/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
@@ -22161,10 +22161,12 @@
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 41,
-      "remainingEndpoints": 60,
-      "successfulPhases": 82,
-      "record": "docs/journey/release/reader-compilation-review.json"
+      "successfulEndpoints": 57,
+      "remainingEndpoints": 44,
+      "successfulPhases": 115,
+      "record": "docs/journey/release/reader-compilation-review.json",
+      "reusedPriorPhases": 82,
+      "newV2Phases": 33
     },
     "lateChapterTeaching": {
       "status": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
@@ -22192,5 +22194,12 @@
       "record": "release/warp-browser-wait-review.json",
       "fullCanonicalAcceptance": "pending"
     }
+  },
+  "authoringPrerequisiteRepair": {
+    "record": "release/53u-prerequisite-review.json",
+    "courseSha256": "a0e3163a416e2c869fb42408bbedc7578e12f74d97b689238cc486d768bf364f",
+    "priorProofMetadataCourseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+    "finalRuntimeUnchanged": true,
+    "first10CodeHandoff": "Two generated checkpoint references updated; two consolidated reader code proposals remain under Gemini ownership"
   }
 }

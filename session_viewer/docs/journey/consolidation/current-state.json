@@ -121,21 +121,21 @@
   },
   "currentDefects": [
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
-    "Reader compiler checks pass41/101 endpoints and82/202 phases.53u Layers calls a helper introduced later; a chronological move is prepared, with exact source convergence at54a and every later checkpoint.",
-    "Original18 source-specific callback entries: finalCAD accepted1;17remain including13historical.96y fixture proof remains accepted within its scope; historical fixture set1/4.",
+    "Reader compiler checks pass57/101 endpoints and115/202 phases.53u prerequisite move is applied and its unchanged CPU focus regression passes. Source converges exactly at54a; final713 source unchanged. Generated checkpoint references are updated;2consolidated Gemini reader code proposals remain prepared and its chapters untouched.",
+    "Original18 source-specific callback entries: finalCAD accepted1;17remain including13historical.65c complete browser failed at legacy document-error wording after successful file/read phases; failure preserved and source-aware candidate prepared.96y fixture proof remains accepted within its scope; historical fixture set1/4.",
     "Matrix, Camera/Plane and Joined finite features are3/18 complete;15remain partial. Global release0/5. Native1060 and scoped docs content/layout proofs pass; Gemini first10/redraft and current combined-book handoff remain deferred."
   ],
   "onlyHeavy": {
-    "task": "Historical65c complete original browser callback",
-    "rootSession": 88474,
-    "status": "running",
-    "memoryLimitMiB": 6144,
+    "task": "Reader compiler lane: next32 phases",
+    "rootSession": 43176,
+    "status": "running-unaccepted",
+    "memoryLimitMiB": 4096,
     "processors": 2,
-    "timeoutSecondsPerPhase": 7200,
-    "compilerLane": "41/101 endpoints;82/202 phases passed.53u native compile failure retained and repair prepared.",
-    "scope": "Native check, WASM library, optimized web, inspected native frame and specimen generation passed. Original browser callback is running, unaccepted until completion and frame review. No historical full-native-suite execution claim."
+    "timeoutSecondsPerPhase": 1800,
+    "completedBeforeBatch": "57/101 endpoints;115/202 phases",
+    "scope": "Only compiler phases; no native test execution or GPU/browser acceptance."
   },
-  "next": "Finish historical65c build, individually inspect its native frame and run its complete original browser callback. Repair53u historical test dependency, then resume remaining60 reader endpoints with verified source bindings. Split Object-mode correction and full replay/qualified reuse choice await the separate frozen-harness exception. Preserve Gemini edits and accepted native1060, reload4/4, Matrix, Camera/Plane and Joined finite closure.",
+  "next": "Finish and inspect4new material owner/clip native cases, then continue44remaining reader endpoints. Both prepared document-error correction and earlier Split correction/phase-reuse choice await their own frozen-harness exceptions. Retain all passed build/native evidence and failed65c browser attempt. Preserve Gemini consolidated first10 ownership;2code-only consolidated lesson proposals remain prepared.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -293,6 +293,13 @@
       "candidateEvidence": "target/course-windows-20261018/split-control-candidate-v1.resources.json",
       "candidate": "Focused DPR1/2 pass,41.194s,peak787517440B; diagnostic only, not applied canonical acceptance.",
       "phaseReuse": "Optional phase reuse question sent; no answer yet."
+    },
+    {
+      "choice": "Source-aware document decode error expectation",
+      "status": "awaiting-user-answer",
+      "applied": false,
+      "candidateEvidence": "target/course-windows-20261018/65c-document-phases-diagnosis-v1/compatibility-candidate-v2/document-phases-source-contract-focus-v2.focus.json",
+      "candidate": "Both65c legacy exact static error and94c detailed invalid-varint error pass atDPR1/2;29.59s,peak877285376B. All phase/archive/image/Undo/Redo assertions retained. Canonical harness unchanged."
     }
   ],
   "planeMatrices": {
@@ -600,7 +607,7 @@
     "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
     "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs",
     "readerCompilerProof": {
-      "status": "Compiler-only lane:41/101 endpoints,82/202 phases passed",
+      "status": "Compiler-only lane:57/101 endpoints,115/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
@@ -608,10 +615,12 @@
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 41,
-      "remainingEndpoints": 60,
-      "successfulPhases": 82,
-      "record": "docs/journey/release/reader-compilation-review.json"
+      "successfulEndpoints": 57,
+      "remainingEndpoints": 44,
+      "successfulPhases": 115,
+      "record": "docs/journey/release/reader-compilation-review.json",
+      "reusedPriorPhases": 82,
+      "newV2Phases": 33
     },
     "latest94cTailAttempt": {
       "status": "failed-historical-command-echo-assertion",
@@ -693,6 +702,17 @@
           "status": "Required pending default source-face callback in current global queue; isometric interior-curve/surface-lighting/default parent assertions are not proved by separately exported helper calls."
         }
       ]
+    },
+    "documentErrorCandidate": {
+      "status": "focused4/4passed;canonicalexceptionpending",
+      "record": "target/course-windows-20261018/65c-document-phases-diagnosis-v1/compatibility-candidate-v2/document-phases-source-contract-focus-v2.focus.json"
+    },
+    "materialOwnerClipCandidate": {
+      "status": "Four new native image pairs differ;diagnosing matched input/settings before any renderer change",
+      "build": "target/course-windows-20261018/material-owner-clip-preparation/build-20261023T222518148Z",
+      "run": "target/course-windows-20261018/material-owner-clip-preparation/run-20261023T222625735Z",
+      "acceptedCases": 0,
+      "existingAcceptedMaterialPairs": 8
     }
   },
   "concurrentTeachingIntegration": {
@@ -715,5 +735,12 @@
       "inspectedCaptures": 8,
       "scope": "Only changed22.6 material teaching at recorded source/build; prior broader proofs remain source-bound and global/first10 handoff pending."
     }
+  },
+  "authoringPrerequisiteRepair": {
+    "record": "release/53u-prerequisite-review.json",
+    "courseSha256": "a0e3163a416e2c869fb42408bbedc7578e12f74d97b689238cc486d768bf364f",
+    "priorProofMetadataCourseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
+    "finalRuntimeUnchanged": true,
+    "first10CodeHandoff": "Two generated checkpoint references updated; two consolidated reader code proposals remain under Gemini ownership"
   }
 }

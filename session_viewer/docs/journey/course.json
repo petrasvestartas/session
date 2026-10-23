@@ -23287,6 +23287,12 @@
       "checks": "Additional native checks cover presentation/source separation, current-layer protection, stable keys, generated routing, cross-document world placements, source-sharing copies, complete deletion undo, repeated save identities, actual egui name and colour controls, deletion confirmation and actual GPU face/edge independence. All earlier checks remain.",
       "edits": [
         {
+          "path": "src/shortcuts.rs",
+          "before": "    else {None}\n}\n",
+          "snippet": "journey/code/54a-selection-03.rs",
+          "why": "Add field-aware Select All alongside the already taught history and H/S/F keys."
+        },
+        {
           "path": "src/command_dock/mod.rs",
           "before": "    if model.focus_command || model.command_open {\n        ui.memory_mut(|memory| memory.request_focus(id));",
           "snippet": "journey/code/53u-layers-focus-adapter-1.rs",
@@ -23522,12 +23528,6 @@
           "path": "src/shortcuts.rs",
           "before": "        if focused && !text_empty { return None; }\n        match text.to_ascii_lowercase().as_str() {\n            \"z\" if shift => Some(Shortcut::Redo),\n            \"z\" => Some(Shortcut::Undo),\n",
           "snippet": "journey/code/54a-selection-02.rs",
-          "why": "Add field-aware Select All alongside the already taught history and H/S/F keys."
-        },
-        {
-          "path": "src/shortcuts.rs",
-          "before": "    else {None}\n}\n",
-          "snippet": "journey/code/54a-selection-03.rs",
           "why": "Add field-aware Select All alongside the already taught history and H/S/F keys."
         },
         {
