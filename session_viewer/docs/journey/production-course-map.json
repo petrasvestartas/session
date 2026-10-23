@@ -21028,10 +21028,10 @@
   },
   "currentIntegration": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+    "fingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
     "files": 713,
-    "recordedAt": "2026-10-23T08:47:16.211Z",
-    "scope": "Full-code checkpoint preparation; clean native final suite, browser/performance/reload/coverage gates remain open",
+    "recordedAt": "2026-10-23T10:09:33.393Z",
+    "scope": "Current native source1059/1059 PASS; optimized WASM/browser63acaf79 and five small-scene performance categories PASS. Historical callbacks,reload/grid,chapter feature evidence and final release gates remain open.",
     "state": "consolidation/current-state.json"
   }
 }

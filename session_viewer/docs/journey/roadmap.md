@@ -1,10 +1,25 @@
 # The complete draft lesson checklist
 
-**Course status: 1361 current checkpoints; 79 have fresh build and Chrome evidence; 1282 await fresh Chrome acceptance.** The early dock steps introduce the actual command line before camera and document commands. This plan may grow when a topic needs splitting. Published IDs remain stable.
+**Course status: 22 authored chapters, 111 reader lessons and 1,361 preserved checkpoints. Source-bound checkpoint acceptance is being refreshed.**
+
+## Current completion stages - 2026-10-23
+
+- [x] Authored route: 22/22 chapters and 111 reader lessons; latest Matrix included; no new checkpoint IDs.
+- [x] Current native source: 1,059/1,059 tests pass. The later browser-only correction leaves native code unchanged.
+- [x] Current learner WASM and optimized browser builds pass.
+- [x] Five performance categories measured on the same small demo; ordered input, idle behavior and final disposal browser checks pass. [Measurements and limits](release/runtime-performance-review.json).
+- [x] Current docs build, complete SVG diagram, desktop/phone layout and linked evidence checked in visible Chrome.
+- [ ] Historical fixture callbacks: 0/4 accepted in this pass; first checkpoint verification running.
+- [ ] Reload/grid browser combinations: 0/4 accepted.
+- [ ] Current integration chapter visual queue: chapters 11 and 13-20, nine sets through twelve canonical entry callbacks.
+- [ ] Remaining Plane occlusion/print, CAD, joined/vector and display-control acceptance. Native Point/Mesh, plain/placed Plane and resident Sheet pairs retain their declared partial scopes.
+- [ ] Final release gates: 0/5 closed; complete runnable-lesson, feature and browser acceptance remains required.
+
+The checkpoint boxes below retain earlier inventory state. Current acceptance additionally requires matching source, fixtures and checker; aggregate test totals do not mark those boxes done. [Current manifest](consolidation/current-state.json) records exact evidence and remaining batches.
 
 The authored learner route is organized into [chapters and sections](contents.md). The endpoint is the features and quality in [the destination contract](destination.md), including browser recovery and interaction ownership. Lesson count measures authored checkpoints; it is not a percentage of remaining verification work.
 
-A checked lesson box means the implementation exists and its stored build and scripted Chrome evidence match the current source and checker. It does not mean every production acceptance case has been covered. All unchecked lesson boxes now identify authored checkpoints awaiting fresh acceptance. Task checkboxes elsewhere record the individual task stated. [Read the exact verification scope](release.md).
+A checked checkpoint box records its earlier stored build and scripted Chrome evidence. Recheck its source and checker signature before treating it as current acceptance. It does not mean every production acceptance case has been covered. All unchecked lesson boxes now identify authored checkpoints awaiting fresh acceptance. Task checkboxes elsewhere record the individual task stated. [Read the exact verification scope](release.md).
 
 Every authored lesson has a typing estimate, architecture diagram, experiment and cumulative buildable endpoint. Native images and browser screenshots retain separate evidence labels. The remaining build/render queue is recorded in the release evidence.
 

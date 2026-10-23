@@ -258,21 +258,77 @@ fn query(
 
 fn main() -> Result<()> {
     let args: Vec<_> = std::env::args().collect();
-    let output = Path::new(args.get(1).ok_or_else(||anyhow::anyhow!("cad-witness OUTPUT [mixed|wire|bore|hole-face|surface] [DPR] [samples] [all|no-lines|no-edges] [--require-parity]"))?);
+    let output = Path::new(args.get(1).ok_or_else(||anyhow::anyhow!("cad-witness OUTPUT [mixed|wire|bore|hole-face|surface] [DPR] [samples] [all|no-lines|no-edges] [--require-parity] [--selected] [--source PATH]"))?);
     let name = args.get(2).map(String::as_str).unwrap_or("mixed");
     let density: f32 = args.get(3).map(String::as_str).unwrap_or("1").parse()?;
     let samples: u32 = args.get(4).map(String::as_str).unwrap_or("1").parse()?;
     let family = args.get(5).map(String::as_str).unwrap_or("all");
+    let selected = args.iter().any(|arg| arg == "--selected");
+    let mut source_override = None;
+    for (index, arg) in args.iter().enumerate().skip(6) {
+        if arg == "--source" {
+            ensure!(source_override.is_none(), "--source may only be supplied once");
+            let path = args.get(index + 1).filter(|path| !path.starts_with("--"))
+                .ok_or_else(|| anyhow::anyhow!("--source requires a path"))?;
+            source_override = Some(path);
+        }
+    }
     ensure!(matches!(density, 1.0 | 2.0) && matches!(samples, 1 | 4));
     ensure!(matches!(family, "all" | "no-lines" | "no-edges"));
     std::fs::create_dir_all(output)?;
-    let (source, shift, distance, local_query) = specimen(name)?;
+    let (source, shift, distance, local_query) = if let Some(path) = source_override {
+        ensure!(matches!(name, "wire" | "mixed"), "--source supports only wire or mixed");
+        (std::fs::read(path)?, 2.2, 6.0, [0.0, 0.85, -0.3])
+    } else {
+        specimen(name)?
+    };
+    let bundle = if source_override.is_some() && source.starts_with(viewer_journey::archive::MAGIC) {
+        let bundle = viewer_journey::archive::Bundle::decode(&source).map_err(anyhow::Error::msg)?;
+        let metadata = &bundle.metadata;
+        ensure!(bundle.documents.len() == 1 && metadata.documents.len() == 1,
+            "--source archive must contain one original document");
+        ensure!(metadata.documents[0].place == Xform::identity().m
+            && metadata.documents[0].point_px == 0.0
+            && metadata.created_doc.is_none() && metadata.current_layer.is_none()
+            && metadata.hidden.is_empty() && metadata.locked.is_empty()
+            && metadata.colors.is_empty() && metadata.edge_colors.as_ref().is_none_or(Vec::is_empty)
+            && metadata.texts.is_empty() && metadata.groups.is_empty(),
+            "--source archive has presentation overrides not represented by this witness");
+        Some(bundle)
+    } else {
+        None
+    };
+    let production_source = bundle.as_ref().map_or(source.as_slice(), |bundle| bundle.documents[0].as_slice());
+    let production_source_hash = format!("{:x}", Sha256::digest(production_source));
     let hash = format!("{:x}", Sha256::digest(&source));
     std::fs::write(output.join("source.pb"), &source)?;
+    if source_override.is_some() {
+        std::fs::write(output.join("production-source.pb"), production_source)?;
+    }
     let mut scene = Scene::empty();
-    viewer_journey::scene_document::import(&mut scene, &source, "", &Xform::identity(), 0.0)
-        .map_err(anyhow::Error::msg)?;
+    if bundle.is_some() {
+        viewer_journey::scene_document::open(&mut scene, &source).map_err(anyhow::Error::msg)?;
+    } else {
+        viewer_journey::scene_document::import(&mut scene, &source, "", &Xform::identity(), 0.0)
+            .map_err(anyhow::Error::msg)?;
+    }
     ensure!(scene.objects().len() == 2);
+    if source_override.is_some() {
+        let placed = &Xform::translation(2.2, 0.0, 0.0) * &Xform::scale_xyz(-1.0, 0.8, 1.3);
+        for expected in [Xform::identity(), placed] {
+            ensure!(scene.objects().iter().filter(|row| row.model.m == expected.m).count() == 1,
+                "--source instance placements differ from the fixed browser wire/query fixture");
+        }
+        let guid = if name == "wire" { "b6802f09-1be8-4cc6-a96c-bcae7869d901" }
+            else { "b6802f09-1be8-4cc6-a96c-bcae7869d902" };
+        ensure!(scene.paths().is_empty() && scene.objects().iter().all(|row| row.cad.as_ref()
+            .is_some_and(|cad| cad.source.guid() == guid && (cad.face_count == 0) == (name == "wire"))),
+            "--source does not match the shared original wire/mixed fixture");
+    }
+    let selected_ids: Vec<_> = scene.objects().iter().filter(|_| selected).map(|row| row.id).collect();
+    let selected_owners: Vec<_> = scene.objects().iter().filter(|_| selected)
+        .map(|row| json!({"original_instance_guid":row.guid,"course_owner":format!("{:?}",row.id)}))
+        .collect();
     let before = originals(&scene);
     let archive = viewer_journey::scene_archive::save(&scene).map_err(anyhow::Error::msg)?;
     std::fs::write(output.join("original.session"), &archive)?;
@@ -301,11 +357,12 @@ fn main() -> Result<()> {
     let families = current_viewer::selftest::stroke_witness::Families {
         lines: family != "no-lines",
         mesh_edges: family != "no-edges",
+        selected_guids: scene.objects().iter().filter(|_| selected).map(|row| row.guid.clone()).collect(),
         ..Default::default()
     };
     let production =
         pollster::block_on(current_viewer::selftest::stroke_witness::render_families(
-            &source,
+            production_source,
             matrix,
             size,
             density,
@@ -329,6 +386,9 @@ fn main() -> Result<()> {
         production.identity["format"] == "Rgba8UnormSrgb"
             && production.identity["anchor"] == json!([0.0, 0.0, 0.0])
     );
+    if selected {
+        ensure!(production.identity["selected_guids"] == json!(families.selected_guids));
+    }
     std::fs::write(
         output.join("production-ribbon.wgsl"),
         &production.ribbon_source,
@@ -344,6 +404,7 @@ fn main() -> Result<()> {
             "ribbon_sha256":format!("{:x}",Sha256::digest(production.ribbon_source.as_bytes())),
             "vector_sha256":format!("{:x}",Sha256::digest(production.vector_source.as_bytes())),
             "source_sha256":hash,
+            "source_override":source_override,"production_source_sha256":production_source_hash,
         }))?,
     )?;
     let walked = production.identity["walked_ink"]["objects"]
@@ -381,6 +442,9 @@ fn main() -> Result<()> {
         vertices: false,
     });
     renderer.cloud_camera(&camera);
+    if selected {
+        renderer.select_objects(&scene, &selected_ids).map_err(anyhow::Error::msg)?;
+    }
     ensure!(
         renderer.anchor() == [0.0; 3]
             && renderer.samples() == samples
@@ -389,6 +453,10 @@ fn main() -> Result<()> {
     let actual = pixels(&renderer, matrix, size)?;
     ppm(&output.join("production.ppm"), &production.rgba, size)?;
     ppm(&output.join("course.ppm"), &actual, size)?;
+    if selected {
+        std::fs::write(output.join("production.rgba"), &production.rgba)?;
+        std::fs::write(output.join("course.rgba"), &actual)?;
+    }
     let changed = production
         .rgba
         .chunks_exact(4)
@@ -405,7 +473,7 @@ fn main() -> Result<()> {
     std::fs::write(
         output.join("pixel-baseline.json"),
         serde_json::to_vec_pretty(&json!({
-            "case":name,"family":family,"source_sha256":hash,"matrix":matrix,
+            "case":name,"family":family,"selected":selected,"selected_owners":selected_owners,"source_sha256":hash,"source_override":source_override,"production_source_sha256":production_source_hash,"matrix":matrix,
             "changed_pixels":changed,"max_rgba_delta":max_delta,
             "production_ink":ink(&production.rgba),"course_ink":ink(&actual),"picks_pending":true,
         }))?,
@@ -446,10 +514,15 @@ fn main() -> Result<()> {
         picks.push(json!({"owner_guid":row.guid,"world":world,"actual":format!("{first:?}"),"fresh_cached_equal":true}));
     }
     ensure!(originals(&scene) == before && format!("{:x}", Sha256::digest(&source)) == hash);
-    let record = json!({"case":name,"family":family,"source_sha256":hash,"source_file":"source.pb","archive":"original.session","originals":before,"archive_roundtrip":true,"course_picks":picks,
+    if selected {
+        ensure!(viewer_journey::scene_archive::save(&scene).map_err(anyhow::Error::msg)? == archive,
+            "selection or queries changed the original archive");
+    }
+    let record = json!({"case":name,"family":family,"selected":selected,"selected_owners":selected_owners,"source_sha256":hash,"source_file":"source.pb","source_override":source_override,"source_is_archive":bundle.is_some(),"production_source_sha256":production_source_hash,"archive":"original.session","originals":before,"archive_roundtrip":true,"course_picks":picks,
         "production":production.identity,"course":{"shared_device":true,"matrix_f32":matrix,"viewport":size,"density":density,"samples":renderer.samples(),"format":"Rgba8UnormSrgb","anchor":renderer.anchor()},
         "diff":{"changed_pixels":changed,"max_rgba_delta":max_delta,"production_ink":ink(&production.rgba),"course_ink":ink(&actual)},
-        "scope":"Actual original source rendering comparison; production picks are not exercised. Surface isolines are saved exact NurbsCurve originals from the canonical roof, not an automatic display mode.","parity_accepted":changed==0});
+        "selection_scope":"When requested, both original BRep/Surface instance owners are selected; separate NurbsCurve isoline instances remain unselected. Selected runs additionally save tightly packed production.rgba and course.rgba in viewport row order.",
+        "scope":"Actual original source rendering comparison; production picks and control-point checks are not exercised. Course picks check Object mode only. Surface isolines are saved exact NurbsCurve originals from the canonical roof, not an automatic display mode.","parity_accepted":changed==0});
     std::fs::write(
         output.join("manifest.json"),
         serde_json::to_vec_pretty(&record)?,

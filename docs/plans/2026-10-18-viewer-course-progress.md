@@ -310,3 +310,12 @@ These run at their own checkpoint. Docs layout captures and partial native pairs
 - [x] Latest docs build PASS123.448s; visible Chrome confirms the performance table on desktop and390px phone,complete Gemini SVG,current Matrix and Point/Plane figures. Five evidence links resolve, including the complete performance and16-case plain Plane records. No document overflow/errors.
 - [x] All fetched root changes integrated by conflict-free mergee2ed12f. Wood fast-forwarded07c57552 ->5318ba20,14incoming C++/tests/examples/docs commits. Entire Rust/proto/data/generated dependency trees unchanged; tutorial work preserved.
 - [ ] Historical94c Vulkan probe running with restored canonical lock. Earlier cached lock was stale; no canonical dependency upgrades or waived assertions. Four historical callbacks, four reload/grid combinations, nine owned chapter feature sets, remaining display controls and final release gates remain.
+
+
+### Historical verification and public stage checklist
+
+- [x] Historical94c source-matching verification passes allfour phases: WASM282.137s;800/800native tests,zero ignored/failures (377.685s guard,72.84s tests); optimized web; actual WARP native frame. Native image inspected, sample generated,verify --stored reports current.
+- [x] Public roadmap now reports completed stages and remaining work separately from legacy checkpoint boxes. Old contradictory repair statements archived without deleting evidence. Fresh docs build118.13s and desktop/390px progress/release browser checks PASS; four screenshots inspected.
+- [x] CAD diagnostic supports selected exact canonical archive input without regenerating bytes. Current production/course selected wire matches0RGBA,0black/372yellow pixels with original archive/Object ownership preserved. One DPR1/sample1 case only, no production-pick/control-point claim.
+- [ ] User choice requested for frozen CAD black-core/yellow-fringe assertion versus actual current yellow-only production. Exact one-assertion patch prepared, NOT applied. Continue independent checks while pending.
+- [ ] Unchanged94c browser capture running; measured file read has passed, full recursive callback acceptance pending. Four reload/grid combinations,nine owned chapter visual sets and remaining control/final gates remain.

@@ -1,10 +1,13 @@
 # Course release: command-line checkpoints
 
-**79 of 1361 current checkpoints have fresh build and Chrome evidence. Remaining browser acceptance is pending.** Subjects 00–97 are authored; browser acceptance is counted only when signatures match the updated source and checker. Every interactive feature check types into the viewer’s actual egui command field. Picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo start in lesson 26a; H/S join with visibility. Focused command text retains its editing keys.
+**Current learner acceptance remains incomplete. See the dated [stage checklist](roadmap.md).** Subjects 00–97 are authored; browser acceptance is counted only when signatures match the updated source and checker. Every interactive feature check types into the viewer’s actual egui command field. Picking, dragging and wheel navigation retain their natural input paths. Canvas F and document Undo/Redo start in lesson 26a; H/S join with visibility. Focused command text retains its editing keys.
+
+Current source passes 1,059 native tests, optimized WASM/browser builds and five measured small-scene performance categories. Four historical callbacks, four reload/grid combinations, remaining chapter feature evidence and final release gates remain open. The October 9 maintained-runtime results below retain their historical source and scope.
+
 
 All subjects 00–97 are authored, ending with a maintained-runtime comparison. Before the October 9 update, the stored-evidence audit passed 980 checkpoint records: 980 WebAssembly builds, 980 optimized browser bundles, 949 native test suites and 979 actual native frames. The [local check evidence](local-checks.md) gives their scope and reproduction commands. The [lesson checklist](roadmap.md) and [destination contract](destination.md) track browser acceptance separately. The [maintained scene checks](current-native-scenes.md) cover both available floor files and the original dome output. The final maintained-runtime Chrome contract passes at DPR 1/2; broader browser acceptance and matched Lenovo measurements remain pending.
 
-The verification notes below record earlier runs. The initial whole-course audit found 354 current records and 626 missing or stale records; those earlier gaps were resolved before the October 9 changes. New source and dependency-fingerprint changes require renewed matching evidence. Historical Chrome runs do not verify changed endpoints. The summary above reports fresh evidence, and lessons identify native rendering separately from browser acceptance.
+The verification notes below record earlier runs. The initial whole-course audit found 354 current records and 626 missing or stale records; those earlier gaps were resolved before the October 9 changes. New source and dependency-fingerprint changes require renewed matching evidence. Historical Chrome runs do not verify changed endpoints. The dated stage checklist reports current integration progress, and lessons identify native rendering separately from browser acceptance.
 
 ## October 9 viewer update
 
