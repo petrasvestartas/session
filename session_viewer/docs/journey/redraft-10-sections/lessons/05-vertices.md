@@ -106,50 +106,92 @@
 
 Replace the shader. It now receives one position per invocation instead of looking up a hard-coded corner.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```wgsl
---8<-- "journey/code/05-vertices-01.wgsl"
+@vertex
+fn vertex(@builtin(vertex_index) index: u32) -> @builtin(position) vec4<f32> {
+    let corners = array<vec2<f32>, 3>(
+        vec2<f32>(-0.6, -0.5),
+        vec2<f32>(0.6, -0.5),
+        vec2<f32>(0.0, 0.6),
+    );
+    return vec4<f32>(corners[index], 0.0, 1.0);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
+@vertex
+fn vertex(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
+    return vec4<f32>(position, 0.0, 1.0);
+}
 ```
 
 ### 2. `src/renderer.rs`
 
 Define six positions and upload their vertex buffer. Describe two f32 coordinates at each eight-byte vertex. Retain the uploaded vertex buffer in Renderer. Bind the vertex buffer and draw all six positions.
 
-Replace the entire file with:
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-use wgpu::util::DeviceExt;
+                ..Default::default()
+            });
+            pass.set_pipeline(&self.pipeline);
+            pass.draw(0..3, 0..1);
+        }
+```
 
-const POSITIONS: [[f32; 2]; 6] = [
-    [-0.6, -0.5], [0.6, -0.5], [0.6, 0.6],
-    [-0.6, -0.5], [0.6, 0.6], [-0.6, 0.6],
-];
+Replace it with:
 
-pub struct Renderer {
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
-}
+```rust
+                ..Default::default()
+            });
+            pass.set_pipeline(&self.pipeline);
+            pass.set_vertex_buffer(0, self.vertices.slice(..));
+            pass.draw(0..POSITIONS.len() as u32, 0..1);
+        }
+```
 
-impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
-        let bytes: Vec<u8> = POSITIONS.iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
-        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("rectangle positions"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: None,
-            vertex: wgpu::VertexState {
+**Locate this block:**
+
+```rust
+            device,
+            queue,
+            pipeline,
+        }
+    }
+```
+
+Replace it with:
+
+```rust
+            device,
+            queue,
+            pipeline,
+            vertices,
+        }
+    }
+```
+
+**Locate this block:**
+
+```rust
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+```
+
+Replace it with:
+
+```rust
                 module: &shader,
                 entry_point: Some("vertex"),
                 compilation_options: Default::default(),
@@ -161,46 +203,74 @@ impl Renderer {
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: None,
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        Self { device, queue, pipeline, vertices }
-    }
+```
 
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_vertex_buffer(0, self.vertices.slice(..));
-            pass.draw(0..POSITIONS.len() as u32, 0..1);
-        }
-        self.queue.submit([encoder.finish()]);
-    }
+**Locate this block:**
+
+```rust
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+    ) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+```
+
+Replace it with:
+
+```rust
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+    ) -> Self {
+        let bytes: Vec<u8> = POSITIONS
+            .iter()
+            .flatten()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("rectangle positions"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+```
+
+**Locate this block:**
+
+```rust
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
 }
+
+impl Renderer {
+```
+
+Replace it with:
+
+```rust
+use wgpu::util::DeviceExt;
+
+const POSITIONS: [[f32; 2]; 6] = [
+    [-0.6, -0.5],
+    [0.6, -0.5],
+    [0.6, 0.6],
+    [-0.6, -0.5],
+    [0.6, 0.6],
+    [-0.6, 0.6],
+];
+
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+    pipeline: wgpu::RenderPipeline,
+    vertices: wgpu::Buffer,
+}
+
+impl Renderer {
 ```
 
 ### 3. `src/browser.rs`
@@ -210,18 +280,17 @@ Report that the uploaded corners form a rectangle.
 **Locate this existing block:**
 
 ```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
     click.forget();
     report("Change the background. The triangle keeps its shape and colour.");
     Ok(())
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/05-vertices-window-1.rs"
+    click.forget();
+    report("Six uploaded corners make one rectangle.");
+    Ok(())
 ```
 
 ## <a id="checkpoint-06-indices"></a>2. Share a corner between triangles
@@ -277,8 +346,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             pass.set_vertex_buffer(0, self.vertices.slice(..));
             pass.draw(0..POSITIONS.len() as u32, 0..1);
         }
-        self.queue.submit([encoder.finish()]);
-    }
 ```
 
 Replace it with:
@@ -287,35 +354,33 @@ Replace it with:
             });
             pass.set_pipeline(&self.pipeline);
             pass.set_vertex_buffer(0, self.vertices.slice(..));
-            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
+            pass.set_index_buffer(
+                self.indices.slice(..),
+                wgpu::IndexFormat::Uint16,
+            );
             pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
         }
-        self.queue.submit([encoder.finish()]);
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-            multiview_mask: None,
-            cache: None,
-        });
-        Self { device, queue, pipeline, vertices }
+            queue,
+            pipeline,
+            vertices,
+        }
     }
-
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
 ```
 
 Replace it with:
 
 ```rust
-            multiview_mask: None,
-            cache: None,
-        });
-        Self { device, queue, pipeline, vertices, indices }
+            queue,
+            pipeline,
+            vertices,
+            indices,
+        }
     }
-
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
 ```
 
 **Locate this block:**
@@ -335,7 +400,10 @@ Replace it with:
             contents: &bytes,
             usage: wgpu::BufferUsages::VERTEX,
         });
-        let bytes: Vec<u8> = INDICES.iter().flat_map(|index| index.to_ne_bytes()).collect();
+        let bytes: Vec<u8> = INDICES
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
         let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("diamond indices"),
             contents: &bytes,
@@ -352,8 +420,12 @@ Replace it with:
 use wgpu::util::DeviceExt;
 
 const POSITIONS: [[f32; 2]; 6] = [
-    [-0.6, -0.5], [0.6, -0.5], [0.6, 0.6],
-    [-0.6, -0.5], [0.6, 0.6], [-0.6, 0.6],
+    [-0.6, -0.5],
+    [0.6, -0.5],
+    [0.6, 0.6],
+    [-0.6, -0.5],
+    [0.6, 0.6],
+    [-0.6, 0.6],
 ];
 
 pub struct Renderer {
@@ -372,7 +444,10 @@ Replace it with:
 use wgpu::util::DeviceExt;
 
 const POSITIONS: [[f32; 2]; 4] = [
-    [-0.6, 0.0], [0.0, -0.6], [0.6, 0.0], [0.0, 0.6],
+    [-0.6, 0.0],
+    [0.0, -0.6],
+    [0.6, 0.0],
+    [0.0, 0.6],
 ];
 const INDICES: [u16; 6] = [0, 1, 2, 0, 2, 3];
 
@@ -394,18 +469,17 @@ Report that four shared corners form two triangles.
 **Locate this existing block:**
 
 ```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
     click.forget();
     report("Six uploaded corners make one rectangle.");
     Ok(())
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/06-indices-window-1.rs"
+    click.forget();
+    report("Four shared corners make two triangles.");
+    Ok(())
 ```
 
 ## Build & Run

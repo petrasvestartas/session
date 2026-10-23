@@ -111,63 +111,69 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+            });
+        }
         Ok(())
-    }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };
-        self.objects.remove(index);
 ```
 
 Replace it with:
 
 ```rust
+            });
+        }
         Ok(())
     }
 
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
+    pub fn place(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
         if !model.m.iter().all(|v| v.is_finite())
-            || [model.m[3], model.m[7], model.m[11], model.m[15]] != [0.0, 0.0, 0.0, 1.0]
+            || [
+                model.m[3],
+                model.m[7],
+                model.m[11],
+                model.m[15],
+            ] != [0.0, 0.0, 0.0, 1.0]
         {
             return Err("Placement must be finite and affine");
         }
-        let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
+        let object = self
+            .objects
+            .iter_mut()
+            .find(|o| o.id == id)
+            .ok_or("Object not found")?;
         object.model = model;
         Ok(())
-    }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };
-        self.objects.remove(index);
 ```
 
 **Locate this block:**
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh), source: None });
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+            source: None,
+        });
         Ok(id)
-    }
 ```
 
 Replace it with:
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh), model: session_rust::Xform::identity(), source: None });
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+            model: session_rust::Xform::identity(),
+            source: None,
+        });
         Ok(id)
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub mesh: Rc<Mesh>,
     pub source: Option<crate::document::Source>,
 }
@@ -180,8 +186,6 @@ pub struct Scene {
 Replace it with:
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub mesh: Rc<Mesh>,
     pub model: session_rust::Xform,
     pub source: Option<crate::document::Source>,
@@ -189,7 +193,11 @@ pub struct Object {
 
 impl Object {
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
+        let local = session_rust::Point::new(
+            vertex[0] as f64,
+            vertex[1] as f64,
+            vertex[2] as f64,
+        );
         let world = self.model.transform_point(&local);
         [world[0], world[1], world[2]]
     }
@@ -208,27 +216,68 @@ Register the placement checks.
 
 ```rust
 #[cfg(test)]
-mod selected_fit_tests;
+mod projection_tests;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/27-placement-05.rs"
+#[cfg(test)]
+mod placement_tests;
+#[cfg(test)]
+mod projection_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/placement_tests.rs`
 
 Optional authoring fixture. Prove mesh identity and local coordinates survive placement, and failed updates leave it unchanged.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/27-placement-06.rs"
+```rust
+use crate::scene::Scene;
+use session_rust::Xform;
+
+#[test]
+fn placement_keeps_the_shared_local_mesh() {
+    let mut scene = Scene::demo();
+    let object = &scene.objects()[0];
+    let id = object.id;
+    let mesh = object.mesh.clone();
+    let local = mesh.vertices()[0];
+    scene
+        .place(id, Xform::translation(2.0, -1.0, 0.5))
+        .unwrap();
+    let object = &scene.objects()[0];
+    assert!(std::rc::Rc::ptr_eq(&mesh, &object.mesh));
+    assert_eq!(object.mesh.vertices()[0], local);
+    assert_eq!(
+        object.world_point(local),
+        [
+            local[0] as f64 + 2.0,
+            local[1] as f64 - 1.0,
+            local[2] as f64 + 0.5
+        ]
+    );
+}
+
+#[test]
+fn failed_placement_changes_nothing() {
+    let mut scene = Scene::demo();
+    let id = scene.objects()[0].id;
+    let before = scene.objects()[0].model.m;
+    assert!(
+        scene
+            .place(id, Xform::translation(f64::NAN, 0.0, 0.0))
+            .is_err()
+    );
+    let mut projective = Xform::identity();
+    projective.m[3] = 0.1;
+    assert!(scene.place(id, projective).is_err());
+    assert_eq!(scene.objects()[0].model.m, before);
+    scene.remove(id);
+    assert!(scene.place(id, Xform::identity()).is_err());
+}
 ```
 
 ## <a id="checkpoint-27a-world"></a>2. Ask geometry questions in world coordinates
@@ -274,77 +323,105 @@ Copy this supplied file:
 
 Whole-scene bounds include placed points. Use the same placed coordinates for fitting the selected object.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        let object = self.objects.iter().find(|object| object.id == id)?;
+            for vertex in object.mesh.vertices() {
+                let point = [
+                    vertex[0] as f64,
+                    vertex[1] as f64,
+                    vertex[2] as f64,
+                ];
+                match &mut bounds {
+                    Some(bounds) => bounds.include(point),
+                    None => bounds = Some(crate::bounds::Bounds::point(point)),
+                }
+            }
+        }
+        bounds
+    }
+
+    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
+        let object = self
+            .objects
+            .iter()
+            .find(|object| object.id == id)?;
         let mut vertices = object.mesh.vertices().iter();
         let first = vertices.next()?;
         let mut bounds = crate::bounds::Bounds::point([
-            first[0] as f64, first[1] as f64, first[2] as f64,
+            first[0] as f64,
+            first[1] as f64,
+            first[2] as f64,
         ]);
         for vertex in vertices {
-            bounds.include([vertex[0] as f64, vertex[1] as f64, vertex[2] as f64]);
+            bounds.include([
+                vertex[0] as f64,
+                vertex[1] as f64,
+                vertex[2] as f64,
+            ]);
         }
-        Some(bounds)
-    }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        let object = self.objects.iter().find(|object| object.id == id)?;
+            for vertex in object.mesh.vertices() {
+                let point = object.world_point(*vertex);
+                match &mut bounds {
+                    Some(bounds) => bounds.include(point),
+                    None => bounds = Some(crate::bounds::Bounds::point(point)),
+                }
+            }
+        }
+        bounds
+    }
+
+    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
+        let object = self
+            .objects
+            .iter()
+            .find(|object| object.id == id)?;
         let mut vertices = object.mesh.vertices().iter();
         let first = vertices.next()?;
         let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
         for vertex in vertices {
             bounds.include(object.world_point(*vertex));
         }
-        Some(bounds)
-    }
-```
-
-**Locate this block:**
-
-```rust
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in &self.objects {
-            for vertex in object.mesh.vertices() {
-                let point = [vertex[0] as f64, vertex[1] as f64, vertex[2] as f64];
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-```
-
-Replace it with:
-
-```rust
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in &self.objects {
-            for vertex in object.mesh.vertices() {
-                let point = object.world_point(*vertex);
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
 ```
 
 ### 2. `src/picking.rs`
 
 Ask whether the world ray hits the placed triangle. Compute differences in the double-precision coordinates supplied by placement. Build the triangle origin from the same world point.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+        for triangle in object.mesh.indices().chunks_exact(3) {
+            let a = vertices[triangle[0] as usize];
+            let b = vertices[triangle[1] as usize];
+            let c = vertices[triangle[2] as usize];
+            if let Some(distance) = triangle_distance(ray, a, b, c) {
+                if distance >= 0.0 && distance < nearest {
+                    nearest = distance;
+                    hit = Some(object.id);
+                }
+            }
+        }
+    }
     hit
 }
 
 fn triangle_distance(ray: &Ray, a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f64> {
-    let edge1 = Vector::new((b[0] - a[0]) as f64, (b[1] - a[1]) as f64, (b[2] - a[2]) as f64);
-    let edge2 = Vector::new((c[0] - a[0]) as f64, (c[1] - a[1]) as f64, (c[2] - a[2]) as f64);
+    let edge1 = Vector::new(
+        (b[0] - a[0]) as f64,
+        (b[1] - a[1]) as f64,
+        (b[2] - a[2]) as f64,
+    );
+    let edge2 = Vector::new(
+        (c[0] - a[0]) as f64,
+        (c[1] - a[1]) as f64,
+        (c[2] - a[2]) as f64,
+    );
     let p = ray.direction.cross(&edge2);
     let determinant = edge1.dot(&p);
     if determinant.abs() < 1.0e-10 {
@@ -352,13 +429,23 @@ fn triangle_distance(ray: &Ray, a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option
     }
     let origin = &ray.origin - &Point::new(a[0] as f64, a[1] as f64, a[2] as f64);
     let u = origin.dot(&p) / determinant;
-    let q = origin.cross(&edge1);
-    let v = ray.direction.dot(&q) / determinant;
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        for triangle in object.mesh.indices().chunks_exact(3) {
+            let a = object.world_point(vertices[triangle[0] as usize]);
+            let b = object.world_point(vertices[triangle[1] as usize]);
+            let c = object.world_point(vertices[triangle[2] as usize]);
+            if let Some(distance) = triangle_distance(ray, a, b, c) {
+                if distance >= 0.0 && distance < nearest {
+                    nearest = distance;
+                    hit = Some(object.id);
+                }
+            }
+        }
+    }
     hit
 }
 
@@ -372,41 +459,7 @@ fn triangle_distance(ray: &Ray, a: [f64; 3], b: [f64; 3], c: [f64; 3]) -> Option
     }
     let origin = &ray.origin - &Point::new(a[0], a[1], a[2]);
     let u = origin.dot(&p) / determinant;
-    let q = origin.cross(&edge1);
-    let v = ray.direction.dot(&q) / determinant;
 ```
-
-**Locate this block:**
-
-```rust
-    for object in scene.objects() {
-        let vertices = object.mesh.vertices();
-        for triangle in object.mesh.indices().chunks_exact(3) {
-            let a = vertices[triangle[0] as usize];
-            let b = vertices[triangle[1] as usize];
-            let c = vertices[triangle[2] as usize];
-            if let Some(distance) = triangle_distance(ray, a, b, c) {
-                if distance >= 0.0 && distance < nearest {
-                    nearest = distance;
-```
-
-Replace it with:
-
-```rust
-    for object in scene.objects() {
-        let vertices = object.mesh.vertices();
-        for triangle in object.mesh.indices().chunks_exact(3) {
-            let a = object.world_point(vertices[triangle[0] as usize]);
-            let b = object.world_point(vertices[triangle[1] as usize]);
-            let c = object.world_point(vertices[triangle[2] as usize]);
-            if let Some(distance) = triangle_distance(ray, a, b, c) {
-                if distance >= 0.0 && distance < nearest {
-                    nearest = distance;
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/placement_tests.rs`
 
@@ -414,14 +467,51 @@ Optional authoring fixture. Connect placement, both bounds and camera-ray pickin
 
 **Locate this existing block:**
 
-```text
-use session_rust::Xform;
+```rust
+#[test]
+fn placement_keeps_the_shared_local_mesh() {
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/27a-world-06.rs" skip=25
+```rust
+#[test]
+fn bounds_and_picking_follow_the_placed_triangle() {
+    let mut scene = Scene::demo();
+    let id = scene.objects()[0].id;
+    let before = scene.selected_bounds(id).unwrap();
+    scene
+        .place(id, Xform::translation(2.0, -1.0, 0.5))
+        .unwrap();
+    let bounds = scene.selected_bounds(id).unwrap();
+    for i in 0..3 {
+        assert!((bounds.min[i] - before.min[i] - [2.0, -1.0, 0.5][i]).abs() < 1e-12);
+        assert!((bounds.max[i] - before.max[i] - [2.0, -1.0, 0.5][i]).abs() < 1e-12);
+    }
+    let object = &scene.objects()[0];
+    let mut centre = [0.0; 3];
+    for v in object.mesh.vertices() {
+        let world = object.world_point(*v);
+        for i in 0..3 {
+            centre[i] += world[i] / 3.0;
+        }
+    }
+    let mut camera = crate::camera::Camera::default();
+    camera.fit(&bounds);
+    let point = session_rust::Point::new(centre[0], centre[1], centre[2]);
+    let screen = camera
+        .view_projection()
+        .transform_point(&point);
+    let ray = camera
+        .ray([screen[0] as f32, screen[1] as f32])
+        .unwrap();
+    assert_eq!(crate::picking::pick(&scene, &ray), Some(id));
+    let all = scene.bounds().unwrap();
+    assert!(all.max[0] >= bounds.max[0] && all.min[1] <= bounds.min[1]);
+}
+
+#[test]
+fn placement_keeps_the_shared_local_mesh() {
 ```
 
 ## <a id="checkpoint-27b-model"></a>3. Apply object placement on the GPU
@@ -467,7 +557,27 @@ After that block, append this supplied code:
 
 Keep camera and object placement in separate uniform groups. Place the vertex before projecting it; use world position for lighting.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```wgsl
+@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+}
+
+@vertex
+fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
+    var output: VertexOutput;
+    output.position = transform * vec4<f32>(position, 1.0);
+    output.colour = colour;
+    output.world = position;
+    return output;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
@@ -487,24 +597,63 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> V
     output.colour = colour;
     output.world = world.xyz;
     return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
-    // Neighbouring fragments give two directions along this triangle's surface.
-    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
 ```
 
 ### 2. `src/gpu_mesh.rs`
 
 Upload an object’s mesh and placement together. Retain the object bind group alongside its vertex/index buffers. Borrow local mesh coordinates and the model from the same Object. Encode the model’s column-major values and bind the uniform buffer. Choose this object’s placement before its indexed draw.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```rust
+use crate::mesh::Mesh;
+use wgpu::util::DeviceExt;
+
+pub struct GpuMesh {
+    vertices: wgpu::Buffer,
+    indices: wgpu::Buffer,
+    index_count: u32,
+}
+
+impl GpuMesh {
+    pub fn upload(device: &wgpu::Device, mesh: &Mesh, selected: bool) -> Self {
+        let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
+        for vertex in mesh.vertices() {
+            let mut display = *vertex;
+            if selected {
+                display[3..].copy_from_slice(&[1.0, 0.75, 0.05]);
+            }
+            for value in display {
+                bytes.extend_from_slice(&value.to_ne_bytes());
+            }
+        }
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mesh vertices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let bytes: Vec<u8> = mesh
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
+        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mesh indices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        Self {
+            vertices,
+            indices,
+            index_count: mesh.indices().len() as u32,
+        }
+    }
+
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 use crate::scene::Object;
@@ -518,7 +667,12 @@ pub struct GpuMesh {
 }
 
 impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
         let mesh = &object.mesh;
         let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
         for vertex in mesh.vertices() {
@@ -535,14 +689,22 @@ impl GpuMesh {
             contents: &bytes,
             usage: wgpu::BufferUsages::VERTEX,
         });
-        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();
+        let bytes: Vec<u8> = mesh
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
         let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("mesh indices"),
             contents: &bytes,
             usage: wgpu::BufferUsages::INDEX,
         });
-        let bytes: Vec<u8> = object.model.m.iter()
-            .flat_map(|value| (*value as f32).to_ne_bytes()).collect();
+        let bytes: Vec<u8> = object
+            .model
+            .m
+            .iter()
+            .flat_map(|value| (*value as f32).to_ne_bytes())
+            .collect();
         let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("object placement"),
             contents: &bytes,
@@ -551,18 +713,22 @@ impl GpuMesh {
         let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("object placement"),
             layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: model.as_entire_binding(),
+            }],
         });
-        Self { vertices, indices, model_group, index_count: mesh.indices().len() as u32 }
+        Self {
+            vertices,
+            indices,
+            model_group,
+            index_count: mesh.indices().len() as u32,
+        }
     }
 
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_bind_group(1, &self.model_group, &[]);
         pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
 ```
 
 ### 3. `src/renderer.rs`
@@ -577,10 +743,14 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.meshes = scene.objects().iter().map(|object| {
-            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))
-        }).collect();
-    }
+        self.meshes = scene
+            .objects()
+            .iter()
+            .map(|object| {
+                GpuMesh::upload(
+                    &self.device,
+                    &object.mesh,
+                    selected == Some(object.id),
 ```
 
 Replace it with:
@@ -590,10 +760,15 @@ Replace it with:
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         let layout = self.pipeline.get_bind_group_layout(1);
-        self.meshes = scene.objects().iter().map(|object| {
-            GpuMesh::upload(&self.device, &layout, object, selected == Some(object.id))
-        }).collect();
-    }
+        self.meshes = scene
+            .objects()
+            .iter()
+            .map(|object| {
+                GpuMesh::upload(
+                    &self.device,
+                    &layout,
+                    object,
+                    selected == Some(object.id),
 ```
 
 **Locate this block:**
@@ -614,8 +789,11 @@ Replace it with:
             cache: None,
         });
         let layout = pipeline.get_bind_group_layout(1);
-        let meshes = scene.objects().iter()
-            .map(|object| GpuMesh::upload(&device, &layout, object, false)).collect();
+        let meshes = scene
+            .objects()
+            .iter()
+            .map(|object| GpuMesh::upload(&device, &layout, object, false))
+            .collect();
         let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("view transform"),
             size: 64,
@@ -624,10 +802,12 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        format: wgpu::TextureFormat,
-        scene: &Scene,
     ) -> Self {
-        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh, false)).collect();
+        let meshes = scene
+            .objects()
+            .iter()
+            .map(|object| GpuMesh::upload(&device, &object.mesh, false))
+            .collect();
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
@@ -636,8 +816,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-        format: wgpu::TextureFormat,
-        scene: &Scene,
     ) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
@@ -648,35 +826,34 @@ Replace it with:
 
 Keep the generated box centred in its local coordinates. Assign its world placement after inserting the local mesh.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
         let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.transform(&session_rust::Xform::translation(0.9, 0.0, 0.4));
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
+        source.transform(&session_rust::Xform::translation(
+            0.9, 0.0, 0.4,
+        ));
+        source.set_objectcolor(session_rust::Color::new(
+            0.65, 0.65, 0.65, 1.0,
+        ));
         self.insert(Mesh::from_kernel(&source)?)
     }
-
-    pub fn toggle_extra(&mut self) {
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
         let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
+        source.set_objectcolor(session_rust::Color::new(
+            0.65, 0.65, 0.65, 1.0,
+        ));
         let id = self.insert(Mesh::from_kernel(&source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
+        self.place(
+            id,
+            session_rust::Xform::translation(0.9, 0.0, 0.4),
+        )?;
         Ok(id)
     }
-
-    pub fn toggle_extra(&mut self) {
 ```
 
 ## <a id="checkpoint-27c-move"></a>4. Move a placed object with a typed offset
@@ -725,13 +902,16 @@ Register the small numeric parser.
 **Locate this existing block:**
 
 ```rust
-pub mod editor;
+pub mod mesh;
+pub mod picking;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/27c-move-01.rs" skip=16
+pub mod mesh;
+pub mod offset;
+pub mod picking;
 ```
 
 ### 2. `src/offset.rs`
@@ -741,7 +921,31 @@ Validate a complete numeric offset before it reaches the document.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/27c-move-02.rs"
+pub fn parse(line: &str) -> Result<[f64; 3], &'static str> {
+    let mut words = line.split_whitespace();
+    if !words
+        .next()
+        .is_some_and(|word| word.eq_ignore_ascii_case("Move"))
+    {
+        return Err("Expected Move x,y,z");
+    }
+    let rest = words.collect::<Vec<_>>().join(" ");
+    let parts: Vec<_> = rest.split(',').collect();
+    if parts.len() != 3 {
+        return Err("Move needs three coordinates: x,y,z");
+    }
+    let mut values = [0.0; 3];
+    for (value, text) in values.iter_mut().zip(parts) {
+        *value = text
+            .trim()
+            .parse::<f64>()
+            .map_err(|_| "Move coordinates must be numbers")?;
+        if !value.is_finite() {
+            return Err("Move coordinates must be finite");
+        }
+    }
+    Ok(values)
+}
 ```
 
 ### 3. `src/editor.rs`
@@ -753,38 +957,43 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-            Action::Delete => {
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.add_box().map(|_| ())
+                    })?;
 ```
 
 Replace it with:
 
 ```rust
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.add_box().map(|_| ())
+                    })?;
             }
             Action::Translate(offset) => {
-                let id = self.selected.ok_or("Select an object before Move")?;
-                if offset.iter().all(|&v| v == 0.0) { return Ok(Change::View); }
-                let object = self.scene.objects().iter().find(|o| o.id == id).ok_or("Object not found")?;
-                let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
+                let id = self
+                    .selected
+                    .ok_or("Select an object before Move")?;
+                if offset.iter().all(|&v| v == 0.0) {
+                    return Ok(Change::View);
+                }
+                let object = self
+                    .scene
+                    .objects()
+                    .iter()
+                    .find(|o| o.id == id)
+                    .ok_or("Object not found")?;
+                let shift =
+                    session_rust::Xform::translation(offset[0], offset[1], offset[2]);
                 let model = &shift * &object.model;
-                self.history.try_edit(&mut self.scene, |scene| scene.place(id, model))?;
-            }
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => self.selected = self.scene.next(self.selected),
-            Action::Delete => {
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.place(id, model)
+                    })?;
 ```
 
 **Locate this block:**
 
 ```rust
-    Pick([f32; 2]),
-    Import(Vec<u8>),
     AddBox,
     ToggleExtra,
     SelectNext,
@@ -794,8 +1003,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Pick([f32; 2]),
-    Import(Vec<u8>),
     AddBox,
     Translate([f64; 3]),
     ToggleExtra,
@@ -811,60 +1018,77 @@ Offer the named command in the dock vocabulary.
 
 ```rust
             "Fit Selected",
+            "View Reset",
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/27c-move-05.rs" skip=28
+            "Fit Selected",
+            "Move",
+            "View Reset",
 ```
 
 ### 5. `src/panel.rs`
 
 Recognize Move followed by arguments; the parser validates those arguments. Replace the latest command’s answer without recording the line twice.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-            return Ok(None);
-        }
-        if !self.commands.0.iter()
-            .any(|name| name.eq_ignore_ascii_case(&line))
-        {
-            self.answer(&line, "Unknown command. Type Help.");
-            return Ok(None);
-```
-
-Replace it with:
-
-```rust
-            return Ok(None);
-        }
-        if !self.commands.0.iter()
-            .any(|name| name.eq_ignore_ascii_case(&line)
-                || (*name == "Move" && line.to_ascii_lowercase().starts_with("move ")))
-        {
-            self.answer(&line, "Unknown command. Type Help.");
-            return Ok(None);
-```
-
-**Locate this block:**
-
-```rust
-        self.model.status = message.into();
     }
 
     pub fn update(
         &mut self,
         event: Option<&web_sys::Event>,
+        canvas: &web_sys::HtmlCanvasElement,
+    ) -> Result<Option<String>, wasm_bindgen::JsValue> {
+        use wasm_bindgen::JsCast;
+        let rect = canvas.get_bounding_client_rect();
+        self.screen.size_in_pixels = [canvas.width(), canvas.height()];
+        self.screen.pixels_per_point = canvas.width() as f32 / rect.width() as f32;
+        self.consumed = false;
+        if let Some(event) = event {
+            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() {
+                self.consumed = self.key(key);
+            }
+            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
+                self.consumed = self.pointer(pointer, canvas);
+                if event.type_() == "pointerdown" {
+                    let options = web_sys::FocusOptions::new();
+                    options.set_prevent_scroll(true);
+                    canvas.focus_with_options(&options)?;
+                    event.prevent_default();
+                }
+            }
+            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() {
+                self.consumed = self.wheel(wheel, canvas);
+            }
+        }
+        let line = self.prepare();
+        canvas.set_attribute("data-command-ui", &self.inspect())?;
+        let Some(line) = line else {
+            return Ok(None);
+        };
+        if line == "Escape" {
+            return Ok(None);
+        }
+        if line.eq_ignore_ascii_case("Help") {
+            self.answer(&line, &self.commands.0.join(" · "));
+            return Ok(None);
+        }
+        if !self
+            .commands
+            .0
+            .iter()
+            .any(|name| name.eq_ignore_ascii_case(&line))
+        {
+            self.answer(&line, "Unknown command. Type Help.");
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        self.model.status = message.into();
     }
 
     pub fn result(&mut self, message: &str) {
@@ -880,63 +1104,174 @@ Replace it with:
     pub fn update(
         &mut self,
         event: Option<&web_sys::Event>,
+        canvas: &web_sys::HtmlCanvasElement,
+    ) -> Result<Option<String>, wasm_bindgen::JsValue> {
+        use wasm_bindgen::JsCast;
+        let rect = canvas.get_bounding_client_rect();
+        self.screen.size_in_pixels = [canvas.width(), canvas.height()];
+        self.screen.pixels_per_point = canvas.width() as f32 / rect.width() as f32;
+        self.consumed = false;
+        if let Some(event) = event {
+            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() {
+                self.consumed = self.key(key);
+            }
+            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
+                self.consumed = self.pointer(pointer, canvas);
+                if event.type_() == "pointerdown" {
+                    let options = web_sys::FocusOptions::new();
+                    options.set_prevent_scroll(true);
+                    canvas.focus_with_options(&options)?;
+                    event.prevent_default();
+                }
+            }
+            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() {
+                self.consumed = self.wheel(wheel, canvas);
+            }
+        }
+        let line = self.prepare();
+        canvas.set_attribute("data-command-ui", &self.inspect())?;
+        let Some(line) = line else {
+            return Ok(None);
+        };
+        if line == "Escape" {
+            return Ok(None);
+        }
+        if line.eq_ignore_ascii_case("Help") {
+            self.answer(&line, &self.commands.0.join(" · "));
+            return Ok(None);
+        }
+        if !self.commands.0.iter().any(|name| {
+            name.eq_ignore_ascii_case(&line)
+                || (*name == "Move"
+                    && line
+                        .to_ascii_lowercase()
+                        .starts_with("move "))
+        }) {
+            self.answer(&line, "Unknown command. Type Help.");
 ```
 
 ### 6. `src/browser.rs`
 
 A valid offset becomes an Action; a parse error becomes a dock answer and still redraws. Display editing failures in the command dock and continue to its normal redraw.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    return;
+                    None
+                } else {
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example triangle" => Action::ToggleExtra,
+                        "select next" => Action::SelectNext,
+                        "delete" => Action::Delete,
+                        "undo" => Action::Undo,
+                        "redo" => Action::Redo,
+                        "background" => Action::Background,
+                        "zoom in" => Action::Zoom(2.0),
+                        "zoom out" => Action::Zoom(0.5),
+                        "pan left" => Action::Pan(-0.25, 0.0),
+                        "pan right" => Action::Pan(0.25, 0.0),
+                        "orbit right" => {
+                            Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0)
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view perspective" => {
+                            Action::Projection(crate::camera::Projection::Perspective)
+                        }
+                        "view orthographic" => {
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" if shortcut.is_some() && editor.selected.is_some() => {
+                            Action::FitSelected
+                        }
+                        "fit" => Action::Fit,
+
+                        "fit selected" => Action::FitSelected,
+                        "view reset" => Action::ResetView,
+                        _ => return,
+                    };
+                    Some(action)
                 }
-            }
-        }
-```
-
-Replace it with:
-
-```rust
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    panel.result(error);
-                }
-            }
-        }
-```
-
-**Locate this block:**
-
-```rust
-                    input.click();
-                }
-                None
+            } else if !panel.consumed {
+                navigation_action(&event, &pointer_canvas, &mut gesture)
             } else {
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
+                None
+            };
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected)
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        return;
+                    }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-                    input.click();
+                    None
+                } else if line == "move" || line.starts_with("move ") {
+                    match crate::offset::parse(&line) {
+                        Ok(offset) => Some(Action::Translate(offset)),
+                        Err(error) => {
+                            panel.result(error);
+                            None
+                        }
+                    }
+                } else {
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example triangle" => Action::ToggleExtra,
+                        "select next" => Action::SelectNext,
+                        "delete" => Action::Delete,
+                        "undo" => Action::Undo,
+                        "redo" => Action::Redo,
+                        "background" => Action::Background,
+                        "zoom in" => Action::Zoom(2.0),
+                        "zoom out" => Action::Zoom(0.5),
+                        "pan left" => Action::Pan(-0.25, 0.0),
+                        "pan right" => Action::Pan(0.25, 0.0),
+                        "orbit right" => {
+                            Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0)
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view perspective" => {
+                            Action::Projection(crate::camera::Projection::Perspective)
+                        }
+                        "view orthographic" => {
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" if shortcut.is_some() && editor.selected.is_some() => {
+                            Action::FitSelected
+                        }
+                        "fit" => Action::Fit,
+
+                        "fit selected" => Action::FitSelected,
+                        "view reset" => Action::ResetView,
+                        _ => return,
+                    };
+                    Some(action)
                 }
-                None
-            } else if line == "move" || line.starts_with("move ") {
-                match crate::offset::parse(&line) {
-                    Ok(offset) => Some(Action::Translate(offset)),
-                    Err(error) => { panel.result(error); None }
-                }
+            } else if !panel.consumed {
+                navigation_action(&event, &pointer_canvas, &mut gesture)
             } else {
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
+                None
+            };
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected)
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        panel.result(error);
+                    }
 ```
 
 ## <a id="checkpoint-27d-history"></a>5. Prove placement and history agree
@@ -986,27 +1321,118 @@ Register the direct Move and history checks.
 
 ```rust
 #[cfg(test)]
-mod placement_tests;
+mod navigation_tests;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/27d-history-01.rs"
+#[cfg(test)]
+mod move_tests;
+#[cfg(test)]
+mod navigation_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/move_tests.rs`
 
 Optional authoring fixture. Verify grammar, world-axis composition, shared geometry, failure/no-op history and selection.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/27d-history-02.rs"
+```rust
+use crate::{
+    editor::{Action, Change, Editor},
+    offset,
+};
+use session_rust::Xform;
+
+#[test]
+fn offsets_require_three_finite_numbers() {
+    assert_eq!(
+        offset::parse("Move 1, -2, 3e-2").unwrap(),
+        [1.0, -2.0, 0.03]
+    );
+    for text in [
+        "Move",
+        "Move 1,2",
+        "Move 1,,2",
+        "Move 1 2,3,4",
+        "Move 1,2,3,4",
+        "Move NaN,0,0",
+        "Move inf,0,0",
+        "Other 1,2,3",
+    ] {
+        assert!(offset::parse(text).is_err(), "{text}");
+    }
+}
+
+#[test]
+fn world_move_keeps_local_mesh_and_history() {
+    let mut editor = Editor::default();
+    editor.apply(Action::SelectNext).unwrap();
+    let id = editor.selected.unwrap();
+    let mut initial = Xform::identity();
+    initial.m[0] = 2.0;
+    let initial_values = initial.m;
+    editor.scene.place(id, initial).unwrap();
+    let mesh = editor.scene.objects()[0].mesh.clone();
+    let vertex = mesh.vertices()[0];
+    let before = editor.scene.objects()[0].world_point(vertex);
+    let camera = editor.camera.uniform();
+    assert_eq!(
+        editor
+            .apply(Action::Translate([3.0, -2.0, 1.0]))
+            .unwrap(),
+        Change::Scene
+    );
+    let object = &editor.scene.objects()[0];
+    let moved = object.model.m;
+    let after = object.world_point(vertex);
+    assert_eq!(
+        after,
+        [
+            before[0] + 3.0,
+            before[1] - 2.0,
+            before[2] + 1.0
+        ]
+    );
+    assert_eq!(object.mesh.vertices()[0], vertex);
+    assert!(std::rc::Rc::ptr_eq(&mesh, &object.mesh));
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(
+        editor.scene.objects()[0].model.m,
+        initial_values
+    );
+    assert!(
+        editor
+            .apply(Action::Translate([f64::NAN, 0.0, 0.0]))
+            .is_err()
+    );
+    editor
+        .apply(Action::Translate([0.0; 3]))
+        .unwrap();
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, moved);
+    assert_eq!(editor.camera.uniform(), camera);
+    assert_eq!(editor.selected, Some(id));
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(
+        editor.scene.objects()[0].model.m,
+        initial_values
+    );
+}
+
+#[test]
+fn no_selection_cannot_move_an_arbitrary_object() {
+    let mut editor = Editor::default();
+    let before = editor.scene.objects()[0].model.m;
+    assert!(
+        editor
+            .apply(Action::Translate([1.0, 0.0, 0.0]))
+            .is_err()
+    );
+    assert_eq!(editor.scene.objects()[0].model.m, before);
+}
 ```
 
 ## <a id="checkpoint-28-record"></a>6. Prepare a display from an owned source mesh
@@ -1055,7 +1481,31 @@ Create the transit owner. Keep original kernel data beside the display prepared 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/28-record-01.rs"
+use crate::{document::Source, mesh::Mesh};
+use std::rc::Rc;
+
+pub struct PreparedMesh {
+    pub geometry: Rc<session_rust::Mesh>,
+    pub display: Mesh,
+    pub source: Option<Source>,
+}
+
+impl PreparedMesh {
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
+        Self::from_shared(Rc::new(geometry))
+    }
+
+    pub fn from_shared(geometry: Rc<session_rust::Mesh>) -> Result<Self, &'static str> {
+        // The kernel creates a GUID lazily; establish identity before sharing.
+        let _ = geometry.guid();
+        let display = Mesh::from_kernel(&geometry)?;
+        Ok(Self {
+            geometry,
+            display,
+            source: None,
+        })
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1065,27 +1515,78 @@ Expose the preparation boundary without changing the running browser adapter.
 **Locate this existing block:**
 
 ```rust
-pub mod mesh;
+pub mod picking;
+pub mod scene;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/28-record-02.rs" skip=14
+pub mod picking;
+pub mod prepared;
+pub mod scene;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/prepared_tests.rs`
 
 Optional authoring fixture. Compare original doubles with the display, and retain name, flags and GUID through preparation.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/28-record-03.rs"
+```rust
+use crate::prepared::PreparedMesh;
+use session_rust::{Mesh, Point};
+use std::rc::Rc;
+
+#[test]
+fn preparation_keeps_source_precision_attributes_and_identity() {
+    let x = 100000000.125;
+    let mut geometry = Mesh::from_vertices_and_faces(
+        vec![
+            Point::new(x, 0.0, 0.0),
+            Point::new(x + 16.0, 0.0, 0.0),
+            Point::new(x, 16.0, 0.0),
+        ],
+        vec![vec![0, 1, 2]],
+    );
+    geometry.name = "Precision specimen".into();
+    geometry.is_visible = false;
+    geometry.is_locked = true;
+    let guid = geometry.guid().to_owned();
+    let prepared = PreparedMesh::new(geometry).unwrap();
+    assert_eq!(
+        prepared.geometry.vertex_point(0).unwrap()[0],
+        x
+    );
+    let rounded = x as f32 as f64;
+    assert_ne!(rounded, x);
+    assert!(
+        prepared
+            .display
+            .vertices()
+            .iter()
+            .any(|v| v[0] as f64 == rounded)
+    );
+    assert_eq!(prepared.geometry.name, "Precision specimen");
+    assert!(!prepared.geometry.is_visible && prepared.geometry.is_locked);
+    assert_eq!(prepared.geometry.guid(), guid);
+    let shared = Rc::clone(&prepared.geometry);
+    assert!(Rc::ptr_eq(&shared, &prepared.geometry));
+    assert!(prepared.source.is_none());
+}
+
+#[test]
+fn float_overflow_refuses_preparation() {
+    let geometry = Mesh::from_vertices_and_faces(
+        vec![
+            Point::new(f64::MAX, 0.0, 0.0),
+            Point::new(f64::MAX, 1.0, 0.0),
+            Point::new(f64::MAX, 0.0, 1.0),
+        ],
+        vec![vec![0, 1, 2]],
+    );
+    assert!(PreparedMesh::new(geometry).is_err());
+}
 ```
 
 ### 4. `src/lib.rs`
@@ -1096,13 +1597,16 @@ Compile the source checks in the native test build.
 
 ```rust
 #[cfg(test)]
-mod move_tests;
+mod projection_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/28-record-04.rs" skip=29
+#[cfg(test)]
+mod prepared_tests;
+#[cfg(test)]
+mod projection_tests;
 ```
 
 ## <a id="checkpoint-28a-imported"></a>7. Retain the imported mesh behind each row
@@ -1148,39 +1652,21 @@ After that block, type:
 
 Load source/display pairs rather than display arrays alone. Retain the prepared geometry alongside its display. Share the session’s existing kernel mesh owner, then attach retained file provenance.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-    let mut meshes = Vec::new();
-    for mesh in document.objects.meshes.iter() {
-        meshes.push((mesh.guid().to_owned(), Mesh::from_kernel(mesh)?));
-    }
-    Ok(Loaded { document, meshes })
+use crate::mesh::Mesh;
+use prost::Message;
+use session_rust::{Session, proto};
+use std::{collections::HashSet, rc::Rc};
+
+pub const MAX_BYTES: usize = 4 * 1024 * 1024;
+
+#[derive(Clone)]
+pub struct Source {
+    pub document: Rc<Session>,
+    pub guid: String,
 }
-```
-
-Replace it with:
-
-```rust
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-    let mut meshes = Vec::new();
-    for mesh in document.objects.meshes.iter() {
-        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-        prepared.source = Some(Source {
-            document: Rc::clone(&document), guid: mesh.guid().to_owned(),
-        });
-        meshes.push(prepared);
-    }
-    Ok(Loaded { document, meshes })
-}
-```
-
-**Locate this block:**
-
-```rust
 
 pub struct Loaded {
     pub document: Rc<Session>,
@@ -1188,11 +1674,38 @@ pub struct Loaded {
 }
 
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    validate(&message)?;
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let mut meshes = Vec::new();
+    for mesh in document.objects.meshes.iter() {
+        meshes.push((
+            mesh.guid().to_owned(),
+            Mesh::from_kernel(mesh)?,
+        ));
+    }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use crate::prepared::PreparedMesh;
+use prost::Message;
+use session_rust::{Session, proto};
+use std::{collections::HashSet, rc::Rc};
+
+pub const MAX_BYTES: usize = 4 * 1024 * 1024;
+
+#[derive(Clone)]
+pub struct Source {
+    pub document: Rc<Session>,
+    pub guid: String,
+}
 
 pub struct Loaded {
     pub document: Rc<Session>,
@@ -1200,24 +1713,23 @@ pub struct Loaded {
 }
 
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
-```
-
-**Locate this block:**
-
-```rust
-use crate::mesh::Mesh;
-use prost::Message;
-use session_rust::{proto, Session};
-use std::{collections::HashSet, rc::Rc};
-```
-
-Replace it with:
-
-```rust
-use crate::prepared::PreparedMesh;
-use prost::Message;
-use session_rust::{proto, Session};
-use std::{collections::HashSet, rc::Rc};
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    validate(&message)?;
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let mut meshes = Vec::new();
+    for mesh in document.objects.meshes.iter() {
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.source = Some(Source {
+            document: Rc::clone(&document),
+            guid: mesh.guid().to_owned(),
+        });
+        meshes.push(prepared);
+    }
 ```
 
 ### 2. `src/scene.rs`
@@ -1229,50 +1741,58 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh), model: session_rust::Xform::identity(), source: None });
-        Ok(id)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
         for (guid, mesh) in loaded.meshes {
             self.insert(mesh)?;
             self.objects.last_mut().unwrap().source = Some(crate::document::Source {
-                document: Rc::clone(&loaded.document), guid,
+                document: Rc::clone(&loaded.document),
+                guid,
             });
         }
-        Ok(())
-    }
 ```
 
 Replace it with:
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh), geometry: None, model: session_rust::Xform::identity(), source: None });
-        Ok(id)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
         for prepared in loaded.meshes {
             self.insert(prepared.display)?;
             let object = self.objects.last_mut().unwrap();
             object.geometry = Some(prepared.geometry);
             object.source = prepared.source;
         }
-        Ok(())
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+            model: session_rust::Xform::identity(),
+            source: None,
+        });
+```
+
+Replace it with:
+
+```rust
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+            geometry: None,
+            model: session_rust::Xform::identity(),
+            source: None,
+        });
+```
+
+**Locate this block:**
+
+```rust
     pub mesh: Rc<Mesh>,
     pub model: session_rust::Xform,
     pub source: Option<crate::document::Source>,
@@ -1282,8 +1802,6 @@ pub struct Object {
 Replace it with:
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub mesh: Rc<Mesh>,
     pub geometry: Option<Rc<session_rust::Mesh>>,
     pub model: session_rust::Xform,
@@ -1291,18 +1809,47 @@ pub struct Object {
 }
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 3. `src/imported_source_tests.rs`
 
 Optional authoring fixture. Prove import shares the session’s existing source allocation even when earlier display rows disappear.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/28a-imported-07.rs"
+```rust
+use crate::{
+    editor::{Action, Editor},
+    specimen,
+};
+use std::rc::Rc;
+
+#[test]
+fn import_shares_the_retained_sessions_source_allocation() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Import(specimen::bytes()))
+        .unwrap();
+    let imported = editor.scene.objects()[2].clone();
+    let geometry = Rc::clone(imported.geometry.as_ref().unwrap());
+    let source = imported.source.as_ref().unwrap();
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| Rc::ptr_eq(m, &geometry))
+    );
+    let first = editor.scene.objects()[0].id;
+    let second = editor.scene.objects()[1].id;
+    editor.scene.remove(first);
+    editor.scene.remove(second);
+    let moved_row = &editor.scene.objects()[0];
+    assert_eq!(moved_row.id, imported.id);
+    assert!(Rc::ptr_eq(
+        moved_row.geometry.as_ref().unwrap(),
+        &geometry
+    ));
+}
 ```
 
 ### 4. `src/lib.rs`
@@ -1313,13 +1860,16 @@ Run the source allocation check at this intermediate checkpoint.
 
 ```rust
 #[cfg(test)]
-mod prepared_tests;
+mod move_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/28a-imported-08.rs" skip=33
+#[cfg(test)]
+mod imported_source_tests;
+#[cfg(test)]
+mod move_tests;
 ```
 
 ## <a id="checkpoint-28b-generated"></a>8. Give generated objects the same source owner
@@ -1369,89 +1919,163 @@ Create demo source geometry before deriving the drawing representation.
 
 ```rust
 impl PreparedMesh {
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/28b-generated-01.rs" skip=20
+impl PreparedMesh {
+    pub fn triangle(
+        points: [[f64; 3]; 3],
+        colour: [f32; 3],
+    ) -> Result<Self, &'static str> {
+        let vertices = points
+            .into_iter()
+            .map(|p| session_rust::Point::new(p[0], p[1], p[2]))
+            .collect();
+        let mut geometry =
+            session_rust::Mesh::from_vertices_and_faces(vertices, vec![vec![0, 1, 2]]);
+        geometry.set_objectcolor(session_rust::Color::new(
+            colour[0], colour[1], colour[2], 1.0,
+        ));
+        Self::new(geometry)
+    }
+
+    pub fn new(geometry: session_rust::Mesh) -> Result<Self, &'static str> {
 ```
 
 ### 2. `src/scene.rs`
 
 All insertion callers now supply prepared source geometry. Every current object has source geometry; only imported-file provenance stays optional. Describe the same two triangles as source points and an object colour. Consume one prepared value into one source-owning document record. Import uses the same complete record insertion as generated geometry. Retain the kernel box instead of keeping only its display. Keep source geometry for the optional triangle too.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = Mesh::new(vec![
-                [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],
-                [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],
-                [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],
-            ], vec![0, 1, 2]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
+use crate::mesh::Mesh;
+use std::rc::Rc;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ObjectId(u32);
+
+#[derive(Clone)]
+pub struct Object {
+    pub id: ObjectId,
+    pub mesh: Rc<Mesh>,
+    pub geometry: Option<Rc<session_rust::Mesh>>,
+    pub model: session_rust::Xform,
+    pub source: Option<crate::document::Source>,
+}
+
+impl Object {
+    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
+        let local = session_rust::Point::new(
+            vertex[0] as f64,
+            vertex[1] as f64,
+            vertex[2] as f64,
+        );
+        let world = self.model.transform_point(&local);
+        [world[0], world[1], world[2]]
+    }
+}
+
+#[derive(Clone)]
+pub struct Scene {
+    objects: Vec<Object>,
+    next_id: u32,
+    extra: Option<ObjectId>,
+}
+
+impl Scene {
+    pub fn demo() -> Self {
+        let pink = Mesh::new(
+            vec![
+                [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
+                [0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
+                [-0.1, 0.6, 0.25, 0.9, 0.25, 0.45],
+            ],
+            vec![0, 1, 2],
+        )
+        .expect("Valid pink triangle");
+        let turquoise = Mesh::new(
+            vec![
+                [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
+                [0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
+                [0.2, 0.8, 0.75, 0.05, 0.7, 0.7],
+            ],
+            vec![0, 1, 2],
+        )
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            objects: Vec::new(),
+            next_id: 1,
+            extra: None,
+        };
+        scene.insert(pink).expect("ID available");
+        scene
+            .insert(turquoise)
+            .expect("ID available");
+        scene
+    }
+
+    pub fn restore(&mut self, mut saved: Self) {
+        saved.next_id = saved.next_id.max(self.next_id);
+        *self = saved;
+    }
+
+    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
+        let mut bounds: Option<crate::bounds::Bounds> = None;
+        for object in &self.objects {
+            for vertex in object.mesh.vertices() {
+                let point = object.world_point(*vertex);
+                match &mut bounds {
+                    Some(bounds) => bounds.include(point),
+                    None => bounds = Some(crate::bounds::Bounds::point(point)),
+                }
+            }
         }
+        bounds
     }
-```
 
-Replace it with:
-
-```rust
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = PreparedMesh::triangle([
-                [-0.9, 0.3, 0.5], [-0.4, 0.3, 0.5], [-0.65, 0.9, 0.5],
-            ], [0.2, 0.8, 0.3]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
+    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
+        let object = self
+            .objects
+            .iter()
+            .find(|object| object.id == id)?;
+        let mut vertices = object.mesh.vertices().iter();
+        let first = vertices.next()?;
+        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
+        for vertex in vertices {
+            bounds.include(object.world_point(*vertex));
         }
+        Some(bounds)
     }
-```
 
-**Locate this block:**
-
-```rust
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(Mesh::from_kernel(&source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-```
-
-Replace it with:
-
-```rust
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(PreparedMesh::new(source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-```
-
-**Locate this block:**
-
-```rust
+    pub fn objects(&self) -> &[Object] {
         &self.objects
     }
 
     pub fn insert(&mut self, mesh: Mesh) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
+        let next = self
+            .next_id
+            .checked_add(1)
+            .ok_or("Object IDs exhausted")?;
         let id = ObjectId(self.next_id);
         self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh), geometry: None, model: session_rust::Xform::identity(), source: None });
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+            geometry: None,
+            model: session_rust::Xform::identity(),
+            source: None,
+        });
         Ok(id)
     }
 
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
+    pub fn import(
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
         for prepared in loaded.meshes {
             self.insert(prepared.display)?;
             let object = self.objects.last_mut().unwrap();
@@ -1460,84 +2084,101 @@ Replace it with:
         }
         Ok(())
     }
-```
 
-Replace it with:
-
-```rust
-        &self.objects
+    pub fn place(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if !model.m.iter().all(|v| v.is_finite())
+            || [
+                model.m[3],
+                model.m[7],
+                model.m[11],
+                model.m[15],
+            ] != [0.0, 0.0, 0.0, 1.0]
+        {
+            return Err("Placement must be finite and affine");
+        }
+        let object = self
+            .objects
+            .iter_mut()
+            .find(|o| o.id == id)
+            .ok_or("Object not found")?;
+        object.model = model;
+        Ok(())
     }
 
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
-            model: session_rust::Xform::identity(), source: prepared.source });
+    pub fn remove(&mut self, id: ObjectId) -> bool {
+        let Some(index) = self
+            .objects
+            .iter()
+            .position(|object| object.id == id)
+        else {
+            return false;
+        };
+        self.objects.remove(index);
+        if self.extra == Some(id) {
+            self.extra = None;
+        }
+        true
+    }
+
+    pub fn contains(&self, id: ObjectId) -> bool {
+        self.objects
+            .iter()
+            .any(|object| object.id == id)
+    }
+
+    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {
+        if self.objects.is_empty() {
+            return None;
+        }
+        let index = self
+            .objects
+            .iter()
+            .position(|object| Some(object.id) == current)
+            .map_or(0, |index| index + 1);
+        Some(self.objects[index % self.objects.len()].id)
+    }
+
+    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
+        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
+        source.set_objectcolor(session_rust::Color::new(
+            0.65, 0.65, 0.65, 1.0,
+        ));
+        let id = self.insert(Mesh::from_kernel(&source)?)?;
+        self.place(
+            id,
+            session_rust::Xform::translation(0.9, 0.0, 0.4),
+        )?;
         Ok(id)
     }
 
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        for prepared in loaded.meshes {
-            self.insert(prepared)?;
-        }
-        Ok(())
-    }
+    pub fn toggle_extra(&mut self) {
+        if let Some(id) = self.extra.take() {
+            self.remove(id);
+        } else {
+            let extra = Mesh::new(
+                vec![
+                    [-0.9, 0.3, 0.5, 0.2, 0.8, 0.3],
+                    [-0.4, 0.3, 0.5, 0.2, 0.8, 0.3],
+                    [-0.65, 0.9, 0.5, 0.2, 0.8, 0.3],
+                ],
+                vec![0, 1, 2],
+            )
 ```
 
-**Locate this block:**
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+use crate::{mesh::Mesh, prepared::PreparedMesh};
+use std::rc::Rc;
 
-impl Scene {
-    pub fn demo() -> Self {
-        let pink = Mesh::new(vec![
-            [-0.7, -0.6, 0.25, 0.9, 0.25, 0.45],
-            [ 0.5, -0.6, 0.25, 0.9, 0.25, 0.45],
-            [-0.1,  0.6, 0.25, 0.9, 0.25, 0.45],
-        ], vec![0, 1, 2]).expect("Valid pink triangle");
-        let turquoise = Mesh::new(vec![
-            [-0.4, -0.2, 0.75, 0.05, 0.7, 0.7],
-            [ 0.8, -0.2, 0.75, 0.05, 0.7, 0.7],
-            [ 0.2,  0.8, 0.75, 0.05, 0.7, 0.7],
-        ], vec![0, 1, 2]).expect("Valid turquoise triangle");
-        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-```
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ObjectId(u32);
 
-Replace it with:
-
-```rust
-
-impl Scene {
-    pub fn demo() -> Self {
-        let pink = PreparedMesh::triangle([
-            [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
-        ], [0.9, 0.25, 0.45]).expect("Valid pink triangle");
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { objects: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-```
-
-**Locate this block:**
-
-```rust
-pub struct Object {
-    pub id: ObjectId,
-    pub mesh: Rc<Mesh>,
-    pub geometry: Option<Rc<session_rust::Mesh>>,
-    pub model: session_rust::Xform,
-    pub source: Option<crate::document::Source>,
-}
-```
-
-Replace it with:
-
-```rust
+#[derive(Clone)]
 pub struct Object {
     pub id: ObjectId,
     pub mesh: Rc<Mesh>,
@@ -1545,64 +2186,259 @@ pub struct Object {
     pub model: session_rust::Xform,
     pub source: Option<crate::document::Source>,
 }
+
+impl Object {
+    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
+        let local = session_rust::Point::new(
+            vertex[0] as f64,
+            vertex[1] as f64,
+            vertex[2] as f64,
+        );
+        let world = self.model.transform_point(&local);
+        [world[0], world[1], world[2]]
+    }
+}
+
+#[derive(Clone)]
+pub struct Scene {
+    objects: Vec<Object>,
+    next_id: u32,
+    extra: Option<ObjectId>,
+}
+
+impl Scene {
+    pub fn demo() -> Self {
+        let pink = PreparedMesh::triangle(
+            [
+                [-0.7, -0.6, 0.25],
+                [0.5, -0.6, 0.25],
+                [-0.1, 0.6, 0.25],
+            ],
+            [0.9, 0.25, 0.45],
+        )
+        .expect("Valid pink triangle");
+        let turquoise = PreparedMesh::triangle(
+            [
+                [-0.4, -0.2, 0.75],
+                [0.8, -0.2, 0.75],
+                [0.2, 0.8, 0.75],
+            ],
+            [0.05, 0.7, 0.7],
+        )
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            objects: Vec::new(),
+            next_id: 1,
+            extra: None,
+        };
+        scene.insert(pink).expect("ID available");
+        scene
+            .insert(turquoise)
+            .expect("ID available");
+        scene
+    }
+
+    pub fn restore(&mut self, mut saved: Self) {
+        saved.next_id = saved.next_id.max(self.next_id);
+        *self = saved;
+    }
+
+    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
+        let mut bounds: Option<crate::bounds::Bounds> = None;
+        for object in &self.objects {
+            for vertex in object.mesh.vertices() {
+                let point = object.world_point(*vertex);
+                match &mut bounds {
+                    Some(bounds) => bounds.include(point),
+                    None => bounds = Some(crate::bounds::Bounds::point(point)),
+                }
+            }
+        }
+        bounds
+    }
+
+    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
+        let object = self
+            .objects
+            .iter()
+            .find(|object| object.id == id)?;
+        let mut vertices = object.mesh.vertices().iter();
+        let first = vertices.next()?;
+        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
+        for vertex in vertices {
+            bounds.include(object.world_point(*vertex));
+        }
+        Some(bounds)
+    }
+
+    pub fn objects(&self) -> &[Object] {
+        &self.objects
+    }
+
+    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
+        let next = self
+            .next_id
+            .checked_add(1)
+            .ok_or("Object IDs exhausted")?;
+        let id = ObjectId(self.next_id);
+        self.next_id = next;
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(prepared.display),
+            geometry: prepared.geometry,
+            model: session_rust::Xform::identity(),
+            source: prepared.source,
+        });
+        Ok(id)
+    }
+
+    pub fn import(
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
+        for prepared in loaded.meshes {
+            self.insert(prepared)?;
+        }
+        Ok(())
+    }
+
+    pub fn place(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if !model.m.iter().all(|v| v.is_finite())
+            || [
+                model.m[3],
+                model.m[7],
+                model.m[11],
+                model.m[15],
+            ] != [0.0, 0.0, 0.0, 1.0]
+        {
+            return Err("Placement must be finite and affine");
+        }
+        let object = self
+            .objects
+            .iter_mut()
+            .find(|o| o.id == id)
+            .ok_or("Object not found")?;
+        object.model = model;
+        Ok(())
+    }
+
+    pub fn remove(&mut self, id: ObjectId) -> bool {
+        let Some(index) = self
+            .objects
+            .iter()
+            .position(|object| object.id == id)
+        else {
+            return false;
+        };
+        self.objects.remove(index);
+        if self.extra == Some(id) {
+            self.extra = None;
+        }
+        true
+    }
+
+    pub fn contains(&self, id: ObjectId) -> bool {
+        self.objects
+            .iter()
+            .any(|object| object.id == id)
+    }
+
+    pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {
+        if self.objects.is_empty() {
+            return None;
+        }
+        let index = self
+            .objects
+            .iter()
+            .position(|object| Some(object.id) == current)
+            .map_or(0, |index| index + 1);
+        Some(self.objects[index % self.objects.len()].id)
+    }
+
+    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
+        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
+        source.set_objectcolor(session_rust::Color::new(
+            0.65, 0.65, 0.65, 1.0,
+        ));
+        let id = self.insert(PreparedMesh::new(source)?)?;
+        self.place(
+            id,
+            session_rust::Xform::translation(0.9, 0.0, 0.4),
+        )?;
+        Ok(id)
+    }
+
+    pub fn toggle_extra(&mut self) {
+        if let Some(id) = self.extra.take() {
+            self.remove(id);
+        } else {
+            let extra = PreparedMesh::triangle(
+                [
+                    [-0.9, 0.3, 0.5],
+                    [-0.4, 0.3, 0.5],
+                    [-0.65, 0.9, 0.5],
+                ],
+                [0.2, 0.8, 0.3],
+            )
 ```
-
-**Locate this block:**
-
-```rust
-use crate::mesh::Mesh;
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-```
-
-Replace it with:
-
-```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/imported_source_tests.rs`
 
-Optional authoring fixture. The source is now required, so remove the temporary Option unwrap in the check.
+Optional authoring fixture. The source is now required, so remove the temporary Option unwrap in the check. Optional authoring fixture. Compare the required shared owner after its display row changes.
 
 **Locate this existing block:**
 
-```text
+```rust
+    let imported = editor.scene.objects()[2].clone();
     let geometry = Rc::clone(imported.geometry.as_ref().unwrap());
+    let source = imported.source.as_ref().unwrap();
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| Rc::ptr_eq(m, &geometry))
+    );
+    let first = editor.scene.objects()[0].id;
+    let second = editor.scene.objects()[1].id;
+    editor.scene.remove(first);
+    editor.scene.remove(second);
+    let moved_row = &editor.scene.objects()[0];
+    assert_eq!(moved_row.id, imported.id);
+    assert!(Rc::ptr_eq(
+        moved_row.geometry.as_ref().unwrap(),
+        &geometry
+    ));
+}
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/28b-generated-09.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/imported_source_tests.rs`
-
-Optional authoring fixture. Compare the required shared owner after its display row changes.
-
-**Locate this existing block:**
-
-```text
-    assert!(Rc::ptr_eq(moved_row.geometry.as_ref().unwrap(), &geometry));
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/28b-generated-10.rs"
+```rust
+    let imported = editor.scene.objects()[2].clone();
+    let geometry = Rc::clone(&imported.geometry);
+    let source = imported.source.as_ref().unwrap();
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| Rc::ptr_eq(m, &geometry))
+    );
+    let first = editor.scene.objects()[0].id;
+    let second = editor.scene.objects()[1].id;
+    editor.scene.remove(first);
+    editor.scene.remove(second);
+    let moved_row = &editor.scene.objects()[0];
+    assert_eq!(moved_row.id, imported.id);
+    assert!(Rc::ptr_eq(&moved_row.geometry, &geometry));
+}
 ```
 
 ## <a id="checkpoint-28c-ownership"></a>9. Prove source ownership survives editing
@@ -1644,18 +2480,83 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 **What this code does:** Connect local source geometry, display caches, provenance and document history.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/source_tests.rs`
 
 Optional authoring fixture. Check source and display allocations, original vertices, placement history and retained file provenance.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/28c-ownership-01.rs"
+```rust
+use crate::{
+    editor::{Action, Editor},
+    specimen,
+};
+use std::rc::Rc;
+
+#[test]
+fn generated_source_and_display_survive_move_and_history() {
+    let mut editor = Editor::default();
+    editor.apply(Action::AddBox).unwrap();
+    for _ in 0..3 {
+        editor.apply(Action::SelectNext).unwrap();
+    }
+    let object = &editor.scene.objects()[2];
+    let geometry = Rc::clone(&object.geometry);
+    let display = Rc::clone(&object.mesh);
+    let point = geometry.vertex_point(0).unwrap();
+    let guid = geometry.guid().to_owned();
+    let before = object.model.m;
+    editor
+        .apply(Action::Translate([2.0, -1.0, 0.5]))
+        .unwrap();
+    let moved = editor.scene.objects()[2].model.m;
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects()[2].model.m, before);
+    editor.apply(Action::Redo).unwrap();
+    let restored = &editor.scene.objects()[2];
+    assert_eq!(restored.model.m, moved);
+    assert!(Rc::ptr_eq(&geometry, &restored.geometry));
+    assert!(Rc::ptr_eq(&display, &restored.mesh));
+    assert_eq!(
+        restored.geometry.vertex_point(0).unwrap(),
+        point
+    );
+    assert_eq!(restored.geometry.guid(), guid);
+    assert!(restored.source.is_none());
+}
+
+#[test]
+fn imported_source_survives_a_change_of_display_row() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Import(specimen::bytes()))
+        .unwrap();
+    let imported = editor.scene.objects()[2].clone();
+    let first = editor.scene.objects()[0].id;
+    let second = editor.scene.objects()[1].id;
+    editor.scene.remove(first);
+    editor.scene.remove(second);
+    let current = &editor.scene.objects()[0];
+    assert_eq!(current.id, imported.id);
+    assert!(Rc::ptr_eq(
+        &current.geometry,
+        &imported.geometry
+    ));
+    let source = current.source.as_ref().unwrap();
+    assert_eq!(current.geometry.guid(), source.guid);
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| m.guid() == source.guid)
+    );
+    assert!(Rc::ptr_eq(
+        &source.document,
+        &imported.source.as_ref().unwrap().document
+    ));
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1665,14 +2566,17 @@ Compile the connected ownership checks with the current scene.
 **Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod prepared_tests;
+mod selected_fit_tests;
+pub mod specimen;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/28c-ownership-02.rs" skip=33
+mod selected_fit_tests;
+#[cfg(test)]
+mod source_tests;
+pub mod specimen;
 ```
 
 ## Build & Run

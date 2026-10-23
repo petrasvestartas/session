@@ -1,247 +1,235 @@
 # 12.1 · Complete viewer files and published scene sources
 
-Save/reopen all supported original sources and adopt complete URL-loaded scenes with explicit revision ownership.
+**Goal:** Connect browser save open and URL adoption. · **Steps:** 44 · **Source:** [app/manifest.rs](../../../src/app/manifest.rs) · [app/session_io.rs](../../../src/app/session_io.rs) · [app/stream.rs](../../../src/app/stream.rs) · [app/range_gate.rs](../../../src/app/range_gate.rs) · [app/fetch.rs](../../../src/app/fetch.rs) · [app/loader.rs](../../../src/app/loader.rs) · [app/live.rs](../../../src/app/live.rs) (`src/app/manifest.rs,src/app/streaming.rs,src/app/archive.rs`)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="196" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">1. Lesson 12.1 Code</text>
+  <rect x="34" y="48" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="64" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/manifest.rs</text>
+  <rect x="34" y="78" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/live_revision.rs</text>
+  <rect x="34" y="108" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="124" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">44 Coding Steps</text>
+  <line x1="264" y1="100" x2="292" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
+  <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/app/manifest.rs</text>
+  <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/app/streaming.rs</text>
+  <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Parse and bound scene man…</text>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. HTTP Range Read Permits</text>
+  <rect x="596" y="54" width="208" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="602" y="60" width="58" height="24" rx="3" fill="#dbeafe" stroke="#2563eb" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="631" y="76" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Header</text>
+  <rect x="668" y="60" width="66" height="24" rx="3" fill="#dcfce7" stroke="#16a34a" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="701" y="76" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Page [k]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="770" y="76" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">...EOF</text>
+  <rect x="596" y="100" width="208" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="122" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Range: bytes=start..end</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Complete viewer files and p…</text>
+  <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Archive &amp; Live Revision</text>
+  <rect x="880" y="54" width="192" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Saved .session Archive</text>
+  <rect x="880" y="100" width="192" height="36" rx="5" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="122" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">ETag / Revision Poll</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Wire Browser Save, Open,…</text>
+</svg>
+</div>
 
-Bound manifests, scalar fields, geometry addresses and nested protobuf records before preparing a source document. The viewer archive stores original document protobufs plus geometry-free metadata for placement, layers, presentation, labels and namespaces; copied rows receive independent identities without destroying shared source relationships. Reopen privately reconstructs all documents/settings and adopts only a complete candidate. Manifest placements share repeated sources, while URL resolution, validators and byte revisions identify published source versions. A cancellable loader accepts only the current completion and live watchers request an explicit new revision rather than mutating a prepared old source.
+## <a id="checkpoint-66-read-scene-manifests"></a>1. Parse and bound scene manifests
 
-## The maintained implementation
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 1 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/manifest.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original family</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">pure calculation</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">result or refusal</text>
+</svg>
+</div>
 
-app/manifest.rs bounds manifest bytes/items and parses YAML/TOML entries; app/session_io.rs owns the SESSION-VIEWER archive; app/validate.rs and app/decode.rs validate original data. app/loader.rs, app/live.rs and app/route.rs own maintained URL/scene loading and reload generations. This lesson consolidates the full save/load boundary before large-source range optimization.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [app/manifest.rs](../../../src/app/manifest.rs), [app/session_io.rs](../../../src/app/session_io.rs), [app/stream.rs](../../../src/app/stream.rs), [app/range_gate.rs](../../../src/app/range_gate.rs), [app/fetch.rs](../../../src/app/fetch.rs), [app/loader.rs](../../../src/app/loader.rs), [app/live.rs](../../../src/app/live.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-66-read-scene-manifests"></a>
-
-<details>
-<summary>Implementation 66-read-scene-manifests: Parse and bound original scene manifests</summary>
-
-Parse supported manifest forms, then bound bytes, record counts and text content.
-
-Data flow: original family → pure calculation → result or refusal.
+**What this code does:** Parse supported manifest forms, then bound bytes, record counts and text content.
 
 ### 1. `src/manifest.rs`
 
-Extend this original owner with today’s complete helper.
+Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
+**Locate this existing block:**
 
 ```rust
-}
-
-/// The line and column of a YAML error, if known.
-```
-
-</details>
-
-Replace it with:
-
-```rust
-}
-
-/// The line and column of a YAML error, if known.
-fn yaml_at(e: &serde_yaml_ng::Error) -> String {
-    match e.location() {
-        Some(l) => format!(" (line {}, column {})", l.line(), l.column()),
-        None => String::new(),
-    }
-}
-
-/// True for a content-addressed key, whose bytes never change: the browser cache may answer it.
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
+impl Manifest {
     /// Item `i`'s placement, or its auto grid slot.
     pub fn place(&self, i: usize, cell: [f64; 2]) -> Xform {
         match self.items[i].placement() {
-```
+            Some(placement) => placement,
+            None => auto_grid(i, self.items.len(), cell),
+        }
+    }
 
-</details>
+    /// Item `i`'s name, or `fallback`.
+    pub fn name_of(&self, i: usize, fallback: &str) -> String {
+        let n = &self.items[i].name;
 
-Replace it with:
+        if n.is_empty() {
+            fallback.to_string()
+        } else {
+            n.clone()
+        }
+    }
+}
 
-```rust
-    /// Parse YAML, JSON or TOML and check every value.
-    pub fn parse(bytes: &[u8]) -> Result<Self, String> {
-        if bytes.len() > 4 * 1024 * 1024 {
-            return Err("manifest exceeds 4 MiB".to_string());
+impl TextItem {
+    /// Check the text, height and plane axes.
+    fn validate(&self, index: usize) -> Result<(), String> {
+        if self.text.trim().is_empty() {
+            return Err(format!("text {index}: missing text content"));
         }
 
-        let text = match std::str::from_utf8(bytes) {
-            Ok(text) => text,
-            Err(error) => return Err(format!("manifest is not UTF-8: {error}")),
-        };
-        let manifest: Self = match serde_yaml_ng::from_str(text) {
-            Ok(manifest) => manifest,
-            Err(yaml) => match toml_form(text) {
-                Ok(manifest) => manifest,
-                Err(toml) => {
-                    return Err(format!(
-                        "Invalid manifest. YAML: {}{}. TOML: {toml}",
-                        yaml,
-                        yaml_at(&yaml)
-                    ));
-                }
-            },
-        };
-
-        if manifest.items.len() > 100_000 {
-            return Err("manifest exceeds 100,000 items".to_string());
+        if !self.height.is_finite() || self.height <= 0.0 {
+            return Err(format!(
+                "text {index}: height must be positive and finite"
+            ));
         }
 
-        for (index, item) in manifest.items.iter().enumerate() {
-            if item.file.trim().is_empty() {
-                return Err(format!("item {index}: missing geometry file"));
-            }
+        if nonfinite_transform(self.at) {
+            return Err(format!("text {index}: non-finite position"));
+        }
 
-            if !item.point_size.is_finite() || item.point_size < 0.0 {
-                return Err(format!("item {index}: invalid point size"));
-            }
-
-            if item.at.is_some_and(nonfinite_transform)
-                || item.xform.is_some_and(nonfinite_transform)
-            {
-                return Err(format!("item {index}: non-finite transform"));
-            }
-
-            if !item.encoding.is_empty() && item.size == 0 {
+        for axis in [self.right, self.up] {
+            if nonfinite_transform(axis) {
                 return Err(format!(
-                    "item {index}: an encoded file needs its decoded size"
+                    "text {index}: non-finite plane axis"
                 ));
             }
 
-            if let Some(matrix) = item.xform
-                && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0)
-            {
-                return Err(format!("item {index}: placement must be affine"));
+            let length =
+                (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
+
+            if (length - 1.0).abs() > 1e-6 {
+                return Err(format!(
+                    "text {index}: plane axes must be unit length within 1e-6"
+                ));
             }
         }
 
-        if manifest.texts.len() > 1024 {
-            return Err("manifest exceeds 1,024 text records".to_string());
+        let dot = self.right[0] * self.up[0]
+            + self.right[1] * self.up[1]
+            + self.right[2] * self.up[2];
+
+        if dot.abs() > 1e-6 {
+            return Err(format!(
+                "text {index}: plane axes must be orthogonal within 1e-6"
+            ));
         }
 
-        let mut text_bytes = 0usize;
-
-        for (index, item) in manifest.texts.iter().enumerate() {
-            text_bytes = text_bytes.saturating_add(item.text.len());
-
-            if text_bytes > 256 * 1024 {
-                return Err("manifest text exceeds 256 KiB of UTF-8 content".to_string());
-            }
-
-            item.validate(index)?;
-        }
-
-        Ok(manifest)
+        Ok(())
     }
+}
 
-    /// Item `i`'s placement, or its auto grid slot.
-    pub fn place(&self, i: usize, cell: [f64; 2]) -> Xform {
-        match self.items[i].placement() {
+/// World +X.
+fn text_right() -> [f64; 3] {
+    [1.0, 0.0, 0.0]
+}
+
+/// World +Y.
+fn text_up() -> [f64; 3] {
+    [0.0, 1.0, 0.0]
+}
+
+/// A translation matrix.
+fn translation(at: [f64; 3]) -> Xform {
+    Xform::translation(at[0], at[1], at[2])
+}
+
+/// True when any value is not finite.
+fn nonfinite_transform<const N: usize>(values: [f64; N]) -> bool {
+    !values.into_iter().all(f64::is_finite)
+}
+
+/// A TOML manifest.
+#[cfg(feature = "toml-manifests")]
+fn toml_form(text: &str) -> Result<Manifest, String> {
+    toml::from_str(text).map_err(|error| error.to_string())
+}
+
+/// TOML is not read without the `toml-manifests` feature.
+#[cfg(not(feature = "toml-manifests"))]
+fn toml_form(_text: &str) -> Result<Manifest, String> {
+    Err("not read by this build (feature toml-manifests)".to_string())
+}
+
+/// The line and column of a YAML error, if known.
+pub fn immutable_key(url: &str) -> bool {
+    let name = url.rsplit('/').next().unwrap_or(url);
+    let stem = name.split('.').next().unwrap_or(name);
+    let hash = stem.rsplit('-').next().unwrap_or(stem);
+    hash.len() >= 16 && hash.bytes().all(|b| b.is_ascii_hexdigit())
+}
+
+/// Grid slot `index` of `count`, `cell` apart.
+pub fn auto_grid(index: usize, count: usize, cell: [f64; 2]) -> Xform {
+    let cols = (count as f64).sqrt().ceil().max(1.0) as usize;
+    Xform::translation(
+        (index % cols) as f64 * cell[0],
+        (index / cols) as f64 * cell[1],
+        0.0,
+    )
+}
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66-read-scene-manifests-1.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/manifest.rs`
-
-Supply only the unchanged original validation fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-use serde::Deserialize;
-use session_rust::Xform;
-
-/// One manifest entry: a file and its placement.
-#[derive(Clone, Deserialize)]
-pub struct Item {
-    pub file: String, // path like `pb/box.pb`, relative to the scene
-    #[serde(default)]
-    pub name: String, // display name, empty = the file's own
-    #[serde(default)]
-    pub at: Option<[f64; 3]>, // translation in world units
-    #[serde(default)]
-    pub xform: Option<[f64; 16]>, // full matrix, wins over `at`
-    #[serde(default)]
-    pub point_size: f64, // cloud point size in px, 0 = the file's own
-    #[serde(default)]
-    pub display_only: bool, // old flag, no longer changes anything
-    #[serde(default)]
-    pub size: u64, // decoded bytes, 0 = unknown
-    #[serde(default)]
-    pub encoding: String, // stored Content-Encoding such as `gzip`, empty = identity
-}
-
-/// One text placed in the world.
-#[derive(Clone, Debug, Deserialize)]
-pub struct TextItem {
-    pub text: String, // the text
-    #[serde(default)]
-    pub at: [f64; 3], // world origin of the text
-    #[serde(default = "text_right")]
-    pub right: [f64; 3], // unit direction of the text line
-    #[serde(default = "text_up")]
-    pub up: [f64; 3], // unit direction up the text
-    pub height: f64,  // letter height in world units
-    #[serde(default)]
-    pub camera_facing: bool, // always face the camera
-}
-
-/// The parsed scene file.
-#[derive(Clone, Deserialize)]
-pub struct Manifest {
-    #[serde(default)]
-    pub name: String, // scene name
-    pub items: Vec<Item>, // geometry files
-    #[serde(default)]
-    pub texts: Vec<TextItem>, // world texts
-}
-
-impl Item {
-    /// The decoded size of a file stored encoded: it is never range-read.
-    pub fn encoded_size(&self) -> Option<u64> {
-        (!self.encoding.is_empty()).then_some(self.size)
-    }
-
-    /// The item's placement, None for the auto grid.
-    pub fn placement(&self) -> Option<Xform> {
-        if let Some(m) = self.xform {
-            let mut x = Xform::identity();
-            x.m = m;
-            return Some(x);
-        }
-
-        self.at.map(translation)
-    }
-}
-
 impl Manifest {
     /// Parse YAML, JSON or TOML and check every value.
     pub fn parse(bytes: &[u8]) -> Result<Self, String> {
@@ -273,7 +261,9 @@ impl Manifest {
 
         for (index, item) in manifest.items.iter().enumerate() {
             if item.file.trim().is_empty() {
-                return Err(format!("item {index}: missing geometry file"));
+                return Err(format!(
+                    "item {index}: missing geometry file"
+                ));
             }
 
             if !item.point_size.is_finite() || item.point_size < 0.0 {
@@ -293,9 +283,14 @@ impl Manifest {
             }
 
             if let Some(matrix) = item.xform
-                && (matrix[3] != 0.0 || matrix[7] != 0.0 || matrix[11] != 0.0 || matrix[15] != 1.0)
+                && (matrix[3] != 0.0
+                    || matrix[7] != 0.0
+                    || matrix[11] != 0.0
+                    || matrix[15] != 1.0)
             {
-                return Err(format!("item {index}: placement must be affine"));
+                return Err(format!(
+                    "item {index}: placement must be affine"
+                ));
             }
         }
 
@@ -309,7 +304,9 @@ impl Manifest {
             text_bytes = text_bytes.saturating_add(item.text.len());
 
             if text_bytes > 256 * 1024 {
-                return Err("manifest text exceeds 256 KiB of UTF-8 content".to_string());
+                return Err(
+                    "manifest text exceeds 256 KiB of UTF-8 content".to_string(),
+                );
             }
 
             item.validate(index)?;
@@ -346,7 +343,9 @@ impl TextItem {
         }
 
         if !self.height.is_finite() || self.height <= 0.0 {
-            return Err(format!("text {index}: height must be positive and finite"));
+            return Err(format!(
+                "text {index}: height must be positive and finite"
+            ));
         }
 
         if nonfinite_transform(self.at) {
@@ -355,10 +354,13 @@ impl TextItem {
 
         for axis in [self.right, self.up] {
             if nonfinite_transform(axis) {
-                return Err(format!("text {index}: non-finite plane axis"));
+                return Err(format!(
+                    "text {index}: non-finite plane axis"
+                ));
             }
 
-            let length = (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
+            let length =
+                (axis[0] * axis[0] + axis[1] * axis[1] + axis[2] * axis[2]).sqrt();
 
             if (length - 1.0).abs() > 1e-6 {
                 return Err(format!(
@@ -367,8 +369,9 @@ impl TextItem {
             }
         }
 
-        let dot =
-            self.right[0] * self.up[0] + self.right[1] * self.up[1] + self.right[2] * self.up[2];
+        let dot = self.right[0] * self.up[0]
+            + self.right[1] * self.up[1]
+            + self.right[2] * self.up[2];
 
         if dot.abs() > 1e-6 {
             return Err(format!(
@@ -437,28 +440,229 @@ pub fn auto_grid(index: usize, count: usize, cell: [f64; 2]) -> Xform {
         0.0,
     )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The three formats parse the same scene.
+    #[test]
+    fn yaml_json_and_toml_have_identical_scene_semantics() {
+        let forms = [
+            "name: sample\nitems:\n  - file: pb/box.pb\n    at: [1, 2, 3]\n",
+            "{\"name\":\"sample\",\"items\":[{\"file\":\"pb/box.pb\",\"at\":[1,2,3]}]}",
+            "name = \"sample\"\n[[items]]\nfile = \"pb/box.pb\"\nat = [1, 2, 3]\n",
+        ];
+
+        for form in
+            &forms[..forms.len() - usize::from(cfg!(not(feature = "toml-manifests")))]
+        {
+            let manifest = Manifest::parse(form.as_bytes()).unwrap();
+            assert!(manifest.texts.is_empty());
+            assert_eq!(manifest.name, "sample");
+            assert_eq!(manifest.items[0].file, "pb/box.pb");
+            assert_eq!(manifest.items[0].at, Some([1.0, 2.0, 3.0]));
+        }
+    }
+
+    /// Encoded items carry their decoded size; plain items need neither field.
+    #[test]
+    fn encoded_items_carry_their_decoded_size() {
+        let manifest = Manifest::parse(
+            b"items: [{file: a.pb, size: 90, encoding: gzip}, {file: b.pb}]",
+        )
+        .unwrap();
+        assert_eq!(manifest.items[0].encoded_size(), Some(90));
+        assert_eq!(manifest.items[1].encoded_size(), None);
+        assert!(Manifest::parse(b"items: [{file: a.pb, encoding: gzip}]").is_err());
+    }
+
+    /// Only hashed names skip revalidation.
+    #[test]
+    fn immutable_keys_are_the_hashed_names() {
+        let revision = "https://x.dev/pb/revisions/4f24e928c29eb9effa864768903b73f3fbb9038279ccdf8a87117e588b4c72f3.pb";
+        assert!(immutable_key(revision));
+        assert!(immutable_key(
+            "pb/sheets/querschnitt-0123456789abcdef.pb"
+        ));
+        assert!(!immutable_key(
+            "https://x.dev/pb/view_mixed_floor_model.pb"
+        ));
+        assert!(!immutable_key(
+            "https://x.dev/scenes/view_mixed.yaml"
+        ));
+        assert!(!immutable_key(
+            "pb/sheets/querschnitt-cafe.pb"
+        ));
+    }
+
+    /// Bad items are refused.
+    #[test]
+    fn invalid_manifest_does_not_reach_gpu_preparation() {
+        for source in [
+            "items: [{file: ''}]",
+            "items: [{file: box.pb, point_size: -.inf}]",
+            "items: [{file: box.pb, at: [.nan, 0, 0]}]",
+            "items: [",
+        ] {
+            assert!(
+                Manifest::parse(source.as_bytes()).is_err(),
+                "{source}"
+            );
+        }
+
+        assert!(Manifest::parse(&[0xff]).is_err());
+    }
+
+    /// The three formats parse the same text.
+    #[test]
+    fn world_text_yaml_json_and_toml_are_equivalent() {
+        let forms = [
+            "items: []\ntexts:\n  - text: 'Fixed Ω cube'\n    at: [1, 2, 3]\n    right: [0, 1, 0]\n    up: [0, 0, -1]\n    height: 12.5\n",
+            r#"{"items":[],"texts":[{"text":"Fixed Ω cube","at":[1,2,3],"right":[0,1,0],"up":[0,0,-1],"height":12.5}]}"#,
+            "items = []\n[[texts]]\ntext = \"Fixed Ω cube\"\nat = [1, 2, 3]\nright = [0, 1, 0]\nup = [0, 0, -1]\nheight = 12.5\n",
+        ];
+
+        for form in
+            &forms[..forms.len() - usize::from(cfg!(not(feature = "toml-manifests")))]
+        {
+            let manifest = Manifest::parse(form.as_bytes()).unwrap();
+            assert_eq!(manifest.texts.len(), 1);
+            let text = &manifest.texts[0];
+            assert_eq!(text.text, "Fixed Ω cube");
+            assert_eq!(text.at, [1.0, 2.0, 3.0]);
+            assert_eq!(text.right, [0.0, 1.0, 0.0]);
+            assert_eq!(text.up, [0.0, 0.0, -1.0]);
+            assert_eq!(text.height, 12.5);
+        }
+    }
+
+    /// Text defaults apply; `items` and `height` stay required.
+    #[test]
+    fn world_text_defaults_preserve_manifest_compatibility() {
+        let manifest =
+            Manifest::parse(b"items: []\ntexts: [{text: label, height: 2}]").unwrap();
+        let text = &manifest.texts[0];
+        assert_eq!(text.at, [0.0; 3]);
+        assert_eq!(text.right, [1.0, 0.0, 0.0]);
+        assert_eq!(text.up, [0.0, 1.0, 0.0]);
+        assert!(Manifest::parse(b"texts: [{text: label, height: 2}]").is_err());
+        assert!(Manifest::parse(b"items: []\ntexts: [{text: label}]").is_err());
+    }
+
+    /// Bad text records are refused.
+    #[test]
+    fn invalid_world_text_frames_and_heights_are_recoverable() {
+        for record in [
+            "{text: '', height: 1}",
+            "{text: '   ', height: 1}",
+            "{text: label, height: 0}",
+            "{text: label, height: -1}",
+            "{text: label, height: .inf}",
+            "{text: label, height: .nan}",
+            "{text: label, height: 1, at: [0, .inf, 0]}",
+            "{text: label, height: 1, right: [0, 0, 0]}",
+            "{text: label, height: 1, right: [2, 0, 0]}",
+            "{text: label, height: 1, right: [.nan, 0, 0]}",
+            "{text: label, height: 1, up: [1, 0, 0]}",
+            "{text: label, height: 1, up: [0, 1, .inf]}",
+        ] {
+            let source = format!("items: []\ntexts: [{record}]");
+            assert!(
+                Manifest::parse(source.as_bytes()).is_err(),
+                "{record}"
+            );
+        }
+        assert!(
+            Manifest::parse(b"items: []\ntexts: [{text: valid, height: 1}]").is_ok()
+        );
+    }
+
+    /// Axes may be off unit length by 1e-6.
+    #[test]
+    fn world_text_axis_tolerance_is_bounded() {
+        let source = b"items: []\ntexts: [{text: label, height: 1, right: [1.0000005, 0, 0], up: [0.0000005, 1, 0]}]";
+        let manifest = Manifest::parse(source).unwrap();
+        assert_eq!(manifest.texts[0].right[0], 1.0000005);
+
+        for source in [
+            b"items: []\ntexts: [{text: label, height: 1, right: [1.000002, 0, 0]}]"
+                .as_slice(),
+            b"items: []\ntexts: [{text: label, height: 1, up: [0.000002, 1, 0]}]"
+                .as_slice(),
+        ] {
+            assert!(Manifest::parse(source).is_err());
+        }
+    }
+
+    /// Text bytes and record count have limits.
+    #[test]
+    fn world_text_content_and_record_limits_are_enforced() {
+        let half = "é".repeat(65_536);
+        let mut records = vec![serde_json::json!({"text":half,"height":1}); 2];
+        let accepted = serde_json::json!({"items":[],"texts":records});
+        assert!(Manifest::parse(accepted.to_string().as_bytes()).is_ok());
+        records.push(serde_json::json!({"text":"x","height":1}));
+        let rejected = serde_json::json!({"items":[],"texts":records});
+        assert!(
+            Manifest::parse(rejected.to_string().as_bytes())
+                .err()
+                .unwrap()
+                .contains("256 KiB")
+        );
+        let mut records = vec![serde_json::json!({"text":"x","height":1}); 1024];
+        let accepted = serde_json::json!({"items":[],"texts":records});
+        assert!(Manifest::parse(accepted.to_string().as_bytes()).is_ok());
+        records.push(serde_json::json!({"text":"x","height":1}));
+        let rejected = serde_json::json!({"items":[],"texts":records});
+        assert!(
+            Manifest::parse(rejected.to_string().as_bytes())
+                .err()
+                .unwrap()
+                .contains("1,024")
+        );
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-66a-compare-live-byte-revisions"></a>2. Compare live byte revisions
 
-After that block, append this supplied code:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 2 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/live_revision.rs, src/l…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">URL</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">byte hash</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">changed-scene decision</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66-read-scene-manifests-2.rs" skip=8245
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66a-compare-live-byte-revisions"></a>
-
-<details>
-<summary>Implementation 66a-compare-live-byte-revisions: Compare live byte revisions</summary>
-
-Write per-URL ETag and byte-hash records.
-
-Data flow: URL → HTTP validator → byte hash → changed-scene decision.
+**What this code does:** Write per-URL ETag and byte-hash records.
 
 ### 1. `src/live_revision.rs`
 
@@ -467,42 +671,6 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66a-compare-live-byte-revisions-1.rs"
-```
-
-### 2. `src/lib.rs`
-
-Register byte-revision tracking.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-
-pub mod manifest;
-```
-
-</details>
-
-After that block, type:
-
-```rust
---8<-- "journey/code/66a-compare-live-byte-revisions-2.rs" skip=19
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/live_revision.rs`
-
-Supply only the unchanged original validation fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
@@ -537,26 +705,116 @@ impl Revisions {
 }
 ```
 
-</details>
+### 2. `src/lib.rs`
 
-After that block, append this supplied code:
+Register byte-revision tracking.
 
-```text
---8<-- "journey/code/66a-compare-live-byte-revisions-3.rs" skip=954
+**Locate this existing block:**
+
+```rust
+mod cloud_pick_tests;
+
+#[cfg(test)]
+mod cloud_shader_contract;
+pub mod manifest;
+mod shader_check;
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-</details>
+```rust
+mod cloud_pick_tests;
 
-<a id="checkpoint-66b-validate-source-records-before-allocation"></a>
+pub mod manifest;
 
-<details>
-<summary>Implementation 66b-validate-source-records-before-allocation: Bound finite coordinates and packed integer reads</summary>
+#[cfg(test)]
+mod cloud_shader_contract;
+pub mod live_revision;
+mod shader_check;
+```
 
-Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits.
+### 3. `src/live_revision.rs`
 
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+Supply only the unchanged original validation fixtures.
+
+**Locate this existing block:**
+
+```rust
+    }
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn identical_bytes_survive_strong_weak_missing_and_new_etags() {
+        let mut revisions = Revisions::default();
+        assert!(revisions.changed("scene", Some("a".into()), b"one"));
+        for tag in [
+            Some("W/a".into()),
+            None,
+            Some("b".into()),
+            Some("b".into()),
+        ] {
+            assert!(!revisions.changed("scene", tag.clone(), b"one"));
+            assert_eq!(revisions.etag("scene"), tag);
+        }
+        assert!(revisions.changed("scene", Some("b".into()), b"two"));
+        assert!(revisions.changed("other", None, b"two"));
+        revisions.forget("scene");
+        assert_eq!(revisions.etag("scene"), None);
+        assert!(revisions.changed("scene", None, b"two"));
+        assert!(!revisions.changed("other", None, b"two"));
+    }
+}
+```
+
+## <a id="checkpoint-66b-validate-source-records-before-allocation"></a>3. Bound finite coordinates and packed integer reads
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs, src…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
+
+**What this code does:** Guard scalar finiteness, coordinate triples and arithmetic before allocating or indexing. Decode a bounded varint without shifts past sixty-three bits.
 
 ### 1. `src/source_validate.rs`
 
@@ -565,48 +823,63 @@ Guard scalar finiteness, coordinate triples and arithmetic before allocating or 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66b-validate-source-records-before-allocation-01.rs"
-```
+use prost::Message;
+use session_rust::proto;
 
-### 2. `src/lib.rs`
+/// Source objects a scene may hold.
+pub const MAX_OBJECTS: usize = 2_000_000;
 
-Register the source component.
+/// Why a scene with more objects is refused.
+pub const TOO_MANY: &str = "scene exceeds two million source objects";
 
-<details>
-<summary>Locate the existing block</summary>
+/// Deepest tree level a scene may have.
+pub const MAX_DEPTH: usize = 64;
 
-```rust
+/// Why a scene with a deeper tree is refused.
+pub const TOO_DEEP: &str = "scene hierarchy exceeds 64 levels";
 
-pub mod live_revision;
-```
+/// Every value must be finite.
+fn finite(values: &[f64], label: &str) -> Result<(), String> {
+    for value in values {
+        if !value.is_finite() {
+            return Err(format!("{label}: non-finite value"));
+        }
+    }
 
-</details>
+    Ok(())
+}
 
-After that block, type:
+/// A finite array of whole xyz triples.
+fn triples(values: &[f64], label: &str) -> Result<(), String> {
+    if !values.len().is_multiple_of(3) {
+        return Err(format!(
+            "{label}: incomplete coordinate triple"
+        ));
+    }
 
-```rust
---8<-- "journey/code/66b-validate-source-records-before-allocation-02.rs" skip=24
-```
+    finite(values, label)
+}
 
-</details>
+/// A protobuf decode error as a message.
+fn decode_error(error: prost::DecodeError) -> String {
+    format!("invalid element geometry: {error}")
+}
 
-<a id="checkpoint-66ba-validate-one-nurbs-knot-axis"></a>
+/// The varint at `i` and its byte length.
+pub fn varint(b: &[u8], mut i: usize) -> Option<(u64, usize)> {
+    let (mut v, mut shift) = (0u64, 0u32);
+    let start = i;
 
-<details>
-<summary>Implementation 66ba-validate-one-nurbs-knot-axis: Validate one NURBS knot axis</summary>
+    loop {
+        let byte = *b.get(i)?;
 
-Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
+        if shift == 63 && byte > 1 {
+            return None;
+        }
 
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+        v |= ((byte & 0x7f) as u64) << shift;
+        i += 1;
 
-### 1. `src/source_validate.rs`
-
-Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
         if byte & 0x80 == 0 {
             return Some((v, i - start));
         }
@@ -634,11 +907,89 @@ fn addressed_surface_controls(
 }
 ```
 
-</details>
+### 2. `src/lib.rs`
 
-After that block, type:
+Register the source component.
+
+**Locate this existing block:**
 
 ```rust
+pub mod manifest;
+
+#[cfg(test)]
+mod cloud_shader_contract;
+pub mod live_revision;
+mod shader_check;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod manifest;
+
+pub mod live_revision;
+
+#[cfg(test)]
+mod cloud_shader_contract;
+mod shader_check;
+pub mod source_validate;
+```
+
+## <a id="checkpoint-66ba-validate-one-nurbs-knot-axis"></a>4. Validate one NURBS knot axis
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 4 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
+
+**What this code does:** Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
+
+### 1. `src/source_validate.rs`
+
+Relate order, control count and knot count, then reject nonfinite or decreasing knots before a kernel constructor.
+
+**Locate this existing block:**
+
+```rust
+        .checked_add(size)
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        .checked_add(size)
+}
 
 /// Check order, count and knots; returns the knot count.
 fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
@@ -666,64 +1017,61 @@ fn axis(order: i32, count: i32, knots: &[f64]) -> Result<usize, String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bb-read-bounded-json-count-and-knot-fields"></a>5. Read bounded JSON count and knot fields
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 5 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66ba-validate-one-nurbs-knot-axis-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bb-read-bounded-json-count-and-knot-fields"></a>
-
-<details>
-<summary>Implementation 66bb-read-bounded-json-count-and-knot-fields: Read bounded JSON count and knot fields</summary>
-
-Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.
 
 ### 1. `src/source_validate.rs`
 
 Read unsigned JSON counts with defaults and explicit caps; reuse the knot-axis contract instead of writing a second validator.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-        return Err("invalid or oversized NURBS order/control count".into());
-    }
-
-    if knots.len() != (order + count - 2) as usize {
-        return Err("NURBS knot count does not match its order and controls".into());
-    }
-
-    finite(knots, "NURBS knots")?;
-
-    for pair in knots.windows(2) {
-        if pair[0] > pair[1] {
-            return Err("NURBS knots are not monotonic".into());
-        }
-    }
-
-    if knots[(order - 2) as usize] >= knots[(count - 1) as usize] {
-        return Err("NURBS parameter domain is empty".into());
-    }
-
     Ok(count as usize)
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    Ok(count as usize)
+}
 
 /// A JSON parse error as a message.
 fn json_error(error: serde_json::Error) -> String {
@@ -746,7 +1094,9 @@ fn json_count(
     };
 
     if count > maximum {
-        return Err(format!("JSON {key} exceeds its supported count"));
+        return Err(format!(
+            "JSON {key} exceeds its supported count"
+        ));
     }
 
     Ok(count as usize)
@@ -766,7 +1116,11 @@ fn json_axis(
     let mut knots = Vec::with_capacity(values.len());
 
     for value in values {
-        knots.push(value.as_f64().ok_or("invalid JSON NURBS knot")?);
+        knots.push(
+            value
+                .as_f64()
+                .ok_or("invalid JSON NURBS knot")?,
+        );
     }
 
     axis(order as i32, count as i32, &knots)?;
@@ -774,62 +1128,63 @@ fn json_axis(
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bc-match-json-control-layout-to-declared-counts"></a>6. Match JSON control layout to declared counts
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 6 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bb-read-bounded-json-count-and-knot-fields-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bc-match-json-control-layout-to-declared-counts"></a>
-
-<details>
-<summary>Implementation 66bc-match-json-control-layout-to-declared-counts: Match JSON control layout to declared counts</summary>
-
-Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.
 
 ### 1. `src/source_validate.rs`
 
 Check rational coordinate width, rows, columns and curve stride against the actual arrays before constructor allocation.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-fn json_axis(
-    source: &serde_json::Value,
-    order_key: &str,
-    count: usize,
-    knots_key: &str,
-) -> Result<(), String> {
-    let order = json_count(source, order_key, 4, 64)?;
-    let values = source[knots_key]
-        .as_array()
-        .ok_or("missing JSON NURBS knots")?;
-    let mut knots = Vec::with_capacity(values.len());
-
-    for value in values {
-        knots.push(value.as_f64().ok_or("invalid JSON NURBS knot")?);
-    }
-
     axis(order as i32, count as i32, &knots)?;
     Ok(())
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    axis(order as i32, count as i32, &knots)?;
+    Ok(())
+}
 
 /// Check one JSON curve or surface's controls against its counts.
 fn json_controls(source: &serde_json::Value) -> Result<(), String> {
@@ -842,7 +1197,12 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
         return Err("invalid JSON control dimension".into());
     }
 
-    let size = dimension + usize::from(source["is_rational"].as_bool().unwrap_or(false));
+    let size = dimension
+        + usize::from(
+            source["is_rational"]
+                .as_bool()
+                .unwrap_or(false),
+        );
 
     if source.get("cv_count_u").is_some() {
         let rows = json_count(source, "cv_count_u", 0, 1_000_000)?;
@@ -850,7 +1210,9 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
         let total = rows as u64 * columns as u64;
 
         if total > 4_000_000 || controls.len() as u64 != total * size as u64 {
-            return Err("JSON surface controls disagree with their declared counts".into());
+            return Err(
+                "JSON surface controls disagree with their declared counts".into(),
+            );
         }
 
         json_axis(source, "order_u", rows, "nurbsknots_u")?;
@@ -860,7 +1222,10 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
         let stride = json_count(source, "cv_stride", size as u64, 4)?;
 
         if count != controls.len() || stride != size {
-            return Err("JSON curve controls disagree with their declared count or stride".into());
+            return Err(
+                "JSON curve controls disagree with their declared count or stride"
+                    .into(),
+            );
         }
 
         for control in controls {
@@ -876,48 +1241,52 @@ fn json_controls(source: &serde_json::Value) -> Result<(), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bd-walk-json-records-within-a-depth-limit"></a>7. Walk JSON records within a depth limit
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 7 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs, src…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bc-match-json-control-layout-to-declared-counts-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bd-walk-json-records-within-a-depth-limit"></a>
-
-<details>
-<summary>Implementation 66bd-walk-json-records-within-a-depth-limit: Walk JSON records within a depth limit</summary>
-
-Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.
 
 ### 1. `src/source_validate.rs`
 
 Use an explicit bounded stack to find original control records; reject excess nesting and reuse the already-written record validators.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-        let stride = json_count(source, "cv_stride", size as u64, 4)?;
-
-        if count != controls.len() || stride != size {
-            return Err("JSON curve controls disagree with their declared count or stride".into());
-        }
-
-        for control in controls {
-            if control.as_array().map(Vec::len) != Some(size) {
-                return Err("incomplete JSON curve control".into());
-            }
-        }
-
         json_axis(source, "order", count, "nurbsknots")?;
     }
 
@@ -925,11 +1294,14 @@ Use an explicit bounded stack to find original control records; reject excess ne
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        json_axis(source, "order", count, "nurbsknots")?;
+    }
+
+    Ok(())
+}
 
 /// Check every NURBS record in session JSON before it is parsed.
 pub fn json(text: &str) -> Result<(), String> {
@@ -944,7 +1316,8 @@ pub fn json(text: &str) -> Result<(), String> {
         match value {
             serde_json::Value::Object(fields) => {
                 if fields.contains_key("control_points")
-                    && (fields.contains_key("cv_count") || fields.contains_key("cv_count_u"))
+                    && (fields.contains_key("cv_count")
+                        || fields.contains_key("cv_count_u"))
                 {
                     json_controls(value)?;
                 }
@@ -965,86 +1338,86 @@ pub fn json(text: &str) -> Result<(), String> {
     Ok(())
 }
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66bd-walk-json-records-within-a-depth-limit-01.rs"
-```
-
-</details>
 
 ### 2. `src/lib.rs`
 
 Expose the pure original-record validator for a browser-console exercise.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+pub mod live_revision;
+
+#[cfg(test)]
+mod cloud_shader_contract;
+mod shader_check;
 pub mod source_validate;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod live_revision;
 
-#[cfg(target_arch="wasm32")]
+pub mod source_validate;
+
+#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 pub fn validate_source_json(text: &str) -> Result<(), JsValue> {
     source_validate::json(text).map_err(|error| JsValue::from_str(&error))
 }
+
+#[cfg(test)]
+mod cloud_shader_contract;
+mod shader_check;
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66be-validate-original-points-lines-and-placements"></a>8. Validate points, lines, and placements
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 8 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bd-walk-json-records-within-a-depth-limit-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66be-validate-original-points-lines-and-placements"></a>
-
-<details>
-<summary>Implementation 66be-validate-original-points-lines-and-placements: Validate original points lines and placements</summary>
-
-Check original coordinate-bearing records and affine placement without changing source values or identity.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Check original coordinate-bearing records and affine placement without changing source values or identity.
 
 ### 1. `src/source_validate.rs`
 
 Check original coordinate-bearing records and affine placement without changing source values or identity.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-                    && (fields.contains_key("cv_count") || fields.contains_key("cv_count_u"))
-                {
-                    json_controls(value)?;
-                }
-
-                for child in fields.values() {
-                    pending.push((child, depth + 1));
-                }
-            }
-            serde_json::Value::Array(values) => {
-                for child in values {
-                    pending.push((child, depth + 1));
-                }
-            }
             _ => {}
         }
     }
@@ -1053,15 +1426,22 @@ Check original coordinate-bearing records and affine placement without changing 
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+            _ => {}
+        }
+    }
+
+    Ok(())
+}
 
 /// Check one protobuf point.
 pub fn point(source: &proto::Point) -> Result<(), String> {
-    finite(&[source.x, source.y, source.z, source.width], "point")
+    finite(
+        &[source.x, source.y, source.z, source.width],
+        "point",
+    )
 }
 
 /// Check one protobuf line.
@@ -1104,70 +1484,71 @@ pub fn any<T>(_: &T) -> Result<(), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes"></a>9. Validate mesh indices and vertex attributes
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 9 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66be-validate-original-points-lines-and-placements-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bf-validate-original-mesh-indices-and-vertex-attributes"></a>
-
-<details>
-<summary>Implementation 66bf-validate-original-mesh-indices-and-vertex-attributes: Validate original mesh indices and vertex attributes</summary>
-
-Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.
 
 ### 1. `src/source_validate.rs`
 
 Check source vertex keys, finite attributes, face rings and triangulation before constructing a mesh.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    let Some(transform) = &entry.xform else {
-        return Err("missing object transform".into());
-    };
-    finite(&transform.matrix, "object transform")?;
-
-    if transform.matrix.len() != 16
-        || transform.matrix[3] != 0.0
-        || transform.matrix[7] != 0.0
-        || transform.matrix[11] != 0.0
-        || transform.matrix[15] != 1.0
-    {
-        return Err("object placement must be a sixteen-value affine matrix".into());
-    }
-
-    Ok(())
-}
-
-/// Nothing to check.
 pub fn any<T>(_: &T) -> Result<(), String> {
     Ok(())
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub fn any<T>(_: &T) -> Result<(), String> {
+    Ok(())
+}
 
 /// Every index must name a vertex.
 fn mesh_indices(source: &proto::Mesh, indices: &[u64]) -> Result<(), String> {
     for index in indices {
         if !source.vertices.contains_key(index) {
-            return Err(format!("mesh references missing vertex {index}"));
+            return Err(format!(
+                "mesh references missing vertex {index}"
+            ));
         }
     }
 
@@ -1181,7 +1562,10 @@ pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
             return Err("mesh vertex key exceeds the browser index range".into());
         }
 
-        finite(&[vertex.x, vertex.y, vertex.z], "mesh vertex")?;
+        finite(
+            &[vertex.x, vertex.y, vertex.z],
+            "mesh vertex",
+        )?;
 
         for value in vertex.attributes.values() {
             if !value.is_finite() {
@@ -1203,7 +1587,9 @@ pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
     }
 
     for (face, triangles) in &source.triangulation {
-        if !source.faces.contains_key(face) || !triangles.vertices.len().is_multiple_of(3) {
+        if !source.faces.contains_key(face)
+            || !triangles.vertices.len().is_multiple_of(3)
+        {
             return Err("invalid mesh triangulation record".into());
         }
 
@@ -1214,51 +1600,52 @@ pub fn mesh(source: &proto::Mesh) -> Result<(), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bg-validate-curve-and-surface-control-addresses"></a>10. Validate curve and surface control addresses
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 10 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bf-validate-original-mesh-indices-and-vertex-attributes-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bg-validate-curve-and-surface-control-addresses"></a>
-
-<details>
-<summary>Implementation 66bg-validate-curve-and-surface-control-addresses: Validate curve and surface control addresses</summary>
-
-Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.
 
 ### 1. `src/source_validate.rs`
 
 Use checked stride arithmetic to locate the final addressed control and reuse the shared knot and scalar contracts.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-            return Err("mesh face has fewer than three vertices".into());
-        }
-
-        mesh_indices(source, &face.vertices)?;
-
-        for hole in &face.holes {
-            mesh_indices(source, &hole.vertices)?;
-        }
-    }
-
-    for (face, triangles) in &source.triangulation {
-        if !source.faces.contains_key(face) || !triangles.vertices.len().is_multiple_of(3) {
-            return Err("invalid mesh triangulation record".into());
-        }
-
         mesh_indices(source, &triangles.vertices)?;
     }
 
@@ -1266,11 +1653,14 @@ Use checked stride arithmetic to locate the final addressed control and reuse th
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        mesh_indices(source, &triangles.vertices)?;
+    }
+
+    Ok(())
+}
 
 /// Check one protobuf curve.
 pub fn curve(source: &proto::NurbsCurve) -> Result<(), String> {
@@ -1278,7 +1668,11 @@ pub fn curve(source: &proto::NurbsCurve) -> Result<(), String> {
         return Err("NURBS curve dimension must be 2 or 3".into());
     }
 
-    let count = axis(source.order, source.cv_count, &source.nurbsknots)?;
+    let count = axis(
+        source.order,
+        source.cv_count,
+        &source.nurbsknots,
+    )?;
     let size = source.dimension as usize + usize::from(source.is_rational);
 
     if source.cvs.len() != count * size {
@@ -1294,8 +1688,16 @@ pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
         return Err("NURBS surface dimension must be 3".into());
     }
 
-    let rows = axis(source.order_u, source.cv_count_u, &source.nurbsknots_u)?;
-    let columns = axis(source.order_v, source.cv_count_v, &source.nurbsknots_v)?;
+    let rows = axis(
+        source.order_u,
+        source.cv_count_u,
+        &source.nurbsknots_u,
+    )?;
+    let columns = axis(
+        source.order_v,
+        source.cv_count_v,
+        &source.nurbsknots_v,
+    )?;
 
     if rows.saturating_mul(columns) > 4_000_000 {
         return Err("surface exceeds four million controls".into());
@@ -1328,50 +1730,52 @@ pub fn surface(source: &proto::NurbsSurface) -> Result<(), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bh-validate-cloud-columns-and-octree-addresses"></a>11. Validate cloud columns and octree addresses
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 11 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bg-validate-curve-and-surface-control-addresses-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bh-validate-cloud-columns-and-octree-addresses"></a>
-
-<details>
-<summary>Implementation 66bh-validate-cloud-columns-and-octree-addresses: Validate cloud columns and octree addresses</summary>
-
-Match optional original cloud columns and octree ranges to actual point and node counts.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Match optional original cloud columns and octree ranges to actual point and node counts.
 
 ### 1. `src/source_validate.rs`
 
 Match optional original cloud columns and octree ranges to actual point and node counts.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    let stride_v = if source.cv_stride_v > 0 {
-        source.cv_stride_v as usize
-    } else {
-        size
-    };
-    let addressed = addressed_surface_controls(rows, columns, stride_u, stride_v, size);
-
-    if !matches!(addressed, Some(length) if length <= source.cvs.len()) {
-        return Err("NURBS surface control storage is incomplete".into());
-    }
-
-    finite(&source.cvs, "NURBS surface controls")?;
-
-    if let Some(cached) = &source.cached_mesh {
         mesh(cached)?;
     }
 
@@ -1379,11 +1783,14 @@ Match optional original cloud columns and octree ranges to actual point and node
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        mesh(cached)?;
+    }
+
+    Ok(())
+}
 
 /// Check one protobuf point cloud.
 pub fn cloud(source: &proto::PointCloud) -> Result<(), String> {
@@ -1417,7 +1824,8 @@ pub fn cloud(source: &proto::PointCloud) -> Result<(), String> {
         for node in 0..nodes {
             if source.lod_first[node] < 0
                 || source.lod_count[node] < 0
-                || source.lod_first[node] as u64 + source.lod_count[node] as u64 > points as u64
+                || source.lod_first[node] as u64 + source.lod_count[node] as u64
+                    > points as u64
             {
                 return Err("octree range exceeds its source points".into());
             }
@@ -1434,47 +1842,52 @@ pub fn cloud(source: &proto::PointCloud) -> Result<(), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions"></a>12. Validate BRep Element payloads and shared definitions
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 12 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bh-validate-cloud-columns-and-octree-addresses-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bi-validate-brep-element-payloads-and-shared-definitions"></a>
-
-<details>
-<summary>Implementation 66bi-validate-brep-element-payloads-and-shared-definitions: Validate BRep Element payloads and shared definitions</summary>
-
-Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.
 
 ### 1. `src/source_validate.rs`
 
 Check BRep records and encoded Element geometry, then validate every shared definition without expanding instances into copied geometry.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-            if source.lod_first[node] < 0
-                || source.lod_count[node] < 0
-                || source.lod_first[node] as u64 + source.lod_count[node] as u64 > points as u64
-            {
-                return Err("octree range exceeds its source points".into());
-            }
-        }
-
-        for child in &source.lod_children {
-            if *child < -1 || *child >= nodes as i32 {
-                return Err("octree references an absent child".into());
             }
         }
     }
@@ -1483,11 +1896,15 @@ Check BRep records and encoded Element geometry, then validate every shared defi
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+            }
+        }
+    }
+
+    Ok(())
+}
 
 /// Check one protobuf BRep.
 pub fn brep(source: &proto::BRep) -> Result<(), String> {
@@ -1515,12 +1932,14 @@ pub fn brep(source: &proto::BRep) -> Result<(), String> {
 /// Check one protobuf element's mesh or BRep.
 pub fn element(source: &proto::Element) -> Result<(), String> {
     match source.geometry_type.as_str() {
-        "Mesh" => {
-            mesh(&proto::Mesh::decode(source.geometry_data.as_slice()).map_err(decode_error)?)
-        }
-        "BRep" => {
-            brep(&proto::BRep::decode(source.geometry_data.as_slice()).map_err(decode_error)?)
-        }
+        "Mesh" => mesh(
+            &proto::Mesh::decode(source.geometry_data.as_slice())
+                .map_err(decode_error)?,
+        ),
+        "BRep" => brep(
+            &proto::BRep::decode(source.geometry_data.as_slice())
+                .map_err(decode_error)?,
+        ),
         _ => Ok(()),
     }
 }
@@ -1581,67 +2000,52 @@ pub fn definitions(d: &proto::Objects, instances: usize) -> Result<(), String> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-66bj-validate-the-complete-original-protobuf-session"></a>13. Validate the complete protobuf session
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 13 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bi-validate-brep-element-payloads-and-shared-definitions-01.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66bj-validate-the-complete-original-protobuf-session"></a>
-
-<details>
-<summary>Implementation 66bj-validate-the-complete-original-protobuf-session: Validate the complete original protobuf session</summary>
-
-Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
-
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+**What this code does:** Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
 
 ### 1. `src/source_validate.rs`
 
 Apply the existing per-record validators and enforce total original-object and hierarchy-depth budgets before allocation.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    }
-
-    for item in &d.lines {
-        line(item)?;
-    }
-
-    for item in &d.polylines {
-        polyline(item)?;
-    }
-
-    for item in &d.meshes {
-        mesh(item)?;
-    }
-
-    for item in &d.pointclouds {
-        cloud(item)?;
-    }
-
-    for item in &d.nurbscurves {
-        curve(item)?;
-    }
-
-    for item in &d.nurbssurfaces {
-        surface(item)?;
-    }
-
-    for item in &d.breps {
-        brep(item)?;
-    }
-
-    for item in &d.elements {
         element(item)?;
     }
 
@@ -1649,33 +2053,65 @@ Apply the existing per-record validators and enforce total original-object and h
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66bj-validate-the-complete-original-protobuf-session-01.rs" skip=500
-```
+        element(item)?;
+    }
 
-</details>
+    Ok(())
+}
 
-<a id="checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses"></a>
+/// Check every record of a protobuf session.
+pub fn session(source: &proto::Session) -> Result<(), String> {
+    if let Some(objects) = &source.objects {
+        let count = objects.points.len()
+            + objects.lines.len()
+            + objects.polylines.len()
+            + objects.meshes.len()
+            + objects.pointclouds.len()
+            + objects.nurbscurves.len()
+            + objects.nurbssurfaces.len()
+            + objects.breps.len()
+            + objects.elements.len();
 
-<details>
-<summary>Implementation 66bk-connect-retained-session-validation-and-independent-witnesses: Connect retained-session validation and independent witnesses</summary>
+        if count > MAX_OBJECTS {
+            return Err(TOO_MANY.into());
+        }
 
-Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses.
+        for item in &objects.points {
+            point(item)?;
+        }
 
-Data flow: original record → bounded scalar/address contract → reusable validator → later archive loader.
+        for item in &objects.lines {
+            line(item)?;
+        }
 
-### 1. `src/source_validate.rs`
+        for item in &objects.polylines {
+            polyline(item)?;
+        }
 
-Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses.
+        for item in &objects.meshes {
+            mesh(item)?;
+        }
 
-<details>
-<summary>Locate the existing block</summary>
+        for item in &objects.pointclouds {
+            cloud(item)?;
+        }
 
-```rust
+        for item in &objects.nurbscurves {
+            curve(item)?;
+        }
+
+        for item in &objects.nurbssurfaces {
+            surface(item)?;
+        }
+
+        for item in &objects.breps {
+            brep(item)?;
+        }
+
+        for item in &objects.elements {
             element(item)?;
         }
     }
@@ -1704,11 +2140,71 @@ Reuse the protobuf validators for already-decoded original kernel objects and re
 }
 ```
 
-</details>
+## <a id="checkpoint-66bk-connect-retained-session-validation-and-independent-witnesses"></a>14. Validate Retained Session Data
 
-After that block, type:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 14 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/source_validate.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original record</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable validator</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later archive loader</text>
+</svg>
+</div>
+
+**What this code does:** Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses.
+
+### 1. `src/source_validate.rs`
+
+Reuse the protobuf validators for already-decoded original kernel objects and register independent malformed-record witnesses. Supply independent hostile-count and original-record rejection fixtures.
+
+**Locate this existing block:**
 
 ```rust
+                pending.push((child, depth + 1));
+            }
+        }
+    }
+
+    Ok(())
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+                pending.push((child, depth + 1));
+            }
+        }
+    }
+
+    Ok(())
+}
 
 /// Check every geometry of a loaded session.
 pub fn retained(source: &session_rust::Session) -> Result<(), String> {
@@ -1734,77 +2230,108 @@ pub fn retained(source: &session_rust::Session) -> Result<(), String> {
 
     Ok(())
 }
-```
 
-<details>
-<summary>Optional patch references</summary>
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66bk-connect-retained-session-validation-and-independent-witnesses-01.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/source_validate.rs`
-
-Supply independent hostile-count and original-record rejection fixtures.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-ined(source: &session_rust::Session) -> Result<(), String> {
-    for item in &source.objects.meshes {
-        mesh(&item.to_proto())?;
+    /// Huge or wrong counts are refused.
+    #[test]
+    fn hostile_counts_do_not_reach_kernel_allocations() {
+        let source = proto::NurbsCurve {
+            dimension: 3,
+            order: 2,
+            cv_count: i32::MAX,
+            ..Default::default()
+        };
+        assert!(curve(&source).is_err());
+        let source = proto::NurbsSurface {
+            dimension: 3,
+            order_u: 2,
+            order_v: 2,
+            cv_count_u: -1,
+            cv_count_v: 2,
+            ..Default::default()
+        };
+        assert!(surface(&source).is_err());
     }
 
-    for item in &source.objects.pointclouds {
-        cloud(&item.to_proto())?;
+    /// Bad indices and short cloud arrays are refused.
+    #[test]
+    fn missing_indices_and_partial_cloud_attributes_are_errors() {
+        let mut source = proto::Mesh::default();
+        source.faces.insert(
+            0,
+            proto::FaceData {
+                vertices: vec![0, 1, 2],
+                ..Default::default()
+            },
+        );
+        assert!(mesh(&source).is_err());
+        let cloud_source = proto::PointCloud {
+            coords: vec![0., 0., 0.],
+            point_ids: vec![7, 8],
+            ..Default::default()
+        };
+        assert!(cloud(&cloud_source).is_err());
     }
 
-    for item in &source.objects.nurbscurves {
-        curve(&item.to_proto())?;
+    /// JSON counts must match the controls given.
+    #[test]
+    fn json_declared_controls_are_checked_before_constructor_allocation() {
+        assert!(
+            json(
+                r#"{"control_points":[],"cv_count":18446744073709551615,"dimension":3}"#
+            )
+            .is_err()
+        );
+        assert!(
+            json(r#"{"control_points":[],"cv_count_u":1000000,"cv_count_v":1000000}"#)
+                .is_err()
+        );
+        assert!(json(r#"{"control_points":[[0,0,0],[1,0,0]],"cv_count":2,"dimension":3,"order":2,"nurbsknots":[0,1]}"#).is_ok());
     }
-
-    for item in &source.objects.nurbssurfaces {
-        surface(&item.to_proto())?;
-    }
-
-    for item in &source.objects.breps {
-        brep(&item.to_proto())?;
-    }
-
-    Ok(())
 }
 ```
 
-</details>
+## <a id="checkpoint-66c-describe-the-saved-scene-metadata"></a>15. Define Saved Scene Metadata
 
-After that block, append this supplied code:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 15 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive.rs, src/lib.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">document payloads</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">small metadata</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked owners</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66bk-connect-retained-session-validation-and-independent-witnesses-02.rs" skip=500
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66c-describe-the-saved-scene-metadata"></a>
-
-<details>
-<summary>Implementation 66c-describe-the-saved-scene-metadata: Describe the saved scene metadata</summary>
-
-Describe the saved scene metadata.
-
-Data flow: document payloads → small metadata → checked owners.
+**What this code does:** Describe the saved scene metadata.
 
 ### 1. `src/archive.rs`
 
@@ -1813,97 +2340,459 @@ Define original document framing and validate small presentation metadata.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66c-describe-the-saved-scene-metadata-01.rs"
+use crate::text::TextLabel;
+use prost::Message;
+use serde::{Deserialize, Serialize};
+
+pub const MAGIC: &[u8] = b"SESSION-VIEWER\x01\n";
+pub const LIMIT: usize = 512 * 1024 * 1024;
+
+// Each source document keeps its own GUID namespace; small presentation metadata does not replace its original geometry protobuf.
+#[derive(Clone, PartialEq, Message)]
+pub struct Archive {
+    #[prost(bytes = "vec", repeated, tag = "1")]
+    pub documents: Vec<Vec<u8>>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub metadata: Vec<u8>,
+}
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Document {
+    pub name: String,
+    pub place: [f64; 16],
+    pub point_px: f32,
+}
+#[derive(Clone, Serialize, Deserialize)]
+pub struct Metadata {
+    #[serde(default)]
+    pub created_doc: Option<usize>,
+    #[serde(default)]
+    pub current_layer: Option<(usize, String)>,
+    pub documents: Vec<Document>,
+    pub hidden: Vec<(usize, String)>,
+    #[serde(default)]
+    pub locked: Vec<(usize, String)>,
+    #[serde(default)]
+    pub colors: Vec<(usize, String, [u8; 3])>,
+    #[serde(default)]
+    pub edge_colors: Option<Vec<(usize, String, [u8; 3])>>,
+    pub texts: Vec<(String, TextLabel, bool)>,
+    #[serde(default)]
+    pub groups: Vec<(usize, String)>,
+}
+impl Metadata {
+    pub fn validate(&self, count: usize) -> Result<(), String> {
+        if self.documents.len() != count {
+            return Err("Document inventory does not match".into());
+        }
+        if self
+            .created_doc
+            .is_some_and(|index| index >= count)
+        {
+            return Err("Created document index is outside the inventory".into());
+        }
+        if self.documents.iter().any(|doc| {
+            !doc.place.into_iter().all(f64::is_finite) || !doc.point_px.is_finite()
+        }) {
+            return Err("Non-finite document placement".into());
+        }
+        let identity = |(doc, key): &(usize, String)| *doc < count && !key.is_empty();
+        if self
+            .current_layer
+            .as_ref()
+            .is_some_and(|key| !identity(key))
+            || self
+                .hidden
+                .iter()
+                .chain(&self.locked)
+                .chain(&self.groups)
+                .any(|key| !identity(key))
+            || self
+                .colors
+                .iter()
+                .chain(
+                    self.edge_colors
+                        .as_deref()
+                        .unwrap_or_default(),
+                )
+                .any(|(doc, key, _)| *doc >= count || key.is_empty())
+        {
+            return Err("Metadata owner is outside the document inventory".into());
+        }
+        let mut keys = std::collections::HashSet::new();
+        for (key, label, _) in &self.texts {
+            if key.is_empty() || !keys.insert(key) {
+                return Err("Text records need distinct source keys".into());
+            }
+            crate::text::validate_label(label).map_err(|e| e.to_string())?;
+        }
+        Ok(())
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod source_validate;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66c-describe-the-saved-scene-metadata-02.rs" skip=26
+pub mod source_validate;
+
+pub mod archive;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66d-encode-decode-the-viewer-file"></a>16. Encode and Decode the Viewer File
 
-<a id="checkpoint-66d-encode-decode-the-viewer-file"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 16 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">file header</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked protobuf</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original documents</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66d-encode-decode-the-viewer-file: Encode decode the viewer file</summary>
-
-Encode decode the viewer file.
-
-Data flow: file header → checked protobuf → original documents.
+**What this code does:** Encode decode the viewer file.
 
 ### 1. `src/archive.rs`
 
-Frame original source bytes and checked metadata without replacing geometry.
+Frame original source bytes and checked metadata without replacing geometry. Copy archive framing, original-source and compatibility regressions.
 
-<details>
-<summary>Locate the existing block</summary>
-
-```rust
-}
-```
-
-</details>
-
-After that block, type:
+**Locate this existing block:**
 
 ```rust
---8<-- "journey/code/66d-encode-decode-the-viewer-file-01.rs" skip=3
-```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/archive.rs`
-
-Copy archive framing, original-source and compatibility regressions.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-        let mut bytes=Vec::with_capacity(size);bytes.extend_from_slice(MAGIC);archive.encode(&mut bytes).map_err(|e|e.to_string())?;Ok(bytes)
     }
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    }
+}
 
-```text
---8<-- "journey/code/66d-encode-decode-the-viewer-file-02.rs" skip=149
+pub fn validate_document(bytes: &[u8]) -> Result<(), String> {
+    let source =
+        session_rust::proto::Session::decode(bytes).map_err(|e| e.to_string())?;
+    crate::source_validate::session(&source)?;
+    if let Some(definitions) = source.definitions.as_ref() {
+        crate::source_validate::definitions(
+            definitions,
+            source
+                .objects
+                .as_ref()
+                .map_or(0, |objects| objects.instances.len()),
+        )?;
+    }
+    Ok(())
+}
+
+pub struct Bundle {
+    pub documents: Vec<Vec<u8>>,
+    pub metadata: Metadata,
+}
+impl Bundle {
+    pub fn decode(bytes: &[u8]) -> Result<Self, String> {
+        if bytes.len() > LIMIT {
+            return Err("Session exceeds the 512 MiB file limit".into());
+        }
+        let payload = bytes
+            .strip_prefix(MAGIC)
+            .ok_or("Not a Session Viewer file")?;
+        let archive = Archive::decode(payload).map_err(|e| e.to_string())?;
+        let metadata: Metadata =
+            serde_json::from_slice(&archive.metadata).map_err(|e| e.to_string())?;
+        metadata.validate(archive.documents.len())?;
+        for document in &archive.documents {
+            validate_document(document)?;
+        }
+        Ok(Self {
+            documents: archive.documents,
+            metadata,
+        })
+    }
+    pub fn encode(&self) -> Result<Vec<u8>, String> {
+        self.metadata
+            .validate(self.documents.len())?;
+        let metadata = serde_json::to_vec(&self.metadata).map_err(|e| e.to_string())?;
+        let size = self
+            .documents
+            .iter()
+            .try_fold(metadata.len(), |size, document| {
+                size.checked_add(document.len())
+            })
+            .ok_or("Session size overflow")?;
+        if size > LIMIT {
+            return Err("Session exceeds the 512 MiB file limit".into());
+        }
+        for document in &self.documents {
+            validate_document(document)?;
+        }
+        let archive = Archive {
+            documents: self.documents.clone(),
+            metadata,
+        };
+        let size = MAGIC
+            .len()
+            .checked_add(archive.encoded_len())
+            .ok_or("Session size overflow")?;
+        if size > LIMIT {
+            return Err("Session exceeds the 512 MiB file limit".into());
+        }
+        let mut bytes = Vec::with_capacity(size);
+        bytes.extend_from_slice(MAGIC);
+        archive
+            .encode(&mut bytes)
+            .map_err(|e| e.to_string())?;
+        Ok(bytes)
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn metadata() -> Metadata {
+        Metadata {
+            created_doc: Some(0),
+            current_layer: Some((0, "layer".into())),
+            documents: vec![
+                Document {
+                    name: "first".into(),
+                    place: session_rust::Xform::translation(1_000_000_000.125, 0., 0.)
+                        .m,
+                    point_px: 3.,
+                },
+                Document {
+                    name: "second".into(),
+                    place: session_rust::Xform::identity().m,
+                    point_px: 0.,
+                },
+            ],
+            hidden: vec![(
+                0,
+                "00000000-0000-0000-0000-000000000001".into(),
+            )],
+            locked: vec![(
+                1,
+                "00000000-0000-0000-0000-000000000001".into(),
+            )],
+            colors: vec![(
+                0,
+                "00000000-0000-0000-0000-000000000001".into(),
+                [2, 5, 7],
+            )],
+            edge_colors: Some(vec![(
+                1,
+                "00000000-0000-0000-0000-000000000001".into(),
+                [0; 3],
+            )]),
+            texts: vec![],
+            groups: vec![],
+        }
+    }
+    fn documents() -> Vec<Vec<u8>> {
+        [1.125, 2.25]
+            .into_iter()
+            .map(|x| {
+                let mut cloud = session_rust::PointCloud::from_coords(
+                    vec![x, 2.5, 3.75],
+                    vec![],
+                    vec![],
+                )
+                .to_proto();
+                cloud.guid = "00000000-0000-0000-0000-000000000001".into();
+                let objects = session_rust::proto::Objects {
+                    pointclouds: vec![cloud],
+                    ..Default::default()
+                };
+                session_rust::proto::Session {
+                    name: "Source cloud".into(),
+                    objects: Some(objects),
+                    ..Default::default()
+                }
+                .encode_to_vec()
+            })
+            .collect()
+    }
+    #[test]
+    fn archive_round_trip_keeps_document_namespaces_flags_and_precise_placements() {
+        let bundle = Bundle {
+            documents: documents(),
+            metadata: metadata(),
+        };
+        let bytes = bundle.encode().unwrap();
+        assert!(bytes.starts_with(MAGIC));
+        let reopened = Bundle::decode(&bytes).unwrap();
+        assert_eq!(reopened.documents, bundle.documents);
+        assert_eq!(
+            reopened.metadata.documents[0].place[12],
+            1_000_000_000.125
+        );
+        assert_eq!(
+            reopened.metadata.hidden,
+            bundle.metadata.hidden
+        );
+        assert_eq!(
+            reopened.metadata.locked,
+            bundle.metadata.locked
+        );
+        assert_eq!(
+            reopened.metadata.edge_colors,
+            bundle.metadata.edge_colors
+        );
+        assert_eq!(
+            Bundle::decode(&reopened.encode().unwrap())
+                .unwrap()
+                .metadata
+                .documents[0]
+                .place,
+            bundle.metadata.documents[0].place
+        );
+    }
+    #[test]
+    fn archive_rejects_bad_headers_counts_owners_and_placements_before_scene_adoption()
+    {
+        assert!(Bundle::decode(b"invalid").is_err());
+        assert!(Bundle::decode(MAGIC).is_err());
+        let mut m = metadata();
+        m.created_doc = Some(2);
+        assert!(m.validate(2).is_err());
+        m = metadata();
+        m.hidden.push((2, "guid".into()));
+        assert!(m.validate(2).is_err());
+        m = metadata();
+        m.documents[0].place[12] = f64::NAN;
+        assert!(m.validate(2).is_err());
+        m = metadata();
+        assert!(m.validate(1).is_err());
+        let wrong = Archive {
+            documents: vec![vec![]],
+            metadata: serde_json::to_vec(&metadata()).unwrap(),
+        };
+        let mut bytes = MAGIC.to_vec();
+        wrong.encode(&mut bytes).unwrap();
+        assert!(Bundle::decode(&bytes).is_err());
+    }
+    #[test]
+    fn archive_checks_original_geometry_before_kernel_construction() {
+        let curve = session_rust::proto::NurbsCurve {
+            dimension: 3,
+            order: 2,
+            cv_count: i32::MAX,
+            ..Default::default()
+        };
+        let source = session_rust::proto::Session {
+            objects: Some(session_rust::proto::Objects {
+                nurbscurves: vec![curve],
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        assert!(validate_document(&source.encode_to_vec()).is_err());
+        assert!(validate_document(&[0xff]).is_err());
+        for document in documents() {
+            validate_document(&document).unwrap();
+            let source =
+                session_rust::proto::Session::decode(document.as_slice()).unwrap();
+            assert_eq!(
+                source.objects.unwrap().pointclouds[0].guid,
+                "00000000-0000-0000-0000-000000000001"
+            );
+        }
+    }
+    #[test]
+    fn old_metadata_keeps_face_colour_fallback_and_default_identity_fields() {
+        let source=br#"{"documents":[{"name":"old","place":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"point_px":0}],"hidden":[],"colors":[[0,"guid",[12,34,56]]],"texts":[]}"#;
+        let m: Metadata = serde_json::from_slice(source).unwrap();
+        m.validate(1).unwrap();
+        assert!(m.created_doc.is_none());
+        assert!(m.current_layer.is_none());
+        assert!(m.locked.is_empty());
+        assert!(m.groups.is_empty());
+        assert!(m.edge_colors.is_none());
+        assert_eq!(
+            m.edge_colors
+                .unwrap_or_else(|| m.colors.clone()),
+            m.colors
+        );
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-66e-give-copied-lines-independent-identities"></a>17. Assign Independent IDs to Copied Lines
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 17 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original line</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">row identity</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">independent copy</text>
+</svg>
+</div>
 
-<a id="checkpoint-66e-give-copied-lines-independent-identities"></a>
-
-<details>
-<summary>Implementation 66e-give-copied-lines-independent-identities: Give copied lines independent identities</summary>
-
-Give copied lines independent identities.
-
-Data flow: original line → row identity → independent copy.
+**What this code does:** Give copied lines independent identities.
 
 ### 1. `src/scene.rs`
 
@@ -1911,789 +2800,138 @@ Separate line row identities from shared original sources.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.prepared.source.guid()))
-            .or_else(||self.clouds.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
+                self.lines
+                    .iter()
+                    .find(|row| row.id == id)
+                    .map(|row| row.prepared.source.guid())
+            })
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.clouds.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
+                self.lines
+                    .iter()
+                    .find(|row| row.id == id)
+                    .map(|row| row.guid.as_str())
+            })
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.clouds.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;row.controls_visible=false;self.clouds.push(row);}
+        } else if let Some(row) = self.lines.iter().find(|row| row.id == id) {
+            let mut row = row.clone();
+            row.id = copy;
+            self.lines.push(row);
+        } else if let Some(row) = self.paths.iter().find(|row| row.id == id) {
+            let mut row = row.clone();
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.clouds.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;row.controls_visible=false;self.clouds.push(row);}
+        } else if let Some(row) = self.lines.iter().find(|row| row.id == id) {
+            let mut row = row.clone();
+            row.id = copy;
+            row.guid = guid;
+            self.lines.push(row);
+        } else if let Some(row) = self.paths.iter().find(|row| row.id == id) {
+            let mut row = row.clone();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let guid=prepared.source.guid().to_owned();let label=prepared.source.name.clone();
-        self.lines.push(LineObject { id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
+            prepared.source.is_visible,
+            prepared.source.is_locked,
+        );
+        let guid = prepared.source.guid().to_owned();
+        let label = prepared.source.name.clone();
+        self.lines.push(LineObject {
+            id,
+            prepared,
+            model: session_rust::Xform::identity(),
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let mut guid=prepared.source.guid().to_owned();while self.lines.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();
-        self.lines.push(LineObject { guid:guid.clone(), id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
+            prepared.source.is_visible,
+            prepared.source.is_locked,
+        );
+        let mut guid = prepared.source.guid().to_owned();
+        while self.lines.iter().any(|row| row.guid == guid) {
+            guid = uuid::Uuid::new_v4().to_string();
+        }
+        let label = prepared.source.name.clone();
+        self.lines.push(LineObject {
+            guid: guid.clone(),
+            id,
+            prepared,
+            model: session_rust::Xform::identity(),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-
-#[derive(Clone)]
 pub struct LineObject {
     pub id: ObjectId,
     pub prepared: crate::stroke::PreparedLine,
     pub model: session_rust::Xform,
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
-
-#[derive(Clone)]
 pub struct LineObject {
-    pub guid:String,
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ObjectId(u32);
-
-impl ObjectId { pub fn value(self) -> u32 { self.0 } }
-
-#[derive(Clone)]
-pub struct Object {
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
-    pub id: ObjectId,
     pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
-    pub mesh: Rc<Mesh>,
-    pub model: session_rust::Xform,
-    editable: crate::edit_source::EditSource,
-}
-
-impl Object {
-    pub fn visible(&self) -> bool { self.metadata.is_visible }
-
-    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
-
-    pub fn source(&self) -> Option<&crate::document::Source> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(), _ => None }
-    }
-
-    pub fn origin(&self) -> Option<&Rc<crate::origin::Origin>> {
-        match &self.editable {
-            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref().map(|source| &source.origin),
-            crate::edit_source::EditSource::Released { origin, .. } => Some(origin),
-        }
-    }
-
-    pub fn release_epoch(&self) -> Option<u64> {
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
-    }
-
-    pub fn can_unload(&self) -> bool {
-        let Some(source) = self.source() else { return false; };
-        let Some(geometry) = self.geometry() else { return false; };
-        source.origin.location.is_some() && self.metadata.source_guid == source.guid
-            && geometry.guid() == source.guid && self.metadata.name == geometry.name
-            && self.metadata.is_visible == geometry.is_visible && self.metadata.is_locked == geometry.is_locked
-            && source.document.objects.meshes.iter().any(|mesh| Rc::ptr_eq(mesh, geometry))
-    }
-
-    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
-        [world[0], world[1], world[2]]
-    }
-}
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub guid:String,
     pub id: ObjectId,
     pub prepared: crate::stroke::PreparedLine,
     pub model: session_rust::Xform,
-}
-
-impl LineObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn endpoints(&self) -> [session_rust::Point; 2] {
-        let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
-    }
-
-    pub fn stroke(&self) -> crate::stroke::Stroke {
-        let [start, end] = self.endpoints();
-        crate::stroke::Stroke { start: std::array::from_fn(|i| start[i] as f32),
-            end: std::array::from_fn(|i| end[i] as f32), ..self.prepared.display }
-    }
-}
-
-#[derive(Clone)]
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
-
-impl PathObject {
-    pub fn visible(&self) -> bool { self.prepared.source.visible() }
-
-    pub fn segments(&self) -> Vec<crate::chain::Segment> {
-        let mut points = Vec::new();
-        for p in self.points() {
-            let p = std::array::from_fn(|i| p[i] as f32);
-            if points.last() != Some(&p) { points.push(p); }
-        }
-        crate::chain::PreparedChain { points: Rc::new(points), ..self.prepared.clone() }.segments()
-    }
-
-    pub fn bounds_points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.bounds_coordinates().into_iter().map(|p|
-            self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-    pub fn points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-
-}
-
-pub struct ControlMarker { pub parent: ObjectId, pub control: crate::controls::Control, pub display: crate::marker::Marker }
-
-#[derive(Clone)]
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
-
-impl PointObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
-
-#[derive(Clone)]
-pub struct Scene {
-    pub(crate) created:Option<u32>,
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    clouds:Vec<crate::cloud::Row>,
-    texts:Vec<crate::scene_label::Row>,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
-    objects: Vec<Object>,
-    next_id: u32,
-    extra: Option<ObjectId>,
-}
-
-impl Scene {
-    pub fn pick_id(&self,value:u32)->Option<ObjectId> {
-        let id=ObjectId(value);(self.visible(id) && !self.view.locked.contains(&id) && !self.forest.readonly(id)).then_some(id)
-    }
-
-    pub fn demo() -> Self {
-        let pink = PreparedMesh::triangle([
-            [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
-        ], [0.9, 0.25, 0.45]).expect("Valid pink triangle");
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), clouds:Vec::new(),texts:Vec::new(),objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-    }
-
-    pub fn restore(&mut self, mut saved: Self) {
-        saved.next_id = saved.next_id.max(self.next_id);
-        *self = saved;
-    }
-
-    pub fn visible(&self,id:ObjectId)->bool {self.contains(id)&&!self.view.is_hidden(&id)}
-
-    pub(crate) fn restore_view(&mut self,mut saved:Self) {saved.view=Rc::clone(&self.view);self.restore(saved);Rc::make_mut(&mut self.view).refresh(&self.forest);}
-
-    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in self.objects.iter().filter(|row| self.visible(row.id)) {
-            for vertex in object.mesh.vertices() {
-                let point = object.world_point(*vertex);
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for line in self.lines.iter().filter(|line| self.visible(line.id)) {
-            for point in line.endpoints() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for row in self.paths.iter().filter(|row| self.visible(row.id)) {
-            for point in row.bounds_points() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
-        }
-        for row in self.points.iter().filter(|row| self.visible(row.id)) {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        for row in self.texts.iter().filter(|row|self.visible(row.id)) {if let Some(next)=row.bounds() {if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}}
-        for row in self.clouds.iter().filter(|r|self.visible(r.id)) {let next=row.bounds();if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}
-        bounds
-    }
-
-    pub fn bounds_of(&self, ids: &[ObjectId]) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for id in ids { if let Some(next) = self.selected_bounds(*id) {
-            if let Some(b) = &mut bounds { b.include(next.min); b.include(next.max); } else { bounds = Some(next); }
-        } } bounds
-    }
-
-    pub fn placement(&self, id: ObjectId) -> Option<session_rust::Xform> {
-        self.objects.iter().find(|r| r.id==id).map(|r| r.model.clone())
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.clouds.iter().find(|r|r.id==id).map(|r|r.model.clone()))
-            .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
-
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_following(id,model)
-    }
-
-    pub(crate) fn place_following(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else if self.clouds.iter().any(|r|r.id==id) {self.place_cloud(id,model)}
-        else if self.texts.iter().any(|r|r.id==id) {self.place_text(id,model)}
-        else { self.place_point(id,model) }
-    }
-
-    pub fn translate(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<(), &'static str> {
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        if let Some(row) = self.objects().iter().find(|r| r.id == id) {
-            if row.geometry().is_none() { return Err("Reload editable sources before Move"); }
-            let model = &shift * &row.model; return self.place(id, model);
-        }
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        if let Some(row)=self.clouds.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_cloud(id,model);}
-        if let Some(row)=self.texts.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_text(id,model);}
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        if let Some(row)=self.clouds.iter().find(|row|row.id==id) {return Some(row.bounds());}
-        if let Some(row)=self.texts.iter().find(|row|row.id==id) {return row.bounds();}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
-        for vertex in vertices {
-            bounds.include(object.world_point(*vertex));
-        }
-        Some(bounds)
-    }
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn cloud_controls(&mut self,parent:Option<ObjectId>) {
-        let parent=parent.filter(|id|self.pick_id(id.value()).is_some());
-        for row in &mut self.clouds {row.controls_visible=Some(row.id)==parent;}
-    }
-    pub fn clouds(&self)->&[crate::cloud::Row] {&self.clouds}
-    pub fn insert_cloud(&mut self,prepared:crate::cloud::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
-        let name=prepared.source.name.clone();let visible=prepared.source.is_visible;let locked=prepared.source.is_locked;let row=crate::cloud::Row {controls_visible:false,id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,visible,locked);self.clouds.push(row);crate::layer_edit::attach_generated(self,id,guid,name)?;Ok(id)
-    }
-    pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid cloud placement");}let row=self.clouds.iter_mut().find(|r|r.id==id).ok_or("Cloud object not found")?;let mut candidate=row.clone();candidate.model=model;if candidate.bounds().min.into_iter().chain(candidate.bounds().max).any(|v|!(v as f32).is_finite()) {return Err("Cloud placement exceeds display range");}*row=candidate;Ok(())
-    }
-    pub fn texts(&self)->&[crate::scene_label::Row] {&self.texts}
-    pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
-    pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid.clone();while self.texts.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();let row=crate::scene_label::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};row.label(false,true)?;if row.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,row.prepared.source.visible,row.prepared.source.locked);self.texts.push(row);crate::layer_edit::attach_generated(self,id,guid,label)?;Ok(id)
-    }
-    pub fn place_text(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid text placement");}let row=self.texts.iter_mut().find(|row|row.id==id).ok_or("Text object not found")?;let mut candidate=row.clone();candidate.model=model;candidate.label(false,true)?;if candidate.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}*row=candidate;Ok(())
-    }
-    pub fn text_labels(&self,selected:&[ObjectId])->Result<Vec<crate::text::TextLabel>,&'static str> {self.texts.iter().filter(|row|self.visible(row.id)).map(|row|row.label(selected.contains(&row.id),self.pick_id(row.id.value()).is_some())).collect()}
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
-
-    pub fn insert_point(&mut self, prepared: crate::marker::PreparedPoint) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.prepared.source.guid() == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let label=prepared.source.name.clone();let node_guid=guid.clone();self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid point placement"); }
-        let row = self.points.iter_mut().find(|row| row.id == id).ok_or("Point not found")?;
-        let point = model.transform_point(&row.prepared.source);
-        if (0..3).any(|i| !(point[i] as f32).is_finite()) { return Err("Point placement exceeds the display range"); }
-        row.model = model; Ok(())
-    }
-
-    pub fn show_controls(&mut self, visible: bool) {
-        for row in &mut self.paths { row.controls_visible = visible && matches!(row.prepared.source, crate::chain::Source::Curve(..)); }
-    }
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && self.visible(row.id)) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-                let display = crate::marker::Marker { center: p.to_f32(), ..control.marker().expect("Prepared control marker") };
-                markers.push(ControlMarker { parent: row.id, control, display });
-            }
-        }
-        markers
-    }
-
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
-
-    pub fn insert_path(&mut self, prepared: crate::chain::PreparedChain) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.prepared.source.guid() == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
-        let label=prepared.source.name().to_owned();let node_guid=guid.clone();self.paths.push(PathObject { controls_visible: false, id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid path placement"); }
-        let row = self.paths.iter_mut().find(|row| row.id == id).ok_or("Path not found")?;
-        for p in row.prepared.source.coordinates().into_iter().chain(row.prepared.source.bounds_coordinates()) {
-            let p = model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) { return Err("Path placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn lines(&self) -> &[LineObject] { &self.lines }
-
-    pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let mut guid=prepared.source.guid().to_owned();while self.lines.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();
-        self.lines.push(LineObject { guid:guid.clone(), id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
-
-    pub fn place_line(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid line placement"); }
-        let row = self.lines.iter_mut().find(|row| row.id == id).ok_or("Line not found")?;
-        for point in [row.prepared.source.start(), row.prepared.source.end()] {
-            let placed = model.transform_point(&point);
-            if (0..3).any(|i| !(placed[i] as f32).is_finite()) { return Err("Line placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn objects(&self) -> &[Object] {
-        &self.objects
-    }
-
-    pub(crate) fn objects_mut(&mut self) -> &mut [Object] { &mut self.objects }
-
-    pub(crate) fn unload(&mut self, origins: &std::collections::HashSet<uuid::Uuid>, epoch: u64) {
-        for row in &mut self.objects {
-            if let Some(origin) = row.origin().filter(|origin| origins.contains(&origin.id)).cloned() {
-                row.editable = crate::edit_source::EditSource::Released { origin, epoch };
-            }
-        }
-    }
-
-    pub(crate) fn hydrate(&mut self, prepared: &crate::rehydrate::PreparedReload) {
-        for row in &mut self.objects {
-            if !prepared.key.matches(row) { continue; }
-            let Some(geometry) = prepared.geometry(&row.metadata.source_guid).cloned() else { continue; };
-            let source = crate::document::Source { document: Rc::clone(&prepared.document),
-                guid: row.metadata.source_guid.clone(), origin: Rc::clone(&prepared.key.origin) };
-            row.editable = crate::edit_source::EditSource::Loaded { geometry, source: Some(source) };
-        }
-    }
-
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        if !crate::placement::valid(&prepared.model.m) { return Err("Placement must be finite, affine and fit the display range"); }
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        let mut guid = prepared.geometry.guid().to_owned();
-        while self.objects.iter().any(|object| object.guid == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.geometry.is_visible,prepared.geometry.is_locked);
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
-
-    pub fn insert_cad(&mut self,source:Rc<session_rust::BRep>)->Result<ObjectId,&'static str> {
-        let (prepared,mesh)=crate::cad_display::prepare(source)?;let prepared=Rc::new(prepared);let id=self.insert(mesh)?;self.objects.iter_mut().find(|row|row.id==id).unwrap().cad=Some(prepared);Ok(id)
-    }
-
-    pub fn insert_surface(&mut self,source:Rc<session_rust::NurbsSurface>)->Result<ObjectId,&'static str> {
-        let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
-        self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
-    }
-
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.clouds.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;row.controls_visible=false;self.clouds.push(row);}
-        else if let Some(row)=self.texts.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.texts.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-        Ok(copy)
-    }
-
-    pub(crate) fn row_guid(&self,id:ObjectId)->Option<&str> {
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.clouds.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.clouds=Vec::new();
-        self.texts=Vec::new();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
-        self.extra = None;
-    }
-
-    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        self.clear();
-        self.import(loaded)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        let mut objects=Vec::new();let key=self.next_id;
-        for prepared in loaded.meshes {
-            let guid=prepared.geometry.guid().to_owned();let name=prepared.geometry.name.clone();
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);let colours=self.forest.colours(key);Rc::make_mut(&mut self.view).faces.extend(colours);Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_mesh(id,model)
-    }
-
-    fn place_mesh(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
-        {
-            return Err("Placement must be finite, affine and fit the display range");
-        }
-        let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
-        if object.geometry().is_none() { return Err("Reload editable sources before Move"); }
-        object.model = model;
-        Ok(())
-    }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);self.clouds.retain(|row|row.id!=id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).chain(self.texts.iter().map(|r|r.id)).chain(self.clouds.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(PreparedMesh::new(source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = PreparedMesh::triangle([
-                [-0.9, 0.3, 0.5], [-0.4, 0.3, 0.5], [-0.65, 0.9, 0.5],
-            ], [0.2, 0.8, 0.3]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unloading_policy_protects_generated_unlocated_and_modified_sources() {
-        let mut scene = Scene::demo(); assert!(!scene.objects[0].can_unload());
-        let bytes = crate::specimen::bytes();
-        scene.replace(crate::document::load(&bytes).unwrap()).unwrap(); assert!(!scene.objects[0].can_unload());
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:policy".into()));
-        scene.replace(crate::document::load_at(&bytes, Some(url)).unwrap()).unwrap();
-        assert!(scene.objects.iter().all(Object::can_unload));
-        let row = &mut scene.objects[0];
-        Rc::make_mut(&mut row.metadata).is_locked = true; assert!(!row.can_unload());
-        Rc::make_mut(&mut row.metadata).is_locked = row.geometry().unwrap().is_locked;
-        assert!(row.can_unload());
-        let source = row.source().cloned(); let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        row.editable = crate::edit_source::EditSource::Loaded { geometry, source }; assert!(!row.can_unload());
-    }
-
-    #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
-        scene.next_id = u32::MAX - 1;
-        let loaded = crate::document::load(&crate::specimen::bytes()).unwrap();
-        let mut history = crate::history::History::default();
-        assert!(history.try_edit(&mut scene, |scene| scene.replace(loaded)).is_err());
-        assert_eq!(scene.next_id, u32::MAX);
-        assert_eq!(scene.objects.len(), before.len());
-        for (object, old) in scene.objects.iter().zip(&before) {
-            assert_eq!(object.id, old.id);
-            assert!(Rc::ptr_eq(object.geometry().unwrap(), old.geometry().unwrap()));
-            assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
-    }
-
-    #[test]
-    fn removal_moves_a_row_without_changing_its_identity() {
-        let mut scene = Scene::demo();
-        let first = scene.objects()[0].id;
-        let second = scene.objects()[1].id;
-        assert!(scene.remove(first));
-        assert_eq!(scene.objects()[0].id, second);
-        assert_eq!(scene.next(None), Some(second));
-        assert!(!scene.contains(first));
-        scene.toggle_extra();
-        assert_ne!(scene.objects()[1].id, first);
-        assert_ne!(scene.objects()[1].id, second);
-    }
-
-    #[test]
-    fn toggling_the_extra_object_uses_its_id_after_other_removals() {
-        let mut scene = Scene::demo();
-        scene.toggle_extra();
-        let extra = scene.objects()[2].id;
-        scene.remove(scene.objects()[0].id);
-        scene.toggle_extra();
-        assert!(!scene.contains(extra));
-        assert_eq!(scene.objects().len(), 1);
-    }
-}
-
-#[cfg(all(test, not(target_arch = "wasm32")))]
-#[path = "pick_gpu_tests.rs"]
-mod pick_gpu_tests;
-
-impl Scene {
-    pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
-                source.vertex.get_mut(&key).ok_or("Missing source vertex")?.set_position(point);
-            }
-            source.clear_triangle_bvh();
-            let prepared=crate::prepared::PreparedMesh::new(source)?;
-            for vertex in prepared.display.vertices() {let point=model.transform_point(&session_rust::Point::new(vertex[0] as f64,vertex[1] as f64,vertex[2] as f64));
-                if (0..3).any(|i| !(point[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}}
-            row.mesh=Rc::new(prepared.display); row.editable=crate::edit_source::EditSource::Loaded {geometry:prepared.geometry,source:None}; return Ok(());
-        }
-        let row=self.paths.iter_mut().find(|r|r.id==target.owner).ok_or("Part owner is missing")?;
-        let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
-        let mut source=(**curve).clone(); let point=local.transform_point(&source.get_cv(index).ok_or("Missing curve control")?);
-        let weight=source.get_cv_4d(index).ok_or("Missing curve control")?.3;
-        let set=if source.m_is_rat {source.set_cv_4d(index,point[0]*weight,point[1]*weight,point[2]*weight,weight)} else {source.set_cv_point(index,&point)};
-        if !set {return Err("Cannot set curve control");}
-        let prepared=crate::chain::PreparedChain::curve(Rc::new(source))?;
-        for p in prepared.source.coordinates().into_iter().chain(prepared.source.bounds_coordinates()) {
-            let p=model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}
-        }
-        row.prepared=prepared;Ok(())
-    }
-}
 ```
 
-</details>
+## <a id="checkpoint-66f-snapshot-geometry-types"></a>18. Snapshot Geometry Types
 
-<details>
-<summary>Optional patch references</summary>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 18 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/geometry_snapshot.rs, s…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original CAD curves clouds</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source protobuf</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">independent row GUID</text>
+</svg>
+</div>
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66e-give-copied-lines-independent-identities-01.rs"
-```
-
-```text
---8<-- "journey/code/66e-give-copied-lines-independent-identities-02.rs"
-```
-
-```text
---8<-- "journey/code/66e-give-copied-lines-independent-identities-03.rs"
-```
-
-```text
---8<-- "journey/code/66e-give-copied-lines-independent-identities-04.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66f-snapshot-geometry-types"></a>
-
-<details>
-<summary>Implementation 66f-snapshot-geometry-types: Snapshot original geometry types</summary>
-
-Snapshot original geometry types.
-
-Data flow: original CAD curves clouds → source protobuf → independent row GUID.
+**What this code does:** Snapshot original geometry types.
 
 ### 1. `src/geometry_snapshot.rs`
 
@@ -2702,66 +2940,277 @@ Snapshot original sources and current flags without mutating their shared record
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66f-snapshot-geometry-types-01.rs"
+use crate::scene::{ObjectId, Scene};
+use session_rust::proto;
+use std::collections::HashSet;
+
+// Save original source records; f32 display triangles, sampled controls and LOD subsets are not editable source geometry.
+pub fn objects(
+    scene: &Scene,
+    ids: &HashSet<ObjectId>,
+) -> Result<proto::Objects, String> {
+    let mut out = proto::Objects::default();
+    let mut guids = HashSet::new();
+    macro_rules! push {
+        ($field:ident,$id:expr,$source:expr) => {{
+            let id = $id;
+            let mut source = $source;
+            let guid = scene
+                .row_guid(id)
+                .ok_or("Saved source owner is missing")?;
+            if !guids.insert(guid.to_owned()) {
+                return Err(
+                    "Source GUID occurs twice within one saved document".into(),
+                );
+            }
+            source.guid = guid.to_owned();
+            source.is_visible = (!scene.visible(id)).then_some(false);
+            source.is_locked = scene
+                .view
+                .locked
+                .contains(&id)
+                .then_some(true);
+            out.$field.push(source);
+        }};
+    }
+    for row in scene
+        .objects()
+        .iter()
+        .filter(|row| ids.contains(&row.id))
+    {
+        if let Some(cad) = row.cad.as_ref() {
+            push!(breps, row.id, cad.source.to_proto());
+        } else if let Some(surface) = row.surface.as_ref() {
+            push!(
+                nurbssurfaces,
+                row.id,
+                surface.source.to_proto()
+            );
+        } else {
+            push!(
+                meshes,
+                row.id,
+                row.geometry()
+                    .ok_or("Reload editable sources before saving")?
+                    .to_proto()
+            );
+        }
+    }
+    for row in scene
+        .lines()
+        .iter()
+        .filter(|row| ids.contains(&row.id))
+    {
+        push!(lines, row.id, row.prepared.source.to_proto());
+    }
+    for row in scene
+        .paths()
+        .iter()
+        .filter(|row| ids.contains(&row.id))
+    {
+        match &row.prepared.source {
+            crate::chain::Source::Line(source) => {
+                push!(lines, row.id, source.to_proto())
+            }
+            crate::chain::Source::Polyline(source) => {
+                push!(polylines, row.id, source.to_proto())
+            }
+            crate::chain::Source::Curve(source, _) => {
+                push!(nurbscurves, row.id, source.to_proto())
+            }
+        }
+    }
+    for row in scene
+        .points()
+        .iter()
+        .filter(|row| ids.contains(&row.id))
+    {
+        push!(
+            points,
+            row.id,
+            row.prepared.source.to_proto()
+        );
+    }
+    for row in scene
+        .clouds()
+        .iter()
+        .filter(|row| ids.contains(&row.id))
+    {
+        push!(
+            pointclouds,
+            row.id,
+            row.prepared.source.to_proto()
+        );
+    }
+    Ok(out)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod archive;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66f-snapshot-geometry-types-02.rs" skip=18
+pub mod archive;
+
+pub mod geometry_snapshot;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/geometry_snapshot.rs`
 
 Copy source and integration regressions.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
+```rust
     Ok(out)
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    Ok(out)
+}
 
-```text
---8<-- "journey/code/66f-snapshot-geometry-types-03.rs" skip=14
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::rc::Rc;
+    #[test]
+    fn snapshot_retains_original_cad_curves_clouds_flags_and_independent_line_guids() {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let cad = Rc::new(crate::cad_display::example());
+        let _ = cad.guid();
+        let cad_before = cad.to_proto();
+        let cad_id = scene.insert_cad(cad.clone()).unwrap();
+        let surface = Rc::new(crate::surface::example());
+        let _ = surface.guid();
+        let surface_before = surface.to_proto();
+        let surface_id = scene
+            .insert_surface(surface.clone())
+            .unwrap();
+        let mut original_curve = session_rust::NurbsCurve::create(
+            true,
+            2,
+            &[
+                session_rust::Point::new(-0.6, -0.4, 0.),
+                session_rust::Point::new(0.123456789012345, 0.6, 0.),
+                session_rust::Point::new(0.6, -0.4, 0.),
+            ],
+        );
+        assert!(original_curve.set_cv_4d(1, 0.123456789012345 * 4., 2.4, 0., 4.));
+        let curve = Rc::new(original_curve);
+        let _ = curve.guid();
+        let curve_before = curve.to_proto();
+        let curve_id = scene
+            .insert_path(crate::chain::PreparedChain::curve(curve.clone()).unwrap())
+            .unwrap();
+        let mut proto = crate::cloud::example().to_proto();
+        proto.point_ids[0] = u32::MAX;
+        let cloud = Rc::new(session_rust::PointCloud::from_proto(proto));
+        let _ = cloud.guid();
+        let cloud_before = cloud.to_proto();
+        let cloud_id = scene
+            .insert_cloud(crate::cloud::Prepared::new(cloud.clone()).unwrap())
+            .unwrap();
+        let line = scene
+            .insert_line(
+                crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(
+                    0., 0., 0., 1., 0., 0.,
+                )))
+                .unwrap(),
+            )
+            .unwrap();
+        let copy = scene.copy_row(line, false).unwrap();
+        Rc::make_mut(&mut scene.view).hide(&[cad_id], true);
+        Rc::make_mut(&mut scene.view).lock(&[cloud_id], true);
+        let ids = [
+            cad_id, surface_id, curve_id, cloud_id, line, copy,
+        ]
+        .into_iter()
+        .collect();
+        let out = objects(&scene, &ids).unwrap();
+        assert!(out.meshes.is_empty());
+        assert_eq!(out.breps.len(), 1);
+        assert_eq!(out.nurbssurfaces.len(), 1);
+        assert_eq!(out.nurbscurves.len(), 1);
+        assert_eq!(out.lines.len(), 2);
+        assert_ne!(out.lines[0].guid, out.lines[1].guid);
+        assert_eq!(out.breps[0].is_visible, Some(false));
+        assert_eq!(out.pointclouds[0].is_locked, Some(true));
+        assert_eq!(out.pointclouds[0].point_ids[0], u32::MAX);
+        assert_eq!(
+            out.pointclouds[0].coords,
+            cloud_before.coords
+        );
+        assert_eq!(out.nurbscurves[0].cvs, curve_before.cvs);
+        assert!(out.nurbscurves[0].is_rational);
+        assert_eq!(out.nurbscurves[0].cvs[7], 4.);
+        assert_eq!(cad.to_proto(), cad_before);
+        assert_eq!(surface.to_proto(), surface_before);
+        assert_eq!(curve.to_proto(), curve_before);
+        assert_eq!(cloud.to_proto(), cloud_before);
+        crate::source_validate::session(&proto::Session {
+            objects: Some(out),
+            ..Default::default()
+        })
+        .unwrap();
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-66g-retain-geometry-free-document-headers"></a>19. Retain Geometry-Free Document Headers
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 19 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/hierarchy.rs, src/layer…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source header</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">tree namespace</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source release</text>
+</svg>
+</div>
 
-<a id="checkpoint-66g-retain-geometry-free-document-headers"></a>
-
-<details>
-<summary>Implementation 66g-retain-geometry-free-document-headers: Retain geometry free document headers</summary>
-
-Retain geometry free document headers.
-
-Data flow: source header → tree namespace → source release.
+**What this code does:** Retain geometry free document headers.
 
 ### 1. `src/hierarchy.rs`
 
@@ -2769,347 +3218,326 @@ Retain lightweight original document metadata through layer edits.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent.clone();
-    if let Some(id)=original.object {
-        let Some(row)=scene.objects().iter().find(|r|r.id==id) else {return Ok(None);};
-        node.name=row.guid.clone();matrix=row.model.clone();let local=&parent.inverse().ok_or("Parent placement cannot be inverted for Save")?*&matrix;
-        if local.m!=Xform::identity().m {xforms.push(proto::XformEntry {guid:row.guid.clone(),xform:Some(local.to_proto())});} placed.insert(id);
-    }
-    for child in index+1..original.end {if doc.nodes[child].parent==Some(index) {if let Some(child)=save_node(doc,child,scene,&matrix,&node.guid,xforms,placed)? {node.children.push(child);}}}
-    Ok(Some(node))
+    node.parent_guid = parent_guid.to_owned();
+    let mut matrix = parent.clone();
+    if let Some(id) = original.object {
+        let Some(row) = scene.objects().iter().find(|r| r.id == id) else {
+            return Ok(None);
+        };
+        node.name = row.guid.clone();
+        matrix = row.model.clone();
+        let local = &parent
+            .inverse()
+            .ok_or("Parent placement cannot be inverted for Save")?
+            * &matrix;
+        if local.m != Xform::identity().m {
+            xforms.push(proto::XformEntry {
+                guid: row.guid.clone(),
+                xform: Some(local.to_proto()),
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent.clone();
-    if let Some(id)=original.object {
-        let Some(guid)=scene.row_guid(id) else {return Ok(None);};
-        node.name=guid.to_owned();matrix=scene.placement(id).ok_or("Saved source placement is missing")?;let local=&parent.inverse().ok_or("Parent placement cannot be inverted for Save")?*&matrix;
-        if local.m!=Xform::identity().m {xforms.push(proto::XformEntry {guid:guid.to_owned(),xform:Some(local.to_proto())});} placed.insert(id);
-    }
-    for child in index+1..original.end {if doc.nodes[child].parent==Some(index) {if let Some(child)=save_node(doc,child,scene,&matrix,&node.guid,xforms,placed)? {node.children.push(child);}}}
-    Ok(Some(node))
+    node.parent_guid = parent_guid.to_owned();
+    let mut matrix = parent.clone();
+    if let Some(id) = original.object {
+        let Some(guid) = scene.row_guid(id) else {
+            return Ok(None);
+        };
+        node.name = guid.to_owned();
+        matrix = scene
+            .placement(id)
+            .ok_or("Saved source placement is missing")?;
+        let local = &parent
+            .inverse()
+            .ok_or("Parent placement cannot be inverted for Save")?
+            * &matrix;
+        if local.m != Xform::identity().m {
+            xforms.push(proto::XformEntry {
+                guid: guid.to_owned(),
+                xform: Some(local.to_proto()),
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
-        Rc::make_mut(&mut self.readonly_ids).extend(nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(Document {key,label,nodes}));
+                .filter_map(|node| node.object),
+        );
+        self.documents.push(Rc::new(Document {
+            key,
+            label,
+            nodes,
+        }));
     }
 
-    pub fn colours(&self,key:u32)->HashMap<ObjectId,[u8;3]> {
+    pub fn colours(&self, key: u32) -> HashMap<ObjectId, [u8; 3]> {
+        let mut out = HashMap::new();
+        let Some(doc) = self
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
-        Rc::make_mut(&mut self.readonly_ids).extend(nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(Document {header:None,key,label,nodes}));
+                .filter_map(|node| node.object),
+        );
+        self.documents.push(Rc::new(Document {
+            header: None,
+            key,
+            label,
+            nodes,
+        }));
     }
 
-    pub(crate) fn push(&mut self,document:Document) {
-        Rc::make_mut(&mut self.readonly_ids).extend(document.nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
+    pub(crate) fn push(&mut self, document: Document) {
+        Rc::make_mut(&mut self.readonly_ids).extend(
+            document
+                .nodes
+                .iter()
+                .filter(|node| node.readonly)
+                .filter_map(|node| node.object),
+        );
         self.documents.push(Rc::new(document));
     }
 
-    pub fn colours(&self,key:u32)->HashMap<ObjectId,[u8;3]> {
+    pub fn colours(&self, key: u32) -> HashMap<ObjectId, [u8; 3]> {
+        let mut out = HashMap::new();
+        let Some(doc) = self
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-#[derive(Clone)]
-pub struct Node {pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
-pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
+pub struct Document {
+    pub key: u32,
+    pub label: String,
+    pub nodes: Vec<Node>,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-#[derive(Clone)]
-pub struct Node {pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub header:Option<Rc<crate::origin::Origin>>,pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
-pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
+pub struct Document {
+    pub header: Option<Rc<crate::origin::Origin>>,
+    pub key: u32,
+    pub label: String,
+    pub nodes: Vec<Node>,
 ```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::scene::{Scene,ObjectId};
-use session_rust::{proto,Xform};
-use std::{collections::{HashMap,HashSet},rc::Rc};
-
-pub const MAX_NODES:usize=4096;
-pub const MAX_DEPTH:usize=64;
-
-pub fn validate(root:&proto::TreeNode,guids:&HashSet<&str>)->Result<(), &'static str> {
-    let mut stack=vec![(root,0)];let mut seen=HashSet::new();let mut count=0;
-    while let Some((node,depth))=stack.pop() {
-        count+=1;if count>MAX_NODES || depth>MAX_DEPTH {return Err("Tree exceeds this checkpoint's node or depth limit");}
-        if guids.contains(node.name.as_str()) && !seen.insert(node.name.as_str()) {return Err("A source object occurs twice in the tree");}
-        stack.extend(node.children.iter().rev().map(|child|(child,depth+1)));
-    }
-    if seen!=*guids {return Err("The tree must contain every source mesh once");} Ok(())
-}
-
-pub fn world(root:Option<&proto::TreeNode>,xforms:&HashMap<String,Xform>,guid:&str)->Xform {
-    let mut stack=root.into_iter().map(|node|(node,Xform::identity())).collect::<Vec<_>>();
-    while let Some((node,parent))=stack.pop() {
-        let local=xforms.get(&node.name).cloned().unwrap_or_else(Xform::identity);let matrix=&parent*&local;
-        if node.name==guid {return matrix;}
-        stack.extend(node.children.iter().rev().map(|child|(child,matrix.clone())));
-    }
-    xforms.get(guid).cloned().unwrap_or_else(Xform::identity)
-}
-
-#[derive(Clone)]
-pub struct Node {pub portable_guid:String, pub source:proto::TreeNode,pub object:Option<ObjectId>,pub label:String,pub parent:Option<usize>,pub depth:usize,pub end:usize,pub readonly:bool }
-#[derive(Clone)]
-pub struct Document {pub header:Option<Rc<crate::origin::Origin>>,pub key:u32,pub label:String,pub nodes:Vec<Node>}
-#[derive(Clone,Default)]
-pub struct Forest { pub documents:Vec<Rc<Document>>,readonly_ids:Rc<HashSet<ObjectId>> }
-
-impl Forest {
-    pub fn add(&mut self,key:u32,label:String,root:Option<proto::TreeNode>,objects:&[(String,ObjectId,String)]) {
-        let fallback=proto::TreeNode {name:label.clone(),children:objects.iter().map(|(guid,_,_)|proto::TreeNode {name:guid.clone(),..Default::default()}).collect(),..Default::default()};
-        let root=root.unwrap_or(fallback);let lookup=objects.iter().map(|(guid,id,name)|(guid.as_str(),(*id,name.as_str()))).collect::<HashMap<_,_>>();
-        let mut nodes:Vec<Node>=Vec::new();let mut stack=vec![(&root,None::<usize>,0,false,false,false)];
-        while let Some((node,parent,depth,inside,readonly,exit))=stack.pop() {
-            if exit {nodes[parent.unwrap()].end=nodes.len();continue;}
-            let object=lookup.get(node.name.as_str()).copied();let readonly=readonly || inside && matches!(node.name.as_str(),"attributes"|"interactions");
-            let index=nodes.len();let source=proto::TreeNode {guid:if node.guid.is_empty() {uuid::Uuid::new_v4().to_string()} else {node.guid.clone()},name:node.name.clone(),parent_guid:node.parent_guid.clone(),color:node.color.clone(),children:Vec::new()};
-            nodes.push(Node {portable_guid:uuid::Uuid::new_v4().to_string(),source,object:object.map(|v|v.0),label:object.map_or_else(||node.name.clone(),|v|v.1.to_owned()),parent,depth,end:index+1,readonly});
-            stack.push((node,Some(index),depth,inside,readonly,true));
-            stack.extend(node.children.iter().rev().map(|child|(child,Some(index),depth+1,inside||object.is_some(),readonly,false)));
-        }
-        Rc::make_mut(&mut self.readonly_ids).extend(nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(Document {header:None,key,label,nodes}));
-    }
-
-    pub(crate) fn push(&mut self,document:Document) {
-        Rc::make_mut(&mut self.readonly_ids).extend(document.nodes.iter().filter(|node|node.readonly).filter_map(|node|node.object));
-        self.documents.push(Rc::new(document));
-    }
-
-    pub fn colours(&self,key:u32)->HashMap<ObjectId,[u8;3]> {
-        let mut out=HashMap::new();let Some(doc)=self.documents.iter().find(|doc|doc.key==key) else {return out;};
-        let mut inherited=vec![None;doc.nodes.len()];
-        for (index,node) in doc.nodes.iter().enumerate() {
-            let colour=node.source.color.as_ref().map(|colour|[colour.r,colour.g,colour.b].map(|value|(value.clamp(0.,1.)*255.).round() as u8)).or_else(||node.parent.and_then(|parent|inherited[parent]));
-            inherited[index]=colour;if let (Some(id),Some(colour))=(node.object,colour) {out.insert(id,colour);}
-        }
-        out
-    }
-
-    pub(crate) fn replace(&mut self,index:usize,document:Document) {
-        self.documents[index]=Rc::new(document);
-        self.readonly_ids=Rc::new(self.documents.iter().flat_map(|doc|doc.nodes.iter()).filter(|node|node.readonly).filter_map(|node|node.object).collect());
-    }
-
-    pub fn readonly(&self,id:ObjectId)->bool {self.readonly_ids.contains(&id)}
-    pub fn descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {
-        let mut out=ids.to_vec();
-        for doc in &self.documents {for (index,node) in doc.nodes.iter().enumerate() {if node.object.is_some_and(|id|ids.contains(&id)) {out.extend(doc.nodes[index+1..node.end].iter().filter_map(|n|n.object));}}}
-        out.sort_unstable_by_key(|id|id.value());out.dedup();out
-    }
-
-    pub fn snapshot(&self,scene:&Scene,xforms:&mut Vec<proto::XformEntry>)->Result<(Vec<proto::TreeNode>,HashSet<ObjectId>), &'static str> {
-        let mut roots=Vec::new();let mut placed=HashSet::new();
-        for doc in &self.documents {if let Some(root)=save_node(doc,0,scene,&Xform::identity(),"",xforms,&mut placed)? {roots.push(root);}}
-        Ok((roots,placed))
-    }
-}
-
-fn save_node(doc:&Document,index:usize,scene:&Scene,parent:&Xform,parent_guid:&str,xforms:&mut Vec<proto::XformEntry>,placed:&mut HashSet<ObjectId>)->Result<Option<proto::TreeNode>, &'static str> {
-    let original=&doc.nodes[index];let mut node=original.source.clone();node.guid=original.portable_guid.clone();node.parent_guid=parent_guid.to_owned();let mut matrix=parent.clone();
-    if let Some(id)=original.object {
-        let Some(guid)=scene.row_guid(id) else {return Ok(None);};
-        node.name=guid.to_owned();matrix=scene.placement(id).ok_or("Saved source placement is missing")?;let local=&parent.inverse().ok_or("Parent placement cannot be inverted for Save")?*&matrix;
-        if local.m!=Xform::identity().m {xforms.push(proto::XformEntry {guid:guid.to_owned(),xform:Some(local.to_proto())});} placed.insert(id);
-    }
-    for child in index+1..original.end {if doc.nodes[child].parent==Some(index) {if let Some(child)=save_node(doc,child,scene,&matrix,&node.guid,xforms,placed)? {node.children.push(child);}}}
-    Ok(Some(node))
-}
-
-#[derive(Clone)]
-pub struct Row {pub key:String,pub label:String,pub depth:usize,pub end:usize,pub ids:Vec<ObjectId>,pub readonly:bool}
-pub fn rows(scene:&Scene)->Vec<Row> {
-    let mut rows=Vec::new();let mut placed=HashSet::new();
-    for doc in &scene.forest.documents {
-        let mut visible=Vec::new();let mut index=0;
-        while index<doc.nodes.len() {
-            let node=&doc.nodes[index];
-            if node.object.is_some_and(|id|!scene.contains(id)) {index=node.end;continue;}
-            visible.push(index);index+=1;
-        }
-        let start=rows.len();
-        for &index in &visible {
-            let node=&doc.nodes[index];let ids=doc.nodes[index..node.end].iter().filter_map(|n|n.object).filter(|id|scene.contains(*id)).collect::<Vec<_>>();
-            placed.extend(node.object);let end=start+visible.partition_point(|i|*i<node.end);
-            rows.push(Row {key:format!("{}/{}",doc.key,node.source.guid),label:if index==0 {doc.label.clone()} else {node.label.clone()},depth:node.depth,end,ids,readonly:node.readonly});
-        }
-    }
-    for row in scene.objects().iter().filter(|r|!placed.contains(&r.id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",row.id.value()),label:row.metadata.name.clone(),depth:0,end:index+1,ids:vec![row.id],readonly:false});}
-    let other=scene.lines().iter().map(|r|(r.id,r.prepared.source.name.as_str())).chain(scene.paths().iter().map(|r|(r.id,r.prepared.source.name()))).chain(scene.points().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.texts().iter().map(|r|(r.id,r.prepared.source.name.as_str()))).chain(scene.clouds().iter().map(|r|(r.id,r.prepared.source.name.as_str())));
-    for (id,label) in other.filter(|(id,_)|!placed.contains(id)) {let index=rows.len();rows.push(Row {key:format!("created/{}",id.value()),label:label.to_owned(),depth:0,end:index+1,ids:vec![id],readonly:false});}
-    rows
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66g-retain-geometry-free-document-headers-01.rs"
-```
-
-```text
---8<-- "journey/code/66g-retain-geometry-free-document-headers-02.rs"
-```
-
-```text
---8<-- "journey/code/66g-retain-geometry-free-document-headers-03.rs"
-```
-
-</details>
 
 ### 2. `src/layer_edit.rs`
 
 Retain lightweight original document metadata through layer edits.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
-fn replace(scene:&mut Scene,owner:usize,tree:Branch) {
-    let old=&scene.forest.documents[owner];let mut document=Document {key:old.key,label:old.label.clone(),nodes:Vec::new()};
-    flatten(tree,None,0,&mut document.nodes);scene.forest.replace(owner,document);Rc::make_mut(&mut scene.view).refresh(&scene.forest);
-}
+    let mut document = Document {
+        key: old.key,
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66g-retain-geometry-free-document-headers-04.rs"
+    let mut document = Document {
+        header: old.header.clone(),
+        key: old.key,
 ```
 
 ### 3. `src/scene.rs`
 
 Attach geometry-free original headers to imported namespaces.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);let colours=self.forest.colours(key);Rc::make_mut(&mut self.view).faces.extend(colours);Ok(())
-    }
+        );
+        let colours = self.forest.colours(key);
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66g-retain-geometry-free-document-headers-05.rs"
+        );
+        if let Some(origin) = objects
+            .first()
+            .and_then(|(_, id, _)| self.objects.iter().find(|row| row.id == *id))
+            .and_then(|row| row.origin())
+            .cloned()
+        {
+            Rc::make_mut(self.forest.documents.last_mut().unwrap()).header =
+                Some(origin);
+        }
+        let colours = self.forest.colours(key);
 ```
 
 ### 4. `src/revision.rs`
 
 Include original nonmesh document revisions without owning source geometry.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub fn versions(scene: &crate::scene::Scene) -> Vec<String> {
-    let mut versions: Vec<_> = scene.objects().iter().filter_map(|object|
-        object.origin().map(|origin| origin.version.hex())).collect();
-    versions.sort(); versions.dedup(); versions
-}
+        })
+        .collect();
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66g-retain-geometry-free-document-headers-06.rs"
+        })
+        .chain(
+            scene
+                .forest
+                .documents
+                .iter()
+                .filter_map(|doc| {
+                    doc.header
+                        .as_ref()
+                        .map(|origin| origin.version.hex())
+                }),
+        )
+        .collect();
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/archive.rs`
 
 Copy mixed tree and line-identity integration checks after their source ownership is connected.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
+```rust
+    #[test]
+    fn old_metadata_keeps_face_colour_fallback_and_default_identity_fields() {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    #[test]
+    fn mixed_tree_snapshot_keeps_line_copy_identity_and_nonmesh_placements() {
+        use std::rc::Rc;
+        let mut scene = crate::scene::Scene::demo();
+        scene.clear();
+        let source = Rc::new(session_rust::Line::new(
+            0., 0., 0., 1., 0., 0.,
+        ));
+        let _ = source.guid();
+        let before = source.to_proto();
+        let first = scene
+            .insert_line(crate::stroke::PreparedLine::new(source.clone()).unwrap())
+            .unwrap();
+        let key = format!(
+            "{}/{}",
+            scene.forest.documents[0].key,
+            scene.forest.documents[0].nodes[0]
+                .source
+                .guid
+        );
+        crate::layer_edit::apply(
+            &mut scene,
+            &key,
+            crate::layer_edit::Edit::Copy(vec![first]),
+        )
+        .unwrap();
+        let copy = scene.lines()[1].id;
+        assert_ne!(scene.row_guid(first), scene.row_guid(copy));
+        assert!(Rc::ptr_eq(
+            &scene.lines()[0].prepared.source,
+            &scene.lines()[1].prepared.source
+        ));
+        scene
+            .place_line(
+                copy,
+                session_rust::Xform::translation(1_000_000_000.125, 0., 0.),
+            )
+            .unwrap();
+        let point = scene
+            .insert_point(
+                crate::marker::PreparedPoint::new(Rc::new(session_rust::Point::new(
+                    0., 2., 0.,
+                )))
+                .unwrap(),
+            )
+            .unwrap();
+        let cloud = scene
+            .insert_cloud(
+                crate::cloud::Prepared::new(Rc::new(
+                    session_rust::PointCloud::from_coords(
+                        vec![0., 0., 0.],
+                        vec![],
+                        vec![],
+                    ),
+                ))
+                .unwrap(),
+            )
+            .unwrap();
+        let mut xforms = Vec::new();
+        let (roots, placed) = scene
+            .forest
+            .snapshot(&scene, &mut xforms)
+            .unwrap();
+        for id in [first, copy, point, cloud] {
+            assert!(placed.contains(&id));
+        }
+        assert_eq!(
+            xforms
+                .iter()
+                .find(|entry| entry.guid == scene.row_guid(copy).unwrap())
+                .unwrap()
+                .xform
+                .as_ref()
+                .unwrap()
+                .matrix[12],
+            1_000_000_000.125
+        );
+        assert!(!roots.is_empty());
+        assert_eq!(source.to_proto(), before);
     }
     #[test]
     fn old_metadata_keeps_face_colour_fallback_and_default_identity_fields() {
-        let source=br#"{"documents":[{"name":"old","place":[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],"point_px":0}],"hidden":[],"colors":[[0,"guid",[12,34,56]]],"texts":[]}"#;
 ```
 
-</details>
+## <a id="checkpoint-66h-inventory-saved-document-namespaces"></a>20. Index Saved Document Namespaces
 
-Update the existing block with this supplied code; keep unchanged lines:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 20 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene_archive.rs, src/l…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">live rows</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">document namespaces</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">ordered copy owners</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66g-retain-geometry-free-document-headers-07.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66h-inventory-saved-document-namespaces"></a>
-
-<details>
-<summary>Implementation 66h-inventory-saved-document-namespaces: Inventory saved document namespaces</summary>
-
-Inventory saved document namespaces.
-
-Data flow: live rows → document namespaces → ordered copy owners.
+**What this code does:** Inventory saved document namespaces.
 
 ### 1. `src/scene_archive.rs`
 
@@ -3118,39 +3546,131 @@ Inventory original document namespaces and deterministic owner order.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66h-inventory-saved-document-namespaces-01.rs"
+use crate::{
+    archive::{Bundle, Document, Metadata},
+    scene::{ObjectId, Scene},
+};
+use prost::Message;
+use std::{collections::HashSet, rc::Rc};
+
+// A namespace is one source document; imported files can reuse original GUIDs while their placements and presentation remain independent.
+pub(crate) struct Namespace {
+    pub name: String,
+    pub doc: Option<Rc<crate::hierarchy::Document>>,
+    pub ids: HashSet<ObjectId>,
+}
+impl Namespace {
+    pub fn ordered(&self) -> Vec<ObjectId> {
+        let mut ids = self.ids.iter().copied().collect::<Vec<_>>();
+        ids.sort_unstable_by_key(|id| id.value());
+        ids
+    }
+}
+fn inventory(scene: &Scene) -> Vec<Namespace> {
+    let mut out = scene
+        .forest
+        .documents
+        .iter()
+        .map(|doc| Namespace {
+            name: doc.label.clone(),
+            doc: Some(doc.clone()),
+            ids: doc
+                .nodes
+                .iter()
+                .filter_map(|node| node.object)
+                .filter(|id| scene.contains(*id))
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+    let all = scene
+        .objects()
+        .iter()
+        .map(|row| row.id)
+        .chain(scene.lines().iter().map(|row| row.id))
+        .chain(scene.paths().iter().map(|row| row.id))
+        .chain(scene.points().iter().map(|row| row.id))
+        .chain(scene.clouds().iter().map(|row| row.id))
+        .chain(scene.texts().iter().map(|row| row.id))
+        .collect::<HashSet<_>>();
+    let assigned = out
+        .iter()
+        .flat_map(|namespace| namespace.ids.iter().copied())
+        .collect::<HashSet<_>>();
+    let ids = all
+        .difference(&assigned)
+        .copied()
+        .collect::<HashSet<_>>();
+    if !ids.is_empty() {
+        out.push(Namespace {
+            name: "Created".into(),
+            doc: None,
+            ids,
+        });
+    }
+    out
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod geometry_snapshot;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66h-inventory-saved-document-namespaces-02.rs" skip=28
+pub mod geometry_snapshot;
+
+pub mod scene_archive;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66i-map-saved-source-identities"></a>21. Map Saved Source Identities
 
-<a id="checkpoint-66i-map-saved-source-identities"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 21 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive_identity.rs, sr…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">row GUID</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">namespace alias</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source tree identity</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66i-map-saved-source-identities: Map saved source identities</summary>
-
-Map saved source identities.
-
-Data flow: row GUID → namespace alias → source tree identity.
+**What this code does:** Map saved source identities.
 
 ### 1. `src/archive_identity.rs`
 
@@ -3159,83 +3679,181 @@ Map original sources, tree nodes and copies inside their document namespace.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66i-map-saved-source-identities-01.rs"
+use crate::{scene::Scene, scene_archive::Namespace};
+use session_rust::proto;
+use std::collections::{HashMap, HashSet};
+
+pub(crate) fn aliases(
+    scene: &Scene,
+    namespace: &Namespace,
+) -> Result<HashMap<String, String>, String> {
+    let mut names = HashMap::new();
+    let mut used = HashSet::new();
+    let reserved = namespace
+        .ids
+        .iter()
+        .filter_map(|id| scene.row_guid(*id).map(str::to_owned))
+        .collect::<HashSet<_>>();
+    if let Some(doc) = namespace.doc.as_ref() {
+        for node in &doc.nodes {
+            if let Some(id) = node
+                .object
+                .filter(|id| namespace.ids.contains(id))
+            {
+                let current = scene
+                    .row_guid(id)
+                    .ok_or("Saved source owner is missing")?
+                    .to_owned();
+                let mut saved = if scene.texts().iter().any(|row| row.id == id) {
+                    current.clone()
+                } else {
+                    node.source.name.clone()
+                };
+                if saved != current && reserved.contains(&saved)
+                    || used.contains(&saved)
+                {
+                    saved = current.clone();
+                }
+                if !used.insert(saved.clone()) {
+                    return Err("Saved source identities collide".into());
+                }
+                names.insert(current, saved);
+            }
+        }
+    }
+    Ok(names)
+}
+pub(crate) fn objects(objects: &mut proto::Objects, names: &HashMap<String, String>) {
+    macro_rules! remap {
+        ($field:ident) => {
+            for object in &mut objects.$field {
+                if let Some(guid) = names.get(&object.guid) {
+                    object.guid = guid.clone();
+                }
+            }
+        };
+    }
+    remap!(meshes);
+    remap!(lines);
+    remap!(points);
+    remap!(polylines);
+    remap!(nurbscurves);
+    remap!(nurbssurfaces);
+    remap!(breps);
+    remap!(pointclouds);
+}
+pub(crate) fn tree(node: &mut proto::TreeNode, names: &HashMap<String, String>) {
+    if let Some(guid) = names.get(&node.name) {
+        node.name = guid.clone();
+    }
+    for child in &mut node.children {
+        tree(child, names);
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod scene_archive;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66i-map-saved-source-identities-02.rs" skip=24
+pub mod scene_archive;
+
+pub mod archive_identity;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66j-store-cloud-size-as-presentation"></a>22. Store Point-Cloud Size in Presentation
 
-<a id="checkpoint-66j-store-cloud-size-as-presentation"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 22 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/cloud.rs, src/cloud_gpu…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original point size</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">instance override</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">physical disc</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66j-store-cloud-size-as-presentation: Store cloud size as presentation</summary>
-
-Store cloud size as presentation.
-
-Data flow: original point size → instance override → physical disc.
+**What this code does:** Store cloud size as presentation.
 
 ### 1. `src/cloud.rs`
 
 Keep cloud point size independent of shared original source records.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-pub struct Row {
     pub controls_visible: bool,
-  pub id: crate::scene::ObjectId,
-  pub guid: String,
+    pub id: crate::scene::ObjectId,
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66j-store-cloud-size-as-presentation-01.rs"
+    pub controls_visible: bool,
+    pub point_px: f32,
+    pub id: crate::scene::ObjectId,
 ```
 
 ### 2. `src/cloud_gpu.rs`
 
 Derive draw radius from an instance override or the original source size.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  ];
-  let rgb = draw.color.map_or([1., 1., 1.], |c| c.map(|v| v as f32 / 255.));
-  let px = source.point_size as f32;
-  let flags = u32::from(draw.selected) | if draw.color.is_some() { 256 } else { 0 };
-  let instance = if draw.pickable { row.id.value() - 1 } else { u32::MAX };
+        .map_or([1., 1., 1.], |c| c.map(|v| v as f32 / 255.));
+    let px = source.point_size as f32;
+    let flags = u32::from(draw.selected)
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66j-store-cloud-size-as-presentation-02.rs"
+        .map_or([1., 1., 1.], |c| c.map(|v| v as f32 / 255.));
+    let px = if row.point_px > 0. {
+        row.point_px
+    } else {
+        source.point_size as f32
+    };
+    let flags = u32::from(draw.selected)
 ```
 
 ### 3. `src/scene.rs`
@@ -3244,742 +3862,104 @@ Allocate document keys and change cloud presentation without touching original s
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
+                    .map(|row| row.guid.as_str())
+            })
     }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
+                    .map(|row| row.guid.as_str())
+            })
     }
 
-    pub(crate) fn reserve_document_key(&mut self)->Result<u32,&'static str> {
-        let key=self.next_id;self.next_id=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;Ok(key)
+    pub(crate) fn reserve_document_key(&mut self) -> Result<u32, &'static str> {
+        let key = self.next_id;
+        self.next_id = self
+            .next_id
+            .checked_add(1)
+            .ok_or("Object IDs exhausted")?;
+        Ok(key)
     }
 
-    pub(crate) fn cloud_point_size(&mut self,id:ObjectId,px:f32)->Result<(),&'static str> {
-        if !px.is_finite() {return Err("Non-finite cloud point size");}
-        self.clouds.iter_mut().find(|row|row.id==id).ok_or("Cloud object not found")?.point_px=px;Ok(())
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    pub fn clouds(&self)->&[crate::cloud::Row] {&self.clouds}
-    pub fn insert_cloud(&mut self,prepared:crate::cloud::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
-        let name=prepared.source.name.clone();let visible=prepared.source.is_visible;let locked=prepared.source.is_locked;let row=crate::cloud::Row {controls_visible:false,id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,visible,locked);self.clouds.push(row);crate::layer_edit::attach_generated(self,id,guid,name)?;Ok(id)
-    }
-    pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub fn clouds(&self)->&[crate::cloud::Row] {&self.clouds}
-    pub fn insert_cloud(&mut self,prepared:crate::cloud::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
-        let name=prepared.source.name.clone();let visible=prepared.source.is_visible;let locked=prepared.source.is_locked;let row=crate::cloud::Row {point_px:0.,controls_visible:false,id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,visible,locked);self.clouds.push(row);crate::layer_edit::attach_generated(self,id,guid,name)?;Ok(id)
-    }
-    pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ObjectId(u32);
-
-impl ObjectId { pub fn value(self) -> u32 { self.0 } }
-
-#[derive(Clone)]
-pub struct Object {
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
-    pub id: ObjectId,
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
-    pub mesh: Rc<Mesh>,
-    pub model: session_rust::Xform,
-    editable: crate::edit_source::EditSource,
-}
-
-impl Object {
-    pub fn visible(&self) -> bool { self.metadata.is_visible }
-
-    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
-
-    pub fn source(&self) -> Option<&crate::document::Source> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(), _ => None }
-    }
-
-    pub fn origin(&self) -> Option<&Rc<crate::origin::Origin>> {
-        match &self.editable {
-            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref().map(|source| &source.origin),
-            crate::edit_source::EditSource::Released { origin, .. } => Some(origin),
+    pub(crate) fn cloud_point_size(
+        &mut self,
+        id: ObjectId,
+        px: f32,
+    ) -> Result<(), &'static str> {
+        if !px.is_finite() {
+            return Err("Non-finite cloud point size");
         }
-    }
-
-    pub fn release_epoch(&self) -> Option<u64> {
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
-    }
-
-    pub fn can_unload(&self) -> bool {
-        let Some(source) = self.source() else { return false; };
-        let Some(geometry) = self.geometry() else { return false; };
-        source.origin.location.is_some() && self.metadata.source_guid == source.guid
-            && geometry.guid() == source.guid && self.metadata.name == geometry.name
-            && self.metadata.is_visible == geometry.is_visible && self.metadata.is_locked == geometry.is_locked
-            && source.document.objects.meshes.iter().any(|mesh| Rc::ptr_eq(mesh, geometry))
-    }
-
-    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
-        [world[0], world[1], world[2]]
-    }
-}
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub guid:String,
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-}
-
-impl LineObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn endpoints(&self) -> [session_rust::Point; 2] {
-        let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
-    }
-
-    pub fn stroke(&self) -> crate::stroke::Stroke {
-        let [start, end] = self.endpoints();
-        crate::stroke::Stroke { start: std::array::from_fn(|i| start[i] as f32),
-            end: std::array::from_fn(|i| end[i] as f32), ..self.prepared.display }
-    }
-}
-
-#[derive(Clone)]
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
-
-impl PathObject {
-    pub fn visible(&self) -> bool { self.prepared.source.visible() }
-
-    pub fn segments(&self) -> Vec<crate::chain::Segment> {
-        let mut points = Vec::new();
-        for p in self.points() {
-            let p = std::array::from_fn(|i| p[i] as f32);
-            if points.last() != Some(&p) { points.push(p); }
-        }
-        crate::chain::PreparedChain { points: Rc::new(points), ..self.prepared.clone() }.segments()
-    }
-
-    pub fn bounds_points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.bounds_coordinates().into_iter().map(|p|
-            self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-    pub fn points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-
-}
-
-pub struct ControlMarker { pub parent: ObjectId, pub control: crate::controls::Control, pub display: crate::marker::Marker }
-
-#[derive(Clone)]
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
-
-impl PointObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
-
-#[derive(Clone)]
-pub struct Scene {
-    pub(crate) created:Option<u32>,
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    clouds:Vec<crate::cloud::Row>,
-    texts:Vec<crate::scene_label::Row>,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
-    objects: Vec<Object>,
-    next_id: u32,
-    extra: Option<ObjectId>,
-}
-
-impl Scene {
-    pub fn pick_id(&self,value:u32)->Option<ObjectId> {
-        let id=ObjectId(value);(self.visible(id) && !self.view.locked.contains(&id) && !self.forest.readonly(id)).then_some(id)
-    }
-
-    pub fn demo() -> Self {
-        let pink = PreparedMesh::triangle([
-            [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
-        ], [0.9, 0.25, 0.45]).expect("Valid pink triangle");
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), clouds:Vec::new(),texts:Vec::new(),objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-    }
-
-    pub fn restore(&mut self, mut saved: Self) {
-        saved.next_id = saved.next_id.max(self.next_id);
-        *self = saved;
-    }
-
-    pub fn visible(&self,id:ObjectId)->bool {self.contains(id)&&!self.view.is_hidden(&id)}
-
-    pub(crate) fn restore_view(&mut self,mut saved:Self) {saved.view=Rc::clone(&self.view);self.restore(saved);Rc::make_mut(&mut self.view).refresh(&self.forest);}
-
-    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in self.objects.iter().filter(|row| self.visible(row.id)) {
-            for vertex in object.mesh.vertices() {
-                let point = object.world_point(*vertex);
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for line in self.lines.iter().filter(|line| self.visible(line.id)) {
-            for point in line.endpoints() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for row in self.paths.iter().filter(|row| self.visible(row.id)) {
-            for point in row.bounds_points() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
-        }
-        for row in self.points.iter().filter(|row| self.visible(row.id)) {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        for row in self.texts.iter().filter(|row|self.visible(row.id)) {if let Some(next)=row.bounds() {if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}}
-        for row in self.clouds.iter().filter(|r|self.visible(r.id)) {let next=row.bounds();if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}
-        bounds
-    }
-
-    pub fn bounds_of(&self, ids: &[ObjectId]) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for id in ids { if let Some(next) = self.selected_bounds(*id) {
-            if let Some(b) = &mut bounds { b.include(next.min); b.include(next.max); } else { bounds = Some(next); }
-        } } bounds
-    }
-
-    pub fn placement(&self, id: ObjectId) -> Option<session_rust::Xform> {
-        self.objects.iter().find(|r| r.id==id).map(|r| r.model.clone())
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.clouds.iter().find(|r|r.id==id).map(|r|r.model.clone()))
-            .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
-
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_following(id,model)
-    }
-
-    pub(crate) fn place_following(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else if self.clouds.iter().any(|r|r.id==id) {self.place_cloud(id,model)}
-        else if self.texts.iter().any(|r|r.id==id) {self.place_text(id,model)}
-        else { self.place_point(id,model) }
-    }
-
-    pub fn translate(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<(), &'static str> {
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        if let Some(row) = self.objects().iter().find(|r| r.id == id) {
-            if row.geometry().is_none() { return Err("Reload editable sources before Move"); }
-            let model = &shift * &row.model; return self.place(id, model);
-        }
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        if let Some(row)=self.clouds.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_cloud(id,model);}
-        if let Some(row)=self.texts.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_text(id,model);}
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        if let Some(row)=self.clouds.iter().find(|row|row.id==id) {return Some(row.bounds());}
-        if let Some(row)=self.texts.iter().find(|row|row.id==id) {return row.bounds();}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
-        for vertex in vertices {
-            bounds.include(object.world_point(*vertex));
-        }
-        Some(bounds)
-    }
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn cloud_controls(&mut self,parent:Option<ObjectId>) {
-        let parent=parent.filter(|id|self.pick_id(id.value()).is_some());
-        for row in &mut self.clouds {row.controls_visible=Some(row.id)==parent;}
-    }
-    pub fn clouds(&self)->&[crate::cloud::Row] {&self.clouds}
-    pub fn insert_cloud(&mut self,prepared:crate::cloud::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
-        let name=prepared.source.name.clone();let visible=prepared.source.is_visible;let locked=prepared.source.is_locked;let row=crate::cloud::Row {point_px:0.,controls_visible:false,id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,visible,locked);self.clouds.push(row);crate::layer_edit::attach_generated(self,id,guid,name)?;Ok(id)
-    }
-    pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid cloud placement");}let row=self.clouds.iter_mut().find(|r|r.id==id).ok_or("Cloud object not found")?;let mut candidate=row.clone();candidate.model=model;if candidate.bounds().min.into_iter().chain(candidate.bounds().max).any(|v|!(v as f32).is_finite()) {return Err("Cloud placement exceeds display range");}*row=candidate;Ok(())
-    }
-    pub fn texts(&self)->&[crate::scene_label::Row] {&self.texts}
-    pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
-    pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid.clone();while self.texts.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();let row=crate::scene_label::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};row.label(false,true)?;if row.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,row.prepared.source.visible,row.prepared.source.locked);self.texts.push(row);crate::layer_edit::attach_generated(self,id,guid,label)?;Ok(id)
-    }
-    pub fn place_text(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid text placement");}let row=self.texts.iter_mut().find(|row|row.id==id).ok_or("Text object not found")?;let mut candidate=row.clone();candidate.model=model;candidate.label(false,true)?;if candidate.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}*row=candidate;Ok(())
-    }
-    pub fn text_labels(&self,selected:&[ObjectId])->Result<Vec<crate::text::TextLabel>,&'static str> {self.texts.iter().filter(|row|self.visible(row.id)).map(|row|row.label(selected.contains(&row.id),self.pick_id(row.id.value()).is_some())).collect()}
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
-
-    pub fn insert_point(&mut self, prepared: crate::marker::PreparedPoint) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.prepared.source.guid() == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let label=prepared.source.name.clone();let node_guid=guid.clone();self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid point placement"); }
-        let row = self.points.iter_mut().find(|row| row.id == id).ok_or("Point not found")?;
-        let point = model.transform_point(&row.prepared.source);
-        if (0..3).any(|i| !(point[i] as f32).is_finite()) { return Err("Point placement exceeds the display range"); }
-        row.model = model; Ok(())
-    }
-
-    pub fn show_controls(&mut self, visible: bool) {
-        for row in &mut self.paths { row.controls_visible = visible && matches!(row.prepared.source, crate::chain::Source::Curve(..)); }
-    }
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && self.visible(row.id)) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-                let display = crate::marker::Marker { center: p.to_f32(), ..control.marker().expect("Prepared control marker") };
-                markers.push(ControlMarker { parent: row.id, control, display });
-            }
-        }
-        markers
-    }
-
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
-
-    pub fn insert_path(&mut self, prepared: crate::chain::PreparedChain) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.prepared.source.guid() == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
-        let label=prepared.source.name().to_owned();let node_guid=guid.clone();self.paths.push(PathObject { controls_visible: false, id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid path placement"); }
-        let row = self.paths.iter_mut().find(|row| row.id == id).ok_or("Path not found")?;
-        for p in row.prepared.source.coordinates().into_iter().chain(row.prepared.source.bounds_coordinates()) {
-            let p = model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) { return Err("Path placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn lines(&self) -> &[LineObject] { &self.lines }
-
-    pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let mut guid=prepared.source.guid().to_owned();while self.lines.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();
-        self.lines.push(LineObject { guid:guid.clone(), id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
-
-    pub fn place_line(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid line placement"); }
-        let row = self.lines.iter_mut().find(|row| row.id == id).ok_or("Line not found")?;
-        for point in [row.prepared.source.start(), row.prepared.source.end()] {
-            let placed = model.transform_point(&point);
-            if (0..3).any(|i| !(placed[i] as f32).is_finite()) { return Err("Line placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn objects(&self) -> &[Object] {
-        &self.objects
-    }
-
-    pub(crate) fn objects_mut(&mut self) -> &mut [Object] { &mut self.objects }
-
-    pub(crate) fn unload(&mut self, origins: &std::collections::HashSet<uuid::Uuid>, epoch: u64) {
-        for row in &mut self.objects {
-            if let Some(origin) = row.origin().filter(|origin| origins.contains(&origin.id)).cloned() {
-                row.editable = crate::edit_source::EditSource::Released { origin, epoch };
-            }
-        }
-    }
-
-    pub(crate) fn hydrate(&mut self, prepared: &crate::rehydrate::PreparedReload) {
-        for row in &mut self.objects {
-            if !prepared.key.matches(row) { continue; }
-            let Some(geometry) = prepared.geometry(&row.metadata.source_guid).cloned() else { continue; };
-            let source = crate::document::Source { document: Rc::clone(&prepared.document),
-                guid: row.metadata.source_guid.clone(), origin: Rc::clone(&prepared.key.origin) };
-            row.editable = crate::edit_source::EditSource::Loaded { geometry, source: Some(source) };
-        }
-    }
-
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        if !crate::placement::valid(&prepared.model.m) { return Err("Placement must be finite, affine and fit the display range"); }
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        let mut guid = prepared.geometry.guid().to_owned();
-        while self.objects.iter().any(|object| object.guid == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.geometry.is_visible,prepared.geometry.is_locked);
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
-
-    pub fn insert_cad(&mut self,source:Rc<session_rust::BRep>)->Result<ObjectId,&'static str> {
-        let (prepared,mesh)=crate::cad_display::prepare(source)?;let prepared=Rc::new(prepared);let id=self.insert(mesh)?;self.objects.iter_mut().find(|row|row.id==id).unwrap().cad=Some(prepared);Ok(id)
-    }
-
-    pub fn insert_surface(&mut self,source:Rc<session_rust::NurbsSurface>)->Result<ObjectId,&'static str> {
-        let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
-        self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
-    }
-
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.clouds.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;row.controls_visible=false;self.clouds.push(row);}
-        else if let Some(row)=self.texts.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.texts.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-        Ok(copy)
-    }
-
-    pub(crate) fn row_guid(&self,id:ObjectId)->Option<&str> {
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.clouds.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
-
-    pub(crate) fn reserve_document_key(&mut self)->Result<u32,&'static str> {
-        let key=self.next_id;self.next_id=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;Ok(key)
-    }
-
-    pub(crate) fn cloud_point_size(&mut self,id:ObjectId,px:f32)->Result<(),&'static str> {
-        if !px.is_finite() {return Err("Non-finite cloud point size");}
-        self.clouds.iter_mut().find(|row|row.id==id).ok_or("Cloud object not found")?.point_px=px;Ok(())
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.clouds=Vec::new();
-        self.texts=Vec::new();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
-        self.extra = None;
-    }
-
-    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        self.clear();
-        self.import(loaded)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        let mut objects=Vec::new();let key=self.next_id;
-        for prepared in loaded.meshes {
-            let guid=prepared.geometry.guid().to_owned();let name=prepared.geometry.name.clone();
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);if let Some(origin)=objects.first().and_then(|(_,id,_)|self.objects.iter().find(|row|row.id==*id)).and_then(|row|row.origin()).cloned() {Rc::make_mut(self.forest.documents.last_mut().unwrap()).header=Some(origin);}let colours=self.forest.colours(key);Rc::make_mut(&mut self.view).faces.extend(colours);Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_mesh(id,model)
-    }
-
-    fn place_mesh(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
-        {
-            return Err("Placement must be finite, affine and fit the display range");
-        }
-        let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
-        if object.geometry().is_none() { return Err("Reload editable sources before Move"); }
-        object.model = model;
+        self.clouds
+            .iter_mut()
+            .find(|row| row.id == id)
+            .ok_or("Cloud object not found")?
+            .point_px = px;
         Ok(())
     }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);self.clouds.retain(|row|row.id!=id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).chain(self.texts.iter().map(|r|r.id)).chain(self.clouds.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(PreparedMesh::new(source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = PreparedMesh::triangle([
-                [-0.9, 0.3, 0.5], [-0.4, 0.3, 0.5], [-0.65, 0.9, 0.5],
-            ], [0.2, 0.8, 0.3]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unloading_policy_protects_generated_unlocated_and_modified_sources() {
-        let mut scene = Scene::demo(); assert!(!scene.objects[0].can_unload());
-        let bytes = crate::specimen::bytes();
-        scene.replace(crate::document::load(&bytes).unwrap()).unwrap(); assert!(!scene.objects[0].can_unload());
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:policy".into()));
-        scene.replace(crate::document::load_at(&bytes, Some(url)).unwrap()).unwrap();
-        assert!(scene.objects.iter().all(Object::can_unload));
-        let row = &mut scene.objects[0];
-        Rc::make_mut(&mut row.metadata).is_locked = true; assert!(!row.can_unload());
-        Rc::make_mut(&mut row.metadata).is_locked = row.geometry().unwrap().is_locked;
-        assert!(row.can_unload());
-        let source = row.source().cloned(); let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        row.editable = crate::edit_source::EditSource::Loaded { geometry, source }; assert!(!row.can_unload());
-    }
-
-    #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
-        scene.next_id = u32::MAX - 1;
-        let loaded = crate::document::load(&crate::specimen::bytes()).unwrap();
-        let mut history = crate::history::History::default();
-        assert!(history.try_edit(&mut scene, |scene| scene.replace(loaded)).is_err());
-        assert_eq!(scene.next_id, u32::MAX);
-        assert_eq!(scene.objects.len(), before.len());
-        for (object, old) in scene.objects.iter().zip(&before) {
-            assert_eq!(object.id, old.id);
-            assert!(Rc::ptr_eq(object.geometry().unwrap(), old.geometry().unwrap()));
-            assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
-    }
-
-    #[test]
-    fn removal_moves_a_row_without_changing_its_identity() {
-        let mut scene = Scene::demo();
-        let first = scene.objects()[0].id;
-        let second = scene.objects()[1].id;
-        assert!(scene.remove(first));
-        assert_eq!(scene.objects()[0].id, second);
-        assert_eq!(scene.next(None), Some(second));
-        assert!(!scene.contains(first));
-        scene.toggle_extra();
-        assert_ne!(scene.objects()[1].id, first);
-        assert_ne!(scene.objects()[1].id, second);
-    }
-
-    #[test]
-    fn toggling_the_extra_object_uses_its_id_after_other_removals() {
-        let mut scene = Scene::demo();
-        scene.toggle_extra();
-        let extra = scene.objects()[2].id;
-        scene.remove(scene.objects()[0].id);
-        scene.toggle_extra();
-        assert!(!scene.contains(extra));
-        assert_eq!(scene.objects().len(), 1);
-    }
-}
-
-#[cfg(all(test, not(target_arch = "wasm32")))]
-#[path = "pick_gpu_tests.rs"]
-mod pick_gpu_tests;
-
-impl Scene {
-    pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
-                source.vertex.get_mut(&key).ok_or("Missing source vertex")?.set_position(point);
-            }
-            source.clear_triangle_bvh();
-            let prepared=crate::prepared::PreparedMesh::new(source)?;
-            for vertex in prepared.display.vertices() {let point=model.transform_point(&session_rust::Point::new(vertex[0] as f64,vertex[1] as f64,vertex[2] as f64));
-                if (0..3).any(|i| !(point[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}}
-            row.mesh=Rc::new(prepared.display); row.editable=crate::edit_source::EditSource::Loaded {geometry:prepared.geometry,source:None}; return Ok(());
-        }
-        let row=self.paths.iter_mut().find(|r|r.id==target.owner).ok_or("Part owner is missing")?;
-        let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
-        let mut source=(**curve).clone(); let point=local.transform_point(&source.get_cv(index).ok_or("Missing curve control")?);
-        let weight=source.get_cv_4d(index).ok_or("Missing curve control")?.3;
-        let set=if source.m_is_rat {source.set_cv_4d(index,point[0]*weight,point[1]*weight,point[2]*weight,weight)} else {source.set_cv_point(index,&point)};
-        if !set {return Err("Cannot set curve control");}
-        let prepared=crate::chain::PreparedChain::curve(Rc::new(source))?;
-        for p in prepared.source.coordinates().into_iter().chain(prepared.source.bounds_coordinates()) {
-            let p=model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}
-        }
-        row.prepared=prepared;Ok(())
-    }
-}
 ```
 
-</details>
+**Locate this block:**
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66j-store-cloud-size-as-presentation-03.rs"
+```rust
+        let row = crate::cloud::Row {
+            controls_visible: false,
+            id,
+            guid: guid.clone(),
 ```
 
-```text
---8<-- "journey/code/66j-store-cloud-size-as-presentation-04.rs"
+Replace it with:
+
+```rust
+        let row = crate::cloud::Row {
+            point_px: 0.,
+            controls_visible: false,
+            id,
+            guid: guid.clone(),
 ```
 
-</details>
+## <a id="checkpoint-66k-prepare-saved-documents"></a>23. Prepare Saved Scene Documents
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 23 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive_document.rs, sr…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source namespace</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">local placement</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">saved tree</text>
+</svg>
+</div>
 
-<a id="checkpoint-66k-prepare-saved-documents"></a>
-
-<details>
-<summary>Implementation 66k-prepare-saved-documents: Prepare original saved documents</summary>
-
-Prepare original saved documents.
-
-Data flow: source namespace → original geometry → local placement → saved tree.
+**What this code does:** Prepare original saved documents.
 
 ### 1. `src/archive_document.rs`
 
@@ -3988,39 +3968,160 @@ Prepare original document records and precise relative placements for saving.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66k-prepare-saved-documents-01.rs"
+use crate::{scene::Scene, scene_archive::Namespace};
+use session_rust::proto;
+use std::collections::{HashMap, HashSet};
+
+pub(crate) fn prepare(
+    scene: &Scene,
+    namespace: &Namespace,
+) -> Result<(proto::Session, HashMap<String, String>, f32), String> {
+    let names = crate::archive_identity::aliases(scene, namespace)?;
+    let mut objects = crate::geometry_snapshot::objects(scene, &namespace.ids)?;
+    crate::archive_identity::objects(&mut objects, &names);
+    let mut xforms = Vec::new();
+    let (mut roots, placed) = if let Some(doc) = namespace.doc.as_ref() {
+        let mut forest = crate::hierarchy::Forest::default();
+        forest.documents.push(doc.clone());
+        forest
+            .snapshot(scene, &mut xforms)
+            .map_err(str::to_owned)?
+    } else {
+        (vec![], HashSet::new())
+    };
+    for id in namespace.ordered() {
+        let current = scene
+            .row_guid(id)
+            .ok_or("Saved source owner is missing")?;
+        let guid = names
+            .get(current)
+            .cloned()
+            .unwrap_or_else(|| current.into());
+        if !placed.contains(&id) {
+            roots.push(proto::TreeNode {
+                name: guid.clone(),
+                ..Default::default()
+            });
+            let model = scene
+                .placement(id)
+                .ok_or("Saved source placement is missing")?;
+            if model.m != session_rust::Xform::identity().m {
+                xforms.push(proto::XformEntry {
+                    guid,
+                    xform: Some(model.to_proto()),
+                });
+            }
+        }
+    }
+    for root in &mut roots {
+        crate::archive_identity::tree(root, &names);
+    }
+    for entry in &mut xforms {
+        if let Some(guid) = names.get(&entry.guid) {
+            entry.guid = guid.clone();
+        }
+    }
+    let mut source = namespace
+        .doc
+        .as_ref()
+        .and_then(|doc| doc.header.as_ref())
+        .map_or_else(proto::Session::default, |header| {
+            header.header.clone()
+        });
+    if source.name.is_empty() {
+        source.name = namespace.name.clone();
+    }
+    let root = if namespace.doc.is_some() && roots.len() == 1 {
+        roots.pop().unwrap()
+    } else {
+        proto::TreeNode {
+            name: source.name.clone(),
+            children: roots,
+            ..Default::default()
+        }
+    };
+    source.objects = Some(objects);
+    source.tree = Some(proto::Tree {
+        root: Some(root),
+        ..Default::default()
+    });
+    source.xforms = xforms;
+    source.bvh_boxes.clear();
+    let mut clouds = scene
+        .clouds()
+        .iter()
+        .filter(|row| namespace.ids.contains(&row.id));
+    let point_px = clouds.next().map_or(0., |row| row.point_px);
+    if clouds.any(|row| row.point_px != point_px) {
+        return Err(
+            "Cloud placements in one saved document need the same point size override"
+                .into(),
+        );
+    }
+    Ok((source, names, point_px))
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod archive_identity;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66k-prepare-saved-documents-02.rs" skip=27
+pub mod archive_identity;
+
+pub mod archive_document;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66l-save-document-display-settings"></a>24. Save Document Display Settings
 
-<a id="checkpoint-66l-save-document-display-settings"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 24 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive_presentation.rs…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">document owner</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">display overrides</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">portable current layer</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66l-save-document-display-settings: Save document display settings</summary>
-
-Save document display settings.
-
-Data flow: document owner → display overrides → portable current layer.
+**What this code does:** Save document display settings.
 
 ### 1. `src/archive_presentation.rs`
 
@@ -4029,96 +4130,355 @@ Address presentation settings by saved original document identities.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66l-save-document-display-settings-01.rs"
+use crate::{archive::Metadata, scene::Scene, scene_archive::Namespace};
+use std::collections::HashMap;
+
+pub(crate) fn append(
+    metadata: &mut Metadata,
+    index: usize,
+    namespace: &Namespace,
+    scene: &Scene,
+    names: &HashMap<String, String>,
+) -> Result<(), String> {
+    for id in namespace.ordered() {
+        let current = scene
+            .row_guid(id)
+            .ok_or("Saved source owner is missing")?;
+        let guid = names
+            .get(current)
+            .cloned()
+            .unwrap_or_else(|| current.to_owned());
+        if !scene.visible(id) {
+            metadata.hidden.push((index, guid.clone()));
+        }
+        if scene.view.locked.contains(&id) {
+            metadata.locked.push((index, guid.clone()));
+        }
+        if let Some(rgb) = scene.view.faces.get(&id) {
+            metadata
+                .colors
+                .push((index, guid.clone(), *rgb));
+        }
+        if let Some(rgb) = scene.view.edges.get(&id) {
+            metadata
+                .edge_colors
+                .as_mut()
+                .unwrap()
+                .push((index, guid, *rgb));
+        }
+    }
+    if let Some(doc) = namespace.doc.as_ref() {
+        if scene.created == Some(doc.key) {
+            metadata.created_doc = Some(index);
+        }
+        if let Some(current) = scene.view.current.as_ref() {
+            if let Some(guid) = current.strip_prefix(&format!("{}/", doc.key)) {
+                if let Some(node) = doc
+                    .nodes
+                    .iter()
+                    .find(|node| node.source.guid == guid)
+                {
+                    metadata.current_layer = Some((index, node.portable_guid.clone()));
+                }
+            }
+        }
+    }
+    Ok(())
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod archive_document;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66l-save-document-display-settings-02.rs" skip=27
+pub mod archive_document;
+
+pub mod archive_presentation;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66m-save-the-complete-supported-scene"></a>25. Serialize the Complete Scene
 
-<a id="checkpoint-66m-save-the-complete-supported-scene"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 25 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene_archive.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original source snapshots</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked metadata</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">viewer archive</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66m-save-the-complete-supported-scene: Save the complete supported scene</summary>
-
-Save the complete supported scene.
-
-Data flow: original source snapshots → checked metadata → viewer archive.
+**What this code does:** Save the complete supported scene.
 
 ### 1. `src/scene_archive.rs`
 
-Encode original document payloads and current presentation as one bounded archive.
+Encode original document payloads and current presentation as one bounded archive. Copy mixed scene, precision, source lifetime and repeated-namespace checks.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+    out
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66m-save-the-complete-supported-scene-01.rs" skip=3
-```
+    out
+}
 
-<details>
-<summary>Supplied validation fixture</summary>
+pub fn save(scene: &Scene) -> Result<Vec<u8>, String> {
+    let mut namespaces = HashSet::new();
+    let mut documents = Vec::new();
+    let mut bytes_used = 0usize;
+    let mut metadata = Metadata {
+        created_doc: None,
+        current_layer: None,
+        documents: vec![],
+        hidden: vec![],
+        locked: vec![],
+        colors: vec![],
+        edge_colors: Some(vec![]),
+        texts: vec![],
+        groups: vec![],
+    };
+    for (index, namespace) in inventory(scene).iter().enumerate() {
+        for id in &namespace.ids {
+            if !namespaces.insert(*id) {
+                return Err("Source owner occurs in two saved documents".into());
+            }
+        }
+        let (source, names, point_px) =
+            crate::archive_document::prepare(scene, namespace)?;
+        crate::source_validate::session(&source)?;
+        let bytes = source.encode_to_vec();
+        bytes_used = bytes_used
+            .checked_add(bytes.len())
+            .ok_or("Session size overflow")?;
+        if bytes_used > crate::archive::LIMIT {
+            return Err("Session exceeds the 512 MiB file limit".into());
+        }
+        crate::archive_presentation::append(
+            &mut metadata,
+            index,
+            namespace,
+            scene,
+            &names,
+        )?;
+        documents.push(bytes);
+        metadata.documents.push(Document {
+            name: namespace.name.clone(),
+            place: session_rust::Xform::identity().m,
+            point_px,
+        });
+    }
+    for row in scene.texts() {
+        let mut label = row
+            .label(false, false)
+            .map_err(str::to_owned)?;
+        label.object = None;
+        label.id = row.prepared.source.label.id;
+        metadata.texts.push((
+            row.guid.clone(),
+            label,
+            scene.visible(row.id),
+        ));
+    }
+    metadata.hidden.sort();
+    metadata.locked.sort();
+    metadata.colors.sort();
+    metadata.edge_colors.as_mut().unwrap().sort();
+    metadata.texts.sort_by(|a, b| a.0.cmp(&b.0));
+    Bundle {
+        documents,
+        metadata,
+    }
+    .encode()
+}
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/scene_archive.rs`
-
-Copy mixed scene, precision, source lifetime and repeated-namespace checks.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    metadata.hidden.sort();metadata.locked.sort();metadata.colors.sort();metadata.edge_colors.as_mut().unwrap().sort();metadata.texts.sort_by(|a,b|a.0.cmp(&b.0));Bundle {documents,metadata}.encode()
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use {session_rust::proto, std::collections::HashMap, std::rc::Rc};
+    #[test]
+    fn mixed_archive_keeps_original_source_types_copy_ids_and_precise_models() {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let cad = scene
+            .insert_cad(Rc::new(crate::cad_display::example()))
+            .unwrap();
+        let cloud = Rc::new(crate::cloud::example());
+        let _ = cloud.guid();
+        let before = cloud.to_proto();
+        let cloud_id = scene
+            .insert_cloud(crate::cloud::Prepared::new(cloud.clone()).unwrap())
+            .unwrap();
+        let copy = scene.copy_row(cloud_id, false).unwrap();
+        scene
+            .place_cloud(
+                copy,
+                session_rust::Xform::translation(1_000_000_000.125, 0., 0.),
+            )
+            .unwrap();
+        Rc::make_mut(&mut scene.view).hide(&[cad], true);
+        let saved = Bundle::decode(&save(&scene).unwrap()).unwrap();
+        let mut found = HashMap::new();
+        for (index, bytes) in saved.documents.iter().enumerate() {
+            let source = proto::Session::decode(bytes.as_slice()).unwrap();
+            let objects = source.objects.unwrap();
+            assert!(objects.meshes.is_empty());
+            for c in objects.pointclouds {
+                found.insert(c.guid.clone(), c);
+            }
+            if !objects.breps.is_empty() {
+                assert_eq!(objects.breps[0].is_visible, Some(false));
+                assert!(
+                    saved
+                        .metadata
+                        .hidden
+                        .iter()
+                        .any(|(doc, guid)| *doc == index
+                            && guid == scene.row_guid(cad).unwrap())
+                );
+            }
+            if let Some(entry) = source
+                .xforms
+                .iter()
+                .find(|entry| entry.guid == scene.row_guid(copy).unwrap())
+            {
+                assert_eq!(
+                    entry.xform.as_ref().unwrap().matrix[12],
+                    1_000_000_000.125
+                );
+            }
+        }
+        assert_eq!(found.len(), 2);
+        assert_eq!(
+            found[scene.row_guid(cloud_id).unwrap()].coords,
+            before.coords
+        );
+        assert_eq!(
+            found[scene.row_guid(copy).unwrap()].point_ids,
+            before.point_ids
+        );
+        assert_eq!(cloud.to_proto(), before);
+    }
+    #[test]
+    fn repeated_imported_documents_keep_independent_guid_namespaces_and_flags() {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let bytes = crate::specimen::bytes();
+        scene
+            .import(crate::document::load(&bytes).unwrap())
+            .unwrap();
+        let per_document = scene.objects().len();
+        scene
+            .import(crate::document::load(&bytes).unwrap())
+            .unwrap();
+        let a = scene.objects()[0].id;
+        let b = scene.objects()[per_document].id;
+        assert_ne!(scene.row_guid(a), scene.row_guid(b));
+        assert_eq!(
+            scene.objects()[0].geometry().unwrap().guid(),
+            scene.objects()[per_document]
+                .geometry()
+                .unwrap()
+                .guid()
+        );
+        Rc::make_mut(&mut scene.view).hide(&[a], true);
+        Rc::make_mut(&mut scene.view).lock(&[b], true);
+        let bundle = Bundle::decode(&save(&scene).unwrap()).unwrap();
+        assert_eq!(bundle.documents.len(), 2);
+        assert_eq!(bundle.metadata.hidden.len(), 1);
+        assert_eq!(bundle.metadata.locked.len(), 1);
+        assert_ne!(
+            bundle.metadata.hidden[0].0,
+            bundle.metadata.locked[0].0
+        );
+        assert_eq!(
+            bundle.metadata.hidden[0].1,
+            bundle.metadata.locked[0].1
+        );
+    }
 }
 ```
 
-</details>
+## <a id="checkpoint-66n-prepare-document-sources"></a>26. Prepare Document Sources
 
-After that block, append this supplied code:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 26 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/document_source.rs, src…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source bytes</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">validation</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original shared kernel do…</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66m-save-the-complete-supported-scene-02.rs" skip=201
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66n-prepare-document-sources"></a>
-
-<details>
-<summary>Implementation 66n-prepare-document-sources: Prepare original document sources</summary>
-
-Prepare original document sources.
-
-Data flow: source bytes → validation → original shared kernel document.
+**What this code does:** Prepare original document sources.
 
 ### 1. `src/document_source.rs`
 
@@ -4127,39 +4487,164 @@ Validate original source types and retain their shared kernel document.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66n-prepare-document-sources-01.rs"
+use prost::Message;
+use session_rust::{Session, Xform, proto};
+use std::{collections::HashSet, rc::Rc};
+
+pub(crate) struct Source {
+    pub document: Rc<Session>,
+    pub origin: Rc<crate::origin::Origin>,
+    pub tree: Option<proto::TreeNode>,
+}
+pub(crate) fn prepare(
+    bytes: &[u8],
+    place: &Xform,
+    point_px: f32,
+) -> Result<Source, String> {
+    if bytes.len() > crate::archive::LIMIT {
+        return Err("Session exceeds the 512 MiB file limit".into());
+    }
+    let message = proto::Session::decode(bytes).map_err(|e| e.to_string())?;
+    crate::source_validate::session(&message)?;
+    supported(&message)?;
+    if !crate::placement::valid(&place.m) || !point_px.is_finite() {
+        return Err("Invalid document placement or point size".into());
+    }
+    let tree = message
+        .tree
+        .as_ref()
+        .and_then(|tree| tree.root.clone());
+    let mut guids = HashSet::new();
+    let objects = message
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    macro_rules! identity {
+        ($field:ident) => {
+            for object in &objects.$field {
+                if object.guid.is_empty() || !guids.insert(object.guid.as_str()) {
+                    return Err(
+                        "Source GUIDs must be distinct within a document".into(),
+                    );
+                }
+            }
+        };
+    }
+    identity!(meshes);
+    identity!(points);
+    identity!(lines);
+    identity!(polylines);
+    identity!(nurbscurves);
+    identity!(nurbssurfaces);
+    identity!(breps);
+    identity!(pointclouds);
+    if let Some(root) = tree.as_ref() {
+        crate::hierarchy::validate(root, &guids).map_err(str::to_owned)?;
+    }
+    let mut placed = HashSet::new();
+    for entry in &message.xforms {
+        if !placed.insert(entry.guid.as_str())
+            || !crate::placement::valid(
+                &entry
+                    .xform
+                    .as_ref()
+                    .ok_or("Missing placement matrix")?
+                    .matrix,
+            )
+        {
+            return Err("Invalid source placement".into());
+        }
+    }
+    let origin = Rc::new(crate::origin::Origin::new(&message, bytes));
+    let document = Rc::new(Session::from_proto(message).map_err(|e| e.to_string())?);
+    Ok(Source {
+        document,
+        origin,
+        tree,
+    })
+}
+
+fn supported(source: &proto::Session) -> Result<(), String> {
+    if source.definitions.is_some() || !source.interactions.is_empty() {
+        return Err("Definitions and interactions arrive in later subjects".into());
+    }
+    let objects = source
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !objects.planes.is_empty()
+        || !objects.bboxes.is_empty()
+        || !objects.elements.is_empty()
+        || !objects.components.is_empty()
+        || !objects.sheets.is_empty()
+        || !objects.instances.is_empty()
+    {
+        return Err("This subject cannot open planes, boxes, assemblies, sheets or instances yet".into());
+    }
+    Ok(())
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod archive_presentation;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66n-prepare-document-sources-02.rs" skip=31
+pub mod archive_presentation;
+
+pub mod document_source;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66o-prepare-every-supported-geometry-row"></a>27. Prepare Geometry Rows for Export
 
-<a id="checkpoint-66o-prepare-every-supported-geometry-row"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 27 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/document_geometry.rs, s…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original source family</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">prepared row</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">placed world geometry</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66o-prepare-every-supported-geometry-row: Prepare every supported geometry row</summary>
-
-Prepare every supported geometry row.
-
-Data flow: original source family → prepared row → placed world geometry.
+**What this code does:** Prepare every supported geometry row.
 
 ### 1. `src/document_geometry.rs`
 
@@ -4168,39 +4653,165 @@ Prepare each supported original source family and its independent world model.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66o-prepare-every-supported-geometry-row-01.rs"
+use crate::{
+    document_source::Source,
+    scene::{ObjectId, Scene},
+};
+use session_rust::Xform;
+
+pub(crate) fn append(
+    scene: &mut Scene,
+    loaded: &Source,
+    place: &Xform,
+    point_px: f32,
+) -> Result<Vec<(String, ObjectId, String)>, String> {
+    let mut owners = Vec::new();
+    macro_rules! add {
+        ($source:expr,$insert:expr) => {{
+            let source = $source;
+            let guid = source.guid().to_owned();
+            let label = source.name.clone();
+            let model = place
+                * &crate::hierarchy::world(
+                    loaded.tree.as_ref(),
+                    &loaded.document.xforms,
+                    &guid,
+                );
+            let id = $insert.map_err(str::to_owned)?;
+            scene
+                .place_following(id, model)
+                .map_err(str::to_owned)?;
+            owners.push((guid, id, label));
+            id
+        }};
+    }
+    for source in &loaded.document.objects.meshes {
+        let mut prepared = crate::prepared::PreparedMesh::from_shared(source.clone())
+            .map_err(str::to_owned)?;
+        prepared.source = Some(crate::document::Source {
+            document: loaded.document.clone(),
+            guid: source.guid().to_owned(),
+            origin: loaded.origin.clone(),
+        });
+        add!(source, scene.insert(prepared));
+    }
+    for source in &loaded.document.objects.points {
+        add!(
+            source,
+            scene.insert_point(
+                crate::marker::PreparedPoint::new(source.clone())
+                    .map_err(str::to_owned)?
+            )
+        );
+    }
+    for source in &loaded.document.objects.lines {
+        add!(
+            source,
+            scene.insert_line(
+                crate::stroke::PreparedLine::new(source.clone())
+                    .map_err(str::to_owned)?
+            )
+        );
+    }
+    for source in &loaded.document.objects.polylines {
+        add!(
+            source,
+            scene.insert_path(
+                crate::chain::PreparedChain::polyline(source.clone())
+                    .map_err(str::to_owned)?
+            )
+        );
+    }
+    for source in &loaded.document.objects.nurbscurves {
+        add!(
+            source,
+            scene.insert_path(
+                crate::chain::PreparedChain::curve(source.clone())
+                    .map_err(str::to_owned)?
+            )
+        );
+    }
+    for source in &loaded.document.objects.nurbssurfaces {
+        add!(source, scene.insert_surface(source.clone()));
+    }
+    for source in &loaded.document.objects.breps {
+        add!(source, scene.insert_cad(source.clone()));
+    }
+    for source in &loaded.document.objects.pointclouds {
+        let id = add!(
+            source,
+            scene.insert_cloud(
+                crate::cloud::Prepared::new(source.clone()).map_err(str::to_owned)?
+            )
+        );
+        scene
+            .cloud_point_size(id, point_px)
+            .map_err(str::to_owned)?;
+    }
+    Ok(owners)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod document_source;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66o-prepare-every-supported-geometry-row-02.rs" skip=26
+pub mod document_source;
+
+pub mod document_geometry;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66p-adopt-a-complete-source-document"></a>28. Load a Complete Source Document
 
-<a id="checkpoint-66p-adopt-a-complete-source-document"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 28 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene_document.rs, src/…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary scene</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">complete preparation</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">atomic document adoption</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66p-adopt-a-complete-source-document: Adopt a complete source document</summary>
-
-Adopt a complete source document.
-
-Data flow: temporary scene → complete preparation → atomic document adoption.
+**What this code does:** Adopt a complete source document.
 
 ### 1. `src/scene_document.rs`
 
@@ -4209,60 +4820,160 @@ Adopt original document rows atomically and preserve the existing source namespa
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66p-adopt-a-complete-source-document-01.rs"
+use crate::scene::Scene;
+use session_rust::Xform;
+use std::rc::Rc;
+#[cfg(test)]
+use {prost::Message, session_rust::proto, std::collections::HashSet};
+
+// Prepare every original source in a temporary scene; one successful adoption prevents partially imported files from replacing the document.
+pub fn import(
+    scene: &mut Scene,
+    bytes: &[u8],
+    name: &str,
+    place: &Xform,
+    point_px: f32,
+) -> Result<u32, String> {
+    let source = crate::document_source::prepare(bytes, place, point_px)?;
+    let mut candidate = scene.clone();
+    let forest = candidate.forest.clone();
+    let created = candidate.created;
+    let current = candidate.view.current.clone();
+    candidate.forest = Default::default();
+    candidate.created = None;
+    Rc::make_mut(&mut candidate.view).current = None;
+    let key = candidate
+        .reserve_document_key()
+        .map_err(str::to_owned)?;
+    let owners =
+        crate::document_geometry::append(&mut candidate, &source, place, point_px)?;
+    candidate.forest = forest;
+    candidate.created = created;
+    Rc::make_mut(&mut candidate.view).current = current;
+    candidate.forest.add(
+        key,
+        if name.is_empty() {
+            source.document.name.clone()
+        } else {
+            name.into()
+        },
+        source.tree,
+        &owners,
+    );
+    Rc::make_mut(
+        candidate
+            .forest
+            .documents
+            .last_mut()
+            .unwrap(),
+    )
+    .header = Some(source.origin);
+    let colours = candidate.forest.colours(key);
+    Rc::make_mut(&mut candidate.view)
+        .faces
+        .extend(colours);
+    scene.restore(candidate);
+    Ok(key)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod document_geometry;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66p-adopt-a-complete-source-document-02.rs" skip=28
+pub mod document_geometry;
+
+pub mod scene_document;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ### 3. `src/scene.rs`
 
 Prepare a source-free candidate before reopening complete documents.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    pub fn pick_id(&self,value:u32)->Option<ObjectId> {
-        let id=ObjectId(value);(self.visible(id) && !self.view.locked.contains(&id) && !self.forest.readonly(id)).then_some(id)
     }
+
+    pub fn demo() -> Self {
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66p-adopt-a-complete-source-document-03.rs" skip=191
+    }
+
+    pub fn empty() -> Self {
+        Self {
+            created: None,
+            ids: Default::default(),
+            view: Default::default(),
+            forest: Default::default(),
+            clouds: Vec::new(),
+            texts: Vec::new(),
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
+            lines: Vec::new(),
+            next_id: 1,
+            extra: None,
+        }
+    }
+
+    pub fn demo() -> Self {
 ```
 
-</details>
+## <a id="checkpoint-66q-restore-world-labels-layer-links"></a>29. Restore World Labels and Layer Links
 
-<a id="checkpoint-66q-restore-world-labels-layer-links"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 29 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive_restore_texts.r…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">saved world label</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original text row</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">saved layer link</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66q-restore-world-labels-layer-links: Restore world labels and layer links</summary>
-
-Restore world labels and layer links.
-
-Data flow: saved world label → original text row → saved layer link.
+**What this code does:** Restore world labels and layer links.
 
 ### 1. `src/archive_restore_texts.rs`
 
@@ -4271,39 +4982,142 @@ Restore saved world labels without serializing derived GPU addresses.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66q-restore-world-labels-layer-links-01.rs"
+use crate::{archive::Metadata, scene::Scene};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
+
+pub(crate) fn restore(scene: &mut Scene, metadata: &Metadata) -> Result<(), String> {
+    let forest = scene.forest.clone();
+    let mut texts = HashMap::new();
+    for (key, label, active) in &metadata.texts {
+        let mut label = label.clone();
+        label.object = None;
+        let source = crate::scene_label::Source {
+            guid: key.clone(),
+            name: label.text.clone(),
+            visible: *active,
+            locked: false,
+            label,
+        };
+        let id = scene
+            .insert_text(
+                crate::scene_label::Prepared::new(Rc::new(source))
+                    .map_err(str::to_owned)?,
+            )
+            .map_err(str::to_owned)?;
+        texts.insert(key.clone(), id);
+    }
+    scene.forest = forest;
+    scene.created = None;
+    let mut linked = HashSet::new();
+    for index in 0..scene.forest.documents.len() {
+        let mut doc = (*scene.forest.documents[index]).clone();
+        for node in &mut doc.nodes {
+            node.portable_guid = node.source.guid.clone();
+        }
+        for node in &mut doc.nodes {
+            if node.object.is_none() {
+                if let Some(id) = texts.get(&node.source.name).copied() {
+                    if !linked.insert(id) {
+                        return Err("Text occurs in two saved layers".into());
+                    }
+                    node.object = Some(id);
+                    node.label = scene
+                        .texts()
+                        .iter()
+                        .find(|row| row.id == id)
+                        .unwrap()
+                        .prepared
+                        .source
+                        .name
+                        .clone();
+                }
+            }
+        }
+        scene.forest.replace(index, doc);
+    }
+    for id in texts
+        .values()
+        .copied()
+        .filter(|id| !linked.contains(id))
+        .collect::<Vec<_>>()
+    {
+        let row = scene
+            .texts()
+            .iter()
+            .find(|row| row.id == id)
+            .unwrap();
+        let guid = row.guid.clone();
+        let label = row.prepared.source.name.clone();
+        crate::layer_edit::attach_generated(scene, id, guid, label)
+            .map_err(str::to_owned)?;
+    }
+    Ok(())
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod scene_document;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66q-restore-world-labels-layer-links-02.rs" skip=25
+pub mod scene_document;
+
+pub mod archive_restore_texts;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66r-restore-scoped-presentation-settings"></a>30. Restore Scoped Presentation Settings
 
-<a id="checkpoint-66r-restore-scoped-presentation-settings"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 30 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/archive_restore_flags.r…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">saved owner keys</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">new row identities</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">restored settings</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66r-restore-scoped-presentation-settings: Restore scoped presentation settings</summary>
-
-Restore scoped presentation settings.
-
-Data flow: saved owner keys → new row identities → restored settings.
+**What this code does:** Restore scoped presentation settings.
 
 ### 1. `src/archive_restore_flags.rs`
 
@@ -4312,96 +5126,676 @@ Restore document-scoped metadata only after resolving every saved owner.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66r-restore-scoped-presentation-settings-01.rs"
+use crate::{
+    archive::Metadata,
+    scene::{ObjectId, Scene},
+};
+use std::{collections::HashMap, rc::Rc};
+
+pub(crate) fn restore(
+    scene: &mut Scene,
+    metadata: &Metadata,
+    keys: &[u32],
+) -> Result<(), String> {
+    let mut owners = HashMap::new();
+    for (index, key) in keys.iter().enumerate() {
+        let doc = scene
+            .forest
+            .documents
+            .iter()
+            .find(|doc| doc.key == *key)
+            .unwrap();
+        for node in &doc.nodes {
+            if let Some(id) = node.object {
+                owners.insert((index, node.source.name.as_str()), id);
+            }
+        }
+    }
+    let owner = |doc: usize, guid: &str| {
+        owners
+            .get(&(doc, guid))
+            .copied()
+            .ok_or_else(|| "Saved presentation owner is missing".to_string())
+    };
+    let hidden = metadata
+        .hidden
+        .iter()
+        .map(|(doc, guid)| owner(*doc, guid))
+        .collect::<Result<Vec<ObjectId>, _>>()?;
+    let locked = metadata
+        .locked
+        .iter()
+        .map(|(doc, guid)| owner(*doc, guid))
+        .collect::<Result<Vec<ObjectId>, _>>()?;
+    let colours = metadata
+        .colors
+        .iter()
+        .map(|(doc, guid, rgb)| Ok((owner(*doc, guid)?, *rgb)))
+        .collect::<Result<Vec<_>, String>>()?;
+    let edges = metadata
+        .edge_colors
+        .as_ref()
+        .unwrap_or(&metadata.colors)
+        .iter()
+        .map(|(doc, guid, rgb)| Ok((owner(*doc, guid)?, *rgb)))
+        .collect::<Result<Vec<_>, String>>()?;
+    drop(owners);
+    let view = Rc::make_mut(&mut scene.view);
+    view.hide(&hidden, true);
+    view.lock(&locked, true);
+    view.faces.extend(colours);
+    view.edges.extend(edges);
+    view.current = None;
+    if let Some((index, guid)) = metadata.current_layer.as_ref() {
+        let doc = scene
+            .forest
+            .documents
+            .iter()
+            .find(|doc| doc.key == keys[*index])
+            .unwrap();
+        let node = doc
+            .nodes
+            .iter()
+            .find(|node| node.source.guid == *guid)
+            .ok_or("Saved current layer is missing")?;
+        let key = format!("{}/{}", doc.key, node.source.guid);
+        crate::layer_edit::locate(scene, &key).map_err(str::to_owned)?;
+        Rc::make_mut(&mut scene.view).current = Some(key);
+    }
+    if let Some(index) = metadata.created_doc {
+        scene.created = Some(keys[index]);
+    }
+    Ok(())
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod archive_restore_texts;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66r-restore-scoped-presentation-settings-02.rs" skip=32
+pub mod archive_restore_texts;
+
+pub mod archive_restore_flags;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
+## <a id="checkpoint-66s-reopen-a-complete-viewer-file"></a>31. Reopen a Saved Viewer File
 
-<a id="checkpoint-66s-reopen-a-complete-viewer-file"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 31 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene_document.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked archive</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">complete metadata</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one adoption</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66s-reopen-a-complete-viewer-file: Reopen a complete viewer file</summary>
-
-Reopen a complete viewer file.
-
-Data flow: checked archive → temporary scene → complete metadata → one adoption.
+**What this code does:** Reopen a complete viewer file.
 
 ### 1. `src/scene_document.rs`
 
-Reopen every original document and restore all supported scene presentation.
+Reopen every original document and restore all supported scene presentation. Copy mixed-source, precision, tree-depth, namespace, release and atomic refusal tests.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+    Ok(key)
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66s-reopen-a-complete-viewer-file-01.rs" skip=3
-```
+    Ok(key)
+}
 
-<details>
-<summary>Supplied validation fixture</summary>
+pub fn open(scene: &mut Scene, bytes: &[u8]) -> Result<(), String> {
+    let bundle = crate::archive::Bundle::decode(bytes)?;
+    if !bundle.metadata.groups.is_empty() {
+        return Err("Object groups arrive in a later subject".into());
+    }
+    let mut candidate = scene.clone();
+    candidate.clear();
+    let mut keys = Vec::new();
+    for (source, meta) in bundle
+        .documents
+        .iter()
+        .zip(&bundle.metadata.documents)
+    {
+        keys.push(import(
+            &mut candidate,
+            source,
+            &meta.name,
+            &Xform::from_matrix(meta.place),
+            meta.point_px,
+        )?);
+    }
+    crate::archive_restore_texts::restore(&mut candidate, &bundle.metadata)?;
+    crate::archive_restore_flags::restore(&mut candidate, &bundle.metadata, &keys)?;
+    scene.restore(candidate);
+    Ok(())
+}
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/scene_document.rs`
-
-Copy mixed-source, precision, tree-depth, namespace, release and atomic refusal tests.
-
-<details>
-<summary>Locate the existing block</summary>
-
-```text
-    scene.restore(candidate);Ok(())
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn mixed_save_open_restores_original_sources_placements_layers_and_presentation() {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let cad = scene
+            .insert_cad(Rc::new(crate::cad_display::example()))
+            .unwrap();
+        let surface = scene
+            .insert_surface(Rc::new(crate::surface::example()))
+            .unwrap();
+        let cloud = scene
+            .insert_cloud(
+                crate::cloud::Prepared::new(Rc::new(crate::cloud::example())).unwrap(),
+            )
+            .unwrap();
+        let copy = scene.copy_row(cloud, false).unwrap();
+        scene
+            .place_cloud(
+                copy,
+                Xform::translation(1_000_000_000.125, 0., 0.),
+            )
+            .unwrap();
+        scene.cloud_point_size(cloud, 5.).unwrap();
+        scene.cloud_point_size(copy, 5.).unwrap();
+        let point =
+            scene
+                .insert_point(
+                    crate::marker::PreparedPoint::new(Rc::new(
+                        session_rust::Point::new(0.123456789012345, 0., 0.),
+                    ))
+                    .unwrap(),
+                )
+                .unwrap();
+        let line = scene
+            .insert_line(
+                crate::stroke::PreparedLine::new(Rc::new(session_rust::Line::new(
+                    -1., 0., 0., 1., 0., 0.,
+                )))
+                .unwrap(),
+            )
+            .unwrap();
+        let label =
+            crate::scene_label::example(crate::text::TextPlacement::WorldBillboard {
+                world: [0., 0., 0.],
+                world_height: 0.1,
+            });
+        let text = scene
+            .insert_text(crate::scene_label::Prepared::new(Rc::new(label)).unwrap())
+            .unwrap();
+        scene
+            .place_text(
+                text,
+                Xform::translation(0.123456789012345, 0., 0.),
+            )
+            .unwrap();
+        let root = &scene.forest.documents[0];
+        let current = format!("{}/{}", root.key, root.nodes[0].source.guid);
+        let view = Rc::make_mut(&mut scene.view);
+        view.current = Some(current);
+        view.hide(&[cad, text], true);
+        view.lock(&[surface, line, text], true);
+        view.faces.insert(cad, [2, 5, 7]);
+        view.edges.insert(cad, [0; 3]);
+        let mut restored = Scene::demo();
+        let old_ids = restored
+            .objects()
+            .iter()
+            .map(|row| row.id.value())
+            .collect::<Vec<_>>();
+        let bytes = crate::scene_archive::save(&scene).unwrap();
+        open(&mut restored, &bytes).unwrap();
+        assert_eq!(restored.objects().len(), 2);
+        assert_eq!(
+            restored
+                .objects()
+                .iter()
+                .filter(|row| row.cad.is_some())
+                .count(),
+            1
+        );
+        assert_eq!(
+            restored
+                .objects()
+                .iter()
+                .filter(|row| row.surface.is_some())
+                .count(),
+            1
+        );
+        assert_eq!(restored.clouds().len(), 2);
+        assert_eq!(
+            restored.clouds()[1].model.m[12],
+            1_000_000_000.125
+        );
+        assert_eq!(
+            restored.clouds()[0]
+                .prepared
+                .source
+                .to_proto()
+                .coords,
+            scene.clouds()[0]
+                .prepared
+                .source
+                .to_proto()
+                .coords
+        );
+        assert!(
+            restored
+                .clouds()
+                .iter()
+                .all(|row| row.point_px == 5. && row.prepared.source.point_size == 3.)
+        );
+        assert_eq!(
+            restored.points()[0].prepared.source[0],
+            scene.points()[0].prepared.source[0]
+        );
+        assert_eq!(
+            restored.points()[0].prepared.source[0],
+            0.123456789012345
+        );
+        let _ = point;
+        assert_eq!(restored.texts().len(), 1);
+        assert_eq!(
+            restored.texts()[0]
+                .label(false, false)
+                .unwrap()
+                .placement,
+            scene.texts()[0]
+                .label(false, false)
+                .unwrap()
+                .placement
+        );
+        assert!(!restored.visible(restored.texts()[0].id));
+        assert!(
+            restored
+                .view
+                .locked
+                .contains(&restored.texts()[0].id)
+        );
+        assert!(restored.view.current.is_some());
+        assert!(restored.created.is_some());
+        assert_eq!(restored.view.hidden.len(), 2);
+        assert_eq!(restored.view.locked.len(), 3);
+        assert_eq!(
+            restored.view.faces[&restored
+                .objects()
+                .iter()
+                .find(|row| row.cad.is_some())
+                .unwrap()
+                .id],
+            [2, 5, 7]
+        );
+        assert_eq!(
+            restored.view.edges[&restored
+                .objects()
+                .iter()
+                .find(|row| row.cad.is_some())
+                .unwrap()
+                .id],
+            [0; 3]
+        );
+        assert!(
+            restored
+                .objects()
+                .iter()
+                .all(|row| !old_ids.contains(&row.id.value()))
+        );
+        let again = crate::archive::Bundle::decode(
+            &crate::scene_archive::save(&restored).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(again.documents.len(), 2);
+        assert_eq!(again.metadata.hidden.len(), 2);
+        assert_eq!(again.metadata.locked.len(), 3);
+    }
+    #[test]
+    fn repeated_guid_documents_reopen_with_independent_flags_and_original_meshes() {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let raw = crate::specimen::bytes();
+        scene
+            .import(crate::document::load(&raw).unwrap())
+            .unwrap();
+        let n = scene.objects().len();
+        scene
+            .import(crate::document::load(&raw).unwrap())
+            .unwrap();
+        let a = scene.objects()[0].id;
+        let b = scene.objects()[n].id;
+        Rc::make_mut(&mut scene.view).hide(&[a], true);
+        Rc::make_mut(&mut scene.view).lock(&[b], true);
+        let saved = crate::scene_archive::save(&scene).unwrap();
+        let mut restored = Scene::demo();
+        open(&mut restored, &saved).unwrap();
+        assert_eq!(restored.objects().len(), 2 * n);
+        let a = &restored.objects()[0];
+        let b = &restored.objects()[n];
+        assert_ne!(a.guid, b.guid);
+        assert_eq!(
+            a.geometry().unwrap().guid(),
+            b.geometry().unwrap().guid()
+        );
+        assert!(!restored.visible(a.id));
+        assert!(restored.visible(b.id));
+        assert!(!restored.view.locked.contains(&a.id));
+        assert!(restored.view.locked.contains(&b.id));
+        let document = Rc::downgrade(&a.source().unwrap().document);
+        let ids = restored
+            .objects()
+            .iter()
+            .take(n)
+            .map(|row| row.id)
+            .collect::<Vec<_>>();
+        for id in ids {
+            assert!(restored.remove(id));
+        }
+        assert!(document.upgrade().is_none());
+    }
+    #[test]
+    fn rejected_files_and_late_display_preparation_errors_leave_the_scene_unchanged() {
+        let mut scene = Scene::demo();
+        let ids = scene
+            .objects()
+            .iter()
+            .map(|row| row.id)
+            .collect::<Vec<_>>();
+        assert!(open(&mut scene, b"broken").is_err());
+        assert_eq!(
+            scene
+                .objects()
+                .iter()
+                .map(|row| row.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+        let mut source =
+            proto::Session::decode(crate::specimen::bytes().as_slice()).unwrap();
+        source.tree = None;
+        source
+            .objects
+            .as_mut()
+            .unwrap()
+            .points
+            .push(session_rust::Point::new(1e100, 0., 0.).to_proto());
+        let bytes = source.encode_to_vec();
+        assert!(
+            import(
+                &mut scene,
+                &bytes,
+                "too large",
+                &Xform::identity(),
+                0.
+            )
+            .is_err()
+        );
+        assert_eq!(
+            scene
+                .objects()
+                .iter()
+                .map(|row| row.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+        assert!(scene.points().is_empty());
+        assert!(
+            scene
+                .forest
+                .documents
+                .iter()
+                .all(|doc| doc.label != "too large")
+        );
+        source
+            .objects
+            .as_mut()
+            .unwrap()
+            .points
+            .clear();
+        source.definitions = Some(proto::Objects::default());
+        assert!(
+            import(
+                &mut scene,
+                &source.encode_to_vec(),
+                "unsupported",
+                &Xform::identity(),
+                0.
+            )
+            .unwrap_err()
+            .contains("Definitions")
+        );
+        assert_eq!(
+            scene
+                .objects()
+                .iter()
+                .map(|row| row.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+    }
+    #[test]
+    fn document_placement_is_composed_without_mutating_original_source_coordinates() {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let cloud = crate::cloud::example();
+        let _ = cloud.guid();
+        let original = cloud.to_proto();
+        let source = proto::Session {
+            name: "precise cloud".into(),
+            objects: Some(proto::Objects {
+                pointclouds: vec![original.clone()],
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        let raw = source.encode_to_vec();
+        let place = Xform::translation(1_000_000_000.125, 0., 0.);
+        import(&mut scene, &raw, "placed", &place, 7.).unwrap();
+        assert_eq!(scene.clouds()[0].model.m[12], place.m[12]);
+        assert_eq!(
+            scene.clouds()[0].prepared.source.to_proto(),
+            original
+        );
+        assert_eq!(scene.clouds()[0].point_px, 7.);
+    }
+    #[test]
+    fn repeated_roundtrips_keep_tree_depth_current_layer_source_header_and_precise_pose()
+     {
+        let mut source =
+            proto::Session::decode(crate::specimen::bytes().as_slice()).unwrap();
+        source.guid = "00000000-0000-0000-0000-000000000123".into();
+        let raw = source.encode_to_vec();
+        let mut scene = Scene::empty();
+        import(
+            &mut scene,
+            &raw,
+            "placed",
+            &Xform::translation(0.123456789012345, 0., 0.),
+            0.,
+        )
+        .unwrap();
+        let doc = &scene.forest.documents[0];
+        let current = format!("{}/{}", doc.key, doc.nodes[0].source.guid);
+        Rc::make_mut(&mut scene.view).current = Some(current);
+        let nodes = doc.nodes.len();
+        let depth = doc
+            .nodes
+            .iter()
+            .map(|node| node.depth)
+            .max()
+            .unwrap();
+        for _ in 0..6 {
+            let saved = crate::scene_archive::save(&scene).unwrap();
+            let bundle = crate::archive::Bundle::decode(&saved).unwrap();
+            assert_eq!(
+                proto::Session::decode(bundle.documents[0].as_slice())
+                    .unwrap()
+                    .guid,
+                source.guid
+            );
+            open(&mut scene, &saved).unwrap();
+            assert_eq!(scene.forest.documents[0].nodes.len(), nodes);
+            assert_eq!(
+                scene.forest.documents[0]
+                    .nodes
+                    .iter()
+                    .map(|node| node.depth)
+                    .max()
+                    .unwrap(),
+                depth
+            );
+            assert_eq!(
+                scene.objects()[0].model.m[12],
+                0.123456789012345
+            );
+            assert!(scene.view.current.is_some());
+        }
+    }
+    #[test]
+    fn moving_repeated_source_objects_into_one_layer_saves_distinct_editable_records() {
+        let raw = crate::specimen::bytes();
+        let mut scene = Scene::empty();
+        import(
+            &mut scene,
+            &raw,
+            "first",
+            &Xform::identity(),
+            0.,
+        )
+        .unwrap();
+        let n = scene.objects().len();
+        import(
+            &mut scene,
+            &raw,
+            "second",
+            &Xform::identity(),
+            0.,
+        )
+        .unwrap();
+        let a = scene.objects()[0].id;
+        let b = scene.objects()[n].id;
+        let doc = &scene.forest.documents[0];
+        let key = format!("{}/{}", doc.key, doc.nodes[0].source.guid);
+        crate::layer_edit::apply(
+            &mut scene,
+            &key,
+            crate::layer_edit::Edit::Move(vec![b]),
+        )
+        .unwrap();
+        let saved = crate::scene_archive::save(&scene).unwrap();
+        let bundle = crate::archive::Bundle::decode(&saved).unwrap();
+        let source = proto::Session::decode(bundle.documents[0].as_slice()).unwrap();
+        let meshes = source.objects.unwrap().meshes;
+        assert_eq!(meshes.len(), n + 1);
+        let guids = meshes
+            .iter()
+            .map(|mesh| &mesh.guid)
+            .collect::<HashSet<_>>();
+        assert_eq!(guids.len(), n + 1);
+        assert_eq!(
+            scene
+                .objects()
+                .iter()
+                .find(|row| row.id == a)
+                .unwrap()
+                .geometry()
+                .unwrap()
+                .guid(),
+            scene
+                .objects()
+                .iter()
+                .find(|row| row.id == b)
+                .unwrap()
+                .geometry()
+                .unwrap()
+                .guid()
+        );
+        let mut restored = Scene::empty();
+        open(&mut restored, &saved).unwrap();
+        assert_eq!(restored.objects().len(), 2 * n);
+    }
 }
 ```
 
-</details>
+## <a id="checkpoint-66t-prepare-file-adoption-live-history"></a>32. Track File Loads in Scene History
 
-After that block, append this supplied code:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 32 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/publication.rs, src/lib…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">file candidate</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">editor adoption</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">controlled source history</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/66s-reopen-a-complete-viewer-file-02.rs" skip=38
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66t-prepare-file-adoption-live-history"></a>
-
-<details>
-<summary>Implementation 66t-prepare-file-adoption-live-history: Prepare file adoption and live history</summary>
-
-Prepare file adoption and live history.
-
-Data flow: file candidate → editor adoption → controlled source history.
+**What this code does:** Prepare file adoption and live history.
 
 ### 1. `src/publication.rs`
 
@@ -4410,55 +5804,192 @@ Prepare raw documents or viewer archives before applying an editor action.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66t-prepare-file-adoption-live-history-01.rs"
+use crate::scene::Scene;
+use std::rc::Rc;
+
+pub fn prepare(
+    scene: &Scene,
+    bytes: &[u8],
+    replace: bool,
+    location: Option<Rc<crate::reload_url::ReloadUrl>>,
+) -> Result<Scene, String> {
+    let mut candidate = scene.clone();
+    if bytes.starts_with(crate::archive::MAGIC) {
+        crate::scene_document::open(&mut candidate, bytes)?;
+        return Ok(candidate);
+    }
+    if replace {
+        candidate.clear();
+    }
+    match crate::document::load_at(bytes, location) {
+        Ok(loaded) => candidate
+            .import(loaded)
+            .map_err(str::to_owned)?,
+        Err(_) => {
+            crate::scene_document::import(
+                &mut candidate,
+                bytes,
+                "",
+                &session_rust::Xform::identity(),
+                0.,
+            )?;
+        }
+    }
+    Ok(candidate)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod archive_restore_flags;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66t-prepare-file-adoption-live-history-02.rs" skip=32
+pub mod archive_restore_flags;
+
+pub mod publication;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/publication.rs`
 
 Copy source and integration regressions.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
+```rust
     Ok(candidate)
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    Ok(candidate)
+}
 
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-03.rs" skip=20
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::editor::{Action, Editor};
+    #[test]
+    fn prepared_file_adoption_undo_redo_and_save_preserve_original_source_and_camera() {
+        let mut editor = Editor::default();
+        editor.apply(Action::AddCloud).unwrap();
+        let cloud = editor.scene.clouds()[0]
+            .prepared
+            .source
+            .to_proto();
+        let saved = crate::scene_archive::save(&editor.scene).unwrap();
+        let camera = editor.camera.uniform();
+        let old = editor.scene.clouds()[0].id;
+        let ready = prepare(&editor.scene, &saved, true, None).unwrap();
+        editor
+            .apply(Action::Adopt {
+                scene: Box::new(ready),
+                replace: true,
+            })
+            .unwrap();
+        let new = editor.scene.clouds()[0].id;
+        assert_ne!(new, old);
+        assert_eq!(
+            editor.scene.clouds()[0]
+                .prepared
+                .source
+                .to_proto(),
+            cloud
+        );
+        assert_eq!(editor.camera.uniform(), camera);
+        editor.apply(Action::Undo).unwrap();
+        assert_eq!(editor.scene.clouds()[0].id, old);
+        editor.apply(Action::Redo).unwrap();
+        assert_eq!(editor.scene.clouds()[0].id, new);
+        let crate::edit_replay::Reply::Saved(bytes) = crate::edit_intent::Intent::Save
+            .replay(&mut editor)
+            .unwrap()
+        else {
+            panic!("Saved viewer archive")
+        };
+        let mut restored = Scene::demo();
+        crate::scene_document::open(&mut restored, &bytes).unwrap();
+        assert_eq!(
+            restored.clouds()[0]
+                .prepared
+                .source
+                .to_proto(),
+            cloud
+        );
+    }
+    #[test]
+    fn malformed_preparation_keeps_redo_and_legacy_source_reload_stays_available() {
+        let mut editor = Editor::default();
+        editor.apply(Action::AddBox).unwrap();
+        let id = editor.scene.objects().last().unwrap().id;
+        editor.apply(Action::Undo).unwrap();
+        assert!(prepare(&editor.scene, b"broken", true, None).is_err());
+        editor.apply(Action::Redo).unwrap();
+        assert!(editor.scene.contains(id));
+        let location = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:publication".into(),
+        ));
+        let ready = prepare(
+            &editor.scene,
+            &crate::specimen::bytes(),
+            true,
+            Some(location.clone()),
+        )
+        .unwrap();
+        assert!(
+            ready
+                .objects()
+                .iter()
+                .all(|row| row.can_unload())
+        );
+        assert!(Rc::ptr_eq(
+            ready.objects()[0]
+                .origin()
+                .unwrap()
+                .location
+                .as_ref()
+                .unwrap(),
+            &location
+        ));
+    }
+    #[test]
+    fn live_adoption_releases_prior_history_sources_and_preserves_the_camera() {
+        let mut editor = Editor::default();
+        editor.apply(Action::AddBox).unwrap();
+        let old = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
+        let display = Rc::downgrade(&editor.scene.objects()[0].mesh);
+        let camera = editor.camera.uniform();
+        let mut next = Scene::empty();
+        next.insert_cloud(
+            crate::cloud::Prepared::new(Rc::new(crate::cloud::example())).unwrap(),
+        )
+        .unwrap();
+        editor
+            .apply(Action::Live(Box::new(next)))
+            .unwrap();
+        assert!(old.upgrade().is_none());
+        assert!(display.upgrade().is_none());
+        assert_eq!(editor.scenes().count(), 1);
+        assert_eq!(editor.camera.uniform(), camera);
+        assert_eq!(editor.scene.clouds().len(), 1);
+        editor.apply(Action::Undo).unwrap();
+        assert_eq!(editor.scene.clouds().len(), 1);
+    }
+}
 ```
-
-</details>
 
 ### 4. `src/editor.rs`
 
@@ -4466,883 +5997,91 @@ Add prepared file adoption and bounded live replacement without changing camera 
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
+                    crate::document::load(&crate::tree_specimen::nested(true))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| scene.import(loaded))?;
+            }
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Live(ready)=>{self.history.clear();self.scene.restore(*ready);},
-            Action::Adopt {scene:ready,..}=>{self.history.edit(&mut self.scene,|scene|scene.restore(*ready));},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-
-    fn apply_action(&mut self, action: Action) -> Result<Change, &'static str> {
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
-        match action {
-            Action::LayerEdit {key,edit}=>{
-                if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
-```
-
-</details>
-
-Replace it with:
-
-```rust
-
-    fn apply_action(&mut self, action: Action) -> Result<Change, &'static str> {
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
-        match action {
-            Action::LayerEdit {key,edit}=>{
-                if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    PickedMany { target: Option<crate::pick_sources::Target>, additive: bool },
-    SelectAll,
-    PickMode(crate::pick_sources::Mode),
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    PickedMany { target: Option<crate::pick_sources::Target>, additive: bool },
-    SelectAll,
-    PickMode(crate::pick_sources::Mode),
-    Live(Box<Scene>),
-    Adopt {scene:Box<Scene>,replace:bool},
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
-pub enum Action {
-    CanvasStart {from:[f32;2],to:[f32;2],size:[f64;2],modified:bool,pointer:i32},
-    CanvasMove {screen:[f32;2],size:[f64;2]},
-    CanvasRelease {screen:[f32;2],size:[f64;2],add:bool,remove:bool},
-    CanvasHit(Option<ObjectId>),CanvasCancel,
-    SelectRows {ids:Vec<ObjectId>,add:bool,remove:bool},
-    PanScreen {delta:[f64;2],size:[f64;2]},ZoomAt {factor:f32,screen:[f32;2]},
-    Touch(Vec<Action>),
-    LayerEdit {key:String,edit:crate::layer_edit::Edit},
-    LayerProperty {key:String,property:crate::layer_properties::Property},
-    TreePick {ids:Vec<ObjectId>,additive:bool},
-    GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
-    GizmoTouch {pointer:i32,screen:[f32;2],size:[f64;2]},
-    GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoCancel,
-    GizmoNumber(String),
-    Snap(crate::snap::Setting),
-    ToolScreen { screen: [f32; 2], size: [f64; 2], commit: bool },
-    BeginTool(crate::tool::Shape),
-    ToolPoint([f64; 3]),
-    ToolHover(Option<[f64; 3]>),
-    CancelTool,
-    Pick([f32; 2]),
-    Picked(Option<ObjectId>),
-    PickedTarget(Option<crate::pick_sources::Target>),
-    PickedMany { target: Option<crate::pick_sources::Target>, additive: bool },
-    SelectAll,
-    PickMode(crate::pick_sources::Mode),
-    Live(Box<Scene>),
-    Adopt {scene:Box<Scene>,replace:bool},
-    Import(Vec<u8>),
-    Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    UnloadSources,
-    Hide,
-    Show,
-    AddBox,
-    AddNested,
-    AddCloudLod,
-    AddCloud,
-    AddCad,
-    AddText(crate::text::TextPlacement),
-    AddSurface,
-    AddLine,
-    AddPoint,
-    AddCurve,
-    AddColours(crate::colour::Mode),
-    NormalView(bool),
-    Grid(Option<crate::grid::Settings>),
-    AddNormals(crate::normal_example::Mode),
-    Controls(bool),
-    AddPolyline,
-    AddArrow,
-    Translate([f64; 3]),
-    ToggleExtra,
-    SelectNext,
-    Delete,
-    Undo,
-    Redo,
-    Background,
-    Zoom(f32),
-    Pan(f32, f32),
-    Orbit(f64, f64),
-    Isometric,
-    ResetView,
-    Fit,
-    FitSelected,
-    Projection(crate::camera::Projection),
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Change {
-    View,
-    Scene,
-    Preview,
-}
-
-pub struct Editor {
-    pub canvas_drag:Option<crate::canvas_drag::Drag>,
-    pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
-    gizmo_hover:Option<crate::gizmo::Handle>,
-    pub edit_preview: Option<crate::edit_preview::Preview>,
-    pub snapping: crate::snap::Settings,
-    snap_index: Option<crate::snap_index::Index>,
-    pub draft: Option<crate::tool::Draft>,
-    pub tool_status: String,
-    pub scene: Scene,
-    pub selected: Option<ObjectId>,
-    pub selected_part: Option<crate::pick_sources::Part>,
-    pub pick_mode: crate::pick_sources::Mode,
-    objects: crate::object_selection::Objects,
-    pub camera: Camera,
-    pub background: Background,
-    pub normal_view: bool,
-    history: History,
-    last_release: u64,
-}
-
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            draft: None, tool_status: String::new(),
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
-            camera: Camera::default(),
-            background: Background::default(),
-            normal_view: false,
-            history: History::default(),
-            last_release: 0,
-        }
-    }
-}
-
-impl Editor {
-    pub fn display_scene(&self) -> &Scene {
-        self.canvas_drag.as_ref().and_then(|d|d.preview.as_ref()).map_or_else(||self.gizmo_edit.as_ref().map_or_else(||self.edit_preview.as_ref().map_or(&self.scene,|p| &p.scene),|g|g.preview.scene()),|p|&p.scene)
-    }
-
-    pub fn gizmo_origin(&self)->Option<[f64;3]> {
-        if self.draft.is_some()||self.canvas_drag.is_some() {return None;}
-        if self.scene.clouds().iter().any(|r|r.controls_visible) {return None;}
-        if let Some(edit)=self.gizmo_edit.as_ref() {return Some(edit.origin());}
-        if let Some(target)=self.selection().filter(|_|self.selected_part.is_some()) {return crate::part_preview::origin(&self.scene,target);}
-        self.scene.bounds_of(&self.selected_objects()).map(|b|b.centre())
-    }
-
-    pub fn gizmo_hit(&self,screen:[f32;2],size:[f64;2])->Option<crate::gizmo::Handle> {self.gizmo_hit_radius(screen,size,8.)}
-
-    pub fn gizmo_hit_radius(&self,screen:[f32;2],size:[f64;2],radius:f64)->Option<crate::gizmo::Handle> {
-        if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-        let origin=self.gizmo_origin()?;
-        let scale=crate::widget_layout::world_per_pixel(&self.camera.view_projection(),origin,size[1])?;
-        let ray=self.camera.ray(screen)?;
-        crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2])).hit_with_radius(&ray.origin,&ray.direction,scale,radius)
-    }
-
-    pub fn number_prompt(&self,size:[f64;2])->Option<crate::number_box::NumberPrompt> {
-        let edit=self.gizmo_edit.as_ref()?;let handle=edit.gizmo.typing?;
-        let origin=edit.origin();let matrix=self.camera.view_projection();let scale=crate::widget_layout::world_per_pixel(&matrix,origin,size[1])?;
-        let point=edit.gizmo.handle_point(handle,scale);
-        let at=crate::snap_math::Screen {matrix:matrix.m,size}.point([point[0],point[1],point[2]])?;
-        let unit=handle.labels().2;
-        Some(crate::number_box::NumberPrompt {handle,title:handle.title(),unit,hint:if unit=="factor" {"1"} else {"0"},at:at.map(|v|v as f32)})
-    }
-
-    pub fn gizmo_active(&self)->f32 {crate::gizmo_edit::code(self.gizmo_edit.as_ref().and_then(|e|e.active()).or(self.gizmo_hover))}
-
-    pub fn hover_gizmo(&mut self,screen:Option<([f32;2],[f64;2])>) {
-        self.gizmo_hover=if self.gizmo_edit.is_some() {None} else {screen.and_then(|(point,size)|self.gizmo_hit(point,size))};
-    }
-
-    fn gizmo_press(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],modified:bool)->Result<Change,&'static str> {
-        self.gizmo_press_radius(pointer,screen,size,modified,8.)
-    }
-
-    fn gizmo_press_radius(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],modified:bool,radius:f64)->Result<Change,&'static str> {
-        if modified || self.draft.is_some() || self.gizmo_edit.as_ref().is_some_and(|g|g.pointer.is_some()) {return Ok(Change::View);}
-        let Some(handle)=self.gizmo_hit_radius(screen,size,radius) else {return Ok(Change::View);};
-        let origin=self.gizmo_origin().ok_or("No editable selection")?;
-        let preview=crate::gizmo_edit::Preview::new(&self.scene,self.selected_objects(),self.selection().filter(|_|self.selected_part.is_some()))?;
-        let ray=self.camera.ray(screen).ok_or("Invalid handle ray")?;
-        let gizmo=crate::gizmo::Gizmo::new(session_rust::Point::new(origin[0],origin[1],origin[2]));
-        self.gizmo_edit=crate::gizmo_edit::Edit::begin(gizmo,handle,&ray,preview,pointer,screen);Ok(Change::View)
-    }
-
-    fn gizmo_move(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],shift:bool)->Result<Change,&'static str> {
-        if size.iter().any(|v| !v.is_finite() || *v<=0.) {return Err("Invalid handle viewport");}
-        let Some(ray)=self.camera.ray(screen) else {return Err("Invalid handle ray");};
-        let Some(edit)=self.gizmo_edit.as_mut() else {return Ok(Change::View);};
-        Ok(if edit.update(pointer,screen,size,&ray,shift)? {Change::Preview} else {Change::View})
-    }
-
-    fn gizmo_release(&mut self,pointer:i32,screen:[f32;2],size:[f64;2],shift:bool)->Result<Change,&'static str> {
-        if self.gizmo_edit.as_ref().is_none_or(|g|g.pointer!=Some(pointer)) {return Ok(Change::View);}
-        self.gizmo_move(pointer,screen,size,shift)?;
-        let edit=self.gizmo_edit.as_mut().unwrap();
-        if edit.click() {self.tool_status=format!("{}: type a value in {}, Enter applies, Esc closes",edit.active().unwrap().title(),edit.active().unwrap().labels().2);return Ok(Change::Preview);}
-        let changed=edit.preview.commit(&mut self.scene,&mut self.history)?; self.gizmo_edit=None;
-        self.tool_status="Handle edit completed.".into();Ok(if changed {Change::Scene} else {Change::Preview})
-    }
-
-    fn gizmo_number(&mut self,text:&str)->Result<Change,&'static str> {
-        let edit=self.gizmo_edit.as_mut().ok_or("No handle number is being requested")?;
-        let handle=edit.gizmo.typing.ok_or("No handle number is being requested")?;
-        let value=crate::gizmo::typed_value(handle,text).map_err(|_|"Enter a finite number; scale needs a positive factor")?;
-        let Some(value)=value else {self.gizmo_edit=None;return Ok(Change::Preview);};
-        edit.preview.set(edit.gizmo.typed(handle,value))?;
-        let changed=edit.preview.commit(&mut self.scene,&mut self.history)?;self.gizmo_edit=None;
-        self.tool_status=format!("{} {value} {}",handle.title(),handle.labels().2);Ok(if changed {Change::Scene} else {Change::Preview})
-    }
-
-    fn update_edit_preview(&mut self) -> Result<Change, &'static str> {
-        let Some(preview)=self.edit_preview.as_mut() else { return Ok(Change::View); };
-        let offset=self.draft.as_ref().and_then(|d| d.points.first().zip(d.cursor)).map(|(a,b)| std::array::from_fn::<_,3,_>(|i| b[i]-a[i])).unwrap_or([0.;3]);
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?; Ok(Change::Preview)
-    }
-
-    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
-        std::iter::once(&self.scene).chain(self.history.scenes())
-    }
-
-    pub fn presentation_scenes(&self)->impl Iterator<Item=&Scene> {
-        self.scenes().chain(self.canvas_drag.iter().filter_map(|d|d.preview.as_ref()).flat_map(|p|p.scenes())).chain(self.edit_preview.iter().flat_map(|p|p.scenes())).chain(self.gizmo_edit.iter().flat_map(|g|g.preview.scenes()))
-    }
-
-    pub fn reload_keys(&self) -> Vec<crate::rehydrate::ReloadKey> {
-        let mut seen = std::collections::HashSet::new();
-        self.scene.objects().iter().filter_map(crate::rehydrate::ReloadKey::of)
-            .filter(|key| seen.insert(key.origin.id)).collect()
-    }
-
-    fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
-        std::iter::once(&mut self.scene).chain(self.history.scenes_mut())
-    }
-
-    pub fn hydrate(&mut self, values: Vec<(crate::rehydrate::ReloadKey, Vec<u8>)>) -> Result<bool, &'static str> {
-        if values.is_empty() { return Ok(false); }
-        let mut seen = std::collections::HashSet::new();
-        for (key, _) in &values {
-            if !seen.insert(key.origin.id) || !self.scene.objects().iter().any(|row| key.matches(row)) {
-                return Ok(false);
+                    crate::document::load(&crate::tree_specimen::nested(true))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| scene.import(loaded))?;
             }
-        }
-        let prepared: Vec<_> = values.into_iter().map(|(key, bytes)|
-            crate::rehydrate::PreparedReload::new(key, &bytes)).collect::<Result<_, _>>()?;
-        for plan in &prepared {
-            if self.scenes().flat_map(|scene| scene.objects()).filter(|row| plan.key.matches(row))
-                .any(|row| !plan.validates(row)) { return Err("Reloaded source GUID or metadata does not match"); }
-        }
-        for scene in self.scenes_mut() {
-            for plan in &prepared { scene.hydrate(plan); }
-        }
-        if self.edit_preview.take().is_some() { self.draft=None; } self.gizmo_edit=None; self.snap_index = None; Ok(true)
-    }
-
-    fn unload_sources(&mut self) -> Result<(), &'static str> {
-        let mut origins: std::collections::HashSet<_> = self.scenes().flat_map(|scene| scene.objects())
-            .filter(|row| row.can_unload()).filter_map(|row| row.origin().map(|origin| origin.id)).collect();
-        for row in self.scenes().flat_map(|scene| scene.objects()) {
-            if let Some(origin) = row.origin() {
-                if !row.can_unload() { origins.remove(&origin.id); }
-            }
-        }
-        if origins.is_empty() { return Err("No eligible imported sources to unload"); }
-        let epoch = self.last_release.checked_add(1).ok_or("Release epochs exhausted")?;
-        for scene in self.scenes_mut() { scene.unload(&origins, epoch); }
-        self.last_release = epoch;
-        Ok(())
-    }
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        if !self.scene.contains(id) {return Err("Object not found");}
-        let object=self.scene.objects().iter().find(|row|row.id==id);
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if object.is_some_and(|object|object.geometry().is_none()) {return Err("Reload editable sources before Move");}
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
-        self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
-
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        if !self.scene.contains(id) {return Err("Object not found");}
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if self.scene.objects().iter().find(|row| row.id == id).is_some_and(|row| row.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
-        }
-        let ids=self.scene.with_descendants(&[id]);
-        self.history.edit(&mut self.scene, |scene| {for id in ids {scene.remove(id);}});
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.objects.retain(&self.scene);
-        if self.selected == Some(id) { self.selected = self.objects.primary(); self.selected_part = None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
-
-    pub fn selected_objects(&self) -> Vec<ObjectId> {
-        if self.selected_part.is_some() { return Vec::new(); }
-        if self.objects.primary() == self.selected { self.objects.rows().to_vec() }
-        else { self.selected.into_iter().filter(|id| self.scene.pick_id(id.value()).is_some()).collect() }
-    }
-
-    pub fn select_objects(&mut self, rows: impl IntoIterator<Item = ObjectId>, additive: bool) {
-        if additive { let old = self.selected_objects(); self.objects.set(&self.scene, old, false); }
-        self.selected_part = None; self.objects.set(&self.scene, rows, additive); self.selected = self.objects.primary();
-    }
-
-    pub fn select_rows(&mut self,ids:Vec<ObjectId>,add:bool,remove:bool) {
-        if remove {let old=self.selected_objects();self.objects.set(&self.scene,old,false);self.objects.remove(&self.scene,ids);self.selected=self.objects.primary();self.selected_part=None;}
-        else {self.select_objects(ids,add);}
-    }
-
-    fn finish_canvas(&mut self)->Result<Change,&'static str> {
-        let Some(mut drag)=self.canvas_drag.take() else {return Ok(Change::View);};
-        let (add,remove)=drag.released.unwrap_or((false,false));
-        if let Some(preview)=drag.preview.take() {let changed=preview.commit(&mut self.scene,&mut self.history)?;if changed {self.snap_index=None;}return Ok(if changed {Change::Scene} else {Change::Preview});}
-        if drag.missed {if let Some(rectangle)=drag.rectangle() {let ids=crate::rect_select::found(&self.scene,&self.camera.view_projection().m,drag.size,rectangle);self.select_rows(ids,add,remove);}}
-        Ok(Change::View)
-    }
-
-    fn repair_selection(&mut self) {
-        if self.objects.primary() == self.selected && self.selected_part.is_none() {
-            self.objects.retain(&self.scene); self.selected = self.objects.primary();
-        } else { self.objects.clear(); }
-    }
-
-    fn move_selection(&mut self, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|n| n.is_finite()) { return Err("Move needs finite coordinates"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Err("Select an object before Move"); }
-        if offset.iter().all(|&n| n == 0.) { return Ok(Change::View); }
-        let mut preview=crate::edit_preview::Preview::new(&self.scene,ids)?;
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-        preview.commit(&mut self.scene,&mut self.history)?;Ok(Change::Scene)
-    }
-
-    fn delete_selection(&mut self) -> Result<Change, &'static str> {
-        if self.selected_part.is_some() { return Err("Use Select Object before Delete"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Ok(Change::View); }
-        if self.scene.objects().iter().any(|r| ids.contains(&r.id) && r.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
-        }
-        let ids=self.scene.with_descendants(&ids);
-        self.history.edit(&mut self.scene, |scene| { for id in ids { scene.remove(id); } });
-        self.objects.clear(); self.selected = None; Ok(Change::Scene)
-    }
-
-    pub fn selection(&self) -> Option<crate::pick_sources::Target> {
-        self.selected.map(|owner| crate::pick_sources::Target { owner, part: self.selected_part.unwrap_or(crate::pick_sources::Part::Object) })
-    }
-
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
-
-    pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some() || text.trim().eq_ignore_ascii_case("Escape")) {
-            return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
-        }
-        self.draft.as_ref()?;
-        if text.trim().is_empty() || text.eq_ignore_ascii_case("Escape") { return Some(Ok(Action::CancelTool)); }
-        text.contains(',').then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
-    }
-
-    fn place_tool_point(&mut self, point: [f64; 3]) -> Result<Change, &'static str> {
-        let draft = self.draft.as_mut().ok_or("No point tool is running")?;
-        let name = draft.tool.name();
-        let Some(built) = draft.submit(point)? else { self.tool_status = draft.prompt(); self.snap_index=None; return self.update_edit_preview(); };
-        if let crate::tool::Built::Move(offset)=built {
-            let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
-            preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-            let changed=preview.commit(&mut self.scene,&mut self.history)?;
-            if self.edit_preview.take().is_some() { self.draft=None; } self.tool_status="Move completed.".into();
-            return Ok(if changed { Change::Scene } else { Change::Preview });
-        }
-        self.history.try_edit(&mut self.scene, |scene| match built {
-            crate::tool::Built::Point(point) => scene.insert_point(point).map(|_| ()),
-            crate::tool::Built::Line(line) => scene.insert_line(line).map(|_| ()),
-            crate::tool::Built::Move(_) => unreachable!("Move uses its placement preview"),
-        })?;
-        self.draft = None; self.tool_status = format!("{name} created."); Ok(Change::Scene)
-    }
-
-    pub fn snap_point(&mut self, screen: [f32; 2], size: [f64; 2]) -> Option<crate::snap::Hit> {
-        let ray = self.camera.ray(screen)?;
-        let from = self.draft.as_ref()?.points.last().copied();
-        let hit = if self.snapping.objects {
-            let exclude=self.edit_preview.as_ref().filter(|_| from.is_some()).map_or_else(Vec::new,|p| p.ids().to_vec());
-            let index = self.snap_index.get_or_insert_with(|| crate::snap_index::Index::new(&self.scene).excluding(&exclude));
-            let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
-            index.query(viewport, &ray, [(screen[0] as f64+1.)*size[0]/2., (1.-screen[1] as f64)*size[1]/2.], self.snapping.modes, from)
-        } else { None };
-        hit.or_else(|| crate::snap_index::fallback(self.snapping, &self.camera, screen))
-    }
-
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        match action {
-            Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
-            Action::CanvasStart {from,to,size,modified,pointer}=>{self.canvas_drag=crate::canvas_drag::Drag::new(from,to,size,modified);if let Some(drag)=self.canvas_drag.as_mut() {drag.pointer=pointer;}return Ok(Change::View);},
-            Action::CanvasMove {screen,size}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.released.is_none()&&drag.size==size&&screen.iter().all(|v|v.is_finite()) {drag.to=screen;drag.update(&self.camera)?;}if drag.preview.is_some() {return Ok(Change::Preview);}}return Ok(Change::View);},
-            Action::CanvasRelease {screen,size,add,remove}=>{if let Some(drag)=self.canvas_drag.as_mut() {if drag.size!=size {self.canvas_drag=None;return Ok(Change::Preview);}drag.to=screen;drag.released=Some((add,remove));drag.update(&self.camera)?;if drag.preview.is_some()||drag.missed {return self.finish_canvas();}}return Ok(Change::View);},
-            Action::CanvasHit(hit)=>{
-                let Some(drag)=self.canvas_drag.as_ref() else {return Ok(Change::View);};let ids=hit.filter(|id|!drag.modified&&self.scene.pick_id(id.value()).is_some());
-                if let Some(id)=ids {let mut rows=self.selected_objects();if !rows.contains(&id) {self.select_objects([id],false);rows=vec![id];}if let Err(error)=self.canvas_drag.as_mut().unwrap().grab(&self.scene,rows,&self.camera) {self.canvas_drag=None;return Err(error);}}
-                else {self.canvas_drag.as_mut().unwrap().missed=true;}
-                if self.canvas_drag.as_ref().unwrap().released.is_some() {return self.finish_canvas();}return Ok(Change::Preview);
-            },
-            Action::CanvasCancel=>{let preview=self.canvas_drag.take().is_some_and(|d|d.preview.is_some());return Ok(if preview {Change::Preview} else {Change::View});},
-            Action::SelectRows {ids,add,remove}=>{self.select_rows(ids,add,remove);return Ok(Change::View);},
-            _=>{}
-        }
-        self.canvas_drag=None;
-        let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoTouch {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::ZoomAt {..}|Action::PanScreen {..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
-        let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoTouch {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
-        let mut change=self.apply_action(action)?;
-        self.gizmo_hover=None;
-        if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
-        if !keep_edit && self.edit_preview.take().is_some() { self.draft=None; if change==Change::View { change=Change::Preview; } }
-        if change==Change::Scene { self.snap_index=None; }
-        Ok(change)
-    }
-
-    fn apply_action(&mut self, action: Action) -> Result<Change, &'static str> {
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
-        match action {
-            Action::LayerEdit {key,edit}=>{
-                if matches!(edit,crate::layer_edit::Edit::Current) {crate::layer_edit::apply(&mut self.scene,&key,edit)?;return Ok(Change::View);}
-                self.history.try_edit(&mut self.scene,|scene|crate::layer_edit::apply(scene,&key,edit))?;self.repair_selection();
-            },
-            Action::LayerProperty {key,property}=>{crate::layer_properties::apply(&mut self.scene,&key,property)?;self.repair_selection();if self.selected.is_some_and(|id|self.scene.pick_id(id.value()).is_none()) {self.selected=None;self.selected_part=None;}self.snap_index=None;return Ok(Change::Preview);},
-            Action::Hide=>{let ids=self.scene.with_descendants(&self.selected_objects());std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids,true);self.select_objects([],false);self.snap_index=None;return Ok(Change::Preview);},
-            Action::Show=>{std::rc::Rc::make_mut(&mut self.scene.view).show_all();self.snap_index=None;return Ok(Change::Preview);},
-            Action::TreePick {ids,additive}=>{let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
-            Action::GizmoTouch {pointer,screen,size}=>return self.gizmo_press_radius(pointer,screen,size,false,18.),
-            Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
-            Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
-            Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
-            Action::GizmoCancel=>{self.gizmo_edit=None;self.tool_status="Handle edit cancelled.".into();return Ok(Change::Preview);},
-            Action::GizmoNumber(text)=>return self.gizmo_number(&text),
-            Action::Snap(setting) => {
-                self.tool_status = self.snapping.apply(setting)?;
-                if let Some(draft) = self.draft.as_mut() { draft.cursor = None; draft.snapped = None; }
-                return self.update_edit_preview();
-            }
-            Action::ToolScreen { screen, size, commit } => {
-                let hit = self.snap_point(screen,size);
-                if let Some(draft) = self.draft.as_mut() { draft.snapped = hit.filter(|h| h.owner.is_some() || h.kind == crate::snap::Kind::Grid).map(|h| h.kind); }
-                if commit { return hit.map_or(Ok(Change::View), |hit| self.place_tool_point(hit.point)); }
-                if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
-                return self.update_edit_preview();
-            }
-            Action::BeginTool(shape) => {
-                let preview=if matches!(shape,crate::tool::Shape::Move) {
-                    if self.selected_part.is_some() { return Err("Use Select Object before Move"); }
-                    Some(crate::edit_preview::Preview::new(&self.scene,self.selected_objects())?)
-                } else { None };
-                let changed=preview.is_some() || self.edit_preview.is_some(); self.edit_preview=preview;
-                self.snap_index=None; self.draft=Some(crate::tool::Draft::new(shape)); self.tool_status=self.draft.as_ref().unwrap().prompt();
-                return Ok(if changed { Change::Preview } else { Change::View });
-            }
-            Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.snapped=None; draft.hover(point)?; } return self.update_edit_preview(); }
-            Action::CancelTool => { let changed=self.edit_preview.take().is_some(); self.draft=None; self.tool_status="Tool cancelled.".into(); return Ok(if changed { Change::Preview } else { Change::View }); }
-            Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
-                self.select_objects(target.filter(|t| t.part == crate::pick_sources::Part::Object && t.valid(&self.scene)).map(|t| t.owner), additive);
-            }
-            Action::SelectAll => {
-                let ids: Vec<_> = self.scene.objects().iter().map(|r| r.id).chain(self.scene.lines().iter().map(|r| r.id))
-                    .chain(self.scene.paths().iter().map(|r| r.id)).chain(self.scene.points().iter().map(|r| r.id)).chain(self.scene.texts().iter().map(|r|r.id)).chain(self.scene.clouds().iter().map(|r|r.id)).collect();
-                self.select_objects(ids, false);return Ok(Change::View);
-            }
-            Action::PickedTarget(target) => {
-                let target = target.filter(|target| target.valid(&self.scene));
-                self.objects.clear();
-                self.selected = target.map(|target| target.owner);
-                if let Some(target) = target.filter(|t| t.part == crate::pick_sources::Part::Object) { self.objects.set(&self.scene, [target.owner], false); }
-                self.selected_part = target.map(|target| target.part).filter(|part| *part != crate::pick_sources::Part::Object);
-            }
-            Action::PickMode(mode) => { if mode!=crate::pick_sources::Mode::Control {self.scene.cloud_controls(None);} self.pick_mode = mode; self.selected = None; self.selected_part = None; self.objects.clear(); }
-            Action::Pick(screen) => {
-                let id = self.camera.ray(screen).and_then(|ray| crate::picking::pick(&self.scene, &ray));
-                self.select_objects(id, false);
-            }
-            Action::UnloadSources => self.unload_sources()?,
-            Action::Close => {
-                self.scene.clear();
+            Action::Live(ready) => {
                 self.history.clear();
-                self.objects.clear(); self.selected = None;
+                self.scene.restore(*ready);
             }
-            Action::AddText(placement)=>{let source=std::rc::Rc::new(crate::scene_label::example(placement));let prepared=crate::scene_label::Prepared::new(source)?;self.history.try_edit(&mut self.scene,|scene|scene.insert_text(prepared).map(|_|()))?;},
-            Action::AddCloudLod=>{let source=std::rc::Rc::new(crate::cloud::large_example());let prepared=crate::cloud::Prepared::new(source)?;self.history.try_edit(&mut self.scene,|scene|scene.insert_cloud(prepared).map(|_|()))?;},
-            Action::AddCloud=>{let source=std::rc::Rc::new(crate::cloud::example());let prepared=crate::cloud::Prepared::new(source)?;self.history.try_edit(&mut self.scene,|scene|scene.insert_cloud(prepared).map(|_|()))?;},
-            Action::AddCad=>{let source=std::rc::Rc::new(crate::cad_display::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_cad(source).map(|_|()))?;},
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Live(ready)=>{self.history.clear();self.scene.restore(*ready);},
-            Action::Adopt {scene:ready,..}=>{self.history.edit(&mut self.scene,|scene|scene.restore(*ready));},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
+            Action::Adopt { scene: ready, .. } => {
+                self.history.edit(&mut self.scene, |scene| {
+                    scene.restore(*ready)
+                });
             }
-            Action::Import(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ImportAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::ReplaceAt(bytes, location) => {
-                let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::AddPolyline | Action::AddArrow => {
-                let prepared = if matches!(action, Action::AddPolyline) {
-                    let mut line = session_rust::Polyline::new(vec![session_rust::Point::new(-0.6, -0.4, 0.0),
-                        session_rust::Point::new(0.0, 0.0, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
-                    line.width = 6.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                    crate::chain::PreparedChain::polyline(std::rc::Rc::new(line))?
-                } else {
-                    let mut line = session_rust::Line::new(-0.6, 0.3, 0.0, 0.6, 0.3, 0.0);
-                    line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
-                    line.arrowhead = session_rust::Arrowhead::BOTH;
-                    crate::chain::PreparedChain::line(std::rc::Rc::new(line))?
-                };
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::Controls(visible) => {
-                let parent=if visible {self.selected.filter(|id|self.scene.clouds().iter().any(|r|r.id==*id))} else {None};
-                if parent.is_some() && self.pick_mode==crate::pick_sources::Mode::Control && self.scene.clouds().iter().any(|r|Some(r.id)==parent && r.controls_visible) {return Ok(Change::View);}
-                self.scene.cloud_controls(parent);
-                self.scene.show_controls(visible);
-                if parent.is_some() {self.pick_mode=crate::pick_sources::Mode::Control;self.objects.clear();self.selected_part=None;}
-                else if !visible && self.pick_mode==crate::pick_sources::Mode::Control {self.pick_mode=crate::pick_sources::Mode::Object;self.selected_part=None;self.select_objects(self.selected,false);}
-            },
-            Action::AddNormals(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::normal_example::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
-            }
-            Action::AddColours(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
-            }
-            Action::AddCurve => {
-                let mut curve = session_rust::NurbsCurve::create(false, 2, &[session_rust::Point::new(-0.6, -0.4, 0.0),
-                    session_rust::Point::new(0.0, 0.6, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
-                curve.width = 5.0; curve.linecolors = vec![session_rust::Color::new(0.0, 0.0, 0.0, 0.5)];
-                let prepared = crate::chain::PreparedChain::curve(std::rc::Rc::new(curve))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::AddPoint => {
-                let mut point = session_rust::Point::new(0.0, 0.0, 0.0);
-                point.width = 12.0; point.pointcolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                let prepared = crate::marker::PreparedPoint::new(std::rc::Rc::new(point))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_point(prepared).map(|_| ()))?;
-            }
-            Action::AddLine => {
-                let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
-                line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
-                let prepared = crate::stroke::PreparedLine::new(std::rc::Rc::new(line))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_line(prepared).map(|_| ()))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-            Action::Translate(offset) => return self.move_selection(offset),
-            Action::ToggleExtra => self.history.edit(&mut self.scene, Scene::toggle_extra),
-            Action::SelectNext => { let id = self.scene.next(self.selected); self.select_objects(id, false); }
-            Action::Delete => return self.delete_selection(),
-            Action::Undo => { self.history.undo(&mut self.scene); }
-            Action::Redo => { self.history.redo(&mut self.scene); }
-            view => {
-                match view {
-                    Action::Background => self.background.toggle(),
-                    Action::NormalView(visible) => self.normal_view = visible,
-                    Action::Grid(settings) => {
-                        if let Some(grid) = settings { grid.half()?; grid.reach(self.camera.target)?; }
-                        self.camera.grid = settings;
-                    }
-                    Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::ZoomAt {factor,screen}=>self.camera.zoom_at(factor,screen),
-                    Action::PanScreen {delta,size}=>self.camera.pan_screen(delta,size),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
-                    Action::Isometric => self.camera.isometric(),
-                    Action::Projection(mode) => self.camera.projection = mode,
-                    Action::Fit => {
-                        if let Some(bounds) = self.display_scene().bounds_of(&self.selected_objects()).or_else(||self.display_scene().bounds()) {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::FitSelected => {
-                        if let Some(bounds) = self.display_scene().bounds_of(&self.selected_objects()).or_else(|| self.selected_part.and(self.selected).and_then(|id| self.scene.selected_bounds(id)))
-                        {
-                            self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, grid: self.camera.grid,frame:self.camera.frame, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
-                return Ok(Change::View);
-            }
-        }
-        // Deletion and history travel can invalidate selection; repair it in one place.
-        self.repair_selection();
-        self.selected = self.selected.filter(|id| self.scene.contains(*id));
-        if let (Some(owner), Some(part)) = (self.selected, self.selected_part) {
-            if !(crate::pick_sources::Target { owner, part }).valid(&self.scene) { self.selected = None; }
-        }
-        if self.selected.is_none() { self.selected_part = None; }
-        Ok(Change::Scene)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn a_modified_history_row_protects_only_its_own_import_origin() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let first = Rc::new(crate::reload_url::ReloadUrl::new("test:first".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), first)).unwrap();
-        let origin = editor.scene.objects()[0].origin().unwrap().id;
-        let original = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        let second = Rc::new(crate::reload_url::ReloadUrl::new("test:second".into()));
-        editor.apply(Action::ImportAt(bytes, second)).unwrap();
-        let copy = Rc::downgrade(editor.scene.objects()[3].geometry().unwrap());
-        editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        let saved = editor.history.scenes_mut().last().unwrap();
-        assert_eq!(saved.objects()[0].origin().unwrap().id, origin);
-        Rc::make_mut(&mut saved.objects_mut()[0].metadata).is_locked = true;
-        assert!(editor.scene.objects()[0].can_unload());
-        editor.apply(Action::UnloadSources).unwrap();
-        assert!(original.upgrade().is_some()); assert!(copy.upgrade().is_none());
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        assert!(editor.scene.objects()[3].geometry().is_none());
-        assert_eq!(editor.last_release, 1);
-        assert!(editor.apply(Action::UnloadSources).is_err()); assert_eq!(editor.last_release, 1);
-    }
-
-    #[test]
-    fn release_epochs_do_not_wrap_or_reset_on_close() {
-        use std::rc::Rc;
-        let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:epoch".into()));
-        editor.apply(Action::ReplaceAt(bytes.clone(), Rc::clone(&url))).unwrap();
-        editor.last_release = u64::MAX;
-        assert_eq!(editor.apply(Action::UnloadSources), Err("Release epochs exhausted"));
-        assert!(editor.scene.objects()[0].geometry().is_some());
-        editor.last_release = 0; editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(1));
-        editor.apply(Action::Close).unwrap();
-        editor.apply(Action::ImportAt(bytes, url)).unwrap();
-        editor.apply(Action::UnloadSources).unwrap();
-        assert_eq!(editor.scene.objects()[0].release_epoch(), Some(2));
-    }
-
-    #[test]
-    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Import(crate::specimen::bytes())).unwrap();
-        editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap(); editor.apply(Action::Background).unwrap();
-        let view = editor.camera.uniform(); let background = editor.background.rgb();
-        editor.apply(Action::Close).unwrap();
-        assert!(editor.scene.objects().is_empty() && editor.selected.is_none());
-        assert_eq!(editor.scenes().count(), 1);
-        editor.apply(Action::Undo).unwrap(); editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.objects().is_empty());
-        assert_eq!(editor.camera.uniform(), view); assert_eq!(editor.background.rgb(), background);
-        editor.apply(Action::AddBox).unwrap();
-        assert!(!old.contains(&editor.scene.objects()[0].id));
-    }
-
-    #[test]
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
-        let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
-        let source = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
-        assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
-    }
-
-    #[test]
-    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
-        use std::rc::Rc;
-        let mut editor = Editor::default();
-        let bytes = crate::specimen::bytes();
-        editor.apply(Action::Import(bytes.clone())).unwrap();
-        editor.apply(Action::Replace(bytes.clone())).unwrap();
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(row.geometry().unwrap()))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-        assert!(displays.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(sources.iter().all(|owner| owner.upgrade().is_none()));
-        assert!(documents.iter().all(|owner| owner.upgrade().is_none()));
-        editor.apply(Action::Import(bytes)).unwrap();
-        assert!(editor.scene.objects().iter().all(|row| !old.contains(&row.id)));
-    }
-
-    #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::ResetView).unwrap();
-        assert_eq!(editor.camera.aspect, 2.0);
-        assert_eq!(editor.camera.distance, 3.0);
-    }
-
-    #[test]
-    fn undo_changes_the_document_without_rewinding_the_view() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        editor.apply(Action::Zoom(2.0)).unwrap();
-        editor.apply(Action::Background).unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert_eq!(editor.scene.objects().len(), 2);
-        assert_eq!(editor.camera.distance, 1.5);
-        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
-    }
-
-    #[test]
-    fn undo_repairs_selection_and_empty_delete_preserves_redo() {
-        let mut editor = Editor::default();
-        editor.apply(Action::AddBox).unwrap();
-        for _ in 0..3 {
-            editor.apply(Action::SelectNext).unwrap();
-        }
-        let box_id = editor.selected.unwrap();
-        editor.apply(Action::Undo).unwrap();
-        assert!(editor.selected.is_none());
-        editor.apply(Action::Delete).unwrap();
-        editor.apply(Action::Redo).unwrap();
-        assert!(editor.scene.contains(box_id));
-    }
-
-    #[test]
-    fn picking_a_moved_view_uses_the_editors_current_camera() {
-        let mut editor = Editor::default();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
-        let point = session_rust::Point::new(0.2, 0.3, 0.75);
-        let screen = editor.camera.view_projection().transform_point(&point);
-        assert_eq!(editor.apply(Action::Pick([screen[0] as f32, screen[1] as f32])).unwrap(), Change::Scene);
-        assert_eq!(editor.selected, Some(editor.scene.objects()[1].id));
-        assert_eq!(editor.apply(Action::Zoom(2.0)).unwrap(), Change::View);
-    }
-}
 ```
 
-</details>
+**Locate this block:**
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-04.rs"
+```rust
+            Action::Close
+                | Action::Undo
+                | Action::Redo
+                | Action::Import(_)
+                | Action::Replace(_)
+                | Action::ImportAt(_, _)
 ```
 
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-05.rs"
+Replace it with:
+
+```rust
+            Action::Close
+                | Action::Undo
+                | Action::Redo
+                | Action::Adopt { .. }
+                | Action::Live(_)
+                | Action::Import(_)
+                | Action::Replace(_)
+                | Action::ImportAt(_, _)
 ```
 
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-06.rs"
+**Locate this block:**
+
+```rust
+    PickMode(crate::pick_sources::Mode),
+    Import(Vec<u8>),
+    Replace(Vec<u8>),
+    ImportAt(
 ```
 
-</details>
+Replace it with:
+
+```rust
+    PickMode(crate::pick_sources::Mode),
+    Live(Box<Scene>),
+    Adopt {
+        scene: Box<Scene>,
+        replace: bool,
+    },
+    Import(Vec<u8>),
+    Replace(Vec<u8>),
+    ImportAt(
+```
 
 ### 5. `src/edit_replay.rs`
 
 Save a complete viewer archive after an original source reload.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-use crate::{edit_intent::Intent, editor::{Change, Editor}};
-
-#[derive(Debug, PartialEq)]
-pub enum Reply { Changed(Change), Saved(Vec<u8>) }
-
-impl Intent {
-    pub fn replay(self, editor: &mut Editor) -> Result<Reply, &'static str> {
         match self {
-            Self::Move { id, offset } => editor.move_object(id, offset).map(Reply::Changed),
+            Self::Move { id, offset } => editor
+                .move_object(id, offset)
+                .map(Reply::Changed),
             Self::Delete { id } => editor.delete_object(id).map(Reply::Changed),
             Self::Save => crate::document::snapshot(&editor.scene).map(Reply::Saved),
         }
@@ -5359,45 +6098,36 @@ mod tests {
     #[test]
     fn save_reply_keeps_precision_and_does_not_consume_move_undo() {
         let mut e = Editor::default();
-        e.apply(Action::Replace(crate::specimen::bytes())).unwrap();
-        let id = e.scene.objects()[0].id; let original = e.scene.objects()[0].geometry().unwrap().to_proto();
-        let later = e.scene.objects()[1].id; e.selected = Some(later); let camera = e.camera.uniform();
+        e.apply(Action::Replace(crate::specimen::bytes()))
+            .unwrap();
+        let id = e.scene.objects()[0].id;
+        let original = e.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto();
+        let later = e.scene.objects()[1].id;
+        e.selected = Some(later);
+        let camera = e.camera.uniform();
         let model = e.scene.objects()[0].model.m;
-        assert_eq!(Intent::Move { id, offset: [0.25, 0.0, 0.0] }.replay(&mut e).unwrap(), Reply::Changed(Change::Scene));
-        let Reply::Saved(bytes) = Intent::Save.replay(&mut e).unwrap() else { panic!("Save reply") };
+        assert_eq!(
+            Intent::Move {
+                id,
+                offset: [0.25, 0.0, 0.0]
+            }
+            .replay(&mut e)
+            .unwrap(),
+            Reply::Changed(Change::Scene)
+        );
+        let Reply::Saved(bytes) = Intent::Save.replay(&mut e).unwrap() else {
+            panic!("Save reply")
+        };
         let saved = session_rust::proto::Session::decode(bytes.as_slice()).unwrap();
-        assert_eq!(saved.objects.unwrap().meshes[0].vertices, original.vertices);
-        e.apply(Action::Undo).unwrap(); assert_eq!(e.scene.objects()[0].model.m, model);
-        assert_eq!(e.selected, Some(later)); assert_eq!(e.camera.uniform(), camera);
-        assert_eq!(Intent::Delete { id }.replay(&mut e).unwrap(), Reply::Changed(Change::Scene));
-        assert!(!e.scene.contains(id)); assert_eq!(e.selected, Some(later));
-        e.apply(Action::Undo).unwrap(); assert!(e.scene.contains(id));
-    }
-
-    #[test]
-    fn cold_save_reply_fails_without_losing_redo() {
-        let mut e = Editor::default();
-        e.apply(Action::ReplaceAt(crate::specimen::bytes(), Rc::new(ReloadUrl::new("test:reply".into())))).unwrap();
-        e.apply(Action::UnloadSources).unwrap();
-        e.apply(Action::AddBox).unwrap(); let id = e.scene.objects().last().unwrap().id;
-        e.apply(Action::Undo).unwrap(); assert!(Intent::Save.replay(&mut e).is_err());
-        e.apply(Action::Redo).unwrap(); assert!(e.scene.contains(id));
-    }
-}
+        assert_eq!(
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{edit_intent::Intent, editor::{Change, Editor}};
-
-#[derive(Debug, PartialEq)]
-pub enum Reply { Changed(Change), Saved(Vec<u8>) }
-
-impl Intent {
-    pub fn replay(self, editor: &mut Editor) -> Result<Reply, &'static str> {
         match self {
             Self::Move { id, offset } => editor.move_object(id, offset).map(Reply::Changed),
             Self::Delete { id } => editor.delete_object(id).map(Reply::Changed),
@@ -5416,153 +6146,300 @@ mod tests {
     #[test]
     fn save_reply_keeps_precision_and_does_not_consume_move_undo() {
         let mut e = Editor::default();
-        e.apply(Action::Replace(crate::specimen::bytes())).unwrap();
-        let id = e.scene.objects()[0].id; let original = e.scene.objects()[0].geometry().unwrap().to_proto();
-        let later = e.scene.objects()[1].id; e.selected = Some(later); let camera = e.camera.uniform();
+        e.apply(Action::Replace(crate::specimen::bytes()))
+            .unwrap();
+        let id = e.scene.objects()[0].id;
+        let original = e.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto();
+        let later = e.scene.objects()[1].id;
+        e.selected = Some(later);
+        let camera = e.camera.uniform();
         let model = e.scene.objects()[0].model.m;
-        assert_eq!(Intent::Move { id, offset: [0.25, 0.0, 0.0] }.replay(&mut e).unwrap(), Reply::Changed(Change::Scene));
-        let Reply::Saved(bytes) = Intent::Save.replay(&mut e).unwrap() else { panic!("Save reply") };
-        let bundle=crate::archive::Bundle::decode(&bytes).unwrap();
-        let saved = session_rust::proto::Session::decode(bundle.documents[0].as_slice()).unwrap();
-        assert_eq!(saved.objects.unwrap().meshes[0].vertices, original.vertices);
-        e.apply(Action::Undo).unwrap(); assert_eq!(e.scene.objects()[0].model.m, model);
-        assert_eq!(e.selected, Some(later)); assert_eq!(e.camera.uniform(), camera);
-        assert_eq!(Intent::Delete { id }.replay(&mut e).unwrap(), Reply::Changed(Change::Scene));
-        assert!(!e.scene.contains(id)); assert_eq!(e.selected, Some(later));
-        e.apply(Action::Undo).unwrap(); assert!(e.scene.contains(id));
-    }
-
-    #[test]
-    fn cold_save_reply_fails_without_losing_redo() {
-        let mut e = Editor::default();
-        e.apply(Action::ReplaceAt(crate::specimen::bytes(), Rc::new(ReloadUrl::new("test:reply".into())))).unwrap();
-        e.apply(Action::UnloadSources).unwrap();
-        e.apply(Action::AddBox).unwrap(); let id = e.scene.objects().last().unwrap().id;
-        e.apply(Action::Undo).unwrap(); assert!(Intent::Save.replay(&mut e).is_err());
-        e.apply(Action::Redo).unwrap(); assert!(e.scene.contains(id));
-    }
-}
+        assert_eq!(
+            Intent::Move {
+                id,
+                offset: [0.25, 0.0, 0.0]
+            }
+            .replay(&mut e)
+            .unwrap(),
+            Reply::Changed(Change::Scene)
+        );
+        let Reply::Saved(bytes) = Intent::Save.replay(&mut e).unwrap() else {
+            panic!("Save reply")
+        };
+        let bundle = crate::archive::Bundle::decode(&bytes).unwrap();
+        let saved =
+            session_rust::proto::Session::decode(bundle.documents[0].as_slice())
+                .unwrap();
+        assert_eq!(
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-07.rs"
-```
-
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-08.rs"
-```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/reload_complete_tests.rs`
 
 Copy the earlier source-reload assertions using the complete viewer file format.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-            }
+```rust
             Edit::Saved(bytes) => {
                 let loaded = crate::document::load(&bytes).unwrap();
                 assert_eq!(loaded.meshes.len(), e.scene.objects().len());
             }
-        }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-09.rs"
+```rust
+            Edit::Saved(bytes) => {
+                let mut restored = crate::scene::Scene::demo();
+                crate::scene_document::open(&mut restored, &bytes).unwrap();
+                assert_eq!(
+                    restored.objects().len(),
+                    e.scene.objects().len()
+                );
+            }
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 7. `src/reload_precision_tests.rs`
 
 Copy the earlier source-reload assertions using the complete viewer file format.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-    let reply = Reply::new(e.reload_keys(), Some(Intent::Save), Ok(vec![bytes]));
-    let Some(Edit::Saved(saved)) = reply.complete(&mut e).unwrap() else { panic!("Saved reply") };
+```rust
+    };
     let message = session_rust::proto::Session::decode(saved.as_slice()).unwrap();
-    assert_eq!(message.objects.unwrap().meshes[0].vertices, original);
-    assert_eq!(e.scene.objects()[0].model.m, moved);
+    assert_eq!(
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/66t-prepare-file-adoption-live-history-10.rs"
+```rust
+    };
+    let bundle = crate::archive::Bundle::decode(&saved).unwrap();
+    let message =
+        session_rust::proto::Session::decode(bundle.documents[0].as_slice()).unwrap();
+    assert_eq!(
 ```
 
-</details>
+## <a id="checkpoint-66u-share-repeated-source-placements"></a>33. Share Repeated Source Placements
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 33 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached original source</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared display</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">independent placement</text>
+</svg>
+</div>
 
-<a id="checkpoint-66u-share-repeated-source-placements"></a>
-
-<details>
-<summary>Implementation 66u-share-repeated-source-placements: Share repeated source placements</summary>
-
-Share repeated source placements.
-
-Data flow: cached original source → shared display → independent placement.
+**What this code does:** Share repeated source placements.
 
 ### 1. `src/scene.rs`
 
 Share complete original document rows while assigning independent instance identities.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     }
 
-    pub(crate) fn reserve_document_key(&mut self)->Result<u32,&'static str> {
-        let key=self.next_id;self.next_id=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;Ok(key)
+    pub(crate) fn reserve_document_key(&mut self) -> Result<u32, &'static str> {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66u-share-repeated-source-placements-01.rs"
+    }
+
+    pub(crate) fn append_document(
+        &mut self,
+        source: &Scene,
+        name: &str,
+        place: &session_rust::Xform,
+        point_px: f32,
+    ) -> Result<(), &'static str> {
+        if !crate::placement::valid(&place.m) || !point_px.is_finite() {
+            return Err("Invalid document placement or point size");
+        }
+        let mut candidate = self.clone();
+        let mut ids = source
+            .ids
+            .iter()
+            .copied()
+            .collect::<Vec<_>>();
+        ids.sort_unstable_by_key(|id| id.value());
+        let mut remap = std::collections::HashMap::new();
+        let mut names = std::collections::HashMap::new();
+        let mut used = candidate
+            .ids
+            .iter()
+            .filter_map(|id| candidate.row_guid(*id).map(str::to_owned))
+            .collect::<std::collections::HashSet<_>>();
+        for old in &ids {
+            let id = ObjectId(candidate.reserve_document_key()?);
+            remap.insert(*old, id);
+            Rc::make_mut(&mut candidate.ids).insert(id);
+            let mut guid = source
+                .row_guid(*old)
+                .ok_or("Original source owner is missing")?
+                .to_owned();
+            while !used.insert(guid.clone()) {
+                guid = uuid::Uuid::new_v4().to_string();
+            }
+            names.insert(*old, guid);
+        }
+        macro_rules! rows {
+            ($field:ident) => {
+                for row in &source.$field {
+                    let mut row = row.clone();
+                    let old = row.id;
+                    row.id = remap[&old];
+                    row.guid = names[&old].clone();
+                    candidate.$field.push(row);
+                }
+            };
+        }
+        rows!(objects);
+        rows!(lines);
+        rows!(paths);
+        rows!(points);
+        rows!(clouds);
+        rows!(texts);
+        for old in &ids {
+            let id = remap[old];
+            candidate.place_following(
+                id,
+                place
+                    * &source
+                        .placement(*old)
+                        .ok_or("Original placement is missing")?,
+            )?;
+            let view = Rc::make_mut(&mut candidate.view);
+            view.initial(
+                id,
+                source.visible(*old),
+                source.view.locked.contains(old),
+            );
+            if let Some(rgb) = source.view.faces.get(old) {
+                view.faces.insert(id, *rgb);
+            }
+            if let Some(rgb) = source.view.edges.get(old) {
+                view.edges.insert(id, *rgb);
+            }
+            if source
+                .clouds
+                .iter()
+                .any(|row| row.id == *old)
+                && point_px > 0.
+            {
+                candidate.cloud_point_size(id, point_px)?;
+            }
+        }
+        for doc in &source.forest.documents {
+            let mut doc = (**doc).clone();
+            let old_key = doc.key;
+            doc.key = candidate.reserve_document_key()?;
+            if !name.is_empty() {
+                doc.label = name.to_owned();
+            }
+            let guids = doc
+                .nodes
+                .iter()
+                .map(|node| {
+                    (
+                        node.source.guid.clone(),
+                        uuid::Uuid::new_v4().to_string(),
+                    )
+                })
+                .collect::<std::collections::HashMap<_, _>>();
+            for node in &mut doc.nodes {
+                node.object = node.object.map(|id| remap[&id]);
+                node.source.guid = guids[&node.source.guid].clone();
+                node.portable_guid = node.source.guid.clone();
+                node.source.parent_guid = guids
+                    .get(&node.source.parent_guid)
+                    .cloned()
+                    .unwrap_or_default();
+            }
+            if source.created == Some(old_key) && candidate.created.is_none() {
+                candidate.created = Some(doc.key);
+            }
+            candidate.forest.push(doc);
+        }
+        self.restore(candidate);
+        Ok(())
+    }
+
+    pub(crate) fn reserve_document_key(&mut self) -> Result<u32, &'static str> {
 ```
 
-</details>
+## <a id="checkpoint-66v-start-an-empty-scene-without-examples"></a>34. Initialize an Empty Scene
 
-<a id="checkpoint-66v-start-an-empty-scene-without-examples"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 34 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">empty source owner</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">fresh document inventory</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original import</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66v-start-an-empty-scene-without-examples: Start an empty scene without examples</summary>
-
-Start an empty scene without examples.
-
-Data flow: empty source owner → fresh document inventory → original import.
+**What this code does:** Start an empty scene without examples.
 
 ### 1. `src/scene.rs`
 
@@ -5570,828 +6447,139 @@ Create an empty original document owner without changing the demo or scene ident
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.prepared.source.guid() == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
+        while self.paths.iter().any(|row| row.guid == guid)
+            || self
+                .objects
+                .iter()
+                .any(|row| row.guid == guid)
+            || self
+                .lines
+                .iter()
+                .any(|row| row.prepared.source.guid() == guid)
+        {
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.guid == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
+        while self.paths.iter().any(|row| row.guid == guid)
+            || self
+                .objects
+                .iter()
+                .any(|row| row.guid == guid)
+            || self.lines.iter().any(|row| row.guid == guid)
+        {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.prepared.source.guid() == guid) {
+            || self.paths.iter().any(|row| row.guid == guid)
+            || self
+                .objects
+                .iter()
+                .any(|row| row.guid == guid)
+            || self
+                .lines
+                .iter()
+                .any(|row| row.prepared.source.guid() == guid)
+        {
             guid = uuid::Uuid::new_v4().to_string();
         }
-        let id = ObjectId(self.next_id); self.next_id = next;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.guid == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let id = ObjectId(self.next_id); self.next_id = next;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { created:None,ids:Default::default(), view:Default::default(), forest:Default::default(), clouds:Vec::new(),texts:Vec::new(),objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self::empty();
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub guid:String,
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub guid: String,
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
-use std::rc::Rc;
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct ObjectId(u32);
-
-impl ObjectId { pub fn value(self) -> u32 { self.0 } }
-
-#[derive(Clone)]
-pub struct Object {
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
-    pub id: ObjectId,
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
-    pub mesh: Rc<Mesh>,
-    pub model: session_rust::Xform,
-    editable: crate::edit_source::EditSource,
-}
-
-impl Object {
-    pub fn visible(&self) -> bool { self.metadata.is_visible }
-
-    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
-
-    pub fn source(&self) -> Option<&crate::document::Source> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(), _ => None }
-    }
-
-    pub fn origin(&self) -> Option<&Rc<crate::origin::Origin>> {
-        match &self.editable {
-            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref().map(|source| &source.origin),
-            crate::edit_source::EditSource::Released { origin, .. } => Some(origin),
-        }
-    }
-
-    pub fn release_epoch(&self) -> Option<u64> {
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
-    }
-
-    pub fn can_unload(&self) -> bool {
-        let Some(source) = self.source() else { return false; };
-        let Some(geometry) = self.geometry() else { return false; };
-        source.origin.location.is_some() && self.metadata.source_guid == source.guid
-            && geometry.guid() == source.guid && self.metadata.name == geometry.name
-            && self.metadata.is_visible == geometry.is_visible && self.metadata.is_locked == geometry.is_locked
-            && source.document.objects.meshes.iter().any(|mesh| Rc::ptr_eq(mesh, geometry))
-    }
-
-    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
-        [world[0], world[1], world[2]]
-    }
-}
-
-#[derive(Clone)]
-pub struct LineObject {
-    pub guid: String,
-    pub id: ObjectId,
-    pub prepared: crate::stroke::PreparedLine,
-    pub model: session_rust::Xform,
-}
-
-impl LineObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn endpoints(&self) -> [session_rust::Point; 2] {
-        let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
-    }
-
-    pub fn stroke(&self) -> crate::stroke::Stroke {
-        let [start, end] = self.endpoints();
-        crate::stroke::Stroke { start: std::array::from_fn(|i| start[i] as f32),
-            end: std::array::from_fn(|i| end[i] as f32), ..self.prepared.display }
-    }
-}
-
-#[derive(Clone)]
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
-
-impl PathObject {
-    pub fn visible(&self) -> bool { self.prepared.source.visible() }
-
-    pub fn segments(&self) -> Vec<crate::chain::Segment> {
-        let mut points = Vec::new();
-        for p in self.points() {
-            let p = std::array::from_fn(|i| p[i] as f32);
-            if points.last() != Some(&p) { points.push(p); }
-        }
-        crate::chain::PreparedChain { points: Rc::new(points), ..self.prepared.clone() }.segments()
-    }
-
-    pub fn bounds_points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.bounds_coordinates().into_iter().map(|p|
-            self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-    pub fn points(&self) -> Vec<session_rust::Point> {
-        self.prepared.source.coordinates().into_iter().map(|p| self.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]))).collect()
-    }
-
-
-}
-
-pub struct ControlMarker { pub parent: ObjectId, pub control: crate::controls::Control, pub display: crate::marker::Marker }
-
-#[derive(Clone)]
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
-
-impl PointObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
-
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
-
-#[derive(Clone)]
-pub struct Scene {
-    pub(crate) created:Option<u32>,
-    ids:Rc<std::collections::HashSet<ObjectId>>,
-    pub view:Rc<crate::view_flags::Flags>,
-    pub forest:crate::hierarchy::Forest,
-    clouds:Vec<crate::cloud::Row>,
-    texts:Vec<crate::scene_label::Row>,
-    points: Vec<PointObject>,
-    paths: Vec<PathObject>,
-    lines: Vec<LineObject>,
-    objects: Vec<Object>,
-    next_id: u32,
-    extra: Option<ObjectId>,
-}
-
-impl Scene {
-    pub fn pick_id(&self,value:u32)->Option<ObjectId> {
-        let id=ObjectId(value);(self.visible(id) && !self.view.locked.contains(&id) && !self.forest.readonly(id)).then_some(id)
-    }
-
-    pub fn empty()->Self {
-        Self {created:None,ids:Default::default(),view:Default::default(),forest:Default::default(),clouds:Vec::new(),texts:Vec::new(),objects:Vec::new(),points:Vec::new(),paths:Vec::new(),lines:Vec::new(),next_id:1,extra:None}
-    }
-
-    pub fn demo() -> Self {
-        let pink = PreparedMesh::triangle([
-            [-0.7, -0.6, 0.25], [0.5, -0.6, 0.25], [-0.1, 0.6, 0.25],
-        ], [0.9, 0.25, 0.45]).expect("Valid pink triangle");
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self::empty();
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
-    }
-
-    pub fn restore(&mut self, mut saved: Self) {
-        saved.next_id = saved.next_id.max(self.next_id);
-        *self = saved;
-    }
-
-    pub fn visible(&self,id:ObjectId)->bool {self.contains(id)&&!self.view.is_hidden(&id)}
-
-    pub(crate) fn restore_view(&mut self,mut saved:Self) {saved.view=Rc::clone(&self.view);self.restore(saved);Rc::make_mut(&mut self.view).refresh(&self.forest);}
-
-    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in self.objects.iter().filter(|row| self.visible(row.id)) {
-            for vertex in object.mesh.vertices() {
-                let point = object.world_point(*vertex);
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for line in self.lines.iter().filter(|line| self.visible(line.id)) {
-            for point in line.endpoints() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds {
-                    Some(bounds) => bounds.include(point),
-                    None => bounds = Some(crate::bounds::Bounds::point(point)),
-                }
-            }
-        }
-        for row in self.paths.iter().filter(|row| self.visible(row.id)) {
-            for point in row.bounds_points() {
-                let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
-        }
-        for row in self.points.iter().filter(|row| self.visible(row.id)) {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
-        for row in self.texts.iter().filter(|row|self.visible(row.id)) {if let Some(next)=row.bounds() {if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}}
-        for row in self.clouds.iter().filter(|r|self.visible(r.id)) {let next=row.bounds();if let Some(bounds)=&mut bounds {bounds.include(next.min);bounds.include(next.max);} else {bounds=Some(next);}}
-        bounds
-    }
-
-    pub fn bounds_of(&self, ids: &[ObjectId]) -> Option<crate::bounds::Bounds> {
-        let mut bounds: Option<crate::bounds::Bounds> = None;
-        for id in ids { if let Some(next) = self.selected_bounds(*id) {
-            if let Some(b) = &mut bounds { b.include(next.min); b.include(next.max); } else { bounds = Some(next); }
-        } } bounds
-    }
-
-    pub fn placement(&self, id: ObjectId) -> Option<session_rust::Xform> {
-        self.objects.iter().find(|r| r.id==id).map(|r| r.model.clone())
-            .or_else(|| self.lines.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.paths.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-            .or_else(|| self.clouds.iter().find(|r|r.id==id).map(|r|r.model.clone()))
-            .or_else(|| self.texts.iter().find(|r| r.id==id).map(|r| r.model.clone()))
-    }
-
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_following(id,model)
-    }
-
-    pub(crate) fn place_following(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else if self.clouds.iter().any(|r|r.id==id) {self.place_cloud(id,model)}
-        else if self.texts.iter().any(|r|r.id==id) {self.place_text(id,model)}
-        else { self.place_point(id,model) }
-    }
-
-    pub fn translate(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<(), &'static str> {
-        let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
-        if let Some(row) = self.objects().iter().find(|r| r.id == id) {
-            if row.geometry().is_none() { return Err("Reload editable sources before Move"); }
-            let model = &shift * &row.model; return self.place(id, model);
-        }
-        if let Some(row) = self.lines().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_line(id, model); }
-        if let Some(row) = self.paths().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_path(id, model); }
-        if let Some(row) = self.points().iter().find(|r| r.id == id) { let model = &shift * &row.model; return self.place_point(id, model); }
-        if let Some(row)=self.clouds.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_cloud(id,model);}
-        if let Some(row)=self.texts.iter().find(|r|r.id==id) {let model=&shift*&row.model;return self.place_text(id,model);}
-        Err("Object not found")
-    }
-
-    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        if let Some(row)=self.clouds.iter().find(|row|row.id==id) {return Some(row.bounds());}
-        if let Some(row)=self.texts.iter().find(|row|row.id==id) {return row.bounds();}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
-        let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
-        for vertex in vertices {
-            bounds.include(object.world_point(*vertex));
-        }
-        Some(bounds)
-    }
-
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn cloud_controls(&mut self,parent:Option<ObjectId>) {
-        let parent=parent.filter(|id|self.pick_id(id.value()).is_some());
-        for row in &mut self.clouds {row.controls_visible=Some(row.id)==parent;}
-    }
-    pub fn clouds(&self)->&[crate::cloud::Row] {&self.clouds}
-    pub fn insert_cloud(&mut self,prepared:crate::cloud::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid().to_string();while self.clouds.iter().any(|r|r.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}
-        let name=prepared.source.name.clone();let visible=prepared.source.is_visible;let locked=prepared.source.is_locked;let row=crate::cloud::Row {point_px:0.,controls_visible:false,id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,visible,locked);self.clouds.push(row);crate::layer_edit::attach_generated(self,id,guid,name)?;Ok(id)
-    }
-    pub fn place_cloud(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid cloud placement");}let row=self.clouds.iter_mut().find(|r|r.id==id).ok_or("Cloud object not found")?;let mut candidate=row.clone();candidate.model=model;if candidate.bounds().min.into_iter().chain(candidate.bounds().max).any(|v|!(v as f32).is_finite()) {return Err("Cloud placement exceeds display range");}*row=candidate;Ok(())
-    }
-    pub fn texts(&self)->&[crate::scene_label::Row] {&self.texts}
-    pub(crate) fn texts_mut(&mut self)->&mut [crate::scene_label::Row] {&mut self.texts}
-    pub fn insert_text(&mut self,prepared:crate::scene_label::Prepared)->Result<ObjectId,&'static str> {
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let id=ObjectId(self.next_id);let mut guid=prepared.source.guid.clone();while self.texts.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();let row=crate::scene_label::Row {id,guid:guid.clone(),prepared,model:session_rust::Xform::identity()};row.label(false,true)?;if row.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(id);Rc::make_mut(&mut self.view).initial(id,row.prepared.source.visible,row.prepared.source.locked);self.texts.push(row);crate::layer_edit::attach_generated(self,id,guid,label)?;Ok(id)
-    }
-    pub fn place_text(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(),&'static str> {
-        if !crate::placement::valid(&model.m) {return Err("Invalid text placement");}let row=self.texts.iter_mut().find(|row|row.id==id).ok_or("Text object not found")?;let mut candidate=row.clone();candidate.model=model;candidate.label(false,true)?;if candidate.bounds().is_some_and(|b|b.min.into_iter().chain(b.max).any(|v|!(v as f32).is_finite())) {return Err("Text bounds exceed the display range");}*row=candidate;Ok(())
-    }
-    pub fn text_labels(&self,selected:&[ObjectId])->Result<Vec<crate::text::TextLabel>,&'static str> {self.texts.iter().filter(|row|self.visible(row.id)).map(|row|row.label(selected.contains(&row.id),self.pick_id(row.id.value()).is_some())).collect()}
-    pub fn points(&self) -> &[PointObject] { &self.points }
-
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
-
-    pub fn insert_point(&mut self, prepared: crate::marker::PreparedPoint) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.guid == guid) {
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let label=prepared.source.name.clone();let node_guid=guid.clone();self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid point placement"); }
-        let row = self.points.iter_mut().find(|row| row.id == id).ok_or("Point not found")?;
-        let point = model.transform_point(&row.prepared.source);
-        if (0..3).any(|i| !(point[i] as f32).is_finite()) { return Err("Point placement exceeds the display range"); }
-        row.model = model; Ok(())
-    }
-
-    pub fn show_controls(&mut self, visible: bool) {
-        for row in &mut self.paths { row.controls_visible = visible && matches!(row.prepared.source, crate::chain::Source::Curve(..)); }
-    }
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && self.visible(row.id)) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-                let display = crate::marker::Marker { center: p.to_f32(), ..control.marker().expect("Prepared control marker") };
-                markers.push(ControlMarker { parent: row.id, control, display });
-            }
-        }
-        markers
-    }
-
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
-
-    pub fn insert_path(&mut self, prepared: crate::chain::PreparedChain) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let mut guid = prepared.source.guid().to_owned();
-        while self.paths.iter().any(|row| row.guid == guid) || self.objects.iter().any(|row| row.guid == guid)
-            || self.lines.iter().any(|row| row.guid == guid) { guid = uuid::Uuid::new_v4().to_string(); }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.visible(),prepared.source.locked());
-        let label=prepared.source.name().to_owned();let node_guid=guid.clone();self.paths.push(PathObject { controls_visible: false, id, guid, prepared, model: session_rust::Xform::identity() });crate::layer_edit::attach_generated(self,id,node_guid,label)?;Ok(id)
-    }
-
-    pub fn place_path(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid path placement"); }
-        let row = self.paths.iter_mut().find(|row| row.id == id).ok_or("Path not found")?;
-        for p in row.prepared.source.coordinates().into_iter().chain(row.prepared.source.bounds_coordinates()) {
-            let p = model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) { return Err("Path placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn lines(&self) -> &[LineObject] { &self.lines }
-
-    pub fn insert_line(&mut self, prepared: crate::stroke::PreparedLine) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id); self.next_id = next;
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.source.is_visible,prepared.source.is_locked);
-        let mut guid=prepared.source.guid().to_owned();while self.lines.iter().any(|row|row.guid==guid) {guid=uuid::Uuid::new_v4().to_string();}let label=prepared.source.name.clone();
-        self.lines.push(LineObject { guid:guid.clone(), id, prepared, model: session_rust::Xform::identity() });
-        crate::layer_edit::attach_generated(self,id,guid,label)?;
-        Ok(id)
-    }
-
-    pub fn place_line(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid line placement"); }
-        let row = self.lines.iter_mut().find(|row| row.id == id).ok_or("Line not found")?;
-        for point in [row.prepared.source.start(), row.prepared.source.end()] {
-            let placed = model.transform_point(&point);
-            if (0..3).any(|i| !(placed[i] as f32).is_finite()) { return Err("Line placement exceeds the display range"); }
-        }
-        row.model = model; Ok(())
-    }
-
-    pub fn objects(&self) -> &[Object] {
-        &self.objects
-    }
-
-    pub(crate) fn objects_mut(&mut self) -> &mut [Object] { &mut self.objects }
-
-    pub(crate) fn unload(&mut self, origins: &std::collections::HashSet<uuid::Uuid>, epoch: u64) {
-        for row in &mut self.objects {
-            if let Some(origin) = row.origin().filter(|origin| origins.contains(&origin.id)).cloned() {
-                row.editable = crate::edit_source::EditSource::Released { origin, epoch };
-            }
-        }
-    }
-
-    pub(crate) fn hydrate(&mut self, prepared: &crate::rehydrate::PreparedReload) {
-        for row in &mut self.objects {
-            if !prepared.key.matches(row) { continue; }
-            let Some(geometry) = prepared.geometry(&row.metadata.source_guid).cloned() else { continue; };
-            let source = crate::document::Source { document: Rc::clone(&prepared.document),
-                guid: row.metadata.source_guid.clone(), origin: Rc::clone(&prepared.key.origin) };
-            row.editable = crate::edit_source::EditSource::Loaded { geometry, source: Some(source) };
-        }
-    }
-
-    pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        if !crate::placement::valid(&prepared.model.m) { return Err("Placement must be finite, affine and fit the display range"); }
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
         let id = ObjectId(self.next_id);
         self.next_id = next;
-        let mut guid = prepared.geometry.guid().to_owned();
-        while self.objects.iter().any(|object| object.guid == guid) {
+```
+
+Replace it with:
+
+```rust
+            || self.paths.iter().any(|row| row.guid == guid)
+            || self
+                .objects
+                .iter()
+                .any(|row| row.guid == guid)
+            || self.lines.iter().any(|row| row.guid == guid)
+        {
             guid = uuid::Uuid::new_v4().to_string();
         }
-        Rc::make_mut(&mut self.ids).insert(id);
-        Rc::make_mut(&mut self.view).initial(id,prepared.geometry.is_visible,prepared.geometry.is_locked);
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
-
-    pub fn insert_cad(&mut self,source:Rc<session_rust::BRep>)->Result<ObjectId,&'static str> {
-        let (prepared,mesh)=crate::cad_display::prepare(source)?;let prepared=Rc::new(prepared);let id=self.insert(mesh)?;self.objects.iter_mut().find(|row|row.id==id).unwrap().cad=Some(prepared);Ok(id)
-    }
-
-    pub fn insert_surface(&mut self,source:Rc<session_rust::NurbsSurface>)->Result<ObjectId,&'static str> {
-        let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
-        self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
-    }
-
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
-        let next=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;let copy=ObjectId(self.next_id);let guid=uuid::Uuid::new_v4().to_string();
-        if let Some(row)=self.objects.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.objects.push(row);}
-        else if let Some(row)=self.lines.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.lines.push(row);}
-        else if let Some(row)=self.paths.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.paths.push(row);}
-        else if let Some(row)=self.points.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.points.push(row);}
-        else if let Some(row)=self.clouds.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;row.controls_visible=false;self.clouds.push(row);}
-        else if let Some(row)=self.texts.iter().find(|row|row.id==id) {let mut row=row.clone();row.id=copy;row.guid=guid;self.texts.push(row);}
-        self.next_id=next;Rc::make_mut(&mut self.ids).insert(copy);
-        let view=Rc::make_mut(&mut self.view);if all {view.hide(&[copy],view.is_hidden(&id));view.lock(&[copy],view.locked.contains(&id));}
-        for channel in [&mut view.faces,&mut view.edges] {if let Some(rgb)=channel.get(&id).copied() {channel.insert(copy,rgb);}}
-        Ok(copy)
-    }
-
-    pub(crate) fn row_guid(&self,id:ObjectId)->Option<&str> {
-        self.objects.iter().find(|row|row.id==id).map(|row|row.guid.as_str())
-            .or_else(||self.paths.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.points.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.lines.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.clouds.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-            .or_else(||self.texts.iter().find(|row|row.id==id).map(|row|row.guid.as_str()))
-    }
-
-    pub(crate) fn append_document(&mut self,source:&Scene,name:&str,place:&session_rust::Xform,point_px:f32)->Result<(),&'static str> {
-        if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size");}
-        let mut candidate=self.clone();let mut ids=source.ids.iter().copied().collect::<Vec<_>>();ids.sort_unstable_by_key(|id|id.value());
-        let mut remap=std::collections::HashMap::new();let mut names=std::collections::HashMap::new();let mut used=candidate.ids.iter().filter_map(|id|candidate.row_guid(*id).map(str::to_owned)).collect::<std::collections::HashSet<_>>();
-        for old in &ids {
-            let id=ObjectId(candidate.reserve_document_key()?);remap.insert(*old,id);Rc::make_mut(&mut candidate.ids).insert(id);
-            let mut guid=source.row_guid(*old).ok_or("Original source owner is missing")?.to_owned();while !used.insert(guid.clone()) {guid=uuid::Uuid::new_v4().to_string();}names.insert(*old,guid);
-        }
-        macro_rules! rows {($field:ident)=>{for row in &source.$field {let mut row=row.clone();let old=row.id;row.id=remap[&old];row.guid=names[&old].clone();candidate.$field.push(row);}};}
-        rows!(objects);rows!(lines);rows!(paths);rows!(points);rows!(clouds);rows!(texts);
-        for old in &ids {
-            let id=remap[old];candidate.place_following(id,place*&source.placement(*old).ok_or("Original placement is missing")?)?;
-            let view=Rc::make_mut(&mut candidate.view);view.initial(id,source.visible(*old),source.view.locked.contains(old));
-            if let Some(rgb)=source.view.faces.get(old) {view.faces.insert(id,*rgb);}if let Some(rgb)=source.view.edges.get(old) {view.edges.insert(id,*rgb);}
-            if source.clouds.iter().any(|row|row.id==*old)&&point_px>0. {candidate.cloud_point_size(id,point_px)?;}
-        }
-        for doc in &source.forest.documents {
-            let mut doc=(**doc).clone();let old_key=doc.key;doc.key=candidate.reserve_document_key()?;
-            if !name.is_empty() {doc.label=name.to_owned();}
-            let guids=doc.nodes.iter().map(|node|(node.source.guid.clone(),uuid::Uuid::new_v4().to_string())).collect::<std::collections::HashMap<_,_>>();
-            for node in &mut doc.nodes {node.object=node.object.map(|id|remap[&id]);node.source.guid=guids[&node.source.guid].clone();node.portable_guid=node.source.guid.clone();node.source.parent_guid=guids.get(&node.source.parent_guid).cloned().unwrap_or_default();}
-            if source.created==Some(old_key)&&candidate.created.is_none() {candidate.created=Some(doc.key);}
-            candidate.forest.push(doc);
-        }
-        self.restore(candidate);Ok(())
-    }
-
-    pub(crate) fn reserve_document_key(&mut self)->Result<u32,&'static str> {
-        let key=self.next_id;self.next_id=self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;Ok(key)
-    }
-
-    pub(crate) fn cloud_point_size(&mut self,id:ObjectId,px:f32)->Result<(),&'static str> {
-        if !px.is_finite() {return Err("Non-finite cloud point size");}
-        self.clouds.iter_mut().find(|row|row.id==id).ok_or("Cloud object not found")?.point_px=px;Ok(())
-    }
-
-    pub fn clear(&mut self) {
-        self.created=None;
-        self.ids=Default::default();
-        self.view=Default::default();
-        self.forest=Default::default();
-        self.clouds=Vec::new();
-        self.texts=Vec::new();
-        self.points = Vec::new();
-        self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
-        self.extra = None;
-    }
-
-    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        self.clear();
-        self.import(loaded)
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        let mut objects=Vec::new();let key=self.next_id;
-        for prepared in loaded.meshes {
-            let guid=prepared.geometry.guid().to_owned();let name=prepared.geometry.name.clone();
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
-        }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);if let Some(origin)=objects.first().and_then(|(_,id,_)|self.objects.iter().find(|row|row.id==*id)).and_then(|row|row.origin()).cloned() {Rc::make_mut(self.forest.documents.last_mut().unwrap()).header=Some(origin);}let colours=self.forest.colours(key);Rc::make_mut(&mut self.view).faces.extend(colours);Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_mesh(id,model)
-    }
-
-    fn place_mesh(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
-        {
-            return Err("Placement must be finite, affine and fit the display range");
-        }
-        let object = self.objects.iter_mut().find(|o| o.id == id).ok_or("Object not found")?;
-        if object.geometry().is_none() { return Err("Reload editable sources before Move"); }
-        object.model = model;
-        Ok(())
-    }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let existed = Rc::make_mut(&mut self.ids).remove(&id);
-        self.objects.retain(|row| row.id != id); self.lines.retain(|row| row.id != id);
-        self.paths.retain(|row| row.id != id); self.points.retain(|row| row.id != id);self.texts.retain(|row|row.id!=id);self.clouds.retain(|row|row.id!=id);
-        if self.extra == Some(id) { self.extra = None; }
-        existed
-    }
-
-    pub fn contains(&self,id:ObjectId)->bool {self.ids.contains(&id)}
-
-    pub fn next(&self,current:Option<ObjectId>)->Option<ObjectId> {
-        let mut ids=self.objects.iter().map(|r|r.id).chain(self.lines.iter().map(|r|r.id)).chain(self.paths.iter().map(|r|r.id)).chain(self.points.iter().map(|r|r.id)).chain(self.texts.iter().map(|r|r.id)).chain(self.clouds.iter().map(|r|r.id)).filter(|id|self.pick_id(id.value()).is_some()).collect::<Vec<_>>();
-        ids.sort_unstable_by_key(|id|id.value());if ids.is_empty() {return None;}
-        let start=ids.iter().position(|id|Some(*id)==current).map_or(0,|i|i+1);Some(ids[start%ids.len()])
-    }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
-        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
-        source.set_objectcolor(session_rust::Color::new(0.65, 0.65, 0.65, 1.0));
-        let id = self.insert(PreparedMesh::new(source)?)?;
-        self.place(id, session_rust::Xform::translation(0.9, 0.0, 0.4))?;
-        Ok(id)
-    }
-
-    pub fn toggle_extra(&mut self) {
-        if let Some(id) = self.extra.take() {
-            self.remove(id);
-        } else {
-            let extra = PreparedMesh::triangle([
-                [-0.9, 0.3, 0.5], [-0.4, 0.3, 0.5], [-0.65, 0.9, 0.5],
-            ], [0.2, 0.8, 0.3]).expect("Valid extra triangle");
-            self.extra = Some(self.insert(extra).expect("ID available"));
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn unloading_policy_protects_generated_unlocated_and_modified_sources() {
-        let mut scene = Scene::demo(); assert!(!scene.objects[0].can_unload());
-        let bytes = crate::specimen::bytes();
-        scene.replace(crate::document::load(&bytes).unwrap()).unwrap(); assert!(!scene.objects[0].can_unload());
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:policy".into()));
-        scene.replace(crate::document::load_at(&bytes, Some(url)).unwrap()).unwrap();
-        assert!(scene.objects.iter().all(Object::can_unload));
-        let row = &mut scene.objects[0];
-        Rc::make_mut(&mut row.metadata).is_locked = true; assert!(!row.can_unload());
-        Rc::make_mut(&mut row.metadata).is_locked = row.geometry().unwrap().is_locked;
-        assert!(row.can_unload());
-        let source = row.source().cloned(); let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        row.editable = crate::edit_source::EditSource::Loaded { geometry, source }; assert!(!row.can_unload());
-    }
-
-    #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
-        scene.next_id = u32::MAX - 1;
-        let loaded = crate::document::load(&crate::specimen::bytes()).unwrap();
-        let mut history = crate::history::History::default();
-        assert!(history.try_edit(&mut scene, |scene| scene.replace(loaded)).is_err());
-        assert_eq!(scene.next_id, u32::MAX);
-        assert_eq!(scene.objects.len(), before.len());
-        for (object, old) in scene.objects.iter().zip(&before) {
-            assert_eq!(object.id, old.id);
-            assert!(Rc::ptr_eq(object.geometry().unwrap(), old.geometry().unwrap()));
-            assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
-    }
-
-    #[test]
-    fn removal_moves_a_row_without_changing_its_identity() {
-        let mut scene = Scene::demo();
-        let first = scene.objects()[0].id;
-        let second = scene.objects()[1].id;
-        assert!(scene.remove(first));
-        assert_eq!(scene.objects()[0].id, second);
-        assert_eq!(scene.next(None), Some(second));
-        assert!(!scene.contains(first));
-        scene.toggle_extra();
-        assert_ne!(scene.objects()[1].id, first);
-        assert_ne!(scene.objects()[1].id, second);
-    }
-
-    #[test]
-    fn toggling_the_extra_object_uses_its_id_after_other_removals() {
-        let mut scene = Scene::demo();
-        scene.toggle_extra();
-        let extra = scene.objects()[2].id;
-        scene.remove(scene.objects()[0].id);
-        scene.toggle_extra();
-        assert!(!scene.contains(extra));
-        assert_eq!(scene.objects().len(), 1);
-    }
-}
-
-#[cfg(all(test, not(target_arch = "wasm32")))]
-#[path = "pick_gpu_tests.rs"]
-mod pick_gpu_tests;
-
-impl Scene {
-    pub fn deform_part(&mut self,target:crate::pick_sources::Target,delta:&session_rust::Xform) -> Result<(), &'static str> {
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some()||row.cad.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
-                source.vertex.get_mut(&key).ok_or("Missing source vertex")?.set_position(point);
-            }
-            source.clear_triangle_bvh();
-            let prepared=crate::prepared::PreparedMesh::new(source)?;
-            for vertex in prepared.display.vertices() {let point=model.transform_point(&session_rust::Point::new(vertex[0] as f64,vertex[1] as f64,vertex[2] as f64));
-                if (0..3).any(|i| !(point[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}}
-            row.mesh=Rc::new(prepared.display); row.editable=crate::edit_source::EditSource::Loaded {geometry:prepared.geometry,source:None}; return Ok(());
-        }
-        let row=self.paths.iter_mut().find(|r|r.id==target.owner).ok_or("Part owner is missing")?;
-        let (crate::chain::Source::Curve(curve,_),Part::Control(index))=(&row.prepared.source,target.part) else {return Err("Select a curve control point");};
-        let mut source=(**curve).clone(); let point=local.transform_point(&source.get_cv(index).ok_or("Missing curve control")?);
-        let weight=source.get_cv_4d(index).ok_or("Missing curve control")?.3;
-        let set=if source.m_is_rat {source.set_cv_4d(index,point[0]*weight,point[1]*weight,point[2]*weight,weight)} else {source.set_cv_point(index,&point)};
-        if !set {return Err("Cannot set curve control");}
-        let prepared=crate::chain::PreparedChain::curve(Rc::new(source))?;
-        for p in prepared.source.coordinates().into_iter().chain(prepared.source.bounds_coordinates()) {
-            let p=model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));
-            if (0..3).any(|i| !(p[i] as f32).is_finite()) {return Err("Part edit exceeds the display range");}
-        }
-        row.prepared=prepared;Ok(())
-    }
-}
+        let id = ObjectId(self.next_id);
+        self.next_id = next;
 ```
 
-</details>
+**Locate this block:**
 
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66v-start-an-empty-scene-without-examples-01.rs"
+```rust
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            created: None,
+            ids: Default::default(),
+            view: Default::default(),
+            forest: Default::default(),
+            clouds: Vec::new(),
+            texts: Vec::new(),
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
+            lines: Vec::new(),
+            next_id: 1,
+            extra: None,
+        };
+        scene.insert(pink).expect("ID available");
+        scene
+            .insert(turquoise)
 ```
 
-```text
---8<-- "journey/code/66v-start-an-empty-scene-without-examples-02.rs"
+Replace it with:
+
+```rust
+        .expect("Valid turquoise triangle");
+        let mut scene = Self::empty();
+        scene.insert(pink).expect("ID available");
+        scene
+            .insert(turquoise)
 ```
 
-```text
---8<-- "journey/code/66v-start-an-empty-scene-without-examples-03.rs"
-```
+## <a id="checkpoint-66w-assemble-placed-manifest-entries"></a>35. Assemble Placed Manifest Entries
 
-```text
---8<-- "journey/code/66v-start-an-empty-scene-without-examples-04.rs"
-```
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 35 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/scene_manifest.rs, src/…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">manifest entries</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared source documents</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">placed scene labels</text>
+</svg>
+</div>
 
-</details>
-
-</details>
-
-<a id="checkpoint-66w-assemble-placed-manifest-entries"></a>
-
-<details>
-<summary>Implementation 66w-assemble-placed-manifest-entries: Assemble placed manifest entries</summary>
-
-Assemble placed manifest entries.
-
-Data flow: manifest entries → shared source documents → placed scene labels.
+**What this code does:** Assemble placed manifest entries.
 
 ### 1. `src/scene_manifest.rs`
 
@@ -6400,66 +6588,281 @@ Assemble a checked scene from shared original source documents and placed labels
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66w-assemble-placed-manifest-entries-01.rs"
+use crate::{manifest::Manifest, scene::Scene};
+use std::{collections::HashMap, rc::Rc};
+
+// Repeated manifest entries share immutable sources and display buffers; placements and viewer identities remain independent for each instance.
+pub fn prepare(
+    previous: &Scene,
+    manifest: &Manifest,
+    urls: &[String],
+    sources: &HashMap<String, Scene>,
+) -> Result<Scene, String> {
+    if urls.len() != manifest.items.len() {
+        return Err("Manifest source inventory does not match".into());
+    }
+    let mut scene = previous.clone();
+    scene.clear();
+    for (index, (item, url)) in manifest.items.iter().zip(urls).enumerate() {
+        let source = sources
+            .get(url)
+            .ok_or_else(|| format!("Missing manifest source: {url}"))?;
+        scene
+            .append_document(
+                source,
+                &item.name,
+                &manifest.place(index, [0., 0.]),
+                item.point_size as f32,
+            )
+            .map_err(str::to_owned)?;
+    }
+    for (index, item) in manifest.texts.iter().enumerate() {
+        let placement = if item.camera_facing {
+            crate::text::TextPlacement::WorldBillboard {
+                world: item.at,
+                world_height: item.height,
+            }
+        } else {
+            crate::text::TextPlacement::WorldPlane {
+                world: item.at,
+                right: item.right,
+                up: item.up,
+                world_height: item.height,
+            }
+        };
+        let mut source = crate::scene_label::example(placement);
+        source.guid = format!("manifest-text-{index}");
+        source.name = item.text.clone();
+        source.label.text = item.text.clone();
+        source.label.id = index as u32 + 1;
+        scene
+            .insert_text(
+                crate::scene_label::Prepared::new(Rc::new(source))
+                    .map_err(str::to_owned)?,
+            )
+            .map_err(str::to_owned)?;
+    }
+    Ok(scene)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod publication;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66w-assemble-placed-manifest-entries-02.rs" skip=22
+pub mod publication;
+
+pub mod scene_manifest;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/scene_manifest.rs`
 
 Copy source and integration regressions.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
+```rust
     Ok(scene)
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    Ok(scene)
+}
 
-```text
---8<-- "journey/code/66w-assemble-placed-manifest-entries-03.rs" skip=16
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn repeated_manifest_instances_share_original_sources_and_display_allocations() {
+        let manifest=Manifest::parse(r#"items: [{file: cloud.pb, at: [0,0,0], point_size: 4}, {file: cloud.pb, at: [1000000000.125,0,0], point_size: 7}]
+texts: [{text: 'CAD Ø25', at: [0,0,0], height: 0.1}]
+"#.as_bytes()).unwrap();
+        let mut source = Scene::demo();
+        source.clear();
+        source
+            .insert_cloud(
+                crate::cloud::Prepared::new(Rc::new(crate::cloud::example())).unwrap(),
+            )
+            .unwrap();
+        source
+            .insert(
+                crate::prepared::PreparedMesh::triangle(
+                    [[0., 0., 0.], [1., 0., 0.], [0., 1., 0.]],
+                    [1., 0., 0.],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+        let sources = [("cloud.pb".into(), source.clone())]
+            .into_iter()
+            .collect();
+        let scene = prepare(
+            &Scene::demo(),
+            &manifest,
+            &["cloud.pb".into(), "cloud.pb".into()],
+            &sources,
+        )
+        .unwrap();
+        assert_eq!(scene.clouds().len(), 2);
+        assert!(Rc::ptr_eq(
+            &scene.clouds()[0].prepared.source,
+            &scene.clouds()[1].prepared.source
+        ));
+        assert!(Rc::ptr_eq(
+            &scene.clouds()[0].prepared.nodes,
+            &scene.clouds()[1].prepared.nodes
+        ));
+        assert!(Rc::ptr_eq(
+            &scene.objects()[0].mesh,
+            &scene.objects()[1].mesh
+        ));
+        assert!(Rc::ptr_eq(
+            scene.objects()[0].geometry().unwrap(),
+            scene.objects()[1].geometry().unwrap()
+        ));
+        assert_ne!(scene.clouds()[0].id, scene.clouds()[1].id);
+        assert_ne!(
+            scene.clouds()[0].guid,
+            scene.clouds()[1].guid
+        );
+        assert_eq!(
+            scene.clouds()[1].model.m[12],
+            1_000_000_000.125
+        );
+        assert_eq!(scene.clouds()[0].point_px, 4.);
+        assert_eq!(scene.clouds()[1].point_px, 7.);
+        assert_eq!(
+            scene.clouds()[0].prepared.source.point_size,
+            3.
+        );
+        assert_eq!(
+            scene.texts()[0].prepared.source.label.text,
+            "CAD Ø25"
+        );
+        let saved = crate::scene_archive::save(&scene).unwrap();
+        let mut restored = Scene::demo();
+        crate::scene_document::open(&mut restored, &saved).unwrap();
+        assert_eq!(
+            restored
+                .clouds()
+                .iter()
+                .map(|row| row.point_px)
+                .collect::<Vec<_>>(),
+            vec![4., 7.]
+        );
+        assert_eq!(
+            source.clouds()[0].model.m,
+            session_rust::Xform::identity().m
+        );
+    }
+    #[test]
+    fn invalid_manifest_adoption_and_overflowing_placements_leave_prior_scene_intact() {
+        let prior = Scene::demo();
+        let ids = prior
+            .objects()
+            .iter()
+            .map(|row| row.id)
+            .collect::<Vec<_>>();
+        let manifest =
+            Manifest::parse(r#"items: [{file: absent.pb}]"#.as_bytes()).unwrap();
+        assert!(
+            prepare(
+                &prior,
+                &manifest,
+                &["absent.pb".into()],
+                &HashMap::new()
+            )
+            .is_err()
+        );
+        assert_eq!(
+            prior
+                .objects()
+                .iter()
+                .map(|row| row.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+        let manifest =
+            Manifest::parse(r#"items: [{file: mesh.pb, at: [1e100,0,0]}]"#.as_bytes())
+                .unwrap();
+        let sources = [("mesh.pb".into(), Scene::demo())]
+            .into_iter()
+            .collect();
+        assert!(
+            prepare(
+                &prior,
+                &manifest,
+                &["mesh.pb".into()],
+                &sources
+            )
+            .is_err()
+        );
+        assert_eq!(
+            prior
+                .objects()
+                .iter()
+                .map(|row| row.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-66x-resolve-scene-live-urls"></a>36. Resolve Scene and Live URLs
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 36 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/publication_route.rs, s…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">scene route</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">resolved files</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">live schedule</text>
+</svg>
+</div>
 
-<a id="checkpoint-66x-resolve-scene-live-urls"></a>
-
-<details>
-<summary>Implementation 66x-resolve-scene-live-urls: Resolve scene and live URLs</summary>
-
-Resolve scene and live URLs.
-
-Data flow: scene route → source base → resolved files → live schedule.
+**What this code does:** Resolve scene and live URLs.
 
 ### 1. `src/publication_route.rs`
 
@@ -6468,66 +6871,282 @@ Resolve current named-scene, bucket-root, local-live and notification routes.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66x-resolve-scene-live-urls-01.rs"
+pub const DATA_BASE: &str = "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/";
+pub const DEFAULT_SOURCE: &str =
+    "https://pub-dfd304db921140a09a9ad44c30e0aceb.r2.dev/scenes/view_live.yaml";
+
+#[derive(Clone)]
+pub struct Route {
+    pub manifest: String,
+    pub base: String,
+    pub poll_ms: Option<i32>,
+    pub notify: Option<String>,
+}
+pub fn local(url: &str) -> bool {
+    url.starts_with("http://localhost:")
+        || url.starts_with("http://127.0.0.1:")
+        || url.starts_with("http://[::1]:")
+}
+pub fn safe_scene(value: &str) -> bool {
+    !value.is_empty()
+        && !value.starts_with('/')
+        && !value.contains("//")
+        && !value.contains(':')
+        && !value
+            .split('/')
+            .any(|segment| segment == "..")
+}
+pub fn path_scene(path: &str) -> Option<&str> {
+    let last = path.rsplit('/').next()?;
+    (!last.is_empty()
+        && !last.ends_with(".html")
+        && !last.contains(':')
+        && !last.starts_with('.'))
+    .then_some(last)
+}
+pub fn join(base: &str, file: &str) -> String {
+    if file.starts_with("https://") || file.starts_with("http://") {
+        file.into()
+    } else {
+        format!("{base}{}", file.trim_start_matches("./"))
+    }
+}
+pub fn directory(url: &str) -> String {
+    url.rsplit_once('/')
+        .map_or_else(String::new, |(prefix, _)| {
+            format!("{prefix}/")
+        })
+}
+
+pub fn select(
+    scene: Option<&str>,
+    path: &str,
+    data: Option<&str>,
+    live: Option<&str>,
+    poll: Option<&str>,
+    notify: Option<&str>,
+) -> Option<Route> {
+    let base = match data {
+        Some("off" | "") => String::new(),
+        Some(value) if value.starts_with("https://") || local(value) => {
+            if value.ends_with('/') {
+                value.into()
+            } else {
+                format!("{value}/")
+            }
+        }
+        _ => DATA_BASE.into(),
+    };
+    let named = scene
+        .filter(|value| safe_scene(value))
+        .or_else(|| path_scene(path));
+    let watched = match live {
+        Some("off" | "0") => None,
+        Some(value) if value.starts_with("https://") || local(value) => {
+            Some(value.to_owned())
+        }
+        Some(_) => Some(DEFAULT_SOURCE.into()),
+        None if named == Some("view_live") => Some(DEFAULT_SOURCE.into()),
+        _ => None,
+    };
+    if let Some(manifest) = watched {
+        let source_base = if !base.is_empty() && manifest.starts_with(&base) {
+            base
+        } else {
+            directory(&manifest)
+        };
+        let seconds = poll
+            .and_then(|v| v.parse::<f64>().ok())
+            .filter(|v| v.is_finite() && *v >= 1.)
+            .unwrap_or(5.);
+        let notify = match notify {
+            Some("off" | "0") => None,
+            Some(value) if value.starts_with("https://") || local(value) => {
+                Some(value.into())
+            }
+            _ => None,
+        };
+        return Some(Route {
+            manifest,
+            base: source_base,
+            poll_ms: Some((seconds * 1000.).min(i32::MAX as f64) as i32),
+            notify,
+        });
+    }
+    let name = named?;
+    let mut name = if name.contains('.') {
+        name.to_owned()
+    } else {
+        format!("{name}.yaml")
+    };
+    if !name.contains('/') {
+        name = format!("scenes/{name}");
+    }
+    Some(Route {
+        manifest: join(&base, &name),
+        base,
+        poll_ms: None,
+        notify: None,
+    })
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod scene_manifest;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66x-resolve-scene-live-urls-02.rs" skip=25
+pub mod scene_manifest;
+
+pub mod publication_route;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/publication_route.rs`
 
 Copy source and integration regressions.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-    Some(Route {manifest:join(&base,&name),base,poll_ms:None,notify:None})
+```rust
+        notify: None,
+    })
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+        notify: None,
+    })
+}
 
-```text
---8<-- "journey/code/66x-resolve-scene-live-urls-03.rs" skip=77
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn named_routes_keep_bucket_relative_files_and_refuse_parent_traversal() {
+        assert!(!safe_scene("../outside"));
+        assert!(!safe_scene("folder/../outside"));
+        assert!(!safe_scene("https://other/scene"));
+        assert!(!safe_scene("/scene"));
+        let route = select(
+            Some("view_floor"),
+            "/",
+            None,
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        assert_eq!(
+            route.manifest,
+            format!("{DATA_BASE}scenes/view_floor.yaml")
+        );
+        assert_eq!(
+            join(&route.base, "pb/floor.pb"),
+            format!("{DATA_BASE}pb/floor.pb")
+        );
+        let route = select(
+            Some("fixtures/scene.yaml"),
+            "/",
+            Some("off"),
+            Some("off"),
+            None,
+            None,
+        )
+        .unwrap();
+        assert_eq!(route.manifest, "fixtures/scene.yaml");
+        assert_eq!(
+            join(&route.base, "./fixtures/a.pb"),
+            "fixtures/a.pb"
+        );
+        assert_eq!(path_scene("/view_floor"), Some("view_floor"));
+        assert!(path_scene("/index.html").is_none());
+        assert!(select(None, "/", Some("off"), None, None, None).is_none());
+    }
+    #[test]
+    fn live_routes_keep_local_directories_poll_bounds_and_explicit_notification_urls() {
+        let route = select(
+            None,
+            "/",
+            Some("off"),
+            Some("http://localhost:8770/live/scene.yaml"),
+            Some("0.1"),
+            Some("off"),
+        )
+        .unwrap();
+        assert_eq!(route.base, "http://localhost:8770/live/");
+        assert_eq!(route.poll_ms, Some(5000));
+        assert!(route.notify.is_none());
+        let route = select(
+            Some("view_floor"),
+            "/",
+            None,
+            Some("https://example.test/live.yaml"),
+            Some("1"),
+            Some("https://example.test/events"),
+        )
+        .unwrap();
+        assert_eq!(route.poll_ms, Some(1000));
+        assert_eq!(
+            route.notify.as_deref(),
+            Some("https://example.test/events")
+        );
+        assert_eq!(route.base, "https://example.test/");
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-66y-retain-validated-live-source-revisions"></a>37. Retain Validated Source Revisions
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 37 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/publication_index.rs, s…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">validated manifest</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original source cache</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">complete replacement</text>
+</svg>
+</div>
 
-<a id="checkpoint-66y-retain-validated-live-source-revisions"></a>
-
-<details>
-<summary>Implementation 66y-retain-validated-live-source-revisions: Retain validated live source revisions</summary>
-
-Retain validated live source revisions.
-
-Data flow: validated manifest → original source cache → complete replacement.
+**What this code does:** Retain validated live source revisions.
 
 ### 1. `src/publication_index.rs`
 
@@ -6536,66 +7155,345 @@ Keep original source revisions and build only complete changed scenes.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66y-retain-validated-live-source-revisions-01.rs"
+use crate::{manifest::Manifest, scene::Scene};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
+
+pub struct Index {
+    base: String,
+    revisions: crate::live_revision::Revisions,
+    manifest: Option<Manifest>,
+    sources: HashMap<String, Scene>,
+    sizes: HashMap<String, usize>,
+    pending: bool,
+}
+impl Index {
+    pub fn new(base: String) -> Self {
+        Self {
+            base,
+            revisions: Default::default(),
+            manifest: None,
+            sources: HashMap::new(),
+            sizes: HashMap::new(),
+            pending: false,
+        }
+    }
+    pub fn etag(&self, url: &str) -> Option<String> {
+        self.revisions.etag(url)
+    }
+    pub fn has_manifest(&self) -> bool {
+        self.manifest.is_some()
+    }
+    pub fn cached(&self, url: &str) -> bool {
+        self.sources.contains_key(url)
+    }
+    pub fn forget(&mut self, url: &str) {
+        self.revisions.forget(url);
+    }
+    pub fn urls(&self) -> Vec<String> {
+        self.manifest
+            .as_ref()
+            .map_or_else(Vec::new, |manifest| {
+                manifest
+                    .items
+                    .iter()
+                    .map(|item| crate::publication_route::join(&self.base, &item.file))
+                    .collect()
+            })
+    }
+    pub fn manifest(
+        &mut self,
+        url: &str,
+        etag: Option<String>,
+        bytes: &[u8],
+    ) -> Result<bool, String> {
+        if !self.revisions.changed(url, etag, bytes) {
+            return Ok(false);
+        }
+        let manifest = match Manifest::parse(bytes) {
+            Ok(value) => value,
+            Err(error) => {
+                self.revisions.forget(url);
+                return Err(error);
+            }
+        };
+        self.manifest = Some(manifest);
+        self.pending = true;
+        let used = self
+            .urls()
+            .into_iter()
+            .collect::<HashSet<_>>();
+        self.sources
+            .retain(|url, _| used.contains(url));
+        self.sizes
+            .retain(|url, _| used.contains(url));
+        Ok(true)
+    }
+    pub fn source(
+        &mut self,
+        url: &str,
+        etag: Option<String>,
+        bytes: &[u8],
+    ) -> Result<bool, String> {
+        if !self.revisions.changed(url, etag, bytes) {
+            return Ok(false);
+        }
+        let size = self
+            .sizes
+            .iter()
+            .filter(|(key, _)| key.as_str() != url)
+            .try_fold(bytes.len(), |sum, (_, size)| {
+                sum.checked_add(*size)
+            })
+            .ok_or("Source inventory size overflow")?;
+        if size > crate::archive::LIMIT {
+            self.revisions.forget(url);
+            return Err("Source inventory exceeds the 512 MiB file limit".into());
+        }
+        let source = match crate::publication::prepare(
+            &Scene::empty(),
+            bytes,
+            true,
+            Some(Rc::new(crate::reload_url::ReloadUrl::new(
+                url.into(),
+            ))),
+        ) {
+            Ok(source) => source,
+            Err(error) => {
+                self.revisions.forget(url);
+                return Err(error);
+            }
+        };
+        self.sources.insert(url.into(), source);
+        self.sizes.insert(url.into(), bytes.len());
+        self.pending = true;
+        Ok(true)
+    }
+    pub fn replacement(&mut self, previous: &Scene) -> Result<Option<Scene>, String> {
+        if !self.pending {
+            return Ok(None);
+        }
+        let manifest = self
+            .manifest
+            .as_ref()
+            .ok_or("Live manifest is missing")?;
+        for (item, url) in manifest.items.iter().zip(self.urls()) {
+            if let Some(expected) = item.encoded_size() {
+                if self
+                    .sizes
+                    .get(&url)
+                    .copied()
+                    .map(|size| size as u64)
+                    != Some(expected)
+                {
+                    self.revisions.forget(&url);
+                    return Err(
+                        "Encoded source decoded size does not match the manifest"
+                            .into(),
+                    );
+                }
+            }
+        }
+        let scene = crate::scene_manifest::prepare(
+            previous,
+            manifest,
+            &self.urls(),
+            &self.sources,
+        )?;
+        self.pending = false;
+        Ok(Some(scene))
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
 pub mod publication_route;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66y-retain-validated-live-source-revisions-02.rs" skip=28
+pub mod publication_route;
+
+pub mod publication_index;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/publication_index.rs`
 
 Copy source and integration regressions.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
+```rust
     }
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    }
+}
 
-```text
---8<-- "journey/code/66y-retain-validated-live-source-revisions-03.rs" skip=8
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn validators_and_unchanged_bytes_keep_original_sources_and_viewer_ids() {
+        let mut index = Index::new("files/".into());
+        let manifest = b"items: [{file: mesh.pb}]";
+        let raw = crate::specimen::bytes();
+        let mut scene = Scene::empty();
+        assert!(
+            index
+                .manifest("scene", Some("a".into()), manifest)
+                .unwrap()
+        );
+        assert!(
+            index
+                .source("files/mesh.pb", Some("b".into()), &raw)
+                .unwrap()
+        );
+        scene = index.replacement(&scene).unwrap().unwrap();
+        let id = scene.objects()[0].id;
+        let geometry = Rc::clone(scene.objects()[0].geometry().unwrap());
+        assert!(
+            !index
+                .manifest("scene", Some("W/c".into()), manifest)
+                .unwrap()
+        );
+        assert!(
+            !index
+                .source("files/mesh.pb", None, &raw)
+                .unwrap()
+        );
+        assert_eq!(index.etag("scene"), Some("W/c".into()));
+        assert_eq!(index.etag("files/mesh.pb"), None);
+        assert!(index.replacement(&scene).unwrap().is_none());
+        assert_eq!(scene.objects()[0].id, id);
+        assert!(Rc::ptr_eq(
+            scene.objects()[0].geometry().unwrap(),
+            &geometry
+        ));
+        assert!(
+            index
+                .source(
+                    "files/mesh.pb",
+                    None,
+                    &crate::specimen::precise_bytes()
+                )
+                .unwrap()
+        );
+        let changed = index.replacement(&scene).unwrap().unwrap();
+        assert_ne!(changed.objects()[0].id, id);
+        assert!(!Rc::ptr_eq(
+            changed.objects()[0].geometry().unwrap(),
+            &geometry
+        ));
+        assert!(Rc::ptr_eq(
+            scene.objects()[0].geometry().unwrap(),
+            &geometry
+        ));
+    }
+    #[test]
+    fn invalid_or_incomplete_live_updates_keep_the_last_display_and_retry_failed_bytes()
+    {
+        let mut index = Index::new(String::new());
+        let manifest = b"items: [{file: mesh.pb}]";
+        let raw = crate::specimen::bytes();
+        index
+            .manifest("scene", None, manifest)
+            .unwrap();
+        assert!(index.replacement(&Scene::empty()).is_err());
+        index
+            .source("mesh.pb", Some("good".into()), &raw)
+            .unwrap();
+        let scene = index
+            .replacement(&Scene::empty())
+            .unwrap()
+            .unwrap();
+        let id = scene.objects()[0].id;
+        assert!(
+            index
+                .source("mesh.pb", Some("bad".into()), b"broken")
+                .is_err()
+        );
+        assert_eq!(index.etag("mesh.pb"), None);
+        assert!(index.replacement(&scene).unwrap().is_none());
+        assert_eq!(scene.objects()[0].id, id);
+        assert!(
+            index
+                .manifest("scene", None, b"invalid: manifest")
+                .is_err()
+        );
+        assert_eq!(index.etag("scene"), None);
+        assert!(
+            index
+                .manifest("scene", None, manifest)
+                .unwrap()
+        );
+        assert!(index.replacement(&scene).unwrap().is_some());
+        let mesh = Rc::downgrade(scene.objects()[0].geometry().unwrap());
+        drop(scene);
+        index
+            .manifest("scene", None, b"items: []")
+            .unwrap();
+        assert!(mesh.upgrade().is_none());
+        assert!(!index.cached("mesh.pb"));
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-66z-fetch-bounded-source-bodies"></a>38. Fetch Bounded Source Payloads
 
-</details>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 38 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/publication_fetch.rs, s…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">request validator</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">bounded stream</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">decoded source bytes</text>
+</svg>
+</div>
 
-<a id="checkpoint-66z-fetch-bounded-source-bodies"></a>
-
-<details>
-<summary>Implementation 66z-fetch-bounded-source-bodies: Fetch bounded source bodies</summary>
-
-Fetch bounded source bodies.
-
-Data flow: request validator → bounded stream → decoded source bytes.
+**What this code does:** Fetch bounded source bodies.
 
 ### 1. `src/publication_fetch.rs`
 
@@ -6604,39 +7502,183 @@ Read cancellable HTTP responses with independent manifest and source byte limits
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66z-fetch-bounded-source-bodies-01.rs"
+use wasm_bindgen::{JsCast, JsValue};
+use wasm_bindgen_futures::JsFuture;
+
+pub struct Response {
+    pub status: u16,
+    pub etag: Option<String>,
+    pub bytes: Vec<u8>,
+}
+pub async fn get(
+    url: &str,
+    etag: Option<String>,
+    limit: usize,
+    signal: &web_sys::AbortSignal,
+) -> Result<Response, String> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let init = web_sys::RequestInit::new();
+    init.set_signal(Some(signal));
+    init.set_cache(web_sys::RequestCache::NoCache);
+    let headers =
+        web_sys::Headers::new().map_err(|_| "Cannot create request headers")?;
+    if let Some(etag) = etag {
+        headers
+            .set("If-None-Match", &etag)
+            .map_err(|_| "Cannot set HTTP validator")?;
+    }
+    init.set_headers(&headers);
+    let started = crate::browser_phase::now();
+    let response = JsFuture::from(window.fetch_with_str_and_init(url, &init))
+        .await
+        .map_err(|error| format!("Fetch failed: {error:?}"))?
+        .dyn_into::<web_sys::Response>()
+        .map_err(|_| "Invalid fetch response")?;
+    let status = response.status();
+    let etag = response
+        .headers()
+        .get("ETag")
+        .map_err(|_| "Cannot read HTTP validator")?;
+    if status == 304 {
+        crate::browser_phase::finish("HTTP unchanged", started, 0, url);
+        return Ok(Response {
+            status,
+            etag,
+            bytes: vec![],
+        });
+    }
+    if !response.ok() {
+        return Ok(Response {
+            status,
+            etag,
+            bytes: vec![],
+        });
+    }
+    if let Some(size) = response
+        .headers()
+        .get("Content-Length")
+        .map_err(|_| "Cannot read source length")?
+    {
+        if size
+            .parse::<u64>()
+            .map_err(|_| "Invalid source length")?
+            > limit as u64
+        {
+            return Err("Response exceeds its byte limit".into());
+        }
+    }
+    let reader = response
+        .body()
+        .ok_or("Source response has no body")?
+        .get_reader()
+        .dyn_into::<web_sys::ReadableStreamDefaultReader>()
+        .map_err(|_| "Cannot read source stream")?;
+    let result = read(&reader, limit).await;
+    if result.is_err() {
+        let _ = JsFuture::from(reader.cancel()).await;
+    }
+    reader.release_lock();
+    let bytes = result?;
+    crate::browser_phase::finish(
+        "HTTP source",
+        started,
+        bytes.len() as u64,
+        url,
+    );
+    Ok(Response {
+        status,
+        etag,
+        bytes,
+    })
+}
+async fn read(
+    reader: &web_sys::ReadableStreamDefaultReader,
+    limit: usize,
+) -> Result<Vec<u8>, String> {
+    let mut bytes = Vec::new();
+    loop {
+        let part = JsFuture::from(reader.read())
+            .await
+            .map_err(|error| format!("Cannot read source: {error:?}"))?;
+        if js_sys::Reflect::get(&part, &JsValue::from_str("done"))
+            .map_err(|_| "Invalid stream reply")?
+            .as_bool()
+            == Some(true)
+        {
+            break;
+        }
+        let chunk = js_sys::Reflect::get(&part, &JsValue::from_str("value"))
+            .map_err(|_| "Missing source chunk")?
+            .dyn_into::<js_sys::Uint8Array>()
+            .map_err(|_| "Invalid source chunk")?;
+        if chunk.length() as usize > limit - bytes.len() {
+            return Err("Response exceeds its byte limit".into());
+        }
+        bytes.extend_from_slice(&chunk.to_vec());
+    }
+    Ok(bytes)
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the browser-only HTTP reader.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-
-pub mod publication_index;
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66z-fetch-bounded-source-bodies-02.rs" skip=28
+#[cfg(target_arch = "wasm32")]
+pub mod publication_fetch;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 ```
 
-</details>
+## <a id="checkpoint-66aa-read-a-complete-url-source-revision"></a>39. Read a Complete URL Source Revision
 
-<a id="checkpoint-66aa-read-a-complete-url-source-revision"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 39 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser_publication.rs,…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">manifest response</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original files</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">complete source revision</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66aa-read-a-complete-url-source-revision: Read a complete URL source revision</summary>
-
-Read a complete URL source revision.
-
-Data flow: manifest response → original files → complete source revision.
+**What this code does:** Read a complete URL source revision.
 
 ### 1. `src/browser_publication.rs`
 
@@ -6645,1035 +7687,712 @@ Read complete original URL sources before publishing a replacement.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/66aa-read-a-complete-url-source-revision-01.rs"
+use crate::{publication_index::Index, publication_route::Route};
+use std::{
+    cell::RefCell,
+    collections::HashSet,
+    rc::{Rc, Weak},
+};
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+async fn read(
+    route: &Route,
+    index: &mut Index,
+    signal: &web_sys::AbortSignal,
+) -> Result<(), String> {
+    let started = crate::browser_phase::now();
+    let mut response = crate::publication_fetch::get(
+        &route.manifest,
+        index.etag(&route.manifest),
+        4 * 1024 * 1024,
+        signal,
+    )
+    .await?;
+    if response.status == 404 && route.manifest.ends_with(".toml") {
+        let yaml = format!(
+            "{}.yaml",
+            route.manifest.trim_end_matches(".toml")
+        );
+        response = crate::publication_fetch::get(
+            &yaml,
+            index.etag(&route.manifest),
+            4 * 1024 * 1024,
+            signal,
+        )
+        .await?;
+    }
+    match response.status {
+        304 if index.has_manifest() => {}
+        200..=299 => {
+            index.manifest(
+                &route.manifest,
+                response.etag,
+                &response.bytes,
+            )?;
+            crate::browser_phase::finish(
+                "manifest",
+                started,
+                response.bytes.len() as u64,
+                &route.manifest,
+            );
+        }
+        status => return Err(format!("Manifest HTTP {status}")),
+    }
+    let mut seen = HashSet::new();
+    for url in index.urls() {
+        if !seen.insert(url.clone())
+            || crate::manifest::immutable_key(&url) && index.cached(&url)
+        {
+            continue;
+        }
+        let response = crate::publication_fetch::get(
+            &url,
+            index.etag(&url),
+            crate::archive::LIMIT,
+            signal,
+        )
+        .await?;
+        match response.status {
+            304 if index.cached(&url) => {}
+            200..=299 => {
+                let started = crate::browser_phase::now();
+                index.source(&url, response.etag, &response.bytes)?;
+                crate::browser_phase::finish(
+                    "decode/validation/display",
+                    started,
+                    response.bytes.len() as u64,
+                    &url,
+                );
+            }
+            status => {
+                index.forget(&url);
+                return Err(format!("Source HTTP {status}: {url}"));
+            }
+        }
+    }
+    Ok(())
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the browser source loader.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 #[cfg(target_arch = "wasm32")]
-pub mod publication_fetch;
+#[wasm_bindgen]
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66aa-read-a-complete-url-source-revision-02.rs" skip=58
+#[cfg(target_arch = "wasm32")]
+pub mod browser_publication;
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen]
 ```
 
-</details>
+## <a id="checkpoint-66ab-own-cancel-the-url-loader"></a>40. Manage and Cancel the URL Loader
 
-<a id="checkpoint-66ab-own-cancel-the-url-loader"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 40 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser_publication.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">runtime owner</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cancellation</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source release</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66ab-own-cancel-the-url-loader: Own and cancel the URL loader</summary>
-
-Own and cancel the URL loader.
-
-Data flow: runtime owner → request ticket → cancellation → source release.
+**What this code does:** Own and cancel the URL loader.
 
 ### 1. `src/browser_publication.rs`
 
 Own the URL source cache, pending adoption and complete cancellation lifecycle.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-use std::{cell::RefCell,collections::HashSet,rc::{Rc,Weak}};
-use wasm_bindgen::{JsCast,JsValue,closure::Closure};
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
-async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Result<(),String> {
+async fn read(
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66ab-own-cancel-the-url-loader-01.rs"
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+struct State {
+    active: bool,
+    inflight: bool,
+    again: bool,
+    gate: crate::read_gate::ReadGate,
+    abort: Option<web_sys::AbortController>,
+    route: Route,
+    index: Option<Index>,
+    document: crate::drawing_document::Shared,
+    fault: crate::gpu_fault::Fault,
+    delivery: Option<Result<Box<crate::scene::Scene>, String>>,
+    last_error: Option<String>,
+    timer: Option<i32>,
+    tick: Option<Closure<dyn FnMut()>>,
+    notify: Option<web_sys::EventSource>,
+    message: Option<Closure<dyn FnMut(web_sys::MessageEvent)>>,
+}
+pub struct Publication(Option<Rc<RefCell<State>>>);
+#[derive(Clone)]
+pub struct Control(Option<Weak<RefCell<State>>>);
+impl Publication {
+    pub fn new(
+        document: crate::drawing_document::Shared,
+        fault: crate::gpu_fault::Fault,
+    ) -> Result<Self, JsValue> {
+        let window = web_sys::window().ok_or("No browser window")?;
+        let url = web_sys::Url::new(&window.location().href()?)?;
+        let q = url.search_params();
+        let scene = q.get("scene");
+        let data = q.get("data");
+        let live = q.get("live");
+        let poll = q.get("poll");
+        let notify = q.get("notify");
+        let Some(route) = crate::publication_route::select(
+            scene.as_deref(),
+            &window.location().pathname()?,
+            data.as_deref(),
+            live.as_deref(),
+            poll.as_deref(),
+            notify.as_deref(),
+        ) else {
+            return Ok(Self(None));
+        };
+        let index = Index::new(route.base.clone());
+        Ok(Self(Some(Rc::new(RefCell::new(State {
+            active: true,
+            inflight: false,
+            again: false,
+            gate: Default::default(),
+            abort: None,
+            route,
+            index: Some(index),
+            document,
+            fault,
+            delivery: None,
+            last_error: None,
+            timer: None,
+            tick: None,
+            notify: None,
+            message: None,
+        })))))
+    }
+    pub fn control(&self) -> Control {
+        Control(self.0.as_ref().map(Rc::downgrade))
+    }
+}
+impl Drop for Publication {
+    fn drop(&mut self) {
+        self.control().cancel();
+    }
+}
+impl Control {
+    fn state(&self) -> Option<Rc<RefCell<State>>> {
+        self.0.as_ref()?.upgrade()
+    }
+    pub fn cancel(&self) {
+        let Some(state) = self.state() else {
+            return;
+        };
+        let mut state = state.borrow_mut();
+        state.active = false;
+        state.gate.cancel();
+        state.delivery = None;
+        state.index = None;
+        if let Some(abort) = state.abort.take() {
+            abort.abort();
+        }
+        if let Some(id) = state.timer.take() {
+            if let Some(window) = web_sys::window() {
+                window.clear_interval_with_handle(id);
+            }
+        }
+        if let Some(source) = state.notify.take() {
+            source.set_onmessage(None);
+            source.close();
+        }
+        state.message = None;
+        state.tick = None;
+    }
+    pub fn take(&self) -> Result<Option<crate::editor::Action>, String> {
+        let Some(state) = self.state() else {
+            return Ok(None);
+        };
+        let mut state = state.borrow_mut();
+        if !state.active {
+            state.delivery = None;
+            return Ok(None);
+        }
+        state
+            .delivery
+            .take()
+            .transpose()
+            .map(|scene| scene.map(crate::editor::Action::Live))
+    }
+}
+
+async fn read(
 ```
 
-</details>
+## <a id="checkpoint-66ac-accept-only-current-url-completions"></a>41. Accept Current URL Completions
 
-<a id="checkpoint-66ac-accept-only-current-url-completions"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 41 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser_publication.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one request</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">valid candidate</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current runtime</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66ac-accept-only-current-url-completions: Accept only current URL completions</summary>
-
-Accept only current URL completions.
-
-Data flow: one request → latest ticket → valid candidate → current runtime.
+**What this code does:** Accept only current URL completions.
 
 ### 1. `src/browser_publication.rs`
 
 Accept only a current complete revision and coalesce announced rereads.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 }
 
-async fn read(route:&Route,index:&mut Index,signal:&web_sys::AbortSignal)->Result<(),String> {
-    let started=crate::browser_phase::now();let mut response=crate::publication_fetch::get(&route.manifest,index.etag(&route.manifest),4*1024*1024,signal).await?;
+async fn read(
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66ac-accept-only-current-url-completions-01.rs"
+}
+
+fn poll(state: Rc<RefCell<State>>) {
+    let mut owner = state.borrow_mut();
+    if !owner.active
+        || !crate::browser_runtime::owns(&owner.fault)
+        || owner.fault.message().is_some()
+    {
+        return;
+    }
+    if owner.inflight {
+        owner.again = true;
+        return;
+    }
+    let Ok(abort) = web_sys::AbortController::new() else {
+        return;
+    };
+    let Ok(ticket) = owner.gate.begin() else {
+        return;
+    };
+    let Some(mut index) = owner.index.take() else {
+        return;
+    };
+    owner.inflight = true;
+    owner.abort = Some(abort.clone());
+    let route = owner.route.clone();
+    drop(owner);
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = read(&route, &mut index, &abort.signal()).await;
+        let mut owner = state.borrow_mut();
+        let current = owner.active
+            && owner.gate.finish(ticket)
+            && crate::browser_runtime::owns(&owner.fault)
+            && owner.fault.message().is_none();
+        owner.inflight = false;
+        owner.abort = None;
+        if !current {
+            return;
+        }
+        let outcome =
+            result.and_then(|()| index.replacement(&owner.document.borrow().scene));
+        owner.index = Some(index);
+        let changed = match outcome {
+            Ok(Some(scene)) => {
+                owner.last_error = None;
+                owner.delivery = Some(Ok(Box::new(scene)));
+                true
+            }
+            Ok(None) => false,
+            Err(error) => {
+                if owner.last_error.as_ref() == Some(&error) {
+                    false
+                } else {
+                    let _ = crate::browser_report::observe("publication", &error);
+                    owner.last_error = Some(error.clone());
+                    owner.delivery = Some(Err(error));
+                    true
+                }
+            }
+        };
+        let again = std::mem::take(&mut owner.again);
+        drop(owner);
+        if changed {
+            if let Some(window) = web_sys::window() {
+                if let Ok(event) = web_sys::Event::new("viewer-publication") {
+                    let _ = window.dispatch_event(&event);
+                }
+            }
+        }
+        if again {
+            poll(state);
+        }
+    });
+}
+
+async fn read(
 ```
 
-</details>
+## <a id="checkpoint-66ad-watch-published-source-changes"></a>42. Poll Published Source Updates
 
-<a id="checkpoint-66ad-watch-published-source-changes"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 42 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser_publication.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">poll interval</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">coalesced read</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shutdown</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66ad-watch-published-source-changes: Watch published source changes</summary>
-
-Watch published source changes.
-
-Data flow: poll interval → announcement → coalesced read → shutdown.
+**What this code does:** Watch published source changes.
 
 ### 1. `src/browser_publication.rs`
 
 Start source polling and notification requests with explicit runtime cleanup.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-impl Control {
-    fn state(&self)->Option<Rc<RefCell<State>>> {self.0.as_ref()?.upgrade()}
+    }
     pub fn cancel(&self) {
-        let Some(state)=self.state() else {return;};let mut state=state.borrow_mut();state.active=false;state.gate.cancel();state.delivery=None;state.index=None;
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/66ad-watch-published-source-changes-01.rs"
+    }
+    pub fn begin(&self) {
+        let Some(state) = self.state() else {
+            return;
+        };
+        let Some(window) = web_sys::window() else {
+            return;
+        };
+        let route = state.borrow().route.clone();
+        if let Some(ms) = route.poll_ms {
+            let weak = Rc::downgrade(&state);
+            let callback = Closure::<dyn FnMut()>::new(move || {
+                if let Some(state) = weak.upgrade() {
+                    poll(state);
+                }
+            });
+            match window.set_interval_with_callback_and_timeout_and_arguments_0(
+                callback.as_ref().unchecked_ref(),
+                ms,
+            ) {
+                Ok(id) => {
+                    let mut state = state.borrow_mut();
+                    state.timer = Some(id);
+                    state.tick = Some(callback);
+                }
+                Err(error) => crate::browser::report(&format!(
+                    "Cannot schedule live polling: {error:?}"
+                )),
+            }
+            if let Some(url) = route.notify {
+                if let Ok(source) = web_sys::EventSource::new(&url) {
+                    let weak = Rc::downgrade(&state);
+                    let callback =
+                        Closure::<dyn FnMut(web_sys::MessageEvent)>::new(move |_| {
+                            if let Some(state) = weak.upgrade() {
+                                poll(state);
+                            }
+                        });
+                    source.set_onmessage(Some(callback.as_ref().unchecked_ref()));
+                    let mut state = state.borrow_mut();
+                    state.notify = Some(source);
+                    state.message = Some(callback);
+                }
+            }
+        }
+        poll(state);
+    }
+    pub fn cancel(&self) {
 ```
 
-</details>
+## <a id="checkpoint-66ae-inspect-published-source-identities"></a>43. Inspect Published Source IDs
 
-<a id="checkpoint-66ae-inspect-published-source-identities"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 43 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original source row</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">compact diagnostics</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">source assertions</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 66ae-inspect-published-source-identities: Inspect published source identities</summary>
-
-Inspect published source identities.
-
-Data flow: original source row → compact diagnostics → source assertions.
+**What this code does:** Inspect published source identities.
 
 ### 1. `src/browser.rs`
 
 Report compact original source and presentation identities without serializing large coordinate columns.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-<details>
-<summary>Locate this block</summary>
+**Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-cloud-gpu",&serde_json::to_string(&renderer.cloud_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-error",&renderer.cloud_error().unwrap_or_default())?;
-    canvas.set_attribute("data-cloud-sources",&serde_json::json!(editor.scene.clouds().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid(),"points":row.prepared.source.len(),"nodes":row.prepared.nodes.len(),"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-surface-outline",&serde_json::to_string(&renderer.outline_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-cloud-gpu",&serde_json::to_string(&renderer.cloud_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-error",&renderer.cloud_error().unwrap_or_default())?;
-    canvas.set_attribute("data-cloud-sources",&serde_json::json!(editor.scene.clouds().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid(),"point_size":row.prepared.source.point_size,"point_px":row.point_px,"points":row.prepared.source.len(),"nodes":row.prepared.nodes.len(),"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-surface-outline",&serde_json::to_string(&renderer.outline_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id));
+        )
+        .chain(editor.scene.texts().iter().map(|row| row.id));
     let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
     canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id)).chain(editor.scene.clouds().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
-    wasm_bindgen_futures::spawn_local(async move {
-        if crate::browser_runtime::stop_if(&fault) {
-            crate::browser_report::fatal(&message);
-            if crate::browser_recovery::request(&message) { return; }
-            report(&format!("Cannot draw: {message}"));
-        }
-    });
-}
-
-fn save_result(bytes: &[u8]) -> Result<String, String> {
-    crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
-        .map_err(|error| format!("Save failed: {error:?}"))
-}
-
-pub async fn run() -> Result<(), JsValue> { run_with(crate::drawing_document::new()).await }
-
-pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let recovery = crate::browser_recovery::adopt()?;
-    crate::browser_report::start()?;
-    let startup = crate::browser_startup::Guard::new()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter_started = crate::browser_phase::now();
-    let probe = crate::browser_adapter::Probe::new().ok();
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await;
-    if !startup.permits() { return Ok(()); }
-    crate::browser_phase::finish("adapter request", adapter_started, 0, "GPU");
-    let adapter = adapter.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    if let Some(info) = probe.as_ref().and_then(|probe| probe.info()) { let _ = crate::browser_report::adapter(info); }
-    else { let _ = crate::browser_report::observe("diagnostic", "Adapter identity unavailable"); }
-    drop(probe);
-    let device_started = crate::browser_phase::now();
-    let device = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await;
-    if !startup.permits() {
-        if let Ok((device, _)) = device { device.destroy(); }
-        return Ok(());
-    }
-    crate::browser_phase::finish("device request", device_started, 0, "GPU");
-    let (device, queue) = device.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let fault = crate::gpu_fault::Fault::default();
-    let errors = fault.clone();
-    device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
-    let lost = fault.clone();
-    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = shared.borrow_mut();
-    let pipeline_started = crate::browser_phase::now();
-    let text_fonts=std::rc::Rc::new(crate::text_fonts::Inbox::default());
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    crate::browser_phase::finish("renderer setup", pipeline_started, 0, "GPU");
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        crate::commands::names(),
-    );
-    if let Some(message) = crate::browser_report::previous_notice() { panel.result(message); }
-    if let Some(message) = &recovery { panel.result(message); }
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        let frame_started = crate::browser_phase::now();
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            editor.normal_view,
-            &mut panel,
-        )?;
-        let completing = fault.clone();
-        // Queue completion runs after submitted GPU work; checking the current device prevents a late result from reviving an exited runtime.
-        renderer.queue.on_submitted_work_done(move || {
-            if crate::browser_runtime::owns(&completing) && completing.message().is_none() {
-                crate::browser_phase::finish("first frame complete", frame_started, 0, "GPU");
-                let _ = crate::browser_report::observe("milestone", "geometry on screen");
-            }
-        });
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let mut touch=crate::touch::Touch::default();
-    let pick_remove=std::cell::Cell::new(false);
-    let pick_additive = std::rc::Rc::new(std::cell::Cell::new(false));
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let owned_request = std::rc::Rc::clone(&request);
-    let owned_reload = std::rc::Rc::clone(&reload);
-    let active_fault = fault.clone();
-    drop(editor);
-    let owned_editor = std::rc::Rc::clone(&shared);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if active_fault.message().is_some() { return; }
-        let mut editor = shared.borrow_mut();
-        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
-        if event.type_() == "pagehide" {
-            gesture.cancel();touch.cancel();let _=editor.apply(Action::CanvasCancel); let _=editor.apply(Action::GizmoCancel);
-            crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
-            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
-            return;
-        }
-        if matches!(event.type_().as_str(),"blur"|"resize"|"pointercancel")||event.dyn_ref::<web_sys::KeyboardEvent>().is_some_and(|key|key.key()=="Escape"&&!key.is_composing()) {
-            gesture.cancel();touch.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
-        }
-        if event.type_()=="lostpointercapture"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|editor.canvas_drag.as_ref().is_some_and(|d|d.pointer==p.pointer_id()&&d.released.is_none())) {
-            gesture.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
-        }
-        if event.type_()=="pointerdown"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.is_primary())&&editor.canvas_drag.as_ref().is_none_or(|d|d.released.is_some()) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let navigation=if line.is_none()&&!panel.consumed {navigation_action(&event,&pointer_canvas,&mut gesture,&mut touch)} else {None};
-        let line=if gesture.take_repeat() {event.prevent_default();if editor.draft.is_some()||editor.gizmo_edit.is_some() {Some(String::new())} else {panel.repeat_line()}} else {line};
-        let line = if (editor.draft.is_some() || editor.gizmo_edit.is_some()) && event.dyn_ref::<web_sys::KeyboardEvent>()
-            .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
-            event.prevent_default(); gesture.cancel(); Some("Escape".into())
-        } else { line };
-
-        let mut highlight_changed = false;
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
-                match reply.complete(&mut editor) {
-                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
-                        highlight_changed = true;
-                        crate::browser_upload::prepare(&mut renderer, editor.display_scene(), editor.whole_selection(), active_fault.clone());
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if command == "Reload Sources" {
-                            "Editable sources restored; display retained.".to_owned()
-                        } else { format!("{command} completed after source reload.") };
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
-                        let message = save_result(&bytes).unwrap_or_else(|error| error);
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(None) => {}
-                    Err(error) => { report(&error); panel.answer(command, &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            let command = editor.tool_line(&line).map(|result| result.map(crate::commands::Command::Editor).map_err(str::to_owned))
-                .unwrap_or_else(|| crate::commands::parse(&line));
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-            Ok(crate::commands::Command::Host(host)) => {
-            use crate::commands::Host;
-            match host {
-            Host::TextDemo=>{if let Err(error)=renderer.text_demo() {panel.result(&error.to_string());}None},
-            Host::Help => { panel.result(&crate::commands::names().join(" · ")); None }
-            Host::Selection => {
-                let rows = editor.selected_objects();
-                panel.result(&if rows.len() > 1 { format!("Objects {:?}", rows.iter().map(|id| id.value()).collect::<Vec<_>>()) }
-                    else { editor.selection().map_or_else(|| "Nothing selected".to_owned(), |target| target.describe()) });
-                None
-            }
-            Host::Reload => {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            }
-            Host::CancelReload => {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            }
-            Host::CancelOpen => {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            }
-            Host::Open | Host::Replace => {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if host == Host::Replace { reload.borrow_mut().cancel(); }
-                read_mode.set(if host == Host::Replace { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            }
-            Host::Report | Host::PreviousReport => {
-                let output = if host == Host::PreviousReport { crate::browser_report::download_previous() }
-                    else { crate::browser_report::download() };
-                let result = output.map(|()| "Diagnostic report downloaded.".to_owned())
-                    .unwrap_or_else(|error| format!("Diagnostic report failed: {error:?}"));
-                panel.result(&result);
-                None
-            }
-            Host::LayersOn=>{panel.tree.open=true;None},
-            Host::LayersOff=>{panel.tree.open=false;None},
-            Host::LayersAll=>{panel.tree.all();None},
-            Host::Save => {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::document::snapshot(&editor.scene).map_err(str::to_owned)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-                None
-            }
-            }
-            }
-            }
-        } else if !panel.consumed {
-            navigation
-        } else {
-            None
-        };
-        let handle_action=gizmo_action(&event,&pointer_canvas,&editor,panel.consumed);
-        let action = if let Some((key,edit))=panel.tree.edit.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::LayerEdit {key,edit})
-        } else if let Some((key,property))=panel.tree.property.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::LayerProperty {key,property})
-        } else if let Some((ids,additive))=panel.tree.action.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::TreePick {ids,additive})
-        } else if let Some(handle_action)=handle_action {
-            renderer.cancel_pick();gesture.cancel();Some(handle_action)
-        } else if event.type_() == "viewer-pick" {
-            match renderer.take_pick(editor.camera.uniform()) {
-                Some(Ok(hit)) => {
-                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
-                    if editor.canvas_drag.is_some() {Some(Action::CanvasHit(target.map(|t|t.owner)))}
-                    else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
-                    else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
-                },
-                Some(Err(error)) => { report(error); None },
-                None => None,
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) if editor.draft.is_some() => {
-                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
-            }
-            None if editor.draft.is_some() && matches!(event.type_().as_str(), "blur" | "resize" | "pointercancel" | "lostpointercapture") => Some(Action::ToolHover(None)),
-            None if editor.draft.is_some() && !panel.consumed && event.type_() == "pointermove" => {
-                event.dyn_ref::<web_sys::PointerEvent>().filter(|p| p.buttons() == 0).map(|p| {
-                    let r = pointer_canvas.get_bounding_client_rect();
-                    let screen = [(2. * (p.client_x() as f64-r.left())/r.width()-1.) as f32, (1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32];
-                    Action::ToolScreen { screen,size:[r.width(),r.height()],commit:false }
-                })
-            }
-            Some(Action::Touch(actions))=> {
-                let mut applied=Vec::new();
-                for action in actions {match action {
-                    Action::Pick(screen)=>{if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()) {report(error);}}},
-                    action=>{renderer.cancel_pick();applied.push(action);}
-                }}Some(Action::Touch(applied))
-            },
-            Some(Action::CanvasStart {from,to,size,modified,pointer}) if editor.draft.is_none()=> {
-                renderer.cancel_pick();
-                let modified=modified||editor.pick_mode!=crate::pick_sources::Mode::Object;
-                let start=Action::CanvasStart {from,to,size,modified,pointer};
-                let release=event.dyn_ref::<web_sys::PointerEvent>().filter(|_|event.type_()=="pointerup").map(|pointer|Action::CanvasRelease {screen:to,size,add:pointer.shift_key(),remove:pointer.ctrl_key()||pointer.meta_key()});
-                if !modified {if let Err(error)=renderer.request_pick(from,editor.camera.uniform()) {report(error);return;}}
-                Some(Action::Touch(std::iter::once(start).chain(release).collect()))
-            },
-            Some(Action::CanvasStart {..}|Action::CanvasMove {..}|Action::CanvasRelease {..}) if editor.draft.is_some()=>None,
-            Some(action @ (Action::CanvasMove {..}|Action::CanvasRelease {..}))=>Some(action),
-            Some(Action::Pick(screen)) => {
-                pick_remove.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.ctrl_key()||p.meta_key()));
-                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
-                if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
-                None
-            }
-            Some(action) => { renderer.cancel_pick(); Some(action) },
-            None => None,
-        } };
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = if editor.selected_objects().len() > 1 { Ok(None) }
-                else { crate::edit_intent::Intent::capture(&action, editor.whole_selection()) }
-                .map_err(str::to_owned).and_then(|intent| match intent {
-                    Some(intent) => crate::browser_reload::restore_for(intent, &editor,
-                        std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
-                    None => Ok(false),
-                });
-            let change = waiting.and_then(|waiting| {
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            if rename_action {panel.tree.rename_result(change.as_ref().err().map(String::as_str));}
-            if tool_action && change.is_ok() { panel.result(&editor.tool_status); }
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    highlight_changed = true;
-                    crate::browser_upload::prepare(&mut renderer, &editor.scene, editor.whole_selection(), active_fault.clone());
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Some(Change::Preview)) => {
-                    highlight_changed=true;
-                    crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());
-                }
-                Ok(Some(Change::View)) | Ok(None) => {}
-                Err(error) => {
-                    report(&error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", &error); }
-                    else { panel.result(&error); }
-                }
-            }
-        }
-        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
-        else { panel.tool(String::new(), Vec::new()); }
-        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
-        renderer.refresh_text_bounds(&mut editor.scene);
-        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
-        let rect=pointer_canvas.get_bounding_client_rect();
-        let number=editor.number_prompt([rect.width(),rect.height()]);
-        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
-            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
-        }
-        panel.rectangle=editor.canvas_drag.as_ref().filter(|d|d.missed).and_then(|d|d.rectangle());
-        panel.number(number);
-        panel.tree.refresh(&editor.scene,editor.selected_objects());
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(editor.pick_mode);
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.selected_objects())) { report(error); return; }
-        }
-        if let Err(error) = renderer.set_grid(editor.camera.grid) {
-            report(error); return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Some(frame)=panel.free_frame([rect.width(),rect.height()]) {if editor.camera.frame(frame) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}}
-            let hover=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|event.type_()=="pointermove" && p.buttons()==0 && !panel.consumed).map(|p| {
-                let r=pointer_canvas.get_bounding_client_rect();
-                ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
-            });
-            editor.hover_gizmo(hover);
-            renderer.set_gizmo(&editor.camera,editor.gizmo_origin(),editor.gizmo_active());
-            renderer.cloud_camera(&editor.camera);
-            if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                editor.normal_view,
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    let mut listeners = crate::listeners::Listeners::new(update);
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        listeners.listen(canvas.as_ref(), name)?;
-    }
-    listeners.listen(canvas.as_ref(), "wheel")?;
-    listeners.listen(window.as_ref(), "resize")?;
-    listeners.listen(window.as_ref(), "blur")?;
-    listeners.listen(document.as_ref(), "change")?;
-    listeners.listen(document.as_ref(), "cancel")?;
-    listeners.listen(window.as_ref(), "viewer-pick")?;
-    listeners.listen(window.as_ref(), "viewer-file")?;
-    listeners.listen(window.as_ref(), "viewer-file-error")?;
-    listeners.listen(window.as_ref(), "viewer-reload")?;
-    listeners.listen(window.as_ref(), "pagehide")?;
-    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault, owned_editor);
-    report(&recovery.unwrap_or_else(|| "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.".into()));
-    Ok(())
-}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id)).chain(editor.scene.clouds().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
+    canvas.set_attribute(
+        "data-camera-frame",
+        &serde_json::to_string(&editor.camera.frame).unwrap(),
+    )?;
     canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
     canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
     canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-cloud-gpu",&serde_json::to_string(&renderer.cloud_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-error",&renderer.cloud_error().unwrap_or_default())?;
+    canvas.set_attribute(
+        "data-row-placements",
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
+        "data-pick-gpu",
+        &serde_json::to_string(&renderer.pick_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-point-gpu",
+        &serde_json::to_string(&renderer.point_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-cloud-cpu",
+        &serde_json::to_string(&crate::memory::clouds(
+            editor.presentation_scenes(),
+        ))
+        .unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-cloud-gpu",
+        &serde_json::to_string(&renderer.cloud_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-cloud-error",
+        &renderer.cloud_error().unwrap_or_default(),
+    )?;
+    canvas.set_attribute("data-cloud-sources",&serde_json::json!(editor.scene.clouds().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid(),"points":row.prepared.source.len(),"nodes":row.prepared.nodes.len(),"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
+    canvas.set_attribute(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        )
+        .chain(editor.scene.texts().iter().map(|row| row.id))
+        .chain(
+            editor
+                .scene
+                .clouds()
+                .iter()
+                .map(|row| row.id),
+        );
+    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
+    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
+    canvas.set_attribute(
+        "data-camera-frame",
+        &serde_json::to_string(&editor.camera.frame).unwrap(),
+    )?;
+    canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
+    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
+    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
+    canvas.set_attribute(
+        "data-row-placements",
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
+        "data-pick-gpu",
+        &serde_json::to_string(&renderer.pick_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-point-gpu",
+        &serde_json::to_string(&renderer.point_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-cloud-cpu",
+        &serde_json::to_string(&crate::memory::clouds(
+            editor.presentation_scenes(),
+        ))
+        .unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-cloud-gpu",
+        &serde_json::to_string(&renderer.cloud_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-cloud-error",
+        &renderer.cloud_error().unwrap_or_default(),
+    )?;
     canvas.set_attribute("data-cloud-sources",&serde_json::json!(editor.scene.clouds().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid(),"point_size":row.prepared.source.point_size,"point_px":row.point_px,"points":row.prepared.source.len(),"nodes":row.prepared.nodes.len(),"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-surface-outline",&serde_json::to_string(&renderer.outline_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-scene-text-gpu",&serde_json::to_string(&renderer.text_scene_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
-    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
-    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
-    let cads=editor.scene.objects().iter().filter_map(|row|row.cad.as_ref().map(|cad|serde_json::json!({"id":row.id.value(),"source":cad.source.guid(),"faces":row.mesh.parts.faces,"edges":cad.edges.iter().map(|border|border.edge).collect::<Vec<_>>(),"vertices":cad.samples.len()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-cads",&serde_json::to_string(&cads).unwrap())?;
-    canvas.set_attribute("data-surface-cpu",&serde_json::to_string(&crate::memory::surfaces(editor.presentation_scenes())).unwrap())?;
-    let surfaces=editor.scene.objects().iter().filter_map(|row|row.surface.as_ref().map(|s|serde_json::json!({"id":row.id.value(),"source":s.source.guid(),"controls":s.source.m_cv_count,"steps":s.grid.steps,"samples":s.grid.samples.len(),"faces":row.mesh.parts.faces,"edges":s.grid.boundaries.iter().map(|b|b.edge).collect::<Vec<_>>()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-surfaces",&serde_json::to_string(&surfaces).unwrap())?;
-    canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
-    canvas.set_attribute("data-point-cpu", &serde_json::to_string(&crate::memory::points(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
-    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
-    canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
-    canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
-    canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
-    canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
-    canvas.set_attribute("data-highlight-bytes", &renderer.highlight_bytes().to_string())?;
-    canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
-    canvas.set_attribute("data-pick-mode", &format!("{:?}", editor.pick_mode))?;
-    canvas.set_attribute("data-part-usage", &serde_json::to_string(&renderer.part_usage()).unwrap())?;
-    canvas.set_attribute("data-selected-ids", &serde_json::to_string(&editor.selected_objects().iter().map(|id| id.value()).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
-    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.presentation_scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-    touch:&mut crate::touch::Touch,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            let rect=canvas.get_bounding_client_rect();
-            let Action::Zoom(factor)=crate::navigation::wheel(wheel.delta_y(),mode,rect.height())? else {return None;};
-            let screen=[(2.*(wheel.client_x() as f64-rect.left())/rect.width()-1.) as f32,(1.-2.*(wheel.client_y() as f64-rect.top())/rect.height()) as f32];
-            Some(Action::ZoomAt {factor,screen})
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _=>{
-            if let Some(pointer)=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|p.pointer_type()=="touch") {
-                event.prevent_default();let r=canvas.get_bounding_client_rect();let rect=[r.left(),r.top(),r.width(),r.height()];let at=[pointer.client_x() as f64,pointer.client_y() as f64];let id=pointer.pointer_id();
-                let actions=match event.type_().as_str() {
-                    "pointerdown"=>{gesture.cancel();let multiple=touch.count()>0;if touch.press(id,at,event.time_stamp()) {if canvas.set_pointer_capture(id).is_err() {touch.cancel();}}if multiple {vec![Action::GizmoCancel,Action::CanvasCancel]} else {Vec::new()}},
-                    "pointermove"=>touch.move_to(id,at,rect),
-                    "pointerup"=>{let actions=touch.release(id,at,event.time_stamp(),rect);let _=canvas.release_pointer_capture(id);actions},
-                    "pointercancel"=>{touch.cancel();Vec::new()},"lostpointercapture"=>{if touch.contains(id) {touch.cancel();}Vec::new()},_=>Vec::new(),
-                };return (!actions.is_empty()).then_some(Action::Touch(actions));
-            }
-            return pointer_action(event,canvas,gesture);
-        },
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press_with(id, pointer.button(), position,pointer.ctrl_key()||pointer.meta_key()) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    let mut action=motion.action([rect.left(),rect.top(),rect.width(),rect.height()])?;
-    match &mut action {
-        Action::CanvasStart {modified,pointer:id,..}=>{*id=pointer.pointer_id();*modified=pointer.shift_key()||pointer.ctrl_key()||pointer.meta_key();},
-        Action::CanvasRelease {add,remove,..}=>{*add=pointer.shift_key();*remove=pointer.ctrl_key()||pointer.meta_key();},_=>{}
-    }Some(action)
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let density = crate::browser_recovery::density(window.device_pixel_ratio());
-    renderer.set_density(density as f32);
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        density,
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    normals: bool,
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw_mode(&view, background, transform, normals);
-    if let Some(error)=renderer.cloud_error() {panel.result(&format!("Cloud: {error}"));}
-    if let Some(error)=renderer.text_error() {panel.result(&format!("Text: {error}"));}
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-
-fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:&Editor,consumed:bool)->Option<Action> {
-    if matches!(event.type_().as_str(),"blur"|"resize") && editor.gizmo_edit.is_some() {return Some(Action::GizmoCancel);}
-    let pointer=event.dyn_ref::<web_sys::PointerEvent>()?;
-    if matches!(event.type_().as_str(),"pointercancel"|"lostpointercapture") {
-        return editor.gizmo_edit.as_ref().filter(|e|e.pointer==Some(pointer.pointer_id())).map(|_|Action::GizmoCancel);
-    }
-    let rect=canvas.get_bounding_client_rect();let size=[rect.width(),rect.height()];
-    if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-    let screen=[(2.*(pointer.client_x() as f64-rect.left())/size[0]-1.) as f32,(1.-2.*(pointer.client_y() as f64-rect.top())/size[1]) as f32];
-    let id=pointer.pointer_id();
-    if editor.gizmo_edit.as_ref().is_some_and(|e|e.pointer==Some(id)) {
-        event.prevent_default();
-        return match event.type_().as_str() {
-            "pointermove"=>Some(Action::GizmoMove {pointer:id,screen,size,shift:pointer.shift_key()}),
-            "pointerup"=>{let _=canvas.release_pointer_capture(id);Some(Action::GizmoRelease {pointer:id,screen,size,shift:pointer.shift_key()})},
-            _=>None,
-        };
-    }
-    if consumed || event.type_()!="pointerdown" || !pointer.is_primary() || pointer.button()!=0 {return None;}
-    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {return None;}
-    let finger=pointer.pointer_type()=="touch";
-    if editor.gizmo_hit_radius(screen,size,if finger {18.} else {8.}).is_some() {
-        event.prevent_default();
-        if canvas.set_pointer_capture(id).is_err() {return Some(Action::GizmoCancel);}
-        Some(if finger {Action::GizmoTouch {pointer:id,screen,size}} else {Action::GizmoPress {pointer:id,screen,size,modified:false}})
-    } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
-}
+    canvas.set_attribute(
 ```
 
-</details>
+## <a id="checkpoint-66af-connect-browser-save-open-url-adoption"></a>44. Wire Browser Save, Open, and URL Loading
 
-<details>
-<summary>Optional patch references</summary>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 44 of 44</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/browser_runtime.rs, src…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original source archive</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">file or URL adoption</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/manifest.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">drawing and release</text>
+</svg>
+</div>
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66ae-inspect-published-source-identities-01.rs"
-```
-
-```text
---8<-- "journey/code/66ae-inspect-published-source-identities-02.rs"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-66af-connect-browser-save-open-url-adoption"></a>
-
-<details>
-<summary>Implementation 66af-connect-browser-save-open-url-adoption: Connect browser save open and URL adoption</summary>
-
-Connect browser save open and URL adoption.
-
-Data flow: original source archive → file or URL adoption → drawing and release.
+**What this code does:** Connect browser save open and URL adoption.
 
 ### 1. `src/browser_runtime.rs`
 
 Connect original source publication through the current browser runtime and command flow.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-use crate::{browser_reload::Shared, listeners::Listeners, read_gate::ReadGate};
-use std::{cell::RefCell, rc::Rc};
-
-struct Runtime {
     _listeners: Listeners,
     request: Rc<RefCell<ReadGate>>,
     reload: Shared,
@@ -7690,47 +8409,21 @@ impl Drop for Runtime {
 
 thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
 
-pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared, fault: crate::gpu_fault::Fault,
+pub fn install(
+    listeners: Listeners,
+    request: Rc<RefCell<ReadGate>>,
+    reload: Shared,
+    fault: crate::gpu_fault::Fault,
     document: crate::drawing_document::Shared,
 ) {
-    ACTIVE.with(|slot| slot.replace(Some(Runtime { _listeners: listeners, request, reload, fault, document })));
-}
-
-pub fn document(fault: &crate::gpu_fault::Fault) -> Option<crate::drawing_document::Shared> {
-    ACTIVE.with(|slot| slot.borrow().as_ref().filter(|runtime| runtime.fault.same_device(fault))
-        .map(|runtime| Rc::clone(&runtime.document)))
-}
-
-pub fn owns(fault: &crate::gpu_fault::Fault) -> bool {
-    ACTIVE.with(|slot| slot.borrow().as_ref().is_some_and(|runtime| runtime.fault.same_device(fault)))
-}
-
-pub fn stop_if(fault: &crate::gpu_fault::Fault) -> bool {
-    let owner = ACTIVE.with(|slot| {
-        let mut current = slot.borrow_mut();
-        if current.as_ref().is_some_and(|runtime| runtime.fault.same_device(fault)) { current.take() }
-        else { None }
-    });
-    owner.is_some()
-}
-
-pub fn stop() -> bool {
-    ACTIVE.with(|slot| slot.borrow_mut().take()).is_some()
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn runtime_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
+    ACTIVE.with(|slot| {
+        slot.replace(Some(Runtime {
+            _listeners: listeners,
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{browser_reload::Shared, listeners::Listeners, read_gate::ReadGate};
-use std::{cell::RefCell, rc::Rc};
-
-struct Runtime {
     _listeners: Listeners,
     _publication: crate::browser_publication::Publication,
     request: Rc<RefCell<ReadGate>>,
@@ -7748,52 +8441,19 @@ impl Drop for Runtime {
 
 thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
 
-pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared, fault: crate::gpu_fault::Fault,
-    document: crate::drawing_document::Shared, publication: crate::browser_publication::Publication,
+pub fn install(
+    listeners: Listeners,
+    request: Rc<RefCell<ReadGate>>,
+    reload: Shared,
+    fault: crate::gpu_fault::Fault,
+    document: crate::drawing_document::Shared,
+    publication: crate::browser_publication::Publication,
 ) {
-    ACTIVE.with(|slot| slot.replace(Some(Runtime { _publication: publication, _listeners: listeners, request, reload, fault, document })));
-}
-
-pub fn document(fault: &crate::gpu_fault::Fault) -> Option<crate::drawing_document::Shared> {
-    ACTIVE.with(|slot| slot.borrow().as_ref().filter(|runtime| runtime.fault.same_device(fault))
-        .map(|runtime| Rc::clone(&runtime.document)))
-}
-
-pub fn owns(fault: &crate::gpu_fault::Fault) -> bool {
-    ACTIVE.with(|slot| slot.borrow().as_ref().is_some_and(|runtime| runtime.fault.same_device(fault)))
-}
-
-pub fn stop_if(fault: &crate::gpu_fault::Fault) -> bool {
-    let owner = ACTIVE.with(|slot| {
-        let mut current = slot.borrow_mut();
-        if current.as_ref().is_some_and(|runtime| runtime.fault.same_device(fault)) { current.take() }
-        else { None }
-    });
-    owner.is_some()
-}
-
-pub fn stop() -> bool {
-    ACTIVE.with(|slot| slot.borrow_mut().take()).is_some()
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn runtime_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
+    ACTIVE.with(|slot| {
+        slot.replace(Some(Runtime {
+            _publication: publication,
+            _listeners: listeners,
 ```
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-01.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-02.rs"
-```
-
-</details>
 
 ### 2. `src/file_input.rs`
 
@@ -7801,179 +8461,107 @@ Connect original source publication through the current browser runtime and comm
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    result.map(|_| ())
-}
-
-pub fn action(event: &web_sys::Event, delivery: &Delivery) -> Result<Option<crate::editor::Action>, JsValue> {
-    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else { return Ok(None); };
-    let Ok(payload) = event.detail().dyn_into::<js_sys::Array>() else { return Ok(None); };
-    if payload.length() != 2 { return Ok(None); }
-    let Some(replace) = payload.get(0).as_bool() else { return Ok(None); };
-    let Ok(array) = payload.get(1).dyn_into::<js_sys::Uint8Array>() else { return Ok(None); };
-    if array.length() as usize > crate::document::MAX_BYTES { return Ok(None); }
-    let Some(file) = delivery.borrow_mut().take() else { return Ok(None); };
-    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(&file)?);
-    Ok(Some(if replace { crate::editor::Action::ReplaceAt(array.to_vec(), location) }
-        else { crate::editor::Action::ImportAt(array.to_vec(), location) }))
-}
+    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(
+        &file,
+    )?);
+    Ok(Some(if replace {
+        crate::editor::Action::ReplaceAt(array.to_vec(), location)
+    } else {
+        crate::editor::Action::ImportAt(array.to_vec(), location)
+    }))
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    result.map(|_| ())
-}
-
-pub fn action(event: &web_sys::Event, delivery: &Delivery, scene: &crate::scene::Scene) -> Result<Option<crate::editor::Action>, JsValue> {
-    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else { return Ok(None); };
-    let Ok(payload) = event.detail().dyn_into::<js_sys::Array>() else { return Ok(None); };
-    if payload.length() != 2 { return Ok(None); }
-    let Some(replace) = payload.get(0).as_bool() else { return Ok(None); };
-    let Ok(array) = payload.get(1).dyn_into::<js_sys::Uint8Array>() else { return Ok(None); };
-    if array.length() as usize > crate::archive::LIMIT { return Ok(None); }
-    let Some(file) = delivery.borrow_mut().take() else { return Ok(None); };
-    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(&file)?);
-    let bytes=array.to_vec();let replace=replace||bytes.starts_with(crate::archive::MAGIC);
-    let ready=crate::publication::prepare(scene,&bytes,replace,Some(location)).map_err(|error|JsValue::from_str(&error))?;
-    Ok(Some(crate::editor::Action::Adopt {scene:Box::new(ready),replace}))
-}
+    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(
+        &file,
+    )?);
+    let bytes = array.to_vec();
+    let replace = replace || bytes.starts_with(crate::archive::MAGIC);
+    let ready = crate::publication::prepare(scene, &bytes, replace, Some(location))
+        .map_err(|error| JsValue::from_str(&error))?;
+    Ok(Some(crate::editor::Action::Adopt {
+        scene: Box::new(ready),
+        replace,
+    }))
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        if request.borrow().pending() != Some(id) { return; }
+    else {
+        return Ok(None);
+    };
+    if array.length() as usize > crate::document::MAX_BYTES {
+        return Ok(None);
+    }
+    let Some(file) = delivery.borrow_mut().take() else {
+```
+
+Replace it with:
+
+```rust
+    else {
+        return Ok(None);
+    };
+    if array.length() as usize > crate::archive::LIMIT {
+        return Ok(None);
+    }
+    let Some(file) = delivery.borrow_mut().take() else {
+```
+
+**Locate this block:**
+
+```rust
+pub fn action(
+    event: &web_sys::Event,
+    delivery: &Delivery,
+) -> Result<Option<crate::editor::Action>, JsValue> {
+    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else {
+        return Ok(None);
+```
+
+Replace it with:
+
+```rust
+pub fn action(
+    event: &web_sys::Event,
+    delivery: &Delivery,
+    scene: &crate::scene::Scene,
+) -> Result<Option<crate::editor::Action>, JsValue> {
+    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else {
+        return Ok(None);
+```
+
+**Locate this block:**
+
+```rust
+        }
         if file.size() > crate::document::MAX_BYTES as f64 {
             let accepted = request.borrow_mut().finish(id);
-            if accepted { failure("This checkpoint accepts files up to 4 MiB"); }
+            if accepted {
+                failure("This checkpoint accepts files up to 4 MiB");
+            }
             return;
         }
-        let started = crate::browser_phase::now();
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        if request.borrow().pending() != Some(id) { return; }
+        }
         if file.size() > crate::archive::LIMIT as f64 {
             let accepted = request.borrow_mut().finish(id);
-            if accepted { failure("Session exceeds the 512 MiB file limit"); }
+            if accepted {
+                failure("Session exceeds the 512 MiB file limit");
+            }
             return;
         }
-        let started = crate::browser_phase::now();
 ```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::{JsCast, JsValue};
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Mode { Append, Replace }
-
-pub type Delivery = Rc<RefCell<Option<web_sys::File>>>;
-
-pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>, mode: Mode, delivery: Delivery) {
-    let Some(input) = event.target().and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return; };
-    if input.id() != "open" { return; }
-    let Some(file) = input.files().and_then(|files| files.get(0)) else { request.borrow_mut().cancel(); return; };
-    input.set_value("");
-    let Some(id) = request.borrow().pending() else { return; };
-    super::browser::report("Reading the selected file…");
-    wasm_bindgen_futures::spawn_local(async move {
-        if request.borrow().pending() != Some(id) { return; }
-        if file.size() > crate::archive::LIMIT as f64 {
-            let accepted = request.borrow_mut().finish(id);
-            if accepted { failure("Session exceeds the 512 MiB file limit"); }
-            return;
-        }
-        let started = crate::browser_phase::now();
-        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
-        let accepted = request.borrow_mut().finish(id);
-        if !accepted { return; }
-        let bytes = result.as_ref().map_or(0, |buffer| js_sys::Uint8Array::new(buffer).length() as u64);
-        crate::browser_phase::finish(if result.is_ok() { "file read" } else { "file read failed" },
-            started, bytes, &file.name());
-
-        let result = result.and_then(|buffer| deliver(buffer, mode, file, &delivery));
-        if let Err(error) = result {
-            failure(&format!("Cannot read file: {error:?}"));
-        }
-    });
-}
-
-fn failure(message: &str) {
-    let detail = web_sys::CustomEventInit::new();
-    detail.set_detail(&JsValue::from_str(message));
-    let result = web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
-        .and_then(|event| web_sys::window().ok_or_else(|| JsValue::from_str("No window"))?.dispatch_event(&event));
-    if result.is_err() { super::browser::report(message); }
-}
-
-fn deliver(buffer: JsValue, mode: Mode, file: web_sys::File, delivery: &Delivery) -> Result<(), JsValue> {
-    let detail = web_sys::CustomEventInit::new();
-    let payload = js_sys::Array::new();
-    payload.push(&JsValue::from_bool(mode == Mode::Replace));
-    payload.push(&js_sys::Uint8Array::new(&buffer));
-    detail.set_detail(&payload);
-    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
-    *delivery.borrow_mut() = Some(file);
-    let result = web_sys::window().ok_or_else(|| JsValue::from_str("No browser window"))
-        .and_then(|window| window.dispatch_event(&event));
-    delivery.borrow_mut().take();
-    result.map(|_| ())
-}
-
-pub fn action(event: &web_sys::Event, delivery: &Delivery, scene: &crate::scene::Scene) -> Result<Option<crate::editor::Action>, JsValue> {
-    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else { return Ok(None); };
-    let Ok(payload) = event.detail().dyn_into::<js_sys::Array>() else { return Ok(None); };
-    if payload.length() != 2 { return Ok(None); }
-    let Some(replace) = payload.get(0).as_bool() else { return Ok(None); };
-    let Ok(array) = payload.get(1).dyn_into::<js_sys::Uint8Array>() else { return Ok(None); };
-    if array.length() as usize > crate::archive::LIMIT { return Ok(None); }
-    let Some(file) = delivery.borrow_mut().take() else { return Ok(None); };
-    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(&file)?);
-    let bytes=array.to_vec();let replace=replace||bytes.starts_with(crate::archive::MAGIC);
-    let ready=crate::publication::prepare(scene,&bytes,replace,Some(location)).map_err(|error|JsValue::from_str(&error))?;
-    Ok(Some(crate::editor::Action::Adopt {scene:Box::new(ready),replace}))
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-03.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-04.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-05.rs"
-```
-
-</details>
 
 ### 3. `src/browser.rs`
 
@@ -7981,8 +8569,49 @@ Connect original source publication through the current browser runtime and comm
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
+
+```rust
+        owned_reload,
+        fault,
+        owned_editor,
+    );
+    report(&recovery.unwrap_or_else(|| {
+        "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag."
+            .into()
+    }));
+    Ok(())
+}
+```
+
+Replace it with:
+
+```rust
+        owned_reload,
+        fault,
+        owned_editor,
+        publication,
+    );
+    report(&recovery.unwrap_or_else(|| {
+        "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag."
+            .into()
+    }));
+    start_publication.begin();
+    Ok(())
+}
+
+fn closing_action(action: &Action) -> bool {
+    matches!(
+        action,
+        Action::Close
+            | Action::Adopt { .. }
+            | Action::Replace(_)
+            | Action::ReplaceAt(_, _)
+    )
+}
+```
+
+**Locate this block:**
 
 ```rust
     listeners.listen(document.as_ref(), "change")?;
@@ -7991,18 +8620,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     listeners.listen(window.as_ref(), "viewer-file")?;
     listeners.listen(window.as_ref(), "viewer-file-error")?;
     listeners.listen(window.as_ref(), "viewer-reload")?;
-    listeners.listen(window.as_ref(), "pagehide")?;
-    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault, owned_editor);
-    report(&recovery.unwrap_or_else(|| "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.".into()));
-    Ok(())
-}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
 ```
-
-</details>
 
 Replace it with:
 
@@ -8014,1093 +8632,238 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-file")?;
     listeners.listen(window.as_ref(), "viewer-file-error")?;
     listeners.listen(window.as_ref(), "viewer-reload")?;
-    listeners.listen(window.as_ref(), "pagehide")?;
-    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault, owned_editor, publication);
-    report(&recovery.unwrap_or_else(|| "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.".into()));
-    start_publication.begin();
-    Ok(())
-}
-
-fn closing_action(action:&Action)->bool {matches!(action,Action::Close|Action::Adopt {..}|Action::Replace(_)|Action::ReplaceAt(_, _))}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
+                        } else if closing {
+                            report("Document closed.");
+                            panel.result("Document closed.");
+                        } else if event.type_() == "viewer-file" {
+                            crate::browser_phase::revision(&editor.scene);
+                            let message = if replacement {
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-publication" {
-                        crate::browser_phase::revision(&editor.scene);let _=crate::browser_report::observe("live-reload","source bytes changed");report("URL scene replaced.");panel.result("URL scene replaced.");
-                    } else if event.type_() == "viewer-file" {
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
+                        } else if closing {
+                            report("Document closed.");
+                            panel.result("Document closed.");
+                        } else if event.type_() == "viewer-publication" {
+                            crate::browser_phase::revision(&editor.scene);
+                            let _ = crate::browser_report::observe(
+                                "live-reload",
+                                "source bytes changed",
+                            );
+                            report("URL scene replaced.");
+                            panel.result("URL scene replaced.");
+                        } else if event.type_() == "viewer-file" {
+                            crate::browser_phase::revision(&editor.scene);
+                            let message = if replacement {
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = if editor.selected_objects().len() > 1 { Ok(None) }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
-                | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            if closing_action(&action) {publication_control.cancel();}
-            let replacement = matches!(&action, Action::Adopt {replace:true,..} | Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = if editor.selected_objects().len() > 1 { Ok(None) }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::document::snapshot(&editor.scene).map_err(str::to_owned)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::scene_archive::save(&editor.scene)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-                None
-            }
-            Host::Open | Host::Replace => {
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if host == Host::Replace { reload.borrow_mut().cancel(); }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-                None
-            }
-            Host::Open | Host::Replace => {
-                publication_control.cancel();
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if host == Host::Replace { reload.borrow_mut().cancel(); }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { publication_control.cancel();request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
+                    &action,
+                    Action::Close
+                        | Action::UnloadSources
+                        | Action::Undo
+                        | Action::Redo
+                        | Action::Replace(_)
+                        | Action::ReplaceAt(_, _)
+                ) {
+                    reload.borrow_mut().cancel();
                 }
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
+                let replacement = matches!(
+                    &action,
+                    Action::Replace(_) | Action::ReplaceAt(_, _)
+                );
+                let closing = matches!(&action, Action::Close);
+                let unloading = matches!(&action, Action::UnloadSources);
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
+                    &action,
+                    Action::Close
+                        | Action::UnloadSources
+                        | Action::Live(_)
+                        | Action::Undo
+                        | Action::Redo
+                        | Action::Adopt { .. }
+                        | Action::Replace(_)
+                        | Action::ReplaceAt(_, _)
+                ) {
+                    reload.borrow_mut().cancel();
                 }
-            }
-            None
-        } else if event.type_() == "viewer-publication" {
-            match publication_control.take() {Ok(action)=>action,Err(error)=>{let message=format!("Cannot load scene: {error}");report(&message);panel.result(&message);None}}
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery, &editor.scene) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot open file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
+                if closing_action(&action) {
+                    publication_control.cancel();
+                }
+                let replacement = matches!(
+                    &action,
+                    Action::Adopt {
+                        replace: true,
+                        ..
+                    } | Action::Replace(_)
+                        | Action::ReplaceAt(_, _)
+                );
+                let closing = matches!(&action, Action::Close);
+                let unloading = matches!(&action, Action::UnloadSources);
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
+                                    if waiting {
+                                        Ok("Reloading editable sources…".to_owned())
+                                    } else {
+                                        crate::document::snapshot(&editor.scene)
+                                            .map_err(str::to_owned)
+                                            .and_then(|bytes| save_result(&bytes))
+                                    }
+                                });
+```
+
+Replace it with:
+
+```rust
+                                    if waiting {
+                                        Ok("Reloading editable sources…".to_owned())
+                                    } else {
+                                        crate::scene_archive::save(&editor.scene)
+                                            .and_then(|bytes| save_result(&bytes))
+                                    }
+                                });
+```
+
+**Locate this block:**
+
+```rust
+                                None
+                            }
+                            Host::Open | Host::Replace => {
+                                let ticket = request.borrow_mut().begin();
+                                if let Err(error) = ticket {
+                                    report(error);
+```
+
+Replace it with:
+
+```rust
+                                None
+                            }
+                            Host::Open | Host::Replace => {
+                                publication_control.cancel();
+                                let ticket = request.borrow_mut().begin();
+                                if let Err(error) = ticket {
+                                    report(error);
+```
+
+**Locate this block:**
+
+```rust
+                    }
+                    Ok(crate::commands::Command::Editor(mut action)) => {
+                        if matches!(action, Action::Close) {
+                            request.borrow_mut().cancel();
+                            let _ = {
+                                text_fonts.clear();
+```
+
+Replace it with:
+
+```rust
+                    }
+                    Ok(crate::commands::Command::Editor(mut action)) => {
+                        if matches!(action, Action::Close) {
+                            publication_control.cancel();
+                            request.borrow_mut().cancel();
+                            let _ = {
+                                text_fonts.clear();
+```
+
+**Locate this block:**
+
+```rust
+                    }
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                match crate::file_input::action(&event, &delivery) {
+                    Ok(action) => action,
+                    Err(error) => {
+                        let message = format!("Cannot retain reload file: {error:?}");
+                        report(&message);
+                        panel.answer("Open", &message);
+                        None
+```
+
+Replace it with:
+
+```rust
+                    }
+                }
+                None
+            } else if event.type_() == "viewer-publication" {
+                match publication_control.take() {
+                    Ok(action) => action,
+                    Err(error) => {
+                        let message = format!("Cannot load scene: {error}");
+                        report(&message);
+                        panel.result(&message);
+                        None
+                    }
+                }
+            } else if event.type_() == "viewer-file" {
+                match crate::file_input::action(&event, &delivery, &editor.scene) {
+                    Ok(action) => action,
+                    Err(error) => {
+                        let message = format!("Cannot open file: {error:?}");
+                        report(&message);
+                        panel.answer("Open", &message);
+                        None
+```
+
+**Locate this block:**
+
+```rust
+        std::rc::Rc::new(std::cell::RefCell::new(None));
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let active_fault = fault.clone();
 ```
 
-</details>
-
 Replace it with:
 
 ```rust
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let publication=crate::browser_publication::Publication::new(std::rc::Rc::clone(&shared),fault.clone())?;
-    let publication_control=publication.control();let start_publication=publication_control.clone();
+        std::rc::Rc::new(std::cell::RefCell::new(None));
+    let publication = crate::browser_publication::Publication::new(
+        std::rc::Rc::clone(&shared),
+        fault.clone(),
+    )?;
+    let publication_control = publication.control();
+    let start_publication = publication_control.clone();
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let active_fault = fault.clone();
 ```
 
-<details>
-<summary>Complete updated block reference</summary>
+## Build & Run
 
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::gesture::Gesture;
-use crate::renderer::Renderer;
-use crate::viewport::Viewport;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot draw:") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
-    wasm_bindgen_futures::spawn_local(async move {
-        if crate::browser_runtime::stop_if(&fault) {
-            crate::browser_report::fatal(&message);
-            if crate::browser_recovery::request(&message) { return; }
-            report(&format!("Cannot draw: {message}"));
-        }
-    });
-}
-
-fn save_result(bytes: &[u8]) -> Result<String, String> {
-    crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
-        .map_err(|error| format!("Save failed: {error:?}"))
-}
-
-pub async fn run() -> Result<(), JsValue> { run_with(crate::drawing_document::new()).await }
-
-pub async fn run_with(shared: crate::drawing_document::Shared) -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let recovery = crate::browser_recovery::adopt()?;
-    crate::browser_report::start()?;
-    let startup = crate::browser_startup::Guard::new()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter_started = crate::browser_phase::now();
-    let probe = crate::browser_adapter::Probe::new().ok();
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await;
-    if !startup.permits() { return Ok(()); }
-    crate::browser_phase::finish("adapter request", adapter_started, 0, "GPU");
-    let adapter = adapter.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    if let Some(info) = probe.as_ref().and_then(|probe| probe.info()) { let _ = crate::browser_report::adapter(info); }
-    else { let _ = crate::browser_report::observe("diagnostic", "Adapter identity unavailable"); }
-    drop(probe);
-    let device_started = crate::browser_phase::now();
-    let device = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await;
-    if !startup.permits() {
-        if let Ok((device, _)) = device { device.destroy(); }
-        return Ok(());
-    }
-    crate::browser_phase::finish("device request", device_started, 0, "GPU");
-    let (device, queue) = device.map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let fault = crate::gpu_fault::Fault::default();
-    let errors = fault.clone();
-    device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
-    let lost = fault.clone();
-    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut editor = shared.borrow_mut();
-    let pipeline_started = crate::browser_phase::now();
-    let text_fonts=std::rc::Rc::new(crate::text_fonts::Inbox::default());
-    let mut renderer = Renderer::new(
-        device,
-        queue,
-        config.format.add_srgb_suffix(),
-        &editor.scene,
-    );
-    crate::browser_phase::finish("renderer setup", pipeline_started, 0, "GPU");
-    renderer.resize(Viewport { width, height });
-    inspect(&editor, &renderer)?;
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-        config.format.add_srgb_suffix(),
-        crate::commands::names(),
-    );
-    if let Some(message) = crate::browser_report::previous_notice() { panel.result(message); }
-    if let Some(message) = &recovery { panel.result(message); }
-    panel.update(None, &canvas)?;
-    if resize(
-        &window,
-        &canvas,
-        &surface,
-        &mut config,
-        &mut renderer,
-        &mut editor,
-    ) {
-        panel.update(None, &canvas)?;
-        let frame_started = crate::browser_phase::now();
-        present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            editor.normal_view,
-            &mut panel,
-        )?;
-        let completing = fault.clone();
-        // Queue completion runs after submitted GPU work; checking the current device prevents a late result from reviving an exited runtime.
-        renderer.queue.on_submitted_work_done(move || {
-            if crate::browser_runtime::owns(&completing) && completing.message().is_none() {
-                crate::browser_phase::finish("first frame complete", frame_started, 0, "GPU");
-                let _ = crate::browser_report::observe("milestone", "geometry on screen");
-            }
-        });
-    }
-    let input_canvas = canvas.clone();
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let mut touch=crate::touch::Touch::default();
-    let pick_remove=std::cell::Cell::new(false);
-    let pick_additive = std::rc::Rc::new(std::cell::Cell::new(false));
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
-    let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let publication=crate::browser_publication::Publication::new(std::rc::Rc::clone(&shared),fault.clone())?;
-    let publication_control=publication.control();let start_publication=publication_control.clone();
-    let owned_request = std::rc::Rc::clone(&request);
-    let owned_reload = std::rc::Rc::clone(&reload);
-    let active_fault = fault.clone();
-    drop(editor);
-    let owned_editor = std::rc::Rc::clone(&shared);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if active_fault.message().is_some() { return; }
-        let mut editor = shared.borrow_mut();
-        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
-        if event.type_() == "pagehide" {
-            gesture.cancel();touch.cancel();let _=editor.apply(Action::CanvasCancel); let _=editor.apply(Action::GizmoCancel);
-            crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
-            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
-            return;
-        }
-        if matches!(event.type_().as_str(),"blur"|"resize"|"pointercancel")||event.dyn_ref::<web_sys::KeyboardEvent>().is_some_and(|key|key.key()=="Escape"&&!key.is_composing()) {
-            gesture.cancel();touch.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
-        }
-        if event.type_()=="lostpointercapture"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|editor.canvas_drag.as_ref().is_some_and(|d|d.pointer==p.pointer_id()&&d.released.is_none())) {
-            gesture.cancel();renderer.cancel_pick();if editor.apply(Action::CanvasCancel)==Ok(Change::Preview) {crate::browser_upload::prepare(&mut renderer,&editor.scene,editor.whole_selection(),active_fault.clone());}
-        }
-        if event.type_()=="pointerdown"&&event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.is_primary())&&editor.canvas_drag.as_ref().is_none_or(|d|d.released.is_some()) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let navigation=if line.is_none()&&!panel.consumed {navigation_action(&event,&pointer_canvas,&mut gesture,&mut touch)} else {None};
-        let line=if gesture.take_repeat() {event.prevent_default();if editor.draft.is_some()||editor.gizmo_edit.is_some() {Some(String::new())} else {panel.repeat_line()}} else {line};
-        let line = if (editor.draft.is_some() || editor.gizmo_edit.is_some()) && event.dyn_ref::<web_sys::KeyboardEvent>()
-            .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
-            event.prevent_default(); gesture.cancel(); Some("Escape".into())
-        } else { line };
-
-        let mut highlight_changed = false;
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-            .is_some_and(|input| input.id() == "open")
-        {
-            request.borrow_mut().cancel();
-            report("Open cancelled.");
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
-                report(&message);
-                panel.answer("Open", &message);
-            }
-            None
-        } else if event.type_() == "viewer-reload" {
-            if let Some(reply) = reload_delivery.borrow_mut().take() {
-                let command = reply.intent.map_or("Reload Sources", |intent| intent.command());
-                match reply.complete(&mut editor) {
-                    Ok(Some(crate::edit_replay::Reply::Changed(_))) => {
-                        highlight_changed = true;
-                        crate::browser_upload::prepare(&mut renderer, editor.display_scene(), editor.whole_selection(), active_fault.clone());
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if command == "Reload Sources" {
-                            "Editable sources restored; display retained.".to_owned()
-                        } else { format!("{command} completed after source reload.") };
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(Some(crate::edit_replay::Reply::Saved(bytes))) => {
-                        let message = save_result(&bytes).unwrap_or_else(|error| error);
-                        report(&message); panel.answer(command, &message);
-                    }
-                    Ok(None) => {}
-                    Err(error) => { report(&error); panel.answer(command, &error); }
-                }
-            }
-            None
-        } else if event.type_() == "viewer-publication" {
-            match publication_control.take() {Ok(action)=>action,Err(error)=>{let message=format!("Cannot load scene: {error}");report(&message);panel.result(&message);None}}
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery, &editor.scene) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot open file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            let command = editor.tool_line(&line).map(|result| result.map(crate::commands::Command::Editor).map_err(str::to_owned))
-                .unwrap_or_else(|| crate::commands::parse(&line));
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { publication_control.cancel();request.borrow_mut().cancel();let _={text_fonts.clear();renderer.clear_text_fonts();renderer.set_text(Vec::new())}; }
-                if shortcut.is_some() && editor.selected.is_some() && matches!(action, Action::Fit) { action = Action::FitSelected; }
-                Some(action)
-            }
-            Ok(crate::commands::Command::Host(host)) => {
-            use crate::commands::Host;
-            match host {
-            Host::TextDemo=>{if let Err(error)=renderer.text_demo() {panel.result(&error.to_string());}None},
-            Host::Help => { panel.result(&crate::commands::names().join(" · ")); None }
-            Host::Selection => {
-                let rows = editor.selected_objects();
-                panel.result(&if rows.len() > 1 { format!("Objects {:?}", rows.iter().map(|id| id.value()).collect::<Vec<_>>()) }
-                    else { editor.selection().map_or_else(|| "Nothing selected".to_owned(), |target| target.describe()) });
-                None
-            }
-            Host::Reload => {
-                let result = crate::browser_reload::start(std::rc::Rc::clone(&reload), editor.reload_keys(), std::rc::Rc::clone(&reload_delivery));
-                match result {
-                    Ok(()) => panel.result("Reloading editable sources…"),
-                    Err(error) => { report(&error); panel.result(&error); }
-                }
-                None
-            }
-            Host::CancelReload => {
-                reload.borrow_mut().cancel();
-                report("Reload cancelled."); panel.result("Reload cancelled.");
-                None
-            }
-            Host::CancelOpen => {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
-                None
-            }
-            Host::Open | Host::Replace => {
-                publication_control.cancel();
-                let ticket = request.borrow_mut().begin();
-                if let Err(error) = ticket { report(error); panel.result(error); return; }
-                if host == Host::Replace { reload.borrow_mut().cancel(); }
-                read_mode.set(if host == Host::Replace { crate::file_input::Mode::Replace }
-                    else { crate::file_input::Mode::Append });
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            }
-            Host::Report | Host::PreviousReport => {
-                let output = if host == Host::PreviousReport { crate::browser_report::download_previous() }
-                    else { crate::browser_report::download() };
-                let result = output.map(|()| "Diagnostic report downloaded.".to_owned())
-                    .unwrap_or_else(|error| format!("Diagnostic report failed: {error:?}"));
-                panel.result(&result);
-                None
-            }
-            Host::LayersOn=>{panel.tree.open=true;None},
-            Host::LayersOff=>{panel.tree.open=false;None},
-            Host::LayersAll=>{panel.tree.all();None},
-            Host::Save => {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
-                    .and_then(|waiting| {
-                        if waiting { Ok("Reloading editable sources…".to_owned()) }
-                        else { crate::scene_archive::save(&editor.scene)
-                            .and_then(|bytes| save_result(&bytes)) }
-                    });
-                panel.result(&result.unwrap_or_else(|error| error));
-                None
-            }
-            }
-            }
-            }
-        } else if !panel.consumed {
-            navigation
-        } else {
-            None
-        };
-        let handle_action=gizmo_action(&event,&pointer_canvas,&editor,panel.consumed);
-        let action = if let Some((key,edit))=panel.tree.edit.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::LayerEdit {key,edit})
-        } else if let Some((key,property))=panel.tree.property.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::LayerProperty {key,property})
-        } else if let Some((ids,additive))=panel.tree.action.take() {
-            renderer.cancel_pick();gesture.cancel();Some(Action::TreePick {ids,additive})
-        } else if let Some(handle_action)=handle_action {
-            renderer.cancel_pick();gesture.cancel();Some(handle_action)
-        } else if event.type_() == "viewer-pick" {
-            match renderer.take_pick(editor.camera.uniform()) {
-                Some(Ok(hit)) => {
-                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
-                    if editor.canvas_drag.is_some() {Some(Action::CanvasHit(target.map(|t|t.owner)))}
-                    else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
-                    else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
-                },
-                Some(Err(error)) => { report(error); None },
-                None => None,
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) if editor.draft.is_some() => {
-                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
-            }
-            None if editor.draft.is_some() && matches!(event.type_().as_str(), "blur" | "resize" | "pointercancel" | "lostpointercapture") => Some(Action::ToolHover(None)),
-            None if editor.draft.is_some() && !panel.consumed && event.type_() == "pointermove" => {
-                event.dyn_ref::<web_sys::PointerEvent>().filter(|p| p.buttons() == 0).map(|p| {
-                    let r = pointer_canvas.get_bounding_client_rect();
-                    let screen = [(2. * (p.client_x() as f64-r.left())/r.width()-1.) as f32, (1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32];
-                    Action::ToolScreen { screen,size:[r.width(),r.height()],commit:false }
-                })
-            }
-            Some(Action::Touch(actions))=> {
-                let mut applied=Vec::new();
-                for action in actions {match action {
-                    Action::Pick(screen)=>{if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()) {report(error);}}},
-                    action=>{renderer.cancel_pick();applied.push(action);}
-                }}Some(Action::Touch(applied))
-            },
-            Some(Action::CanvasStart {from,to,size,modified,pointer}) if editor.draft.is_none()=> {
-                renderer.cancel_pick();
-                let modified=modified||editor.pick_mode!=crate::pick_sources::Mode::Object;
-                let start=Action::CanvasStart {from,to,size,modified,pointer};
-                let release=event.dyn_ref::<web_sys::PointerEvent>().filter(|_|event.type_()=="pointerup").map(|pointer|Action::CanvasRelease {screen:to,size,add:pointer.shift_key(),remove:pointer.ctrl_key()||pointer.meta_key()});
-                if !modified {if let Err(error)=renderer.request_pick(from,editor.camera.uniform()) {report(error);return;}}
-                Some(Action::Touch(std::iter::once(start).chain(release).collect()))
-            },
-            Some(Action::CanvasStart {..}|Action::CanvasMove {..}|Action::CanvasRelease {..}) if editor.draft.is_some()=>None,
-            Some(action @ (Action::CanvasMove {..}|Action::CanvasRelease {..}))=>Some(action),
-            Some(Action::Pick(screen)) => {
-                pick_remove.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p|p.ctrl_key()||p.meta_key()));
-                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
-                if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
-                None
-            }
-            Some(action) => { renderer.cancel_pick(); Some(action) },
-            None => None,
-        } };
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
-                | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            if closing_action(&action) {publication_control.cancel();}
-            let replacement = matches!(&action, Action::Adopt {replace:true,..} | Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            let waiting = if editor.selected_objects().len() > 1 { Ok(None) }
-                else { crate::edit_intent::Intent::capture(&action, editor.whole_selection()) }
-                .map_err(str::to_owned).and_then(|intent| match intent {
-                    Some(intent) => crate::browser_reload::restore_for(intent, &editor,
-                        std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery)),
-                    None => Ok(false),
-                });
-            let change = waiting.and_then(|waiting| {
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            if rename_action {panel.tree.rename_result(change.as_ref().err().map(String::as_str));}
-            if tool_action && change.is_ok() { panel.result(&editor.tool_status); }
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    highlight_changed = true;
-                    crate::browser_upload::prepare(&mut renderer, &editor.scene, editor.whole_selection(), active_fault.clone());
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-publication" {
-                        crate::browser_phase::revision(&editor.scene);let _=crate::browser_report::observe("live-reload","source bytes changed");report("URL scene replaced.");panel.result("URL scene replaced.");
-                    } else if event.type_() == "viewer-file" {
-                        crate::browser_phase::revision(&editor.scene);
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
-                        panel.answer(if replacement { "Open Replace" } else { "Open" }, message);
-                    }
-                }
-                Ok(Some(Change::Preview)) => {
-                    highlight_changed=true;
-                    crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());
-                }
-                Ok(Some(Change::View)) | Ok(None) => {}
-                Err(error) => {
-                    report(&error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", &error); }
-                    else { panel.result(&error); }
-                }
-            }
-        }
-        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
-        else { panel.tool(String::new(), Vec::new()); }
-        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
-        renderer.refresh_text_bounds(&mut editor.scene);
-        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
-        let rect=pointer_canvas.get_bounding_client_rect();
-        let number=editor.number_prompt([rect.width(),rect.height()]);
-        if editor.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some()) && number.is_none() {
-            if editor.apply(Action::GizmoCancel).is_ok() {highlight_changed=true;crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());}
-        }
-        panel.rectangle=editor.canvas_drag.as_ref().filter(|d|d.missed).and_then(|d|d.rectangle());
-        panel.number(number);
-        panel.tree.refresh(&editor.scene,editor.selected_objects());
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(editor.pick_mode);
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.selected_objects())) { report(error); return; }
-        }
-        if let Err(error) = renderer.set_grid(editor.camera.grid) {
-            report(error); return;
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-            &surface,
-            &mut config,
-            &mut renderer,
-            &mut editor,
-        ) {
-            if let Err(error) = panel.update(None, &input_canvas) {
-                report(&format!("Cannot lay out commands: {error:?}"));
-                return;
-            }
-            if let Some(frame)=panel.free_frame([rect.width(),rect.height()]) {if editor.camera.frame(frame) {renderer.cancel_pick();let _=editor.apply(Action::CanvasCancel);}}
-            let hover=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|event.type_()=="pointermove" && p.buttons()==0 && !panel.consumed).map(|p| {
-                let r=pointer_canvas.get_bounding_client_rect();
-                ([(2.*(p.client_x() as f64-r.left())/r.width()-1.) as f32,(1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32],[r.width(),r.height()])
-            });
-            editor.hover_gizmo(hover);
-            renderer.set_gizmo(&editor.camera,editor.gizmo_origin(),editor.gizmo_active());
-            renderer.cloud_camera(&editor.camera);
-            if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-            if let Err(error) = present(
-                &surface,
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                editor.normal_view,
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-        }
-    });
-    let mut listeners = crate::listeners::Listeners::new(update);
-    for name in [
-        "pointerdown",
-        "pointermove",
-        "pointerup",
-        "pointercancel",
-        "lostpointercapture",
-        "contextmenu",
-        "keydown",
-        "keyup",
-        "blur",
-    ] {
-        listeners.listen(canvas.as_ref(), name)?;
-    }
-    listeners.listen(canvas.as_ref(), "wheel")?;
-    listeners.listen(window.as_ref(), "resize")?;
-    listeners.listen(window.as_ref(), "blur")?;
-    listeners.listen(document.as_ref(), "change")?;
-    listeners.listen(document.as_ref(), "cancel")?;
-    listeners.listen(window.as_ref(), "viewer-pick")?;
-    listeners.listen(window.as_ref(), "viewer-publication")?;
-    listeners.listen(window.as_ref(), "viewer-file")?;
-    listeners.listen(window.as_ref(), "viewer-file-error")?;
-    listeners.listen(window.as_ref(), "viewer-reload")?;
-    listeners.listen(window.as_ref(), "pagehide")?;
-    crate::browser_runtime::install(listeners, owned_request, owned_reload, fault, owned_editor, publication);
-    report(&recovery.unwrap_or_else(|| "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.".into()));
-    start_publication.begin();
-    Ok(())
-}
-
-fn closing_action(action:&Action)->bool {matches!(action,Action::Close|Action::Adopt {..}|Action::Replace(_)|Action::ReplaceAt(_, _))}
-
-fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
-    let document = web_sys::window()
-        .and_then(|window| window.document())
-        .ok_or("No document")?;
-    let canvas = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    let placements: Vec<_> = editor.scene.objects().iter().map(|row| (format!("{:?}", row.id), row.model.m)).collect();
-    let view_ids=editor.scene.objects().iter().map(|row|row.id).chain(editor.scene.lines().iter().map(|row|row.id)).chain(editor.scene.paths().iter().map(|row|row.id)).chain(editor.scene.points().iter().map(|row|row.id)).chain(editor.scene.texts().iter().map(|row|row.id)).chain(editor.scene.clouds().iter().map(|row|row.id));
-    let view_rows=view_ids.map(|id|serde_json::json!({"id":id.value(),"visible":editor.scene.visible(id),"locked":editor.scene.view.locked.contains(&id),"faces":editor.scene.view.faces.get(&id),"edges":editor.scene.view.edges.get(&id)})).collect::<Vec<_>>();
-    canvas.set_attribute("data-canvas-drag",&editor.canvas_drag.as_ref().map_or_else(||"null".into(),|d|serde_json::json!({"from":d.from,"to":d.to,"released":d.released,"missed":d.missed,"preview":d.preview.as_ref().map(|p|p.matrix())}).to_string()))?;
-    canvas.set_attribute("data-camera-frame",&serde_json::to_string(&editor.camera.frame).unwrap())?;
-    canvas.set_attribute("data-view-flags",&serde_json::json!({"current":crate::layer_edit::current_key(&editor.scene),"rows":view_rows}).to_string())?;
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-cloud-gpu",&serde_json::to_string(&renderer.cloud_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-error",&renderer.cloud_error().unwrap_or_default())?;
-    canvas.set_attribute("data-cloud-sources",&serde_json::json!(editor.scene.clouds().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source_guid":row.prepared.source.guid(),"point_size":row.prepared.source.point_size,"point_px":row.point_px,"points":row.prepared.source.len(),"nodes":row.prepared.nodes.len(),"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-surface-outline",&serde_json::to_string(&renderer.outline_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-scene-text-gpu",&serde_json::to_string(&renderer.text_scene_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-texts",&serde_json::json!(editor.scene.texts().iter().map(|row|serde_json::json!({"id":row.id.value(),"guid":row.guid,"source":row.prepared.source,"model":row.model.m})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-text-error",&renderer.text_error().unwrap_or_default())?;
-    canvas.set_attribute("data-text-atlas",&serde_json::to_string(&renderer.text_usage()).unwrap())?;
-    canvas.set_attribute("data-cad-cache",&serde_json::to_string(&crate::memory::cads(editor.presentation_scenes())).unwrap())?;
-    let cads=editor.scene.objects().iter().filter_map(|row|row.cad.as_ref().map(|cad|serde_json::json!({"id":row.id.value(),"source":cad.source.guid(),"faces":row.mesh.parts.faces,"edges":cad.edges.iter().map(|border|border.edge).collect::<Vec<_>>(),"vertices":cad.samples.len()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-cads",&serde_json::to_string(&cads).unwrap())?;
-    canvas.set_attribute("data-surface-cpu",&serde_json::to_string(&crate::memory::surfaces(editor.presentation_scenes())).unwrap())?;
-    let surfaces=editor.scene.objects().iter().filter_map(|row|row.surface.as_ref().map(|s|serde_json::json!({"id":row.id.value(),"source":s.source.guid(),"controls":s.source.m_cv_count,"steps":s.grid.steps,"samples":s.grid.samples.len(),"faces":row.mesh.parts.faces,"edges":s.grid.boundaries.iter().map(|b|b.edge).collect::<Vec<_>>()}))).collect::<Vec<_>>();
-    canvas.set_attribute("data-surfaces",&serde_json::to_string(&surfaces).unwrap())?;
-    canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
-    canvas.set_attribute("data-point-cpu", &serde_json::to_string(&crate::memory::points(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
-    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-edit-preview", &editor.edit_preview.as_ref().map_or_else(|| "null".into(),|p| serde_json::json!({"ids":p.ids().iter().map(|id| id.value()).collect::<Vec<_>>(),"matrix":p.matrix()}).to_string()))?;
-    canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor,"snap":d.snapped.map(|kind| format!("{kind:?}"))}).to_string()))?;
-    canvas.set_attribute("data-snap-settings", &serde_json::json!({"objects":editor.snapping.objects,"modes":editor.snapping.modes,"grid":editor.snapping.grid,"step":editor.snapping.step}).to_string())?;
-    canvas.set_attribute("data-snap-usage", &serde_json::to_string(&editor.snap_usage()).unwrap())?;
-    canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
-    canvas.set_attribute("data-highlight-bytes", &renderer.highlight_bytes().to_string())?;
-    canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
-    canvas.set_attribute("data-pick-mode", &format!("{:?}", editor.pick_mode))?;
-    canvas.set_attribute("data-part-usage", &serde_json::to_string(&renderer.part_usage()).unwrap())?;
-    canvas.set_attribute("data-selected-ids", &serde_json::to_string(&editor.selected_objects().iter().map(|id| id.value()).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
-    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
-        let m = &row.metadata;
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    let cpu = crate::memory::cpu(editor.presentation_scenes(), renderer.geometry_owners().map(|owner| &owner.source));
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
-    canvas.set_attribute("data-gpu-usage", &format!("{:?}", renderer.usage()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-    touch:&mut crate::touch::Touch,
-) -> Option<Action> {
-    let action = match event.type_().as_str() {
-        "wheel" => {
-            let wheel = event.dyn_ref::<web_sys::WheelEvent>()?;
-            let mode = wheel.delta_mode();
-            let rect=canvas.get_bounding_client_rect();
-            let Action::Zoom(factor)=crate::navigation::wheel(wheel.delta_y(),mode,rect.height())? else {return None;};
-            let screen=[(2.*(wheel.client_x() as f64-rect.left())/rect.width()-1.) as f32,(1.-2.*(wheel.client_y() as f64-rect.top())/rect.height()) as f32];
-            Some(Action::ZoomAt {factor,screen})
-        }
-        "keydown" => {
-            let key = event.dyn_ref::<web_sys::KeyboardEvent>()?;
-            if key.is_composing() || key.alt_key() {
-                return None;
-            }
-            if key.key() == "Escape" {
-                gesture.cancel();
-                event.prevent_default();
-                return None;
-            }
-            return None;
-        }
-        _=>{
-            if let Some(pointer)=event.dyn_ref::<web_sys::PointerEvent>().filter(|p|p.pointer_type()=="touch") {
-                event.prevent_default();let r=canvas.get_bounding_client_rect();let rect=[r.left(),r.top(),r.width(),r.height()];let at=[pointer.client_x() as f64,pointer.client_y() as f64];let id=pointer.pointer_id();
-                let actions=match event.type_().as_str() {
-                    "pointerdown"=>{gesture.cancel();let multiple=touch.count()>0;if touch.press(id,at,event.time_stamp()) {if canvas.set_pointer_capture(id).is_err() {touch.cancel();}}if multiple {vec![Action::GizmoCancel,Action::CanvasCancel]} else {Vec::new()}},
-                    "pointermove"=>touch.move_to(id,at,rect),
-                    "pointerup"=>{let actions=touch.release(id,at,event.time_stamp(),rect);let _=canvas.release_pointer_capture(id);actions},
-                    "pointercancel"=>{touch.cancel();Vec::new()},"lostpointercapture"=>{if touch.contains(id) {touch.cancel();}Vec::new()},_=>Vec::new(),
-                };return (!actions.is_empty()).then_some(Action::Touch(actions));
-            }
-            return pointer_action(event,canvas,gesture);
-        },
-    }?;
-    event.prevent_default();
-    Some(action)
-}
-
-fn pointer_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
-    gesture: &mut Gesture,
-) -> Option<Action> {
-    match event.type_().as_str() {
-        "contextmenu" => {
-            event.prevent_default();
-            return None;
-        }
-        "blur" | "resize" => {
-            gesture.cancel();
-            return None;
-        }
-        _ => {}
-    }
-    let pointer = event.dyn_ref::<web_sys::PointerEvent>()?;
-    let id = pointer.pointer_id();
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press_with(id, pointer.button(), position,pointer.ctrl_key()||pointer.meta_key()) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-                if canvas.focus_with_options(&options).is_err()
-                    || canvas.set_pointer_capture(id).is_err()
-                {
-                    gesture.cancel();
-                }
-            }
-            None
-        }
-        "pointermove" => gesture.move_to(id, position),
-        "pointerup" => {
-            let motion = gesture.release(id, position);
-            let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-        "pointercancel" | "lostpointercapture" => {
-            gesture.cancel_pointer(id);
-            None
-        }
-        _ => None,
-    }?;
-    let rect = canvas.get_bounding_client_rect();
-    let mut action=motion.action([rect.left(),rect.top(),rect.width(),rect.height()])?;
-    match &mut action {
-        Action::CanvasStart {modified,pointer:id,..}=>{*id=pointer.pointer_id();*modified=pointer.shift_key()||pointer.ctrl_key()||pointer.meta_key();},
-        Action::CanvasRelease {add,remove,..}=>{*add=pointer.shift_key();*remove=pointer.ctrl_key()||pointer.meta_key();},_=>{}
-    }Some(action)
-}
-
-fn resize(
-    window: &web_sys::Window,
-    canvas: &web_sys::HtmlCanvasElement,
-    surface: &wgpu::Surface<'_>,
-    config: &mut wgpu::SurfaceConfiguration,
-    renderer: &mut Renderer,
-    editor: &mut Editor,
-) -> bool {
-    let rect = canvas.get_bounding_client_rect();
-    let limit = renderer.device.limits().max_texture_dimension_2d;
-    let density = crate::browser_recovery::density(window.device_pixel_ratio());
-    renderer.set_density(density as f32);
-    let Some(size) = Viewport::from_css(
-        rect.width(),
-        rect.height(),
-        density,
-        limit,
-    ) else {
-        return false;
-    };
-    if size.width != config.width || size.height != config.height {
-        canvas.set_width(size.width);
-        canvas.set_height(size.height);
-        config.width = size.width;
-        config.height = size.height;
-        surface.configure(&renderer.device, config);
-        renderer.resize(size);
-    }
-    editor.camera.aspect = size.aspect();
-    true
-}
-
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    background: &Background,
-    transform: &[f32; 16],
-    normals: bool,
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw_mode(&view, background, transform, normals);
-    if let Some(error)=renderer.cloud_error() {panel.result(&format!("Cloud: {error}"));}
-    if let Some(error)=renderer.text_error() {panel.result(&format!("Text: {error}"));}
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-
-fn gizmo_action(event:&web_sys::Event,canvas:&web_sys::HtmlCanvasElement,editor:&Editor,consumed:bool)->Option<Action> {
-    if matches!(event.type_().as_str(),"blur"|"resize") && editor.gizmo_edit.is_some() {return Some(Action::GizmoCancel);}
-    let pointer=event.dyn_ref::<web_sys::PointerEvent>()?;
-    if matches!(event.type_().as_str(),"pointercancel"|"lostpointercapture") {
-        return editor.gizmo_edit.as_ref().filter(|e|e.pointer==Some(pointer.pointer_id())).map(|_|Action::GizmoCancel);
-    }
-    let rect=canvas.get_bounding_client_rect();let size=[rect.width(),rect.height()];
-    if size.iter().any(|v| !v.is_finite() || *v<=0.) {return None;}
-    let screen=[(2.*(pointer.client_x() as f64-rect.left())/size[0]-1.) as f32,(1.-2.*(pointer.client_y() as f64-rect.top())/size[1]) as f32];
-    let id=pointer.pointer_id();
-    if editor.gizmo_edit.as_ref().is_some_and(|e|e.pointer==Some(id)) {
-        event.prevent_default();
-        return match event.type_().as_str() {
-            "pointermove"=>Some(Action::GizmoMove {pointer:id,screen,size,shift:pointer.shift_key()}),
-            "pointerup"=>{let _=canvas.release_pointer_capture(id);Some(Action::GizmoRelease {pointer:id,screen,size,shift:pointer.shift_key()})},
-            _=>None,
-        };
-    }
-    if consumed || event.type_()!="pointerdown" || !pointer.is_primary() || pointer.button()!=0 {return None;}
-    if pointer.shift_key() || pointer.ctrl_key() || pointer.meta_key() {return None;}
-    let finger=pointer.pointer_type()=="touch";
-    if editor.gizmo_hit_radius(screen,size,if finger {18.} else {8.}).is_some() {
-        event.prevent_default();
-        if canvas.set_pointer_capture(id).is_err() {return Some(Action::GizmoCancel);}
-        Some(if finger {Action::GizmoTouch {pointer:id,screen,size}} else {Action::GizmoPress {pointer:id,screen,size,modified:false}})
-    } else if editor.gizmo_edit.is_some() {Some(Action::GizmoCancel)} else {None}
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-06.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-07.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-08.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-09.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-10.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-11.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-12.rs"
-```
-
-```text
---8<-- "journey/code/66af-connect-browser-save-open-url-adoption-13.rs"
-```
-
-</details>
-
-</details>
-
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+![Recorded visual output for Lesson 12.1 (66af-connect-browser-save-open-url-adoption)](../../screenshots/journey/66af-connect-browser-save-open-url-adoption.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 66af-connect-browser-save-open-url-adoption
-npm --prefix ../session_tests run course -- check 66af-connect-browser-save-open-url-adoption
-npm --prefix ../session_tests run course -- save 66af-connect-browser-save-open-url-adoption
+npm --prefix ../session_tests run course -- dependencies 12.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 12.1
+npm --prefix ../session_tests run course -- save 12.1
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-Save downloads a complete editable viewer archive. Open restores its original sources, placements, world labels, layers and colours together. Named scene and explicit live URLs load checked original sources; unchanged bytes preserve the current scene. Close stops pending URL reads and releases source ownership.
-
-Save a mixed CAD/surface/cloud scene, reopen it, restore presentation and compare unchanged live revisions.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
-
-Continue with [Locate original arrays without downloading their bodies](67-supply-checked-array-layout-readers.md).
+Continue with [12.2 · Locate original arrays without downloading their bodies](67-supply-checked-array-layout-readers.md).

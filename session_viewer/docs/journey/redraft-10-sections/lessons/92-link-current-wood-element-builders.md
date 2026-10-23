@@ -1,6 +1,6 @@
 # 18.4 · Original Wood Elements and portable source records
 
-**Goal:** Prove Element recipes source history and archives. · **Steps:** 17 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Prove Element recipes source history and archives. · **Steps:** 17 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,35 +32,28 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/hzb.wgsl</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/ssao.wgsl</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Link current Wood element…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Scene Tree Hierarchy</text>
-  <rect x="650" y="50" width="100" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="68" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Group (Mp)</text>
-  <line x1="680" y1="78" x2="640" y2="108" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="720" y1="78" x2="760" y2="108" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
-  <rect x="600" y="112" width="80" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="129" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part A</text>
-  <rect x="720" y="112" width="80" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="760" y="129" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. HZB Mip Pyramid &amp; SSAO</text>
+  <rect x="606" y="54" width="84" height="84" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="648" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mip 0</text>
+  <rect x="702" y="68" width="52" height="52" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="728" y="98" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Mip 1</text>
+  <rect x="764" y="82" width="28" height="28" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Original Wood Elements and…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Layer Colours &amp; Lamps</text>
-  <rect x="880" y="52" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="898" cy="70" r="6" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <rect x="912" y="63" width="14" height="14" rx="3" fill="#ef4444" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="994" y="74" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Layer_01 (Lamp ON)</text>
-  <rect x="880" y="98" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="898" cy="116" r="6" fill="#e5e7eb" stroke="#111111" stroke-width="1.25"/>
-  <rect x="912" y="109" width="14" height="14" rx="3" fill="#3b82f6" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="994" y="120" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[Rename Layer_02|]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Timber WoodElement &amp; Joints</text>
+  <polygon points="888,122 924,62 1054,62 1018,122" fill="#fed7aa" stroke="#111111" stroke-width="2"/>
+  <rect x="954" y="62" width="34" height="28" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <line x1="971" y1="46" x2="971" y2="76" stroke="#16a34a" stroke-width="2.25" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mortise/Tenon + Dir</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Prove Element recipes sou…</text>
 </svg>
 </div>
@@ -97,7 +90,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -111,16 +104,16 @@ Link current Wood element builders beside the original kernel.
 **Locate this existing block:**
 
 ```toml
-
 [dependencies]
 wasm-bindgen = "=0.2.128"
-web-sys = { version = "=0.3.105", features = ["console", "Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "ErrorEvent", "PromiseRejectionEvent", "Location", "History", "UrlSearchParams", "Navigator", "Storage", "Performance", "PerformanceResourceTiming", "PerformanceEntry", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "ReadableWritablePair", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "RequestMode", "RequestCache", "EventSource", "MessageEvent", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/92-link-current-wood-element-builders-01-console.rs"
+[dependencies]
+wood = { path = "../../../../wood/rust" }
+wasm-bindgen = "=0.2.128"
 ```
 
 ## <a id="checkpoint-91zza-write-original-beam-column-and-plate-builders"></a>2. Write beam column and plate builders
@@ -155,7 +148,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">existing Wood kernel</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed element</text>
 </svg>
 </div>
@@ -169,7 +162,28 @@ Adapt the maintained positive-length recipe to the earlier number parser.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-1.rs"
+pub fn lengths<const N: usize>(
+    rest: &[&str],
+    defaults: [f64; N],
+    usage: &str,
+) -> Result<[f64; N], String> {
+    if rest.len() > N {
+        return Err(format!("Too many numbers · {usage}"));
+    }
+
+    let mut values = defaults;
+
+    for (value, word) in values.iter_mut().zip(rest) {
+        *value = word
+            .parse::<f64>()
+            .ok()
+            .filter(|v| v.is_finite())
+            .filter(|value| *value > 0.0)
+            .ok_or_else(|| format!("`{word}` is not a positive length · {usage}"))?;
+    }
+
+    Ok(values)
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -180,13 +194,32 @@ Register the completed Element component.
 
 ```rust
 #[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+#[cfg(test)]
 mod global_outline_command_tests;
+pub mod source_mesh_topology;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-2.rs" skip=47
+#[cfg(test)]
+mod global_outline_command_tests;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_values;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 ```
 
 ### 3. `src/element_beam.rs`
@@ -196,7 +229,30 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-3.rs"
+use session_rust::Polyline;
+use wood::Beam;
+use wood::geometry::profile_rectangle;
+const USAGE: &str = "Element Beam width height · Example: select lines or polylines, then Element Beam 120 200";
+pub fn build(axes: &[Polyline], width: f64, height: f64) -> Result<Vec<Beam>, String> {
+    let beams: Vec<Beam> = axes
+        .iter()
+        .filter(|axis| axis.segment_count() >= 1)
+        .map(|axis| {
+            Beam::from_profile(
+                axis,
+                profile_rectangle(width, height),
+                "beam",
+            )
+        })
+        .collect();
+
+    match beams.is_empty() {
+        true => Err(format!(
+            "Select lines or polylines, the beam axes · {USAGE}"
+        )),
+        false => Ok(beams),
+    }
+}
 ```
 
 ### 4. `src/lib.rs`
@@ -206,14 +262,25 @@ Register this original element builder.
 **Locate this existing block:**
 
 ```rust
+mod global_outline_command_tests;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_values;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-4.rs" skip=25
+mod global_outline_command_tests;
+
+pub mod element_values;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_beam;
+pub mod finite_project_source;
 ```
 
 ### 5. `src/element_column.rs`
@@ -223,7 +290,38 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-5.rs"
+use session_rust::{Line, Polyline};
+use wood::Column;
+use wood::geometry::profile_rectangle;
+const USAGE: &str =
+    "Element Column width depth · Example: select lines, then Element Column 200 300";
+pub fn build(axes: &[Polyline], width: f64, depth: f64) -> Result<Vec<Column>, String> {
+    let columns: Vec<Column> = axes
+        .iter()
+        .filter_map(|axis| {
+            Some(Line::from_points(
+                &axis.get_point(0)?,
+                &axis.get_point(axis.point_count() - 1)?,
+            ))
+        })
+        .filter(|axis| axis.length() > 0.0)
+        .map(|axis| {
+            Column::from_profile(
+                &axis,
+                profile_rectangle(width, depth),
+                0.0,
+                "column",
+            )
+        })
+        .collect();
+
+    match columns.is_empty() {
+        true => Err(format!(
+            "Select lines, the column axes · {USAGE}"
+        )),
+        false => Ok(columns),
+    }
+}
 ```
 
 ### 6. `src/lib.rs`
@@ -233,14 +331,25 @@ Register this original element builder.
 **Locate this existing block:**
 
 ```rust
+pub mod element_values;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_beam;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-6.rs" skip=23
+pub mod element_values;
+
+pub mod element_beam;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_column;
+pub mod finite_project_source;
 ```
 
 ### 7. `src/element_plate.rs`
@@ -250,7 +359,21 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-7.rs"
+use session_rust::Polyline;
+use wood::Plate;
+const USAGE: &str =
+    "Element Plate thickness · Example: select closed polylines, then Element Plate 40";
+pub fn build(outlines: &[Polyline], thickness: f64) -> Result<Vec<Plate>, String> {
+    match outlines.is_empty() {
+        true => Err(format!(
+            "Select closed polylines, the plate outlines · {USAGE}"
+        )),
+        false => Ok(outlines
+            .iter()
+            .map(|outline| Plate::from_outline(outline, thickness, "plate"))
+            .collect()),
+    }
+}
 ```
 
 ### 8. `src/lib.rs`
@@ -260,14 +383,25 @@ Register this original element builder.
 **Locate this existing block:**
 
 ```rust
+pub mod element_beam;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_column;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/91zza-write-original-beam-column-and-plate-builders-8.rs" skip=25
+pub mod element_beam;
+
+pub mod element_column;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_plate;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-92a-retain-current-positive-lengths-and-six-builders"></a>3. Write support variable beam and block builders
@@ -302,7 +436,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">existing Wood kernel</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed element</text>
 </svg>
 </div>
@@ -316,7 +450,21 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-1.rs"
+use session_rust::Plane;
+use wood::Support;
+const USAGE: &str =
+    "Element Support · Example: select points or planes, then Element Support";
+pub fn build(planes: &[Plane]) -> Result<Vec<Support>, String> {
+    match planes.is_empty() {
+        true => Err(format!(
+            "Select points or planes, where the supports stand · {USAGE}"
+        )),
+        false => Ok(planes
+            .iter()
+            .map(|plane| Support::new(plane, "support"))
+            .collect()),
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -326,14 +474,25 @@ Register this original element builder.
 **Locate this existing block:**
 
 ```rust
+pub mod element_column;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_plate;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-2.rs" skip=24
+pub mod element_column;
+
+pub mod element_plate;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_support;
+pub mod finite_project_source;
 ```
 
 ### 3. `src/element_beam_variable.rs`
@@ -343,7 +502,30 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-3.rs"
+use session_rust::Polyline;
+use wood::BeamVariable;
+const USAGE: &str = "Element Beam Variable · Example: pick closed polylines of one point count in station order, then Element Beam Variable";
+pub fn build(sections: Vec<Polyline>) -> Result<BeamVariable, String> {
+    if sections.len() < 2 {
+        return Err(format!(
+            "Pick at least two closed sections · {USAGE}"
+        ));
+    }
+
+    if sections
+        .iter()
+        .any(|section| section.point_count() != sections[0].point_count())
+    {
+        return Err(format!(
+            "Every section needs one point count · {USAGE}"
+        ));
+    }
+
+    Ok(BeamVariable::through(
+        sections,
+        "beam_variable",
+    ))
+}
 ```
 
 ### 4. `src/lib.rs`
@@ -353,14 +535,25 @@ Register this original element builder.
 **Locate this existing block:**
 
 ```rust
+pub mod element_plate;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_support;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-4.rs" skip=26
+pub mod element_plate;
+
+pub mod element_support;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_beam_variable;
+pub mod finite_project_source;
 ```
 
 ### 5. `src/element_block.rs`
@@ -370,7 +563,27 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-5.rs"
+use session_rust::Polyline;
+use wood::Block;
+const USAGE: &str = "Element Block · Example: pick a bottom and a top closed polyline of one point count, then Element Block";
+pub fn build(loops: Vec<Polyline>) -> Result<Block, String> {
+    if loops.len() < 2 || !loops.len().is_multiple_of(2) {
+        return Err(format!(
+            "Pick an even number of closed polylines · {USAGE}"
+        ));
+    }
+
+    if loops
+        .chunks(2)
+        .any(|pair| pair[0].point_count() != pair[1].point_count())
+    {
+        return Err(format!(
+            "A bottom and its top need one point count · {USAGE}"
+        ));
+    }
+
+    Ok(Block::new(loops, "block"))
+}
 ```
 
 ### 6. `src/lib.rs`
@@ -380,14 +593,25 @@ Register this original element builder.
 **Locate this existing block:**
 
 ```rust
+pub mod element_support;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_beam_variable;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92a-retain-current-positive-lengths-and-six-builders-6.rs" skip=32
+pub mod element_support;
+
+pub mod element_beam_variable;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_block;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-92b-own-original-element-geometry"></a>4. Own Element geometry
@@ -422,7 +646,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -436,7 +660,40 @@ Retain the original Element beside its derived display.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92b-own-original-element-geometry-01.rs"
+use crate::scene::{ObjectId, Scene};
+use session_rust::{Element, Geometry, element::ElementGeometry};
+use std::rc::Rc;
+pub fn insert(
+    scene: &mut Scene,
+    source: Rc<Element>,
+) -> Result<ObjectId, &'static str> {
+    let id = match source.geometry() {
+        ElementGeometry::BRep(brep) => {
+            let mut brep = brep.clone();
+            brep.set_guid(source.guid().into());
+            brep.name = source.name.clone();
+            brep.is_visible = source.is_visible;
+            brep.is_locked = source.is_locked;
+            scene.insert_cad(Rc::new(brep))?
+        }
+        ElementGeometry::Mesh(mesh) => {
+            let mut mesh = mesh.clone();
+            mesh.set_guid(source.guid().into());
+            mesh.name = source.name.clone();
+            mesh.is_visible = source.is_visible;
+            mesh.is_locked = source.is_locked;
+            scene.insert(crate::prepared::PreparedMesh::new(mesh)?)?
+        }
+        ElementGeometry::None => return Err("Element has no display geometry"),
+    };
+    scene
+        .objects_mut()
+        .iter_mut()
+        .find(|row| row.id == id)
+        .unwrap()
+        .original = Some(Geometry::Element(source));
+    Ok(id)
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -446,14 +703,25 @@ Register the completed Element component.
 **Locate this existing block:**
 
 ```rust
+pub mod element_beam_variable;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_block;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92b-own-original-element-geometry-02.rs" skip=24
+pub mod element_beam_variable;
+
+pub mod element_block;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_original;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-92c-read-current-element-command-defaults"></a>5. Read current Element command defaults
@@ -488,7 +756,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -502,7 +770,108 @@ Own the six current command kinds and exact defaults.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92c-read-current-element-command-defaults-01.rs"
+use session_rust::{Element, Geometry, Plane, Polyline};
+use std::rc::Rc;
+use wood::WoodElement;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Kind {
+    Beam,
+    Column,
+    Plate,
+    Support,
+    Variable,
+    Block,
+}
+impl Kind {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Beam => "Element Beam",
+            Self::Column => "Element Column",
+            Self::Plate => "Element Plate",
+            Self::Support => "Element Support",
+            Self::Variable => "Element Beam Variable",
+            Self::Block => "Element Block",
+        }
+    }
+    pub fn params(self) -> Vec<Param> {
+        match self {
+            Self::Beam => vec![
+                Param {
+                    name: "Width",
+                    value: 120.,
+                },
+                Param {
+                    name: "Height",
+                    value: 200.,
+                },
+            ],
+            Self::Column => vec![
+                Param {
+                    name: "Width",
+                    value: 200.,
+                },
+                Param {
+                    name: "Depth",
+                    value: 300.,
+                },
+            ],
+            Self::Plate => vec![Param {
+                name: "Thickness",
+                value: 40.,
+            }],
+            _ => vec![],
+        }
+    }
+    pub fn read(self, text: &str) -> Result<(Vec<Param>, bool), String> {
+        let words = text.split_whitespace().collect::<Vec<_>>();
+        let mut params = self.params();
+        let count = params.len();
+        let values = match self {
+            Self::Beam => {
+                crate::element_values::lengths(&words, [120., 200.], self.name())?
+                    .to_vec()
+            }
+            Self::Column => {
+                crate::element_values::lengths(&words, [200., 300.], self.name())?
+                    .to_vec()
+            }
+            Self::Plate => {
+                crate::element_values::lengths(&words, [40.], self.name())?.to_vec()
+            }
+            _ => {
+                if !words.is_empty() {
+                    return Err(format!("{} takes no arguments", self.name()));
+                }
+                vec![]
+            }
+        };
+        for (p, v) in params.iter_mut().zip(values) {
+            p.value = v;
+        }
+        Ok((params, count == 0 || !words.is_empty()))
+    }
+    pub fn fits(self, g: &Geometry) -> bool {
+        match self {
+            Self::Support => matches!(g, Geometry::Point(_) | Geometry::Plane(_)),
+            _ => matches!(g, Geometry::Line(_) | Geometry::Polyline(_)),
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Param {
+    pub name: &'static str,
+    pub value: f64,
+}
+
+// No option toggles the current value; explicit On/Off never depends on the prior value.
+pub fn visibility(words: &[&str]) -> Result<Option<bool>, String> {
+    match words {
+        [] => Ok(None),
+        [word] if word.eq_ignore_ascii_case("On") => Ok(Some(true)),
+        [word] if word.eq_ignore_ascii_case("Off") => Ok(Some(false)),
+        _ => Err("Expected On or Off".into()),
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -512,14 +881,25 @@ Register the completed Element component.
 **Locate this existing block:**
 
 ```rust
+pub mod element_block;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_original;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92c-read-current-element-command-defaults-02.rs" skip=27
+pub mod element_block;
+
+pub mod element_original;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_input;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-92d-build-typed-elements-from-ordered-world-picks"></a>6. Build typed Elements from ordered world picks
@@ -554,7 +934,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -568,14 +948,95 @@ Route ordered original sources into current Wood builders and base planes.
 **Locate this existing block:**
 
 ```rust
-#[derive(Clone,Copy,Debug,PartialEq)]
-pub struct Param{pub name:&'static str,pub value:f64}
+}
+
+// No option toggles the current value; explicit On/Off never depends on the prior value.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92d-build-typed-elements-from-ordered-world-picks-01.rs" skip=92
+}
+pub struct Made {
+    pub source: Rc<Element>,
+    pub plane: Option<Plane>,
+}
+fn items<T: WoodElement>(items: Vec<T>) -> Vec<Made> {
+    items
+        .into_iter()
+        .map(|v| {
+            let mut plane = v.base_plane();
+            if let Some(p) = &mut plane {
+                p.name = "base_plane".into();
+                p.is_visible = false;
+                p.linecolor = session_rust::Color::black();
+            }
+            Made {
+                source: Rc::new(v.to_element()),
+                plane,
+            }
+        })
+        .collect()
+}
+pub fn build(
+    kind: Kind,
+    values: &[Param],
+    sources: &[(Geometry, session_rust::Xform)],
+) -> Result<Vec<Made>, String> {
+    let curves = sources
+        .iter()
+        .filter_map(|(g, m)| match g {
+            Geometry::Line(l) => {
+                let l = l.transformed(m);
+                Some(Polyline::new(vec![l.start(), l.end()]))
+            }
+            Geometry::Polyline(p) => Some(p.transformed(m)),
+            _ => None,
+        })
+        .collect::<Vec<_>>();
+    let loops = curves
+        .iter()
+        .filter(|p| p.is_closed() && p.point_count() >= 4)
+        .cloned()
+        .collect::<Vec<_>>();
+    Ok(match kind {
+        Kind::Beam => items(crate::element_beam::build(
+            &curves,
+            values[0].value,
+            values[1].value,
+        )?),
+        Kind::Column => items(crate::element_column::build(
+            &curves,
+            values[0].value,
+            values[1].value,
+        )?),
+        Kind::Plate => items(crate::element_plate::build(
+            &loops,
+            values[0].value,
+        )?),
+        Kind::Variable => items(vec![crate::element_beam_variable::build(
+            loops,
+        )?]),
+        Kind::Block => items(vec![crate::element_block::build(loops)?]),
+        Kind::Support => {
+            let planes = sources
+                .iter()
+                .filter_map(|(g, m)| match g {
+                    Geometry::Point(p) => Some(Plane::new(
+                        p.transformed(m),
+                        session_rust::Vector::x_axis(),
+                        session_rust::Vector::y_axis(),
+                    )),
+                    Geometry::Plane(p) => Some(p.transformed(m)),
+                    _ => None,
+                })
+                .collect::<Vec<_>>();
+            items(crate::element_support::build(&planes)?)
+        }
+    })
+}
+
+// No option toggles the current value; explicit On/Off never depends on the prior value.
 ```
 
 ## <a id="checkpoint-92e-capture-original-picks-while-the-tool-runs"></a>7. Capture picks while the tool runs
@@ -610,7 +1071,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -624,7 +1085,118 @@ Capture fitting original sources and ordered tool state.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92e-capture-original-picks-while-the-tool-runs-01.rs"
+use crate::{
+    element_input::{Kind, Made, Param},
+    scene::{ObjectId, Scene},
+};
+#[derive(Clone)]
+pub struct Draft {
+    pub kind: Kind,
+    pub params: Vec<Param>,
+    pub picked: Vec<crate::source_edit::Owner>,
+    pub asking: Option<usize>,
+    pub next: usize,
+}
+impl Draft {
+    pub fn new(
+        kind: Kind,
+        text: &str,
+        scene: &Scene,
+        ids: Vec<ObjectId>,
+    ) -> Result<(Self, bool), String> {
+        let (params, typed) = kind.read(text)?;
+        let mut result = Self {
+            kind,
+            params,
+            picked: vec![],
+            asking: None,
+            next: 0,
+        };
+        for id in ids {
+            if let Ok(owner) = crate::source_edit::Owner::capture(scene, id) {
+                if kind.fits(&owner.source) {
+                    result.picked.push(owner);
+                }
+            }
+        }
+        Ok((result, typed))
+    }
+    pub fn ids(&self) -> Vec<ObjectId> {
+        self.picked.iter().map(|o| o.id).collect()
+    }
+    pub fn pick(&mut self, scene: &Scene, id: Option<ObjectId>) -> Result<(), String> {
+        let id = id.ok_or("Nothing there: pick an original source")?;
+        if let Some(i) = self.picked.iter().position(|o| o.id == id) {
+            self.picked.remove(i);
+            return Ok(());
+        }
+        let owner =
+            crate::source_edit::Owner::capture(scene, id).map_err(str::to_owned)?;
+        if !self.kind.fits(&owner.source) {
+            return Err(format!(
+                "{}: pick fitting original sources",
+                self.kind.name()
+            ));
+        }
+        self.picked.push(owner);
+        Ok(())
+    }
+    pub fn valid(&self, scene: &Scene) -> Result<(), String> {
+        for o in &self.picked {
+            o.valid(scene).map_err(str::to_owned)?;
+        }
+        Ok(())
+    }
+    pub fn build(&self, scene: &Scene) -> Result<Vec<Made>, String> {
+        self.valid(scene)?;
+        crate::element_input::build(
+            self.kind,
+            &self.params,
+            &self
+                .picked
+                .iter()
+                .map(|o| (o.source.clone(), o.model.clone()))
+                .collect::<Vec<_>>(),
+        )
+    }
+
+    pub fn values(&self) -> String {
+        self.params
+            .iter()
+            .map(|p| format!("{} {}", p.name, p.value))
+            .collect::<Vec<_>>()
+            .join(" · ")
+    }
+    pub fn prompt(&self) -> String {
+        if let Some(i) = self.asking {
+            format!(
+                "{} <{}>: type a number · Enter keeps it",
+                self.params[i].name, self.params[i].value
+            )
+        } else {
+            format!(
+                "{} · pick original sources ({} picked) · Enter creates · Esc cancels",
+                self.kind.name(),
+                self.picked.len()
+            )
+        }
+    }
+    pub fn buttons(&self) -> Vec<(String, String)> {
+        self.params
+            .iter()
+            .map(|p| {
+                (
+                    format!("{}={}", p.name, p.value),
+                    p.name.into(),
+                )
+            })
+            .chain([
+                ("Create".into(), "".into()),
+                ("Cancel".into(), "Escape".into()),
+            ])
+            .collect()
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -634,14 +1206,25 @@ Register the completed Element component.
 **Locate this existing block:**
 
 ```rust
+pub mod element_original;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_input;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92e-capture-original-picks-while-the-tool-runs-02.rs" skip=24
+pub mod element_original;
+
+pub mod element_input;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_draft;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-92f-teach-named-and-bare-element-values"></a>8. Teach named and bare Element values
@@ -676,7 +1259,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -690,16 +1273,70 @@ Adapt the maintained Element parameter word recipe without changing its semantic
 **Locate this existing block:**
 
 ```rust
- pub fn prompt(&self)->String{if let Some(i)=self.asking{format!("{} <{}>: type a number · Enter keeps it",self.params[i].name,self.params[i].value)}else{format!("{} · pick original sources ({} picked) · Enter creates · Esc cancels",self.kind.name(),self.picked.len())}}
- pub fn buttons(&self)->Vec<(String,String)>{self.params.iter().map(|p|(format!("{}={}",p.name,p.value),p.name.into())).chain([("Create".into(),"".into()),("Cancel".into(),"Escape".into())]).collect()}
-
+    }
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92f-teach-named-and-bare-element-values-01.rs"
+    }
+    pub fn take(&mut self, word: &str) -> Result<(), String> {
+        let (name, number) = match word.split_once('=') {
+            Some((name, number)) => (Some(name), Some(number)),
+            None if word
+                .parse::<f64>()
+                .ok()
+                .filter(|v| v.is_finite())
+                .is_some() =>
+            {
+                (None, Some(word))
+            }
+            None => (Some(word), None),
+        };
+
+        if let Some(name) = name {
+            let at = self
+                .params
+                .iter()
+                .position(|param| param.name.eq_ignore_ascii_case(name))
+                .ok_or_else(|| {
+                    format!(
+                        "`{word}` is not a value of {} · {}",
+                        self.kind.name(),
+                        self.values()
+                    )
+                })?;
+            self.asking = Some(at);
+        }
+
+        let Some(number) = number else {
+            return Ok(());
+        };
+        let value = number
+            .parse::<f64>()
+            .ok()
+            .filter(|v| v.is_finite())
+            .filter(|value| *value > 0.0)
+            .ok_or_else(|| format!("`{number}` is not a positive length"))?;
+
+        if self.params.is_empty() {
+            return Err(format!(
+                "{} takes no values · pick {}",
+                self.kind.name(),
+                "fitting original sources"
+            ));
+        }
+
+        let at = self
+            .asking
+            .take()
+            .unwrap_or(self.next % self.params.len());
+        self.params[at].value = value;
+        self.next = at + 1;
+        Ok(())
+    }
+}
 ```
 
 ## <a id="checkpoint-92g-make-element-input-batches-atomic"></a>9. Make Element input batches atomic
@@ -734,7 +1371,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -748,17 +1385,30 @@ Adopt only validated current parameter batches.
 **Locate this existing block:**
 
 ```rust
- pub fn valid(&self,scene:&Scene)->Result<(),String>{for o in &self.picked{o.valid(scene).map_err(str::to_owned)?;}Ok(())}
- pub fn build(&self,scene:&Scene)->Result<Vec<Made>,String>{self.valid(scene)?;crate::element_input::build(self.kind,&self.params,&self.picked.iter().map(|o|(o.source.clone(),o.model.clone())).collect::<Vec<_>>())}
+    }
 
- pub fn values(&self)->String{self.params.iter().map(|p|format!("{} {}",p.name,p.value)).collect::<Vec<_>>().join(" · ")}
- pub fn prompt(&self)->String{if let Some(i)=self.asking{format!("{} <{}>: type a number · Enter keeps it",self.params[i].name,self.params[i].value)}else{format!("{} · pick original sources ({} picked) · Enter creates · Esc cancels",self.kind.name(),self.picked.len())}}
+    pub fn values(&self) -> String {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92g-make-element-input-batches-atomic-01.rs"
+    }
+    pub fn text(&mut self, text: &str) -> Result<bool, String> {
+        let mut next = self.clone();
+        if text.trim().is_empty() {
+            if next.asking.take().is_none() {
+                return Ok(true);
+            }
+        } else {
+            for word in text.split_whitespace() {
+                next.take(word)?;
+            }
+        }
+        *self = next;
+        Ok(false)
+    }
+    pub fn values(&self) -> String {
 ```
 
 ## <a id="checkpoint-92h-attach-readonly-element-attributes"></a>10. Attach readonly Element attributes
@@ -793,7 +1443,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -807,14 +1457,75 @@ Attach generated original attributes under their Element owner.
 **Locate this existing block:**
 
 ```rust
-    replace(scene,owner,tree);Rc::make_mut(&mut scene.groups).insert((doc.key,group_guid));Ok(name)
+    Ok(name)
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92h-attach-readonly-element-attributes-01.rs" skip=102
+    Ok(name)
+}
+
+pub fn attach_attributes(
+    scene: &mut Scene,
+    parent: crate::scene::ObjectId,
+    ids: Vec<crate::scene::ObjectId>,
+    name: &str,
+) -> Result<(), &'static str> {
+    let (owner, index) = scene
+        .forest
+        .documents
+        .iter()
+        .enumerate()
+        .find_map(|(i, d)| {
+            d.nodes
+                .iter()
+                .position(|n| n.object == Some(parent))
+                .map(|n| (i, n))
+        })
+        .ok_or("Element hierarchy owner is missing")?;
+    let doc = &scene.forest.documents[owner];
+    let guid = doc.nodes[index].source.guid.clone();
+    let mut root = branch(doc, 0);
+    let mut children = Vec::new();
+    for id in ids {
+        let mut child =
+            take(&mut root, id).ok_or("Element attribute must share its document")?;
+        child.node.readonly = true;
+        children.push(child);
+    }
+    let parent = find(&mut root, &guid).ok_or("Element hierarchy owner is missing")?;
+    let mut node = parent.node.clone();
+    node.object = None;
+    node.readonly = true;
+    node.label = name.into();
+    node.source = session_rust::proto::TreeNode {
+        guid: uuid::Uuid::new_v4().to_string(),
+        name: name.into(),
+        ..Default::default()
+    };
+    node.portable_guid = node.source.guid.clone();
+    node.placement = Default::default();
+    parent
+        .children
+        .push(Branch { node, children });
+    let mut count = 0;
+    let mut max = 0;
+    fn size(b: &Branch, depth: usize, count: &mut usize, max: &mut usize) {
+        *count += 1;
+        *max = (*max).max(depth);
+        for c in &b.children {
+            size(c, depth + 1, count, max)
+        }
+    }
+    size(&root, 0, &mut count, &mut max);
+    if count > crate::hierarchy::MAX_NODES || max > crate::hierarchy::MAX_DEPTH {
+        return Err("Element attributes exceed hierarchy limits");
+    }
+    replace(scene, owner, root);
+    Ok(())
+}
 ```
 
 ## <a id="checkpoint-92i-adopt-elements-and-consume-sources-once"></a>11. Adopt Elements and consume sources once
@@ -849,7 +1560,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -863,7 +1574,90 @@ Adopt original Element payloads and readonly attributes as one edit.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/92i-adopt-elements-and-consume-sources-once-01.rs"
+use crate::element_input::Made;
+use crate::scene::{ObjectId, Scene};
+use std::rc::Rc;
+
+pub fn adopt(
+    scene: &mut Scene,
+    made: Vec<Made>,
+    consumed: &[ObjectId],
+) -> Result<Vec<ObjectId>, &'static str> {
+    let mut ids = Vec::new();
+    for item in made {
+        let id = crate::element_original::insert(scene, item.source.clone())?;
+        ids.push(id);
+        let mut attributes = Vec::new();
+        let mut interactions = Vec::new();
+        if let Some(plane) = item.plane {
+            attributes.push(crate::plane_original::insert(
+                scene,
+                Rc::new(plane),
+            )?);
+        }
+        // Own axes and sections are attributes; contact, joint, cut and drill geometry comes from interactions.
+        for feature in &item.source.features {
+            let interaction = matches!(
+                feature.feature_type.as_str(),
+                "contact" | "joint" | "cut" | "drill"
+            );
+            for outline in &feature.outlines {
+                let mut source = outline.clone();
+                source.set_guid(uuid::Uuid::new_v4().to_string());
+                source.name = format!("{} {}", feature.feature_type, feature.name);
+                let piece = scene.insert_path(
+                    crate::chain::PreparedChain::polyline(Rc::new(source))?,
+                )?;
+                if interaction {
+                    interactions.push(piece);
+                } else {
+                    attributes.push(piece);
+                }
+            }
+        }
+        if !attributes.is_empty() {
+            Rc::make_mut(&mut scene.view).hide(&attributes, true);
+            crate::layer_edit::attach_attributes(scene, id, attributes, "attributes")?;
+        }
+        if !interactions.is_empty() {
+            crate::layer_edit::attach_attributes(
+                scene,
+                id,
+                interactions,
+                "interactions",
+            )?;
+        }
+    }
+    for id in scene.with_descendants(consumed) {
+        scene.remove(id);
+    }
+    Ok(ids)
+}
+
+fn group_ids(scene: &Scene, name: &str) -> Vec<ObjectId> {
+    scene
+        .forest
+        .documents
+        .iter()
+        .flat_map(|doc| {
+            doc.nodes
+                .iter()
+                .enumerate()
+                .filter(move |(_, node)| node.source.name == name && node.readonly)
+                .flat_map(|(index, node)| {
+                    doc.nodes[index + 1..node.end]
+                        .iter()
+                        .filter_map(|node| node.object)
+                })
+        })
+        .collect()
+}
+pub fn attribute_ids(scene: &Scene) -> Vec<ObjectId> {
+    group_ids(scene, "attributes")
+}
+pub fn interaction_ids(scene: &Scene) -> Vec<ObjectId> {
+    group_ids(scene, "interactions")
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -873,14 +1667,25 @@ Register the completed Element component.
 **Locate this existing block:**
 
 ```rust
+pub mod element_input;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod element_draft;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92i-adopt-elements-and-consume-sources-once-02.rs" skip=24
+pub mod element_input;
+
+pub mod element_draft;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_adopt;
+pub mod finite_project_source;
 ```
 
 ### 3. `src/source_edit.rs`
@@ -890,16 +1695,16 @@ Validate captured original Element identity by shared source ownership.
 **Locate this existing block:**
 
 ```rust
-    match (a, b) {
-        (Geometry::PointCloud(a), Geometry::PointCloud(b)) => Rc::ptr_eq(a,b),
-        (Geometry::Plane(a), Geometry::Plane(b)) => Rc::ptr_eq(a,b),
-        (Geometry::OBB(a), Geometry::OBB(b)) => Rc::ptr_eq(a, b),
+        (Geometry::PointCloud(a), Geometry::PointCloud(b)) => Rc::ptr_eq(a, b),
+        (Geometry::Plane(a), Geometry::Plane(b)) => Rc::ptr_eq(a, b),
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92i-adopt-elements-and-consume-sources-once-03.rs"
+        (Geometry::PointCloud(a), Geometry::PointCloud(b)) => Rc::ptr_eq(a, b),
+        (Geometry::Element(a), Geometry::Element(b)) => Rc::ptr_eq(a, b),
+        (Geometry::Plane(a), Geometry::Plane(b)) => Rc::ptr_eq(a, b),
 ```
 
 ## <a id="checkpoint-92j-save-and-open-original-element-records"></a>12. Save and open Element records
@@ -934,7 +1739,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -948,17 +1753,19 @@ Route original Element records through mixed-document archives.
 **Locate this existing block:**
 
 ```rust
-    }
-    for row in scene.objects().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {
-        if let Some(session_rust::Geometry::Plane(source))=&row.original {push!(planes,row.id,source.to_proto());}
-        else if let Some(session_rust::Geometry::OBB(source))=&row.original {push!(bboxes,row.id,source.to_proto());}
-        else if let Some(cad)=row.cad.as_ref() {push!(breps,row.id,cad.source.to_proto());}
+    {
+        if let Some(session_rust::Geometry::Plane(source)) = &row.original {
+            push!(planes, row.id, source.to_proto());
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92j-save-and-open-original-element-records-01.rs"
+    {
+        if let Some(session_rust::Geometry::Element(source)) = &row.original {
+            push!(elements, row.id, source.to_proto());
+        } else if let Some(session_rust::Geometry::Plane(source)) = &row.original {
+            push!(planes, row.id, source.to_proto());
 ```
 
 ### 2. `src/archive_identity.rs`
@@ -968,57 +1775,61 @@ Route original Element records through mixed-document archives.
 **Locate this existing block:**
 
 ```rust
-pub(crate) fn objects(objects:&mut proto::Objects,names:&HashMap<String,String>) {
-    macro_rules! remap {($field:ident)=>{for object in &mut objects.$field {if let Some(guid)=names.get(&object.guid) {object.guid=guid.clone();}}};}
-    remap!(planes);remap!(bboxes);remap!(meshes);remap!(lines);remap!(points);remap!(polylines);remap!(nurbscurves);remap!(nurbssurfaces);remap!(breps);remap!(pointclouds);remap!(instances);remap!(sheets);
-}
-pub(crate) fn tree(node:&mut proto::TreeNode,names:&HashMap<String,String>) {
+    }
+    remap!(planes);
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92j-save-and-open-original-element-records-02.rs"
+    }
+    remap!(elements);
+    remap!(planes);
 ```
 
 ### 3. `src/document_source.rs`
 
 Route original Element records through mixed-document archives.
 
-Replace the entire file with:
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !objects.elements.is_empty() || !objects.components.is_empty() {
+        return Err("This subject cannot open assemblies yet".into());
+```
 
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>,pub sheets:Vec<Rc<crate::sheet_source::Prepared>>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(elements);identity!(planes);identity!(bboxes);identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);identity!(sheets);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let sheets=objects.sheets.iter().cloned().map(|sheet|crate::sheet_source::Prepared::new(Rc::new(sheet)).map(Rc::new).map_err(str::to_owned)).collect::<Result<Vec<_>,_>>()?;
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world,sheets})
-}
+Replace it with:
 
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    if !source.interactions.is_empty() {return Err("Interactions arrive with element features".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.components.is_empty() {return Err("This subject cannot open assemblies yet".into());}
-    Ok(())
-}
+```rust
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !objects.components.is_empty() {
+        return Err("This subject cannot open assemblies yet".into());
+```
+
+**Locate this block:**
+
+```rust
+    }
+    identity!(planes);
+    identity!(bboxes);
+    identity!(meshes);
+```
+
+Replace it with:
+
+```rust
+    }
+    identity!(elements);
+    identity!(planes);
+    identity!(bboxes);
+    identity!(meshes);
 ```
 
 ### 4. `src/document_geometry.rs`
@@ -1028,16 +1839,21 @@ Route original Element records through mixed-document archives.
 **Locate this existing block:**
 
 ```rust
-    let mut owners=Vec::new();let mut shapes=crate::cad_shape_cache::Cache::default();
-    macro_rules! add {($source:expr,$insert:expr)=>{{let source=$source;let guid=source.guid().to_owned();let label=source.name.clone();let model=crate::nested_placement::model(&loaded.world,place,&guid);let id=$insert.map_err(str::to_owned)?;scene.place_following(id,model).map_err(str::to_owned)?;owners.push((guid,id,label));id}};}
+    }
     for source in &loaded.document.objects.meshes {
-        let mut prepared=crate::prepared::PreparedMesh::from_shared(source.clone()).map_err(str::to_owned)?;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92j-save-and-open-original-element-records-05.rs"
+    }
+    for source in &loaded.document.objects.elements {
+        add!(
+            source,
+            crate::element_original::insert(scene, source.clone())
+        );
+    }
+    for source in &loaded.document.objects.meshes {
 ```
 
 ## <a id="checkpoint-92k-own-independent-element-tool-state"></a>13. Own independent Element tool state
@@ -1072,7 +1888,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -1088,73 +1904,70 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+                return self.update_edit_preview();
             }
-            Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.snapped=None; draft.hover(point)?; } return self.update_edit_preview(); }
-            Action::CancelTool => {if let Some(before)=self.draft.as_ref().and_then(|d|d.project.as_ref()).map(|p|p.before.clone()).or_else(||self.draft.as_ref().and_then(|d|d.extend.as_ref()).map(|e|e.before.clone())){self.select_objects(before,false);}if let Some(before)=self.draft.as_ref().and_then(|d|d.gather.as_ref()).map(|g|g.before.clone()){self.select_objects(before,false);}let changed=self.edit_preview.take().is_some()|self.transform_preview.take().is_some(); self.draft=None;self.plane_menu=false;self.plane_only=false; self.tool_status="Tool cancelled.".into(); return Ok(if changed { Change::Preview } else { Change::View }); }
-            Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
+            Action::CancelTool => {
+                if let Some(before) = self
 ```
 
 Replace it with:
 
 ```rust
+                return self.update_edit_preview();
             }
-            Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.snapped=None; draft.hover(point)?; } return self.update_edit_preview(); }
-            Action::CancelTool => {self.element=None;if let Some(before)=self.draft.as_ref().and_then(|d|d.project.as_ref()).map(|p|p.before.clone()).or_else(||self.draft.as_ref().and_then(|d|d.extend.as_ref()).map(|e|e.before.clone())){self.select_objects(before,false);}if let Some(before)=self.draft.as_ref().and_then(|d|d.gather.as_ref()).map(|g|g.before.clone()){self.select_objects(before,false);}let changed=self.edit_preview.take().is_some()|self.transform_preview.take().is_some(); self.draft=None;self.plane_menu=false;self.plane_only=false; self.tool_status="Tool cancelled.".into(); return Ok(if changed { Change::Preview } else { Change::View }); }
-            Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
+            Action::CancelTool => {
+                self.element = None;
+                if let Some(before) = self
 ```
 
 **Locate this block:**
 
 ```rust
-            Action::CancelTrim=>{if let Some(trim)=self.trim.take(){self.select_objects(trim.before,false)}self.tool_status="Trim cancelled · nothing changed".into();return Ok(Change::Preview)},
-            Action::Query(query)=>{let ids=query.found(&self.scene).map_err(|message|self.primitive_failure(message))?;self.select_objects(ids,false);return Ok(Change::View)},
-            Action::Arrowhead(head)=>return self.curve_heads(head),
-            Action::Escape=>{if self.draft.is_some()||self.split.is_some()||self.gizmo_edit.is_some(){self.apply_action(Action::GizmoCancel)?;return self.apply_action(Action::CancelTool)}self.select_objects([],false);return Ok(Change::View)},
-            Action::Measure(kind)=>return self.measure_selection(kind),
-            Action::MeasureDistance(text)=>return self.begin_measure_distance(&text),
-            Action::BoundingBox=>return self.bounding_box(),
+            }
+            Action::Arrowhead(head) => return self.curve_heads(head),
+            Action::Escape => {
+                if self.draft.is_some()
+                    || self.split.is_some()
+                    || self.gizmo_edit.is_some()
+                {
 ```
 
 Replace it with:
 
 ```rust
-            Action::CancelTrim=>{if let Some(trim)=self.trim.take(){self.select_objects(trim.before,false)}self.tool_status="Trim cancelled · nothing changed".into();return Ok(Change::Preview)},
-            Action::Query(query)=>{let ids=query.found(&self.scene).map_err(|message|self.primitive_failure(message))?;self.select_objects(ids,false);return Ok(Change::View)},
-            Action::Arrowhead(head)=>return self.curve_heads(head),
-            Action::Escape=>{if self.element.is_some()||self.draft.is_some()||self.split.is_some()||self.gizmo_edit.is_some(){self.apply_action(Action::GizmoCancel)?;return self.apply_action(Action::CancelTool)}self.select_objects([],false);return Ok(Change::View)},
-            Action::Measure(kind)=>return self.measure_selection(kind),
-            Action::MeasureDistance(text)=>return self.begin_measure_distance(&text),
-            Action::BoundingBox=>return self.bounding_box(),
+            }
+            Action::Arrowhead(head) => return self.curve_heads(head),
+            Action::Escape => {
+                if self.element.is_some()
+                    || self.draft.is_some()
+                    || self.split.is_some()
+                    || self.gizmo_edit.is_some()
+                {
 ```
 
 **Locate this block:**
 
 ```rust
-        let draft=self.draft.as_ref().ok_or("No transform tool is running")?;let mut next=draft.transform.clone().ok_or("No transform tool is running")?;
-        let outcome=next.text(text,draft.cursor,self.construction_plane).map_err(|message|self.primitive_failure(message))?;self.transform_outcome(next,outcome)
+        self.transform_outcome(next, outcome)
     }
-    pub fn highlighted_objects(&self)->Vec<ObjectId>{if let Some(trim)=&self.trim{return if trim.phase==crate::trim_draft::Phase::Parts{Vec::new()}else if trim.phase==crate::trim_draft::Phase::Targets{trim.targets.iter().map(|o|o.id).collect()}else{trim.cutters.iter().map(|o|o.id).collect()}}if let Some(split)=&self.split{return std::iter::once(split.target.id).chain(split.cutters.iter().map(|o|o.id)).collect()}if let Some(extend)=self.draft.as_ref().and_then(|d|d.extend.as_ref()){return extend.boundaries.iter().map(|o|o.id).collect()}self.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||self.selected_objects(),|g|{g.progress.picked().iter().filter_map(|row|g.curves.iter().find(|(id,_)|id.value()==*row).map(|(id,_)|*id)).collect()})}
-    pub fn gathering_curves(&self)->bool{self.draft.as_ref().is_some_and(|d|d.plane_points.is_none()&&d.gather.as_ref().is_some_and(|g|g.picks()))}
-    fn gather_adopt(&mut self,next:crate::gather_draft::Draft,made:Option<crate::gather_input::Made>)->Result<Change,&'static str>{
-        next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
+    pub fn highlighted_objects(&self) -> Vec<ObjectId> {
+        if let Some(trim) = &self.trim {
+            return if trim.phase == crate::trim_draft::Phase::Parts {
+                Vec::new()
 ```
 
 Replace it with:
 
 ```rust
-        let draft=self.draft.as_ref().ok_or("No transform tool is running")?;let mut next=draft.transform.clone().ok_or("No transform tool is running")?;
-        let outcome=next.text(text,draft.cursor,self.construction_plane).map_err(|message|self.primitive_failure(message))?;self.transform_outcome(next,outcome)
+        self.transform_outcome(next, outcome)
     }
-    pub fn highlighted_objects(&self)->Vec<ObjectId>{if let Some(e)=&self.element{return e.ids()}if let Some(trim)=&self.trim{return if trim.phase==crate::trim_draft::Phase::Parts{Vec::new()}else if trim.phase==crate::trim_draft::Phase::Targets{trim.targets.iter().map(|o|o.id).collect()}else{trim.cutters.iter().map(|o|o.id).collect()}}if let Some(split)=&self.split{return std::iter::once(split.target.id).chain(split.cutters.iter().map(|o|o.id)).collect()}if let Some(extend)=self.draft.as_ref().and_then(|d|d.extend.as_ref()){return extend.boundaries.iter().map(|o|o.id).collect()}self.draft.as_ref().and_then(|d|d.gather.as_ref()).map_or_else(||self.selected_objects(),|g|{g.progress.picked().iter().filter_map(|row|g.curves.iter().find(|(id,_)|id.value()==*row).map(|(id,_)|*id)).collect()})}
-    pub fn gathering_curves(&self)->bool{self.draft.as_ref().is_some_and(|d|d.plane_points.is_none()&&d.gather.as_ref().is_some_and(|g|g.picks()))}
-    fn gather_adopt(&mut self,next:crate::gather_draft::Draft,made:Option<crate::gather_input::Made>)->Result<Change,&'static str>{
-        next.valid(&self.scene).map_err(|message|self.primitive_failure(message))?;
+    pub fn highlighted_objects(&self) -> Vec<ObjectId> {
+        if let Some(e) = &self.element {
+            return e.ids();
+        }
+        if let Some(trim) = &self.trim {
+            return if trim.phase == crate::trim_draft::Phase::Parts {
+                Vec::new()
 ```
 
 **Locate this block:**
@@ -1163,10 +1976,9 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            arctic:false,outlines:false,clipping_enabled:true,clipping_solid:true,interaction_epoch:0,lasso:None,trim:None,last_text_height:0.,mark:None,unit:crate::measure_mark::Unit::Millimeters,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            arctic: false,
+            outlines: false,
+            clipping_enabled: true,
 ```
 
 Replace it with:
@@ -1175,35 +1987,33 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            element:None,element_attributes:false,element_interactions:true,arctic:false,outlines:false,clipping_enabled:true,clipping_solid:true,interaction_epoch:0,lasso:None,trim:None,last_text_height:0.,mark:None,unit:crate::measure_mark::Unit::Millimeters,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            element: None,
+            element_attributes: false,
+            element_interactions: true,
+            arctic: false,
+            outlines: false,
+            clipping_enabled: true,
 ```
 
 **Locate this block:**
 
 ```rust
-}
-
 pub struct Editor {
-    pub arctic:bool,
-    pub outlines:bool,
-    pub clipping_enabled:bool,pub clipping_solid:bool,
+    pub arctic: bool,
+    pub outlines: bool,
+    pub clipping_enabled: bool,
 ```
 
 Replace it with:
 
 ```rust
-}
-
 pub struct Editor {
-    pub element:Option<crate::element_draft::Draft>,
-    pub element_attributes:bool,
-    pub element_interactions:bool,
-    pub arctic:bool,
-    pub outlines:bool,
-    pub clipping_enabled:bool,pub clipping_solid:bool,
+    pub element: Option<crate::element_draft::Draft>,
+    pub element_attributes: bool,
+    pub element_interactions: bool,
+    pub arctic: bool,
+    pub outlines: bool,
+    pub clipping_enabled: bool,
 ```
 
 ## <a id="checkpoint-92l-commit-one-element-creation-and-retry-errors"></a>14. Commit one Element creation and retry errors
@@ -1238,7 +2048,7 @@ pub struct Editor {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -1252,16 +2062,97 @@ Connect staged Element creation, named input and ordered picks.
 **Locate this existing block:**
 
 ```rust
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
+    }
 
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/92l-commit-one-element-creation-and-retry-errors-01.rs"
+    }
+
+    fn element_commit(
+        &mut self,
+        next: crate::element_draft::Draft,
+    ) -> Result<Change, &'static str> {
+        let made = next
+            .build(&self.scene)
+            .map_err(|m| self.primitive_failure(m))?;
+        let consumed = next.ids();
+        let mut ids = Vec::new();
+        let show = self.element_attributes;
+        let interactions = self.element_interactions;
+        self.history
+            .try_edit(&mut self.scene, |scene| {
+                ids = crate::element_adopt::adopt(scene, made, &consumed)?;
+                let features = crate::element_adopt::attribute_ids(scene);
+                std::rc::Rc::make_mut(&mut scene.view).hide(&features, !show);
+                let ids = crate::element_adopt::interaction_ids(scene);
+                std::rc::Rc::make_mut(&mut scene.view).hide(&ids, !interactions);
+                Ok(())
+            })?;
+        self.element = None;
+        self.select_objects(ids, false);
+        self.snap_index = None;
+        self.tool_status = format!(
+            "Created {} from its sources · Undo restores them",
+            next.kind.name()
+        );
+        Ok(Change::Scene)
+    }
+    fn element_begin(
+        &mut self,
+        kind: crate::element_input::Kind,
+        text: &str,
+    ) -> Result<Change, &'static str> {
+        let (next, typed) = crate::element_draft::Draft::new(
+            kind,
+            text,
+            &self.scene,
+            self.selected_objects(),
+        )
+        .map_err(|m| self.primitive_failure(m))?;
+        self.apply(Action::CancelTool)?;
+        if typed && !next.picked.is_empty() {
+            return self.element_commit(next);
+        }
+        self.select_objects([], false);
+        self.tool_status = next.prompt();
+        self.element = Some(next);
+        Ok(Change::View)
+    }
+    fn element_text(&mut self, text: &str) -> Result<Change, &'static str> {
+        let mut next = self
+            .element
+            .clone()
+            .ok_or("Start an Element tool first")?;
+        next.valid(&self.scene)
+            .map_err(|m| self.primitive_failure(m))?;
+        let finish = next
+            .text(text)
+            .map_err(|m| self.primitive_failure(m))?;
+        if finish {
+            return self.element_commit(next);
+        }
+        self.tool_status = next.prompt();
+        self.element = Some(next);
+        Ok(Change::View)
+    }
+    fn element_pick(&mut self, id: Option<ObjectId>) -> Result<Change, &'static str> {
+        let mut next = self
+            .element
+            .clone()
+            .ok_or("Start an Element tool first")?;
+        next.valid(&self.scene)
+            .map_err(|m| self.primitive_failure(m))?;
+        next.pick(&self.scene, id)
+            .map_err(|m| self.primitive_failure(m))?;
+        self.tool_status = next.prompt();
+        self.element = Some(next);
+        Ok(Change::View)
+    }
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
 
 ## <a id="checkpoint-92m-route-current-element-commands-and-feature-visibility"></a>15. Route Element commands and independent visibility
@@ -1296,7 +2187,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -1312,65 +2203,87 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        if self.split.is_some()&&!matches!(&action,Action::Split|Action::SplitPick(_)|Action::CancelSplit|Action::TreePick{..}|Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::ConstructionPlane(_)|Action::PlaneMenu|Action::Plane3){self.split=None;}
+            self.split = None;
+        }
         match action {
-            Action::ViewOutline(_)=>unreachable!("Outline presentation returned before editor mutation"),
-            Action::Arctic(_)=>unreachable!("Arctic presentation returned before editor mutation"),
-            Action::Clipping(request)=>{return self.clipping_request(request)},
+            Action::ViewOutline(_) => {
 ```
 
 Replace it with:
 
 ```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        if self.split.is_some()&&!matches!(&action,Action::Split|Action::SplitPick(_)|Action::CancelSplit|Action::TreePick{..}|Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::ConstructionPlane(_)|Action::PlaneMenu|Action::Plane3){self.split=None;}
+            self.split = None;
+        }
         match action {
-            Action::ElementBegin{kind,text}=>return self.element_begin(kind,&text),
-            Action::ElementText(text)=>return self.element_text(&text),
-            Action::ElementPick(id)=>return self.element_pick(id),
-            Action::ElementAttributes(on)|Action::ElementInteractions(on)=>{
-                let (shown,ids,label)=if matches!(action,Action::ElementInteractions(_)) {
-                    (&mut self.element_interactions,crate::element_adopt::interaction_ids(&self.scene),"Interactions")
-                }else{(&mut self.element_attributes,crate::element_adopt::attribute_ids(&self.scene),"Attributes")};
-                *shown=on.unwrap_or(!*shown);
-                std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids,!*shown);
-                self.tool_status=format!("Element {label} {}",if *shown{"On"}else{"Off"});
-                return Ok(Change::Scene)
-            },
-            Action::ViewOutline(_)=>unreachable!("Outline presentation returned before editor mutation"),
-            Action::Arctic(_)=>unreachable!("Arctic presentation returned before editor mutation"),
-            Action::Clipping(request)=>{return self.clipping_request(request)},
+            Action::ElementBegin { kind, text } => {
+                return self.element_begin(kind, &text);
+            }
+            Action::ElementText(text) => return self.element_text(&text),
+            Action::ElementPick(id) => return self.element_pick(id),
+            Action::ElementAttributes(on) | Action::ElementInteractions(on) => {
+                let (shown, ids, label) =
+                    if matches!(action, Action::ElementInteractions(_)) {
+                        (
+                            &mut self.element_interactions,
+                            crate::element_adopt::interaction_ids(&self.scene),
+                            "Interactions",
+                        )
+                    } else {
+                        (
+                            &mut self.element_attributes,
+                            crate::element_adopt::attribute_ids(&self.scene),
+                            "Attributes",
+                        )
+                    };
+                *shown = on.unwrap_or(!*shown);
+                std::rc::Rc::make_mut(&mut self.scene.view).hide(&ids, !*shown);
+                self.tool_status = format!(
+                    "Element {label} {}",
+                    if *shown {
+                        "On"
+                    } else {
+                        "Off"
+                    }
+                );
+                return Ok(Change::Scene);
+            }
+            Action::ViewOutline(_) => {
 ```
 
 **Locate this block:**
 
 ```rust
-
-    pub fn drawing_plane(&self)->crate::cplane::CPlane{self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())))}
+        })
+    }
     pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.draft.as_ref().is_some_and(|d|d.tool.name()=="Clipping Plane"){if let Some(mode)=crate::clipping_geometry::Mode::parse(text.trim()){return Some(Ok(Action::Clipping(crate::clipping_input::Request::Begin(mode))))}}
-        if self.trim.is_some(){return match text.trim(){""=>Some(Ok(Action::Trim)),v if v.eq_ignore_ascii_case("Trim")=>Some(Ok(Action::Trim)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelTrim)),_=>None}}
-        if self.mark.is_some()&&text.trim().eq_ignore_ascii_case("Escape"){return Some(Ok(Action::CancelTool))}
+        if self
+            .draft
+            .as_ref()
 ```
 
 Replace it with:
 
 ```rust
-
-    pub fn drawing_plane(&self)->crate::cplane::CPlane{self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())))}
+        })
+    }
     pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.element.is_some(){return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape"){Action::CancelTool}else{Action::ElementText(text.into())}))}
-        if self.draft.as_ref().is_some_and(|d|d.tool.name()=="Clipping Plane"){if let Some(mode)=crate::clipping_geometry::Mode::parse(text.trim()){return Some(Ok(Action::Clipping(crate::clipping_input::Request::Begin(mode))))}}
-        if self.trim.is_some(){return match text.trim(){""=>Some(Ok(Action::Trim)),v if v.eq_ignore_ascii_case("Trim")=>Some(Ok(Action::Trim)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelTrim)),_=>None}}
-        if self.mark.is_some()&&text.trim().eq_ignore_ascii_case("Escape"){return Some(Ok(Action::CancelTool))}
+        if self.element.is_some() {
+            return Some(Ok(
+                if text.trim().eq_ignore_ascii_case("Escape") {
+                    Action::CancelTool
+                } else {
+                    Action::ElementText(text.into())
+                },
+            ));
+        }
+        if self
+            .draft
+            .as_ref()
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
     Arctic(Option<bool>),
     ViewOutline(Option<bool>),
@@ -1380,10 +2293,15 @@ pub enum Action {
 Replace it with:
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
-    ElementBegin{kind:crate::element_input::Kind,text:String},ElementText(String),ElementPick(Option<ObjectId>),ElementAttributes(Option<bool>),ElementInteractions(Option<bool>),
+    ElementBegin {
+        kind: crate::element_input::Kind,
+        text: String,
+    },
+    ElementText(String),
+    ElementPick(Option<ObjectId>),
+    ElementAttributes(Option<bool>),
+    ElementInteractions(Option<bool>),
     Arctic(Option<bool>),
     ViewOutline(Option<bool>),
     Clipping(crate::clipping_input::Request),
@@ -1398,58 +2316,116 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
-    if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
-    if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
-    if name=="View Outline"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("View Outline (On Off)".into())};return Ok(Command::Editor(Action::ViewOutline(on)));}
-    if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
-    if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
+    {
+        return Ok(Command::Editor(action));
+    }
 ```
 
 Replace it with:
 
 ```rust
-    if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
-    if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
-    if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
-    if let Some(kind)=[("Element Beam",crate::element_input::Kind::Beam),("Element Column",crate::element_input::Kind::Column),("Element Plate",crate::element_input::Kind::Plate),("Element Support",crate::element_input::Kind::Support),("Element Beam Variable",crate::element_input::Kind::Variable),("Element Block",crate::element_input::Kind::Block)].into_iter().find_map(|(n,k)|(n==name).then_some(k)){let text=words[count..].join(" ");kind.read(&text)?;return Ok(Command::Editor(Action::ElementBegin{kind,text}));}
-    if matches!(name,"Element Attributes"|"Element Interactions") {
-        let on=crate::element_input::visibility(&words[count..])?;
-        return Ok(Command::Editor(if name=="Element Attributes"{Action::ElementAttributes(on)}else{Action::ElementInteractions(on)}));
+    {
+        return Ok(Command::Editor(action));
     }
-    if name=="View Outline"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("View Outline (On Off)".into())};return Ok(Command::Editor(Action::ViewOutline(on)));}
-    if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
-    if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
+    if let Some(kind) = [
+        (
+            "Element Beam",
+            crate::element_input::Kind::Beam,
+        ),
+        (
+            "Element Column",
+            crate::element_input::Kind::Column,
+        ),
+        (
+            "Element Plate",
+            crate::element_input::Kind::Plate,
+        ),
+        (
+            "Element Support",
+            crate::element_input::Kind::Support,
+        ),
+        (
+            "Element Beam Variable",
+            crate::element_input::Kind::Variable,
+        ),
+        (
+            "Element Block",
+            crate::element_input::Kind::Block,
+        ),
+    ]
+    .into_iter()
+    .find_map(|(n, k)| (n == name).then_some(k))
+    {
+        let text = words[count..].join(" ");
+        kind.read(&text)?;
+        return Ok(Command::Editor(Action::ElementBegin {
+            kind,
+            text,
+        }));
+    }
+    if matches!(
+        name,
+        "Element Attributes" | "Element Interactions"
+    ) {
+        let on = crate::element_input::visibility(&words[count..])?;
+        return Ok(Command::Editor(
+            if name == "Element Attributes" {
+                Action::ElementAttributes(on)
+            } else {
+                Action::ElementInteractions(on)
+            },
+        ));
+    }
 ```
 
 **Locate this block:**
 
 ```rust
-
-pub type Factory = fn() -> Action;
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("View Outline",||Action::ViewOutline(None)),
-    ("Arctic",||Action::Arctic(None)),
-    ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
+    ("View Outline", || Action::ViewOutline(None)),
+    ("Arctic", || Action::Arctic(None)),
+    ("Select By Name", || {
 ```
 
 Replace it with:
 
 ```rust
-
-pub type Factory = fn() -> Action;
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("Element Beam Variable",||Action::ElementBegin{kind:crate::element_input::Kind::Variable,text:String::new()}),
-    ("Element Beam",||Action::ElementBegin{kind:crate::element_input::Kind::Beam,text:String::new()}),
-    ("Element Column",||Action::ElementBegin{kind:crate::element_input::Kind::Column,text:String::new()}),
-    ("Element Plate",||Action::ElementBegin{kind:crate::element_input::Kind::Plate,text:String::new()}),
-    ("Element Support",||Action::ElementBegin{kind:crate::element_input::Kind::Support,text:String::new()}),
-    ("Element Block",||Action::ElementBegin{kind:crate::element_input::Kind::Block,text:String::new()}),
-    ("Element Attributes",||Action::ElementAttributes(None)),
-    ("Element Interactions",||Action::ElementInteractions(None)),
-    ("View Outline",||Action::ViewOutline(None)),
-    ("Arctic",||Action::Arctic(None)),
-    ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
+    ("Element Beam Variable", || {
+        Action::ElementBegin {
+            kind: crate::element_input::Kind::Variable,
+            text: String::new(),
+        }
+    }),
+    ("Element Beam", || Action::ElementBegin {
+        kind: crate::element_input::Kind::Beam,
+        text: String::new(),
+    }),
+    ("Element Column", || Action::ElementBegin {
+        kind: crate::element_input::Kind::Column,
+        text: String::new(),
+    }),
+    ("Element Plate", || Action::ElementBegin {
+        kind: crate::element_input::Kind::Plate,
+        text: String::new(),
+    }),
+    ("Element Support", || Action::ElementBegin {
+        kind: crate::element_input::Kind::Support,
+        text: String::new(),
+    }),
+    ("Element Block", || Action::ElementBegin {
+        kind: crate::element_input::Kind::Block,
+        text: String::new(),
+    }),
+    ("Element Attributes", || {
+        Action::ElementAttributes(None)
+    }),
+    ("Element Interactions", || {
+        Action::ElementInteractions(None)
+    }),
+    ("View Outline", || Action::ViewOutline(None)),
+    ("Arctic", || Action::Arctic(None)),
+    ("Select By Name", || {
 ```
 
 ## <a id="checkpoint-92n-pick-elements-through-the-real-command-dock"></a>16. Pick Elements through the real command dock
@@ -1484,7 +2460,7 @@ pub const ACTIONS: &[(&str, Factory)] = &[
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
@@ -1500,146 +2476,148 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        panel.lasso=editor.lasso.as_ref().map_or_else(Vec::new,|l|l.points.iter().map(|p|[(p.0/l.density) as f32,(p.1/l.density) as f32]).collect());
-        panel.tree.refresh(&editor.scene,editor.selected_objects());
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(if editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){crate::pick_sources::Mode::Object}else{editor.pick_mode});
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
+                panel.result(error);
+            }
+            renderer.set_pick_mode(
+                if editor.trimming_picks()
+                    || editor.split.is_some()
 ```
 
 Replace it with:
 
 ```rust
-        panel.lasso=editor.lasso.as_ref().map_or_else(Vec::new,|l|l.points.iter().map(|p|[(p.0/l.density) as f32,(p.1/l.density) as f32]).collect());
-        panel.tree.refresh(&editor.scene,editor.selected_objects());
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){crate::pick_sources::Mode::Object}else{editor.pick_mode});
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(editor.display_scene(), editor.selection())
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
+                panel.result(error);
+            }
+            renderer.set_pick_mode(
+                if editor.element.is_some()
+                    || editor.trimming_picks()
+                    || editor.split.is_some()
 ```
 
 **Locate this block:**
 
 ```rust
+                    }
                 }
             }
-        }
-        if editor.plane_menu {panel.tool(editor.tool_status.clone(),crate::drawing_input::buttons());}
-        else if let Some(trim)=&editor.trim{panel.tool(trim.prompt(),vec![("Enter".into(),"Trim".into()),("Cancel".into(),"Escape".into())]);}
-        else if let Some(split)=&editor.split{panel.tool(split.prompt(),vec![("Split".into(),"Split".into()),("Cancel".into(),"Escape".into())]);}
-        else if let Some(draft) = editor.draft.as_ref() {let mut buttons=draft.tool.buttons();if draft.text.is_some(){buttons.push(("Height".into(),"Height".into()));}buttons.extend(crate::drawing_input::buttons());panel.tool(draft.prompt(),buttons);}
+            if editor.plane_menu {
+                panel.tool(
+                    editor.tool_status.clone(),
+                    crate::drawing_input::buttons(),
 ```
 
 Replace it with:
 
 ```rust
+                    }
                 }
             }
-        }
-        if let Some(element)=&editor.element{panel.tool(element.prompt(),element.buttons());}
-        else if editor.plane_menu {panel.tool(editor.tool_status.clone(),crate::drawing_input::buttons());}
-        else if let Some(trim)=&editor.trim{panel.tool(trim.prompt(),vec![("Enter".into(),"Trim".into()),("Cancel".into(),"Escape".into())]);}
-        else if let Some(split)=&editor.split{panel.tool(split.prompt(),vec![("Split".into(),"Split".into()),("Cancel".into(),"Escape".into())]);}
-        else if let Some(draft) = editor.draft.as_ref() {let mut buttons=draft.tool.buttons();if draft.text.is_some(){buttons.push(("Height".into(),"Height".into()));}buttons.extend(crate::drawing_input::buttons());panel.tool(draft.prompt(),buttons);}
+            if let Some(element) = &editor.element {
+                panel.tool(element.prompt(), element.buttons());
+            } else if editor.plane_menu {
+                panel.tool(
+                    editor.tool_status.clone(),
+                    crate::drawing_input::buttons(),
 ```
 
 **Locate this block:**
 
 ```rust
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let group_action=matches!(&action,Action::AddGroup(_));let graph_action=matches!(&action,Action::AddEdge);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::AddGroup(_) | Action::AddEdge | Action::SelectLasso | Action::LassoRelease{..} | Action::LassoCancel | Action::TextBegin(_) | Action::Trim | Action::TrimPick(_) | Action::TrimScreen{commit:true,..} | Action::CancelTrim | Action::Arrowhead(_) | Action::Explode | Action::Query(_) | Action::Measure(_) | Action::MeasureDistance(_) | Action::BoundingBox | Action::Split | Action::SplitPick(_) | Action::CancelSplit | Action::BeginTool(_) | Action::GatherBegin{..} | Action::GatherPick(_) | Action::Project(_) | Action::ExtendBegin{..} | Action::ExtendPick(_) | Action::Interval(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool | Action::CancelSplit | Action::CancelTrim) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
-                | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
+                );
+                let tool_action = matches!(
+                    &action,
+                    Action::AddGroup(_)
+                        | Action::AddEdge
+                        | Action::SelectLasso
+                        | Action::LassoRelease { .. }
 ```
 
 Replace it with:
 
 ```rust
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let group_action=matches!(&action,Action::AddGroup(_));let graph_action=matches!(&action,Action::AddEdge);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::ElementBegin{..}|Action::ElementText(_)|Action::ElementPick(_)|Action::ElementAttributes(_)| Action::AddGroup(_) | Action::AddEdge | Action::SelectLasso | Action::LassoRelease{..} | Action::LassoCancel | Action::TextBegin(_) | Action::Trim | Action::TrimPick(_) | Action::TrimScreen{commit:true,..} | Action::CancelTrim | Action::Arrowhead(_) | Action::Explode | Action::Query(_) | Action::Measure(_) | Action::MeasureDistance(_) | Action::BoundingBox | Action::Split | Action::SplitPick(_) | Action::CancelSplit | Action::BeginTool(_) | Action::GatherBegin{..} | Action::GatherPick(_) | Action::Project(_) | Action::ExtendBegin{..} | Action::ExtendPick(_) | Action::Interval(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool | Action::CancelSplit | Action::CancelTrim) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
-                | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
+                );
+                let tool_action = matches!(
+                    &action,
+                    Action::ElementBegin { .. }
+                        | Action::ElementText(_)
+                        | Action::ElementPick(_)
+                        | Action::ElementAttributes(_)
+                        | Action::AddGroup(_)
+                        | Action::AddEdge
+                        | Action::SelectLasso
+                        | Action::LassoRelease { .. }
 ```
 
 **Locate this block:**
 
 ```rust
-            Some(Action::Touch(actions))=> {
-                let mut applied=Vec::new();
-                for action in actions {match action {
-                    Action::Pick(screen)=>{if editor.trimming_parts(){let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true});}else if editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()){report(error)}}else if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()) {report(error);}}},
-                    action=>{renderer.cancel_pick();applied.push(action);}
-                }}Some(Action::Touch(applied))
-            },
+                                            size: [r.width(), r.height()],
+                                            commit: true,
+                                        });
+                                    } else if editor.trimming_picks()
+                                        || editor.split.is_some()
+                                        || editor.editing_boundaries()
+                                        || editor.gathering_curves()
 ```
 
 Replace it with:
 
 ```rust
-            Some(Action::Touch(actions))=> {
-                let mut applied=Vec::new();
-                for action in actions {match action {
-                    Action::Pick(screen)=>{if editor.trimming_parts(){let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true});}else if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()){report(error)}}else if editor.draft.is_some() {let r=pointer_canvas.get_bounding_client_rect();applied.push(Action::ToolScreen {screen,size:[r.width(),r.height()],commit:true});} else {pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()) {report(error);}}},
-                    action=>{renderer.cancel_pick();applied.push(action);}
-                }}Some(Action::Touch(applied))
-            },
+                                            size: [r.width(), r.height()],
+                                            commit: true,
+                                        });
+                                    } else if editor.element.is_some()
+                                        || editor.trimming_picks()
+                                        || editor.split.is_some()
+                                        || editor.editing_boundaries()
+                                        || editor.gathering_curves()
 ```
 
 **Locate this block:**
 
 ```rust
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) if editor.trimming_parts()=>{let r=pointer_canvas.get_bounding_client_rect();Some(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true})},
-            Some(Action::Pick(screen)) if editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves()=>{pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()){report(error)}None},
-            Some(Action::Pick(screen)) if editor.draft.is_some() => {
-                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
-            }
+                        })
+                    }
+                    Some(Action::Pick(screen))
+                        if editor.trimming_picks()
+                            || editor.split.is_some()
+                            || editor.editing_boundaries()
+                            || editor.gathering_curves() =>
 ```
 
 Replace it with:
 
 ```rust
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) if editor.trimming_parts()=>{let r=pointer_canvas.get_bounding_client_rect();Some(Action::TrimScreen{screen,size:[r.width(),r.height()],commit:true})},
-            Some(Action::Pick(screen)) if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves()=>{pick_additive.set(false);pick_remove.set(false);if let Err(error)=renderer.request_pick(screen,editor.camera.uniform()){report(error)}None},
-            Some(Action::Pick(screen)) if editor.draft.is_some() => {
-                Some(Action::ToolScreen { screen,size:[pointer_canvas.get_bounding_client_rect().width(),pointer_canvas.get_bounding_client_rect().height()],commit:true })
-            }
+                        })
+                    }
+                    Some(Action::Pick(screen))
+                        if editor.element.is_some()
+                            || editor.trimming_picks()
+                            || editor.split.is_some()
+                            || editor.editing_boundaries()
+                            || editor.gathering_curves() =>
 ```
 
 **Locate this block:**
 
 ```rust
-            match renderer.take_pick(editor.camera.uniform()) {
-                Some(Ok(hit)) => {
-                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
-                    if editor.trimming_picks(){Some(Action::TrimPick(target.map(|t|t.owner)))}else if editor.split.is_some(){Some(Action::SplitPick(target.map(|t|t.owner)))}else if editor.editing_boundaries(){Some(Action::ExtendPick(target.map(|t|t.owner)))}else if editor.gathering_curves(){Some(Action::GatherPick(target.map(|t|t.owner)))}
-                    else if editor.canvas_drag.is_some() {Some(Action::CanvasHit(target.map(|t|t.owner)))}
-                    else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
-                    else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
+                            .and_then(|hit| renderer.resolve_pick(&editor.scene, hit));
+                        if editor.trimming_picks() {
+                            Some(Action::TrimPick(target.map(|t| t.owner)))
+                        } else if editor.split.is_some() {
+                            Some(Action::SplitPick(target.map(|t| t.owner)))
 ```
 
 Replace it with:
 
 ```rust
-            match renderer.take_pick(editor.camera.uniform()) {
-                Some(Ok(hit)) => {
-                    let target=hit.and_then(|hit|renderer.resolve_pick(&editor.scene,hit));
-                    if editor.element.is_some(){Some(Action::ElementPick(target.map(|t|t.owner)))}else if editor.trimming_picks(){Some(Action::TrimPick(target.map(|t|t.owner)))}else if editor.split.is_some(){Some(Action::SplitPick(target.map(|t|t.owner)))}else if editor.editing_boundaries(){Some(Action::ExtendPick(target.map(|t|t.owner)))}else if editor.gathering_curves(){Some(Action::GatherPick(target.map(|t|t.owner)))}
-                    else if editor.canvas_drag.is_some() {Some(Action::CanvasHit(target.map(|t|t.owner)))}
-                    else if pick_remove.get() {Some(Action::SelectRows {ids:target.filter(|t|t.part==crate::pick_sources::Part::Object).map(|t|t.owner).into_iter().collect(),add:false,remove:true})}
-                    else {Some(Action::PickedMany {target,additive:pick_additive.get()})}
+                            .and_then(|hit| renderer.resolve_pick(&editor.scene, hit));
+                        if editor.element.is_some() {
+                            Some(Action::ElementPick(target.map(|t| t.owner)))
+                        } else if editor.trimming_picks() {
+                            Some(Action::TrimPick(target.map(|t| t.owner)))
+                        } else if editor.split.is_some() {
+                            Some(Action::SplitPick(target.map(|t| t.owner)))
 ```
 
 ## <a id="checkpoint-92o-prove-element-recipes-source-history-and-archives"></a>17. Prove Element recipes source history and archives
@@ -1674,30 +2652,391 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">typed Element and attribu…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history edit</text>
 </svg>
 </div>
 
 **What this code does:** Prove Element recipes source history and archives.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/element_tests.rs`
 
 Copy supplied original Element adapter and archive fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-01.rs"
+```rust
+use crate::{
+    editor::{Action, Editor},
+    scene::Scene,
+};
+use session_rust::{Geometry, Point, Polyline};
+use std::rc::Rc;
+use wood::WoodElement;
+pub fn square(side: f64, z: f64) -> Polyline {
+    let corners = [
+        (0.0, 0.0),
+        (side, 0.0),
+        (side, side),
+        (0.0, side),
+        (0.0, 0.0),
+    ];
+    Polyline::new(
+        corners
+            .iter()
+            .map(|&(x, y)| Point::new(x, y, z))
+            .collect(),
+    )
+}
+
+fn command(e: &mut Editor, text: &str) -> Result<crate::editor::Change, &'static str> {
+    let action = if let Some(a) = e.tool_line(text) {
+        a?
+    } else {
+        let crate::commands::Command::Editor(a) =
+            crate::commands::parse(text).map_err(|_| "Invalid command")?
+        else {
+            return Err("Editor command");
+        };
+        a
+    };
+    e.apply(action)
+}
+fn line(e: &mut Editor) -> crate::scene::ObjectId {
+    let source = Rc::new(session_rust::Line::new(
+        0., 0., 0., 1000., 0., 0.,
+    ));
+    e.scene
+        .insert_line(crate::stroke::PreparedLine::new(source).unwrap())
+        .unwrap()
+}
+fn original(e: &Editor) -> Rc<session_rust::Element> {
+    e.scene
+        .objects()
+        .iter()
+        .find_map(|r| {
+            if let Some(Geometry::Element(v)) = &r.original {
+                Some(v.clone())
+            } else {
+                None
+            }
+        })
+        .unwrap()
+}
+#[test]
+fn element_current_defaults_named_values_and_atomic_input_are_preserved() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let id = line(&mut e);
+    e.select_objects([id], false);
+    command(&mut e, "Element Beam").unwrap();
+    let draft = e.element.as_ref().unwrap();
+    assert_eq!(
+        draft
+            .params
+            .iter()
+            .map(|p| p.value)
+            .collect::<Vec<_>>(),
+        [120., 200.]
+    );
+    assert_eq!(draft.ids(), [id]);
+    command(&mut e, "Width").unwrap();
+    command(&mut e, "").unwrap();
+    assert!(e.element.is_some());
+    command(&mut e, "Width=100 Height=150").unwrap();
+    let before = e.element.as_ref().unwrap().params.clone();
+    assert!(command(&mut e, "Width=99 Height=-1").is_err());
+    assert_eq!(e.element.as_ref().unwrap().params, before);
+    command(&mut e, "").unwrap();
+    assert!(e.element.is_none());
+    let source = original(&e);
+    let beam = wood::Beam::from_element(&source).unwrap();
+    assert!((beam.solid().volume().abs() - 1000. * 100. * 150.).abs() < 1e-6);
+    assert!(!e.scene.contains(id));
+}
+#[test]
+fn element_world_placements_consumed_sources_and_one_history_step_roundtrip() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let id = line(&mut e);
+    e.scene
+        .place_line(
+            id,
+            session_rust::Xform::translation(0.125, 2., 3.),
+        )
+        .unwrap();
+    let source = crate::source_edit::original(&e.scene, id).unwrap();
+    let Geometry::Line(before) = source else {
+        unreachable!()
+    };
+    let before_proto = before.to_proto();
+    e.select_objects([id], false);
+    command(&mut e, "Element Beam 100 200").unwrap();
+    let made = original(&e);
+    let _ = made.guid();
+    let made_proto = made.to_proto();
+    let beam = wood::Beam::from_element(&made).unwrap();
+    assert_eq!(
+        beam.axis.get_point(0).unwrap(),
+        Point::new(0.125, 2., 3.)
+    );
+    assert!(!e.scene.contains(id));
+    let parent = e.selected_objects()[0];
+    let attrs = e.scene.with_descendants(&[parent]);
+    assert!(attrs.len() > 2);
+    assert!(
+        attrs
+            .iter()
+            .filter(|id| **id != parent)
+            .all(|id| e.scene.forest.readonly(*id))
+    );
+    e.apply(Action::Undo).unwrap();
+    assert!(e.scene.contains(id));
+    assert_eq!(before.to_proto(), before_proto);
+    assert!(
+        e.scene
+            .objects()
+            .iter()
+            .all(|r| !matches!(r.original, Some(Geometry::Element(_))))
+    );
+    e.apply(Action::Redo).unwrap();
+    assert!(Rc::ptr_eq(&original(&e), &made));
+    assert_eq!(made.to_proto(), made_proto);
+    let saved = crate::scene_archive::save(&e.scene).unwrap();
+    let mut restored = Scene::empty();
+    crate::scene_document::open(&mut restored, &saved).unwrap();
+    let elem = restored
+        .objects()
+        .iter()
+        .find_map(|r| {
+            if let Some(Geometry::Element(v)) = &r.original {
+                Some(v)
+            } else {
+                None
+            }
+        })
+        .unwrap();
+    assert_eq!(elem.to_proto(), made_proto);
+    let parent = restored
+        .objects()
+        .iter()
+        .find(|r| matches!(r.original, Some(Geometry::Element(_))))
+        .unwrap()
+        .id;
+    assert!(restored.with_descendants(&[parent]).len() > 2);
+    let child = restored.with_descendants(&[parent])[1];
+    assert!(restored.forest.readonly(child));
+    assert!(
+        restored
+            .place_owner(child, session_rust::Xform::identity())
+            .is_err()
+    );
+}
+#[test]
+fn element_picked_stale_source_rejects_creation_without_consumption() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let id = line(&mut e);
+    command(&mut e, "Element Beam").unwrap();
+    e.apply(Action::ElementPick(Some(id)))
+        .unwrap();
+    e.scene
+        .place_line(
+            id,
+            session_rust::Xform::translation(1., 0., 0.),
+        )
+        .unwrap();
+    assert!(command(&mut e, "").is_err());
+    assert!(e.scene.contains(id));
+    assert!(e.element.is_some());
+    assert!(e.scene.objects().is_empty());
+    command(&mut e, "Escape").unwrap();
+    assert!(e.element.is_none());
+}
+#[test]
+fn element_attributes_toggle_follows_parent_and_preserves_original_payload() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let id = line(&mut e);
+    e.select_objects([id], false);
+    command(&mut e, "Element Beam 100 200").unwrap();
+    let source = original(&e);
+    let before = source.to_proto();
+    let parent = e.selected_objects()[0];
+    let children = crate::element_adopt::attribute_ids(&e.scene);
+    assert!(children.len() > 1);
+    assert!(
+        children
+            .iter()
+            .all(|id| !e.scene.visible(*id))
+    );
+    command(&mut e, "Element Attributes On").unwrap();
+    assert!(
+        children
+            .iter()
+            .all(|id| e.scene.visible(*id))
+    );
+    command(&mut e, "Element Attributes Off").unwrap();
+    assert!(
+        children
+            .iter()
+            .all(|id| !e.scene.visible(*id))
+    );
+    let old = children
+        .iter()
+        .map(|id| e.scene.placement(*id).unwrap())
+        .collect::<Vec<_>>();
+    e.select_objects([parent], false);
+    e.apply(Action::Translate([3., 4., 5.]))
+        .unwrap();
+    for (id, old) in children.iter().zip(old) {
+        let matrix = e.scene.placement(*id).unwrap();
+        assert_eq!(matrix.m[12], old.m[12] + 3.);
+        assert_eq!(matrix.m[13], old.m[13] + 4.);
+        assert_eq!(matrix.m[14], old.m[14] + 5.);
+    }
+    assert_eq!(source.to_proto(), before);
+}
+#[test]
+fn element_strict_arguments_longest_command_and_selection_order() {
+    for bad in [
+        "Element Beam 1 2 3",
+        "Element Plate -1",
+        "Element Support 1",
+        "Element Block 3",
+        "Element Beam Variable 1",
+        "Element Column NaN",
+        "Element Attributes What",
+    ] {
+        assert!(crate::commands::parse(bad).is_err(), "{bad}");
+    }
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let mut ids = Vec::new();
+    for z in [0., 250., 500.] {
+        ids.push(
+            e.scene
+                .insert_path(
+                    crate::chain::PreparedChain::polyline(Rc::new(square(100., z)))
+                        .unwrap(),
+                )
+                .unwrap(),
+        );
+    }
+    e.select_objects(ids.clone(), false);
+    command(&mut e, "Element Beam Variable").unwrap();
+    let source = original(&e);
+    assert_eq!(source.element_type, wood::BeamVariable::TYPE);
+    let beam = wood::BeamVariable::from_element(&source).unwrap();
+    assert!((beam.axis.length() - 500.).abs() < 1e-9);
+    assert!(ids.iter().all(|id| !e.scene.contains(*id)));
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let id = line(&mut e);
+    e.select_objects([id], false);
+    command(&mut e, "Element Plate 40").unwrap_err();
+    assert!(e.scene.contains(id));
+    assert!(e.scene.objects().is_empty());
+}
+#[test]
+fn element_bounding_box_measurement_and_delete_keep_parent_ownership() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    let id = line(&mut e);
+    e.select_objects([id], false);
+    command(&mut e, "Element Beam 100 200").unwrap();
+    let source = original(&e);
+    let before = source.to_proto();
+    let owner = e.selected_objects()[0];
+    command(&mut e, "Length BoundingBox").unwrap();
+    assert_eq!(
+        e.mark.as_ref().unwrap().label,
+        "X 1000 · Y 100 · Z 200 mm"
+    );
+    command(&mut e, "BoundingBox").unwrap();
+    assert_eq!(source.to_proto(), before);
+    e.apply(Action::Undo).unwrap();
+    e.select_objects([owner], false);
+    let all = e.scene.with_descendants(&[owner]);
+    command(&mut e, "Delete").unwrap();
+    assert!(all.iter().all(|id| !e.scene.contains(*id)));
+    e.apply(Action::Undo).unwrap();
+    assert!(all.iter().all(|id| e.scene.contains(*id)));
+    assert!(Rc::ptr_eq(&original(&e), &source));
+}
+
+#[test]
+fn attributes_and_interactions_have_independent_defaults_and_keep_originals() {
+    use session_rust::element::ElementFeature;
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    assert!(!e.element_attributes && e.element_interactions);
+    let mut source = session_rust::Element::new("host");
+    source.set_geometry(session_rust::Mesh::create_box(
+        100., 100., 100.,
+    ));
+    for kind in ["axis", "contact", "joint", "cut", "drill"] {
+        source.add_feature(ElementFeature::new(
+            kind,
+            -1,
+            vec![square(100., 0.)],
+            kind,
+        ));
+    }
+    let source = Rc::new(source);
+    let _ = source.guid();
+    let before = source.to_proto();
+    let made = crate::element_input::Made {
+        source: source.clone(),
+        plane: None,
+    };
+    crate::element_adopt::adopt(&mut e.scene, vec![made], &[]).unwrap();
+    let attributes = crate::element_adopt::attribute_ids(&e.scene);
+    let interactions = crate::element_adopt::interaction_ids(&e.scene);
+    assert_eq!(attributes.len(), 1);
+    assert_eq!(interactions.len(), 4);
+    assert!(
+        attributes
+            .iter()
+            .all(|id| !e.scene.visible(*id))
+    );
+    assert!(
+        interactions
+            .iter()
+            .all(|id| e.scene.visible(*id))
+    );
+    command(&mut e, "Element Attributes On").unwrap();
+    command(&mut e, "Element Interactions Off").unwrap();
+    assert!(
+        attributes
+            .iter()
+            .all(|id| e.scene.visible(*id))
+    );
+    assert!(
+        interactions
+            .iter()
+            .all(|id| !e.scene.visible(*id))
+    );
+    command(&mut e, "Element Interactions").unwrap();
+    assert!(
+        interactions
+            .iter()
+            .all(|id| e.scene.visible(*id))
+    );
+    use prost::Message;
+    let mut after = source.to_proto();
+    // Protobuf map entry order is not geometry identity; compare the decoded mesh fields exactly.
+    let original_mesh =
+        session_rust::proto::Mesh::decode(before.geometry_data.as_slice()).unwrap();
+    let current_mesh =
+        session_rust::proto::Mesh::decode(after.geometry_data.as_slice()).unwrap();
+    assert_eq!(current_mesh, original_mesh);
+    after.geometry_data = before.geometry_data.clone();
+    assert_eq!(after, before);
+    assert!(crate::commands::parse("Element Interactions Maybe").is_err());
+    assert!(crate::commands::parse("Element Features On").is_err());
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -1705,20 +3044,28 @@ Register the completed Element component.
 
 **Locate this existing block:**
 
-```text
+```rust
+pub mod element_draft;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod element_adopt;
+pub mod finite_project_source;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod element_draft;
 
 pub mod element_adopt;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+#[cfg(test)]
+mod element_tests;
+pub mod finite_project_source;
 ```
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-02.rs" skip=24
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/element_beam.rs`
 
@@ -1726,21 +3073,53 @@ Copy maintained beam solid and command fixtures.
 
 **Locate this existing block:**
 
-```text
-        false => Ok(beams),
+```rust
     }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-03.rs" skip=3
+```rust
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::parse as parse_line;
+    use session_rust::Point;
+    use wood::WoodElement;
+
+    #[test]
+    fn element_beam_sweeps_the_rectangle_along_the_axis() {
+        assert!(
+            parse_line("Element Beam 100 200").is_ok()
+                && parse_line("Element Beam").is_ok()
+        );
+        assert!(parse_line("Element Beam 1 2 3").is_err());
+        let axis = Polyline::new(vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(1000.0, 0.0, 0.0),
+        ]);
+        let solid = build(&[axis], 100.0, 200.0).unwrap()[0].solid();
+        assert!(
+            (solid.volume().abs() - 1000.0 * 100.0 * 200.0).abs() < 1e-6
+                && solid.is_closed()
+        );
+        assert!(
+            build(
+                &[Polyline::new(vec![Point::new(
+                    0.0, 0.0, 0.0
+                )])],
+                1.0,
+                1.0
+            )
+            .is_err()
+        );
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/element_column.rs`
 
@@ -1748,21 +3127,44 @@ Copy maintained column solid and command fixtures.
 
 **Locate this existing block:**
 
-```text
-        false => Ok(columns),
+```rust
     }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-04.rs" skip=3
+```rust
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::parse as parse_line;
+    use session_rust::Point;
+    use wood::WoodElement;
+
+    #[test]
+    fn element_column_lofts_the_rectangle_up_the_line() {
+        assert!(
+            parse_line("Element Column 200 300").is_ok()
+                && parse_line("Element Column x").is_err()
+        );
+        let axis = Polyline::new(vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(0.0, 0.0, 3000.0),
+        ]);
+        let columns = build(&[axis], 200.0, 300.0).unwrap();
+        let solid = columns[0].solid();
+        assert!(
+            (solid.volume().abs() - 200.0 * 300.0 * 3000.0).abs() < 1e-6
+                && solid.is_closed()
+        );
+        assert!(columns[0].base_plane().is_some());
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/element_plate.rs`
 
@@ -1770,21 +3172,41 @@ Copy maintained plate solid and command fixtures.
 
 **Locate this existing block:**
 
-```text
-            .collect()),
+```rust
     }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-05.rs" skip=3
+```rust
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::parse as parse_line;
+    use crate::element_tests::square;
+    use wood::WoodElement;
+
+    #[test]
+    fn element_plate_lofts_the_outline_by_its_thickness() {
+        assert!(
+            parse_line("Element Plate").is_ok()
+                && parse_line("element plate 25").is_ok()
+        );
+        assert!(parse_line("Element Plate -4").is_err());
+        let plates = build(&[square(600.0, 0.0)], 40.0).unwrap();
+        let solid = plates[0].solid();
+        assert!(
+            (solid.volume().abs() - 600.0 * 600.0 * 40.0).abs() < 1e-6
+                && solid.is_closed()
+        );
+        assert!(build(&[], 40.0).is_err());
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/element_support.rs`
 
@@ -1792,21 +3214,39 @@ Copy maintained support solid and command fixtures.
 
 **Locate this existing block:**
 
-```text
-            .collect()),
+```rust
     }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-06.rs" skip=3
+```rust
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::parse as parse_line;
+    use wood::WoodElement;
+
+    #[test]
+    fn element_support_stands_on_its_plane() {
+        assert!(
+            parse_line("Element Support").is_ok()
+                && parse_line("Element Support 1").is_err()
+        );
+        let supports = build(&[Plane::xy_plane()]).unwrap();
+        assert!(supports[0].solid().number_of_faces() > 0);
+        assert_eq!(
+            supports[0].base_plane().unwrap().origin(),
+            Plane::xy_plane().origin()
+        );
+        assert!(build(&[]).is_err());
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 7. `src/element_beam_variable.rs`
 
@@ -1814,20 +3254,44 @@ Copy maintained beam variable solid and command fixtures.
 
 **Locate this existing block:**
 
-```text
-    Ok(BeamVariable::through(sections, "beam_variable"))
+```rust
+    ))
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-07.rs" skip=60
+```rust
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::parse as parse_line;
+    use crate::element_tests::square;
+    use wood::WoodElement;
+
+    #[test]
+    fn element_beam_variable_lofts_through_its_stations() {
+        // the longest name wins: this is not Element Beam with the word Variable
+        assert!(parse_line("Element Beam Variable").is_ok());
+        let beam = build(vec![
+            square(100.0, 0.0),
+            square(100.0, 500.0),
+            square(100.0, 1000.0),
+        ])
+        .unwrap();
+        let solid = beam.solid();
+        assert!(
+            (solid.volume().abs() - 100.0 * 100.0 * 1000.0).abs() < 1e-6
+                && solid.is_closed()
+        );
+        assert!((beam.axis.length() - 1000.0).abs() < 1e-9);
+        assert!(build(vec![square(100.0, 0.0)]).is_err());
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 8. `src/element_block.rs`
 
@@ -1835,18 +3299,48 @@ Copy maintained block solid and command fixtures.
 
 **Locate this existing block:**
 
-```text
+```rust
     Ok(Block::new(loops, "block"))
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/92o-prove-element-recipes-source-history-and-archives-08.rs" skip=38
+```rust
+    Ok(Block::new(loops, "block"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::parse as parse_line;
+    use crate::element_tests::square;
+    use wood::WoodElement;
+
+    #[test]
+    fn element_block_lofts_bottom_to_top() {
+        assert!(
+            parse_line("Element Block").is_ok()
+                && parse_line("Element Block 3").is_err()
+        );
+        let solid = build(vec![
+            square(300.0, 0.0),
+            square(300.0, 250.0),
+        ])
+        .unwrap()
+        .solid();
+        assert!(
+            (solid.volume().abs() - 300.0 * 300.0 * 250.0).abs() < 1e-6
+                && solid.is_closed()
+        );
+        assert!(build(vec![square(300.0, 0.0)]).is_err());
+    }
+}
 ```
 
 ## Build & Run
+
+![Recorded visual output for Lesson 18.4 (92o-prove-element-recipes-source-history-and-archives)](../../../screenshots/journey/92o-prove-element-recipes-source-history-and-archives.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.4

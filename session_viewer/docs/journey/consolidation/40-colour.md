@@ -107,7 +107,47 @@ Build original colour-mode specimens while retaining shared kernel topology.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/40-colour-01.rs"
+use session_rust::{Color, Mesh, Point};
+
+#[derive(Clone, Copy)]
+pub enum Mode {
+    Object,
+    Points,
+    Faces,
+}
+
+pub fn specimen(mode: Mode) -> Mesh {
+    let points = [-0.7, 0.0, 0.7]
+        .into_iter()
+        .map(|x| Point::new(x, -0.5, 0.0))
+        .chain(
+            [-0.7, 0.0, 0.7]
+                .into_iter()
+                .map(|x| Point::new(x, 0.5, 0.0)),
+        )
+        .collect();
+    let mut mesh = Mesh::from_vertices_and_faces(
+        points,
+        vec![vec![0, 1, 4, 3], vec![1, 2, 5, 4]],
+    );
+    mesh.set_objectcolor(Color::new(0.8, 0.6, 0.1, 1.0));
+    let red = Color::new(1.0, 0.0, 0.0, 1.0);
+    let green = Color::new(0.0, 1.0, 0.0, 1.0);
+    let blue = Color::new(0.0, 0.0, 1.0, 1.0);
+    match mode {
+        Mode::Object => {}
+        Mode::Points => mesh.set_pointcolors(vec![
+            red.clone(),
+            green.clone(),
+            blue.clone(),
+            red,
+            green,
+            blue,
+        ]),
+        Mode::Faces => mesh.set_facecolors(vec![red, blue]),
+    }
+    mesh
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -117,29 +157,96 @@ Register original colour specimens and extraction checks.
 **Locate this existing block:**
 
 ```rust
-pub mod mesh;
+mod close_report_tests;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod close_report_tests;
 pub mod colour;
 #[cfg(test)]
 mod colour_tests;
+#[cfg(test)]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/colour_tests.rs`
 
 Copy active mode, exact topology/arrays, shared interpolation, face duplication and fallback checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/40-colour-03.rs"
+```rust
+use crate::{
+    colour::{self, Mode},
+    mesh::Mesh,
+};
+use session_rust::{Color, mesh::ColorMode};
+
+#[test]
+fn source_modes_preserve_topology_and_resolve_complete_colour_arrays() {
+    let faces = colour::specimen(Mode::Faces);
+    let original = faces.to_proto();
+    let display = Mesh::from_kernel(&faces).unwrap();
+    assert_eq!(faces.number_of_vertices(), 6);
+    assert_eq!(display.vertices().len(), 12);
+    assert_eq!(display.indices().len(), 12);
+    assert!(
+        display.vertices()[..6]
+            .iter()
+            .all(|p| p[3..] == [1.0, 0.0, 0.0])
+    );
+    assert!(
+        display.vertices()[6..]
+            .iter()
+            .all(|p| p[3..] == [0.0, 0.0, 1.0])
+    );
+    assert_eq!(faces.to_proto(), original);
+    let points = colour::specimen(Mode::Points);
+    let display = Mesh::from_kernel(&points).unwrap();
+    assert_eq!(display.vertices().len(), 6);
+    assert_eq!(display.vertices()[1][3..], [0.0, 1.0, 0.0]);
+    assert_eq!(points.get_pointcolors().len(), 6);
+    assert_eq!(points.number_of_faces(), 2);
+    let mut object = colour::specimen(Mode::Points);
+    object.color_mode = ColorMode::OBJECTCOLOR;
+    let display = Mesh::from_kernel(&object).unwrap();
+    assert!(
+        display
+            .vertices()
+            .iter()
+            .all(|p| p[3..] == [0.8, 0.6, 0.1])
+    );
+    assert_eq!(object.get_pointcolors().len(), 6);
+}
+
+#[test]
+fn incomplete_active_arrays_use_object_colour_without_source_mutation() {
+    for points in [true, false] {
+        let mut source = colour::specimen(Mode::Object);
+        if points {
+            source.set_pointcolors(vec![Color::new(1.0, 0.0, 0.0, 1.0)]);
+        } else {
+            source.set_facecolors(vec![Color::new(1.0, 0.0, 0.0, 1.0)]);
+        }
+        let display = Mesh::from_kernel(&source).unwrap();
+        assert!(
+            display
+                .vertices()
+                .iter()
+                .all(|p| p[3..] == [0.8, 0.6, 0.1])
+        );
+        assert_eq!(
+            if points {
+                source.get_pointcolors().len()
+            } else {
+                source.get_facecolors().len()
+            },
+            1
+        );
+    }
+}
 ```
 
 ## <a id="checkpoint-40a-input"></a>2. Compare colour modes through actual input
@@ -190,34 +297,32 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
+                    })?;
             }
             Action::Controls(visible) => self.scene.show_controls(visible),
             Action::AddCurve => {
-                let mut curve = session_rust::NurbsCurve::create(false, 2, &[session_rust::Point::new(-0.6, -0.4, 0.0),
-                    session_rust::Point::new(0.0, 0.6, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
 ```
 
 Replace it with:
 
 ```rust
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
+                    })?;
             }
             Action::Controls(visible) => self.scene.show_controls(visible),
             Action::AddColours(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
+                let prepared =
+                    crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert(prepared).map(|_| ())
+                    })?;
             }
             Action::AddCurve => {
-                let mut curve = session_rust::NurbsCurve::create(false, 2, &[session_rust::Point::new(-0.6, -0.4, 0.0),
-                    session_rust::Point::new(0.0, 0.6, 0.0), session_rust::Point::new(0.6, -0.4, 0.0)]);
 ```
 
 **Locate this block:**
 
 ```rust
-    AddLine,
-    AddPoint,
     AddCurve,
     Controls(bool),
     AddPolyline,
@@ -227,8 +332,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    AddLine,
-    AddPoint,
     AddCurve,
     AddColours(crate::colour::Mode),
     Controls(bool),
@@ -245,33 +348,33 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                    "example line" => Action::AddLine,
-                    "example point" => Action::AddPoint,
-                    "example curve" => Action::AddCurve,
-                    "controls on" => Action::Controls(true),
-                    "controls off" => Action::Controls(false),
-                    "example polyline" => Action::AddPolyline,
+                        "example line" => Action::AddLine,
+                        "example point" => Action::AddPoint,
+                        "example curve" => Action::AddCurve,
+                        "controls on" => Action::Controls(true),
 ```
 
 Replace it with:
 
 ```rust
-                    "example line" => Action::AddLine,
-                    "example point" => Action::AddPoint,
-                    "example curve" => Action::AddCurve,
-                    "example object color" => Action::AddColours(crate::colour::Mode::Object),
-                    "example point colors" => Action::AddColours(crate::colour::Mode::Points),
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "controls on" => Action::Controls(true),
-                    "controls off" => Action::Controls(false),
-                    "example polyline" => Action::AddPolyline,
+                        "example line" => Action::AddLine,
+                        "example point" => Action::AddPoint,
+                        "example curve" => Action::AddCurve,
+                        "example object color" => {
+                            Action::AddColours(crate::colour::Mode::Object)
+                        }
+                        "example point colors" => {
+                            Action::AddColours(crate::colour::Mode::Points)
+                        }
+                        "example face colors" => {
+                            Action::AddColours(crate::colour::Mode::Faces)
+                        }
+                        "controls on" => Action::Controls(true),
 ```
 
 **Locate this block:**
 
 ```rust
-            "Example Line",
-            "Example Point",
             "Example Curve",
             "Controls On",
             "Controls Off",
@@ -281,8 +384,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Example Line",
-            "Example Point",
             "Example Curve",
             "Example Object Color",
             "Example Point Colors",
@@ -299,28 +400,90 @@ Register original colour history and editable roundtrip checks.
 **Locate this existing block:**
 
 ```rust
-pub mod colour;
+#[cfg(test)]
+mod colour_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(test)]
 mod colour_input_tests;
+#[cfg(test)]
+mod colour_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/colour_input_tests.rs`
 
 Copy original mode/array roundtrip, stable row identity, one-step Undo/Redo and Close checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/40a-input-06.rs"
+```rust
+use crate::{
+    colour::Mode,
+    document,
+    editor::{Action, Editor},
+};
+use session_rust::mesh::ColorMode;
+
+#[test]
+fn colour_commands_keep_original_modes_arrays_and_one_step_history() {
+    for (mode, expected) in [
+        (Mode::Object, ColorMode::OBJECTCOLOR),
+        (Mode::Points, ColorMode::POINTCOLORS),
+        (Mode::Faces, ColorMode::FACECOLORS),
+    ] {
+        let mut editor = Editor::default();
+        editor.apply(Action::Close).unwrap();
+        editor
+            .apply(Action::AddColours(mode))
+            .unwrap();
+        let row = &editor.scene.objects()[0];
+        let id = row.id;
+        let source = row.geometry().unwrap();
+        let weak = std::rc::Rc::downgrade(source);
+        assert!(source.color_mode == expected);
+        assert_eq!(source.number_of_vertices(), 6);
+        let original = source.to_proto();
+        let bytes = document::snapshot(&editor.scene).unwrap();
+        let reopened = document::load(&bytes).unwrap();
+        assert_eq!(
+            reopened.meshes[0].geometry.to_proto(),
+            original
+        );
+        drop(reopened);
+        editor.apply(Action::Undo).unwrap();
+        assert!(editor.scene.objects().is_empty());
+        assert!(weak.upgrade().is_some());
+        editor.apply(Action::Redo).unwrap();
+        assert_eq!(editor.scene.objects()[0].id, id);
+        editor.apply(Action::Close).unwrap();
+        assert!(weak.upgrade().is_none());
+    }
+}
+
+#[test]
+fn packed_colour_validation_refuses_partial_nonfinite_and_unknown_records() {
+    use prost::Message;
+    let mut editor = Editor::default();
+    editor.apply(Action::Close).unwrap();
+    editor
+        .apply(Action::AddColours(Mode::Faces))
+        .unwrap();
+    let valid = document::snapshot(&editor.scene).unwrap();
+    for case in 0..3 {
+        let mut message =
+            session_rust::proto::Session::decode(valid.as_slice()).unwrap();
+        let mesh = &mut message.objects.as_mut().unwrap().meshes[0];
+        match case {
+            0 => mesh.pointcolors_rgba = vec![1.0, 0.0, 0.0],
+            1 => mesh.facecolors_rgba[0] = f32::NAN,
+            _ => mesh.color_mode = 4,
+        }
+        assert!(document::load(&message.encode_to_vec()).is_err());
+    }
+}
 ```
 
 ### 5. `src/document.rs`
@@ -330,26 +493,39 @@ Accept known source colour modes and preserve only complete finite packed colour
 **Locate this existing block:**
 
 ```rust
-    if mesh.color_mode != 0 { return Err("Per-face and per-vertex colours arrive later"); }
+    }
+    if mesh.color_mode != 0 {
+        return Err("Per-face and per-vertex colours arrive later");
+    }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    if !(0..=3).contains(&mesh.color_mode) { return Err("Unknown mesh colour mode"); }
-    for colours in [&mesh.pointcolors_rgba, &mesh.facecolors_rgba, &mesh.linecolors_rgba] {
-        if colours.len() % 4 != 0 || colours.len() > 160_000 || colours.iter().any(|v| !v.is_finite()) {
+    }
+    if !(0..=3).contains(&mesh.color_mode) {
+        return Err("Unknown mesh colour mode");
+    }
+    for colours in [
+        &mesh.pointcolors_rgba,
+        &mesh.facecolors_rgba,
+        &mesh.linecolors_rgba,
+    ] {
+        if colours.len() % 4 != 0
+            || colours.len() > 160_000
+            || colours.iter().any(|v| !v.is_finite())
+        {
             return Err("Mesh colours need bounded complete finite RGBA records");
         }
     }
-    if mesh.objectcolor.as_ref().is_some_and(|c| [c.r, c.g, c.b, c.a].iter().any(|v| !v.is_finite())) {
+    if mesh.objectcolor.as_ref().is_some_and(|c| {
+        [c.r, c.g, c.b, c.a]
+            .iter()
+            .any(|v| !v.is_finite())
+    }) {
         return Err("Mesh object colour must be finite");
     }
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/document_tests.rs`
 
@@ -357,19 +533,19 @@ Copy unknown-mode refusal while accepting the newly implemented colour modes.
 
 **Locate this existing block:**
 
-```text
-meshes[0].color_mode = 1;
+```rust
+            3 => {
+                meshes[0].color_mode = 1;
+            }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/40a-input-08.rs"
+```rust
+            3 => {
+                meshes[0].color_mode = 4;
+            }
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 7. `src/document_phase_tests.rs`
 
@@ -377,14 +553,18 @@ Copy the invalid-mode phase fixture with an actually unsupported mode.
 
 **Locate this existing block:**
 
-```text
-message.objects.as_mut().unwrap().meshes[0].color_mode = 1;
+```rust
+        session_rust::proto::Session::decode(specimen::bytes().as_slice()).unwrap();
+    message.objects.as_mut().unwrap().meshes[0].color_mode = 1;
+    let (result, phases) = observed(&message.encode_to_vec());
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/40a-input-09.rs"
+```rust
+        session_rust::proto::Session::decode(specimen::bytes().as_slice()).unwrap();
+    message.objects.as_mut().unwrap().meshes[0].color_mode = 4;
+    let (result, phases) = observed(&message.encode_to_vec());
 ```
 
 ## <a id="checkpoint-40b-indices"></a>3. Draw meshes beyond the sixteen-bit index limit
@@ -435,11 +615,18 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            let [r, g, b, _] = vertex.color;
-            [x, y, z, r, g, b]
-        }).collect();
-        let indices: Result<Vec<u16>, _> = render.indices.into_iter().map(u16::try_from).collect();
-        Self::new(vertices, indices.map_err(|_| "Mesh exceeds this lesson's 16-bit index capacity")?)
+                [x, y, z, r, g, b]
+            })
+            .collect();
+        let indices: Result<Vec<u16>, _> = render
+            .indices
+            .into_iter()
+            .map(u16::try_from)
+            .collect();
+        Self::new(
+            vertices,
+            indices.map_err(|_| "Mesh exceeds this lesson's 16-bit index capacity")?,
+        )
     }
 
     pub fn payload_bytes(&self) -> usize {
@@ -453,16 +640,14 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn indices(&self) -> &[u16] {
         &self.indices
-    }
-}
 ```
 
 Replace it with:
 
 ```rust
-            let [r, g, b, _] = vertex.color;
-            [x, y, z, r, g, b]
-        }).collect();
+                [x, y, z, r, g, b]
+            })
+            .collect();
         Self::new(vertices, render.indices)
     }
 
@@ -477,38 +662,38 @@ Replace it with:
 
     pub fn indices(&self) -> &[u32] {
         &self.indices
-    }
-}
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct Mesh {
     vertices: Vec<[f32; 6]>,
     indices: Vec<u16>,
 }
 
 impl Mesh {
-    pub fn new(vertices: Vec<[f32; 6]>, indices: Vec<u16>) -> Result<Self, &'static str> {
+    pub fn new(
+        vertices: Vec<[f32; 6]>,
+        indices: Vec<u16>,
+    ) -> Result<Self, &'static str> {
         if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {
-            return Err("Indices must describe complete triangles within the draw limit");
-        }
+            return Err(
 ```
 
 Replace it with:
 
 ```rust
-pub struct Mesh {
     vertices: Vec<[f32; 6]>,
     indices: Vec<u32>,
 }
 
 impl Mesh {
-    pub fn new(vertices: Vec<[f32; 6]>, indices: Vec<u32>) -> Result<Self, &'static str> {
+    pub fn new(
+        vertices: Vec<[f32; 6]>,
+        indices: Vec<u32>,
+    ) -> Result<Self, &'static str> {
         if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {
-            return Err("Indices must describe complete triangles within the draw limit");
-        }
+            return Err(
 ```
 
 ### 2. `src/gpu_geometry.rs`
@@ -518,13 +703,17 @@ Interpret uploaded index bytes with their exact GPU format.
 **Locate this existing block:**
 
 ```rust
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
+            self.indices.slice(..),
+            wgpu::IndexFormat::Uint16,
+        );
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
+            self.indices.slice(..),
+            wgpu::IndexFormat::Uint32,
+        );
 ```
 
 ### 3. `src/geometry_cache.rs`
@@ -534,18 +723,18 @@ Count initialized index payload bytes independently of driver allocation.
 **Locate this existing block:**
 
 ```rust
-        self.uploaded_bytes += (source.vertices().len() * 24 + source.indices().len() * 2) as u64;
+        self.uploaded_bytes +=
+            (source.vertices().len() * 24 + source.indices().len() * 2) as u64;
+        geometry
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        self.uploaded_bytes += (source.vertices().len() * 24 + source.indices().len() * 4) as u64;
+        self.uploaded_bytes +=
+            (source.vertices().len() * 24 + source.indices().len() * 4) as u64;
+        geometry
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/memory.rs`
 
@@ -553,14 +742,18 @@ Copy the updated spare-capacity oracle for the real index layout.
 
 **Locate this existing block:**
 
-```text
-baseline[4] + 16 * 24 + 16 * 2
+```rust
+        assert_eq!(retained[3], baseline[3] + 1);
+        assert_eq!(retained[4], baseline[4] + 16 * 24 + 16 * 2);
+    }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/40b-indices-08.rs"
+```rust
+        assert_eq!(retained[3], baseline[3] + 1);
+        assert_eq!(retained[4], baseline[4] + 16 * 24 + 16 * 4);
+    }
 ```
 
 ### 5. `src/lib.rs`
@@ -570,28 +763,55 @@ Register actual original high-index checks.
 **Locate this existing block:**
 
 ```rust
-pub mod mesh;
+#[cfg(test)]
+mod line_scene_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(test)]
 mod index_width_tests;
+#[cfg(test)]
+mod line_scene_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/index_width_tests.rs`
 
 Copy original high-index topology, correct displayed corners and missing-vertex refusal checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/40b-indices-10.rs"
+```rust
+use crate::{mesh::Mesh, prepared::PreparedMesh};
+use session_rust::Point;
+
+#[test]
+fn original_high_vertex_references_survive_checked_display_preparation() {
+    let mut points = vec![Point::new(0.0, 0.0, 0.0); 65_537];
+    points[0] = Point::new(-0.5, -0.5, 0.0);
+    points[65_535] = Point::new(0.5, -0.5, 0.0);
+    points[65_536] = Point::new(0.0, 0.5, 0.0);
+    let source = session_rust::Mesh::from_vertices_and_faces(
+        points,
+        vec![vec![0, 65_535, 65_536]],
+    );
+    let prepared = PreparedMesh::new(source).unwrap();
+    assert_eq!(
+        prepared.geometry.number_of_vertices(),
+        65_537
+    );
+    assert_eq!(
+        prepared.display.indices(),
+        &[0, 65_535, 65_536]
+    );
+    assert_eq!(prepared.display.vertices().len(), 65_537);
+    assert_eq!(
+        prepared.display.vertices()[65_536][..3],
+        [0.0, 0.5, 0.0]
+    );
+    assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, u32::MAX]).is_err());
+}
 ```
 
 ## Build & Run

@@ -111,7 +111,74 @@ Bound tree walks and compose precise placements along source paths.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/52-tree-01.rs"
+use crate::scene::{ObjectId, Scene};
+use session_rust::{Xform, proto};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
+
+pub const MAX_NODES: usize = 4096;
+pub const MAX_DEPTH: usize = 64;
+
+pub fn validate(
+    root: &proto::TreeNode,
+    guids: &HashSet<&str>,
+) -> Result<(), &'static str> {
+    let mut stack = vec![(root, 0)];
+    let mut seen = HashSet::new();
+    let mut count = 0;
+    while let Some((node, depth)) = stack.pop() {
+        count += 1;
+        if count > MAX_NODES || depth > MAX_DEPTH {
+            return Err("Tree exceeds this checkpoint's node or depth limit");
+        }
+        if guids.contains(node.name.as_str()) && !seen.insert(node.name.as_str()) {
+            return Err("A source object occurs twice in the tree");
+        }
+        stack.extend(
+            node.children
+                .iter()
+                .rev()
+                .map(|child| (child, depth + 1)),
+        );
+    }
+    if seen != *guids {
+        return Err("The tree must contain every source mesh once");
+    }
+    Ok(())
+}
+
+pub fn world(
+    root: Option<&proto::TreeNode>,
+    xforms: &HashMap<String, Xform>,
+    guid: &str,
+) -> Xform {
+    let mut stack = root
+        .into_iter()
+        .map(|node| (node, Xform::identity()))
+        .collect::<Vec<_>>();
+    while let Some((node, parent)) = stack.pop() {
+        let local = xforms
+            .get(&node.name)
+            .cloned()
+            .unwrap_or_else(Xform::identity);
+        let matrix = &parent * &local;
+        if node.name == guid {
+            return matrix;
+        }
+        stack.extend(
+            node.children
+                .iter()
+                .rev()
+                .map(|child| (child, matrix.clone())),
+        );
+    }
+    xforms
+        .get(guid)
+        .cloned()
+        .unwrap_or_else(Xform::identity)
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -121,15 +188,17 @@ Register the new source component.
 **Locate this existing block:**
 
 ```rust
-mod gizmo_edit_tests;
 #[cfg(test)]
 mod number_box_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/52-tree-02.rs" skip=57
+#[cfg(test)]
+mod number_box_tests;
+
+pub mod hierarchy;
 ```
 
 ## <a id="checkpoint-52a-records"></a>2. Keep lightweight tree records outside kernel ownership
@@ -178,14 +247,36 @@ Store immutable document-scoped node records shared by previews and history.
 **Locate this existing block:**
 
 ```rust
-    xforms.get(guid).cloned().unwrap_or_else(Xform::identity)
+        .unwrap_or_else(Xform::identity)
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/52a-records-01.rs" skip=65
+        .unwrap_or_else(Xform::identity)
+}
+
+pub struct Node {
+    pub source: proto::TreeNode,
+    pub object: Option<ObjectId>,
+    pub label: String,
+    pub parent: Option<usize>,
+    pub depth: usize,
+    pub end: usize,
+    pub readonly: bool,
+}
+pub struct Document {
+    pub key: u32,
+    pub label: String,
+    pub nodes: Vec<Node>,
+}
+#[derive(Clone, Default)]
+pub struct Forest {
+    pub documents: Vec<Rc<Document>>,
+}
+
+impl Forest {}
 ```
 
 ### 2. `src/scene.rs`
@@ -195,19 +286,19 @@ Allow stable row identities to participate in deduplication sets.
 **Locate this existing block:**
 
 ```rust
-use crate::{mesh::Mesh, prepared::PreparedMesh};
 use std::rc::Rc;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct ObjectId(u32);
-
-impl ObjectId { pub fn value(self) -> u32 { self.0 } }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/52a-records-02.rs"
+use std::rc::Rc;
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ObjectId(u32);
 ```
 
 ## <a id="checkpoint-52b-index"></a>3. Index descendants and read-only attribute groups
@@ -256,8 +347,7 @@ Create stable document-scoped nodes and deduplicate parent-owned descendants.
 **Locate this existing block:**
 
 ```rust
-#[derive(Clone,Default)]
-pub struct Forest { pub documents:Vec<Rc<Document>> }
+}
 
 impl Forest {}
 ```
@@ -265,7 +355,120 @@ impl Forest {}
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/52b-index-01.rs"
+}
+
+impl Forest {
+    pub fn add(
+        &mut self,
+        key: u32,
+        label: String,
+        root: Option<proto::TreeNode>,
+        objects: &[(String, ObjectId, String)],
+    ) {
+        let fallback = proto::TreeNode {
+            name: label.clone(),
+            children: objects
+                .iter()
+                .map(|(guid, _, _)| proto::TreeNode {
+                    name: guid.clone(),
+                    ..Default::default()
+                })
+                .collect(),
+            ..Default::default()
+        };
+        let root = root.unwrap_or(fallback);
+        let lookup = objects
+            .iter()
+            .map(|(guid, id, name)| (guid.as_str(), (*id, name.as_str())))
+            .collect::<HashMap<_, _>>();
+        let mut nodes: Vec<Node> = Vec::new();
+        let mut stack = vec![(&root, None::<usize>, 0, false, false, false)];
+        while let Some((node, parent, depth, inside, readonly, exit)) = stack.pop() {
+            if exit {
+                nodes[parent.unwrap()].end = nodes.len();
+                continue;
+            }
+            let object = lookup.get(node.name.as_str()).copied();
+            let readonly = readonly
+                || inside
+                    && matches!(
+                        node.name.as_str(),
+                        "attributes" | "interactions"
+                    );
+            let index = nodes.len();
+            let source = proto::TreeNode {
+                guid: if node.guid.is_empty() {
+                    uuid::Uuid::new_v4().to_string()
+                } else {
+                    node.guid.clone()
+                },
+                name: node.name.clone(),
+                parent_guid: node.parent_guid.clone(),
+                color: node.color.clone(),
+                children: Vec::new(),
+            };
+            nodes.push(Node {
+                source,
+                object: object.map(|v| v.0),
+                label: object.map_or_else(|| node.name.clone(), |v| v.1.to_owned()),
+                parent,
+                depth,
+                end: index + 1,
+                readonly,
+            });
+            stack.push((
+                node,
+                Some(index),
+                depth,
+                inside,
+                readonly,
+                true,
+            ));
+            stack.extend(node.children.iter().rev().map(|child| {
+                (
+                    child,
+                    Some(index),
+                    depth + 1,
+                    inside || object.is_some(),
+                    readonly,
+                    false,
+                )
+            }));
+        }
+        self.documents.push(Rc::new(Document {
+            key,
+            label,
+            nodes,
+        }));
+    }
+
+    pub fn readonly(&self, id: ObjectId) -> bool {
+        self.documents
+            .iter()
+            .flat_map(|doc| &doc.nodes)
+            .any(|n| n.object == Some(id) && n.readonly)
+    }
+    pub fn descendants(&self, ids: &[ObjectId]) -> Vec<ObjectId> {
+        let mut out = ids.to_vec();
+        for doc in &self.documents {
+            for (index, node) in doc.nodes.iter().enumerate() {
+                if node
+                    .object
+                    .is_some_and(|id| ids.contains(&id))
+                {
+                    out.extend(
+                        doc.nodes[index + 1..node.end]
+                            .iter()
+                            .filter_map(|n| n.object),
+                    );
+                }
+            }
+        }
+        out.sort_unstable_by_key(|id| id.value());
+        out.dedup();
+        out
+    }
+}
 ```
 
 ## <a id="checkpoint-52c-load"></a>4. Import nested source identities and precise placements
@@ -316,29 +519,34 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        }
-    }
-    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
-        let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
-        if names != guids || root.children.len() != guids.len()
-            || root.children.iter().any(|node| !node.children.is_empty()) {
+        .as_ref()
+        .and_then(|tree| tree.root.as_ref())
+    {
+        let names: HashSet<_> = root
+            .children
+            .iter()
+            .map(|node| node.name.as_str())
+            .collect();
+        if names != guids
+            || root.children.len() != guids.len()
+            || root
+                .children
+                .iter()
+                .any(|node| !node.children.is_empty())
+        {
             return Err("This checkpoint needs one flat tree row per mesh");
         }
     }
-    Ok(())
-}
 ```
 
 Replace it with:
 
 ```rust
-        }
+        .as_ref()
+        .and_then(|tree| tree.root.as_ref())
+    {
+        crate::hierarchy::validate(root, &guids)?;
     }
-    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
-        crate::hierarchy::validate(root,&guids)?;
-    }
-    Ok(())
-}
 ```
 
 **Locate this block:**
@@ -359,7 +567,11 @@ Replace it with:
         }
         Ok(meshes)
     })?;
-    Ok(Loaded { document, meshes, tree })
+    Ok(Loaded {
+        document,
+        meshes,
+        tree,
+    })
 }
 
 fn decode_raw(bytes: &[u8]) -> Result<proto::Session, &'static str> {
@@ -371,10 +583,14 @@ fn decode_raw(bytes: &[u8]) -> Result<proto::Session, &'static str> {
         let mut meshes = Vec::new();
         for mesh in document.objects.meshes.iter() {
             let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-            prepared.model = document.xforms.get(mesh.guid()).cloned().unwrap_or_else(session_rust::Xform::identity);
+            prepared.model = document
+                .xforms
+                .get(mesh.guid())
+                .cloned()
+                .unwrap_or_else(session_rust::Xform::identity);
             prepared.source = Some(Source {
-                document: Rc::clone(&document), guid: mesh.guid().to_owned(), origin: Rc::clone(&origin),
-            });
+                document: Rc::clone(&document),
+                guid: mesh.guid().to_owned(),
 ```
 
 Replace it with:
@@ -383,56 +599,56 @@ Replace it with:
         let mut meshes = Vec::new();
         for mesh in document.objects.meshes.iter() {
             let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-            prepared.model = crate::hierarchy::world(tree.as_ref(),&document.xforms,mesh.guid());
+            prepared.model =
+                crate::hierarchy::world(tree.as_ref(), &document.xforms, mesh.guid());
             prepared.source = Some(Source {
-                document: Rc::clone(&document), guid: mesh.guid().to_owned(), origin: Rc::clone(&origin),
-            });
+                document: Rc::clone(&document),
+                guid: mesh.guid().to_owned(),
 ```
 
 **Locate this block:**
 
 ```rust
-    run("validation", size, clock, observe, || validate(&message))?;
-    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;
+    let mut origin = crate::origin::Origin::new(&message, bytes);
+    origin.location = location;
     let origin = Rc::new(origin);
     let document = run("kernel", size, clock, observe, || {
-        Session::from_proto(message).map(Rc::new).map_err(|_| "Cannot construct session")
-    })?;
+        Session::from_proto(message)
+            .map(Rc::new)
 ```
 
 Replace it with:
 
 ```rust
-    run("validation", size, clock, observe, || validate(&message))?;
-    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;
+    let mut origin = crate::origin::Origin::new(&message, bytes);
+    origin.location = location;
     let origin = Rc::new(origin);
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
+    let tree = message
+        .tree
+        .as_ref()
+        .and_then(|tree| tree.root.clone());
     let document = run("kernel", size, clock, observe, || {
-        Session::from_proto(message).map(Rc::new).map_err(|_| "Cannot construct session")
-    })?;
+        Session::from_proto(message)
+            .map(Rc::new)
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct Loaded {
-    pub document: Rc<Session>,
     pub meshes: Vec<PreparedMesh>,
 }
 
-pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> { load_at(bytes, None) }
+pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 ```
 
 Replace it with:
 
 ```rust
-pub struct Loaded {
-    pub document: Rc<Session>,
     pub meshes: Vec<PreparedMesh>,
-    pub tree:Option<proto::TreeNode>,
+    pub tree: Option<proto::TreeNode>,
 }
 
-pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> { load_at(bytes, None) }
+pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
 ```
 
 ### 2. `src/scene.rs`
@@ -444,33 +660,36 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
         for prepared in loaded.meshes {
             self.insert(prepared)?;
         }
         Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
 ```
 
 Replace it with:
 
 ```rust
-    }
-
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
-        let mut objects=Vec::new();let key=self.next_id;
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
+        let mut objects = Vec::new();
+        let key = self.next_id;
         for prepared in loaded.meshes {
-            let guid=prepared.geometry.guid().to_owned();let name=prepared.geometry.name.clone();
-            let id=self.insert(prepared)?;objects.push((guid,id,name));
+            let guid = prepared.geometry.guid().to_owned();
+            let name = prepared.geometry.name.clone();
+            let id = self.insert(prepared)?;
+            objects.push((guid, id, name));
         }
-        self.forest.add(key,loaded.document.name.clone(),loaded.tree,&objects);Ok(())
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
+        self.forest.add(
+            key,
+            loaded.document.name.clone(),
+            loaded.tree,
+            &objects,
+        );
+        Ok(())
 ```
 
 **Locate this block:**
@@ -490,7 +709,7 @@ Replace it with:
     }
 
     pub fn clear(&mut self) {
-        self.forest=Default::default();
+        self.forest = Default::default();
         self.points = Vec::new();
         self.paths = Vec::new();
         self.lines = Vec::new();
@@ -499,32 +718,29 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
+        )
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
 ```
 
 Replace it with:
 
 ```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { forest:Default::default(), objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
+        )
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            forest: Default::default(),
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
 ```
 
 **Locate this block:**
 
 ```rust
-
-#[derive(Clone)]
 pub struct Scene {
     points: Vec<PointObject>,
     paths: Vec<PathObject>,
@@ -534,10 +750,8 @@ pub struct Scene {
 Replace it with:
 
 ```rust
-
-#[derive(Clone)]
 pub struct Scene {
-    pub forest:crate::hierarchy::Forest,
+    pub forest: crate::hierarchy::Forest,
     points: Vec<PointObject>,
     paths: Vec<PathObject>,
     lines: Vec<LineObject>,
@@ -591,92 +805,114 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            .chain(self.lines.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id))
-            .chain(self.paths.iter().filter(|r| r.visible() && !r.prepared.source.locked()).map(|r| r.id))
-            .chain(self.points.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id)).collect();
+                    .map(|r| r.id),
+            )
+            .collect();
         ids.sort_unstable_by_key(|id| id.value());
-        if ids.is_empty() { return None; }
-        let start = ids.iter().position(|id| Some(*id) == current).map_or(0, |i| i+1);
 ```
 
 Replace it with:
 
 ```rust
-            .chain(self.lines.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id))
-            .chain(self.paths.iter().filter(|r| r.visible() && !r.prepared.source.locked()).map(|r| r.id))
-            .chain(self.points.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id)).collect();
-        ids.retain(|id|!self.forest.readonly(*id));
+                    .map(|r| r.id),
+            )
+            .collect();
+        ids.retain(|id| !self.forest.readonly(*id));
         ids.sort_unstable_by_key(|id| id.value());
-        if ids.is_empty() { return None; }
-        let start = ids.iter().position(|id| Some(*id) == current).map_or(0, |i| i+1);
 ```
 
 **Locate this block:**
 
 ```rust
-    }
-
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
-        {
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if !crate::placement::valid(&model.m) {
             return Err("Placement must be finite, affine and fit the display range");
+        }
 ```
 
 Replace it with:
 
 ```rust
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if self.forest.readonly(id) {
+            return Err("Object attributes follow their parent and are read only");
+        }
+        self.place_mesh(id, model)
     }
 
-    pub fn place(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_mesh(id,model)
-    }
-
-    fn place_mesh(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if !crate::placement::valid(&model.m)
-        {
+    fn place_mesh(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if !crate::placement::valid(&model.m) {
             return Err("Placement must be finite, affine and fit the display range");
+        }
 ```
 
 **Locate this block:**
 
 ```rust
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
+            })
     }
 
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else { self.place_point(id,model) }
+    pub fn place_owner(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if self.objects.iter().any(|r| r.id == id) {
+            self.place(id, model)
+        } else if self.lines.iter().any(|r| r.id == id) {
+            self.place_line(id, model)
+        } else if self.paths.iter().any(|r| r.id == id) {
 ```
 
 Replace it with:
 
 ```rust
-            .or_else(|| self.points.iter().find(|r| r.id==id).map(|r| r.model.clone()))
+            })
     }
 
-    pub fn with_descendants(&self,ids:&[ObjectId])->Vec<ObjectId> {self.forest.descendants(ids).into_iter().filter(|id|self.contains(*id)).collect()}
-
-    pub fn place_owner(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if self.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        self.place_following(id,model)
+    pub fn with_descendants(&self, ids: &[ObjectId]) -> Vec<ObjectId> {
+        self.forest
+            .descendants(ids)
+            .into_iter()
+            .filter(|id| self.contains(*id))
+            .collect()
     }
 
-    pub(crate) fn place_following(&mut self,id:ObjectId,model:session_rust::Xform)->Result<(), &'static str> {
-        if self.objects.iter().any(|r| r.id==id) { self.place_mesh(id,model) }
-        else if self.lines.iter().any(|r| r.id==id) { self.place_line(id,model) }
-        else if self.paths.iter().any(|r| r.id==id) { self.place_path(id,model) }
-        else { self.place_point(id,model) }
+    pub fn place_owner(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if self.forest.readonly(id) {
+            return Err("Object attributes follow their parent and are read only");
+        }
+        self.place_following(id, model)
+    }
+
+    pub(crate) fn place_following(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if self.objects.iter().any(|r| r.id == id) {
+            self.place_mesh(id, model)
+        } else if self.lines.iter().any(|r| r.id == id) {
+            self.place_line(id, model)
+        } else if self.paths.iter().any(|r| r.id == id) {
 ```
 
 **Locate this block:**
 
 ```rust
-            .chain(self.lines.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id))
-            .chain(self.paths.iter().filter(|r| r.visible() && !r.prepared.source.locked()).map(|r| r.id))
-            .chain(self.points.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id))
+            )
             .find(|id| id.value() == value)
     }
 
@@ -686,9 +922,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-            .chain(self.lines.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id))
-            .chain(self.paths.iter().filter(|r| r.visible() && !r.prepared.source.locked()).map(|r| r.id))
-            .chain(self.points.iter().filter(|r| r.visible() && !r.prepared.source.is_locked).map(|r| r.id))
+            )
             .find(|id| id.value() == value && !self.forest.readonly(*id))
     }
 
@@ -699,45 +933,123 @@ Replace it with:
 
 Capture selected roots separately from their unique following descendants.
 
-Replace the entire file with:
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-use crate::{scene::{Scene, ObjectId}, history::History};
-use session_rust::Xform;
-
-// A placement preview shares original geometry, but owns temporary row placements outside the saved document and its history.
-pub struct Preview { base: Scene, pub scene: Scene, ids: Vec<ObjectId>, roots:Vec<ObjectId>, transform: Xform }
-
-impl Preview {
-    pub fn new(scene: &Scene, mut ids: Vec<ObjectId>) -> Result<Self, &'static str> {
-        ids.sort_unstable_by_key(|id| id.value()); ids.dedup();
-        if ids.is_empty() { return Err("Select objects before Move"); }
-        for id in &ids {
-            if scene.pick_id(id.value())!=Some(*id) { return Err("Move needs visible unlocked objects"); }
-            if scene.objects().iter().any(|r| r.id==*id && r.geometry().is_none()) { return Err("Reload editable sources before Move"); }
         }
-        let roots=ids;let ids=scene.with_descendants(&roots);
-        Ok(Self { base:scene.clone(),scene:scene.clone(),ids,roots,transform:Xform::identity() })
-    }
-    pub fn ids(&self) -> &[ObjectId] { &self.ids }
-    pub fn scenes(&self)->[&Scene;2] {[&self.base,&self.scene]}
-    pub fn matrix(&self) -> &[f64; 16] { &self.transform.m }
-    pub fn set(&mut self, transform: Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&transform.m) { return Err("Invalid preview transform"); }
-        let mut scene=self.base.clone();
-        for &id in &self.ids { let model=&transform * &self.base.placement(id).ok_or("Preview owner missing")?; scene.place_following(id,model)?; }
-        self.scene=scene; self.transform=transform; Ok(())
-    }
-    pub fn commit(&self, scene: &mut Scene, history: &mut History) -> Result<bool, &'static str> {
+        history.try_edit(scene, |scene| {
+            for &id in &self.ids {
+                scene.place_owner(
+                    id,
+```
+
+Replace it with:
+
+```rust
+        }
+        history.try_edit(scene, |scene| {
+            for &id in &self.ids {
+                scene.place_following(
+                    id,
+```
+
+**Locate this block:**
+
+```rust
+        history: &mut History,
+    ) -> Result<bool, &'static str> {
         for &id in &self.ids {
-            if self.roots.contains(&id) && scene.pick_id(id.value())!=Some(id) || scene.placement(id).map(|m| m.m)!=self.base.placement(id).map(|m| m.m) { return Err("Preview targets changed; start Move again"); }
+            if scene.pick_id(id.value()) != Some(id)
+                || scene.placement(id).map(|m| m.m)
+                    != self.base.placement(id).map(|m| m.m)
+            {
+```
+
+Replace it with:
+
+```rust
+        history: &mut History,
+    ) -> Result<bool, &'static str> {
+        for &id in &self.ids {
+            if self.roots.contains(&id) && scene.pick_id(id.value()) != Some(id)
+                || scene.placement(id).map(|m| m.m)
+                    != self.base.placement(id).map(|m| m.m)
+            {
+```
+
+**Locate this block:**
+
+```rust
+                    .base
+                    .placement(id)
+                    .ok_or("Preview owner missing")?;
+            scene.place_owner(id, model)?;
         }
-        if self.transform.m==Xform::identity().m { return Ok(false); }
-        history.try_edit(scene,|scene| {
-            for &id in &self.ids { scene.place_following(id,self.scene.placement(id).ok_or("Preview owner missing")?)?; }
-            Ok(())
-        })?; Ok(true)
+        self.scene = scene;
+        self.transform = transform;
+```
+
+Replace it with:
+
+```rust
+                    .base
+                    .placement(id)
+                    .ok_or("Preview owner missing")?;
+            scene.place_following(id, model)?;
+        }
+        self.scene = scene;
+        self.transform = transform;
+```
+
+**Locate this block:**
+
+```rust
+                return Err("Reload editable sources before Move");
+            }
+        }
+        Ok(Self {
+            base: scene.clone(),
+            scene: scene.clone(),
+            ids,
+            transform: Xform::identity(),
+        })
     }
+```
+
+Replace it with:
+
+```rust
+                return Err("Reload editable sources before Move");
+            }
+        }
+        let roots = ids;
+        let ids = scene.with_descendants(&roots);
+        Ok(Self {
+            base: scene.clone(),
+            scene: scene.clone(),
+            ids,
+            roots,
+            transform: Xform::identity(),
+        })
+    }
+```
+
+**Locate this block:**
+
+```rust
+    ids: Vec<ObjectId>,
+    transform: Xform,
+}
+```
+
+Replace it with:
+
+```rust
+    ids: Vec<ObjectId>,
+    roots: Vec<ObjectId>,
+    transform: Xform,
 }
 ```
 
@@ -789,153 +1101,212 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
+            self.draft = None;
+        }
         match action {
-            Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
-            Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
-            Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
+            Action::GizmoPress {
 ```
 
 Replace it with:
 
 ```rust
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
+            self.draft = None;
+        }
         match action {
-            Action::TreePick {ids,additive}=>{let eligible=ids.into_iter().filter(|id|self.scene.pick_id(id.value())==Some(*id)).collect::<Vec<_>>();if eligible.is_empty() {return Err("This tree row has no visible editable objects");}self.select_objects(eligible,additive);return self.apply(Action::FitSelected);},
-            Action::GizmoPress {pointer,screen,size,modified}=>return self.gizmo_press(pointer,screen,size,modified),
-            Action::GizmoMove {pointer,screen,size,shift}=>return self.gizmo_move(pointer,screen,size,shift),
-            Action::GizmoRelease {pointer,screen,size,shift}=>return self.gizmo_release(pointer,screen,size,shift),
+            Action::TreePick { ids, additive } => {
+                let eligible = ids
+                    .into_iter()
+                    .filter(|id| self.scene.pick_id(id.value()) == Some(*id))
+                    .collect::<Vec<_>>();
+                if eligible.is_empty() {
+                    return Err("This tree row has no visible editable objects");
+                }
+                self.select_objects(eligible, additive);
+                return self.apply(Action::FitSelected);
+            }
+            Action::GizmoPress {
 ```
 
 **Locate this block:**
 
 ```rust
-        if self.scene.objects().iter().any(|r| ids.contains(&r.id) && r.geometry().is_none()) {
+        {
             return Err("Reload editable sources before Delete");
         }
-        self.history.edit(&mut self.scene, |scene| { for id in ids { scene.remove(id); } });
-        self.objects.clear(); self.selected = None; Ok(Change::Scene)
-    }
+        self.history.edit(&mut self.scene, |scene| {
+            for id in ids {
+                scene.remove(id);
 ```
 
 Replace it with:
 
 ```rust
-        if self.scene.objects().iter().any(|r| ids.contains(&r.id) && r.geometry().is_none()) {
+        {
             return Err("Reload editable sources before Delete");
         }
-        let ids=self.scene.with_descendants(&ids);
-        self.history.edit(&mut self.scene, |scene| { for id in ids { scene.remove(id); } });
-        self.objects.clear(); self.selected = None; Ok(Change::Scene)
-    }
+        let ids = self.scene.with_descendants(&ids);
+        self.history.edit(&mut self.scene, |scene| {
+            for id in ids {
+                scene.remove(id);
 ```
 
 **Locate this block:**
 
 ```rust
-        if !offset.iter().all(|n| n.is_finite()) { return Err("Move needs finite coordinates"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Err("Select an object before Move"); }
-        if offset.iter().all(|&n| n == 0.) { return Ok(Change::View); }
-        self.history.try_edit(&mut self.scene, |scene| {
-            for id in ids { scene.translate(id, offset)?; } Ok(())
-        })?; Ok(Change::Scene)
+        if offset.iter().all(|&n| n == 0.) {
+            return Ok(Change::View);
+        }
+        self.history
+            .try_edit(&mut self.scene, |scene| {
+                for id in ids {
+                    scene.translate(id, offset)?;
+                }
+                Ok(())
+            })?;
+        Ok(Change::Scene)
     }
-
-    fn delete_selection(&mut self) -> Result<Change, &'static str> {
 ```
 
 Replace it with:
 
 ```rust
-        if !offset.iter().all(|n| n.is_finite()) { return Err("Move needs finite coordinates"); }
-        let ids = self.selected_objects(); if ids.is_empty() { return Err("Select an object before Move"); }
-        if offset.iter().all(|&n| n == 0.) { return Ok(Change::View); }
-        let mut preview=crate::edit_preview::Preview::new(&self.scene,ids)?;
-        preview.set(session_rust::Xform::translation(offset[0],offset[1],offset[2]))?;
-        preview.commit(&mut self.scene,&mut self.history)?;Ok(Change::Scene)
+        if offset.iter().all(|&n| n == 0.) {
+            return Ok(Change::View);
+        }
+        let mut preview = crate::edit_preview::Preview::new(&self.scene, ids)?;
+        preview.set(session_rust::Xform::translation(
+            offset[0], offset[1], offset[2],
+        ))?;
+        preview.commit(&mut self.scene, &mut self.history)?;
+        Ok(Change::Scene)
     }
-
-    fn delete_selection(&mut self) -> Result<Change, &'static str> {
 ```
 
 **Locate this block:**
 
 ```rust
+        {
+            return Err("Reload editable sources before Delete");
+        }
+        self.history.edit(&mut self.scene, |scene| {
+            scene.remove(id);
+        });
+        if self.edit_preview.take().is_some() {
+            self.draft = None;
+```
 
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        let object = self.scene.objects().iter().find(|row| row.id == id).ok_or("Object not found")?;
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
+Replace it with:
+
+```rust
+        {
+            return Err("Reload editable sources before Delete");
+        }
+        let ids = self.scene.with_descendants(&[id]);
+        self.history.edit(&mut self.scene, |scene| {
+            for id in ids {
+                scene.remove(id);
+            }
+        });
+        if self.edit_preview.take().is_some() {
+            self.draft = None;
+```
+
+**Locate this block:**
+
+```rust
+        if !self.scene.contains(id) {
+            return Err("Object not found");
+        }
+        if self
+            .scene
+            .objects()
+```
+
+Replace it with:
+
+```rust
+        if !self.scene.contains(id) {
+            return Err("Object not found");
+        }
+        if self.scene.forest.readonly(id) {
+            return Err("Object attributes follow their parent and are read only");
+        }
+        if self
+            .scene
+            .objects()
+```
+
+**Locate this block:**
+
+```rust
+            .iter()
+            .find(|row| row.id == id)
+            .ok_or("Object not found")?;
+        if offset.iter().all(|&value| value == 0.0) {
+            return Ok(Change::View);
+        }
         let shift = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
         let model = &shift * &object.model;
-        self.history.try_edit(&mut self.scene, |scene| scene.place(id, model))?;
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
-
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        if !self.scene.contains(id) { return Err("Object not found"); }
-        if self.scene.objects().iter().find(|row| row.id == id).is_some_and(|row| row.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
-        }
-        self.history.edit(&mut self.scene, |scene| { scene.remove(id); });
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.objects.retain(&self.scene);
-        if self.selected == Some(id) { self.selected = self.objects.primary(); self.selected_part = None; }
+        self.history
+            .try_edit(&mut self.scene, |scene| {
+                scene.place(id, model)
+            })?;
+        if self.edit_preview.take().is_some() {
+            self.draft = None;
 ```
 
 Replace it with:
 
 ```rust
-
-    pub fn move_object(&mut self, id: ObjectId, offset: [f64; 3]) -> Result<Change, &'static str> {
-        if !offset.iter().all(|value| value.is_finite()) { return Err("Move needs finite coordinates"); }
-        let object=self.scene.objects().iter().find(|row|row.id==id).ok_or("Object not found")?;
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if object.geometry().is_none() {return Err("Reload editable sources before Move");}
-        if offset.iter().all(|&value| value == 0.0) { return Ok(Change::View); }
-        let ids=self.scene.with_descendants(&[id]);let delta=session_rust::Xform::translation(offset[0],offset[1],offset[2]);
-        self.history.try_edit(&mut self.scene,|scene| {for id in ids {let matrix=&delta*&scene.placement(id).ok_or("Object not found")?;scene.place_following(id,matrix)?;}Ok(())})?;
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.gizmo_edit=None; self.snap_index = None; Ok(Change::Scene)
-    }
-
-    pub fn delete_object(&mut self, id: ObjectId) -> Result<Change, &'static str> {
-        if !self.scene.contains(id) {return Err("Object not found");}
-        if self.scene.forest.readonly(id) {return Err("Object attributes follow their parent and are read only");}
-        if self.scene.objects().iter().find(|row| row.id == id).is_some_and(|row| row.geometry().is_none()) {
-            return Err("Reload editable sources before Delete");
+            .iter()
+            .find(|row| row.id == id)
+            .ok_or("Object not found")?;
+        if self.scene.forest.readonly(id) {
+            return Err("Object attributes follow their parent and are read only");
         }
-        let ids=self.scene.with_descendants(&[id]);
-        self.history.edit(&mut self.scene, |scene| {for id in ids {scene.remove(id);}});
-        if self.edit_preview.take().is_some() { self.draft=None; }
-        self.objects.retain(&self.scene);
-        if self.selected == Some(id) { self.selected = self.objects.primary(); self.selected_part = None; }
+        if object.geometry().is_none() {
+            return Err("Reload editable sources before Move");
+        }
+        if offset.iter().all(|&value| value == 0.0) {
+            return Ok(Change::View);
+        }
+        let ids = self.scene.with_descendants(&[id]);
+        let delta = session_rust::Xform::translation(offset[0], offset[1], offset[2]);
+        self.history
+            .try_edit(&mut self.scene, |scene| {
+                for id in ids {
+                    let matrix = &delta
+                        * &scene
+                            .placement(id)
+                            .ok_or("Object not found")?;
+                    scene.place_following(id, matrix)?;
+                }
+                Ok(())
+            })?;
+        if self.edit_preview.take().is_some() {
+            self.draft = None;
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
-    GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
-    GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
+    GizmoPress {
+        pointer: i32,
+        screen: [f32; 2],
 ```
 
 Replace it with:
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
-    TreePick {ids:Vec<ObjectId>,additive:bool},
-    GizmoPress {pointer:i32,screen:[f32;2],size:[f64;2],modified:bool},
-    GizmoMove {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
-    GizmoRelease {pointer:i32,screen:[f32;2],size:[f64;2],shift:bool},
+    TreePick {
+        ids: Vec<ObjectId>,
+        additive: bool,
+    },
+    GizmoPress {
+        pointer: i32,
+        screen: [f32; 2],
 ```
 
 ## <a id="checkpoint-52f-save"></a>7. Save nested rows and their local placements
@@ -984,16 +1355,82 @@ Rebuild nested portable nodes and recover local placements from the edited world
 **Locate this existing block:**
 
 ```rust
-        out.sort_unstable_by_key(|id|id.value());out.dedup();out
     }
-
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/52f-save-01.rs"
+    }
+
+    pub fn snapshot(
+        &self,
+        scene: &Scene,
+        xforms: &mut Vec<proto::XformEntry>,
+    ) -> Result<(Vec<proto::TreeNode>, HashSet<ObjectId>), &'static str> {
+        let mut roots = Vec::new();
+        let mut placed = HashSet::new();
+        for doc in &self.documents {
+            if let Some(root) = save_node(
+                doc,
+                0,
+                scene,
+                &Xform::identity(),
+                "",
+                xforms,
+                &mut placed,
+            )? {
+                roots.push(root);
+            }
+        }
+        Ok((roots, placed))
+    }
+}
+
+fn save_node(
+    doc: &Document,
+    index: usize,
+    scene: &Scene,
+    parent: &Xform,
+    parent_guid: &str,
+    xforms: &mut Vec<proto::XformEntry>,
+    placed: &mut HashSet<ObjectId>,
+) -> Result<Option<proto::TreeNode>, &'static str> {
+    let original = &doc.nodes[index];
+    let mut node = original.source.clone();
+    node.guid = uuid::Uuid::new_v4().to_string();
+    node.parent_guid = parent_guid.to_owned();
+    let mut matrix = parent.clone();
+    if let Some(id) = original.object {
+        let Some(row) = scene.objects().iter().find(|r| r.id == id) else {
+            return Ok(None);
+        };
+        node.name = row.guid.clone();
+        matrix = row.model.clone();
+        let local = &parent
+            .inverse()
+            .ok_or("Parent placement cannot be inverted for Save")?
+            * &matrix;
+        if local.m != Xform::identity().m {
+            xforms.push(proto::XformEntry {
+                guid: row.guid.clone(),
+                xform: Some(local.to_proto()),
+            });
+        }
+        placed.insert(id);
+    }
+    for child in index + 1..original.end {
+        if doc.nodes[child].parent == Some(index) {
+            if let Some(child) = save_node(
+                doc, child, scene, &matrix, &node.guid, xforms, placed,
+            )? {
+                node.children.push(child);
+            }
+        }
+    }
+    Ok(Some(node))
+}
 ```
 
 ### 2. `src/document.rs`
@@ -1003,27 +1440,47 @@ Preserve nested imported trees while keeping generated objects beside them in th
 **Locate this existing block:**
 
 ```rust
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
     let mut objects = proto::Objects::default();
     let mut children = Vec::new();
     let mut xforms = Vec::new();
     for object in scene.objects() {
-        let geometry = object.geometry().ok_or("Reload editable sources before saving")?;
+        let geometry = object
+            .geometry()
+            .ok_or("Reload editable sources before saving")?;
         let mut mesh = geometry.to_proto();
         mesh.guid = object.guid.clone();
         objects.meshes.push(mesh);
-        children.push(proto::TreeNode { name: object.guid.clone(), ..Default::default() });
+        children.push(proto::TreeNode {
+            name: object.guid.clone(),
+            ..Default::default()
+        });
         if object.model.m != session_rust::Xform::identity().m {
             xforms.push(proto::XformEntry {
-                guid: object.guid.clone(), xform: Some(object.model.to_proto()),
-            });
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/52f-save-02.rs"
+    let mut objects = proto::Objects::default();
+    let mut xforms = Vec::new();
+    let (mut children, placed) = scene.forest.snapshot(scene, &mut xforms)?;
+    for object in scene.objects() {
+        let geometry = object
+            .geometry()
+            .ok_or("Reload editable sources before saving")?;
+        let mut mesh = geometry.to_proto();
+        mesh.guid = object.guid.clone();
+        objects.meshes.push(mesh);
+        if !placed.contains(&object.id) {
+            children.push(proto::TreeNode {
+                name: object.guid.clone(),
+                ..Default::default()
+            });
+        }
+        if !placed.contains(&object.id)
+            && object.model.m != session_rust::Xform::identity().m
+        {
+            xforms.push(proto::XformEntry {
 ```
 
 ## Build & Run

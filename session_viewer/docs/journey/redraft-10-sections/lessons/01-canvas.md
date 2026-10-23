@@ -106,7 +106,26 @@ Create the manifest. cdylib makes browser-loadable code; rlib will let our nativ
 Create the file and type:
 
 ```toml
---8<-- "journey/code/01-canvas-01.toml"
+[package]
+name = "viewer_journey"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[workspace]
+
+[dependencies]
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "Event"] }
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
+
+[dev-dependencies]
+pollster = "=0.4.0"
+log = "=0.4.34"
 ```
 
 ### 2. `index.html`
@@ -116,7 +135,24 @@ Let the canvas fill the window from the start. Keep startup information hidden; 
 Create the file and type:
 
 ```html
---8<-- "journey/code/01-canvas-fullscreen-1.html"
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Session Viewer</title>
+  <link data-trunk rel="rust">
+  <style>
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    canvas { display: block; width: 100%; height: 100%; outline: none; background: #fff; }
+    #status:not([hidden]) { position: fixed; bottom: 32px; left: 8px; right: 8px; margin: 0; padding: 8px; background: white; font: 14px system-ui; }
+  </style>
+</head>
+<body>
+  <p id="status" role="status" hidden>Waiting for Rust…</p>
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+</body>
+</html>
 ```
 
 ### 3. `src/lib.rs`
@@ -126,7 +162,19 @@ Create Rust’s entry point. The browser calls start after loading WebAssembly; 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/01-canvas-fullscreen-2.rs"
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen(start)]
+pub fn start() -> Result<(), JsValue> {
+    console_error_panic_hook::set_once();
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let status = document
+        .get_element_by_id("status")
+        .ok_or("Missing status")?;
+    status.set_text_content(Some("Rust is running. The canvas is ready."));
+    Ok(())
+}
 ```
 
 ## <a id="checkpoint-01a-gpu"></a>2. Paint the first GPU frame
@@ -175,7 +223,22 @@ Start asynchronous GPU setup without blocking the browser. A setup error goes to
 Replace the entire file with:
 
 ```rust
---8<-- "journey/code/01a-gpu-01.rs"
+#[cfg(target_arch = "wasm32")]
+mod browser;
+pub mod renderer;
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen(start)]
+pub fn start() {
+    console_error_panic_hook::set_once();
+    #[cfg(target_arch = "wasm32")]
+    wasm_bindgen_futures::spawn_local(async {
+        browser::run()
+            .await
+            .expect("GPU startup failed");
+    });
+}
 ```
 
 ### 2. `src/renderer.rs`
@@ -185,7 +248,38 @@ Own the device and queue; record and submit one white clear.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/01a-gpu-02.rs"
+pub struct Renderer {
+    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
+        Self { device, queue }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView) {
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                ..Default::default()
+            });
+        }
+        self.queue.submit([encoder.finish()]);
+    }
+}
 ```
 
 ### 3. `src/browser.rs`
@@ -195,7 +289,67 @@ Connect the canvas to an adapter, configure its image and present the clear.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/01a-gpu-03.rs"
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue};
+
+fn error(value: impl ToString) -> JsValue {
+    JsValue::from_str(&value.to_string())
+}
+
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("No canvas")?
+        .dyn_into()?;
+    let instance = wgpu::Instance::default();
+    let surface = instance
+        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(error)?;
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            compatible_surface: Some(&surface),
+            ..Default::default()
+        })
+        .await
+        .map_err(error)?;
+    let (device, queue) = adapter
+        .request_device(&Default::default())
+        .await
+        .map_err(error)?;
+    let width = window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No width")? as u32;
+    let height = window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No height")? as u32;
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let config = surface
+        .get_default_config(&adapter, width, height)
+        .ok_or("No surface format")?;
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue);
+    let frame = match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(frame)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        _ => return Err("No surface image".into()),
+    };
+    renderer.draw(
+        &frame
+            .texture
+            .create_view(&Default::default()),
+    );
+    frame.present();
+    document
+        .get_element_by_id("status")
+        .ok_or("No status")?
+        .set_text_content(Some("The GPU painted the canvas."));
+    Ok(())
+}
 ```
 
 ## <a id="checkpoint-02-clear"></a>3. Give browser presentation its own function
@@ -241,30 +395,220 @@ Create the file and type:
 
 Report startup failure on the page through the browser owner.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
---8<-- "journey/code/02-clear-fullscreen-2.rs"
+    wasm_bindgen_futures::spawn_local(async {
+        browser::run()
+            .await
+            .expect("GPU startup failed");
+    });
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    wasm_bindgen_futures::spawn_local(async {
+        if let Err(error) = browser::run().await {
+            browser::report(&format!("Cannot draw: {error:?}"));
+        }
+    });
 ```
 
 ### 2. `src/renderer.rs`
 
 Name the render pass and spell out the clear colour for later experiments.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
---8<-- "journey/code/02-clear-fullscreen-4.rs"
+            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::WHITE),
+                        store: wgpu::StoreOp::Store,
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
 ```
 
 ### 3. `src/browser.rs`
 
 Separate presentation, bound the canvas size and choose the colour view explicitly.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
---8<-- "journey/code/02-clear-window-1.rs"
+use wasm_bindgen::{JsCast, JsValue};
+
+fn error(value: impl ToString) -> JsValue {
+    JsValue::from_str(&value.to_string())
+}
+
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("No canvas")?
+        .dyn_into()?;
+    let instance = wgpu::Instance::default();
+    let surface = instance
+        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(error)?;
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            compatible_surface: Some(&surface),
+            ..Default::default()
+        })
+        .await
+        .map_err(error)?;
+    let (device, queue) = adapter
+        .request_device(&Default::default())
+        .await
+        .map_err(error)?;
+    let width = window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No width")? as u32;
+    let height = window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No height")? as u32;
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let config = surface
+        .get_default_config(&adapter, width, height)
+        .ok_or("No surface format")?;
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue);
+    let frame = match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(frame)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        _ => return Err("No surface image".into()),
+    };
+    renderer.draw(
+        &frame
+            .texture
+            .create_view(&Default::default()),
+    );
+    frame.present();
+    document
+        .get_element_by_id("status")
+        .ok_or("No status")?
+        .set_text_content(Some("The GPU painted the canvas."));
+    Ok(())
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn report(message: &str) {
+    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
+        if let Some(status) = document.get_element_by_id("status") {
+            status.set_text_content(Some(message));
+            if message.starts_with("Cannot") {
+                let _ = status.remove_attribute("hidden");
+            }
+        }
+    }
+}
+
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?
+        .dyn_into()?;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::BROWSER_WEBGPU,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+    let surface = instance
+        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            compatible_surface: Some(&surface),
+            ..Default::default()
+        })
+        .await
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let (device, queue) = adapter
+        .request_device(&wgpu::DeviceDescriptor::default())
+        .await
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        report(&error.to_string())
+    }));
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = (window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No window width")? as u32)
+        .clamp(1, limit);
+    let height = (window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No window height")? as u32)
+        .clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let mut config = surface
+        .get_default_config(&adapter, width, height)
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(device, queue);
+    present(&surface, &renderer)?;
+    report("The GPU painted the canvas.");
+    Ok(())
+}
+
+fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsValue> {
+    let frame = match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(frame)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        other => {
+            return Err(JsValue::from_str(&format!(
+                "Surface unavailable: {other:?}"
+            )));
+        }
+    };
+    let view = frame
+        .texture
+        .create_view(&wgpu::TextureViewDescriptor {
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
+    renderer.draw(&view);
+    frame.present();
+    Ok(())
 ```
 
 ## Build & Run

@@ -1,6 +1,6 @@
 # 17.2 · Finite ink visibility and original colour/pick ownership
 
-**Goal:** Exercise finite color and original picking. · **Steps:** 25 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Exercise finite color and original picking. · **Steps:** 25 · **Source:** [engine/gpu/triangle_tiles.rs](../../../../src/engine/gpu/triangle_tiles.rs) · [shaders/project_triangles.wgsl](../../../../src/shaders/project_triangles.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [engine/gpu/clip.rs](../../../../src/engine/gpu/clip.rs) · [shaders/cap.wgsl](../../../../src/shaders/cap.wgsl) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) (`src/engine/gpu/cull.rs,src/shaders/section.wgsl,src/app/section_plane.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,31 +32,31 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/cull.rs</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/section.wgsl</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Test visibility at the ce…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. C-Plane Snap &amp; Preview</text>
-  <polygon points="602,128 652,72 798,72 748,128" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
-  <line x1="628" y1="50" x2="696" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <circle cx="700" cy="102" r="5" fill="#f59e0b" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="700" cy="102" r="10" fill="none" stroke="#d97706" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Screen Tile Visibility Grid</text>
+  <rect x="616" y="52" width="168" height="88" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <rect x="658" y="74" width="84" height="44" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <line x1="658" y1="52" x2="658" y2="140" stroke="#111111" stroke-width="1"/>
+  <line x1="700" y1="52" x2="700" y2="140" stroke="#111111" stroke-width="1"/>
+  <line x1="742" y1="52" x2="742" y2="140" stroke="#111111" stroke-width="1"/>
+  <line x1="616" y1="74" x2="784" y2="74" stroke="#111111" stroke-width="1"/>
+  <line x1="616" y1="96" x2="784" y2="96" stroke="#111111" stroke-width="1"/>
+  <line x1="616" y1="118" x2="784" y2="118" stroke="#111111" stroke-width="1"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Finite ink visibility and o…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. RGB 3D Gumball Gizmo</text>
-  <circle cx="956" cy="118" r="5" fill="#facc15" stroke="#111111" stroke-width="1.5"/>
-  <line x1="956" y1="118" x2="956" y2="52" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrB)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="940" y="60" font-family="monospace" font-size="10.5" font-weight="700" fill="#2563eb">Z</text>
-  <line x1="956" y1="118" x2="1036" y2="118" stroke="#dc2626" stroke-width="2.5" marker-end="url(#arrR)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1044" y="122" font-family="monospace" font-size="10.5" font-weight="700" fill="#dc2626">X</text>
-  <line x1="956" y1="118" x2="904" y2="144" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrG)"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="888" y="146" font-family="monospace" font-size="10.5" font-weight="700" fill="#16a34a">Y</text>
-  <path d="M 956 80 A 38 38 0 0 1 994 118" fill="none" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Section Plane Clip &amp; Cap</text>
+  <polygon points="894,132 934,64 1038,64 1058,132" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <line x1="968" y1="48" x2="968" y2="144" stroke="#dc2626" stroke-width="2.5" stroke-dasharray="4 3"/>
+  <rect x="968" y="64" width="70" height="68" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1003" y="102" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#dc2626">Cap Fill</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Exercise finite color and…</text>
 </svg>
 </div>
@@ -93,7 +93,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest axis point</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">finite original triangles</text>
 </svg>
 </div>
@@ -102,10 +102,33 @@
 
 ### 1. `src/finite_visibility.wgsl`
 
+Test visibility at the original center line.
+
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/86s-test-visibility-at-the-original-center-line-01.rs"
+// The tutorial still converts forward depth; allow two float rounding units until the reversed camera connects.
+const FINITE_GRID:bool=false;
+@group(1) @binding(0) var<storage,read> finite_projected:array<ProjectedTriangle>;
+@group(1) @binding(1) var<storage,read> finite_tiles:array<vec4<u32>>;
+@group(1) @binding(2) var finite_depth:texture_depth_2d;
+fn finite_physical(pixel:vec2<f32>,depth:f32,tolerance:f32)->bool{let at=finite_depth_pixel(pixel);let size=vec2<i32>(textureDimensions(finite_depth));if(any(at<vec2<i32>(0))||any(at>=size)){return false;}let z=1.0-textureLoad(finite_depth,at,0);return select(z<=depth+tolerance,z<depth-tolerance,FINITE_GRID);}
+fn finite_screen(p:vec4<f32>)->vec2<f32>{return(p.xy/p.w*vec2<f32>(0.5,-0.5)+0.5)*view.size;}
+fn finite_axis(a:vec4<f32>,b:vec4<f32>)->vec4<f32>{return vec4<f32>(finite_screen(a),finite_screen(b));}
+fn finite_visible(pixel:vec2<f32>,axis:vec4<f32>,depths:vec2<f32>)->bool{
+ let delta=axis.zw-axis.xy;let length2=dot(delta,delta);let t=clamp(dot(pixel-axis.xy,delta)/max(length2,1e-20),0.0,1.0);let at=axis.xy+t*delta;let depth=mix(depths.x,depths.y,t);let relative=abs(depth)*1.9073486e-6+abs(1.0-depth)*2.3841858e-7;
+ if(any(at<vec2<f32>(0.0))||any(at>=view.size)){return finite_physical(pixel,depth,relative);}
+ if(finite_tiles[0].x==0u){return finite_physical(pixel,depth,relative);}
+ let span=f32(visibility_tile_span_of(u32(view.size.x),u32(view.size.y)));let size=vec2<u32>(ceil(view.size/span));let cell=vec2<u32>(at/span);let head=finite_tiles[1u+cell.y*size.x+cell.x];
+ if(head.w!=0u||head.z!=head.x){return finite_physical(pixel,depth,relative);}
+ for(var i=0u;i<head.x;i++){
+  let offset=head.y+i*2u;let nearest=bitcast<f32>(finite_tiles[(offset+1u)/4u][(offset+1u)%4u]);if(nearest<depth-relative||(!FINITE_GRID&&nearest<=depth+relative)){continue;}
+  let primitive=finite_tiles[offset/4u][offset%4u];if(primitive==0u||primitive>arrayLength(&finite_projected)){continue;}
+  let triangle=finite_projected[primitive-1u];let hit=projected_triangle_at(triangle,at);let tolerance=relative+0.00390625*(abs(triangle.gradient.x)+abs(triangle.gradient.y));
+  if(hit.y>0.5&&select(hit.x>depth+tolerance,hit.x>=depth-tolerance,FINITE_GRID)){return false;}
+ }
+ return true;
+}
 ```
 
 ## <a id="checkpoint-86t-reuse-original-stroke-coverage"></a>2. Reuse stroke coverage
@@ -140,7 +163,7 @@ Create the file and type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged coverage</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged coverage</text>
 </svg>
 </div>
@@ -151,16 +174,13 @@ Create the file and type:
 
 Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.
 
-Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
+Create the file and type:
 
-**Previously typed code reference:**
-
-Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-Create the destination by moving the existing code:
-
-```text
---8<-- "journey/code/86t-reuse-original-stroke-coverage-share-coverage-02.rs"
+```wgsl
+fn colour(input: Output) -> vec4<f32> {
+    let coverage = clamp(input.half_width + 0.5 - abs(input.side), 0.0, 1.0);
+    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
+}
 ```
 
 ### 2. `src/stroke.wgsl`
@@ -170,16 +190,24 @@ Use the same coverage predicate in the ordinary and finite shader.
 **Locate this existing block:**
 
 ```wgsl
+}
+
 fn colour(input: Output) -> vec4<f32> {
     let coverage = clamp(input.half_width + 0.5 - abs(input.side), 0.0, 1.0);
     return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
 }
+
+@vertex
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+}
+
 #include "stroke_coverage.wgsl"
+
+@vertex
 ```
 
 ### 3. `src/stroke.rs`
@@ -190,12 +218,16 @@ Assemble the ordinary shader with the shared source expander already written.
 
 ```rust
 pub const SHADER: &str = include_str!("stroke.wgsl");
+use std::rc::Rc;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub fn shader() -> String { crate::finite_project_source::expand(include_str!("stroke.wgsl")) }
+pub fn shader() -> String {
+    crate::finite_project_source::expand(include_str!("stroke.wgsl"))
+}
+use std::rc::Rc;
 ```
 
 ### 4. `src/finite_project_source.rs`
@@ -205,13 +237,19 @@ Expand one shared coverage source for ordinary, finite and integer variants.
 **Locate this existing block:**
 
 ```rust
-        .replace("#include \"projected_triangle.wgsl:viewport-span\"", viewport)
+        )
+}
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        .replace("#include \"stroke_coverage.wgsl\"", include_str!("stroke_coverage.wgsl"))
+        )
+        .replace(
+            "#include \"stroke_coverage.wgsl\"",
+            include_str!("stroke_coverage.wgsl"),
+        )
+}
 ```
 
 ### 5. `src/stroke_gpu.rs`
@@ -223,85 +261,115 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    pub fn guides(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);Self::layout_depth(device,format,include_str!("guide.wgsl"),48,6,&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Uint32],depth)}
-    pub fn overlay(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-        let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-        Self::layout_depth(device,format,crate::stroke::SHADER,44,6,&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32],depth)
-    }
-    pub fn grid(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout_depth(device, format, crate::stroke::SHADER, 44, 6,
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32], crate::depth::grid())
-    }
-
-    fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute], depth: wgpu::DepthStencilState,
-    ) -> Self {
-        let view_layout = crate::gpu_layout::uniform(device, 80);
+    fn layout_depth(
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        source: &'static str,
+        stride: u64,
 ```
 
 Replace it with:
 
 ```rust
-    pub fn guides(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);Self::layout_depth(device,format,include_str!("guide.wgsl"),48,6,&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Uint32],depth)}
-    pub fn overlay(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{
-        let mut depth=crate::depth::ink();depth.depth_compare=Some(wgpu::CompareFunction::Always);
-        Self::layout_depth(device,format,&crate::stroke::shader(),44,6,&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32],depth)
-    }
-    pub fn grid(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout_depth(device, format, &crate::stroke::shader(), 44, 6,
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32], crate::depth::grid())
-    }
-
-    fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute], depth: wgpu::DepthStencilState,
-    ) -> Self {
-        let view_layout = crate::gpu_layout::uniform(device, 80);
+    fn layout_depth(
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        source: &str,
+        stride: u64,
 ```
 
 **Locate this block:**
 
 ```rust
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32, 2 => Float32x4])
-    }
-
-    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
-        Self::layout_depth(device, format, source, stride, vertices_per_instance, attributes, crate::depth::ink())
-    }
+        Self::layout_depth(
+            device,
+            format,
+            crate::stroke::SHADER,
+            44,
+            6,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32],
 ```
 
 Replace it with:
 
 ```rust
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32, 2 => Float32x4])
-    }
-
-    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
-        Self::layout_depth(device, format, source, stride, vertices_per_instance, attributes, crate::depth::ink())
-    }
+        Self::layout_depth(
+            device,
+            format,
+            &crate::stroke::shader(),
+            44,
+            6,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32],
 ```
 
 **Locate this block:**
 
 ```rust
-    }
-
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout(device, format, crate::stroke::SHADER, 44, 6,
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32])
-    }
+        Self::layout_depth(
+            device,
+            format,
+            crate::stroke::SHADER,
+            44,
+            6,
+            &wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32],
 ```
 
 Replace it with:
 
 ```rust
-    }
+        Self::layout_depth(
+            device,
+            format,
+            &crate::stroke::shader(),
+            44,
+            6,
+            &wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32],
+```
 
-    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout(device, format, &crate::stroke::shader(), 44, 6,
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32])
-    }
+**Locate this block:**
+
+```rust
+    fn layout(
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        source: &'static str,
+        stride: u64,
+        vertices_per_instance: u32,
+        attributes: &[wgpu::VertexAttribute],
+```
+
+Replace it with:
+
+```rust
+    fn layout(
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        source: &str,
+        stride: u64,
+        vertices_per_instance: u32,
+        attributes: &[wgpu::VertexAttribute],
+```
+
+**Locate this block:**
+
+```rust
+            format,
+            crate::stroke::SHADER,
+            44,
+            6,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32],
+        )
+```
+
+Replace it with:
+
+```rust
+            format,
+            &crate::stroke::shader(),
+            44,
+            6,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32],
+        )
 ```
 
 ### 6. `src/finite_stroke.wgsl`
@@ -346,7 +414,7 @@ cp src/stroke.wgsl src/finite_stroke.wgsl
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">full-canvas pixel</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">finite visibility</text>
 </svg>
 </div>
@@ -355,16 +423,52 @@ cp src/stroke.wgsl src/finite_stroke.wgsl
 
 ### 1. `src/finite_stroke.wgsl`
 
-Replace the entire file with:
+Carry stroke axis and depth.
+
+**Locate this existing block:**
 
 ```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
+    @location(2) @interpolate(flat) half_width: f32,
+}
 
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
+fn hidden(colour: vec4<f32>) -> Output {
+    return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, 0.0, 0.0);
+}
+
+fn geometry(start: vec3<f32>, end: vec3<f32>, colour: vec4<f32>, width: f32, index: u32) -> Output {
+    var a = view.transform * vec4<f32>(start, 1.0);
+    var b = view.transform * vec4<f32>(end, 1.0);
+    if (a.z < 0.0 && b.z < 0.0) { return hidden(colour); }
+    if (a.z < 0.0) { a = mix(a, b, -a.z / (b.z - a.z)); }
+    if (b.z < 0.0) { b = mix(b, a, -b.z / (a.z - b.z)); }
+    if (a.w <= 0.0 || b.w <= 0.0) { return hidden(colour); }
+    let delta = (b.xy / b.w - a.xy / a.w) * view.size;
+    let length2 = dot(delta, delta);
+    if (length2 < 0.000001) { return hidden(colour); }
+    let normal = vec2<f32>(-delta.y, delta.x) * inverseSqrt(length2);
+    let corners = array<vec2<f32>, 6>(vec2<f32>(0.0, -1.0), vec2<f32>(1.0, -1.0),
+        vec2<f32>(0.0, 1.0), vec2<f32>(0.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
+    let corner = corners[index];
+    let half_width = width * view.density * 0.5;
+    let extent = half_width + 0.70711;
+    var position = select(a, b, corner.x > 0.5);
+    position = vec4<f32>(position.xy + normal * extent * 2.0 / view.size * corner.y * position.w, position.zw);
+    return Output(position, colour, corner.y * extent, half_width);
+}
+
+#include "stroke_coverage.wgsl"
+
+@vertex
+fn vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
+    @location(2) colour: vec4<f32>, @location(3) width: f32,
+    @builtin(vertex_index) index: u32) -> Output { return geometry(start, end, colour, width, index); }
+@fragment
+fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
     @location(2) @interpolate(flat) half_width: f32,
     @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
@@ -443,7 +547,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original owner ID</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original owner ID</text>
 </svg>
 </div>
@@ -492,7 +596,7 @@ cp src/stroke_pick.wgsl src/finite_stroke_pick.wgsl
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cropped integer draw</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original ID</text>
 </svg>
 </div>
@@ -501,15 +605,36 @@ cp src/stroke_pick.wgsl src/finite_stroke_pick.wgsl
 
 ### 1. `src/finite_stroke_pick.wgsl`
 
-Replace the entire file with:
+Keep stroke crop ownership aligned.
+
+**Locate this existing block:**
 
 ```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) side: f32,
-    @location(2) @interpolate(flat) half_width: f32,
+    @location(7) @interpolate(flat) id: vec2<u32>,
+}
+@vertex
+fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
+    @location(2) colour: vec4<f32>, @location(3) width: f32,
+    @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
+    let source = geometry(start, end, colour, width, index);
+    var output: PickOutput;
+    output.position = crop.transform * source.position;
+    output.colour = source.colour;
+    output.side = source.side;
+    output.half_width = source.half_width;
+    output.id = id; return output;
+}
+@fragment
+fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
+    let source = Output(input.position, input.colour, input.side, input.half_width);
+    if (!wanted(input.id.y, crop.mode)) { discard; }
+    if (colour(source).a <= 0.0) { discard; }
+    return input.id;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
     @location(7) @interpolate(flat) id: vec2<u32>,
     @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
@@ -535,7 +660,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     if (colour(source).a <= 0.0) { discard; }
     if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}
     return input.id;
-}
 ```
 
 ## <a id="checkpoint-86x-reuse-original-chain-coverage"></a>6. Reuse chain coverage
@@ -570,7 +694,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged coverage</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged coverage</text>
 </svg>
 </div>
@@ -581,23 +705,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.
 
-Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
-
-**Previously typed code reference:**
-
-Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-Create the destination by moving the existing code:
-
-```text
---8<-- "journey/code/86x-reuse-original-chain-coverage-share-coverage-02.rs"
-```
-
-### 2. `src/chain.wgsl`
-
-Use the same coverage predicate in the ordinary and finite shader.
-
-**Locate this existing block:**
+Create the file and type:
 
 ```wgsl
 fn colour(input: Output) -> vec4<f32> {
@@ -615,10 +723,38 @@ fn colour(input: Output) -> vec4<f32> {
 }
 ```
 
+### 2. `src/chain.wgsl`
+
+Use the same coverage predicate in the ordinary and finite shader.
+
+**Locate this existing block:**
+
+```wgsl
+}
+fn colour(input: Output) -> vec4<f32> {
+    let local = input.pixel - input.origin;
+    let distance = dot(local, perpendicular(input.direction));
+    var coverage = clamp(input.half_width + 0.5 - abs(distance), 0.0, 1.0);
+    if (input.part == 1u) {
+        let back = -dot(local, input.direction);
+        if (back >= input.head_length) { discard; }
+        let side = (0.4 * back - abs(distance)) / sqrt(1.16);
+        let base = select(input.head_length - back, 1e6, abs(distance) <= input.half_width);
+        coverage = clamp(min(min(side, back), base) + 0.5, 0.0, 1.0);
+    }
+    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
+}
+
+@vertex
+```
+
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+}
 #include "chain_coverage.wgsl"
+
+@vertex
 ```
 
 ### 3. `src/chain.rs`
@@ -629,12 +765,16 @@ Assemble the ordinary shader with the shared source expander already written.
 
 ```rust
 pub const SHADER: &str = include_str!("chain.wgsl");
+use crate::stroke::PreparedLine;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub fn shader() -> String { crate::finite_project_source::expand(include_str!("chain.wgsl")) }
+pub fn shader() -> String {
+    crate::finite_project_source::expand(include_str!("chain.wgsl"))
+}
+use crate::stroke::PreparedLine;
 ```
 
 ### 4. `src/finite_project_source.rs`
@@ -644,13 +784,19 @@ Expand one shared coverage source for ordinary, finite and integer variants.
 **Locate this existing block:**
 
 ```rust
-        .replace("#include \"stroke_coverage.wgsl\"", include_str!("stroke_coverage.wgsl"))
+        )
+}
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        .replace("#include \"chain_coverage.wgsl\"", include_str!("chain_coverage.wgsl"))
+        )
+        .replace(
+            "#include \"chain_coverage.wgsl\"",
+            include_str!("chain_coverage.wgsl"),
+        )
+}
 ```
 
 ### 5. `src/stroke_gpu.rs`
@@ -660,13 +806,17 @@ Route the existing GPU lane through shared coverage assembly.
 **Locate this existing block:**
 
 ```rust
-        Self::layout(device, format, crate::chain::SHADER, 72, 18,
+            format,
+            crate::chain::SHADER,
+            72,
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        Self::layout(device, format, &crate::chain::shader(), 72, 18,
+            format,
+            &crate::chain::shader(),
+            72,
 ```
 
 ### 6. `src/finite_chain.wgsl`
@@ -711,7 +861,7 @@ cp src/chain.wgsl src/finite_chain.wgsl
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">full-canvas pixel</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">finite visibility</text>
 </svg>
 </div>
@@ -719,6 +869,8 @@ cp src/chain.wgsl src/finite_chain.wgsl
 **What this code does:** Carry chain axis and depth.
 
 ### 1. `src/finite_chain.wgsl`
+
+Carry chain axis and depth.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
@@ -794,8 +946,6 @@ Replace it with:
 **Locate this block:**
 
 ```wgsl
-    @location(4) @interpolate(flat) half_width: f32,
-    @location(5) @interpolate(flat) part: u32,
     @location(6) @interpolate(flat) head_length: f32,
 }
 fn screen(p: vec4<f32>) -> vec2<f32> { return p.xy / p.w * view.size * 0.5; }
@@ -805,8 +955,6 @@ fn perpendicular(d: vec2<f32>) -> vec2<f32> { return vec2<f32>(-d.y, d.x); }
 Replace it with:
 
 ```wgsl
-    @location(4) @interpolate(flat) half_width: f32,
-    @location(5) @interpolate(flat) part: u32,
     @location(6) @interpolate(flat) head_length: f32,
     @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
@@ -848,7 +996,7 @@ fn perpendicular(d: vec2<f32>) -> vec2<f32> { return vec2<f32>(-d.y, d.x); }
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original owner ID</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original owner ID</text>
 </svg>
 </div>
@@ -897,7 +1045,7 @@ cp src/chain_pick.wgsl src/finite_chain_pick.wgsl
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cropped integer draw</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original ID</text>
 </svg>
 </div>
@@ -906,19 +1054,41 @@ cp src/chain_pick.wgsl src/finite_chain_pick.wgsl
 
 ### 1. `src/finite_chain_pick.wgsl`
 
-Replace the entire file with:
+Keep chain crop ownership aligned.
+
+**Locate this existing block:**
 
 ```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) pixel: vec2<f32>,
-    @location(2) @interpolate(flat) origin: vec2<f32>,
-    @location(3) @interpolate(flat) direction: vec2<f32>,
-    @location(4) @interpolate(flat) half_width: f32,
-    @location(5) @interpolate(flat) part: u32,
-    @location(6) @interpolate(flat) head_length: f32,
+    @location(7) @interpolate(flat) id: vec2<u32>,
+}
+@vertex
+fn pick_vertex(@location(0) start: vec3<f32>, @location(1) end: vec3<f32>,
+    @location(2) colour: vec4<f32>, @location(3) width: f32,
+    @location(4) previous: vec3<f32>, @location(5) next: vec3<f32>,
+    @location(6) heads: u32, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
+    let source = geometry(start, end, colour, width, previous, next, heads, index);
+    var output: PickOutput;
+    output.position = crop.transform * source.position;
+    output.colour = source.colour;
+    output.pixel = source.pixel;
+    output.origin = source.origin;
+    output.direction = source.direction;
+    output.half_width = source.half_width;
+    output.part = source.part;
+    output.head_length = source.head_length;
+    output.id = id; return output;
+}
+@fragment
+fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
+    let source = Output(input.position, input.colour, input.pixel, input.origin, input.direction, input.half_width, input.part, input.head_length);
+    if (!wanted(input.id.y, crop.mode)) { discard; }
+    if (colour(source).a <= 0.0) { discard; }
+    return input.id;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
     @location(7) @interpolate(flat) id: vec2<u32>,
     @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
@@ -949,7 +1119,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     if (colour(source).a <= 0.0) { discard; }
     if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}
     return input.id;
-}
 ```
 
 ## <a id="checkpoint-86ab-reuse-original-marker-coverage"></a>10. Reuse marker coverage
@@ -984,7 +1153,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged coverage</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged coverage</text>
 </svg>
 </div>
@@ -995,16 +1164,13 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 Move this already-written coverage function into one shared shader file; no new coverage algorithm is introduced.
 
-Move the previously typed implementation as described. Keep its code; type the following wiring edits separately.
+Create the file and type:
 
-**Previously typed code reference:**
-
-Use this reference when moving the existing code; it is excluded from the typing estimate.
-
-Create the destination by moving the existing code:
-
-```text
---8<-- "journey/code/86ab-reuse-original-marker-coverage-share-coverage-02.rs"
+```wgsl
+fn colour(input: Output) -> vec4<f32> {
+    let coverage = clamp(input.radius + 0.5 - length(input.offset), 0.0, 1.0);
+    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
+}
 ```
 
 ### 2. `src/marker.wgsl`
@@ -1014,16 +1180,22 @@ Use the same coverage predicate in the ordinary and finite shader.
 **Locate this existing block:**
 
 ```wgsl
+}
 fn colour(input: Output) -> vec4<f32> {
     let coverage = clamp(input.radius + 0.5 - length(input.offset), 0.0, 1.0);
     return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
 }
+
+@vertex
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+}
 #include "marker_coverage.wgsl"
+
+@vertex
 ```
 
 ### 3. `src/marker.rs`
@@ -1034,12 +1206,16 @@ Assemble the ordinary shader with the shared source expander already written.
 
 ```rust
 pub const SHADER: &str = include_str!("marker.wgsl");
+use std::rc::Rc;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub fn shader() -> String { crate::finite_project_source::expand(include_str!("marker.wgsl")) }
+pub fn shader() -> String {
+    crate::finite_project_source::expand(include_str!("marker.wgsl"))
+}
+use std::rc::Rc;
 ```
 
 ### 4. `src/finite_project_source.rs`
@@ -1049,13 +1225,19 @@ Expand one shared coverage source for ordinary, finite and integer variants.
 **Locate this existing block:**
 
 ```rust
-        .replace("#include \"chain_coverage.wgsl\"", include_str!("chain_coverage.wgsl"))
+        )
+}
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        .replace("#include \"marker_coverage.wgsl\"", include_str!("marker_coverage.wgsl"))
+        )
+        .replace(
+            "#include \"marker_coverage.wgsl\"",
+            include_str!("marker_coverage.wgsl"),
+        )
+}
 ```
 
 ### 5. `src/stroke_gpu.rs`
@@ -1065,13 +1247,17 @@ Route the existing GPU lane through shared coverage assembly.
 **Locate this existing block:**
 
 ```rust
-        Self::layout(device, format, crate::marker::SHADER, 32, 6,
+            format,
+            crate::marker::SHADER,
+            32,
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        Self::layout(device, format, &crate::marker::shader(), 32, 6,
+            format,
+            &crate::marker::shader(),
+            32,
 ```
 
 ### 6. `src/finite_marker.wgsl`
@@ -1116,7 +1302,7 @@ cp src/marker.wgsl src/finite_marker.wgsl
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">full-canvas pixel</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">finite visibility</text>
 </svg>
 </div>
@@ -1125,15 +1311,37 @@ cp src/marker.wgsl src/finite_marker.wgsl
 
 ### 1. `src/finite_marker.wgsl`
 
-Replace the entire file with:
+Carry marker axis and depth.
+
+**Locate this existing block:**
 
 ```wgsl
-struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
-@group(0) @binding(0) var<uniform> view: View;
-struct Output {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
+    @location(2) @interpolate(flat) radius: f32,
+}
+fn geometry(center: vec3<f32>, diameter: f32, colour: vec4<f32>, index: u32) -> Output {
+    var position = view.transform * vec4<f32>(center, 1.0);
+    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
+        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0);
+    }
+    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
+        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
+    let radius = diameter * view.density * 0.5;
+    let offset = corners[index] * (radius + 0.70711);
+    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
+    return Output(position, colour, offset, radius);
+}
+#include "marker_coverage.wgsl"
+
+@vertex
+fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
+    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output { return geometry(center, diameter, colour, index); }
+@fragment
+fn fragment(input: Output) -> @location(0) vec4<f32> { return colour(input); }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
     @location(2) @interpolate(flat) radius: f32,
     @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
@@ -1198,7 +1406,7 @@ fn finite_depth_pixel(pixel:vec2<f32>)->vec2<i32>{return vec2<i32>(pixel);}
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original owner ID</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original owner ID</text>
 </svg>
 </div>
@@ -1247,7 +1455,7 @@ cp src/marker_pick.wgsl src/finite_marker_pick.wgsl
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cropped integer draw</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original ID</text>
 </svg>
 </div>
@@ -1256,15 +1464,35 @@ cp src/marker_pick.wgsl src/finite_marker_pick.wgsl
 
 ### 1. `src/finite_marker_pick.wgsl`
 
-Replace the entire file with:
+Keep marker crop ownership aligned.
+
+**Locate this existing block:**
 
 ```wgsl
-@group(1) @binding(0) var<uniform> crop: Crop;
-struct PickOutput {
-    @builtin(position) position: vec4<f32>,
-    @location(0) colour: vec4<f32>,
-    @location(1) @interpolate(linear) offset: vec2<f32>,
-    @location(2) @interpolate(flat) radius: f32,
+    @location(7) @interpolate(flat) id: vec2<u32>,
+}
+@vertex
+fn pick_vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
+    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32, @location(7) id: vec2<u32>) -> PickOutput {
+    let source = geometry(center, diameter, colour, index);
+    var output: PickOutput;
+    output.position = crop.transform * source.position;
+    output.colour = source.colour;
+    output.offset = source.offset;
+    output.radius = source.radius;
+    output.id = id; return output;
+}
+@fragment
+fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
+    let source = Output(input.position, input.colour, input.offset, input.radius);
+    if (!wanted(input.id.y, crop.mode)) { discard; }
+    if (colour(source).a <= 0.0) { discard; }
+    return input.id;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
     @location(7) @interpolate(flat) id: vec2<u32>,
     @location(9) @interpolate(flat) finite_axis_value:vec4<f32>,
     @location(10) @interpolate(flat) finite_depths:vec2<f32>,
@@ -1289,7 +1517,6 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
     if (colour(source).a <= 0.0) { discard; }
     if(!finite_visible(input.finite_pixel,input.finite_axis_value,input.finite_depths)){discard;}
     return input.id;
-}
 ```
 
 ## <a id="checkpoint-86af-assemble-one-shared-finite-shader-predicate"></a>14. Assemble one shared finite shader predicate
@@ -1324,7 +1551,7 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">expanded helper</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">color or pick source</text>
 </svg>
 </div>
@@ -1333,10 +1560,56 @@ fn pick_fragment(input: PickOutput) -> @location(0) vec2<u32> {
 
 ### 1. `src/finite_sources.rs`
 
+Assemble one shared finite shader predicate.
+
 Create the file and type:
 
 ```rust
---8<-- "journey/code/86af-assemble-one-shared-finite-shader-predicate-01-shared-expansion.rs"
+pub fn source(stride: u64, pick: bool) -> String {
+    source_style(stride, pick, false)
+}
+pub fn source_style(stride: u64, pick: bool, grid: bool) -> String {
+    let (base, ids) = match stride {
+        44 => (
+            include_str!("finite_stroke.wgsl"),
+            include_str!("finite_stroke_pick.wgsl"),
+        ),
+        72 => (
+            include_str!("finite_chain.wgsl"),
+            include_str!("finite_chain_pick.wgsl"),
+        ),
+        32 => (
+            include_str!("finite_marker.wgsl"),
+            include_str!("finite_marker_pick.wgsl"),
+        ),
+        _ => panic!("Unsupported finite ink layout"),
+    };
+    let base = crate::finite_project_source::expand(base).replace(
+        "#include \"finite_visibility.wgsl\"",
+        include_str!("finite_visibility.wgsl"),
+    );
+    let base = if grid {
+        base.replace(
+            "const FINITE_GRID:bool=false;",
+            "const FINITE_GRID:bool=true;",
+        )
+    } else {
+        base
+    };
+    if pick {
+        format!(
+            "{}\n{}\n{ids}",
+            base.replace("@group(1)", "@group(2)")
+                .replace(
+                    "return vec2<i32>(pixel);",
+                    "return vec2<i32>(pixel)-vec2<i32>(i32(crop._a),i32(crop._b));"
+                ),
+            include_str!("pick_crop.wgsl")
+        )
+    } else {
+        base
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1346,14 +1619,35 @@ Register the completed source owner.
 **Locate this existing block:**
 
 ```rust
+pub mod tile_pipelines;
 
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 pub mod tile_gpu;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86af-assemble-one-shared-finite-shader-predicate-02.rs" skip=19
+pub mod tile_pipelines;
+
+pub mod tile_gpu;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+pub mod finite_sources;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-86ag-own-finite-color-and-integer-pipelines"></a>15. Own finite color and integer pipelines
@@ -1388,7 +1682,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">color and pick targets</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">color and pick targets</text>
 </svg>
 </div>
@@ -1402,7 +1696,26 @@ Own finite color and integer pipelines.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/86ag-own-finite-color-and-integer-pipelines-01.rs"
+use std::cell::RefCell;
+pub struct Ink {
+    color: wgpu::RenderPipeline,
+    pick: wgpu::RenderPipeline,
+    layout: wgpu::BindGroupLayout,
+    bindings: RefCell<
+        Option<(
+            wgpu::Buffer,
+            wgpu::Buffer,
+            wgpu::TextureView,
+            wgpu::BindGroup,
+        )>,
+    >,
+}
+#[derive(Clone)]
+pub struct Tables {
+    pub projected: wgpu::Buffer,
+    pub tiles: wgpu::Buffer,
+}
+impl Ink {}
 ```
 
 ### 2. `src/lib.rs`
@@ -1412,14 +1725,27 @@ Register the resource types immediately so every following method is checked by 
 **Locate this existing block:**
 
 ```rust
+pub mod tile_gpu;
 
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
 pub mod finite_sources;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86aj-reuse-bindings-and-draw-original-owners-02.rs" skip=25
+pub mod tile_gpu;
+
+pub mod finite_sources;
+
+pub mod finite_ink;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-86ah-build-finite-shader-pipelines-with-original-layouts"></a>16. Build finite shader pipelines with layouts
@@ -1454,7 +1780,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">explicit groups</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">target pipeline</text>
 </svg>
 </div>
@@ -1463,18 +1789,104 @@ After that block, type:
 
 ### 1. `src/finite_ink.rs`
 
+Build finite shader pipelines with original layouts.
+
 **Locate this existing block:**
 
 ```rust
-
 use std::cell::RefCell;
-pub struct Ink{color:wgpu::RenderPipeline,pick:wgpu::RenderPipeline,layout:wgpu::BindGroupLayout,bindings:RefCell<Option<(wgpu::Buffer,wgpu::Buffer,wgpu::TextureView,wgpu::BindGroup)>>}
+pub struct Ink {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86ah-build-finite-shader-pipelines-with-original-layouts-01.rs"
+fn pipeline(
+    device: &wgpu::Device,
+    format: wgpu::TextureFormat,
+    stride: u64,
+    grid: bool,
+    picking: bool,
+    view: &wgpu::BindGroupLayout,
+    crop: &wgpu::BindGroupLayout,
+    layout: &wgpu::BindGroupLayout,
+    attributes: &[wgpu::VertexAttribute],
+) -> wgpu::RenderPipeline {
+    let source = crate::finite_sources::source_style(stride, picking, grid);
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("finite original ink"),
+        source: wgpu::ShaderSource::Wgsl(source.into()),
+    });
+    let groups = if picking {
+        vec![Some(view), Some(crop), Some(layout)]
+    } else {
+        vec![Some(view), Some(layout)]
+    };
+    let pipeline_layout =
+        device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("finite original ink"),
+            bind_group_layouts: &groups,
+            immediate_size: 0,
+        });
+    let mut buffers = vec![wgpu::VertexBufferLayout {
+        array_stride: stride,
+        step_mode: wgpu::VertexStepMode::Instance,
+        attributes,
+    }];
+    let ids = wgpu::vertex_attr_array![7=>Uint32x2];
+    if picking {
+        buffers.push(wgpu::VertexBufferLayout {
+            array_stride: 8,
+            step_mode: wgpu::VertexStepMode::Instance,
+            attributes: &ids,
+        });
+    }
+    let mut depth = crate::depth::ink();
+    depth.depth_compare = Some(wgpu::CompareFunction::Always);
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("finite original ink"),
+        layout: Some(&pipeline_layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some(if picking {
+                "pick_vertex"
+            } else {
+                "vertex"
+            }),
+            compilation_options: Default::default(),
+            buffers: &buffers,
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some(if picking {
+                "pick_fragment"
+            } else {
+                "fragment"
+            }),
+            compilation_options: Default::default(),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: if picking {
+                    wgpu::TextureFormat::Rg32Uint
+                } else {
+                    format
+                },
+                blend: if picking {
+                    None
+                } else {
+                    Some(wgpu::BlendState::ALPHA_BLENDING)
+                },
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        }),
+        primitive: Default::default(),
+        depth_stencil: Some(depth),
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
+use std::cell::RefCell;
+pub struct Ink {
 ```
 
 ## <a id="checkpoint-86ai-bind-finite-coverage-for-original-families"></a>17. Bind finite coverage for families
@@ -1509,7 +1921,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">sampled depth</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">family pipeline</text>
 </svg>
 </div>
@@ -1518,17 +1930,110 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/finite_ink.rs`
 
+Bind finite coverage for original families.
+
 **Locate this existing block:**
 
 ```rust
-pub struct Tables{pub projected:wgpu::Buffer,pub tiles:wgpu::Buffer}
-impl Ink{
+}
+impl Ink {}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86ai-bind-finite-coverage-for-original-families-01.rs"
+}
+impl Ink {
+    pub fn new(
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        stride: u64,
+        grid: bool,
+    ) -> Self {
+        let attributes=match stride{44=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32].to_vec(),72=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32,4=>Float32x3,5=>Float32x3,6=>Uint32].to_vec(),32=>wgpu::vertex_attr_array![0=>Float32x3,1=>Float32,2=>Float32x4].to_vec(),_=>panic!("Unsupported finite ink layout")};
+        let view = crate::gpu_layout::uniform(device, 80);
+        let crop = crate::gpu_layout::uniform(device, 80);
+        let layout =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("finite ink coverage"),
+                entries: &[
+                    crate::tile_pipelines::entry(
+                        0,
+                        wgpu::ShaderStages::FRAGMENT,
+                        wgpu::BufferBindingType::Storage { read_only: true },
+                    ),
+                    crate::tile_pipelines::entry(
+                        1,
+                        wgpu::ShaderStages::FRAGMENT,
+                        wgpu::BufferBindingType::Storage { read_only: true },
+                    ),
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 2,
+                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Texture {
+                            sample_type: wgpu::TextureSampleType::Depth,
+                            view_dimension: wgpu::TextureViewDimension::D2,
+                            multisampled: false,
+                        },
+                        count: None,
+                    },
+                ],
+            });
+        let color = pipeline(
+            device,
+            format,
+            stride,
+            grid,
+            false,
+            &view,
+            &crop,
+            &layout,
+            &attributes,
+        );
+        let pick = pipeline(
+            device,
+            format,
+            stride,
+            grid,
+            true,
+            &view,
+            &crop,
+            &layout,
+            &attributes,
+        );
+        Self {
+            color,
+            pick,
+            layout,
+            bindings: RefCell::new(None),
+        }
+    }
+    fn group(
+        &self,
+        device: &wgpu::Device,
+        tables: &Tables,
+        depth: &wgpu::TextureView,
+    ) -> wgpu::BindGroup {
+        device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("finite original ink coverage"),
+            layout: &self.layout,
+            entries: &[
+                wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: tables.projected.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 1,
+                    resource: tables.tiles.as_entire_binding(),
+                },
+                wgpu::BindGroupEntry {
+                    binding: 2,
+                    resource: wgpu::BindingResource::TextureView(depth),
+                },
+            ],
+        })
+    }
+}
 ```
 
 ## <a id="checkpoint-86aj-reuse-bindings-and-draw-original-owners"></a>18. Reuse bindings and draw owners
@@ -1563,7 +2068,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached binding</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">color or integer draw</text>
 </svg>
 </div>
@@ -1572,21 +2077,84 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/finite_ink.rs`
 
+Reuse bindings and draw original owners.
+
 **Locate this existing block:**
 
 ```rust
- }
- fn group(&self,device:&wgpu::Device,tables:&Tables,depth:&wgpu::TextureView)->wgpu::BindGroup{device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("finite original ink coverage"),layout:&self.layout,entries:&[wgpu::BindGroupEntry{binding:0,resource:tables.projected.as_entire_binding()},wgpu::BindGroupEntry{binding:1,resource:tables.tiles.as_entire_binding()},wgpu::BindGroupEntry{binding:2,resource:wgpu::BindingResource::TextureView(depth)}]})}
-
-
-
+    }
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86aj-reuse-bindings-and-draw-original-owners-01.rs"
+    }
+    pub fn set(
+        &self,
+        device: &wgpu::Device,
+        tables: &Tables,
+        depth: &wgpu::TextureView,
+    ) {
+        let mut bindings = self.bindings.borrow_mut();
+        if bindings
+            .as_ref()
+            .is_some_and(|(p, t, d, _)| {
+                p == &tables.projected && t == &tables.tiles && d == depth
+            })
+        {
+            return;
+        }
+        let group = self.group(device, tables, depth);
+        *bindings = Some((
+            tables.projected.clone(),
+            tables.tiles.clone(),
+            depth.clone(),
+            group,
+        ));
+    }
+    pub fn draw(
+        &self,
+        pass: &mut wgpu::RenderPass<'_>,
+        view: &wgpu::BindGroup,
+        vertices: &wgpu::Buffer,
+        count: u32,
+        verts: u32,
+    ) -> bool {
+        let bindings = self.bindings.borrow();
+        let Some((_, _, _, group)) = bindings.as_ref() else {
+            return false;
+        };
+        pass.set_pipeline(&self.color);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(1, group, &[]);
+        pass.set_vertex_buffer(0, vertices.slice(..));
+        pass.draw(0..verts, 0..count);
+        true
+    }
+    pub fn pick(
+        &self,
+        device: &wgpu::Device,
+        pass: &mut wgpu::RenderPass<'_>,
+        view: &wgpu::BindGroup,
+        crop: &wgpu::BindGroup,
+        vertices: &wgpu::Buffer,
+        ids: &wgpu::Buffer,
+        count: u32,
+        verts: u32,
+        tables: &Tables,
+        depth: &wgpu::TextureView,
+    ) {
+        let group = self.group(device, tables, depth);
+        pass.set_pipeline(&self.pick);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(1, crop, &[]);
+        pass.set_bind_group(2, &group, &[]);
+        pass.set_vertex_buffer(0, vertices.slice(..));
+        pass.set_vertex_buffer(1, ids.slice(..));
+        pass.draw(0..verts, 0..count);
+    }
+}
 ```
 
 ## <a id="checkpoint-86ak-expose-original-gpu-models-to-projection"></a>19. Expose GPU models to projection
@@ -1621,7 +2189,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">compute-readable original…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">compute-readable original…</text>
 </svg>
 </div>
@@ -1635,17 +2203,18 @@ Expose existing buffers without changing original data.
 **Locate this existing block:**
 
 ```rust
-    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-        label: Some("shared uniform"), entries: &[wgpu::BindGroupLayoutEntry {
-            binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
-            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
-                has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(bytes) }, count: None,
+            binding: 0,
+            visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+            ty: wgpu::BindingType::Buffer {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86ak-expose-original-gpu-models-to-projection-01.rs"
+            binding: 0,
+            visibility: wgpu::ShaderStages::VERTEX_FRAGMENT
+                | wgpu::ShaderStages::COMPUTE,
+            ty: wgpu::BindingType::Buffer {
 ```
 
 ## <a id="checkpoint-86al-connect-finite-visibility-to-all-original-ink-lanes"></a>20. Connect finite visibility to all ink lanes
@@ -1680,7 +2249,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">optional finite pipeline</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">preserved legacy API</text>
 </svg>
 </div>
@@ -1696,71 +2265,96 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: uniform.as_entire_binding() }] });
-        Self { pipeline, pick_pipeline, ids: None, id_data: Vec::new(), uniform, group, vertices: None, data: Vec::new(), stride, vertices_per_instance, uploads: 0, uploaded_bytes: 0 }
-    }
-}
+            }],
+        });
+        Self {
+            pipeline,
 ```
 
 Replace it with:
 
 ```rust
-        let group = device.create_bind_group(&wgpu::BindGroupDescriptor { label: Some("stroke view"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: uniform.as_entire_binding() }] });
-        Self {finite:None,strict_depth, pipeline, pick_pipeline, ids: None, id_data: Vec::new(), uniform, group, vertices: None, data: Vec::new(), stride, vertices_per_instance, uploads: 0, uploaded_bytes: 0 }
-    }
-}
+            }],
+        });
+        Self {
+            finite: None,
+            strict_depth,
+            pipeline,
 ```
 
 **Locate this block:**
 
 ```rust
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),
+            label: Some("stroke"),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
         });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("stroke"), layout: Some(&layout),
-            vertex: wgpu::VertexState { module: &shader, entry_point: Some("vertex"),
+            label: Some("stroke"),
+            layout: Some(&layout),
 ```
 
 Replace it with:
 
 ```rust
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),
+            label: Some("stroke"),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
         });
-        let strict_depth=depth.depth_compare==Some(wgpu::CompareFunction::Less);
+        let strict_depth = depth.depth_compare == Some(wgpu::CompareFunction::Less);
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("stroke"), layout: Some(&layout),
-            vertex: wgpu::VertexState { module: &shader, entry_point: Some("vertex"),
+            label: Some("stroke"),
+            layout: Some(&layout),
 ```
 
 **Locate this block:**
 
 ```rust
-        pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
+        );
     }
 
-    pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
-
-    pub fn usage(&self) -> [u64; 2] {
+    pub fn pick_bytes(&self) -> u64 {
+        self.ids
+            .as_ref()
 ```
 
 Replace it with:
 
 ```rust
-        pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
+        );
     }
 
-    pub fn pick_finite(&self,device:&wgpu::Device,pass:&mut wgpu::RenderPass<'_>,crop:&wgpu::BindGroup,tables:Option<&crate::finite_ink::Tables>,depth:&wgpu::TextureView){
-        if let(Some(ink),Some(tables),Some(vertices),Some(ids))=(&self.finite,tables,&self.vertices,&self.ids){ink.pick(device,pass,&self.group,crop,vertices,ids,(self.data.len()as u64/self.stride)as u32,self.vertices_per_instance,tables,depth)}else{self.pick(pass,crop)}
+    pub fn pick_finite(
+        &self,
+        device: &wgpu::Device,
+        pass: &mut wgpu::RenderPass<'_>,
+        crop: &wgpu::BindGroup,
+        tables: Option<&crate::finite_ink::Tables>,
+        depth: &wgpu::TextureView,
+    ) {
+        if let (Some(ink), Some(tables), Some(vertices), Some(ids)) = (
+            &self.finite,
+            tables,
+            &self.vertices,
+            &self.ids,
+        ) {
+            ink.pick(
+                device,
+                pass,
+                &self.group,
+                crop,
+                vertices,
+                ids,
+                (self.data.len() as u64 / self.stride) as u32,
+                self.vertices_per_instance,
+                tables,
+                depth,
+            )
+        } else {
+            self.pick(pass, crop)
+        }
     }
-    pub fn pick_bytes(&self) -> u64 { self.ids.as_ref().map_or(0, wgpu::Buffer::size) }
-
-    pub fn usage(&self) -> [u64; 2] {
+    pub fn pick_bytes(&self) -> u64 {
+        self.ids
+            .as_ref()
 ```
 
 **Locate this block:**
@@ -1770,10 +2364,12 @@ Replace it with:
     }
 
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        let Some(vertices) = &self.vertices else { return; };
-        pass.set_pipeline(&self.pipeline); pass.set_bind_group(0, &self.group, &[]);
+        let Some(vertices) = &self.vertices else {
+            return;
+        };
+        pass.set_pipeline(&self.pipeline);
+        pass.set_bind_group(0, &self.group, &[]);
         pass.set_vertex_buffer(0, vertices.slice(..));
-        pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
 ```
 
 Replace it with:
@@ -1782,14 +2378,46 @@ Replace it with:
         queue.write_buffer(&self.uniform, 0, &bytes);
     }
 
-    pub fn enable_finite(&mut self,device:&wgpu::Device,format:wgpu::TextureFormat){self.finite=Some(crate::finite_ink::Ink::new(device,format,self.stride,self.strict_depth));}
-    pub fn finite_frame(&self,device:&wgpu::Device,tables:&crate::finite_ink::Tables,depth:&wgpu::TextureView){if let Some(ink)=&self.finite{ink.set(device,tables,depth)}}
+    pub fn enable_finite(
+        &mut self,
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+    ) {
+        self.finite = Some(crate::finite_ink::Ink::new(
+            device,
+            format,
+            self.stride,
+            self.strict_depth,
+        ));
+    }
+    pub fn finite_frame(
+        &self,
+        device: &wgpu::Device,
+        tables: &crate::finite_ink::Tables,
+        depth: &wgpu::TextureView,
+    ) {
+        if let Some(ink) = &self.finite {
+            ink.set(device, tables, depth)
+        }
+    }
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        let Some(vertices) = &self.vertices else { return; };
-        if self.finite.as_ref().is_some_and(|ink|ink.draw(pass,&self.group,vertices,(self.data.len()as u64/self.stride)as u32,self.vertices_per_instance)){return}
-        pass.set_pipeline(&self.pipeline); pass.set_bind_group(0, &self.group, &[]);
+        let Some(vertices) = &self.vertices else {
+            return;
+        };
+        if self.finite.as_ref().is_some_and(|ink| {
+            ink.draw(
+                pass,
+                &self.group,
+                vertices,
+                (self.data.len() as u64 / self.stride) as u32,
+                self.vertices_per_instance,
+            )
+        }) {
+            return;
+        }
+        pass.set_pipeline(&self.pipeline);
+        pass.set_bind_group(0, &self.group, &[]);
         pass.set_vertex_buffer(0, vertices.slice(..));
-        pass.draw(0..self.vertices_per_instance, 0..(self.data.len() as u64 / self.stride) as u32);
 ```
 
 **Locate this block:**
@@ -1805,8 +2433,8 @@ Replace it with:
 
 ```rust
 pub struct Lane {
-    finite:Option<crate::finite_ink::Ink>,
-    strict_depth:bool,
+    finite: Option<crate::finite_ink::Ink>,
+    strict_depth: bool,
     pipeline: wgpu::RenderPipeline,
     pick_pipeline: wgpu::RenderPipeline,
     ids: Option<wgpu::Buffer>,
@@ -1821,14 +2449,38 @@ Connect optional finite state and cached coverage.
 ```rust
     }
 
-    pub fn set(&mut self, device: &wgpu::Device, layout: &wgpu::BindGroupLayout, scene: &Scene, target: Option<Target>) -> Result<(), &'static str> {
-        self.mesh = None; let mut strokes = Vec::new(); let mut paths = Vec::new(); let mut markers = Vec::new();
+    pub fn set(
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86al-connect-finite-visibility-to-all-original-ink-lanes-06.rs"
+    }
+
+    pub fn enable_finite(
+        &mut self,
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+    ) {
+        for lane in [
+            &mut self.strokes,
+            &mut self.paths,
+            &mut self.markers,
+        ] {
+            lane.enable_finite(device, format)
+        }
+    }
+    pub fn finite_frame(
+        &self,
+        device: &wgpu::Device,
+        tables: &crate::finite_ink::Tables,
+        depth: &wgpu::TextureView,
+    ) {
+        for lane in [&self.strokes, &self.paths, &self.markers] {
+            lane.finite_frame(device, tables, depth)
+        }
+    }
+    pub fn set(
 ```
 
 ## <a id="checkpoint-86am-separate-integer-depth-writers-and-sampled-ink"></a>21. Separate integer depth writers and sampled ink
@@ -1863,7 +2515,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">read-only ink</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">other original owners</text>
 </svg>
 </div>
@@ -1877,17 +2529,18 @@ Preserve original integer coverage while splitting incompatible depth access.
 **Locate this existing block:**
 
 ```rust
-        let depth = device.create_texture(&wgpu::TextureDescriptor { label: Some("pick depth"), size,
-            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT, usage: wgpu::TextureUsages::RENDER_ATTACHMENT, view_formats: &[] }).create_view(&Default::default());
-        // GPU image rows need 256-byte copy alignment; the decoder skips that padding and reads only the logical columns.
-        let readback = device.create_buffer(&wgpu::BufferDescriptor { label: Some("bounded pick readback"), size: window.bytes(),
+                format: crate::depth::FORMAT,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[],
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/86am-separate-integer-depth-writers-and-sampled-ink-01.rs"
+                format: crate::depth::FORMAT,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                    | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &[],
 ```
 
 ### 2. `src/pick_gpu.rs`
@@ -1899,100 +2552,219 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
-        queue.write_buffer(&self.view, 0, &bytes);
-        let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
-        bytes.extend((request.mode as u32).to_ne_bytes()); bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        if let Some(sheets)=sheets {sheets.view(queue,&request.transform,window.full,request.density);}
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink, faces, request.mode,text,clouds,sheets,&crate::text_gpu_support::GpuCtx {device:device.clone(),queue:queue.clone()})]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+                device: device.clone(),
+                queue: queue.clone(),
+            },
+        )]);
 ```
 
 Replace it with:
 
 ```rust
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
-        queue.write_buffer(&self.view, 0, &bytes);
-        let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
-        bytes.extend((request.mode as u32).to_ne_bytes());bytes.extend(window.draw[0].to_ne_bytes());bytes.extend(window.draw[1].to_ne_bytes());bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        if let Some(sheets)=sheets {sheets.view(queue,&request.transform,window.full,request.density);}
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink, faces, request.mode,text,clouds,sheets,&crate::text_gpu_support::GpuCtx {device:device.clone(),queue:queue.clone()},tables)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+                device: device.clone(),
+                queue: queue.clone(),
+            },
+            tables,
+        )]);
 ```
 
 **Locate this block:**
 
 ```rust
-    }
-
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.extend((request.mode as u32).to_ne_bytes());
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.crop, 0, &bytes);
+        for lane in ink {
 ```
 
 Replace it with:
 
 ```rust
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.extend((request.mode as u32).to_ne_bytes());
+        bytes.extend(window.draw[0].to_ne_bytes());
+        bytes.extend(window.draw[1].to_ne_bytes());
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.crop, 0, &bytes);
+        for lane in ink {
+```
+
+**Locate this block:**
+
+```rust
+    ) {
+        assert!(
+            self.active.is_none(),
+            "Only one pick may be in flight"
+```
+
+Replace it with:
+
+```rust
+    ) {
+        self.submit_finite(
+            device, queue, queued, meshes, ink, faces, text, clouds, sheets, None,
+        )
     }
-
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>) {self.submit_finite(device,queue,queued,meshes,ink,faces,text,clouds,sheets,None)}
-    pub(crate) fn submit_finite(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,tables:Option<&crate::finite_ink::Tables>) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
+    pub(crate) fn submit_finite(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        queued: Queued,
+        meshes: &[GpuMesh],
+        ink: &[&Lane],
+        faces: &crate::face_pick::Faces,
+        text: Option<&crate::scene_text_gpu::Lane>,
+        clouds: Option<&crate::cloud_gpu::Lane>,
+        sheets: Option<&crate::sheet_gpu::Lane>,
+        tables: Option<&crate::finite_ink::Tables>,
+    ) {
+        assert!(
+            self.active.is_none(),
+            "Only one pick may be in flight"
 ```
 
 ### 3. `src/pick_encode.rs`
 
 Preserve original integer coverage while splitting incompatible depth access.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, pick_image::Image, pick_window::Window, stroke_gpu::Lane};
+    ctx: &crate::text_gpu_support::GpuCtx,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("IDs"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &image.colour,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &image.depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(pipeline);
+        pass.set_bind_group(0, view_group, &[]);
+        pass.set_bind_group(2, crop_group, &[]);
+        for mesh in meshes {
+            mesh.draw(&mut pass);
+        }
+        if mode == crate::pick_sources::Mode::Face {
+            faces.draw(&mut pass, meshes, view_group, crop_group);
+        }
+        for lane in ink {
+            lane.pick(&mut pass, crop_group);
+        }
+        if let Some(clouds) = clouds {
+```
 
-pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipeline: &wgpu::RenderPipeline,
-    view_group: &wgpu::BindGroup, crop_group: &wgpu::BindGroup, meshes: &[GpuMesh], ink: &[&Lane], faces: &crate::face_pick::Faces, mode: crate::pick_sources::Mode,text:Option<&crate::scene_text_gpu::Lane>,clouds:Option<&crate::cloud_gpu::Lane>,sheets:Option<&crate::sheet_gpu::Lane>,ctx:&crate::text_gpu_support::GpuCtx,tables:Option<&crate::finite_ink::Tables>) -> wgpu::CommandBuffer {
-        let mut encoder = device.create_command_encoder(&Default::default());
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor { label: Some("IDs"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment { view: &image.colour, depth_slice: None, resolve_target: None,
-                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT), store: wgpu::StoreOp::Store } })],
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment { view: &image.depth,
-                    depth_ops: Some(wgpu::Operations { load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store }), stencil_ops: None }), ..Default::default() });
-            pass.set_pipeline(pipeline); pass.set_bind_group(0, view_group, &[]); pass.set_bind_group(2, crop_group, &[]);
-            for mesh in meshes { mesh.draw(&mut pass); }
-            if mode == crate::pick_sources::Mode::Face { faces.draw(&mut pass, meshes, view_group, crop_group); }
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    ctx: &crate::text_gpu_support::GpuCtx,
+    tables: Option<&crate::finite_ink::Tables>,
+) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&Default::default());
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("IDs"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &image.colour,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &image.depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0),
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(pipeline);
+        pass.set_bind_group(0, view_group, &[]);
+        pass.set_bind_group(2, crop_group, &[]);
+        for mesh in meshes {
+            mesh.draw(&mut pass);
         }
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite integer ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:None,stencil_ops:None}),..Default::default()});
-            for lane in ink {lane.pick_finite(device,&mut pass,crop_group,tables,&image.depth);}
+        if mode == crate::pick_sources::Mode::Face {
+            faces.draw(&mut pass, meshes, view_group, crop_group);
         }
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("other original integer owners"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&image.colour,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&image.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});
-            if let Some(clouds)=clouds {clouds.pick(ctx,&mut pass,window,mode);}
-            if let Some(sheets)=sheets {sheets.pick(&mut pass,crop_group);}
-            if let Some(text)=text {text.draw_ids(&mut pass,crop_group);}
+    }
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("finite integer ink"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &image.colour,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &image.depth,
+                depth_ops: None,
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        for lane in ink {
+            lane.pick_finite(
+                device,
+                &mut pass,
+                crop_group,
+                tables,
+                &image.depth,
+            );
         }
-        // The surrounding halo supports rasterization; only the smaller cursor window is copied back for hit testing.
-        encoder.copy_texture_to_buffer(wgpu::TexelCopyTextureInfo { texture: &image.texture, mip_level: 0,
-            origin: wgpu::Origin3d { x: window.copy[0] - window.draw[0], y: window.copy[1] - window.draw[1], z: 0 }, aspect: wgpu::TextureAspect::All },
-            wgpu::TexelCopyBufferInfo { buffer: &image.readback, layout: wgpu::TexelCopyBufferLayout { offset: 0,
-                bytes_per_row: Some(window.row_bytes()), rows_per_image: Some(window.copy[3]) } },
-            wgpu::Extent3d { width: window.copy[2], height: window.copy[3], depth_or_array_layers: 1 });
-        encoder.finish()
-}
+    }
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("other original integer owners"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &image.colour,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: &image.depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        if let Some(clouds) = clouds {
 ```
 
 ## <a id="checkpoint-86an-own-tile-state-before-color-and-first-picks"></a>22. Own tile state before color and first picks
@@ -2027,7 +2799,7 @@ pub(crate) fn draw(device: &wgpu::Device, image: &Image, window: Window, pipelin
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">prepared projection</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached owner</text>
 </svg>
 </div>
@@ -2043,55 +2815,98 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn sheet_camera(&self,camera:&crate::camera::Camera) {self.sheets.camera(camera);}
-    pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
-    pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
-    pub fn stats(&self) -> [usize; 4] {
+    pub fn sheet_camera(&self, camera: &crate::camera::Camera) {
+        self.sheets.camera(camera);
+    }
 ```
 
 Replace it with:
 
 ```rust
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn sheet_camera(&self,camera:&crate::camera::Camera) {self.sheets.camera(camera);}
+    pub fn sheet_camera(&self, camera: &crate::camera::Camera) {
+        self.sheets.camera(camera);
+    }
     #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn tile_usage(&self)->[u64;7]{self.tiles.borrow().usage()}
-    pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
-    pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
-    pub fn stats(&self) -> [usize; 4] {
+    pub(crate) fn tile_buffers(&self) -> [wgpu::Buffer; 2] {
+        let tiles = self.tiles.borrow();
+        [tiles.projected.clone(), tiles.buffer.clone()]
+    }
+    pub fn tile_usage(&self) -> [u64; 7] {
+        self.tiles.borrow().usage()
+    }
+```
+
+**Locate this block:**
+
+```rust
+                self.text.borrow().as_ref(),
+                self.clouds.borrow().as_ref(),
+                Some(&self.sheets),
+            );
+        }
+    }
+```
+
+Replace it with:
+
+```rust
+                self.text.borrow().as_ref(),
+                self.clouds.borrow().as_ref(),
+                Some(&self.sheets),
+                Some(&tables),
+            );
+        }
+    }
 ```
 
 **Locate this block:**
 
 ```rust
         }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets)); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-```
-
-Replace it with:
-
-```rust
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
         self.prepare_clouds(transform);
         if let Some(request) = self.picker.next(view) {
-            let mut bytes=transform.iter().flat_map(|v|v.to_ne_bytes()).collect::<Vec<_>>();bytes.resize(80,0);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables)); }
-    }
+            self.picker.submit(
+                &self.device,
+                &self.queue,
+                request,
+```
 
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
+Replace it with:
+
+```rust
+        }
+        self.prepare_clouds(transform);
+        if let Some(request) = self.picker.next(view) {
+            let mut bytes = transform
+                .iter()
+                .flat_map(|v| v.to_ne_bytes())
+                .collect::<Vec<_>>();
+            bytes.resize(80, 0);
+            self.queue
+                .write_buffer(&self.uniform, 0, &bytes);
+            let tables = {
+                let mut tiles = self.tiles.borrow_mut();
+                tiles.prepare(&self.device, &self.queue, self.size);
+                let mut encoder = self
+                    .device
+                    .create_command_encoder(&Default::default());
+                tiles.encode(
+                    &self.device,
+                    &mut encoder,
+                    &self.view_group,
+                    transform,
+                );
+                self.queue.submit([encoder.finish()]);
+                tiles.map_report();
+                crate::finite_ink::Tables {
+                    projected: tiles.projected.clone(),
+                    tiles: tiles.buffer.clone(),
+                }
+            };
+            self.picker.submit_finite(
+                &self.device,
+                &self.queue,
+                request,
 ```
 
 **Locate this block:**
@@ -2100,9 +2915,9 @@ Replace it with:
             self.meshes.push(row);
         }
         drop(old);
-        self.instance_rows=scene.instances.keys().copied().collect();
-        self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
-        self.sheets.set(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases).expect("Prepared original sheet batches fit device limits");
+        self.instance_rows = scene.instances.keys().copied().collect();
+        self.instances
+            .set(
 ```
 
 Replace it with:
@@ -2111,10 +2926,12 @@ Replace it with:
             self.meshes.push(row);
         }
         drop(old);
-        self.tiles.borrow_mut().set(&self.device,&self.meshes);
-        self.instance_rows=scene.instances.keys().copied().collect();
-        self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
-        self.sheets.set(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases).expect("Prepared original sheet batches fit device limits");
+        self.tiles
+            .borrow_mut()
+            .set(&self.device, &self.meshes);
+        self.instance_rows = scene.instances.keys().copied().collect();
+        self.instances
+            .set(
 ```
 
 **Locate this block:**
@@ -2135,7 +2952,8 @@ Replace it with:
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::TEXTURE_BINDING,
             view_formats: &[],
         });
         depth_texture.create_view(&Default::default())
@@ -2144,12 +2962,9 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
+            sources: Default::default(),
+            pick_mode: Default::default(),
+        };
         renderer.set_scene(scene, None);
         renderer
     }
@@ -2158,14 +2973,21 @@ Replace it with:
 Replace it with:
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
-        renderer.highlight.enable_finite(&renderer.device,format);
+            sources: Default::default(),
+            pick_mode: Default::default(),
+        };
+        for lane in [
+            &mut renderer.mesh_ink,
+            &mut renderer.strokes,
+            &mut renderer.paths,
+            &mut renderer.markers,
+            &mut renderer.grid,
+        ] {
+            lane.enable_finite(&renderer.device, format);
+        }
+        renderer
+            .highlight
+            .enable_finite(&renderer.device, format);
         renderer.set_scene(scene, None);
         renderer
     }
@@ -2174,10 +2996,33 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-            cache: None,
-        });
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            guides,
+            measurement,
+            sheets,
+```
+
+Replace it with:
+
+```rust
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            tiles,
+            guides,
+            measurement,
+            sheets,
+```
+
+**Locate this block:**
+
+```rust
+        })
+        };
         let pipeline = mesh_pipeline(crate::depth::surface());
-        let instances=crate::instance_gpu::Lane::new(&device,format,&view_layout);
+        let instances = crate::instance_gpu::Lane::new(&device, format, &view_layout);
         let highlight_pipeline = mesh_pipeline(crate::depth::ink());
         let highlight = crate::highlight::Highlight::new(&device, format);
 ```
@@ -2185,11 +3030,14 @@ Replace it with:
 Replace it with:
 
 ```rust
-            cache: None,
-        });
+        })
+        };
         let pipeline = mesh_pipeline(crate::depth::surface());
-        let tiles=std::cell::RefCell::new(crate::tile_gpu::Tiles::new(&device,&view_layout));
-        let instances=crate::instance_gpu::Lane::new(&device,format,&view_layout);
+        let tiles = std::cell::RefCell::new(crate::tile_gpu::Tiles::new(
+            &device,
+            &view_layout,
+        ));
+        let instances = crate::instance_gpu::Lane::new(&device, format, &view_layout);
         let highlight_pipeline = mesh_pipeline(crate::depth::ink());
         let highlight = crate::highlight::Highlight::new(&device, format);
 ```
@@ -2197,24 +3045,20 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    guides:crate::guide_gpu::Guide,
-    measurement:crate::measure_gpu::Measurement,
-    sheets:crate::sheet_gpu::Lane,
+    guides: crate::guide_gpu::Guide,
+    measurement: crate::measure_gpu::Measurement,
+    sheets: crate::sheet_gpu::Lane,
 ```
 
 Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
-    guides:crate::guide_gpu::Guide,
-    measurement:crate::measure_gpu::Measurement,
-    sheets:crate::sheet_gpu::Lane,
+    tiles: std::cell::RefCell<crate::tile_gpu::Tiles>,
+    guides: crate::guide_gpu::Guide,
+    measurement: crate::measure_gpu::Measurement,
+    sheets: crate::sheet_gpu::Lane,
 ```
 
 ## <a id="checkpoint-86ao-split-opaque-finite-ink-and-cloud-composition"></a>23. Split opaque finite ink and cloud composition
@@ -2249,7 +3093,7 @@ pub struct Renderer {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cloud depth composite</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">read-only finite ink</text>
 </svg>
 </div>
@@ -2265,33 +3109,33 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
             }
         }
         self.queue.submit([encoder.finish()]);
     }
-}
 ```
 
 Replace it with:
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
             }
         }
-        self.queue.submit([encoder.finish()]);tiles.map_report();
+        self.queue.submit([encoder.finish()]);
+        tiles.map_report();
     }
-}
 ```
 
 **Locate this block:**
 
 ```rust
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in self.meshes.iter().filter(|row|!self.instance_rows.contains(&row.id)) {mesh.draw(&mut pass);}
+                mesh.draw(&mut pass);
+            }
             self.instances.draw(&mut pass);
-            if let Some(clouds)=self.clouds.borrow().as_ref() {clouds.draw(&mut pass);}
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
+            if let Some(clouds) = self.clouds.borrow().as_ref() {
+                clouds.draw(&mut pass);
+            }
+            pass.set_pipeline(&self.highlight_pipeline);
+            pass.set_bind_group(0, &self.view_group, &[]);
             self.highlight.mesh(&mut pass);
             self.highlight.ink(&mut pass);
             self.mesh_ink.draw(&mut pass);
@@ -2301,15 +3145,64 @@ Replace it with:
 Replace it with:
 
 ```rust
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in self.meshes.iter().filter(|row|!self.instance_rows.contains(&row.id)) {mesh.draw(&mut pass);}
+                mesh.draw(&mut pass);
+            }
             self.instances.draw(&mut pass);
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
+            pass.set_pipeline(&self.highlight_pipeline);
+            pass.set_bind_group(0, &self.view_group, &[]);
             self.highlight.mesh(&mut pass);
         }
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
         {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("cloud depth composite"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(
+                    wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.depth,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    },
+                ),
+                ..Default::default()
+            });
+            if let Some(clouds) = self.clouds.borrow().as_ref() {
+                clouds.draw(&mut pass);
+            }
+        }
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("finite scene ink"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(
+                    wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.depth,
+                        depth_ops: None,
+                        stencil_ops: None,
+                    },
+                ),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
             self.highlight.ink(&mut pass);
             self.mesh_ink.draw(&mut pass);
             self.grid.draw(&mut pass);
@@ -2318,9 +3211,7 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        self.measurement.view(&self.queue,transform,self.size,self.density);self.guides.view(&self.queue,transform,self.size,self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+            .create_command_encoder(&Default::default());
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -2329,11 +3220,30 @@ Replace it with:
 Replace it with:
 
 ```rust
-        self.measurement.view(&self.queue,transform,self.size,self.density);self.guides.view(&self.queue,transform,self.size,self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);tiles.encode(&self.device,&mut encoder,&self.view_group,*transform);
-        let tables=crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone()};for lane in [&self.mesh_ink,&self.strokes,&self.paths,&self.markers,&self.grid]{lane.finite_frame(&self.device,&tables,&self.depth);}self.highlight.finite_frame(&self.device,&tables,&self.depth);
+            .create_command_encoder(&Default::default());
+        let mut tiles = self.tiles.borrow_mut();
+        tiles.prepare(&self.device, &self.queue, self.size);
+        tiles.encode(
+            &self.device,
+            &mut encoder,
+            &self.view_group,
+            *transform,
+        );
+        let tables = crate::finite_ink::Tables {
+            projected: tiles.projected.clone(),
+            tiles: tiles.buffer.clone(),
+        };
+        for lane in [
+            &self.mesh_ink,
+            &self.strokes,
+            &self.paths,
+            &self.markers,
+            &self.grid,
+        ] {
+            lane.finite_frame(&self.device, &tables, &self.depth);
+        }
+        self.highlight
+            .finite_frame(&self.device, &tables, &self.depth);
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -2371,7 +3281,7 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one browser wake</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">truthful counters</text>
 </svg>
 </div>
@@ -2387,31 +3297,26 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-cloud-cpu",&serde_json::to_string(&crate::memory::clouds(editor.presentation_scenes())).unwrap())?;
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
+        "data-triangle-tiles",
+        &serde_json::to_string(&renderer.tile_usage()).unwrap(),
+    )?;
 ```
 
 **Locate this block:**
 
 ```rust
-    listeners.listen(document.as_ref(), "change")?;
-    listeners.listen(document.as_ref(), "cancel")?;
     listeners.listen(window.as_ref(), "viewer-pick")?;
     listeners.listen(window.as_ref(), "viewer-publication")?;
     listeners.listen(window.as_ref(), "viewer-sheet-entity")?;
@@ -2421,8 +3326,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    listeners.listen(document.as_ref(), "change")?;
-    listeners.listen(document.as_ref(), "cancel")?;
     listeners.listen(window.as_ref(), "viewer-pick")?;
     listeners.listen(window.as_ref(), "viewer-tiles")?;
     listeners.listen(window.as_ref(), "viewer-publication")?;
@@ -2462,30 +3365,58 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">finite coverage</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/cull…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">stable view</text>
 </svg>
 </div>
 
 **What this code does:** Exercise finite color and original picking.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/tile_shader_tests.rs`
 
 Copy the shader validation and actual GPU fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-01-shared-source-shared-bins.rs"
+```rust
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn current_finite_triangle_shader_recipes_validate_with_explicit_course_bindings() {
+    use wgpu::naga;
+    let mut sources = vec![
+        (
+            "project",
+            crate::finite_project_source::source(),
+        ),
+        (
+            "tiles",
+            crate::finite_project_source::tiles(),
+        ),
+        ("scan", crate::finite_project_source::scan()),
+    ];
+    for stride in [44, 72, 32] {
+        sources.push((
+            "finite color",
+            crate::finite_sources::source(stride, false),
+        ));
+        sources.push((
+            "finite pick",
+            crate::finite_sources::source(stride, true),
+        ));
+    }
+    for (name, source) in sources {
+        let module = naga::front::wgsl::parse_str(&source).unwrap_or_else(|error| {
+            panic!("{name}: {}", error.emit_to_string(&source))
+        });
+        naga::valid::Validator::new(
+            naga::valid::ValidationFlags::all(),
+            naga::valid::Capabilities::all(),
+        )
+        .validate(&module)
+        .unwrap_or_else(|error| panic!("{name}: {}", error.emit_to_string(&source)));
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -2493,34 +3424,210 @@ Register the completed source owner.
 
 **Locate this existing block:**
 
-```text
-
+```rust
 pub mod finite_ink;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-02.rs" skip=21
+```rust
+pub mod finite_ink;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+#[cfg(test)]
+mod tile_shader_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/tile_gpu_tests.rs`
 
 Copy the shader validation and actual GPU fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-03.rs"
+```rust
+#[cfg(not(target_arch = "wasm32"))]
+#[test]
+fn actual_finite_gpu_lists_cache_projection_and_drop_deleted_geometry() {
+    use crate::{renderer::Renderer, scene::Scene, viewport::Viewport};
+    let scene = Scene::demo();
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::VULKAN,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+    let adapter =
+        pollster::block_on(instance.request_adapter(&Default::default())).unwrap();
+    let (device, queue) =
+        pollster::block_on(adapter.request_device(&Default::default())).unwrap();
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        panic!("actual finite GPU: {error}")
+    }));
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+        wgpu::TextureFormat::Rgba8Unorm,
+        &scene,
+    );
+    renderer.resize(Viewport {
+        width: 320,
+        height: 240,
+    });
+    let texture = renderer
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("finite actual frame"),
+            size: wgpu::Extent3d {
+                width: 320,
+                height: 240,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+    let view = texture.create_view(&Default::default());
+    let camera = crate::camera::Camera::default();
+    let matrix = camera.uniform();
+    renderer.draw(&view, &Default::default(), &matrix);
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    let buffers = renderer.tile_buffers();
+    let read = renderer
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: Some("actual projected record and tile header"),
+            size: 96 + buffers[1].size(),
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+    let mut encoder = renderer
+        .device
+        .create_command_encoder(&Default::default());
+    encoder.copy_buffer_to_buffer(&buffers[0], 0, &read, 0, 96);
+    encoder.copy_buffer_to_buffer(&buffers[1], 0, &read, 96, buffers[1].size());
+    renderer.queue.submit([encoder.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    read.slice(..)
+        .map_async(wgpu::MapMode::Read, move |result| {
+            tx.send(result).unwrap()
+        });
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    rx.recv().unwrap().unwrap();
+    let bytes = read.slice(..).get_mapped_range();
+    let corners = f32::from_ne_bytes(bytes[60..64].try_into().unwrap());
+    assert!(
+        (3.0..=4.0).contains(&corners),
+        "actual near-clipped polygon: {corners}"
+    );
+    assert_eq!(
+        u32::from_ne_bytes(bytes[96..100].try_into().unwrap()),
+        1
+    );
+    assert!(
+        u64::from(u32::from_ne_bytes(
+            bytes[100..104].try_into().unwrap()
+        )) <= buffers[1].size() / 4
+    );
+    let words = |offset: usize| {
+        u32::from_ne_bytes(bytes[offset..offset + 4].try_into().unwrap())
+    };
+    let mut occupied = 0;
+    for tile in 1..=4800 {
+        let at = 96 + tile * 16;
+        let count = words(at);
+        if count == 0 {
+            continue;
+        }
+        occupied += 1;
+        let start = words(at + 4) as usize;
+        assert_eq!(words(at + 8), count);
+        assert_eq!(words(at + 12), 0);
+        assert!((start as u64 + u64::from(count) * 2) * 4 <= buffers[1].size());
+        for i in 0..count as usize {
+            let primitive = words(96 + (start + i * 2) * 4);
+            assert!(primitive > 0 && u64::from(primitive) <= renderer.tile_usage()[3]);
+            let depth = f32::from_ne_bytes(
+                bytes[96 + (start + i * 2 + 1) * 4..96 + (start + i * 2 + 2) * 4]
+                    .try_into()
+                    .unwrap(),
+            );
+            assert!(depth.is_finite());
+        }
+    }
+    assert!(
+        occupied > 0,
+        "actual rasterized tile lists contain triangles"
+    );
+    drop(bytes);
+    read.unmap();
+    let first = renderer.tile_usage();
+    assert!(first[3] > 0 && first[0] >= first[3] * 96);
+    assert_eq!(first[5..], [1, 1]);
+    renderer.draw(&view, &Default::default(), &matrix);
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    assert_eq!(renderer.tile_usage()[5..], [1, 1]);
+    let mut camera = camera;
+    camera.orbit(0.1, 0.05);
+    renderer.draw(&view, &Default::default(), &camera.uniform());
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    assert_eq!(renderer.tile_usage()[5..], [2, 2]);
+    drop(buffers);
+    renderer.set_scene(&Scene::empty(), None);
+    renderer.draw(&view, &Default::default(), &camera.uniform());
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    let empty = renderer.tile_usage();
+    assert_eq!(empty[..5], [96, 16, 48, 0, 0]);
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/lib.rs`
 
@@ -2528,34 +3635,442 @@ Register the completed source owner.
 
 **Locate this existing block:**
 
-```text
+```rust
+pub mod finite_ink;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 #[cfg(test)]
 mod tile_shader_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-04.rs" skip=36
+```rust
+pub mod finite_ink;
+
+#[cfg(test)]
+mod tile_shader_tests;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+#[cfg(test)]
+mod tile_gpu_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/finite_visibility_tests.rs`
 
 Copy the shader validation and actual GPU fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-05.rs"
+```rust
+use crate::{
+    renderer::Renderer,
+    scene::{ObjectId, Scene},
+    viewport::Viewport,
+};
+use std::rc::Rc;
+fn scene(depth: f64, kind: u8, sloped: bool) -> (Scene, ObjectId, ObjectId) {
+    let mut scene = Scene::empty();
+    let points = if sloped {
+        [
+            [-0.8, -0.8, 0.1],
+            [0.8, -0.8, 0.1],
+            [0., 0.8, 0.9],
+        ]
+    } else {
+        [
+            [-0.8, -0.8, 0.5],
+            [0.8, -0.8, 0.5],
+            [0., 0.8, 0.5],
+        ]
+    };
+    let solid = scene
+        .insert(
+            crate::prepared::PreparedMesh::triangle(points, [0.1, 0.5, 0.8]).unwrap(),
+        )
+        .unwrap();
+    let color = session_rust::Color::new(1., 0., 0., 1.);
+    let ink = if kind == 2 {
+        let mut p = session_rust::Point::new(0., 0., depth);
+        p.width = 10.;
+        p.pointcolor = color;
+        scene
+            .insert_point(crate::marker::PreparedPoint::new(Rc::new(p)).unwrap())
+            .unwrap()
+    } else {
+        let mut line = session_rust::Line::new(-0.25, 0., depth, 0.25, 0., depth);
+        line.width = 4.;
+        line.linecolor = color;
+        if kind == 1 {
+            line.arrowhead = session_rust::Arrowhead::END;
+            scene
+                .insert_path(crate::chain::PreparedChain::line(Rc::new(line)).unwrap())
+                .unwrap()
+        } else {
+            scene
+                .insert_line(crate::stroke::PreparedLine::new(Rc::new(line)).unwrap())
+                .unwrap()
+        }
+    };
+    (scene, solid, ink)
+}
+fn renderer(scene: &Scene, size: [u32; 2], density: f32) -> Renderer {
+    renderer_limit(scene, size, density, None)
+}
+fn renderer_limit(
+    scene: &Scene,
+    size: [u32; 2],
+    density: f32,
+    storage: Option<u64>,
+) -> Renderer {
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::VULKAN,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+    let adapter =
+        pollster::block_on(instance.request_adapter(&Default::default())).unwrap();
+    let mut descriptor = wgpu::DeviceDescriptor::default();
+    if let Some(bytes) = storage {
+        descriptor
+            .required_limits
+            .max_storage_buffer_binding_size = bytes;
+    }
+    let (device, queue) =
+        pollster::block_on(adapter.request_device(&descriptor)).unwrap();
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        panic!("actual finite visibility: {error}")
+    }));
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+        wgpu::TextureFormat::Rgba8Unorm,
+        scene,
+    );
+    renderer.resize(Viewport {
+        width: size[0],
+        height: size[1],
+    });
+    renderer.set_density(density);
+    renderer
+}
+fn wait(renderer: &Renderer) {
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+}
+fn red_pixels(renderer: &Renderer, size: [u32; 2]) -> usize {
+    red_frame(
+        renderer,
+        size,
+        session_rust::Xform::identity()
+            .m
+            .map(|v| v as f32),
+    )
+}
+fn red_frame(renderer: &Renderer, size: [u32; 2], matrix: [f32; 16]) -> usize {
+    let texture = renderer
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("finite visibility pixels"),
+            size: wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+    renderer.draw(
+        &texture.create_view(&Default::default()),
+        &Default::default(),
+        &matrix,
+    );
+    let pitch = (size[0] * 4).div_ceil(256) * 256;
+    let read = renderer
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size: u64::from(pitch) * u64::from(size[1]),
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+    let mut encoder = renderer
+        .device
+        .create_command_encoder(&Default::default());
+    encoder.copy_texture_to_buffer(
+        texture.as_image_copy(),
+        wgpu::TexelCopyBufferInfo {
+            buffer: &read,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(pitch),
+                rows_per_image: Some(size[1]),
+            },
+        },
+        texture.size(),
+    );
+    renderer.queue.submit([encoder.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    read.slice(..)
+        .map_async(wgpu::MapMode::Read, move |r| {
+            tx.send(r).unwrap()
+        });
+    wait(renderer);
+    rx.recv().unwrap().unwrap();
+    let bytes = read.slice(..).get_mapped_range();
+    let count = bytes
+        .chunks_exact(pitch as usize)
+        .flat_map(|row| row[..size[0] as usize * 4].chunks_exact(4))
+        .filter(|p| p[0] > 200 && p[1] < 50 && p[2] < 50)
+        .count();
+    drop(bytes);
+    read.unmap();
+    count
+}
+fn picked(renderer: &mut Renderer, at: [f32; 2]) -> Option<[u32; 2]> {
+    pick_frame(
+        renderer,
+        at,
+        session_rust::Xform::identity()
+            .m
+            .map(|v| v as f32),
+    )
+}
+fn pick_frame(
+    renderer: &mut Renderer,
+    at: [f32; 2],
+    matrix: [f32; 16],
+) -> Option<[u32; 2]> {
+    renderer.request_pick(at, matrix).unwrap();
+    wait(renderer);
+    renderer.take_pick(matrix).unwrap().unwrap()
+}
+#[test]
+fn original_lines_headed_chains_and_points_share_actual_color_and_integer_occlusion() {
+    for density in [1u32, 2] {
+        let size = [320 * density, 240 * density];
+        for kind in 0..3 {
+            let (hidden, solid, _) = scene(0.7, kind, false);
+            let mut renderer = renderer(&hidden, size, density as f32);
+            assert_eq!(
+                picked(&mut renderer, [0., 0.]).unwrap()[0],
+                solid.value(),
+                "a hidden original cannot win a pick before the first color frame"
+            );
+            assert_eq!(
+                red_pixels(&renderer, size),
+                0,
+                "hidden family{kind}, density{density}"
+            );
+            let (front, _, ink) = scene(0.3, kind, false);
+            renderer.set_scene(&front, None);
+            assert!(
+                red_pixels(&renderer, size) > 30,
+                "actual visible family{kind}, density{density}"
+            );
+            assert_eq!(
+                picked(&mut renderer, [0., 0.]).unwrap()[0],
+                ink.value()
+            );
+        }
+    }
+}
+#[test]
+fn a_line_on_a_sloping_original_face_keeps_its_full_css_width() {
+    for density in [1u32, 2] {
+        let size = [320 * density, 240 * density];
+        let (front, _, _) = scene(0.3, 0, false);
+        let mut renderer = renderer(&front, size, density as f32);
+        let flat = red_pixels(&renderer, size);
+        let (sloped, _, ink) = scene(0.5, 0, true);
+        renderer.set_scene(&sloped, None);
+        let grazing = red_pixels(&renderer, size);
+        assert_eq!(
+            grazing, flat,
+            "finite center-line visibility preserves both sides of the four-CSS-pixel ribbon"
+        );
+        assert_eq!(
+            picked(&mut renderer, [0., 0.]).unwrap()[0],
+            ink.value()
+        );
+    }
+}
+
+#[test]
+fn shifted_view_frames_keep_original_color_and_crop_ownership() {
+    let size = [320, 240];
+    let mut matrix = session_rust::Xform::identity()
+        .m
+        .map(|v| v as f32);
+    matrix[12] = 0.35;
+    matrix[13] = -0.25;
+    for kind in 0..3 {
+        let (hidden, solid, _) = scene(0.7, kind, false);
+        let mut renderer = renderer(&hidden, size, 1.);
+        assert_eq!(red_frame(&renderer, size, matrix), 0);
+        assert_eq!(
+            pick_frame(&mut renderer, [0.35, -0.25], matrix).unwrap()[0],
+            solid.value()
+        );
+        let (front, _, ink) = scene(0.3, kind, false);
+        renderer.set_scene(&front, None);
+        assert!(red_frame(&renderer, size, matrix) > 30);
+        assert_eq!(
+            pick_frame(&mut renderer, [0.35, -0.25], matrix).unwrap()[0],
+            ink.value()
+        );
+    }
+}
+#[test]
+fn a_device_limit_retains_physical_color_and_pick_occlusion() {
+    let size = [320, 240];
+    let (hidden, solid, _) = scene(0.7, 0, false);
+    let mut renderer = renderer_limit(&hidden, size, 1., Some(64 * 1024));
+    assert_eq!(red_pixels(&renderer, size), 0);
+    assert_eq!(renderer.tile_usage()[..2], [96, 16]);
+    assert_eq!(
+        picked(&mut renderer, [0., 0.]).unwrap()[0],
+        solid.value()
+    );
+    let (front, _, ink) = scene(0.3, 0, false);
+    renderer.set_scene(&front, None);
+    assert!(red_pixels(&renderer, size) > 30);
+    assert_eq!(
+        picked(&mut renderer, [0., 0.]).unwrap()[0],
+        ink.value()
+    );
+}
+#[test]
+fn an_unchanged_dense_view_consumes_actual_overflow_and_stops_rebuilding() {
+    let mut scene = Scene::empty();
+    for _ in 0..8 {
+        scene
+            .insert(
+                crate::prepared::PreparedMesh::triangle(
+                    [
+                        [-10., -10., 0.5],
+                        [10., -10., 0.5],
+                        [0., 10., 0.5],
+                    ],
+                    [0.1, 0.5, 0.8],
+                )
+                .unwrap(),
+            )
+            .unwrap();
+    }
+    let size = [320, 240];
+    let renderer = renderer(&scene, size, 1.);
+    let mut matrix = session_rust::Xform::identity()
+        .m
+        .map(|v| v as f32);
+    let texture = renderer
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: 320,
+                height: 240,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+    let view = texture.create_view(&Default::default());
+    renderer.draw(&view, &Default::default(), &matrix);
+    let initial = renderer.tile_usage()[4];
+    matrix[12] = 0.01;
+    renderer.draw(&view, &Default::default(), &matrix);
+    wait(&renderer);
+    for _ in 0..6 {
+        renderer.draw(&view, &Default::default(), &matrix);
+        wait(&renderer);
+    }
+    let settled = renderer.tile_usage();
+    assert!(
+        settled[4] > initial,
+        "actual overlapping triangles require a larger shared pool"
+    );
+    assert!(settled[6] <= 6, "actual growth converges");
+    for _ in 0..3 {
+        renderer.draw(&view, &Default::default(), &matrix);
+        wait(&renderer);
+    }
+    assert_eq!(
+        renderer.tile_usage(),
+        settled,
+        "a resting view has no redraw or report-copy loop"
+    );
+}
+
+#[test]
+fn coplanar_construction_grid_is_hidden_without_hiding_original_ink() {
+    let size = [320, 240];
+    let (scene, _, _) = scene(0.3, 0, false);
+    let mut renderer = renderer(&scene, size, 1.);
+    let baseline = red_pixels(&renderer, size);
+    let plane = crate::cplane::CPlane::Frame {
+        origin: [0., 0., 0.5],
+        x: [1., 0., 0.],
+        y: [0., 1., 0.],
+    };
+    renderer
+        .set_grid_on(
+            Some(crate::grid::Settings {
+                spacing: 0.1,
+                half_cells: 1,
+                ..Default::default()
+            }),
+            plane,
+        )
+        .unwrap();
+    assert_eq!(
+        red_pixels(&renderer, size),
+        baseline,
+        "coplanar red construction grid cannot paint over the solid"
+    );
+    let first = renderer.tile_usage();
+    renderer.resize(crate::viewport::Viewport {
+        width: 319,
+        height: 239,
+    });
+    let _ = red_pixels(&renderer, [319, 239]);
+    assert_eq!(
+        renderer.tile_usage()[5],
+        first[5] + 1,
+        "physical viewport change invalidates projection even with the same tile dimensions"
+    );
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/lib.rs`
 
@@ -2563,20 +4078,40 @@ Register the completed source owner.
 
 **Locate this existing block:**
 
-```text
+```rust
+mod tile_shader_tests;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 #[cfg(test)]
 mod tile_gpu_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-06.rs" skip=33
+```rust
+mod tile_shader_tests;
+
+#[cfg(test)]
+mod tile_gpu_tests;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+#[cfg(test)]
+mod finite_visibility_tests;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 7. `src/pick_gpu_tests.rs`
 
@@ -2584,21 +4119,28 @@ Copy the original CAD boundary fixture with a precise failure diagnostic.
 
 **Locate this existing block:**
 
-```text
-    for border in &scene.objects()[0].cad.as_ref().unwrap().edges {
-        let points=&border.points;if !points.iter().all(|p|(p[2]-0.12).abs()<1e-10) {continue;}
-        let middle=points.windows(2).nth((points.len()-1)/2).unwrap();let p=std::array::from_fn::<_,3,_>(|i|(middle[0][i]+middle[1][i])*0.5);let p=camera.view_projection().transform_point(&session_rust::Point::new(p[0],p[1],p[2]));renderer.request_pick([p[0] as f32,p[1] as f32],transform).unwrap();assert_eq!(finish_at(&mut renderer).unwrap().part,Part::BRepEdge(border.edge));seen+=1;
-    }
-    assert_eq!(seen,5,"All four outer edges and the original hole rim resolve");assert_eq!(renderer.stats(),gpu);assert_eq!(source.to_proto(),before);
+```rust
+        assert_eq!(
+            finish_at(&mut renderer).unwrap().part,
+            Part::BRepEdge(border.edge)
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/86aq-exercise-finite-color-and-original-picking-07.rs"
+```rust
+        assert_eq!(
+            finish_at(&mut renderer)
+                .unwrap_or_else(|| panic!(
+                    "Missing original CAD edge {} at {:?}",
+                    border.edge, p
+                ))
+                .part,
+            Part::BRepEdge(border.edge)
 ```
 
 ## Build & Run
+
+![Recorded visual output for Lesson 17.2 (86aq-exercise-finite-color-and-original-picking)](../../../screenshots/journey/86aq-exercise-finite-color-and-original-picking.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 17.2

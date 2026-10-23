@@ -104,23 +104,16 @@ Extend this original owner with today’s complete helper.
 **Locate this existing block:**
 
 ```rust
-        ordered.dedup_by(same_parameter);
-        let mut keys = Vec::with_capacity(ordered.len());
-
-        for (_, key) in ordered {
-            keys.push(key);
-        }
-
-        return Some(keys);
-    }
-
     None
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    None
+}
+
 pub fn edge_chains(b: &BRep, fms: &[Mesh]) -> Vec<Option<EdgeChain>> {
     let mut out = Vec::with_capacity(b.m_edges.len());
 
@@ -217,7 +210,70 @@ Validate references and retain one source-owned preparation of all incident face
 Create the file and type:
 
 ```rust
---8<-- "journey/code/56a-shared-01.rs"
+use session_rust::{BRep, Mesh};
+use std::rc::Rc;
+
+pub const QUALITY: (f64, f64) = (5., 0.001);
+pub struct Prepared {
+    pub source: Rc<BRep>,
+    pub faces: Vec<Mesh>,
+    pub chains: Vec<Option<crate::cad_edges::EdgeChain>>,
+}
+impl Prepared {
+    pub fn new(source: Rc<BRep>) -> Result<Self, &'static str> {
+        if !source.is_valid() {
+            return Err("BRep topology contains an invalid reference");
+        }
+        if source.m_faces.len() > 65_536 || source.m_edges.len() > 262_144 {
+            return Err("BRep topology exceeds the display budget");
+        }
+        for surface in &source.m_surfaces {
+            crate::surface::validate(surface)?;
+        }
+        for curve in source
+            .m_curves_3d
+            .iter()
+            .chain(&source.m_curves_2d)
+        {
+            crate::curve::validate(curve)?;
+        }
+        let _ = source.guid();
+        let faces = source.face_meshes_q(Some(QUALITY));
+        if faces.len() != source.m_faces.len()
+            || faces.iter().any(|face| face.face.is_empty())
+        {
+            return Err("BRep face could not be tessellated");
+        }
+        let chains = crate::cad_edges::edge_chains(&source, &faces);
+        for (index, (edge, chain)) in source
+            .m_edges
+            .iter()
+            .zip(&chains)
+            .enumerate()
+        {
+            if !edge.degenerated
+                && !source.edge_faces(index).is_empty()
+                && chain.is_none()
+            {
+                return Err("A CAD edge has no coherent face boundary");
+            }
+        }
+        Ok(Self {
+            source,
+            faces,
+            chains,
+        })
+    }
+    pub fn points(&self, edge: usize) -> Option<Vec<[f64; 3]>> {
+        let chain = self.chains.get(edge)?.as_ref()?;
+        let face = self.faces.get(chain.face)?;
+        chain
+            .keys
+            .iter()
+            .map(|key| face.vertex.get(key).map(|v| [v.x, v.y, v.z]))
+            .collect()
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -227,14 +283,19 @@ Register the source component.
 **Locate this existing block:**
 
 ```rust
+mod surface_tests;
 
 pub mod cad_edges;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/56a-shared-02.rs" skip=20
+mod surface_tests;
+
+pub mod cad_edges;
+
+pub mod cad_boundary;
 ```
 
 ## <a id="checkpoint-56b-boundaries"></a>3. Prove straight and circular shared boundaries
@@ -276,23 +337,240 @@ After that block, type:
 
 **What this code does:** Prove straight and circular shared boundaries.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/cad_boundary_tests.rs`
 
 Copy independent incident-face position, source ownership and malformed-input checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/56b-boundaries-01.rs"
+```rust
+use crate::cad_boundary::Prepared;
+use session_rust::BRep;
+use std::rc::Rc;
+
+#[test]
+fn shared_box_edges_follow_original_face_samples_and_preserve_brep_source() {
+    let source = Rc::new(BRep::create_box(4., 3., 2.));
+    let _ = source.guid();
+    let before = source.to_proto();
+    let prepared = Prepared::new(source.clone()).unwrap();
+    assert!(Rc::ptr_eq(&prepared.source, &source));
+    assert_eq!(prepared.faces.len(), 6);
+    assert_eq!(prepared.chains.len(), 12);
+    for (edge, chain) in prepared.chains.iter().enumerate() {
+        let chain = chain.as_ref().unwrap();
+        assert_eq!(chain.edge, edge);
+        assert!(chain.other.is_some());
+        let points = prepared.points(edge).unwrap();
+        assert!(points.len() >= 2);
+        let other = &prepared.faces[chain.other.unwrap()];
+        for p in points {
+            assert!(
+                other.vertex.values().any(|v| [v.x, v.y, v.z]
+                    .iter()
+                    .zip(p)
+                    .all(|(a, b)| (a - b).abs() < 1e-10)),
+                "Shared edge {edge} follows both incident faces"
+            );
+        }
+    }
+    assert_eq!(source.to_proto(), before);
+    let weak = Rc::downgrade(&source);
+    drop(source);
+    assert!(weak.upgrade().is_some());
+    drop(prepared);
+    assert!(weak.upgrade().is_none());
+}
+
+#[test]
+fn circular_boundary_samples_are_shared_by_cap_and_wall() {
+    let source = Rc::new(BRep::create_cylinder(2., 3.));
+    let _ = source.guid();
+    let before = source.to_proto();
+    let prepared = Prepared::new(source.clone()).unwrap();
+    for edge in [0, 1] {
+        let chain = prepared.chains[edge].as_ref().unwrap();
+        let other = &prepared.faces[chain.other.unwrap()];
+        let points = prepared.points(edge).unwrap();
+        assert!(points.len() > 16);
+        for p in points {
+            assert!(
+                other.vertex.values().any(|v| [v.x, v.y, v.z]
+                    .iter()
+                    .zip(p)
+                    .all(|(a, b)| (a - b).abs() < 1e-9)),
+                "Circle {edge} follows both incident faces"
+            );
+        }
+    }
+    assert_eq!(source.to_proto(), before);
+}
+
+#[test]
+fn invalid_topology_and_control_storage_fail_before_meshing() {
+    let mut source = BRep::create_box(4., 3., 2.);
+    source.m_faces[0].surface_index = -1;
+    assert!(Prepared::new(Rc::new(source)).is_err());
+    let mut source = BRep::create_box(4., 3., 2.);
+    source.m_surfaces[0].m_cv.pop();
+    assert!(Prepared::new(Rc::new(source)).is_err());
+    let mut source = BRep::create_box(4., 3., 2.);
+    source.m_curves_3d[0].m_cv.pop();
+    assert!(Prepared::new(Rc::new(source)).is_err());
+    let mut source = BRep::create_box(4., 3., 2.);
+    source.m_curves_2d[0].m_nurbsknot.reverse();
+    source.m_curves_2d[0].m_nurbsknot[0] = f64::NAN;
+    assert!(Prepared::new(Rc::new(source)).is_err());
+}
+
+fn adjacent() -> BRep {
+    use session_rust::BRep;
+    use session_rust::NurbsCurve;
+    use session_rust::NurbsSurface;
+    use session_rust::Point;
+    use session_rust::brep::BRepOrientation;
+    use session_rust::brep::BRepRef;
+
+    let mut b = BRep::new();
+    let mut surfaces = Vec::new();
+
+    for face in 0..2 {
+        let mut points = Vec::new();
+
+        for i in 0..3 {
+            for j in 0..2 {
+                let z = if i != 1 {
+                    0.0
+                } else if j == 0 || face == 0 {
+                    0.5
+                } else {
+                    4.0
+                };
+                points.push(Point::new(
+                    i as f64 * 0.5,
+                    j as f64
+                        * if face == 0 {
+                            1.0
+                        } else {
+                            -1.0
+                        },
+                    z,
+                ));
+            }
+        }
+
+        let surface = NurbsSurface::create(false, false, 2, 1, 3, 2, &points).unwrap();
+        let si = b.add_surface(&surface);
+        let corners = [
+            [0.0, 0.0],
+            [1.0, 0.0],
+            [1.0, 1.0],
+            [0.0, 1.0],
+        ];
+        let mut vertices = Vec::new();
+
+        for corner in &corners {
+            vertices.push(
+                b.add_vertex(
+                    &surface
+                        .point_at(corner[0], corner[1])
+                        .unwrap(),
+                    0.0,
+                ),
+            );
+        }
+
+        let mut edges = Vec::new();
+
+        for side in 0..4 {
+            let a = corners[side];
+            let z = corners[(side + 1) % 4];
+            let mut edge = 0;
+
+            if side != 0 || face != 1 {
+                let dir = if a[0] != z[0] {
+                    0
+                } else {
+                    1
+                };
+                let mut curve = surface.iso_curve(dir, a[1 - dir]).unwrap();
+
+                if a[dir] > z[dir] {
+                    curve.reverse();
+                }
+
+                let ci = b.add_curve_3d(&curve);
+                edge = b.add_edge(
+                    ci as i32,
+                    vertices[side] as i32,
+                    vertices[(side + 1) % 4] as i32,
+                );
+            }
+
+            let pc = NurbsCurve::create(
+                false,
+                1,
+                &[
+                    Point::new(a[0], a[1], 0.0),
+                    Point::new(z[0], z[1], 0.0),
+                ],
+            );
+            let ci = b.add_curve_2d(&pc);
+            b.add_pcurve(edge, si, ci as i32, -1);
+            edges.push(BRepRef::new(
+                edge as i32,
+                BRepOrientation::Forward,
+            ));
+        }
+
+        let wi = b.add_wire(&edges);
+        b.add_face(
+            si as i32,
+            &[BRepRef::new(
+                wi as i32,
+                BRepOrientation::Forward,
+            )],
+            1e-8,
+        );
+        surfaces.push(surface);
+    }
+
+    b
+}
+
+#[test]
+fn unequal_independent_grids_become_a_coherent_curved_shared_boundary() {
+    use session_rust::remesh_nurbssurface_grid::RemeshNurbsSurfaceGrid;
+    let source = Rc::new(adjacent());
+    let _ = source.guid();
+    let before = source.to_proto();
+    let points = |mesh: &session_rust::Mesh| {
+        let mut p = mesh
+            .vertex
+            .values()
+            .filter(|v| v.attributes.get("v") == Some(&0.))
+            .map(|v| [v.x, v.y, v.z])
+            .collect::<Vec<_>>();
+        p.sort_by(|a, b| a[0].total_cmp(&b[0]));
+        p.dedup();
+        p
+    };
+    let a = RemeshNurbsSurfaceGrid::from_u_v_q(&source.m_surfaces[0], 0, 0, 20., 0.005);
+    let b = RemeshNurbsSurfaceGrid::from_u_v_q(&source.m_surfaces[1], 0, 0, 20., 0.005);
+    assert_ne!(points(&a).len(), points(&b).len());
+    let prepared = Prepared::new(source.clone()).unwrap();
+    let a = points(&prepared.faces[0]);
+    let b = points(&prepared.faces[1]);
+    assert_eq!(a, b);
+    assert!(a.len() > 7);
+    assert_eq!(source.to_proto(), before);
+    let normal = |surface: &session_rust::NurbsSurface| surface.normal_at(0.5, 0.);
+    assert_ne!(
+        normal(&source.m_surfaces[0]).to_f32(),
+        normal(&source.m_surfaces[1]).to_f32()
+    );
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -300,15 +578,21 @@ Register the source component.
 
 **Locate this existing block:**
 
-```text
+```rust
+pub mod cad_edges;
 
 pub mod cad_boundary;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/56b-boundaries-02.rs" skip=23
+```rust
+pub mod cad_edges;
+
+pub mod cad_boundary;
+
+#[cfg(test)]
+mod cad_boundary_tests;
 ```
 
 ## Build & Run

@@ -106,18 +106,23 @@
 
 Let the uploaded representation know whether to show selection. Apply the yellow tint to an upload copy. Never overwrite the CPU mesh’s original colour.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::mesh::Mesh;
-use wgpu::util::DeviceExt;
+impl GpuMesh {
+    pub fn upload(device: &wgpu::Device, mesh: &Mesh) -> Self {
+        let bytes: Vec<u8> = mesh
+            .vertices()
+            .iter()
+            .flatten()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+```
 
-pub struct GpuMesh {
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-}
+Edit the existing block to match this code; keep unchanged lines:
 
+```rust
 impl GpuMesh {
     pub fn upload(device: &wgpu::Device, mesh: &Mesh, selected: bool) -> Self {
         let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
@@ -131,25 +136,6 @@ impl GpuMesh {
             }
         }
         let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh vertices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();
-        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("mesh indices"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::INDEX,
-        });
-        Self { vertices, indices, index_count: mesh.indices().len() as u32 }
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
 ```
 
 ### 2. `src/renderer.rs`
@@ -161,53 +147,59 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
+        }
     }
 
     pub fn set_scene(&mut self, scene: &Scene) {
-        self.meshes = scene.objects().iter().map(|object| GpuMesh::upload(&self.device, &object.mesh)).collect();
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        self.meshes = scene
+            .objects()
+            .iter()
+            .map(|object| GpuMesh::upload(&self.device, &object.mesh))
+            .collect();
 ```
 
 Replace it with:
 
 ```rust
-        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
+        }
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.meshes = scene.objects().iter().map(|object| {
-            GpuMesh::upload(&self.device, &object.mesh, selected == Some(object.id))
-        }).collect();
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        self.meshes = scene
+            .objects()
+            .iter()
+            .map(|object| {
+                GpuMesh::upload(
+                    &self.device,
+                    &object.mesh,
+                    selected == Some(object.id),
+                )
+            })
+            .collect();
 ```
 
 **Locate this block:**
 
 ```rust
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh)).collect();
+        let meshes = scene
+            .objects()
+            .iter()
+            .map(|object| GpuMesh::upload(&device, &object.mesh))
+            .collect();
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
 Replace it with:
 
 ```rust
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let meshes = scene.objects().iter().map(|object| GpuMesh::upload(&device, &object.mesh, false)).collect();
+        let meshes = scene
+            .objects()
+            .iter()
+            .map(|object| GpuMesh::upload(&device, &object.mesh, false))
+            .collect();
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
 ```
 
 **Locate this block:**
@@ -222,7 +214,10 @@ pub struct Renderer {
 Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
+use crate::{
+    gpu_mesh::GpuMesh,
+    scene::{ObjectId, Scene},
+};
 
 pub struct Renderer {
     pub device: wgpu::Device,
@@ -242,7 +237,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     click.forget();
     report("Scene data owns the meshes; the renderer displays them.");
     Ok(())
-}
 ```
 
 Replace it with:
@@ -253,42 +247,41 @@ Replace it with:
     click.forget();
     report("Selection follows object identity, even when rows move.");
     Ok(())
-}
 ```
 
 **Locate this block:**
 
 ```rust
-            match line.as_str() {
-                "example triangle" => {
-                    scene.toggle_extra();
-                    renderer.set_scene(&scene);
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
+                match line.as_str() {
+                    "example triangle" => {
+                        scene.toggle_extra();
+                        renderer.set_scene(&scene);
+                    }
+                    "background" => background.toggle(),
+                    "zoom in" => camera.zoom(2.0),
 ```
 
 Replace it with:
 
 ```rust
-            match line.as_str() {
-                "example triangle" => {
-                    scene.toggle_extra();
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "select next" => {
-                    selected = scene.next(selected);
-                    renderer.set_scene(&scene, selected);
-                }
-                "delete" => {
-                    if let Some(id) = selected.take() {
-                        scene.remove(id);
+                match line.as_str() {
+                    "example triangle" => {
+                        scene.toggle_extra();
+                        selected = selected.filter(|id| scene.contains(*id));
                         renderer.set_scene(&scene, selected);
                     }
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
+                    "select next" => {
+                        selected = scene.next(selected);
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "delete" => {
+                        if let Some(id) = selected.take() {
+                            scene.remove(id);
+                            renderer.set_scene(&scene, selected);
+                        }
+                    }
+                    "background" => background.toggle(),
+                    "zoom in" => camera.zoom(2.0),
 ```
 
 **Locate this block:**
@@ -317,8 +310,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        &[
-            "Help",
             "Example Triangle",
             "Background",
             "Zoom In",
@@ -328,8 +319,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-        &[
-            "Help",
             "Example Triangle",
             "Select Next",
             "Delete",
@@ -381,21 +370,76 @@ Replace it with:
 
 Add the inverse conversion for our flat camera. Rust’s sin_cos returns the sine and cosine as a pair. Check that pan, zoom and rotation preserve the coordinate round trip.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-}
+    }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+    pub fn uniform(&self) -> [f32; 16] {
+        let a = self.scale * self.angle.cos();
+        let b = self.scale * self.angle.sin();
+        let [x, y] = self.center;
+        // WGSL matrices are uploaded column by column.
+        [
+            a,
+            -b,
+            0.0,
+            0.0,
+            b,
+            a,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -a * x - b * y,
+            b * x - a * y,
+            0.0,
+            1.0,
+        ]
+    }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    }
+
+    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {
+        let x = point[0] / self.scale;
+        let y = point[1] / self.scale;
+        let (sin, cos) = self.angle.sin_cos();
+        [
+            self.center[0] + x * cos - y * sin,
+            self.center[1] + x * sin + y * cos,
+        ]
+    }
+
+    pub fn uniform(&self) -> [f32; 16] {
+        let a = self.scale * self.angle.cos();
+        let b = self.scale * self.angle.sin();
+        let [x, y] = self.center;
+        // WGSL matrices are uploaded column by column.
+        [
+            a,
+            -b,
+            0.0,
+            0.0,
+            b,
+            a,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -a * x - b * y,
+            b * x - a * y,
+            0.0,
+            1.0,
+        ]
+    }
 }
 
 #[cfg(test)]
@@ -410,46 +454,14 @@ mod coordinate_tests {
         camera.rotate(0.7);
         let world = [0.4, 0.0];
         let matrix = camera.uniform();
-        let screen = [matrix[0] * world[0] + matrix[4] * world[1] + matrix[12],
-            matrix[1] * world[0] + matrix[5] * world[1] + matrix[13]];
+        let screen = [
+            matrix[0] * world[0] + matrix[4] * world[1] + matrix[12],
+            matrix[1] * world[0] + matrix[5] * world[1] + matrix[13],
+        ];
         let restored = camera.world_from_screen(screen);
         assert!((restored[0] - world[0]).abs() < 1.0e-6);
         assert!((restored[1] - world[1]).abs() < 1.0e-6);
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-```
-
-**Locate this block:**
-
-```rust
-        self.angle += radians;
-    }
-
-    pub fn uniform(&self) -> [f32; 16] {
-        let a = self.scale * self.angle.cos();
-        let b = self.scale * self.angle.sin();
-```
-
-Replace it with:
-
-```rust
-        self.angle += radians;
-    }
-
-    pub fn world_from_screen(&self, point: [f32; 2]) -> [f32; 2] {
-        let x = point[0] / self.scale;
-        let y = point[1] / self.scale;
-        let (sin, cos) = self.angle.sin_cos();
-        [self.center[0] + x * cos - y * sin, self.center[1] + x * sin + y * cos]
-    }
-
-    pub fn uniform(&self) -> [f32; 16] {
-        let a = self.scale * self.angle.cos();
-        let b = self.scale * self.angle.sin();
 ```
 
 ## <a id="checkpoint-12b-picking"></a>3. Find the nearest triangle at a scene point
@@ -498,7 +510,94 @@ Create the CPU query and tests. It reads scene data and returns identity without
 Create the file and type:
 
 ```rust
---8<-- "journey/code/13-picking-04.rs"
+use crate::scene::{ObjectId, Scene};
+
+pub fn pick(scene: &Scene, point: [f32; 2]) -> Option<ObjectId> {
+    let mut nearest = 1.0;
+    let mut hit = None;
+    for object in scene.objects() {
+        let vertices = object.mesh.vertices();
+        for triangle in object.mesh.indices().chunks_exact(3) {
+            let a = vertices[triangle[0] as usize];
+            let b = vertices[triangle[1] as usize];
+            let c = vertices[triangle[2] as usize];
+            if let Some(depth) = triangle_depth(point, a, b, c) {
+                if depth >= 0.0 && depth < nearest {
+                    nearest = depth;
+                    hit = Some(object.id);
+                }
+            }
+        }
+    }
+    hit
+}
+
+fn triangle_depth(p: [f32; 2], a: [f32; 6], b: [f32; 6], c: [f32; 6]) -> Option<f32> {
+    let cross = |u: [f32; 2], v: [f32; 2]| u[0] * v[1] - u[1] * v[0];
+    let ab = [b[0] - a[0], b[1] - a[1]];
+    let ac = [c[0] - a[0], c[1] - a[1]];
+    let ap = [p[0] - a[0], p[1] - a[1]];
+    let area = cross(ab, ac);
+    if area.abs() < 1.0e-8 {
+        return None;
+    }
+    let u = cross(ap, ac) / area;
+    let v = cross(ab, ap) / area;
+    if u >= 0.0 && v >= 0.0 && u + v <= 1.0 {
+        Some((1.0 - u - v) * a[2] + u * b[2] + v * c[2])
+    } else {
+        None
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::camera::Camera;
+
+    #[test]
+    fn overlap_chooses_the_visible_object_and_deletion_reveals_the_next() {
+        let mut scene = Scene::demo();
+        let near = scene.objects()[0].id;
+        let far = scene.objects()[1].id;
+        assert_eq!(pick(&scene, [0.0, 0.0]), Some(near));
+        assert_eq!(pick(&scene, [0.4, 0.0]), Some(far));
+        scene.remove(near);
+        assert_eq!(pick(&scene, [0.0, 0.0]), Some(far));
+        assert_eq!(pick(&scene, [-0.9, -0.9]), None);
+    }
+
+    #[test]
+    fn picking_follows_a_panned_zoomed_and_rotated_camera() {
+        let scene = Scene::demo();
+        let mut camera = Camera::default();
+        camera.pan(0.1, -0.2);
+        camera.zoom(0.5);
+        camera.rotate(0.7);
+        let world = [0.4, 0.0];
+        let m = camera.uniform();
+        let screen = [
+            m[0] * world[0] + m[4] * world[1] + m[12],
+            m[1] * world[0] + m[5] * world[1] + m[13],
+        ];
+        let restored = camera.world_from_screen(screen);
+        assert!((restored[0] - world[0]).abs() < 1.0e-6);
+        assert!((restored[1] - world[1]).abs() < 1.0e-6);
+        assert_eq!(
+            pick(&scene, restored),
+            Some(scene.objects()[1].id)
+        );
+    }
+
+    #[test]
+    fn an_edge_on_or_invalid_triangle_cannot_be_picked() {
+        assert_eq!(
+            triangle_depth([0.0, 0.0], [0.0; 6], [0.0; 6], [0.0; 6]),
+            None
+        );
+        assert_eq!(pick(&Scene::demo(), [f32::NAN, 0.0]), None);
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -508,18 +607,16 @@ Register the query module.
 **Locate this existing block:**
 
 ```rust
-pub mod camera;
 pub mod mesh;
-pub mod scene;
-pub mod gpu_mesh;
 pub mod renderer;
-#[cfg(target_arch = "wasm32")]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/13-picking-fullscreen-1.rs"
+pub mod mesh;
+pub mod picking;
+pub mod renderer;
 ```
 
 ## <a id="checkpoint-13-picking"></a>4. Select the visible object with a mouse click
@@ -575,7 +672,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     click.forget();
     report("Selection follows object identity, even when rows move.");
     Ok(())
-}
 ```
 
 Replace it with:
@@ -586,7 +682,6 @@ Replace it with:
     click.forget();
     report("Click a triangle; the visible object is selected.");
     Ok(())
-}
 ```
 
 **Locate this block:**
@@ -596,8 +691,8 @@ Replace it with:
         "keyup",
         "blur",
     ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
+        canvas
+            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
 ```
 
 Replace it with:
@@ -608,59 +703,63 @@ Replace it with:
         "blur",
         "click",
     ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
-    }
+        canvas
+            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
 ```
 
 **Locate this block:**
 
 ```rust
-            }
-        };
+            };
 
-        if let Some(line) = line {
-            match line.as_str() {
-                "example triangle" => {
-                    scene.toggle_extra();
-                    selected = selected.filter(|id| scene.contains(*id));
+            if let Some(line) = line {
+                match line.as_str() {
+                    "example triangle" => {
+                        scene.toggle_extra();
+                        selected = selected.filter(|id| scene.contains(*id));
 ```
 
 Replace it with:
 
 ```rust
-            }
-        };
+            };
 
-        let line = line.or_else(|| {
-            let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
-            (event.type_() == "click"
-                && !panel.consumed
-                && mouse
-                    .target()
-                    .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
-                    .is_some_and(|target| target.id() == "canvas"))
-            .then(|| "canvas".into())
-        });
-        if let Some(line) = line {
-            match line.as_str() {
-                "canvas" => {
-                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                        return;
-                    };
-                    let rect = input_canvas.get_bounding_client_rect();
-                    if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                        return;
+            let line = line.or_else(|| {
+                let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
+                (event.type_() == "click"
+                    && !panel.consumed
+                    && mouse
+                        .target()
+                        .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
+                        .is_some_and(|target| target.id() == "canvas"))
+                .then(|| "canvas".into())
+            });
+            if let Some(line) = line {
+                match line.as_str() {
+                    "canvas" => {
+                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+                        };
+                        let rect = input_canvas.get_bounding_client_rect();
+                        if rect.width() <= 0.0 || rect.height() <= 0.0 {
+                            return;
+                        }
+                        let screen = [
+                            (2.0 * (event.client_x() as f64 - rect.left())
+                                / rect.width()
+                                - 1.0) as f32,
+                            (1.0 - 2.0 * (event.client_y() as f64 - rect.top())
+                                / rect.height()) as f32,
+                        ];
+                        selected = crate::picking::pick(
+                            &scene,
+                            camera.world_from_screen(screen),
+                        );
+                        renderer.set_scene(&scene, selected);
                     }
-                    let screen = [
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ];
-                    selected = crate::picking::pick(&scene, camera.world_from_screen(screen));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    scene.toggle_extra();
-                    selected = selected.filter(|id| scene.contains(*id));
+                    "example triangle" => {
+                        scene.toggle_extra();
+                        selected = selected.filter(|id| scene.contains(*id));
 ```
 
 ## Build & Run

@@ -104,7 +104,56 @@ Retain both original face uses and pcurve identities at a closed seam.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/58-uses-01.rs"
+use session_rust::brep::BRepOrientation;
+pub struct EdgeUse {
+    pub face: usize,
+    pub orientation: BRepOrientation,
+    pub pcurve: usize,
+    pub keys: Option<Vec<usize>>,
+}
+
+pub fn uses(
+    prepared: &crate::cad_boundary::Prepared,
+    edge: usize,
+) -> Result<Vec<EdgeUse>, &'static str> {
+    if edge >= prepared.source.m_edges.len() {
+        return Err("Missing original CAD edge");
+    }
+    prepared
+        .source
+        .edge_faces(edge)
+        .into_iter()
+        .map(|use_| {
+            let face =
+                usize::try_from(use_.index).map_err(|_| "Invalid incident face")?;
+            let mesh = prepared
+                .faces
+                .get(face)
+                .ok_or("Missing incident face mesh")?;
+            let pcurve = usize::try_from(prepared.source.pcurve_index(
+                edge,
+                face,
+                use_.orientation,
+            ))
+            .map_err(|_| "Missing edge pcurve")?;
+            let keys = crate::cad_edges::iso_chain(
+                &prepared.source,
+                mesh,
+                &crate::cad_edges::EdgeUse {
+                    edge,
+                    face,
+                    orientation: use_.orientation,
+                },
+            );
+            Ok(EdgeUse {
+                face,
+                orientation: use_.orientation,
+                pcurve,
+                keys,
+            })
+        })
+        .collect()
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -118,10 +167,13 @@ Register the source component.
 mod cad_trim_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/58-uses-02.rs" skip=33
+#[cfg(test)]
+mod cad_trim_tests;
+
+pub mod cad_seams;
 ```
 
 ## <a id="checkpoint-58a-periodic"></a>2. Prove seam continuity and suppress false open borders
@@ -163,23 +215,83 @@ After that block, type:
 
 **What this code does:** Prove seam continuity and suppress false open borders.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/cad_seam_tests.rs`
 
 Copy actual same-face seam use and periodic-grid continuity checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/58a-periodic-01.rs"
+```rust
+use session_rust::{BRep, NurbsSurface, Point};
+use std::rc::Rc;
+
+#[test]
+fn seam_keeps_both_original_pcurves_on_the_same_face() {
+    let source = Rc::new(BRep::create_cylinder(2., 3.));
+    let _ = source.guid();
+    let before = source.to_proto();
+    let prepared = crate::cad_boundary::Prepared::new(source.clone()).unwrap();
+    let uses = crate::cad_seams::uses(&prepared, 2).unwrap();
+    assert_eq!(uses.len(), 2);
+    assert_eq!(uses[0].face, uses[1].face);
+    assert_ne!(uses[0].pcurve, uses[1].pcurve);
+    assert_ne!(uses[0].orientation, uses[1].orientation);
+    let mesh = &prepared.faces[uses[0].face];
+    let a = uses[0].keys.as_ref().unwrap();
+    let b = uses[1].keys.as_ref().unwrap();
+    assert!(a.len() >= 2 && b.len() >= 2);
+    for key in a {
+        let v = &mesh.vertex[key];
+        assert!(b.iter().any(|key| {
+            let p = &mesh.vertex[key];
+            (v.x - p.x).abs() < 1e-9
+                && (v.y - p.y).abs() < 1e-9
+                && (v.z - p.z).abs() < 1e-9
+        }));
+    }
+    assert_eq!(source.to_proto(), before);
+}
+
+#[test]
+fn periodic_surface_grid_keeps_closed_borders_without_drawing_a_seam() {
+    let points = (0..10)
+        .flat_map(|i| {
+            let angle = std::f64::consts::TAU * (i % 8) as f64 / 8.;
+            (0..2).map(move |j| Point::new(angle.cos(), angle.sin(), j as f64))
+        })
+        .collect::<Vec<_>>();
+    let surface = NurbsSurface::create(true, false, 2, 1, 10, 2, &points).unwrap();
+    assert!(surface.is_periodic(0));
+    let before = surface.to_proto();
+    let grid = crate::surface::Grid::new(&surface).unwrap();
+    assert_eq!(
+        grid.boundaries
+            .iter()
+            .map(|b| b.edge)
+            .collect::<Vec<_>>(),
+        vec![2, 3]
+    );
+    let [nu, nv] = grid.steps;
+    for j in 0..=nv {
+        let a = &grid.samples[j];
+        let b = &grid.samples[nu * (nv + 1) + j];
+        assert!(
+            a.point
+                .iter()
+                .zip(b.point)
+                .all(|(a, b)| (a - b).abs() < 1e-10)
+        );
+        assert!(
+            a.normal
+                .iter()
+                .zip(b.normal)
+                .all(|(a, b)| (a - b).abs() < 1e-9)
+        );
+        assert_ne!(a.uv[0], b.uv[0]);
+    }
+    assert_eq!(surface.to_proto(), before);
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -187,15 +299,21 @@ Register the source component.
 
 **Locate this existing block:**
 
-```text
+```rust
+mod cad_trim_tests;
 
 pub mod cad_seams;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/58a-periodic-02.rs" skip=20
+```rust
+mod cad_trim_tests;
+
+pub mod cad_seams;
+
+#[cfg(test)]
+mod cad_seam_tests;
 ```
 
 ## <a id="checkpoint-58za-match-original-face-edge-directions"></a>3. Match face edge directions
@@ -244,7 +362,87 @@ Type the complete shared face-edge helpers.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/58za-match-original-face-edge-directions-dedup-1.rs"
+use crate::cad_edges::EdgeChain;
+use session_rust::{BRep, Mesh};
+
+fn walks(fm: &Mesh, s: usize, n: usize) -> Option<bool> {
+    let fwd = occupied_halfedge(fm, s, n);
+    let back = occupied_halfedge(fm, n, s);
+
+    match (fwd, back) {
+        (true, false) => Some(true),
+        (false, true) => Some(false),
+        _ => None,
+    }
+}
+
+fn occupied_halfedge(fm: &Mesh, from: usize, to: usize) -> bool {
+    let Some(neighbours) = fm.halfedge.get(&from) else {
+        return false;
+    };
+    matches!(neighbours.get(&to), Some(Some(_)))
+}
+
+fn at(fm: &Mesh, k: usize) -> [f64; 3] {
+    let v = &fm.vertex[&k];
+    [v.x, v.y, v.z]
+}
+
+fn neighbour_along(fm: &Mesh, s: usize, dir: [f64; 3]) -> Option<usize> {
+    let p = at(fm, s);
+    let mut best: Option<(f64, usize)> = None;
+
+    for &w in fm.halfedge.get(&s)?.keys() {
+        let q = at(fm, w);
+        let d = [q[0] - p[0], q[1] - p[1], q[2] - p[2]];
+        let l = (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt();
+
+        if l == 0.0 {
+            continue;
+        }
+
+        let c = (d[0] * dir[0] + d[1] * dir[1] + d[2] * dir[2]) / l;
+
+        if match best {
+            Some((bc, bw)) => c > bc || (c == bc && w < bw),
+            None => true,
+        } {
+            best = Some((c, w));
+        }
+    }
+
+    Some(best?.1)
+}
+
+fn vertex_at(fm: &Mesh, p: [f64; 3]) -> Option<usize> {
+    let mut best: Option<(f64, usize)> = None;
+
+    for (&k, v) in fm.vertex.iter() {
+        let d = (v.x - p[0]).powi(2) + (v.y - p[1]).powi(2) + (v.z - p[2]).powi(2);
+
+        if match best {
+            Some((bd, bk)) => d < bd || (d == bd && k < bk),
+            None => true,
+        } {
+            best = Some((d, k));
+        }
+    }
+
+    Some(best?.1)
+}
+
+fn opposed(fms: &[Mesh], c: &EdgeChain) -> Option<bool> {
+    let other = c.other?;
+    let (fa, fb) = (&fms[c.face], &fms[other]);
+    let (s, n) = (c.keys[0], c.keys[1]);
+    let away_a = walks(fa, s, n)?;
+    let (ps, pn) = (at(fa, s), at(fa, n));
+    let dir = [pn[0] - ps[0], pn[1] - ps[1], pn[2] - ps[2]];
+    let sb = vertex_at(fb, ps)?;
+    let nb = neighbour_along(fb, sb, dir)?;
+    let away_b = walks(fb, sb, nb)?;
+    Some(away_a != away_b)
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -258,10 +456,13 @@ Compile the one original face-orientation owner.
 mod cad_seam_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/58za-match-original-face-edge-directions-dedup-2.rs" skip=33
+#[cfg(test)]
+mod cad_seam_tests;
+
+pub mod cad_orient;
 ```
 
 ## Build & Run

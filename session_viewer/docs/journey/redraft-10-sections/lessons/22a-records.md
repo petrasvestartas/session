@@ -109,20 +109,21 @@ Add fixed protobuf and browser byte-reading dependencies for the import sequence
 **Locate this existing block:**
 
 ```toml
-
-[dependencies]
 wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "FocusOptions"] }
 console_error_panic_hook = "=0.1.7"
 wasm-bindgen-futures = "=0.4.78"
-wgpu = "=29.0.4"
-session_rust = { path = "../../../session_rust", default-features = false }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/23-import-dock-01.toml"
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions"] }
+console_error_panic_hook = "=0.1.7"
+prost = "=0.14.4"
+js-sys = "=0.3.105"
+wasm-bindgen-futures = "=0.4.78"
 ```
 
 ### 2. `src/document.rs`
@@ -132,7 +133,98 @@ Reject unsupported mesh records before kernel construction; check finite coordin
 Create the file and type:
 
 ```rust
---8<-- "journey/code/22a-records-document.rs"
+use crate::mesh::Mesh;
+use session_rust::{Session, proto};
+use std::rc::Rc;
+
+pub const MAX_BYTES: usize = 4 * 1024 * 1024;
+
+#[derive(Clone)]
+pub struct Source {
+    pub document: Rc<Session>,
+    pub guid: String,
+}
+
+pub struct Loaded {
+    pub document: Rc<Session>,
+    pub meshes: Vec<(String, Mesh)>,
+}
+
+pub fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
+    if mesh.vertices.len() > 10_000
+        || mesh.faces.is_empty()
+        || mesh.faces.len() > 10_000
+    {
+        return Err("A mesh needs faces and at most 10,000 vertices and faces");
+    }
+    if mesh.color_mode != 0 {
+        return Err("Per-face and per-vertex colours arrive later");
+    }
+    for (&key, vertex) in &mesh.vertices {
+        if key > u32::MAX as u64
+            || [vertex.x, vertex.y, vertex.z]
+                .iter()
+                .any(|v| !v.is_finite())
+        {
+            return Err("Invalid vertex key or coordinate");
+        }
+    }
+    for (&key, face) in &mesh.faces {
+        if key > u32::MAX as u64
+            || !(3..=4).contains(&face.vertices.len())
+            || !face.holes.is_empty()
+            || face
+                .vertices
+                .iter()
+                .any(|key| !mesh.vertices.contains_key(key))
+        {
+            return Err(
+                "This checkpoint needs triangles or quads with existing vertices and no holes",
+            );
+        }
+    }
+    for (key, triangles) in &mesh.triangulation {
+        if !mesh.faces.contains_key(key)
+            || triangles.vertices.len() % 3 != 0
+            || triangles
+                .vertices
+                .iter()
+                .any(|key| !mesh.vertices.contains_key(key))
+        {
+            return Err("Invalid stored triangulation");
+        }
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod record_checks {
+    use super::validate_mesh;
+
+    #[test]
+    fn raw_mesh_records_are_checked_before_construction() {
+        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();
+        assert!(validate_mesh(&record).is_ok());
+        record
+            .vertices
+            .values_mut()
+            .next()
+            .unwrap()
+            .x = f64::NAN;
+        assert!(validate_mesh(&record).is_err());
+        record
+            .vertices
+            .values_mut()
+            .for_each(|vertex| vertex.x = 0.0);
+        record
+            .faces
+            .values_mut()
+            .next()
+            .unwrap()
+            .vertices[0] = u64::MAX;
+        assert!(validate_mesh(&record).is_err());
+    }
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -142,13 +234,16 @@ Register the raw-record validator.
 **Locate this existing block:**
 
 ```rust
-pub mod navigation;
+pub mod camera;
+pub mod editor;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/22a-records-register.rs" skip=20
+pub mod camera;
+pub mod document;
+pub mod editor;
 ```
 
 ## <a id="checkpoint-22b-session"></a>2. Validate session identity and build a sample file
@@ -194,11 +289,30 @@ After that block, type:
 
 Import the GUID set used by session validation. Check supported geometry, unique GUIDs and one flat tree row per mesh.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::mesh::Mesh;
-use session_rust::{proto, Session};
+use session_rust::{Session, proto};
+use std::rc::Rc;
+
+pub const MAX_BYTES: usize = 4 * 1024 * 1024;
+
+#[derive(Clone)]
+pub struct Source {
+    pub document: Rc<Session>,
+    pub guid: String,
+}
+
+pub struct Loaded {
+    pub document: Rc<Session>,
+    pub meshes: Vec<(String, Mesh)>,
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+use session_rust::{Session, proto};
 use std::{collections::HashSet, rc::Rc};
 
 pub const MAX_BYTES: usize = 4 * 1024 * 1024;
@@ -215,14 +329,31 @@ pub struct Loaded {
 }
 
 pub fn validate(message: &proto::Session) -> Result<(), &'static str> {
-    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
-    if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
-        return Err("Placements, definitions and interactions arrive in later checkpoints");
+    let objects = message
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !message.xforms.is_empty()
+        || message.definitions.is_some()
+        || !message.interactions.is_empty()
+    {
+        return Err(
+            "Placements, definitions and interactions arrive in later checkpoints",
+        );
     }
-    let other = objects.points.len() + objects.lines.len() + objects.planes.len()
-        + objects.bboxes.len() + objects.polylines.len() + objects.pointclouds.len()
-        + objects.nurbscurves.len() + objects.nurbssurfaces.len() + objects.breps.len()
-        + objects.elements.len() + objects.components.len() + objects.sheets.len() + objects.instances.len();
+    let other = objects.points.len()
+        + objects.lines.len()
+        + objects.planes.len()
+        + objects.bboxes.len()
+        + objects.polylines.len()
+        + objects.pointclouds.len()
+        + objects.nurbscurves.len()
+        + objects.nurbssurfaces.len()
+        + objects.breps.len()
+        + objects.elements.len()
+        + objects.components.len()
+        + objects.sheets.len()
+        + objects.instances.len();
     if other != 0 || objects.meshes.is_empty() || objects.meshes.len() > 64 {
         return Err("This checkpoint accepts 1–64 meshes and no other geometry types");
     }
@@ -233,55 +364,27 @@ pub fn validate(message: &proto::Session) -> Result<(), &'static str> {
         }
         validate_mesh(mesh)?;
     }
-    if let Some(root) = message.tree.as_ref().and_then(|tree| tree.root.as_ref()) {
-        let names: HashSet<_> = root.children.iter().map(|node| node.name.as_str()).collect();
-        if names != guids || root.children.len() != guids.len()
-            || root.children.iter().any(|node| !node.children.is_empty()) {
+    if let Some(root) = message
+        .tree
+        .as_ref()
+        .and_then(|tree| tree.root.as_ref())
+    {
+        let names: HashSet<_> = root
+            .children
+            .iter()
+            .map(|node| node.name.as_str())
+            .collect();
+        if names != guids
+            || root.children.len() != guids.len()
+            || root
+                .children
+                .iter()
+                .any(|node| !node.children.is_empty())
+        {
             return Err("This checkpoint needs one flat tree row per mesh");
         }
     }
     Ok(())
-}
-
-pub fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
-    if mesh.vertices.len() > 10_000 || mesh.faces.is_empty() || mesh.faces.len() > 10_000 {
-        return Err("A mesh needs faces and at most 10,000 vertices and faces");
-    }
-    if mesh.color_mode != 0 { return Err("Per-face and per-vertex colours arrive later"); }
-    for (&key, vertex) in &mesh.vertices {
-        if key > u32::MAX as u64 || [vertex.x, vertex.y, vertex.z].iter().any(|v| !v.is_finite()) {
-            return Err("Invalid vertex key or coordinate");
-        }
-    }
-    for (&key, face) in &mesh.faces {
-        if key > u32::MAX as u64 || !(3..=4).contains(&face.vertices.len()) || !face.holes.is_empty()
-            || face.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
-            return Err("This checkpoint needs triangles or quads with existing vertices and no holes");
-        }
-    }
-    for (key, triangles) in &mesh.triangulation {
-        if !mesh.faces.contains_key(key) || triangles.vertices.len() % 3 != 0
-            || triangles.vertices.iter().any(|key| !mesh.vertices.contains_key(key)) {
-            return Err("Invalid stored triangulation");
-        }
-    }
-    Ok(())
-}
-
-#[cfg(test)]
-mod record_checks {
-    use super::validate_mesh;
-
-    #[test]
-    fn raw_mesh_records_are_checked_before_construction() {
-        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();
-        assert!(validate_mesh(&record).is_ok());
-        record.vertices.values_mut().next().unwrap().x = f64::NAN;
-        assert!(validate_mesh(&record).is_err());
-        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);
-        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;
-        assert!(validate_mesh(&record).is_err());
-    }
 }
 ```
 
@@ -292,21 +395,51 @@ Build a small three-piece frame with the real kernel. This is our file specimen,
 Create the file and type:
 
 ```rust
---8<-- "journey/code/23-import-02.rs"
+pub fn bytes() -> Vec<u8> {
+    use session_rust::{Color, Mesh, Session, Xform};
+    let mut session = Session::new("Three-piece frame");
+    for (name, size, centre) in [
+        (
+            "Left post",
+            [0.25, 0.35, 1.0],
+            [-0.65, 0.0, 0.5],
+        ),
+        (
+            "Right post",
+            [0.25, 0.35, 1.0],
+            [0.65, 0.0, 0.5],
+        ),
+        (
+            "Top beam",
+            [1.8, 0.35, 0.25],
+            [0.0, 0.0, 1.125],
+        ),
+    ] {
+        let mut mesh = Mesh::create_box(size[0], size[1], size[2]);
+        mesh.name = name.to_owned();
+        mesh.transform(&Xform::translation(
+            centre[0], centre[1], centre[2],
+        ));
+        mesh.set_objectcolor(Color::new(0.75, 0.35, 0.1, 1.0));
+        assert!(session.add_mesh(mesh, None).is_some());
+    }
+    session.pb_dumps()
+}
 ```
-
-**Optional authoring helper:**
-
-Copy this supplied authoring helper once. Use the linked data or recorded comparison for the browser exercise; you do not need to compile or run this native helper.
 
 ### 3. `examples/sample.rs`
 
 Supply this optional course-author fixture generator; browser exercises use the linked data files or recorded comparison.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/23-import-03.rs"
+```rust
+fn main() -> std::io::Result<()> {
+    std::fs::write(
+        "sample.pb",
+        viewer_journey::specimen::bytes(),
+    )
+}
 ```
 
 ### 4. `src/lib.rs`
@@ -316,13 +449,16 @@ Register the specimen builder.
 **Locate this existing block:**
 
 ```rust
-pub mod document;
+pub mod scene;
+pub mod viewport;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/22b-session-register.rs" skip=18
+pub mod scene;
+pub mod specimen;
+pub mod viewport;
 ```
 
 ### 5. `src/document.rs`
@@ -332,28 +468,31 @@ Check that the specimen passes validation and duplicate source GUIDs are rejecte
 **Locate this existing block:**
 
 ```rust
-
-#[cfg(test)]
-mod record_checks {
-    use super::validate_mesh;
-
-    #[test]
-    fn raw_mesh_records_are_checked_before_construction() {
-        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();
-        assert!(validate_mesh(&record).is_ok());
-        record.vertices.values_mut().next().unwrap().x = f64::NAN;
-        assert!(validate_mesh(&record).is_err());
-        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);
-        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;
-        assert!(validate_mesh(&record).is_err());
     }
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/22b-session-tests.rs" skip=590
+    }
+}
+
+#[cfg(test)]
+mod session_checks {
+    use prost::Message;
+
+    #[test]
+    fn the_specimen_has_distinct_meshes_and_flat_rows() {
+        let mut record =
+            session_rust::proto::Session::decode(crate::specimen::bytes().as_slice())
+                .unwrap();
+        assert!(super::validate(&record).is_ok());
+        let meshes = &mut record.objects.as_mut().unwrap().meshes;
+        meshes[1].guid = meshes[0].guid.clone();
+        assert!(super::validate(&record).is_err());
+    }
+}
 ```
 
 ## <a id="checkpoint-22c-decode"></a>3. Decode and prepare the whole import
@@ -399,143 +538,215 @@ After that block, type:
 
 Import the protobuf decoding trait. Decode bounded bytes and prepare every display mesh before returning a Loaded document. Keep mesh validation private to the completed loader. Replace the preparation-only record check with the complete loader checks. Replace the preparation-only session check with byte-level loader checks.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+Replace the entire file with:
 
 ```rust
-    }
-    Ok(())
+use crate::mesh::Mesh;
+use prost::Message;
+use session_rust::{Session, proto};
+use std::{collections::HashSet, rc::Rc};
+
+pub const MAX_BYTES: usize = 4 * 1024 * 1024;
+
+#[derive(Clone)]
+pub struct Source {
+    pub document: Rc<Session>,
+    pub guid: String,
 }
 
-#[cfg(test)]
-mod record_checks {
-    use super::validate_mesh;
-
-    #[test]
-    fn raw_mesh_records_are_checked_before_construction() {
-        let mut record = session_rust::Mesh::create_box(1.0, 1.0, 1.0).to_proto();
-        assert!(validate_mesh(&record).is_ok());
-        record.vertices.values_mut().next().unwrap().x = f64::NAN;
-        assert!(validate_mesh(&record).is_err());
-        record.vertices.values_mut().for_each(|vertex| vertex.x = 0.0);
-        record.faces.values_mut().next().unwrap().vertices[0] = u64::MAX;
-        assert!(validate_mesh(&record).is_err());
-    }
-}
-
-#[cfg(test)]
-mod session_checks {
-    use prost::Message;
-
-    #[test]
-    fn the_specimen_has_distinct_meshes_and_flat_rows() {
-        let mut record = session_rust::proto::Session::decode(crate::specimen::bytes().as_slice()).unwrap();
-        assert!(super::validate(&record).is_ok());
-        let meshes = &mut record.objects.as_mut().unwrap().meshes;
-        meshes[1].guid = meshes[0].guid.clone();
-        assert!(super::validate(&record).is_err());
-    }
-}
-```
-
-Replace it with:
-
-```rust
-    }
-    Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-    Ok(())
-}
-
-pub fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
-    if mesh.vertices.len() > 10_000 || mesh.faces.is_empty() || mesh.faces.len() > 10_000 {
-        return Err("A mesh needs faces and at most 10,000 vertices and faces");
-    }
-```
-
-Replace it with:
-
-```rust
-    Ok(())
-}
-
-fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
-    if mesh.vertices.len() > 10_000 || mesh.faces.is_empty() || mesh.faces.len() > 10_000 {
-        return Err("A mesh needs faces and at most 10,000 vertices and faces");
-    }
-```
-
-**Locate this block:**
-
-```rust
-    pub meshes: Vec<(String, Mesh)>,
-}
-
-pub fn validate(message: &proto::Session) -> Result<(), &'static str> {
-    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
-    if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
-        return Err("Placements, definitions and interactions arrive in later checkpoints");
-```
-
-Replace it with:
-
-```rust
+pub struct Loaded {
+    pub document: Rc<Session>,
     pub meshes: Vec<(String, Mesh)>,
 }
 
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
     validate(&message)?;
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
     let mut meshes = Vec::new();
     for mesh in document.objects.meshes.iter() {
-        meshes.push((mesh.guid().to_owned(), Mesh::from_kernel(mesh)?));
+        meshes.push((
+            mesh.guid().to_owned(),
+            Mesh::from_kernel(mesh)?,
+        ));
     }
     Ok(Loaded { document, meshes })
 }
 
 fn validate(message: &proto::Session) -> Result<(), &'static str> {
-    let objects = message.objects.as_ref().ok_or("Session has no objects")?;
-    if !message.xforms.is_empty() || message.definitions.is_some() || !message.interactions.is_empty() {
-        return Err("Placements, definitions and interactions arrive in later checkpoints");
+    let objects = message
+        .objects
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !message.xforms.is_empty()
+        || message.definitions.is_some()
+        || !message.interactions.is_empty()
+    {
+        return Err(
+            "Placements, definitions and interactions arrive in later checkpoints",
+        );
+    }
+    let other = objects.points.len()
+        + objects.lines.len()
+        + objects.planes.len()
+        + objects.bboxes.len()
+        + objects.polylines.len()
+        + objects.pointclouds.len()
+        + objects.nurbscurves.len()
+        + objects.nurbssurfaces.len()
+        + objects.breps.len()
+        + objects.elements.len()
+        + objects.components.len()
+        + objects.sheets.len()
+        + objects.instances.len();
+    if other != 0 || objects.meshes.is_empty() || objects.meshes.len() > 64 {
+        return Err("This checkpoint accepts 1–64 meshes and no other geometry types");
+    }
+    let mut guids = HashSet::new();
+    for mesh in &objects.meshes {
+        if mesh.guid.is_empty() || !guids.insert(mesh.guid.as_str()) {
+            return Err("Every mesh needs a distinct source GUID");
+        }
+        validate_mesh(mesh)?;
+    }
+    if let Some(root) = message
+        .tree
+        .as_ref()
+        .and_then(|tree| tree.root.as_ref())
+    {
+        let names: HashSet<_> = root
+            .children
+            .iter()
+            .map(|node| node.name.as_str())
+            .collect();
+        if names != guids
+            || root.children.len() != guids.len()
+            || root
+                .children
+                .iter()
+                .any(|node| !node.children.is_empty())
+        {
+            return Err("This checkpoint needs one flat tree row per mesh");
+        }
+    }
+    Ok(())
+}
+
+fn validate_mesh(mesh: &proto::Mesh) -> Result<(), &'static str> {
+    if mesh.vertices.len() > 10_000
+        || mesh.faces.is_empty()
+        || mesh.faces.len() > 10_000
+    {
+        return Err("A mesh needs faces and at most 10,000 vertices and faces");
+    }
+    if mesh.color_mode != 0 {
+        return Err("Per-face and per-vertex colours arrive later");
+    }
+    for (&key, vertex) in &mesh.vertices {
+        if key > u32::MAX as u64
+            || [vertex.x, vertex.y, vertex.z]
+                .iter()
+                .any(|v| !v.is_finite())
+        {
+            return Err("Invalid vertex key or coordinate");
+        }
+    }
+    for (&key, face) in &mesh.faces {
+        if key > u32::MAX as u64
+            || !(3..=4).contains(&face.vertices.len())
+            || !face.holes.is_empty()
+            || face
+                .vertices
+                .iter()
+                .any(|key| !mesh.vertices.contains_key(key))
+        {
+            return Err(
+                "This checkpoint needs triangles or quads with existing vertices and no holes",
+            );
+        }
+    }
+    for (key, triangles) in &mesh.triangulation {
+        if !mesh.faces.contains_key(key)
+            || triangles.vertices.len() % 3 != 0
+            || triangles
+                .vertices
+                .iter()
+                .any(|key| !mesh.vertices.contains_key(key))
+        {
+            return Err("Invalid stored triangulation");
+        }
+    }
+    Ok(())
+}
 ```
-
-**Locate this block:**
-
-```rust
-use crate::mesh::Mesh;
-use session_rust::{proto, Session};
-use std::{collections::HashSet, rc::Rc};
-```
-
-Replace it with:
-
-```rust
-use crate::mesh::Mesh;
-use prost::Message;
-use session_rust::{proto, Session};
-use std::{collections::HashSet, rc::Rc};
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/document_tests.rs`
 
 Optional authoring fixture. Reject malformed bytes, oversize files and unsupported records before construction.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/22c-decode-tests.rs"
+```rust
+use crate::{document, specimen};
+use prost::Message;
+use session_rust::proto;
+
+#[test]
+fn malformed_and_unsupported_records_are_refused_before_construction() {
+    assert!(document::load(&[]).is_err());
+    assert!(document::load(&vec![0; document::MAX_BYTES + 1]).is_err());
+    let original = proto::Session::decode(specimen::bytes().as_slice()).unwrap();
+    for case in 0..6 {
+        let mut message = original.clone();
+        let meshes = &mut message.objects.as_mut().unwrap().meshes;
+        match case {
+            0 => {
+                meshes[0]
+                    .vertices
+                    .values_mut()
+                    .next()
+                    .unwrap()
+                    .x = f64::NAN;
+            }
+            1 => {
+                meshes[0]
+                    .faces
+                    .values_mut()
+                    .next()
+                    .unwrap()
+                    .vertices[0] = u64::MAX;
+            }
+            2 => {
+                meshes[1].guid = meshes[0].guid.clone();
+            }
+            3 => {
+                meshes[0].color_mode = 1;
+            }
+            4 => {
+                message
+                    .xforms
+                    .push(proto::XformEntry::default());
+            }
+            _ => {
+                message
+                    .objects
+                    .as_mut()
+                    .unwrap()
+                    .points
+                    .push(proto::Point::default());
+            }
+        }
+        assert!(
+            document::load(&message.encode_to_vec()).is_err(),
+            "case {case}"
+        );
+    }
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -545,13 +756,17 @@ Register the byte-level loader checks.
 **Locate this existing block:**
 
 ```rust
-pub mod specimen;
+pub mod document;
+pub mod editor;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/22c-decode-register.rs" skip=18
+pub mod document;
+#[cfg(test)]
+mod document_tests;
+pub mod editor;
 ```
 
 ## <a id="checkpoint-22d-import"></a>4. Commit an import as one undoable action
@@ -602,48 +817,43 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh) });
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+        });
         Ok(id)
     }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };
-        self.objects.remove(index);
 ```
 
 Replace it with:
 
 ```rust
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
-        self.next_id = next;
-        self.objects.push(Object { id, mesh: Rc::new(mesh), source: None });
+        self.objects.push(Object {
+            id,
+            mesh: Rc::new(mesh),
+            source: None,
+        });
         Ok(id)
     }
 
-    pub fn import(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
+    pub fn import(
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
         for (guid, mesh) in loaded.meshes {
             self.insert(mesh)?;
             self.objects.last_mut().unwrap().source = Some(crate::document::Source {
-                document: Rc::clone(&loaded.document), guid,
+                document: Rc::clone(&loaded.document),
+                guid,
             });
         }
         Ok(())
     }
-
-    pub fn remove(&mut self, id: ObjectId) -> bool {
-        let Some(index) = self.objects.iter().position(|object| object.id == id) else { return false; };
-        self.objects.remove(index);
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub mesh: Rc<Mesh>,
 }
 
@@ -653,8 +863,6 @@ pub struct Object {
 Replace it with:
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub mesh: Rc<Mesh>,
     pub source: Option<crate::document::Source>,
 }
@@ -666,98 +874,220 @@ pub struct Object {
 
 Make file import an ordinary document action. Prepare first, commit second. A decode or mesh error cannot clear redo or leave half an import in the scene.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                self.selected = self.camera.ray(screen)
-                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-```
-
-Replace it with:
-
-```rust
-                self.selected = self.camera.ray(screen)
-                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
-            }
-            Action::Import(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
-            }
-```
-
-**Locate this block:**
-
-```rust
-
-pub enum Action {
     Pick([f32; 2]),
     AddBox,
     ToggleExtra,
     SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+        }
+    }
+}
+
+impl Editor {
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+                self.selected = self
+                    .camera
+                    .ray(screen)
+                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
+            }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-
-pub enum Action {
     Pick([f32; 2]),
     Import(Vec<u8>),
     AddBox,
     ToggleExtra,
     SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+        }
+    }
+}
+
+impl Editor {
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+                self.selected = self
+                    .camera
+                    .ray(screen)
+                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
+            }
+            Action::Import(bytes) => {
+                let loaded = crate::document::load(&bytes)?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| scene.import(loaded))?;
+            }
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/document_tests.rs`
 
-Optional authoring fixture. Import editor actions and shared-owner comparison for transaction checks.
+Optional authoring fixture. Import editor actions and shared-owner comparison for transaction checks. Optional authoring fixture. Check whole-file Undo/Redo, failed import and repeated source identities.
 
 **Locate this existing block:**
 
-```text
+```rust
 use crate::{document, specimen};
 use prost::Message;
 use session_rust::proto;
-```
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/22d-import-test-imports.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/document_tests.rs`
-
-Optional authoring fixture. Check whole-file Undo/Redo, failed import and repeated source identities.
-
-**Locate this existing block:**
-
-```text
 #[test]
-fn malformed_and_unsupported_records_are_refused_before_construction()
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/22d-import-tests.rs"
+```rust
+use crate::{
+    document,
+    editor::{Action, Editor},
+    specimen,
+};
+use prost::Message;
+use session_rust::proto;
+use std::rc::Rc;
+
+#[test]
+fn import_retains_source_and_undo_removes_the_whole_file() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Import(specimen::bytes()))
+        .unwrap();
+    assert_eq!(editor.scene.objects().len(), 5);
+    let source = editor.scene.objects()[2]
+        .source
+        .as_ref()
+        .unwrap();
+    let document = Rc::clone(&source.document);
+    let guid = source.guid.clone();
+    let id = editor.scene.objects()[2].id;
+    assert_eq!(document.name, "Three-piece frame");
+    assert!(
+        document
+            .objects
+            .meshes
+            .iter()
+            .any(|mesh| mesh.guid() == guid)
+    );
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 2);
+    editor.apply(Action::Redo).unwrap();
+    let restored = &editor.scene.objects()[2];
+    assert_eq!(restored.id, id);
+    assert!(Rc::ptr_eq(
+        &restored.source.as_ref().unwrap().document,
+        &document
+    ));
+}
+
+#[test]
+fn a_failed_import_leaves_selection_and_redo_intact() {
+    let mut editor = Editor::default();
+    editor.apply(Action::AddBox).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    let selected = editor.selected;
+    assert!(
+        editor
+            .apply(Action::Import(vec![255]))
+            .is_err()
+    );
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert_eq!(editor.selected, selected);
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 3);
+}
+
+#[test]
+fn repeated_imports_keep_distinct_viewer_ids_and_original_source_guids() {
+    let bytes = specimen::bytes();
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Import(bytes.clone()))
+        .unwrap();
+    editor.apply(Action::Import(bytes)).unwrap();
+    let objects = editor.scene.objects();
+    assert_ne!(objects[2].id, objects[5].id);
+    assert_eq!(
+        objects[2].source.as_ref().unwrap().guid,
+        objects[5].source.as_ref().unwrap().guid
+    );
+    assert!(!Rc::ptr_eq(
+        &objects[2].source.as_ref().unwrap().document,
+        &objects[5].source.as_ref().unwrap().document
+    ));
+}
+
+#[test]
 ```
 
 ## <a id="checkpoint-22e-file-reader"></a>5. Prepare asynchronous file delivery
@@ -806,7 +1136,64 @@ Read file bytes asynchronously; reject stale request numbers and return completi
 Create the file and type:
 
 ```rust
---8<-- "journey/code/23-import-13.rs"
+use std::{cell::Cell, rc::Rc};
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn choose(event: &web_sys::Event, request: Rc<Cell<u64>>) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        return;
+    };
+    input.set_value("");
+    let id = request.get() + 1;
+    request.set(id);
+    if file.size() > crate::document::MAX_BYTES as f64 {
+        super::browser::report("This checkpoint accepts files up to 4 MiB");
+        return;
+    }
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        if request.get() != id {
+            return;
+        }
+        let result = result.and_then(deliver);
+        if let Err(error) = result {
+            super::browser::report(&format!("Cannot read file: {error:?}"));
+        }
+    });
+}
+
+fn deliver(buffer: JsValue) -> Result<(), JsValue> {
+    let detail = web_sys::CustomEventInit::new();
+    detail.set_detail(&js_sys::Uint8Array::new(&buffer));
+    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
+    web_sys::window()
+        .ok_or("No browser window")?
+        .dispatch_event(&event)?;
+    Ok(())
+}
+
+pub fn bytes(event: &web_sys::Event) -> Option<Vec<u8>> {
+    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
+    let array = event
+        .detail()
+        .dyn_into::<js_sys::Uint8Array>()
+        .ok()?;
+    if array.length() as usize > crate::document::MAX_BYTES {
+        return None;
+    }
+    Some(array.to_vec())
+}
 ```
 
 ### 2. `index.html`
@@ -816,17 +1203,16 @@ Keep the HTML page small. Feature input belongs to the command dock drawn inside
 **Locate this existing block:**
 
 ```html
-<body>
-  <p id="status" role="status" hidden>Waiting for Rust…</p>
   <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
 </body>
-</html>
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```html
---8<-- "journey/code/23-import-fullscreen-1.html"
+  <canvas id="canvas" tabindex="0" width="640" height="480" aria-label="Viewer drawing"></canvas>
+  <input id="open" type="file" accept=".pb" hidden>
+</body>
 ```
 
 ### 3. `src/lib.rs`
@@ -836,17 +1222,17 @@ Expose the complete file-reader component while preparing its browser integratio
 **Locate this existing block:**
 
 ```rust
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
-mod browser;
-
-use wasm_bindgen::prelude::*;
+pub mod editor;
+pub mod gesture;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/22e-file-reader-register.rs"
+pub mod editor;
+#[cfg(target_arch = "wasm32")]
+pub mod file_input;
+pub mod gesture;
 ```
 
 ## <a id="checkpoint-23-import"></a>6. Open a file through the command line
@@ -895,123 +1281,76 @@ Keep the reader internal now that the browser callback owns file delivery.
 **Locate this existing block:**
 
 ```rust
+#[cfg(target_arch = "wasm32")]
 pub mod file_input;
+pub mod gesture;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/23-import-reader-private.rs"
+#[cfg(target_arch = "wasm32")]
+mod file_input;
+pub mod gesture;
 ```
 
 ### 2. `src/browser.rs`
 
 Add Open to the vocabulary. Own a shared request number for asynchronous file reads. Route file selection and completion events through the editor; Open activates the hidden file picker. Report successful import as one undoable edit. Register file selection and byte-completion events.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-```
-
-Replace it with:
-
-```rust
-    )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    // Both event sources retain this one callback for the lifetime of the page.
-    update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-```
-
-**Locate this block:**
-
-```rust
+            "Help",
+            "Example Box",
+            "Example Triangle",
+            "Select Next",
+            "Delete",
+            "Undo",
+            "Redo",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
+            "Pan Left",
+            "Pan Right",
+            "Orbit Right",
+            "Orbit Up",
+            "View Isometric",
+            "View Reset",
+        ],
+    );
+    panel.update(None, &canvas)?;
+    if resize(
+        &window,
+        &canvas,
+        &surface,
+        &mut config,
+        &mut renderer,
+        &mut editor,
+    ) {
+        panel.update(None, &canvas)?;
+        present(
+            &surface,
+            &renderer,
+            &editor.background,
+            &editor.camera.uniform(),
+            &mut panel,
+        )?;
+    }
+    let input_canvas = canvas.clone();
+    let browser_window = window.clone();
+    let pointer_canvas = canvas.clone();
+    let mut gesture = Gesture::default();
+    let update =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
                 }
-            }
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-```
-
-Replace it with:
-
-```rust
-                }
-            }
-        }
-        if event.type_() == "viewer-file" {
-            report("File imported. Undo removes the entire import.");
-        }
-        if resize(
-            &browser_window,
-            &pointer_canvas,
-```
-
-**Locate this block:**
-
-```rust
-                return;
-            }
-        };
-        let action = if let Some(line) = line {
-            let action = match line.as_str() {
-                "example box" => Action::AddBox,
-                "example triangle" => Action::ToggleExtra,
-                "select next" => Action::SelectNext,
-                "delete" => Action::Delete,
-                "undo" => Action::Undo,
-                "redo" => Action::Redo,
-                "background" => Action::Background,
-                "zoom in" => Action::Zoom(2.0),
-                "zoom out" => Action::Zoom(0.5),
-                "pan left" => Action::Pan(-0.25, 0.0),
-                "pan right" => Action::Pan(0.25, 0.0),
-                "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                "view isometric" => Action::Isometric,
-                "view reset" => Action::ResetView,
-                _ => return,
             };
-            Some(action)
-        } else if !panel.consumed {
-            navigation_action(&event, &pointer_canvas, &mut gesture)
-        } else {
-```
-
-Replace it with:
-
-```rust
-                return;
-            }
-        };
-        let action = if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request));
-            None
-        } else if event.type_() == "viewer-file" {
-            crate::file_input::bytes(&event).map(Action::Import)
-        } else if let Some(line) = line {
-            if line == "open" {
-                if let Some(input) = web_sys::window()
-                    .and_then(|window| window.document())
-                    .and_then(|document| document.get_element_by_id("open"))
-                    .and_then(|element| element.dyn_into::<web_sys::HtmlInputElement>().ok())
-                {
-                    input.click();
-                }
-                None
-            } else {
+            let action = if let Some(line) = line {
                 let action = match line.as_str() {
                     "example box" => Action::AddBox,
                     "example triangle" => Action::ToggleExtra,
@@ -1031,56 +1370,247 @@ Replace it with:
                     _ => return,
                 };
                 Some(action)
+            } else if !panel.consumed {
+                navigation_action(&event, &pointer_canvas, &mut gesture)
+            } else {
+                None
+            };
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected)
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        return;
+                    }
+                }
             }
-        } else if !panel.consumed {
-            navigation_action(&event, &pointer_canvas, &mut gesture)
-        } else {
+            if resize(
+                &browser_window,
+                &pointer_canvas,
+                &surface,
+                &mut config,
+                &mut renderer,
+                &mut editor,
+            ) {
+                if let Err(error) = panel.update(None, &input_canvas) {
+                    report(&format!(
+                        "Cannot lay out commands: {error:?}"
+                    ));
+                    return;
+                }
+                if let Err(error) = present(
+                    &surface,
+                    &renderer,
+                    &editor.background,
+                    &editor.camera.uniform(),
+                    &mut panel,
+                ) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+            }
+        });
+    for name in [
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+        "lostpointercapture",
+        "contextmenu",
+        "keydown",
+        "keyup",
+        "blur",
+    ] {
+        canvas
+            .add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        update.as_ref().unchecked_ref(),
+        &options,
+    )?;
+    window
+        .add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
+    // Both event sources retain this one callback for the lifetime of the page.
 ```
 
-**Locate this block:**
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-```
-
-Replace it with:
-
-```rust
-    let browser_window = window.clone();
-    let pointer_canvas = canvas.clone();
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::Cell::new(0));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-```
-
-**Locate this block:**
-
-```rust
-        config.format.add_srgb_suffix(),
-        &[
-            "Help",
-            "Example Box",
-            "Example Triangle",
-            "Select Next",
-```
-
-Replace it with:
-
-```rust
-        config.format.add_srgb_suffix(),
-        &[
             "Help",
             "Open",
             "Example Box",
             "Example Triangle",
             "Select Next",
+            "Delete",
+            "Undo",
+            "Redo",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
+            "Pan Left",
+            "Pan Right",
+            "Orbit Right",
+            "Orbit Up",
+            "View Isometric",
+            "View Reset",
+        ],
+    );
+    panel.update(None, &canvas)?;
+    if resize(
+        &window,
+        &canvas,
+        &surface,
+        &mut config,
+        &mut renderer,
+        &mut editor,
+    ) {
+        panel.update(None, &canvas)?;
+        present(
+            &surface,
+            &renderer,
+            &editor.background,
+            &editor.camera.uniform(),
+            &mut panel,
+        )?;
+    }
+    let input_canvas = canvas.clone();
+    let browser_window = window.clone();
+    let pointer_canvas = canvas.clone();
+    let mut gesture = Gesture::default();
+    let request = std::rc::Rc::new(std::cell::Cell::new(0));
+    let update =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            let action = if event.type_() == "change" {
+                crate::file_input::choose(&event, std::rc::Rc::clone(&request));
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+                if line == "open" {
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+                        .and_then(|element| {
+                            element
+                                .dyn_into::<web_sys::HtmlInputElement>()
+                                .ok()
+                        })
+                    {
+                        input.click();
+                    }
+                    None
+                } else {
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example triangle" => Action::ToggleExtra,
+                        "select next" => Action::SelectNext,
+                        "delete" => Action::Delete,
+                        "undo" => Action::Undo,
+                        "redo" => Action::Redo,
+                        "background" => Action::Background,
+                        "zoom in" => Action::Zoom(2.0),
+                        "zoom out" => Action::Zoom(0.5),
+                        "pan left" => Action::Pan(-0.25, 0.0),
+                        "pan right" => Action::Pan(0.25, 0.0),
+                        "orbit right" => {
+                            Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0)
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view reset" => Action::ResetView,
+                        _ => return,
+                    };
+                    Some(action)
+                }
+            } else if !panel.consumed {
+                navigation_action(&event, &pointer_canvas, &mut gesture)
+            } else {
+                None
+            };
+            if let Some(action) = action {
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected)
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        return;
+                    }
+                }
+            }
+            if event.type_() == "viewer-file" {
+                report("File imported. Undo removes the entire import.");
+            }
+            if resize(
+                &browser_window,
+                &pointer_canvas,
+                &surface,
+                &mut config,
+                &mut renderer,
+                &mut editor,
+            ) {
+                if let Err(error) = panel.update(None, &input_canvas) {
+                    report(&format!(
+                        "Cannot lay out commands: {error:?}"
+                    ));
+                    return;
+                }
+                if let Err(error) = present(
+                    &surface,
+                    &renderer,
+                    &editor.background,
+                    &editor.camera.uniform(),
+                    &mut panel,
+                ) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+            }
+        });
+    for name in [
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+        "lostpointercapture",
+        "contextmenu",
+        "keydown",
+        "keyup",
+        "blur",
+    ] {
+        canvas
+            .add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        update.as_ref().unchecked_ref(),
+        &options,
+    )?;
+    window
+        .add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
+    document
+        .add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback(
+        "viewer-file",
+        update.as_ref().unchecked_ref(),
+    )?;
+    // Both event sources retain this one callback for the lifetime of the page.
 ```
 
 ## <a id="checkpoint-23a-bounds"></a>7. Measure the displayed scene bounds
@@ -1129,7 +1659,36 @@ Store coordinate minima/maxima; compute the centre and enclosing-sphere radius f
 Create the file and type:
 
 ```rust
---8<-- "journey/code/24-fit-01.rs"
+pub struct Bounds {
+    pub min: [f64; 3],
+    pub max: [f64; 3],
+}
+
+impl Bounds {
+    pub fn point(point: [f64; 3]) -> Self {
+        Self {
+            min: point,
+            max: point,
+        }
+    }
+
+    pub fn include(&mut self, point: [f64; 3]) {
+        for i in 0..3 {
+            self.min[i] = self.min[i].min(point[i]);
+            self.max[i] = self.max[i].max(point[i]);
+        }
+    }
+
+    pub fn centre(&self) -> [f64; 3] {
+        std::array::from_fn(|i| (self.min[i] + self.max[i]) * 0.5)
+    }
+
+    pub fn radius(&self) -> f64 {
+        let half =
+            std::array::from_fn::<_, 3, _>(|i| (self.max[i] - self.min[i]) * 0.5);
+        (half[0] * half[0] + half[1] * half[1] + half[2] * half[2]).sqrt()
+    }
+}
 ```
 
 ### 2. `src/scene.rs`
@@ -1139,13 +1698,35 @@ Accumulate displayed vertices into f64 bounds; return None for an empty scene.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn objects(&self) -> &[Object] {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/24-fit-03.rs"
+    }
+
+    pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
+        let mut bounds: Option<crate::bounds::Bounds> = None;
+        for object in &self.objects {
+            for vertex in object.mesh.vertices() {
+                let point = [
+                    vertex[0] as f64,
+                    vertex[1] as f64,
+                    vertex[2] as f64,
+                ];
+                match &mut bounds {
+                    Some(bounds) => bounds.include(point),
+                    None => bounds = Some(crate::bounds::Bounds::point(point)),
+                }
+            }
+        }
+        bounds
+    }
+
+    pub fn objects(&self) -> &[Object] {
 ```
 
 ### 3. `src/lib.rs`
@@ -1156,30 +1737,39 @@ Register the bounds module beside Camera.
 
 ```rust
 pub mod background;
-pub mod camera;
-pub mod mesh;
-pub mod scene;
-pub mod picking;
+#[cfg(target_arch = "wasm32")]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/24-fit-fullscreen-1.rs"
+pub mod background;
+pub mod bounds;
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/fit_tests.rs`
 
 Optional authoring fixture. Check measured bounds and the empty-scene result.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/23a-bounds-tests.rs"
+```rust
+use crate::bounds::Bounds;
+
+#[test]
+fn bounds_measure_vertices_and_define_the_empty_case() {
+    let mut bounds = Bounds::point([-2.0, 1.0, 0.0]);
+    bounds.include([2.0, 3.0, 2.0]);
+    assert_eq!(bounds.centre(), [0.0, 2.0, 1.0]);
+    assert!((bounds.radius() - 6.0_f64.sqrt()).abs() < 1.0e-12);
+    let mut scene = crate::scene::Scene::demo();
+    assert!(scene.bounds().is_some());
+    while let Some(id) = scene.next(None) {
+        scene.remove(id);
+    }
+    assert!(scene.bounds().is_none());
+}
 ```
 
 ### 5. `src/lib.rs`
@@ -1189,18 +1779,17 @@ Register the native Fit tests.
 **Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod document_tests;
-#[cfg(test)]
-mod navigation_tests;
-#[cfg(test)]
-mod gesture_tests;
+mod file_input;
+pub mod gesture;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/24-fit-fullscreen-2.rs"
+mod file_input;
+#[cfg(test)]
+mod fit_tests;
+pub mod gesture;
 ```
 
 ## <a id="checkpoint-23b-fit-camera"></a>8. Fit the camera around the bounds
@@ -1246,68 +1835,119 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Keep the fitted scene scale with the camera. Distance says where the eye is; radius says how large the scene is. The original small demonstration scene starts with a one-unit radius. Fit will measure the real bounds. Fit the enclosing sphere through the smaller half-angle: distance = radius × 1.1 / sin(angle). Scale zoom limits with scene radius to prevent a jump after fitting a large model. Scale near and far clipping planes with camera distance and scene radius.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-            self.target[2] - forward[2] * self.distance,
-        );
-        let view = Xform::look_at_right_handed(&eye, &target, &up);
-        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, 0.01, 100.0);
-        projection * view
+    pub distance: f64,
+    pub orientation: Quaternion,
+    pub aspect: f64,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            target: [0.0; 3],
+            distance: 3.0,
+            orientation: Quaternion::from_axis_angle(
+                Vector::x_axis(),
+                -std::f64::consts::FRAC_PI_2,
+            ),
+            aspect: 640.0 / 480.0,
+        }
     }
-```
+}
 
-Replace it with:
-
-```rust
-            self.target[2] - forward[2] * self.distance,
-        );
-        let view = Xform::look_at_right_handed(&eye, &target, &up);
-        let near = self.distance * NEAR_FRACTION;
-        let far = (self.distance * 10.0).max(self.distance + self.radius * 2.0);
-        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);
-        projection * view
+impl Camera {
+    pub fn pan(&mut self, dx: f32, dy: f32) {
+        let right = self
+            .orientation
+            .rotate_vector(Vector::x_axis());
+        let up = self
+            .orientation
+            .rotate_vector(Vector::z_axis());
+        for i in 0..3 {
+            self.target[i] += dx as f64 * right[i] + dy as f64 * up[i];
+        }
     }
-```
-
-**Locate this block:**
-
-```rust
 
     pub fn zoom(&mut self, factor: f32) {
         if factor.is_finite() && factor > 0.0 {
             self.distance = (self.distance / factor as f64).clamp(0.2, 50.0);
         }
     }
-```
 
-Replace it with:
-
-```rust
-
-    pub fn zoom(&mut self, factor: f32) {
-        if factor.is_finite() && factor > 0.0 {
-            self.distance = (self.distance / factor as f64).clamp(self.radius * 0.2, self.radius * 50.0);
-        }
+    pub fn rotate(&mut self, radians: f32) {
+        self.orbit(radians as f64, 0.0);
     }
+
+    pub fn orbit(&mut self, yaw: f64, pitch: f64) {
+        let right = self
+            .orientation
+            .rotate_vector(Vector::x_axis());
+        let turn = Quaternion::from_axis_angle(Vector::z_axis(), yaw);
+        let tilt = Quaternion::from_axis_angle(right, pitch);
+        self.orientation = (turn * (tilt * self.orientation.duplicate())).normalized();
+    }
+
+    pub fn isometric(&mut self) {
+        let turn = Quaternion::from_axis_angle(
+            Vector::z_axis(),
+            -std::f64::consts::FRAC_PI_6,
+        );
+        let right = turn.rotate_vector(Vector::x_axis());
+        let tilt = Quaternion::from_axis_angle(right, -std::f64::consts::FRAC_PI_6);
+        self.orientation = (tilt * turn).normalized();
+    }
+
+    pub fn view_projection(&self) -> Xform {
+        let forward = self
+            .orientation
+            .rotate_vector(Vector::y_axis());
+        let up = self
+            .orientation
+            .rotate_vector(Vector::z_axis());
+        let target = Point::new(
+            self.target[0],
+            self.target[1],
+            self.target[2],
+        );
+        let eye = Point::new(
+            self.target[0] - forward[0] * self.distance,
+            self.target[1] - forward[1] * self.distance,
+            self.target[2] - forward[2] * self.distance,
+        );
+        let view = Xform::look_at_right_handed(&eye, &target, &up);
+        let projection = Xform::perspective(
+            60.0_f64.to_radians(),
+            self.aspect,
+            0.01,
+            100.0,
+        );
+        projection * view
 ```
 
-**Locate this block:**
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    pub distance: f64,
+    pub radius: f64,
+    pub orientation: Quaternion,
+    pub aspect: f64,
 }
 
-impl Camera {
-    pub fn pan(&mut self, dx: f32, dy: f32) {
-        let right = self.orientation.rotate_vector(Vector::x_axis());
-        let up = self.orientation.rotate_vector(Vector::z_axis());
-```
-
-Replace it with:
-
-```rust
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            target: [0.0; 3],
+            distance: 3.0,
+            radius: 1.0,
+            orientation: Quaternion::from_axis_angle(
+                Vector::x_axis(),
+                -std::f64::consts::FRAC_PI_2,
+            ),
+            aspect: 640.0 / 480.0,
+        }
+    }
 }
 
 impl Camera {
@@ -1315,65 +1955,81 @@ impl Camera {
         let half_y = 30.0_f64.to_radians();
         let half_x = (self.aspect * half_y.tan()).atan();
         let radius = bounds.radius();
-        self.radius = if radius > 0.0 { radius } else { 1.0 };
+        self.radius = if radius > 0.0 {
+            radius
+        } else {
+            1.0
+        };
         self.target = bounds.centre();
         self.distance = self.radius * 1.1 / half_x.min(half_y).sin();
     }
 
     pub fn pan(&mut self, dx: f32, dy: f32) {
-        let right = self.orientation.rotate_vector(Vector::x_axis());
-        let up = self.orientation.rotate_vector(Vector::z_axis());
-```
-
-**Locate this block:**
-
-```rust
-        Self {
-            target: [0.0; 3],
-            distance: 3.0,
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
-            aspect: 640.0 / 480.0,
+        let right = self
+            .orientation
+            .rotate_vector(Vector::x_axis());
+        let up = self
+            .orientation
+            .rotate_vector(Vector::z_axis());
+        for i in 0..3 {
+            self.target[i] += dx as f64 * right[i] + dy as f64 * up[i];
         }
-```
+    }
 
-Replace it with:
-
-```rust
-        Self {
-            target: [0.0; 3],
-            distance: 3.0,
-            radius: 1.0,
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
-            aspect: 640.0 / 480.0,
+    pub fn zoom(&mut self, factor: f32) {
+        if factor.is_finite() && factor > 0.0 {
+            self.distance = (self.distance / factor as f64)
+                .clamp(self.radius * 0.2, self.radius * 50.0);
         }
+    }
+
+    pub fn rotate(&mut self, radians: f32) {
+        self.orbit(radians as f64, 0.0);
+    }
+
+    pub fn orbit(&mut self, yaw: f64, pitch: f64) {
+        let right = self
+            .orientation
+            .rotate_vector(Vector::x_axis());
+        let turn = Quaternion::from_axis_angle(Vector::z_axis(), yaw);
+        let tilt = Quaternion::from_axis_angle(right, pitch);
+        self.orientation = (turn * (tilt * self.orientation.duplicate())).normalized();
+    }
+
+    pub fn isometric(&mut self) {
+        let turn = Quaternion::from_axis_angle(
+            Vector::z_axis(),
+            -std::f64::consts::FRAC_PI_6,
+        );
+        let right = turn.rotate_vector(Vector::x_axis());
+        let tilt = Quaternion::from_axis_angle(right, -std::f64::consts::FRAC_PI_6);
+        self.orientation = (tilt * turn).normalized();
+    }
+
+    pub fn view_projection(&self) -> Xform {
+        let forward = self
+            .orientation
+            .rotate_vector(Vector::y_axis());
+        let up = self
+            .orientation
+            .rotate_vector(Vector::z_axis());
+        let target = Point::new(
+            self.target[0],
+            self.target[1],
+            self.target[2],
+        );
+        let eye = Point::new(
+            self.target[0] - forward[0] * self.distance,
+            self.target[1] - forward[1] * self.distance,
+            self.target[2] - forward[2] * self.distance,
+        );
+        let view = Xform::look_at_right_handed(&eye, &target, &up);
+        let near = self.distance * NEAR_FRACTION;
+        let far = (self.distance * 10.0).max(self.distance + self.radius * 2.0);
+        let projection =
+            Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);
+        projection * view
 ```
-
-**Locate this block:**
-
-```rust
-pub struct Camera {
-    pub target: [f64; 3],
-    pub distance: f64,
-    pub orientation: Quaternion,
-    pub aspect: f64,
-}
-```
-
-Replace it with:
-
-```rust
-pub struct Camera {
-    pub target: [f64; 3],
-    pub distance: f64,
-    pub radius: f64,
-    pub orientation: Quaternion,
-    pub aspect: f64,
-}
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/fit_tests.rs`
 
@@ -1381,54 +2037,130 @@ Optional authoring fixture. Check projected corners, preserved orientation and z
 
 Replace the entire file with:
 
-```text
---8<-- "journey/code/23b-fit-camera-tests.rs"
-```
-
-### 3. `src/camera.rs`
-
-Keep the current near fraction independent of scene radius.
-
-**Locate this existing block:**
-
 ```rust
-pub struct Ray {
-```
+use crate::{bounds::Bounds, camera::Camera};
+use session_rust::Point;
 
-Edit the existing block to match this code; keep unchanged lines:
-
-```rust
-pub const NEAR_FRACTION:f64=1.0e-4;
-
-pub struct Ray {
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/camera.rs`
-
-Supply geometric near-cut or f32 depth-resolution checks in original millimetre coordinates.
-
-**Locate this existing block:**
-
-```text
-ew_projection().transform_point(&world);
-        let ray = camera.ray([screen[0] as f32, screen[1] as f32]).unwrap();
-        let offset = &world - &ray.origin;
-        assert!(offset.cross(&ray.direction).magnitude() < 1.0e-6);
-        assert!(offset.dot(&ray.direction) > 0.0);
-        assert!(offset.magnitude() < ray.max_distance);
-        assert!(camera.ray([f32::NAN, 0.0]).is_none());
+#[test]
+fn fitted_corners_survive_scale_orientation_and_aspect_changes() {
+    for scale in [0.001, 1.0, 10_000.0] {
+        let mut bounds = Bounds::point([10.0 * scale, -4.0 * scale, 2.0 * scale]);
+        bounds.include([14.0 * scale, 2.0 * scale, 3.0 * scale]);
+        for aspect in [0.25, 1.0, 4.0] {
+            let mut camera = Camera {
+                aspect,
+                ..Camera::default()
+            };
+            camera.isometric();
+            let forward = camera
+                .orientation
+                .rotate_vector(session_rust::Vector::y_axis());
+            camera.fit(&bounds);
+            assert_eq!(camera.target, bounds.centre());
+            let after = camera
+                .orientation
+                .rotate_vector(session_rust::Vector::y_axis());
+            for i in 0..3 {
+                assert!((forward[i] - after[i]).abs() < 1.0e-12);
+            }
+            for x in [bounds.min[0], bounds.max[0]] {
+                for y in [bounds.min[1], bounds.max[1]] {
+                    for z in [bounds.min[2], bounds.max[2]] {
+                        let point = camera
+                            .view_projection()
+                            .transform_point(&Point::new(x, y, z));
+                        assert!(point[0].abs() < 1.0 && point[1].abs() < 1.0);
+                        assert!((0.0..1.0).contains(&point[2]));
+                    }
+                }
+            }
+            let distance = camera.distance;
+            camera.zoom(1.01);
+            assert!(
+                (camera.distance - distance / 1.01_f32 as f64).abs()
+                    < distance * 1.0e-10
+            );
+        }
     }
 }
 ```
 
-After that block, append this supplied code:
+### 3. `src/camera.rs`
 
-```text
---8<-- "journey/code/23b-fit-camera-depth-tests.rs" skip=400
+Keep the current near fraction independent of scene radius. Supply geometric near-cut or f32 depth-resolution checks in original millimetre coordinates.
+
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
+
+```rust
+        assert!(offset.magnitude() < ray.max_distance);
+        assert!(camera.ray([f32::NAN, 0.0]).is_none());
+    }
+```
+
+Replace it with:
+
+```rust
+        assert!(offset.magnitude() < ray.max_distance);
+        assert!(camera.ray([f32::NAN, 0.0]).is_none());
+    }
+}
+
+#[cfg(test)]
+mod near_range_tests {
+    use super::*;
+    #[test]
+    fn large_scene_radius_does_not_cut_geometry_just_ahead_of_the_eye() {
+        for distance in [0.001, 1., 1000.] {
+            let mut camera = Camera::default();
+            camera.distance = distance;
+            camera.radius = distance * 100000.;
+            let forward = camera
+                .orientation
+                .rotate_vector(Vector::y_axis());
+            let point = |gap: f64| {
+                Point::new(
+                    camera.target[0] + forward[0] * (gap - distance),
+                    camera.target[1] + forward[1] * (gap - distance),
+                    camera.target[2] + forward[2] * (gap - distance),
+                )
+            };
+            let matrix = camera.view_projection();
+            let inside = matrix.transform_point(&point(distance * NEAR_FRACTION * 2.));
+            let cut = matrix.transform_point(&point(distance * NEAR_FRACTION * 0.5));
+            assert!(
+                (0.0..1.0).contains(&inside[2]),
+                "near geometry remains in view: {inside:?}"
+            );
+            assert!(
+                cut[2] < 0.,
+                "the near plane still cuts ahead of the eye"
+            );
+        }
+    }
+```
+
+**Locate this block:**
+
+```rust
+use session_rust::{Point, Quaternion, Vector, Xform};
+
+pub struct Ray {
+    pub origin: Point,
+    pub direction: Vector,
+```
+
+Replace it with:
+
+```rust
+use session_rust::{Point, Quaternion, Vector, Xform};
+
+pub const NEAR_FRACTION: f64 = 1.0e-4;
+
+pub struct Ray {
+    pub origin: Point,
+    pub direction: Vector,
 ```
 
 ## <a id="checkpoint-24-fit"></a>9. Run Fit through the command line
@@ -1483,8 +2215,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
                     Action::Isometric => self.camera.isometric(),
                     Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
 ```
 
 Replace it with:
@@ -1499,15 +2229,11 @@ Replace it with:
                         }
                     }
                     Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
 ```
 
 **Locate this block:**
 
 ```rust
-    Orbit(f64, f64),
-    Isometric,
     ResetView,
 }
 
@@ -1517,8 +2243,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Orbit(f64, f64),
-    Isometric,
     ResetView,
     Fit,
 }
@@ -1535,31 +2259,25 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view reset" => Action::ResetView,
 ```
 
 Replace it with:
 
 ```rust
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "fit" => Action::Fit,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "fit" => Action::Fit,
+                        "view reset" => Action::ResetView,
 ```
 
 **Locate this block:**
 
 ```rust
-            "Orbit Right",
-            "Orbit Up",
             "View Isometric",
             "View Reset",
         ],
@@ -1569,8 +2287,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Orbit Right",
-            "Orbit Up",
             "View Isometric",
             "Fit",
             "View Reset",
@@ -1578,48 +2294,106 @@ Replace it with:
     );
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 3. `src/fit_tests.rs`
 
-Optional authoring fixture. Import editor actions for fitting and document-history checks.
+Optional authoring fixture. Import editor actions for fitting and document-history checks. Optional authoring fixture. Check imported bounds, selection, history and empty or single-point scenes.
 
-**Locate this existing block:**
+Replace the entire file with:
 
-```text
-use crate::{bounds::Bounds, camera::Camera};
+```rust
+use crate::{
+    bounds::Bounds,
+    camera::Camera,
+    editor::{Action, Change, Editor},
+};
 use session_rust::Point;
-```
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/24-fit-test-imports.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/fit_tests.rs`
-
-Optional authoring fixture. Check imported bounds, selection, history and empty or single-point scenes.
-
-**Locate this existing block:**
-
-```text
-            assert!((camera.distance - distance / 1.01_f32 as f64).abs() < distance * 1.0e-10);
+#[test]
+fn fitted_corners_survive_scale_orientation_and_aspect_changes() {
+    for scale in [0.001, 1.0, 10_000.0] {
+        let mut bounds = Bounds::point([10.0 * scale, -4.0 * scale, 2.0 * scale]);
+        bounds.include([14.0 * scale, 2.0 * scale, 3.0 * scale]);
+        for aspect in [0.25, 1.0, 4.0] {
+            let mut camera = Camera {
+                aspect,
+                ..Camera::default()
+            };
+            camera.isometric();
+            let forward = camera
+                .orientation
+                .rotate_vector(session_rust::Vector::y_axis());
+            camera.fit(&bounds);
+            assert_eq!(camera.target, bounds.centre());
+            let after = camera
+                .orientation
+                .rotate_vector(session_rust::Vector::y_axis());
+            for i in 0..3 {
+                assert!((forward[i] - after[i]).abs() < 1.0e-12);
+            }
+            for x in [bounds.min[0], bounds.max[0]] {
+                for y in [bounds.min[1], bounds.max[1]] {
+                    for z in [bounds.min[2], bounds.max[2]] {
+                        let point = camera
+                            .view_projection()
+                            .transform_point(&Point::new(x, y, z));
+                        assert!(point[0].abs() < 1.0 && point[1].abs() < 1.0);
+                        assert!((0.0..1.0).contains(&point[2]));
+                    }
+                }
+            }
+            let distance = camera.distance;
+            camera.zoom(1.01);
+            assert!(
+                (camera.distance - distance / 1.01_f32 as f64).abs()
+                    < distance * 1.0e-10
+            );
         }
     }
 }
-```
 
-After that block, append this supplied code:
+#[test]
+fn fit_uses_imported_vertices_without_changing_selection_or_history() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Import(crate::specimen::bytes()))
+        .unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    let selected = editor.selected;
+    assert_eq!(
+        editor.apply(Action::Fit).unwrap(),
+        Change::View
+    );
+    let bounds = editor.scene.bounds().unwrap();
+    assert!(bounds.max[2] >= 1.25);
+    let target = editor.camera.target;
+    assert_eq!(selected, editor.selected);
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert_eq!(editor.camera.target, target);
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 5);
+}
 
-```text
---8<-- "journey/code/24-fit-editor-tests.rs" skip=115
+#[test]
+fn empty_scene_and_single_point_have_defined_fit_behaviour() {
+    let mut editor = Editor::default();
+    while let Some(id) = editor.scene.next(None) {
+        assert!(editor.scene.remove(id));
+    }
+    assert!(editor.scene.bounds().is_none());
+    let before = editor.camera.uniform();
+    editor.apply(Action::Fit).unwrap();
+    assert_eq!(before, editor.camera.uniform());
+    editor
+        .camera
+        .fit(&Bounds::point([7.0, 8.0, 9.0]));
+    let screen = editor
+        .camera
+        .view_projection()
+        .transform_point(&Point::new(7.0, 8.0, 9.0));
+    assert!(screen[0].abs() < 1.0e-9 && screen[1].abs() < 1.0e-9);
+    assert!((0.0..1.0).contains(&screen[2]));
+}
 ```
 
 ## <a id="checkpoint-24a-projection"></a>10. Build perspective and orthographic camera matrices
@@ -1673,9 +2447,9 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let view = Xform::look_at_right_handed(&eye, &target, &up);
         let near = self.distance * NEAR_FRACTION;
         let far = (self.distance * 10.0).max(self.distance + self.radius * 2.0);
-        let projection = Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);
+        let projection =
+            Xform::perspective(60.0_f64.to_radians(), self.aspect, near, far);
         projection * view
-    }
 ```
 
 Replace it with:
@@ -1685,7 +2459,9 @@ Replace it with:
         let near = self.distance * NEAR_FRACTION;
         let far = (self.distance * 10.0).max(self.distance + self.radius * 2.0);
         let projection = match self.projection {
-            Projection::Perspective => Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far),
+            Projection::Perspective => {
+                Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far)
+            }
             Projection::Orthographic => {
                 let h = self.distance * HALF_FOV.tan();
                 let w = h * self.aspect;
@@ -1694,14 +2470,13 @@ Replace it with:
             }
         };
         projection * view
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-            radius: 1.0,
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
+                -std::f64::consts::FRAC_PI_2,
+            ),
             aspect: 640.0 / 480.0,
         }
     }
@@ -1712,14 +2487,14 @@ impl Camera {
         let half_y = 30.0_f64.to_radians();
         let half_x = (self.aspect * half_y.tan()).atan();
         let radius = bounds.radius();
-        self.radius = if radius > 0.0 { radius } else { 1.0 };
+        self.radius = if radius > 0.0 {
 ```
 
 Replace it with:
 
 ```rust
-            radius: 1.0,
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
+                -std::f64::consts::FRAC_PI_2,
+            ),
             aspect: 640.0 / 480.0,
             projection: Projection::Perspective,
         }
@@ -1731,7 +2506,7 @@ impl Camera {
         let half_y = HALF_FOV;
         let half_x = (self.aspect * half_y.tan()).atan();
         let radius = bounds.radius();
-        self.radius = if radius > 0.0 { radius } else { 1.0 };
+        self.radius = if radius > 0.0 {
 ```
 
 **Locate this block:**
@@ -1760,8 +2535,7 @@ impl Default for Camera {
 **Locate this block:**
 
 ```rust
-
-pub const NEAR_FRACTION:f64=1.0e-4;
+pub const NEAR_FRACTION: f64 = 1.0e-4;
 
 pub struct Ray {
     pub origin: Point,
@@ -1771,8 +2545,7 @@ pub struct Ray {
 Replace it with:
 
 ```rust
-
-pub const NEAR_FRACTION:f64=1.0e-4;
+pub const NEAR_FRACTION: f64 = 1.0e-4;
 
 const HALF_FOV: f64 = std::f64::consts::FRAC_PI_6;
 
@@ -1787,18 +2560,84 @@ pub struct Ray {
     pub direction: Vector,
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 2. `src/projection_tests.rs`
 
 Optional authoring fixture. Check target-plane scale, depth-independent size and parallel picking rays.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/24a-projection-tests.rs"
+```rust
+use crate::camera::{Camera, Projection};
+use session_rust::{Point, Vector};
+
+#[test]
+fn switching_projection_preserves_scale_on_the_target_plane() {
+    let mut camera = Camera::default();
+    camera.pan(0.3, -0.2);
+    camera.isometric();
+    let right = camera
+        .orientation
+        .rotate_vector(Vector::x_axis());
+    let up = camera
+        .orientation
+        .rotate_vector(Vector::z_axis());
+    let point = Point::new(
+        camera.target[0] + right[0] * 0.4 + up[0] * 0.2,
+        camera.target[1] + right[1] * 0.4 + up[1] * 0.2,
+        camera.target[2] + right[2] * 0.4 + up[2] * 0.2,
+    );
+    let before = camera
+        .view_projection()
+        .transform_point(&point);
+    camera.projection = Projection::Orthographic;
+    let after = camera
+        .view_projection()
+        .transform_point(&point);
+    for i in 0..2 {
+        assert!((before[i] - after[i]).abs() < 1.0e-12);
+    }
+}
+
+#[test]
+fn orthographic_size_ignores_depth_and_its_pick_rays_are_parallel() {
+    let mut camera = Camera {
+        projection: Projection::Orthographic,
+        ..Camera::default()
+    };
+    let a = camera
+        .view_projection()
+        .transform_point(&Point::new(0.4, 0.0, 0.0));
+    let b = camera
+        .view_projection()
+        .transform_point(&Point::new(0.4, 0.0, 0.75));
+    assert!((a[0] - b[0]).abs() < 1.0e-12);
+    let left = camera.ray([-0.5, 0.0]).unwrap();
+    let right = camera.ray([0.5, 0.0]).unwrap();
+    assert!((&right.origin - &left.origin).magnitude() > 1.0);
+    assert!(
+        left.direction
+            .cross(&right.direction)
+            .magnitude()
+            < 1.0e-12
+    );
+    camera.projection = Projection::Perspective;
+    let a = camera
+        .view_projection()
+        .transform_point(&Point::new(0.4, 0.0, 0.0));
+    let b = camera
+        .view_projection()
+        .transform_point(&Point::new(0.4, 0.0, 0.75));
+    assert!(b[0] > a[0]);
+    assert!(
+        camera
+            .ray([-0.5, 0.0])
+            .unwrap()
+            .direction
+            .cross(&camera.ray([0.5, 0.0]).unwrap().direction)
+            .magnitude()
+            > 0.1
+    );
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -1808,23 +2647,18 @@ Register the new checks without changing the production browser entry point.
 **Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod fit_tests;
-#[cfg(test)]
-mod navigation_tests;
-#[cfg(test)]
-mod gesture_tests;
+pub mod picking;
+pub mod renderer;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/25-projection-fullscreen-1.rs"
+pub mod picking;
+#[cfg(test)]
+mod projection_tests;
+pub mod renderer;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/camera.rs`
 
@@ -1832,19 +2666,51 @@ Supply geometric near-cut or f32 depth-resolution checks in original millimetre 
 
 **Locate this existing block:**
 
-```text
-]*(gap-distance),camera.target[2]+forward[2]*(gap-distance));
-   let matrix=camera.view_projection();let inside=matrix.transform_point(&point(distance*NEAR_FRACTION*2.));let cut=matrix.transform_point(&point(distance*NEAR_FRACTION*0.5));
-   assert!((0.0..1.0).contains(&inside[2]),"near geometry remains in view: {inside:?}");assert!(cut[2]<0.,"the near plane still cuts ahead of the eye");
-  }
- }
+```rust
+            );
+        }
+    }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/24a-projection-depth-tests.rs" skip=400
+```rust
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod orthographic_range_tests {
+    use super::*;
+    #[test]
+    fn orthographic_depth_retains_four_millimetres_at_a_distant_camera() {
+        let mut camera = Camera::default();
+        camera.projection = Projection::Orthographic;
+        camera.distance = 1_000_000.;
+        camera.radius = 1000.;
+        let forward = camera
+            .orientation
+            .rotate_vector(Vector::y_axis());
+        let center = Point::new(
+            camera.target[0],
+            camera.target[1],
+            camera.target[2],
+        );
+        let behind = &center + &(forward * 4.);
+        let matrix = camera.view_projection();
+        let a = matrix.transform_point(&center);
+        let b = matrix.transform_point(&behind);
+        assert!((0.0..1.0).contains(&a[2]) && (0.0..1.0).contains(&b[2]));
+        let front = a[2] as f32;
+        let rear = b[2] as f32;
+        assert!(
+            (front - rear).abs() > rear.abs() * 1.9073486e-6,
+            "four millimetres exceed the ink visibility tolerance"
+        );
+    }
+}
 ```
 
 ## <a id="checkpoint-24b-projection-actions"></a>11. Fit and change projection through the editor
@@ -1893,13 +2759,21 @@ Fit the sphere through a perspective half-angle or the smaller orthographic half
 **Locate this existing block:**
 
 ```rust
+        self.target = bounds.centre();
         self.distance = self.radius * 1.1 / half_x.min(half_y).sin();
+    }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/25-projection-05.rs"
+        self.target = bounds.centre();
+        let opening = match self.projection {
+            Projection::Perspective => half_x.min(half_y).sin(),
+            Projection::Orthographic => half_y.tan() * self.aspect.min(1.0),
+        };
+        self.distance = self.radius * 1.1 / opening;
+    }
 ```
 
 ### 2. `src/editor.rs`
@@ -1915,8 +2789,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                     Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
                     Action::Isometric => self.camera.isometric(),
                     Action::Fit => {
-                        if let Some(bounds) = self.scene.bounds() {
-                            self.camera.fit(&bounds);
 ```
 
 Replace it with:
@@ -1927,15 +2799,11 @@ Replace it with:
                     Action::Isometric => self.camera.isometric(),
                     Action::Projection(mode) => self.camera.projection = mode,
                     Action::Fit => {
-                        if let Some(bounds) = self.scene.bounds() {
-                            self.camera.fit(&bounds);
 ```
 
 **Locate this block:**
 
 ```rust
-    Isometric,
-    ResetView,
     Fit,
 }
 
@@ -1945,8 +2813,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Isometric,
-    ResetView,
     Fit,
     Projection(crate::camera::Projection),
 }
@@ -1954,47 +2820,120 @@ Replace it with:
 #[derive(Debug, PartialEq, Eq)]
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 3. `src/projection_tests.rs`
 
-Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks.
+Optional authoring fixture. Import bounds and editor actions for fitting, selection and history checks. Optional authoring fixture. Check orthographic fitting, close selection, view history and reset.
 
-**Locate this existing block:**
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-```text
+**Locate this block:**
+
+```rust
+            .magnitude()
+            > 0.1
+    );
+```
+
+Replace it with:
+
+```rust
+            .magnitude()
+            > 0.1
+    );
+}
+
+#[test]
+fn an_orthographic_fit_contains_every_corner_in_tall_and_wide_views() {
+    let mut bounds = Bounds::point([-3.0, -1.0, -0.5]);
+    bounds.include([2.0, 4.0, 1.0]);
+    for aspect in [0.25, 1.0, 4.0] {
+        let mut camera = Camera {
+            projection: Projection::Orthographic,
+            aspect,
+            ..Camera::default()
+        };
+        camera.isometric();
+        camera.fit(&bounds);
+        for x in [bounds.min[0], bounds.max[0]] {
+            for y in [bounds.min[1], bounds.max[1]] {
+                for z in [bounds.min[2], bounds.max[2]] {
+                    let point = camera
+                        .view_projection()
+                        .transform_point(&Point::new(x, y, z));
+                    assert!(point[0].abs() < 1.0 && point[1].abs() < 1.0);
+                    assert!((0.0..1.0).contains(&point[2]));
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn close_orthographic_picking_sees_geometry_behind_the_eye() {
+    let mut editor = Editor::default();
+    let before = editor.camera.uniform();
+    assert_eq!(
+        editor
+            .apply(Action::Projection(Projection::Orthographic))
+            .unwrap(),
+        Change::View
+    );
+    editor
+        .apply(Action::Projection(Projection::Perspective))
+        .unwrap();
+    assert_eq!(editor.camera.uniform(), before);
+    editor
+        .apply(Action::Projection(Projection::Orthographic))
+        .unwrap();
+    editor.apply(Action::Zoom(100.0)).unwrap();
+    assert!(editor.camera.distance < 0.75);
+    editor
+        .apply(Action::Pick([0.0, 0.0]))
+        .unwrap();
+    assert_eq!(
+        editor.selected,
+        Some(editor.scene.objects()[1].id)
+    );
+    editor.apply(Action::AddBox).unwrap();
+    editor
+        .apply(Action::Projection(Projection::Perspective))
+        .unwrap();
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert_eq!(
+        editor.camera.projection,
+        Projection::Perspective
+    );
+    editor
+        .apply(Action::Projection(Projection::Orthographic))
+        .unwrap();
+    editor.apply(Action::ResetView).unwrap();
+    assert_eq!(
+        editor.camera.projection,
+        Projection::Perspective
+    );
+```
+
+**Locate this block:**
+
+```rust
 use crate::camera::{Camera, Projection};
 use session_rust::{Point, Vector};
+
+#[test]
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Replace it with:
 
-```text
---8<-- "journey/code/24b-projection-test-imports.rs"
-```
+```rust
+use crate::{
+    bounds::Bounds,
+    camera::{Camera, Projection},
+    editor::{Action, Change, Editor},
+};
+use session_rust::{Point, Vector};
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/projection_tests.rs`
-
-Optional authoring fixture. Check orthographic fitting, close selection, view history and reset.
-
-**Locate this existing block:**
-
-```text
-    assert!(camera.ray([-0.5, 0.0]).unwrap().direction
-        .cross(&camera.ray([0.5, 0.0]).unwrap().direction).magnitude() > 0.1);
-}
-```
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/24b-projection-editor-tests.rs" skip=137
+#[test]
 ```
 
 ## <a id="checkpoint-25-projection"></a>12. Run the named projection commands
@@ -2045,17 +2984,15 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+    );
     Ok(())
 }
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
 ```
 
 Replace it with:
 
 ```rust
+    );
     Ok(())
 }
 
@@ -2066,73 +3003,72 @@ fn show_projection(camera: &crate::camera::Camera) -> Result<(), JsValue> {
     let canvas = document
         .get_element_by_id("canvas")
         .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-projection", &format!("{:?}", camera.projection))
+    canvas.set_attribute(
+        "data-projection",
+        &format!("{:?}", camera.projection),
+    )
 }
-
-fn navigation_action(
-    event: &web_sys::Event,
-    canvas: &web_sys::HtmlCanvasElement,
 ```
 
 **Locate this block:**
 
 ```rust
+                    }
                 }
             }
-        }
-        if event.type_() == "viewer-file" {
-            report("File imported. Undo removes the entire import.");
-        }
+            if event.type_() == "viewer-file" {
+                report("File imported. Undo removes the entire import.");
+            }
 ```
 
 Replace it with:
 
 ```rust
+                    }
                 }
             }
-        }
-        if let Err(error) = show_projection(&editor.camera) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
-        if event.type_() == "viewer-file" {
-            report("File imported. Undo removes the entire import.");
-        }
+            if let Err(error) = show_projection(&editor.camera) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
+                ));
+                return;
+            }
+            if event.type_() == "viewer-file" {
+                report("File imported. Undo removes the entire import.");
+            }
 ```
 
 **Locate this block:**
 
 ```rust
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "fit" => Action::Fit,
-                    "view reset" => Action::ResetView,
-                    _ => return,
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "fit" => Action::Fit,
+                        "view reset" => Action::ResetView,
+                        _ => return,
 ```
 
 Replace it with:
 
 ```rust
-                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                    "view isometric" => Action::Isometric,
-                    "view perspective" => {
-                        Action::Projection(crate::camera::Projection::Perspective)
-                    }
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" => Action::Fit,
-                    "view reset" => Action::ResetView,
-                    _ => return,
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view perspective" => {
+                            Action::Projection(crate::camera::Projection::Perspective)
+                        }
+                        "view orthographic" => {
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" => Action::Fit,
+                        "view reset" => Action::ResetView,
+                        _ => return,
 ```
 
 **Locate this block:**
 
 ```rust
-            "Orbit Right",
-            "Orbit Up",
             "View Isometric",
             "Fit",
             "View Reset",
@@ -2142,8 +3078,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Orbit Right",
-            "Orbit Up",
             "View Isometric",
             "View Perspective",
             "View Orthographic",
@@ -2198,13 +3132,39 @@ Find one stable ID and collect only its displayed vertices. An absent ID or empt
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn objects(&self) -> &[Object] {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/26-selected-01.rs"
+    }
+
+    pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
+        let object = self
+            .objects
+            .iter()
+            .find(|object| object.id == id)?;
+        let mut vertices = object.mesh.vertices().iter();
+        let first = vertices.next()?;
+        let mut bounds = crate::bounds::Bounds::point([
+            first[0] as f64,
+            first[1] as f64,
+            first[2] as f64,
+        ]);
+        for vertex in vertices {
+            bounds.include([
+                vertex[0] as f64,
+                vertex[1] as f64,
+                vertex[2] as f64,
+            ]);
+        }
+        Some(bounds)
+    }
+
+    pub fn objects(&self) -> &[Object] {
 ```
 
 ### 2. `src/editor.rs`
@@ -2216,37 +3176,30 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+                    Action::Fit => {
+                        if let Some(bounds) = self.scene.bounds() {
                             self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
 ```
 
 Replace it with:
 
 ```rust
+                    Action::Fit => {
+                        if let Some(bounds) = self.scene.bounds() {
                             self.camera.fit(&bounds);
                         }
                     }
                     Action::FitSelected => {
-                        if let Some(bounds) = self.selected
+                        if let Some(bounds) = self
+                            .selected
                             .and_then(|id| self.scene.selected_bounds(id))
                         {
                             self.camera.fit(&bounds);
-                        }
-                    }
-                    Action::ResetView => {
-                        let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
 ```
 
 **Locate this block:**
 
 ```rust
-    Isometric,
-    ResetView,
     Fit,
     Projection(crate::camera::Projection),
 }
@@ -2255,8 +3208,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Isometric,
-    ResetView,
     Fit,
     FitSelected,
     Projection(crate::camera::Projection),
@@ -2272,31 +3223,25 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" => Action::Fit,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" => Action::Fit,
+                        "view reset" => Action::ResetView,
 ```
 
 Replace it with:
 
 ```rust
-                        Action::Projection(crate::camera::Projection::Orthographic)
-                    }
-                    "fit" => Action::Fit,
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-                };
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" => Action::Fit,
+                        "fit selected" => Action::FitSelected,
+                        "view reset" => Action::ResetView,
 ```
 
 **Locate this block:**
 
 ```rust
-            "View Perspective",
-            "View Orthographic",
             "Fit",
             "View Reset",
         ],
@@ -2306,8 +3251,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "View Perspective",
-            "View Orthographic",
             "Fit",
             "Fit Selected",
             "View Reset",
@@ -2322,28 +3265,67 @@ Register the focused state checks.
 **Locate this existing block:**
 
 ```rust
-#[cfg(test)]
-mod projection_tests;
+pub mod scene;
+pub mod specimen;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/26-selected-06.rs"
+pub mod scene;
+#[cfg(test)]
+mod selected_fit_tests;
+pub mod specimen;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/selected_fit_tests.rs`
 
 Optional authoring fixture. Check both projection modes, selection, shared mesh identity, history and the empty-selection case.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/26-selected-07.rs"
+```rust
+use crate::{
+    camera::Projection,
+    editor::{Action, Change, Editor},
+};
+
+#[test]
+fn selected_fit_changes_only_the_camera() {
+    for mode in [
+        Projection::Perspective,
+        Projection::Orthographic,
+    ] {
+        let mut editor = Editor::default();
+        editor.camera.projection = mode;
+        editor.apply(Action::AddBox).unwrap();
+        editor.apply(Action::SelectNext).unwrap();
+        let id = editor.selected.unwrap();
+        let mesh = editor.scene.objects()[0].mesh.clone();
+        let bounds = editor.scene.selected_bounds(id).unwrap();
+        assert_eq!(
+            editor.apply(Action::FitSelected).unwrap(),
+            Change::View
+        );
+        assert_eq!(editor.camera.target, bounds.centre());
+        assert_eq!(editor.selected, Some(id));
+        assert!(std::rc::Rc::ptr_eq(
+            &mesh,
+            &editor.scene.objects()[0].mesh
+        ));
+        editor.apply(Action::Undo).unwrap();
+        assert_eq!(editor.scene.objects().len(), 2);
+        assert_eq!(editor.camera.target, bounds.centre());
+    }
+}
+
+#[test]
+fn no_selection_leaves_the_view_alone() {
+    let mut editor = Editor::default();
+    let before = editor.camera.uniform();
+    editor.apply(Action::FitSelected).unwrap();
+    assert_eq!(editor.camera.uniform(), before);
+}
 ```
 
 ## <a id="checkpoint-26a-keys"></a>14. Fit and step history from the keyboard
@@ -2392,7 +3374,51 @@ Classify canvas Fit and available history keys without owning browser or documen
 Create the file and type:
 
 ```rust
---8<-- "journey/code/26a-keys-01.rs"
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Shortcut {
+    Undo,
+    Redo,
+    Fit,
+}
+
+impl Shortcut {
+    pub fn command(self) -> &'static str {
+        match self {
+            Self::Undo => "Undo",
+            Self::Redo => "Redo",
+            Self::Fit => "Fit",
+        }
+    }
+}
+
+pub fn key(
+    text: &str,
+    command: bool,
+    shift: bool,
+    alt: bool,
+    composing: bool,
+    focused: bool,
+    text_empty: bool,
+) -> Option<Shortcut> {
+    if alt || composing {
+        return None;
+    }
+    if command {
+        if focused && !text_empty {
+            return None;
+        }
+        match text.to_ascii_lowercase().as_str() {
+            "z" if shift => Some(Shortcut::Redo),
+            "z" => Some(Shortcut::Undo),
+            "y" => Some(Shortcut::Redo),
+            _ => None,
+        }
+    } else if !focused && text.eq_ignore_ascii_case("f") {
+        Some(Shortcut::Fit)
+    } else {
+        None
+    }
+}
 ```
 
 ### 2. `src/panel.rs`
@@ -2402,16 +3428,32 @@ Use current text focus and content to decide shortcut ownership.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    pub fn shortcut(&self, event: &web_sys::KeyboardEvent) -> Option<crate::shortcuts::Shortcut> {
-        if event.type_() != "keydown" || event.repeat() { return None; }
-        crate::shortcuts::key(&event.key(), event.ctrl_key() || event.meta_key(), event.shift_key(),
-            event.alt_key(), event.is_composing(), self.context.egui_wants_keyboard_input(), self.model.command.is_empty())
+    }
+
+    pub fn shortcut(
+        &self,
+        event: &web_sys::KeyboardEvent,
+    ) -> Option<crate::shortcuts::Shortcut> {
+        if event.type_() != "keydown" || event.repeat() {
+            return None;
+        }
+        crate::shortcuts::key(
+            &event.key(),
+            event.ctrl_key() || event.meta_key(),
+            event.shift_key(),
+            event.alt_key(),
+            event.is_composing(),
+            self.context.egui_wants_keyboard_input(),
+            self.model.command.is_empty(),
+        )
     }
 
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
@@ -2421,74 +3463,134 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Echo an accepted shortcut through the same command route before the panel consumes typing. Make canvas F fit the selection when present; otherwise fit the whole scene.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            let action = if event.type_() == "change" {
+                crate::file_input::choose(&event, std::rc::Rc::clone(&request));
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+                if line == "open" {
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+                        .and_then(|element| {
+                            element
+                                .dyn_into::<web_sys::HtmlInputElement>()
+                                .ok()
+                        })
+                    {
+                        input.click();
                     }
-                    "fit" => Action::Fit,
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
+                    None
+                } else {
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example triangle" => Action::ToggleExtra,
+                        "select next" => Action::SelectNext,
+                        "delete" => Action::Delete,
+                        "undo" => Action::Undo,
+                        "redo" => Action::Redo,
+                        "background" => Action::Background,
+                        "zoom in" => Action::Zoom(2.0),
+                        "zoom out" => Action::Zoom(0.5),
+                        "pan left" => Action::Pan(-0.25, 0.0),
+                        "pan right" => Action::Pan(0.25, 0.0),
+                        "orbit right" => {
+                            Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0)
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view perspective" => {
+                            Action::Projection(crate::camera::Projection::Perspective)
+                        }
+                        "view orthographic" => {
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" => Action::Fit,
+                        "fit selected" => Action::FitSelected,
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-                    "view orthographic" => {
-                        Action::Projection(crate::camera::Projection::Orthographic)
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let shortcut = event
+                .dyn_ref::<web_sys::KeyboardEvent>()
+                .and_then(|key| panel.shortcut(key));
+            let line = if let Some(shortcut) = shortcut {
+                event.prevent_default();
+                panel.answer(shortcut.command(), "");
+                Some(shortcut.command().to_ascii_lowercase())
+            } else {
+                match panel.update(Some(&event), &input_canvas) {
+                    Ok(line) => line,
+                    Err(error) => {
+                        report(&format!("Cannot read command: {error:?}"));
+                        return;
                     }
-                    "fit" if shortcut.is_some() && editor.selected.is_some() => Action::FitSelected,
-                    "fit" => Action::Fit,
+                }
+            };
 
-                    "fit selected" => Action::FitSelected,
-                    "view reset" => Action::ResetView,
-                    _ => return,
-```
+            let action = if event.type_() == "change" {
+                crate::file_input::choose(&event, std::rc::Rc::clone(&request));
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::bytes(&event).map(Action::Import)
+            } else if let Some(line) = line {
+                if line == "open" {
+                    if let Some(input) = web_sys::window()
+                        .and_then(|window| window.document())
+                        .and_then(|document| document.get_element_by_id("open"))
+                        .and_then(|element| {
+                            element
+                                .dyn_into::<web_sys::HtmlInputElement>()
+                                .ok()
+                        })
+                    {
+                        input.click();
+                    }
+                    None
+                } else {
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example triangle" => Action::ToggleExtra,
+                        "select next" => Action::SelectNext,
+                        "delete" => Action::Delete,
+                        "undo" => Action::Undo,
+                        "redo" => Action::Redo,
+                        "background" => Action::Background,
+                        "zoom in" => Action::Zoom(2.0),
+                        "zoom out" => Action::Zoom(0.5),
+                        "pan left" => Action::Pan(-0.25, 0.0),
+                        "pan right" => Action::Pan(0.25, 0.0),
+                        "orbit right" => {
+                            Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0)
+                        }
+                        "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                        "view isometric" => Action::Isometric,
+                        "view perspective" => {
+                            Action::Projection(crate::camera::Projection::Perspective)
+                        }
+                        "view orthographic" => {
+                            Action::Projection(crate::camera::Projection::Orthographic)
+                        }
+                        "fit" if shortcut.is_some() && editor.selected.is_some() => {
+                            Action::FitSelected
+                        }
+                        "fit" => Action::Fit,
 
-**Locate this block:**
-
-```rust
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::Cell::new(0));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        };
-        let action = if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request));
-            None
-```
-
-Replace it with:
-
-```rust
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::Cell::new(0));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
-            panel.answer(shortcut.command(), "");
-            Some(shortcut.command().to_ascii_lowercase())
-        } else { match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
-                return;
-            }
-        } };
-
-        let action = if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request));
-            None
+                        "fit selected" => Action::FitSelected,
 ```
 
 ### 4. `src/lib.rs`
@@ -2498,28 +3600,147 @@ Register the shared shortcut policy.
 **Locate this existing block:**
 
 ```rust
+pub mod bounds;
+#[cfg(target_arch = "wasm32")]
+mod browser;
+pub mod camera;
+pub mod document;
+#[cfg(test)]
+mod document_tests;
+pub mod editor;
+#[cfg(target_arch = "wasm32")]
+mod file_input;
+#[cfg(test)]
+mod fit_tests;
+pub mod gesture;
+#[cfg(test)]
+mod gesture_tests;
+pub mod gpu_mesh;
+pub mod history;
+pub mod mesh;
 pub mod navigation;
+#[cfg(test)]
+mod navigation_tests;
+pub mod picking;
+#[cfg(test)]
+mod projection_tests;
+pub mod renderer;
+pub mod scene;
+#[cfg(test)]
+mod selected_fit_tests;
+pub mod specimen;
+pub mod viewport;
+
+use wasm_bindgen::prelude::*;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub mod shortcuts;
+pub mod bounds;
+pub mod camera;
+pub mod editor;
+pub mod gesture;
+pub mod history;
+pub mod mesh;
 pub mod navigation;
+pub mod picking;
+pub mod scene;
+pub mod shortcuts;
+pub mod viewport;
+
+#[cfg(target_arch = "wasm32")]
+mod browser;
+pub mod document;
+#[cfg(test)]
+mod document_tests;
+#[cfg(target_arch = "wasm32")]
+mod file_input;
+#[cfg(test)]
+mod fit_tests;
+#[cfg(test)]
+mod gesture_tests;
+pub mod gpu_mesh;
+#[cfg(test)]
+mod navigation_tests;
+#[cfg(test)]
+mod projection_tests;
+pub mod renderer;
+#[cfg(test)]
+mod selected_fit_tests;
+pub mod specimen;
+
+use wasm_bindgen::prelude::*;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/shortcuts_tests.rs`
 
 Copy the modifier and text-ownership checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/26a-keys-tests.rs"
+```rust
+use crate::shortcuts::{Shortcut, key};
+
+#[test]
+fn history_keys_respect_text_ownership_and_modifiers() {
+    assert_eq!(
+        key("z", true, false, false, false, false, true),
+        Some(Shortcut::Undo)
+    );
+    assert_eq!(
+        key("Z", true, true, false, false, true, true),
+        Some(Shortcut::Redo)
+    );
+    assert_eq!(
+        key("y", true, false, false, false, false, false),
+        Some(Shortcut::Redo)
+    );
+    assert_eq!(
+        key("z", true, false, false, false, true, false),
+        None
+    );
+    assert_eq!(
+        key("z", false, false, false, false, false, true),
+        None
+    );
+    assert_eq!(
+        key("z", true, false, true, false, false, true),
+        None
+    );
+    assert_eq!(
+        key("z", true, false, false, true, false, true),
+        None
+    );
+}
+
+#[test]
+fn f_fits_only_when_the_canvas_owns_the_letter() {
+    assert_eq!(
+        key("f", false, false, false, false, false, true),
+        Some(Shortcut::Fit)
+    );
+    assert_eq!(
+        key("F", false, true, false, false, false, true),
+        Some(Shortcut::Fit)
+    );
+    assert_eq!(
+        key("f", false, false, false, false, true, true),
+        None
+    );
+    assert_eq!(
+        key("f", true, false, false, false, false, true),
+        None
+    );
+    assert_eq!(
+        key("h", false, false, false, false, false, true),
+        None
+    );
+    assert_eq!(
+        key("s", false, false, false, false, false, true),
+        None
+    );
+}
 ```
 
 ### 6. `src/lib.rs`
@@ -2529,14 +3750,30 @@ Register the native checks.
 **Locate this existing block:**
 
 ```rust
+pub mod mesh;
+pub mod navigation;
+pub mod picking;
+pub mod scene;
 pub mod shortcuts;
+pub mod viewport;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod mesh;
+pub mod picking;
+pub mod scene;
+pub mod shortcuts;
 #[cfg(test)]
 mod shortcuts_tests;
+pub mod viewport;
+
+pub mod navigation;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## Build & Run

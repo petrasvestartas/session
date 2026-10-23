@@ -106,7 +106,24 @@ Create the small piece of application state. It knows colours, but knows nothing
 Create the file and type:
 
 ```rust
---8<-- "journey/code/04-input-02.rs"
+#[derive(Default)]
+pub struct Background {
+    light: bool,
+}
+
+impl Background {
+    pub fn toggle(&mut self) {
+        self.light = !self.light;
+    }
+
+    pub fn rgb(&self) -> [f64; 3] {
+        if self.light {
+            [0.9, 0.9, 0.9]
+        } else {
+            [1.0, 1.0, 1.0]
+        }
+    }
+}
 ```
 
 ## 2. `src/lib.rs`
@@ -116,7 +133,6 @@ Register the state module so both the browser and the renderer can use it.
 **Locate this existing block:**
 
 ```rust
-pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
 ```
@@ -124,62 +140,67 @@ mod browser;
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/04-input-fullscreen-1.rs"
+pub mod background;
+#[cfg(target_arch = "wasm32")]
+mod browser;
 ```
 
 ## 3. `src/renderer.rs`
 
 Borrow Background in draw and read its RGB value. Clear the render target with that RGB value.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-```
-
-Replace it with:
-
-```rust
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-```
-
-**Locate this block:**
-
-```rust
-        Self { device, queue, pipeline }
     }
 
     pub fn draw(&self, view: &wgpu::TextureView) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        Self { device, queue, pipeline }
     }
 
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
+    pub fn draw(
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
+    ) {
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color { r, g, b, a: 1.0 }),
+                        store: wgpu::StoreOp::Store,
 ```
 
 ## 4. `src/browser.rs`
@@ -191,25 +212,21 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 Replace it with:
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view, background);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 **Locate this block:**
@@ -252,37 +269,38 @@ fn present(
 **Locate this block:**
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+        &["Help"],
+    );
     panel.update(None, &canvas)?;
     present(&surface, &renderer, &mut panel)?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let _line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let _line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
                 return;
             }
-        };
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+            if let Err(error) = present(&surface, &renderer, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
 ```
 
 Replace it with:
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
     let mut panel = crate::panel::Panel::new(
         &renderer,
         config.format.add_srgb_suffix(),
@@ -292,25 +310,28 @@ Replace it with:
     let mut background = Background::default();
     present(&surface, &renderer, &background, &mut panel)?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            if line.as_deref() == Some("background") {
+                background.toggle();
+            }
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
                 return;
             }
-        };
-        if line.as_deref() == Some("background") {
-            background.toggle();
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+            if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
 ```
 
 **Locate this block:**

@@ -1,31 +1,103 @@
 # 11.1 · Coverage-based screen-space outlines
 
-Outline the visible union of solid coverage at a stable CSS width without outlining internal seams.
+**Goal:** Check real contours widths reuse picks and cleanup. · **Steps:** 10 · **Source:** [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs) · [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs) · [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs) · [shaders/splat.wgsl](../../../src/shaders/splat.wgsl) · [shaders/splat_resolve.wgsl](../../../src/shaders/splat_resolve.wgsl) · [app/cloud_query.rs](../../../src/app/cloud_query.rs) (`src/engine/gpu/points.rs,src/shaders/point.wgsl,src/shaders/outline.wgsl`)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="196" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">1. Lesson 11.1 Code</text>
+  <rect x="34" y="48" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="64" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/outline_math.rs</text>
+  <rect x="34" y="78" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <rect x="34" y="108" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="124" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/outline.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">10 Coding Steps</text>
+  <line x1="264" y1="100" x2="292" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
+  <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/points.rs</text>
+  <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/point.wgsl</text>
+  <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Measure outline width in…</text>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Point Cloud SDF Splats</text>
+  <rect x="606" y="52" width="188" height="88" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <circle cx="646" cy="84" r="14" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="646" cy="84" r="3" fill="#111111"/>
+  <circle cx="702" cy="76" r="18" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+  <circle cx="702" cy="76" r="3" fill="#111111"/>
+  <circle cx="752" cy="96" r="11" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+  <circle cx="752" cy="96" r="3" fill="#111111"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">length(uv) &lt;= radius_px</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Coverage-based screen-space…</text>
+  <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Silhouette &amp; Crease Outlines</text>
+  <polygon points="902,130 946,56 1046,56 1002,130" fill="#f8fafc" stroke="#111111" stroke-width="3"/>
+  <line x1="946" y1="56" x2="974" y2="130" stroke="#2563eb" stroke-width="2" stroke-dasharray="4 3"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="974" y="146" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">ID Edge + Depth Jump</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Check real contour widths…</text>
+</svg>
+</div>
 
-Convert the requested CSS radius to physical pixels and build a bounded sorted tap table. A depth-visible mask represents selected or eligible solid coverage; coarse block maximum and neighbour dilation skip empty work conservatively. Outline alpha derives from the external union, then composites black ink over the loaded scene. Masks, coarse/dilated images, tap buffers and cached alpha have explicit owners and invalidation keys; unchanged camera, geometry, selection, size and samples reuse them.
+## <a id="checkpoint-63-radius"></a>1. Measure outline width in CSS pixels
 
-## The maintained implementation
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 1 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline_math.rs, src/li…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">CSS radius</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">bounded sorted taps</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared coverage width</text>
+</svg>
+</div>
 
-engine/gpu/surface_outline.rs owns SurfaceOutline, Mask, MaskKey, Table and Alpha. src/shaders/surface_outline.wgsl supplies maintained mask filtering/composition. This is derived presentation: original topology, source IDs and pick eligibility remain independent.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/cloud.rs](../../../src/engine/gpu/cloud.rs), [engine/gpu/lod.rs](../../../src/engine/gpu/lod.rs), [engine/gpu/splat.rs](../../../src/engine/gpu/splat.rs), [shaders/splat.wgsl](../../../src/shaders/splat.wgsl), [shaders/splat_resolve.wgsl](../../../src/shaders/splat_resolve.wgsl), [app/cloud_query.rs](../../../src/app/cloud_query.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-63-radius"></a>
-
-<details>
-<summary>Implementation 63-radius: Measure outline width in CSS pixels</summary>
-
-Measure outline width in CSS pixels.
-
-Data flow: CSS radius → physical density → bounded sorted taps → shared coverage width.
+**What this code does:** Measure outline width in CSS pixels.
 
 ### 1. `src/outline_math.rs`
 
@@ -34,39 +106,102 @@ Convert the current production CSS radius and build bounded nearest-first covera
 Create the file and type:
 
 ```rust
---8<-- "journey/code/63-radius-01.rs"
+pub fn radius(size: (u32, u32), css_width: f64) -> f32 {
+    let css_radius = 1.6875;
+    (css_radius * f64::from(size.0) / css_width.max(1.0)).clamp(1.0, 12.0) as f32
+}
+
+pub fn block(radius: f32) -> u32 {
+    ((radius + 0.5).ceil() as u32)
+        .next_power_of_two()
+        .max(4)
+}
+
+pub fn taps(radius: f32) -> Vec<[f32; 4]> {
+    let extent = (radius + 0.5).ceil() as i32;
+    let mut taps = Vec::new();
+
+    for y in -extent..=extent {
+        for x in -extent..=extent {
+            let distance = ((x * x + y * y) as f32).sqrt();
+
+            if distance >= radius + 0.5 {
+                continue;
+            }
+
+            let t = (distance - (radius - 0.5)).clamp(0.0, 1.0);
+            taps.push([
+                x as f32,
+                y as f32,
+                1.0 - t * t * (3.0 - 2.0 * t),
+                distance,
+            ]);
+        }
+    }
+
+    taps.sort_by(|a, b| a[3].total_cmp(&b[3]));
+    taps
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 #[cfg(test)]
 mod scene_label_tests;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63-radius-02.rs" skip=36
+#[cfg(test)]
+mod scene_label_tests;
+
+pub mod outline_math;
 ```
 
-</details>
+## <a id="checkpoint-63a-coverage"></a>2. Convolve solid coverage into external contour ink
 
-<a id="checkpoint-63a-coverage"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 2 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline.wgsl, src/outli…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original solid transforms</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">coarse search</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">black alpha</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 63a-coverage: Convolve solid coverage into external contour ink</summary>
-
-Write bounded contour sampling and black-alpha composition.
-
-Data flow: original solid transforms → visible R8 coverage → coarse search → black alpha.
+**What this code does:** Write bounded contour sampling and black-alpha composition.
 
 ### 1. `src/outline.wgsl`
 
@@ -75,38 +210,72 @@ Type the bounded contour predicate and separate composition entry points.
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/63a-coverage-typed.wgsl"
-```
+@group(0) @binding(0) var mask: texture_2d<f32>;
+@group(0) @binding(1) var<uniform> radius: vec4<f32>;
+@group(0) @binding(2) var coarse: texture_2d<f32>;
+@group(1) @binding(0) var selected_mask: texture_2d<f32>;
+@group(1) @binding(1) var<uniform> selected_radius: vec4<f32>;
+@group(1) @binding(2) var selected_coarse: texture_2d<f32>;
 
-### 2. `src/outline_mask.wgsl`
+struct Taps {
+    count: vec4<u32>,
+    at: array<vec4<f32>, 512>,
+}
 
-Transform the original solid vertices and write only depth-visible coverage.
+@group(2) @binding(0) var<uniform> taps: Taps;
 
-Create the file and type:
+fn near_any_coverage(coarse_mask: texture_2d<f32>, block: f32, p: vec2<i32>) -> bool {
+    return textureLoad(coarse_mask, p / i32(block), 0).r > 0.0;
+}
 
-```wgsl
---8<-- "journey/code/63a-coverage-02.rs"
-```
+@vertex
+fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+    let xy = vec2<f32>(f32((i << 1u) & 2u), f32(i & 2u));
+    return vec4<f32>(xy * 2.0 - 1.0, 0.0, 1.0);
+}
 
-</details>
+fn coverage_at(position: vec2<f32>) -> f32 {
+    let size = vec2<i32>(textureDimensions(mask));
+    let p = vec2<i32>(position);
+    let center = textureLoad(mask, p, 0).r;
+    let two = radius.y != selected_radius.y;
+    let center_two = select(1.0, textureLoad(selected_mask, p, 0).r, two);
+    let done = center >= 0.999 || !near_any_coverage(coarse, radius.z, p);
+    let done_two = center_two >= 0.999 || !near_any_coverage(selected_coarse, selected_radius.z, p);
 
-<a id="checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask"></a>
+    if (done && done_two) {
+        return 0.0;
+    }
 
-<details>
-<summary>Implementation 63aa-pool-and-dilate-a-conservative-outline-mask: Pool and dilate a conservative outline mask</summary>
+    var first = select(0.0, 1.0, done);
+    var second = select(0.0, 1.0, done_two);
 
-Accelerate bounded contour sampling with conservative coarse coverage.
+    for (var i = 0u; i < taps.count.x; i++) {
+        let tap = taps.at[i];
 
-Data flow: solid coverage → block maximum → neighboring-block dilation → skip empty contour work.
+        if (min(first, second) >= tap.z) {
+            break;
+        }
 
-### 1. `src/outline.wgsl`
+        let q = p + vec2<i32>(tap.xy);
 
-Pool and dilate coverage without losing a possible contour hit.
+        if (any(q < vec2<i32>(0)) || any(q >= size)) {
+            continue;
+        }
 
-<details>
-<summary>Locate the existing block</summary>
+        if (!done) {
+            first = max(first, textureLoad(mask, q, 0).r * tap.z);
+        }
 
-```wgsl
+        if (!done_two) {
+            second = max(second, textureLoad(selected_mask, q, 0).r * tap.z);
+        }
+    }
+
+    return max(select(first * (1.0 - center), 0.0, done), select(second * (1.0 - center_two), 0.0, done_two));
+}
+
+@fragment
 fn fs_alpha(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
     return vec4<f32>(coverage_at(position.xy), 0.0, 0.0, 1.0);
 }
@@ -123,11 +292,77 @@ fn fs_main(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 }
 ```
 
-</details>
+### 2. `src/outline_mask.wgsl`
 
-After that block, type:
+Transform the original solid vertices and write only depth-visible coverage.
+
+Create the file and type:
 
 ```wgsl
+struct View {transform:mat4x4<f32>,display:vec4<f32>}
+struct Object {model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
+@group(0) @binding(0) var<uniform> view:View;
+@group(1) @binding(0) var<uniform> object:Object;
+@vertex fn vertex(@location(0) position:vec3<f32>)->@builtin(position) vec4<f32> {return view.transform*object.model*vec4<f32>(position,1.0);}
+@fragment fn fragment()->@location(0) vec4<f32> {return vec4<f32>(1.0);}
+```
+
+## <a id="checkpoint-63aa-pool-and-dilate-a-conservative-outline-mask"></a>3. Pool and dilate a conservative outline mask
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline.wgsl</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">solid coverage</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">neighboring-block dilation</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">skip empty contour work</text>
+</svg>
+</div>
+
+**What this code does:** Accelerate bounded contour sampling with conservative coarse coverage.
+
+### 1. `src/outline.wgsl`
+
+Pool and dilate coverage without losing a possible contour hit.
+
+**Locate this existing block:**
+
+```wgsl
+    return vec4<f32>(0.0, 0.0, 0.0, alpha);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
+    return vec4<f32>(0.0, 0.0, 0.0, alpha);
+}
+
 @fragment
 fn fs_pool(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
     let size = vec2<i32>(textureDimensions(mask));
@@ -167,27 +402,44 @@ fn fs_dilate(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
 }
 ```
 
-<details>
-<summary>Optional patch references</summary>
+## <a id="checkpoint-63b-resources"></a>4. Own and count the derived outline textures
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 4 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline_gpu.rs, src/lib…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">derived textures</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">allocated bytes</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">explicit release</text>
+</svg>
+</div>
 
-```text
---8<-- "journey/code/63aa-pool-and-dilate-a-conservative-outline-mask-01.wgsl"
-```
-
-</details>
-
-</details>
-
-<a id="checkpoint-63b-resources"></a>
-
-<details>
-<summary>Implementation 63b-resources: Own and count the derived outline textures</summary>
-
-Own and count the derived outline textures.
-
-Data flow: derived textures → owning masks → allocated bytes → explicit release.
+**What this code does:** Own and count the derived outline textures.
 
 ### 1. `src/outline_gpu.rs`
 
@@ -196,190 +448,877 @@ Own R8 images, frame keys, pipeline state and the reusable fullscreen preparatio
 Create the file and type:
 
 ```rust
---8<-- "journey/code/63b-resources-01.rs"
+use crate::{
+    gpu_mesh::GpuMesh,
+    text_gpu_support::{GpuCtx, resource_group, texture_entry},
+};
+use wgpu::{ShaderStages as Stages, TextureSampleType as Sample};
+
+struct Image {
+    texture: wgpu::Texture,
+    view: wgpu::TextureView,
+    size: [u32; 2],
+}
+impl Image {
+    fn new(device: &wgpu::Device, size: [u32; 2], label: &str) -> Self {
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some(label),
+            size: wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::R8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        let view = texture.create_view(&Default::default());
+        Self {
+            texture,
+            view,
+            size,
+        }
+    }
+    fn bytes(&self) -> u64 {
+        self.size[0] as u64 * self.size[1] as u64
+    }
+}
+impl Drop for Image {
+    fn drop(&mut self) {
+        self.texture.destroy();
+    }
+}
+struct Masks {
+    coverage: Image,
+    coarse: Image,
+    dilated: Image,
+    alpha: Image,
+    block: u32,
+    pool: wgpu::BindGroup,
+    dilate: wgpu::BindGroup,
+    search: wgpu::BindGroup,
+    composite: wgpu::BindGroup,
+}
+#[derive(Clone, PartialEq)]
+struct Key {
+    transform: [f32; 16],
+    size: [u32; 2],
+    density: u32,
+    revision: u64,
+}
+
+pub struct Outline {
+    mask_pipeline: wgpu::RenderPipeline,
+    pool_pipeline: wgpu::RenderPipeline,
+    dilate_pipeline: wgpu::RenderPipeline,
+    alpha_pipeline: wgpu::RenderPipeline,
+    composite_pipeline: wgpu::RenderPipeline,
+    pool_layout: wgpu::BindGroupLayout,
+    search_layout: wgpu::BindGroupLayout,
+    composite_layout: wgpu::BindGroupLayout,
+    radius: wgpu::Buffer,
+    taps: wgpu::Buffer,
+    tap_group: wgpu::BindGroup,
+    masks: Option<Masks>,
+    key: Option<Key>,
+    tap_radius: Option<f32>,
+    revision: u64,
+    pub rebuilds: u64,
+    pub skips: u64,
+    pub draws: u64,
+}
+impl Outline {}
+fn raster(
+    encoder: &mut wgpu::CommandEncoder,
+    view: &wgpu::TextureView,
+    pipeline: &wgpu::RenderPipeline,
+    groups: &[&wgpu::BindGroup],
+) {
+    let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("outline preparation"),
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            view,
+            depth_slice: None,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                store: wgpu::StoreOp::Store,
+            },
+        })],
+        ..Default::default()
+    });
+    pass.set_pipeline(pipeline);
+    for (i, group) in groups.iter().enumerate() {
+        pass.set_bind_group(i as u32, *group, &[]);
+    }
+    pass.draw(0..3, 0..1);
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+mod scene_label_tests;
 
 pub mod outline_math;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63b-resources-02.rs" skip=23
+mod scene_label_tests;
+
+pub mod outline_math;
+
+pub mod outline_gpu;
 ```
 
-</details>
+## <a id="checkpoint-63c-pipelines"></a>5. Create the mask and fullscreen pipeline layouts
 
-<a id="checkpoint-63c-pipelines"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 5 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original vertex layout</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">fullscreen pipeline</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">alpha blending</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 63c-pipelines: Create the mask and fullscreen pipeline layouts</summary>
-
-Create the mask and fullscreen pipeline layouts.
-
-Data flow: original vertex layout → depth mask pipeline → fullscreen pipeline → alpha blending.
+**What this code does:** Create the mask and fullscreen pipeline layouts.
 
 ### 1. `src/outline_gpu.rs`
 
 Create compatible mask and fullscreen pipelines without reallocating primary geometry.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  pass.draw(0..3, 0..1);
+    pass.draw(0..3, 0..1);
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63c-pipelines-01.rs" skip=27
+    pass.draw(0..3, 0..1);
+}
+fn fullscreen(
+    device: &wgpu::Device,
+    shader: &wgpu::ShaderModule,
+    groups: &[&wgpu::BindGroupLayout],
+    entry: &str,
+    format: wgpu::TextureFormat,
+    blend: bool,
+) -> wgpu::RenderPipeline {
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some(entry),
+        bind_group_layouts: &groups
+            .iter()
+            .map(|g| Some(*g))
+            .collect::<Vec<_>>(),
+        immediate_size: 0,
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some(entry),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: shader,
+            entry_point: Some("vs_main"),
+            buffers: &[],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: shader,
+            entry_point: Some(entry),
+            targets: &[Some(wgpu::ColorTargetState {
+                format,
+                blend: blend.then_some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+            compilation_options: Default::default(),
+        }),
+        primitive: Default::default(),
+        depth_stencil: None,
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
+fn mask_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("selected visible coverage"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("outline_mask.wgsl").into()),
+    });
+    let view = crate::gpu_layout::uniform(device, 80);
+    let model = crate::gpu_layout::uniform(device, 160);
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("selected mask"),
+        bind_group_layouts: &[Some(&view), Some(&model)],
+        immediate_size: 0,
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("selected mask"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &shader,
+            entry_point: Some("vertex"),
+            buffers: &[wgpu::VertexBufferLayout {
+                array_stride: 24,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &wgpu::vertex_attr_array![0=>Float32x3],
+            }],
+            compilation_options: Default::default(),
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader,
+            entry_point: Some("fragment"),
+            targets: &[Some(wgpu::TextureFormat::R8Unorm.into())],
+            compilation_options: Default::default(),
+        }),
+        primitive: Default::default(),
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: crate::depth::FORMAT,
+            depth_write_enabled: Some(false),
+            depth_compare: Some(wgpu::CompareFunction::LessEqual),
+            stencil: Default::default(),
+            bias: Default::default(),
+        }),
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
 ```
 
-</details>
+## <a id="checkpoint-63d-bindings"></a>6. Build bounded mask and tap bindings
 
-<a id="checkpoint-63d-bindings"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 6 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">texture layouts</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current shader</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reusable pipelines</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 63d-bindings: Build bounded mask and tap bindings</summary>
-
-Build bounded mask and tap bindings.
-
-Data flow: texture layouts → bounded parameter buffers → current shader → reusable pipelines.
+**What this code does:** Build bounded mask and tap bindings.
 
 ### 1. `src/outline_gpu.rs`
 
 Build explicit current shader bindings and fixed parameter capacity.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
 }
-impl Outline {
-}
+impl Outline {}
 fn raster(
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63d-bindings-01.rs"
+}
+impl Outline {
+    pub fn new(ctx: &GpuCtx, format: wgpu::TextureFormat) -> Self {
+        let texture = |binding| {
+            texture_entry(
+                binding,
+                Stages::FRAGMENT,
+                Sample::Float {
+                    filterable: false,
+                },
+                false,
+            )
+        };
+        let uniform = |binding, bytes| wgpu::BindGroupLayoutEntry {
+            binding,
+            visibility: Stages::FRAGMENT,
+            ty: wgpu::BindingType::Buffer {
+                ty: wgpu::BufferBindingType::Uniform,
+                has_dynamic_offset: false,
+                min_binding_size: wgpu::BufferSize::new(bytes),
+            },
+            count: None,
+        };
+        let layout = |label, entries: &[wgpu::BindGroupLayoutEntry]| {
+            ctx.device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some(label),
+                    entries,
+                })
+        };
+        let pool_layout = layout(
+            "outline pooling",
+            &[texture(0), uniform(1, 16)],
+        );
+        let search_layout = layout(
+            "outline mask search",
+            &[texture(0), uniform(1, 16), texture(2)],
+        );
+        let tap_layout = layout(
+            "outline sorted taps",
+            &[uniform(0, 16 + 16 * 512)],
+        );
+        let composite_layout = layout("outline alpha", &[texture(0)]);
+        let buffer = |label, size| {
+            ctx.device
+                .create_buffer(&wgpu::BufferDescriptor {
+                    label: Some(label),
+                    size,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                })
+        };
+        let radius = buffer("outline radius", 16);
+        let taps = buffer("outline sorted taps", 16 + 16 * 512);
+        let tap_group = resource_group(
+            ctx,
+            &tap_layout,
+            "outline sorted taps",
+            [(0, taps.as_entire_binding())],
+        );
+        let shader = ctx
+            .device
+            .create_shader_module(wgpu::ShaderModuleDescriptor {
+                label: Some("current surface outline"),
+                source: wgpu::ShaderSource::Wgsl(include_str!("outline.wgsl").into()),
+            });
+        Self {
+            mask_pipeline: mask_pipeline(&ctx.device),
+            pool_pipeline: fullscreen(
+                &ctx.device,
+                &shader,
+                &[&pool_layout],
+                "fs_pool",
+                wgpu::TextureFormat::R8Unorm,
+                false,
+            ),
+            dilate_pipeline: fullscreen(
+                &ctx.device,
+                &shader,
+                &[&pool_layout],
+                "fs_dilate",
+                wgpu::TextureFormat::R8Unorm,
+                false,
+            ),
+            alpha_pipeline: fullscreen(
+                &ctx.device,
+                &shader,
+                &[&search_layout, &search_layout, &tap_layout],
+                "fs_alpha",
+                wgpu::TextureFormat::R8Unorm,
+                false,
+            ),
+            composite_pipeline: fullscreen(
+                &ctx.device,
+                &shader,
+                &[&composite_layout],
+                "fs_main",
+                format,
+                true,
+            ),
+            pool_layout,
+            search_layout,
+            composite_layout,
+            radius,
+            taps,
+            tap_group,
+            masks: None,
+            key: None,
+            tap_radius: None,
+            revision: 1,
+            rebuilds: 0,
+            skips: 0,
+            draws: 0,
+        }
+    }
+    pub fn invalidate(&mut self) {
+        self.revision = self.revision.wrapping_add(1);
+    }
+    pub fn release(&mut self) {
+        self.masks = None;
+        self.key = None;
+    }
+}
+fn raster(
 ```
 
-</details>
+## <a id="checkpoint-63e-reuse"></a>7. Reuse masks while camera selection and density stay unchanged
 
-<a id="checkpoint-63e-reuse"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 7 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline_gpu.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">viewport and density</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">radius-keyed taps</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">invalidated frame key</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 63e-reuse: Reuse masks while camera selection and density stay unchanged</summary>
-
-Reuse masks while camera selection and density stay unchanged.
-
-Data flow: viewport and density → prepared masks → radius-keyed taps → invalidated frame key.
+**What this code does:** Reuse masks while camera selection and density stay unchanged.
 
 ### 1. `src/outline_gpu.rs`
 
 Prepare exact-size derived targets, bounded tap bytes and truthful resource counters.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    self.key = None;
-  }
+        self.key = None;
+    }
 }
 fn raster(
 ```
 
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63e-reuse-01.rs"
+        self.key = None;
+    }
+    pub fn usage(&self) -> [u64; 4] {
+        self.masks.as_ref().map_or(
+            [
+                self.radius.size() + self.taps.size(),
+                self.rebuilds,
+                self.skips,
+                self.draws,
+            ],
+            |m| {
+                [
+                    m.coverage.bytes()
+                        + m.coarse.bytes()
+                        + m.dilated.bytes()
+                        + m.alpha.bytes()
+                        + self.radius.size()
+                        + self.taps.size(),
+                    self.rebuilds,
+                    self.skips,
+                    self.draws,
+                ]
+            },
+        )
+    }
+    fn prepare(&mut self, ctx: &GpuCtx, size: [u32; 2], density: f32) {
+        let radius = crate::outline_math::radius(
+            (size[0], size[1]),
+            size[0] as f64 / density as f64,
+        );
+        let block = crate::outline_math::block(radius);
+        if self
+            .masks
+            .as_ref()
+            .is_none_or(|m| m.coverage.size != size || m.block != block)
+        {
+            let coverage = Image::new(&ctx.device, size, "selected coverage");
+            let coarse_size = size.map(|n| n.div_ceil(block).max(1));
+            let coarse = Image::new(
+                &ctx.device,
+                coarse_size,
+                "selected coarse mask",
+            );
+            let dilated = Image::new(
+                &ctx.device,
+                coarse_size,
+                "selected dilated mask",
+            );
+            let alpha = Image::new(&ctx.device, size, "selected outline alpha");
+            let pool = resource_group(
+                ctx,
+                &self.pool_layout,
+                "selected mask pooling",
+                [
+                    (
+                        0,
+                        wgpu::BindingResource::TextureView(&coverage.view),
+                    ),
+                    (1, self.radius.as_entire_binding()),
+                ],
+            );
+            let dilate = resource_group(
+                ctx,
+                &self.pool_layout,
+                "selected coarse dilation",
+                [
+                    (
+                        0,
+                        wgpu::BindingResource::TextureView(&coarse.view),
+                    ),
+                    (1, self.radius.as_entire_binding()),
+                ],
+            );
+            let search = resource_group(
+                ctx,
+                &self.search_layout,
+                "selected outline search",
+                [
+                    (
+                        0,
+                        wgpu::BindingResource::TextureView(&coverage.view),
+                    ),
+                    (1, self.radius.as_entire_binding()),
+                    (
+                        2,
+                        wgpu::BindingResource::TextureView(&dilated.view),
+                    ),
+                ],
+            );
+            let composite = resource_group(
+                ctx,
+                &self.composite_layout,
+                "selected outline alpha",
+                [(
+                    0,
+                    wgpu::BindingResource::TextureView(&alpha.view),
+                )],
+            );
+            self.masks = Some(Masks {
+                coverage,
+                coarse,
+                dilated,
+                alpha,
+                block,
+                pool,
+                dilate,
+                search,
+                composite,
+            });
+            self.key = None;
+        }
+        ctx.queue.write_buffer(
+            &self.radius,
+            0,
+            &[radius, 1., block as f32, 0.]
+                .into_iter()
+                .flat_map(f32::to_ne_bytes)
+                .collect::<Vec<_>>(),
+        );
+        if self.tap_radius != Some(radius) {
+            let table = crate::outline_math::taps(radius);
+            assert!(table.len() <= 512);
+            let mut bytes = vec![0u8; 16 + 16 * 512];
+            bytes[..4].copy_from_slice(&(table.len() as u32).to_ne_bytes());
+            for (i, tap) in table.iter().enumerate() {
+                for (j, value) in tap.iter().enumerate() {
+                    let offset = 16 + 16 * i + 4 * j;
+                    bytes[offset..offset + 4].copy_from_slice(&value.to_ne_bytes());
+                }
+            }
+            ctx.queue.write_buffer(&self.taps, 0, &bytes);
+            self.tap_radius = Some(radius);
+        }
+    }
+}
+fn raster(
 ```
 
-</details>
+## <a id="checkpoint-63f-union"></a>8. Outline the visible union without internal seams
 
-<a id="checkpoint-63f-union"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 8 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/gpu_mesh.rs, src/outlin…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">selected solids</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">outside alpha</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">black load pass</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 63f-union: Outline the visible union without internal seams</summary>
-
-Outline the visible union without internal seams.
-
-Data flow: selected solids → depth-visible union → outside alpha → black load pass.
+**What this code does:** Outline the visible union without internal seams.
 
 ### 1. `src/gpu_mesh.rs`
 
 Read whole-selection state from the existing uploaded object uniform.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
     }
 
-    pub fn settings_bytes(&self) -> u64 { self.model.size() }
+    pub fn settings_bytes(&self) -> u64 {
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63f-union-01.rs"
+    }
+
+    pub fn selected(&self) -> bool {
+        u32::from_ne_bytes(self.previous[64..68].try_into().unwrap()) != 0
+    }
+
+    pub fn settings_bytes(&self) -> u64 {
 ```
 
 ### 2. `src/outline_gpu.rs`
 
 Encode visible selected coverage, cached alpha and a black compositor after geometry ink.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+        }
     }
-  }
 }
 fn raster(
 ```
 
-</details>
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63f-union-02.rs"
+        }
+    }
+    pub fn encode(
+        &mut self,
+        ctx: &GpuCtx,
+        encoder: &mut wgpu::CommandEncoder,
+        colour: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        view_group: &wgpu::BindGroup,
+        meshes: &[GpuMesh],
+        transform: [f32; 16],
+        size: [u32; 2],
+        density: f32,
+    ) {
+        if !meshes.iter().any(GpuMesh::selected) {
+            self.release();
+            return;
+        }
+        self.prepare(ctx, size, density);
+        let key = Key {
+            transform,
+            size,
+            density: density.to_bits(),
+            revision: self.revision,
+        };
+        let m = self.masks.as_ref().unwrap();
+        if self.key.as_ref() != Some(&key) {
+            {
+                let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                    label: Some("selected visible coverage"),
+                    color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                        view: &m.coverage.view,
+                        depth_slice: None,
+                        resolve_target: None,
+                        ops: wgpu::Operations {
+                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                            store: wgpu::StoreOp::Store,
+                        },
+                    })],
+                    depth_stencil_attachment: Some(
+                        wgpu::RenderPassDepthStencilAttachment {
+                            view: depth,
+                            depth_ops: Some(wgpu::Operations {
+                                load: wgpu::LoadOp::Load,
+                                store: wgpu::StoreOp::Store,
+                            }),
+                            stencil_ops: None,
+                        },
+                    ),
+                    ..Default::default()
+                });
+                pass.set_pipeline(&self.mask_pipeline);
+                pass.set_bind_group(0, view_group, &[]);
+                for mesh in meshes.iter().filter(|m| m.selected()) {
+                    mesh.draw(&mut pass);
+                }
+            }
+            raster(
+                encoder,
+                &m.coarse.view,
+                &self.pool_pipeline,
+                &[&m.pool],
+            );
+            raster(
+                encoder,
+                &m.dilated.view,
+                &self.dilate_pipeline,
+                &[&m.dilate],
+            );
+            raster(
+                encoder,
+                &m.alpha.view,
+                &self.alpha_pipeline,
+                &[&m.search, &m.search, &self.tap_group],
+            );
+            self.key = Some(key);
+            self.rebuilds += 1;
+        } else {
+            self.skips += 1;
+        }
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("selected black silhouette"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: colour,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                ..Default::default()
+            });
+            pass.set_pipeline(&self.composite_pipeline);
+            pass.set_bind_group(0, &m.composite, &[]);
+            pass.draw(0..3, 0..1);
+        }
+        self.draws += 1;
+    }
+}
+fn raster(
 ```
 
-</details>
+## <a id="checkpoint-63g-composite"></a>9. Connect a lazy silhouette owner to the renderer
 
-<a id="checkpoint-63g-composite"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 9 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/renderer.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">whole selection</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">black silhouette</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">immediate release</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 63g-composite: Connect a lazy silhouette owner to the renderer</summary>
-
-Connect a lazy silhouette owner to the renderer.
-
-Data flow: whole selection → lazy owner → black silhouette → immediate release.
+**What this code does:** Connect a lazy silhouette owner to the renderer.
 
 ### 1. `src/renderer.rs`
 
@@ -387,19 +1326,13 @@ Connect whole-object silhouette invalidation, lazy compositing, current allocati
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
             self.markers.draw(&mut pass);
             self.preview.draw(&mut pass);
         }
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
 ```
-
-</details>
 
 Replace it with:
 
@@ -408,819 +1341,737 @@ Replace it with:
             self.preview.draw(&mut pass);
         }
         if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density);
-        } else {self.outline.borrow_mut().take();}
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        }
-        drop(old);
-        self.geometry.prune();
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        }
-        drop(old);
-        self.geometry.prune();
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self {full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-```
-
-</details>
-
-Replace it with:
-
-```rust
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self {outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-```
-
-</details>
-
-Replace it with:
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode: crate::pick_sources::Mode,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
-        });
-        let view_layout = crate::gpu_layout::uniform(&device, 80);
-        let model_layout = crate::gpu_layout::uniform(&device, 160);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout)], immediate_size: 0 });
-        let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 24,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }, wgpu::VertexBufferLayout {
-                    array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![2 => Float32x3],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface());
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink());
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: 80,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self {outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.picker.cancel(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.picker.cancel(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        self.markers.set_points(&self.device, scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker();if let Some(colour)=scene.view.faces.get(&row.id) {marker.colour=rgba(*colour);}marker}).chain(scene.control_markers().into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.view.faces.get(&row.id) {for segment in &mut segments {segment.stroke.colour=rgba(*colour);}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke();if let Some(colour)=scene.view.faces.get(&row.id) {stroke.colour=rgba(*colour);}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&self.device, &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry(&self.device, &layout, object,
-                    style(scene,object.id,selected==Some(object.id)), geometry)
-            };
-            self.meshes.push(row);
-        }
-        drop(old);
-        self.geometry.prune();
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density, mode: self.pick_mode })?;
-        self.pump_pick(transform); Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density) else { self.picker.cancel(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        if let Some(request) = self.picker.next(view) { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref()); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::new(transform, self.size, self.density) { Ok(view) => view, Err(error) => {
-            self.picker.cancel(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit))) => Some(Ok(hit)),
-            Some(Ok(crate::pick_gpu::Reply::Stale)) => { self.pump_pick(transform); None },
-            Some(Err(error)) => Some(Err(error)), None => None,
-        }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.picker.cancel(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self) -> [u64; 4] { crate::memory::gpu(&self.meshes) }
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 160 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self, settings: Option<crate::grid::Settings>) -> Result<(), &'static str> {
-        if settings == self.grid_settings { return Ok(()); }
-        let strokes = settings.map(crate::grid::Settings::strokes).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device, strokes)?; self.grid_settings = settings; Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let matrix=camera.view_projection();
-        let layout=origin.and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:[[0.;4];4]}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(merged)?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene) {
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
-    }
-    pub fn text_stats(&self)->Option<crate::scene_text_gpu::TextStats> {self.text.borrow().as_ref().map(|lane|lane.stats.clone())}
-    pub fn text_scene_usage(&self)->[u64;4] {self.text.borrow().as_ref().map_or([0;4],|lane|[lane.allocated_bytes(),lane.texture_bytes(),lane.stats.world_plane_rasterizations,lane.document.runs.len() as u64])}
-    pub fn replace_text_fonts(&self,fonts:Vec<Vec<u8>>)->anyhow::Result<()> {if let Some(lane)=self.text.borrow_mut().as_mut() {lane.document.replace_fonts(fonts.clone())?;} else {let mut document=crate::text::TextDocument::new();document.replace_fonts(fonts.clone())?;}*self.full_text_fonts.borrow_mut()=Some(fonts);Ok(())}
-    pub fn clear_text_fonts(&self) {self.full_text_fonts.borrow_mut().take();}
-
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
+            let mut outline = self.outline.borrow_mut();
+            let outline = outline.get_or_insert_with(|| {
+                crate::outline_gpu::Outline::new(&self.text_context(), self.format)
             });
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in &self.meshes {
-                mesh.draw(&mut pass);
-            }
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.highlight.mesh(&mut pass);
-            self.highlight.ink(&mut pass);
-            self.mesh_ink.draw(&mut pass);
-            self.grid.draw(&mut pass);
-            self.strokes.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
-            self.preview.draw(&mut pass);
+            outline.encode(
+                &self.text_context(),
+                &mut encoder,
+                view,
+                &self.depth,
+                &self.view_group,
+                &self.meshes,
+                *transform,
+                self.size,
+                self.density,
+            );
+        } else {
+            self.outline.borrow_mut().take();
         }
-        if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density);
-        } else {self.outline.borrow_mut().take();}
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        self.queue.submit([encoder.finish()]);
+```
+
+**Locate this block:**
+
+```rust
+        self.set_text(vec![crate::text_example::label()])
     }
-}
 
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,pickable:scene.pick_id(id.value()).is_some(),colour:scene.view.faces.get(&id).copied()}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
+    pub fn highlight_bytes(&self) -> u64 {
+        self.highlight.bytes()
+    }
 ```
 
-</details>
+Replace it with:
 
-<details>
-<summary>Optional patch references</summary>
+```rust
+        self.set_text(vec![crate::text_example::label()])
+    }
 
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
+    pub fn outline_usage(&self) -> [u64; 4] {
+        self.outline
+            .borrow()
+            .as_ref()
+            .map_or([0; 4], |outline| outline.usage())
+    }
 
-```text
---8<-- "journey/code/63g-composite-01.rs"
+    pub fn highlight_bytes(&self) -> u64 {
+        self.highlight.bytes()
+    }
 ```
 
-```text
---8<-- "journey/code/63g-composite-02.rs"
+**Locate this block:**
+
+```rust
+                self.settings_bytes += bytes;
+            }
+        }
+        if !ids.is_empty() {
+            self.highlight
+                .objects(&self.device, scene, ids)?;
 ```
 
-```text
---8<-- "journey/code/63g-composite-03.rs"
+Replace it with:
+
+```rust
+                self.settings_bytes += bytes;
+            }
+        }
+        if !self.meshes.iter().any(GpuMesh::selected) {
+            self.outline.borrow_mut().take();
+        }
+        if !ids.is_empty() {
+            self.highlight
+                .objects(&self.device, scene, ids)?;
 ```
 
-```text
---8<-- "journey/code/63g-composite-04.rs"
+**Locate this block:**
+
+```rust
+        scene: &Scene,
+        ids: &[ObjectId],
+    ) -> Result<(), &'static str> {
+        for mesh in &mut self.meshes {
+            if let Some(row) = scene
+                .objects()
 ```
 
-```text
---8<-- "journey/code/63g-composite-05.rs"
+Replace it with:
+
+```rust
+        scene: &Scene,
+        ids: &[ObjectId],
+    ) -> Result<(), &'static str> {
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
+            outline.invalidate();
+        }
+        for mesh in &mut self.meshes {
+            if let Some(row) = scene
+                .objects()
 ```
 
-```text
---8<-- "journey/code/63g-composite-06.rs"
+**Locate this block:**
+
+```rust
+        scene: &Scene,
+        target: Option<crate::pick_sources::Target>,
+    ) -> Result<(), &'static str> {
+        self.highlight.set(
+            &self.device,
+            &self.pipeline.get_bind_group_layout(1),
 ```
 
-```text
---8<-- "journey/code/63g-composite-07.rs"
+Replace it with:
+
+```rust
+        scene: &Scene,
+        target: Option<crate::pick_sources::Target>,
+    ) -> Result<(), &'static str> {
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
+            outline.invalidate();
+        }
+        self.highlight.set(
+            &self.device,
+            &self.pipeline.get_bind_group_layout(1),
 ```
 
-</details>
+**Locate this block:**
 
-</details>
+```rust
+        }
+        drop(old);
+        self.geometry.prune();
+        if let Err(error) = self.set_scene_text(scene, selected.as_slice()) {
+            *self.text_error.borrow_mut() = Some(error.to_string());
+        }
+```
 
-<a id="checkpoint-63h-outline"></a>
+Replace it with:
 
-<details>
-<summary>Implementation 63h-outline: Check real contours widths reuse picks and cleanup</summary>
+```rust
+        }
+        drop(old);
+        self.geometry.prune();
+        if !self.meshes.iter().any(GpuMesh::selected) {
+            self.outline.borrow_mut().take();
+        }
+        if let Err(error) = self.set_scene_text(scene, selected.as_slice()) {
+            *self.text_error.borrow_mut() = Some(error.to_string());
+        }
+```
 
-Check real contours widths reuse picks and cleanup.
+**Locate this block:**
 
-Data flow: actual pixels and alpha → original picks and topology → cache reuse → resource cleanup.
+```rust
+    }
 
-<details>
-<summary>Supplied validation fixture</summary>
+    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
+        self.picker.cancel();
+        self.faces.clear();
+        self.preview
+```
 
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+Replace it with:
+
+```rust
+    }
+
+    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
+            outline.invalidate();
+        }
+        self.picker.cancel();
+        self.faces.clear();
+        self.preview
+```
+
+**Locate this block:**
+
+```rust
+        let faces = crate::face_pick::Faces::new(&device);
+        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
+        let mut renderer = Self {
+            full_text_fonts: Default::default(),
+            presentation_text: Default::default(),
+            scene_text: Default::default(),
+```
+
+Replace it with:
+
+```rust
+        let faces = crate::face_pick::Faces::new(&device);
+        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
+        let mut renderer = Self {
+            outline: Default::default(),
+            full_text_fonts: Default::default(),
+            presentation_text: Default::default(),
+            scene_text: Default::default(),
+```
+
+**Locate this block:**
+
+```rust
+pub struct Renderer {
+    text: std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
+    text_error: std::cell::RefCell<Option<String>>,
+    full_text_fonts: std::cell::RefCell<Option<Vec<Vec<u8>>>>,
+```
+
+Replace it with:
+
+```rust
+pub struct Renderer {
+    outline: std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
+    text: std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
+    text_error: std::cell::RefCell<Option<String>>,
+    full_text_fonts: std::cell::RefCell<Option<Vec<Vec<u8>>>>,
+```
+
+## <a id="checkpoint-63h-outline"></a>10. Check real contour widths, reuse, picks, and cleanup
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 10 of 10</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/outline_gpu.rs, src/ren…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">actual pixels and alpha</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cache reuse</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/engine/gpu/poin…</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">resource cleanup</text>
+</svg>
+</div>
+
+**What this code does:** Check real contours widths reuse picks and cleanup.
 
 ### 1. `src/outline_gpu.rs`
 
 Copy the test-only actual-alpha readback accessor.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-    }),
-    multisample: Default::default(),
-    multiview_mask: None,
-    cache: None,
-  })
+```rust
+        }),
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+        }),
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
 
-```text
---8<-- "journey/code/63h-outline-01.rs" skip=95
+#[cfg(test)]
+impl Outline {
+    pub(crate) fn alpha_texture(&self) -> Option<&wgpu::Texture> {
+        self.masks.as_ref().map(|m| &m.alpha.texture)
+    }
+}
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/renderer.rs`
 
 Copy test-only R8 alpha readback with bounded row pitch and wait.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
+```rust
+    ]
+}
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+    ]
+}
 
-```text
---8<-- "journey/code/63h-outline-02.rs" skip=94
+#[cfg(all(test, not(target_arch = "wasm32")))]
+impl Renderer {
+    pub fn outline_alpha(&self) -> Vec<u8> {
+        let owner = self.outline.borrow();
+        let Some(outline) = owner.as_ref() else {
+            return Vec::new();
+        };
+        let Some(texture) = outline.alpha_texture() else {
+            return Vec::new();
+        };
+        let [width, height] = self.size;
+        let pitch = width.div_ceil(256) * 256;
+        let buffer = self
+            .device
+            .create_buffer(&wgpu::BufferDescriptor {
+                label: Some("actual outline alpha readback"),
+                size: pitch as u64 * height as u64,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            });
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
+        encoder.copy_texture_to_buffer(
+            texture.as_image_copy(),
+            wgpu::TexelCopyBufferInfo {
+                buffer: &buffer,
+                layout: wgpu::TexelCopyBufferLayout {
+                    offset: 0,
+                    bytes_per_row: Some(pitch),
+                    rows_per_image: Some(height),
+                },
+            },
+            wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+        );
+        self.queue.submit([encoder.finish()]);
+        let (tx, rx) = std::sync::mpsc::channel();
+        buffer
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |r| {
+                tx.send(r).unwrap()
+            });
+        self.device
+            .poll(wgpu::PollType::Wait {
+                submission_index: None,
+                timeout: Some(std::time::Duration::from_secs(5)),
+            })
+            .unwrap();
+        rx.recv().unwrap().unwrap();
+        let bytes = buffer.slice(..).get_mapped_range();
+        let pixels = bytes
+            .chunks_exact(pitch as usize)
+            .flat_map(|row| row[..width as usize].iter().copied())
+            .collect();
+        drop(bytes);
+        buffer.unmap();
+        pixels
+    }
+}
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/outline_math_tests.rs`
 
 Copy the current production radius, tap capacity and order regressions.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/63h-outline-03.rs"
+```rust
+use crate::outline_math::*;
+#[test]
+fn current_outline_radius_and_sorted_taps_keep_css_width_independent_of_geometry() {
+    for density in [1.0_f32, 1.25, 1.5, 2., 3., 4., 8., 20.] {
+        let pixels = (800. * density) as u32;
+        let r = radius((pixels, 600), 800.);
+        assert_eq!(r, (1.6875 * density).clamp(1., 12.));
+        let table = taps(r);
+        assert!(table.len() <= 512);
+        assert_eq!(table[0], [0., 0., 1., 0.]);
+        assert!(
+            table
+                .windows(2)
+                .all(|p| p[0][3] <= p[1][3] && p[0][2] >= p[1][2])
+        );
+        for tap in table {
+            assert!(tap[2] > 0. && tap[2] <= 1.);
+            assert!(tap[3] < r + 0.5);
+            assert!(tap[0].abs() < block(r) as f32 && tap[1].abs() < block(r) as f32);
+        }
+    }
+}
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/lib.rs`
 
 Register the source component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
+```rust
+pub mod outline_math;
 
 pub mod outline_gpu;
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+pub mod outline_math;
 
-```text
---8<-- "journey/code/63h-outline-04.rs" skip=22
+pub mod outline_gpu;
+
+#[cfg(test)]
+mod outline_math_tests;
 ```
-
-</details>
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/pick_gpu_tests.rs`
 
 Copy actual joined-solid, occlusion, curved/flat density, bore-contour, source/pick/reuse/release regressions.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
-```text
-    assert!(changed>50);renderer.request_pick([-0.0625,0.],identity()).unwrap();assert_eq!(finish(&mut renderer).unwrap()[0],id.value());renderer.request_pick([0.125,0.],identity()).unwrap();assert!(finish(&mut renderer).is_none());
+```rust
+        .request_pick([0.125, 0.], identity())
+        .unwrap();
+    assert!(finish(&mut renderer).is_none());
 }
 ```
 
-</details>
+Edit the existing block to match this code; keep unchanged lines:
 
-After that block, append this supplied code:
+```rust
+        .request_pick([0.125, 0.], identity())
+        .unwrap();
+    assert!(finish(&mut renderer).is_none());
+}
 
-```text
---8<-- "journey/code/63h-outline-05.rs" skip=235
+#[test]
+fn actual_selected_silhouette_has_one_union_no_internal_diagonal_and_keeps_source_and_picks()
+ {
+    let mut scene = Scene::demo();
+    scene.clear();
+    let mesh = |x: f64| {
+        let mut source = session_rust::Mesh::create_box(0.6, 0.8, 0.1);
+        source.set_objectcolor(session_rust::Color::new(0.5, 0.5, 0.5, 1.));
+        let mut prepared = PreparedMesh::new(source).unwrap();
+        prepared.model = session_rust::Xform::translation(x, 0., 0.5);
+        prepared
+    };
+    let a = scene.insert(mesh(-0.3)).unwrap();
+    let b = scene.insert(mesh(0.3)).unwrap();
+    let sources = scene
+        .objects()
+        .iter()
+        .map(|row| row.geometry().unwrap().to_proto())
+        .collect::<Vec<_>>();
+    let mut renderer = renderer(&scene);
+    let geometry = renderer.stats();
+    renderer
+        .select_objects(&scene, &[a, b])
+        .unwrap();
+    let first = colour_pixels(&mut renderer);
+    let alpha = renderer.outline_alpha();
+    assert_eq!(alpha.len(), 320 * 240);
+    assert!(alpha.iter().filter(|v| **v > 0).count() > 300);
+    for y in 90..150 {
+        for x in 90..230 {
+            assert_eq!(
+                alpha[y * 320 + x],
+                0,
+                "The combined coverage has no outline along the shared object join or tessellation diagonals"
+            );
+        }
+    }
+    let stats = renderer.outline_usage();
+    assert_eq!(colour_pixels(&mut renderer), first);
+    assert_eq!(renderer.outline_alpha(), alpha);
+    assert_eq!(renderer.outline_usage()[1], stats[1]);
+    assert!(renderer.outline_usage()[2] > stats[2]);
+    assert_eq!(&renderer.stats()[..2], &geometry[..2]);
+    assert_eq!(
+        scene
+            .objects()
+            .iter()
+            .map(|row| row.geometry().unwrap().to_proto())
+            .collect::<Vec<_>>(),
+        sources
+    );
+    renderer
+        .request_pick([-0.3, 0.], identity())
+        .unwrap();
+    assert_eq!(finish(&mut renderer).unwrap()[0], a.value());
+    renderer
+        .request_pick([0.3, 0.], identity())
+        .unwrap();
+    assert_eq!(finish(&mut renderer).unwrap()[0], b.value());
+    renderer.select_objects(&scene, &[]).unwrap();
+    colour_pixels(&mut renderer);
+    assert!(renderer.outline_alpha().is_empty());
+    assert_eq!(renderer.outline_usage()[0], 0);
+}
+
+#[test]
+fn actual_surface_outline_culls_occluded_selection_and_selected_edge_ink_cannot_narrow_its_alpha()
+ {
+    use crate::pick_sources::{Part, Target};
+    let mut scene = Scene::demo();
+    scene.clear();
+    let back = scene.insert(triangle(0.6)).unwrap();
+    let front = scene.insert(triangle(0.2)).unwrap();
+    let mut renderer = renderer(&scene);
+    renderer
+        .select_objects(&scene, &[back])
+        .unwrap();
+    colour_pixels(&mut renderer);
+    assert!(
+        renderer
+            .outline_alpha()
+            .iter()
+            .all(|v| *v == 0),
+        "A selected surface wholly behind the current opaque depth adds no silhouette"
+    );
+    renderer
+        .select_objects(&scene, &[front])
+        .unwrap();
+    let plain = colour_pixels(&mut renderer);
+    let alpha = renderer.outline_alpha();
+    assert!(alpha.iter().any(|v| *v > 128));
+    let edge = scene
+        .objects()
+        .iter()
+        .find(|row| row.id == front)
+        .unwrap()
+        .mesh
+        .parts
+        .edges[0];
+    renderer
+        .set_highlight(
+            &scene,
+            Some(Target {
+                owner: front,
+                part: Part::MeshEdge(edge.0, edge.1),
+            }),
+        )
+        .unwrap();
+    let inked = colour_pixels(&mut renderer);
+    assert_eq!(
+        renderer.outline_alpha(),
+        alpha,
+        "Source edge highlighting cannot change the actual outline width"
+    );
+    let mut opaque = 0;
+    for ((a, b), coverage) in plain
+        .chunks_exact(4)
+        .zip(inked.chunks_exact(4))
+        .zip(&alpha)
+    {
+        if *coverage >= 250 && a[..3].iter().all(|c| *c < 8) {
+            opaque += 1;
+            assert!(
+                b[..3].iter().all(|c| *c < 12),
+                "Yellow source edge ink cannot paint over black outline pixels"
+            );
+        }
+    }
+    assert!(opaque > 100);
+    scene.clear();
+    renderer.set_scene(&scene, None);
+    colour_pixels(&mut renderer);
+    assert_eq!(renderer.outline_usage()[0], 0);
+}
+
+#[test]
+fn actual_curved_and_flat_silhouettes_keep_the_same_css_width_at_two_densities() {
+    let mut widths = Vec::new();
+    for curved in [false, true] {
+        let mut scene = Scene::demo();
+        scene.clear();
+        let id = if curved {
+            scene
+                .insert_cad(Rc::new(session_rust::BRep::create_cylinder(
+                    0.4, 0.8,
+                )))
+                .unwrap()
+        } else {
+            let mut prepared =
+                PreparedMesh::new(session_rust::Mesh::create_box(0.8, 0.8, 0.2))
+                    .unwrap();
+            prepared.model = session_rust::Xform::translation(0., 0., 0.5);
+            scene.insert(prepared).unwrap()
+        };
+        let mut renderer = renderer(&scene);
+        renderer
+            .select_objects(&scene, &[id])
+            .unwrap();
+        let geometry = renderer.stats();
+        let mut css = Vec::new();
+        for density in [1., 2.] {
+            renderer.set_density(density);
+            colour_pixels(&mut renderer);
+            let alpha = renderer.outline_alpha();
+            assert!(alpha.iter().any(|v| *v == 255));
+            let row = &alpha[120 * 320..121 * 320];
+            let width = row[160..]
+                .iter()
+                .map(|v| *v as f64 / 255.)
+                .sum::<f64>()
+                / density as f64;
+            assert!(
+                (0.7..1.7).contains(&width),
+                "Actual outer silhouette CSS coverage remains bounded: {width}"
+            );
+            css.push(width);
+            assert_eq!(&renderer.stats()[..2], &geometry[..2]);
+        }
+        assert!(
+            (css[0] - css[1]).abs() < 0.5,
+            "DPI keeps the outline in CSS units: {css:?}"
+        );
+        widths.push(css);
+    }
+    for i in 0..2 {
+        assert!(
+            (widths[0][i] - widths[1][i]).abs() < 0.25,
+            "A smooth cylinder and flat box use one coverage width: {widths:?}"
+        );
+    }
+}
+
+#[test]
+fn actual_selected_bore_keeps_its_open_center_and_black_inner_contour() {
+    let source = Rc::new(session_rust::BRep::create_block_with_hole(
+        1.2, 1.2, 0.4, 0.25,
+    ));
+    let _ = source.guid();
+    let original = source.to_proto();
+    let mut scene = Scene::demo();
+    scene.clear();
+    let id = scene.insert_cad(source.clone()).unwrap();
+    let mut renderer = renderer(&scene);
+    renderer
+        .select_objects(&scene, &[id])
+        .unwrap();
+    let pixels = colour_pixels(&mut renderer);
+    let alpha = renderer.outline_alpha();
+    for y in 112..128 {
+        for x in 152..168 {
+            assert_eq!(
+                alpha[y * 320 + x],
+                0,
+                "The bore center stays open"
+            );
+        }
+    }
+    let mut inner = 0;
+    for y in 80..160 {
+        for x in 110..210 {
+            let i = y * 320 + x;
+            if alpha[i] >= 250 {
+                inner += 1;
+                assert!(
+                    pixels[i * 4..i * 4 + 3]
+                        .iter()
+                        .all(|c| *c < 12),
+                    "The actual inner silhouette is black"
+                );
+            }
+        }
+    }
+    assert!(
+        inner > 100,
+        "The real bore boundary has an inner outline: {inner}"
+    );
+    renderer
+        .request_pick([0., 0.], identity())
+        .unwrap();
+    assert!(finish(&mut renderer).is_none());
+    renderer
+        .request_pick([0.4, 0.], identity())
+        .unwrap();
+    assert_eq!(finish(&mut renderer).unwrap()[0], id.value());
+    assert_eq!(
+        source.to_proto(),
+        original,
+        "Coverage cannot change original topology"
+    );
+}
 ```
-
-</details>
 
 ### 6. `src/browser.rs`
 
 Expose actual outline allocation, rebuild, skip and compositor draw counters.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-scene-text-stats",&serde_json::to_string(&renderer.text_stats()).unwrap())?;
-    canvas.set_attribute("data-scene-text-cpu",&serde_json::to_string(&crate::memory::texts(editor.presentation_scenes())).unwrap())?;
+    canvas.set_attribute(
+        "data-scene-text-stats",
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/63h-outline-06.rs"
+    canvas.set_attribute(
+        "data-surface-outline",
+        &serde_json::to_string(&renderer.outline_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-scene-text-stats",
 ```
 
-</details>
+## Build & Run
 
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+![Recorded visual output for Lesson 11.1 (63h-outline)](../../screenshots/journey/63h-outline.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 63h-outline
-npm --prefix ../session_tests run course -- check 63h-outline
-npm --prefix ../session_tests run course -- save 63h-outline
+npm --prefix ../session_tests run course -- dependencies 11.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 11.1
+npm --prefix ../session_tests run course -- save 11.1
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-Type Close, Example CAD, Fit and View Isometric, then Select Next. The selected CAD solid has black outer and bore contours. Whole selection creates derived outline resources; deselection and Close drop them. Repeat an unchanged frame to reuse coverage, and compare curved and flat solids at both CSS densities.
-
-Type Close, Example CAD, Fit and View Isometric, then Select Next. Inspect the black outer and bore contours. Deselect, select a source face, and confirm its highlight remains local.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
-
-Continue with [Validated original cloud columns and placed owners](64-nodes.md).
+Continue with [11.2 · Validated original cloud columns and placed owners](64-nodes.md).

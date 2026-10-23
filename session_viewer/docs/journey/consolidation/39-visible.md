@@ -107,17 +107,23 @@ Read visibility from the original shared path source.
 **Locate this existing block:**
 
 ```rust
-    pub fn guid(&self) -> &str { match self { Self::Line(line) => line.guid(), Self::Polyline(line) => line.guid(), Self::Curve(curve, _) => curve.guid() } }
+impl Source {
+    pub fn guid(&self) -> &str {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+impl Source {
     pub fn visible(&self) -> bool {
-        match self { Self::Line(line) => line.is_visible, Self::Polyline(line) => line.is_visible, Self::Curve(curve, _) => curve.is_visible }
+        match self {
+            Self::Line(line) => line.is_visible,
+            Self::Polyline(line) => line.is_visible,
+            Self::Curve(curve, _) => curve.is_visible,
+        }
     }
 
-    pub fn guid(&self) -> &str { match self { Self::Line(line) => line.guid(), Self::Polyline(line) => line.guid(), Self::Curve(curve, _) => curve.guid() } }
+    pub fn guid(&self) -> &str {
 ```
 
 ### 2. `src/scene.rs`
@@ -129,25 +135,21 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
+        for row in self
+            .paths
+            .iter()
+            .filter(|row| row.controls_visible)
+        {
 ```
 
 Replace it with:
 
 ```rust
-
-    pub fn control_markers(&self) -> Vec<ControlMarker> {
-        let mut markers = Vec::new();
-        for row in self.paths.iter().filter(|row| row.controls_visible && row.visible()) {
-            for control in row.prepared.source.controls() {
-                let p = control.position().expect("Validated original control");
-                let p = row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
+        for row in self
+            .paths
+            .iter()
+            .filter(|row| row.controls_visible && row.visible())
+        {
 ```
 
 **Locate this block:**
@@ -156,9 +158,9 @@ Replace it with:
     }
 
     pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
+        let object = self
+            .objects
+            .iter()
 ```
 
 Replace it with:
@@ -167,10 +169,40 @@ Replace it with:
     }
 
     pub fn selected_bounds(&self, id: ObjectId) -> Option<crate::bounds::Bounds> {
-        if !self.visible(id) { return None; }
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        let mut vertices = object.mesh.vertices().iter();
-        let first = vertices.next()?;
+        if !self.visible(id) {
+            return None;
+        }
+        let object = self
+            .objects
+            .iter()
+```
+
+**Locate this block:**
+
+```rust
+                }
+            }
+        }
+        for row in &self.points {
+            let p = row.point();
+            let p = [p[0], p[1], p[2]];
+            match &mut bounds {
+```
+
+Replace it with:
+
+```rust
+                }
+            }
+        }
+        for row in self
+            .points
+            .iter()
+            .filter(|row| row.visible())
+        {
+            let p = row.point();
+            let p = [p[0], p[1], p[2]];
+            match &mut bounds {
 ```
 
 **Locate this block:**
@@ -182,13 +214,7 @@ Replace it with:
         for row in &self.paths {
             for point in row.bounds_points() {
                 let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
-        }
-        for row in &self.points {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
+                match &mut bounds {
 ```
 
 Replace it with:
@@ -200,13 +226,7 @@ Replace it with:
         for row in self.paths.iter().filter(|row| row.visible()) {
             for point in row.bounds_points() {
                 let point = [point[0], point[1], point[2]];
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
-            }
-        }
-        for row in self.points.iter().filter(|row| row.visible()) {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
-        }
+                match &mut bounds {
 ```
 
 **Locate this block:**
@@ -227,7 +247,11 @@ Replace it with:
                 }
             }
         }
-        for line in self.lines.iter().filter(|line| line.visible()) {
+        for line in self
+            .lines
+            .iter()
+            .filter(|line| line.visible())
+        {
             for point in line.endpoints() {
                 let point = [point[0], point[1], point[2]];
                 match &mut bounds {
@@ -236,7 +260,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        *self = saved;
     }
 
     pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
@@ -250,19 +273,31 @@ Replace it with:
 Replace it with:
 
 ```rust
-        *self = saved;
     }
 
     pub fn visible(&self, id: ObjectId) -> bool {
-        if let Some(row) = self.objects.iter().find(|row| row.id == id) { return row.metadata.is_visible; }
-        if let Some(row) = self.lines.iter().find(|row| row.id == id) { return row.prepared.source.is_visible; }
-        if let Some(row) = self.paths.iter().find(|row| row.id == id) { return row.prepared.source.visible(); }
-        self.points.iter().find(|row| row.id == id).is_some_and(|row| row.prepared.source.is_visible)
+        if let Some(row) = self.objects.iter().find(|row| row.id == id) {
+            return row.metadata.is_visible;
+        }
+        if let Some(row) = self.lines.iter().find(|row| row.id == id) {
+            return row.prepared.source.is_visible;
+        }
+        if let Some(row) = self.paths.iter().find(|row| row.id == id) {
+            return row.prepared.source.visible();
+        }
+        self.points
+            .iter()
+            .find(|row| row.id == id)
+            .is_some_and(|row| row.prepared.source.is_visible)
     }
 
     pub fn bounds(&self) -> Option<crate::bounds::Bounds> {
         let mut bounds: Option<crate::bounds::Bounds> = None;
-        for object in self.objects.iter().filter(|row| row.visible()) {
+        for object in self
+            .objects
+            .iter()
+            .filter(|row| row.visible())
+        {
             for vertex in object.mesh.vertices() {
                 let point = object.world_point(*vertex);
                 match &mut bounds {
@@ -272,46 +307,85 @@ Replace it with:
 
 Draw only visible original point rows. Keep invisible connected path data out of GPU instance allocation. Keep hidden original lines out of the stroke batch. Allocate surface GPU rows only for visible document objects.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.markers.set_points(&self.device, scene.points().iter().map(crate::scene::PointObject::marker).chain(scene.control_markers().into_iter().map(|c| c.display)))
+                    .iter()
+                    .map(crate::scene::PointObject::marker)
+                    .chain(
+                        scene
+                            .control_markers()
+                            .into_iter()
+                            .map(|c| c.display),
+                    ),
+            )
             .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().flat_map(crate::scene::PathObject::segments))
+        self.paths
+            .set_chains(
+                &self.device,
+                scene
+                    .paths()
+                    .iter()
+                    .flat_map(crate::scene::PathObject::segments),
+            )
             .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().map(crate::scene::LineObject::stroke))
+        self.strokes
+            .set(
+                &self.device,
+                scene
+                    .lines()
+                    .iter()
+                    .map(crate::scene::LineObject::stroke),
+            )
             .expect("Prepared line placement fits the display range");
         let layout = self.pipeline.get_bind_group_layout(1);
         let mut old = std::mem::take(&mut self.meshes);
         for object in scene.objects() {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
+            let matching = old.iter().position(|row| {
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.markers.set_points(&self.device, scene.points().iter().filter(|row| row.visible()).map(crate::scene::PointObject::marker).chain(scene.control_markers().into_iter().map(|c| c.display)))
+                    .iter()
+                    .filter(|row| row.visible())
+                    .map(crate::scene::PointObject::marker)
+                    .chain(
+                        scene
+                            .control_markers()
+                            .into_iter()
+                            .map(|c| c.display),
+                    ),
+            )
             .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| row.visible()).flat_map(crate::scene::PathObject::segments))
+        self.paths
+            .set_chains(
+                &self.device,
+                scene
+                    .paths()
+                    .iter()
+                    .filter(|row| row.visible())
+                    .flat_map(crate::scene::PathObject::segments),
+            )
             .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| row.visible()).map(crate::scene::LineObject::stroke))
+        self.strokes
+            .set(
+                &self.device,
+                scene
+                    .lines()
+                    .iter()
+                    .filter(|row| row.visible())
+                    .map(crate::scene::LineObject::stroke),
+            )
             .expect("Prepared line placement fits the display range");
         let layout = self.pipeline.get_bind_group_layout(1);
         let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| row.visible()) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
+        for object in scene
+            .objects()
+            .iter()
+            .filter(|row| row.visible())
+        {
+            let matching = old.iter().position(|row| {
 ```
 
 ### 4. `src/picking.rs`
@@ -321,13 +395,21 @@ Use the same visibility predicate for ray picking and drawing.
 **Locate this existing block:**
 
 ```rust
+    let mut hit = None;
     for object in scene.objects() {
+        let vertices = object.mesh.vertices();
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    for object in scene.objects().iter().filter(|row| row.visible()) {
+    let mut hit = None;
+    for object in scene
+        .objects()
+        .iter()
+        .filter(|row| row.visible())
+    {
+        let vertices = object.mesh.vertices();
 ```
 
 ### 5. `src/lib.rs`
@@ -337,28 +419,107 @@ Register hidden ownership and visible picking checks.
 **Locate this existing block:**
 
 ```rust
-pub mod scene;
+mod shortcuts_tests;
+pub mod startup;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod shortcuts_tests;
 #[cfg(test)]
 mod source_visibility_tests;
+pub mod startup;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/source_visibility_tests.rs`
 
 Copy retained hidden ownership, empty visible bounds and invisible picking refusal checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/39-visible-15.rs"
+```rust
+use crate::{
+    camera::Camera, chain::PreparedChain, marker::PreparedPoint,
+    prepared::PreparedMesh, scene::Scene, stroke::PreparedLine,
+};
+use session_rust::{Line, Mesh, NurbsCurve, Point, Polyline};
+use std::rc::Rc;
+
+pub fn hidden_scene() -> Scene {
+    let mut scene = Scene::demo();
+    scene.clear();
+    let mut mesh = Mesh::create_box(1.0, 1.0, 1.0);
+    mesh.is_visible = false;
+    scene
+        .insert(PreparedMesh::new(mesh).unwrap())
+        .unwrap();
+    let mut line = Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
+    line.is_visible = false;
+    scene
+        .insert_line(PreparedLine::new(Rc::new(line)).unwrap())
+        .unwrap();
+    let points = vec![
+        Point::new(-0.6, -0.4, 0.0),
+        Point::new(0.0, 0.6, 0.0),
+        Point::new(0.6, -0.4, 0.0),
+    ];
+    let mut polyline = Polyline::new(points.clone());
+    polyline.is_visible = false;
+    scene
+        .insert_path(PreparedChain::polyline(Rc::new(polyline)).unwrap())
+        .unwrap();
+    let mut curve = NurbsCurve::create(false, 2, &points);
+    curve.is_visible = false;
+    scene
+        .insert_path(PreparedChain::curve(Rc::new(curve)).unwrap())
+        .unwrap();
+    let mut point = Point::new(0.0, 0.0, 0.0);
+    point.is_visible = false;
+    scene
+        .insert_point(PreparedPoint::new(Rc::new(point)).unwrap())
+        .unwrap();
+    scene.show_controls(true);
+    scene
+}
+
+#[test]
+fn invisible_original_sources_remain_owned_but_cannot_fit_or_pick() {
+    let scene = hidden_scene();
+    assert_eq!(scene.objects().len(), 1);
+    assert_eq!(scene.lines().len(), 1);
+    assert_eq!(scene.paths().len(), 2);
+    assert_eq!(scene.points().len(), 1);
+    assert!(scene.bounds().is_none());
+    assert!(scene.next(None).is_none());
+    assert!(scene.control_markers().is_empty());
+    assert!(
+        scene
+            .selected_bounds(scene.objects()[0].id)
+            .is_none()
+    );
+    let ray = Camera::default().ray([0.0, 0.0]).unwrap();
+    assert!(crate::picking::pick(&scene, &ray).is_none());
+    assert_eq!(crate::memory::curves([&scene])[1], 1);
+    assert_eq!(crate::memory::points([&scene])[1], 1);
+}
+
+#[test]
+fn selection_cycles_past_hidden_sources_without_changing_their_rows() {
+    let mut scene = hidden_scene();
+    let hidden = scene.objects()[0].id;
+    let visible = scene
+        .insert(PreparedMesh::new(Mesh::create_box(1.0, 1.0, 1.0)).unwrap())
+        .unwrap();
+    assert_eq!(scene.next(None), Some(visible));
+    assert_eq!(scene.next(Some(hidden)), Some(visible));
+    assert_eq!(scene.next(Some(visible)), Some(visible));
+    let ray = Camera::default().ray([0.0, 0.0]).unwrap();
+    assert_eq!(
+        crate::picking::pick(&scene, &ray),
+        Some(visible)
+    );
+}
 ```
 
 ### 7. `src/scene.rs`
@@ -376,12 +537,13 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         if self.objects.is_empty() {
             return None;
         }
-        let index = self.objects.iter().position(|object| Some(object.id) == current)
+        let index = self
+            .objects
+            .iter()
+            .position(|object| Some(object.id) == current)
             .map_or(0, |index| index + 1);
         Some(self.objects[index % self.objects.len()].id)
     }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
 ```
 
 Replace it with:
@@ -390,43 +552,48 @@ Replace it with:
     }
 
     pub fn next(&self, current: Option<ObjectId>) -> Option<ObjectId> {
-        let start = self.objects.iter().position(|object| Some(object.id) == current)
+        let start = self
+            .objects
+            .iter()
+            .position(|object| Some(object.id) == current)
             .map_or(0, |index| index + 1);
-        (0..self.objects.len()).map(|offset| &self.objects[(start + offset) % self.objects.len()])
-            .find(|row| row.visible()).map(|row| row.id)
+        (0..self.objects.len())
+            .map(|offset| &self.objects[(start + offset) % self.objects.len()])
+            .find(|row| row.visible())
+            .map(|row| row.id)
     }
-
-    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
+}
 
 impl PointObject {
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
+    pub fn point(&self) -> session_rust::Point {
+        self.model
+            .transform_point(&self.prepared.source)
 ```
 
 Replace it with:
 
 ```rust
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
+}
 
 impl PointObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
+    pub fn visible(&self) -> bool {
+        self.prepared.source.is_visible
+    }
 
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
-}
+    pub fn point(&self) -> session_rust::Point {
+        self.model
+            .transform_point(&self.prepared.source)
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
+}
 
 impl PathObject {
     pub fn segments(&self) -> Vec<crate::chain::Segment> {
@@ -437,10 +604,12 @@ impl PathObject {
 Replace it with:
 
 ```rust
-pub struct PathObject { pub controls_visible: bool, pub id: ObjectId, pub guid: String, pub prepared: crate::chain::PreparedChain, pub model: session_rust::Xform }
+}
 
 impl PathObject {
-    pub fn visible(&self) -> bool { self.prepared.source.visible() }
+    pub fn visible(&self) -> bool {
+        self.prepared.source.visible()
+    }
 
     pub fn segments(&self) -> Vec<crate::chain::Segment> {
         let mut points = Vec::new();
@@ -455,7 +624,7 @@ impl PathObject {
 impl LineObject {
     pub fn endpoints(&self) -> [session_rust::Point; 2] {
         let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
+        [
 ```
 
 Replace it with:
@@ -464,35 +633,35 @@ Replace it with:
 }
 
 impl LineObject {
-    pub fn visible(&self) -> bool { self.prepared.source.is_visible }
+    pub fn visible(&self) -> bool {
+        self.prepared.source.is_visible
+    }
 
     pub fn endpoints(&self) -> [session_rust::Point; 2] {
         let line = &self.prepared.source;
-        [self.model.transform_point(&line.start()), self.model.transform_point(&line.end())]
+        [
 ```
 
 **Locate this block:**
 
 ```rust
-}
-
 impl Object {
     pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
+        match &self.editable {
+            crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry),
 ```
 
 Replace it with:
 
 ```rust
-}
-
 impl Object {
-    pub fn visible(&self) -> bool { self.metadata.is_visible }
+    pub fn visible(&self) -> bool {
+        self.metadata.is_visible
+    }
 
     pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
-    }
+        match &self.editable {
+            crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry),
 ```
 
 ## <a id="checkpoint-39a-depth"></a>2. Share surface depth across all ink lanes
@@ -541,7 +710,24 @@ Name one depth format and explicit surface/ink comparison policies.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/39a-depth-01.rs"
+pub const FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+
+pub fn surface() -> wgpu::DepthStencilState {
+    state(true, wgpu::CompareFunction::Less)
+}
+pub fn ink() -> wgpu::DepthStencilState {
+    state(false, wgpu::CompareFunction::LessEqual)
+}
+
+fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState {
+    wgpu::DepthStencilState {
+        format: FORMAT,
+        depth_write_enabled: Some(write),
+        depth_compare: Some(compare),
+        stencil: Default::default(),
+        bias: Default::default(),
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -551,13 +737,16 @@ Register the shared depth contract.
 **Locate this existing block:**
 
 ```rust
-pub mod renderer;
+mod browser_reload;
+pub mod document;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod browser_reload;
 pub mod depth;
+pub mod document;
 ```
 
 ### 3. `src/renderer.rs`
@@ -574,8 +763,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Depth32Float,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
 ```
 
 Replace it with:
@@ -586,15 +773,11 @@ Replace it with:
             dimension: wgpu::TextureDimension::D2,
             format: crate::depth::FORMAT,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
-        });
 ```
 
 **Locate this block:**
 
 ```rust
-                targets: &[Some(format.into())],
-            }),
             primitive: Default::default(),
             depth_stencil: Some(wgpu::DepthStencilState {
                 format: wgpu::TextureFormat::Depth32Float,
@@ -611,8 +794,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-                targets: &[Some(format.into())],
-            }),
             primitive: Default::default(),
             depth_stencil: Some(crate::depth::surface()),
             multisample: Default::default(),
@@ -627,15 +808,23 @@ Keep all analytic ink lanes read-only against the same surface depth.
 **Locate this existing block:**
 
 ```rust
-            depth_stencil: Some(wgpu::DepthStencilState { format: wgpu::TextureFormat::Depth32Float,
-                depth_write_enabled: Some(false), depth_compare: Some(wgpu::CompareFunction::LessEqual),
-                stencil: Default::default(), bias: Default::default() }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(false),
+                depth_compare: Some(wgpu::CompareFunction::LessEqual),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+            primitive: Default::default(),
             depth_stencil: Some(crate::depth::ink()),
+            multisample: Default::default(),
 ```
 
 ## Build & Run

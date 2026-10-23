@@ -107,7 +107,67 @@ Retain exact point ownership and pack finite display data with the viewer’s di
 Create the file and type:
 
 ```rust
---8<-- "journey/code/37-point-01.rs"
+use std::rc::Rc;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Marker {
+    pub center: [f32; 3],
+    pub diameter: f32,
+    pub colour: [f32; 4],
+}
+
+#[derive(Clone)]
+pub struct PreparedPoint {
+    pub source: Rc<session_rust::Point>,
+    pub display: Marker,
+}
+
+impl PreparedPoint {
+    pub fn new(source: Rc<session_rust::Point>) -> Result<Self, &'static str> {
+        let _ = source.guid();
+        let diameter = if source.width.is_finite()
+            && source.width > 0.0
+            && (source.width - 1.0).abs() > 1e-9
+        {
+            source.width as f32
+        } else {
+            6.0
+        };
+        let diameter = if diameter == 0.0 {
+            6.0
+        } else {
+            diameter
+        };
+        let display = Marker {
+            center: source.to_f32(),
+            diameter,
+            colour: source.pointcolor.to_f32(),
+        };
+        if display
+            .values()
+            .iter()
+            .any(|v| !v.is_finite())
+        {
+            return Err("Point marker exceeds the display range");
+        }
+        Ok(Self { source, display })
+    }
+}
+
+impl Marker {
+    pub fn values(&self) -> [f32; 8] {
+        let [x, y, z] = self.center;
+        let [r, g, b, a] = self.colour;
+        [x, y, z, self.diameter, r, g, b, a]
+    }
+
+    pub fn bytes(&self) -> Vec<u8> {
+        self.values()
+            .into_iter()
+            .flat_map(f32::to_ne_bytes)
+            .collect()
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -117,29 +177,86 @@ Register point preparation and its source checks.
 **Locate this existing block:**
 
 ```rust
-pub mod chain;
+mod load_phase_tests;
+pub mod memory;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod load_phase_tests;
 pub mod marker;
 #[cfg(test)]
 mod marker_tests;
+pub mod memory;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/marker_tests.rs`
 
 Copy point precision, packing, style and lifetime checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/37-point-03.rs"
+```rust
+use crate::marker::PreparedPoint;
+use session_rust::{Color, Point};
+use std::rc::Rc;
+
+#[test]
+fn point_preparation_preserves_original_coordinates_style_and_shared_owner() {
+    let mut point = Point::new(0.123456789012345, 0.0, 0.0);
+    point.width = 9.0;
+    point.pointcolor = Color::new(0.2, 0.4, 0.6, 0.5);
+    let source = Rc::new(point);
+    let weak = Rc::downgrade(&source);
+    let guid = source.guid().to_owned();
+    let prepared = PreparedPoint::new(Rc::clone(&source)).unwrap();
+    assert_eq!(prepared.source[0], 0.123456789012345);
+    assert_eq!(prepared.source.guid(), guid);
+    assert_ne!(prepared.display.center[0] as f64, source[0]);
+    assert_eq!(prepared.display.diameter, 9.0);
+    let bytes = prepared.display.bytes();
+    assert_eq!(bytes.len(), 32);
+    assert_eq!(
+        f32::from_ne_bytes(bytes[12..16].try_into().unwrap()),
+        9.0
+    );
+    let shared = prepared.clone();
+    assert!(Rc::ptr_eq(&prepared.source, &shared.source));
+    drop(source);
+    drop(prepared);
+    assert!(weak.upgrade().is_some());
+    drop(shared);
+    assert!(weak.upgrade().is_none());
+}
+
+#[test]
+fn marker_default_width_and_display_refusal_match_their_source_policy() {
+    for width in [
+        0.0,
+        1.0,
+        -1.0,
+        f64::NAN,
+        f64::INFINITY,
+        1e-100,
+    ] {
+        let mut point = Point::new(0.0, 0.0, 0.0);
+        point.width = width;
+        assert_eq!(
+            PreparedPoint::new(Rc::new(point))
+                .unwrap()
+                .display
+                .diameter,
+            6.0
+        );
+    }
+    for x in [f64::NAN, f64::INFINITY, 1e100] {
+        assert!(PreparedPoint::new(Rc::new(Point::new(x, 0.0, 0.0))).is_err());
+    }
+    let mut point = Point::new(0.0, 0.0, 0.0);
+    point.width = 1e100;
+    assert!(PreparedPoint::new(Rc::new(point)).is_err());
+}
 ```
 
 ## <a id="checkpoint-37a-disc"></a>2. Extrude a circular marker in screen pixels
@@ -188,7 +305,33 @@ Keep disc diameter in screen pixels and cover its edge analytically.
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/37a-disc-01.wgsl"
+struct View { transform: mat4x4<f32>, size: vec2<f32>, density: f32 }
+@group(0) @binding(0) var<uniform> view: View;
+struct Output {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec4<f32>,
+    @location(1) @interpolate(linear) offset: vec2<f32>,
+    @location(2) @interpolate(flat) radius: f32,
+}
+@vertex
+fn vertex(@location(0) center: vec3<f32>, @location(1) diameter: f32,
+    @location(2) colour: vec4<f32>, @builtin(vertex_index) index: u32) -> Output {
+    var position = view.transform * vec4<f32>(center, 1.0);
+    if (position.w <= 0.0 || position.z < 0.0 || position.z > position.w) {
+        return Output(vec4<f32>(2.0, 2.0, 2.0, 1.0), colour, vec2<f32>(0.0), 0.0);
+    }
+    let corners = array<vec2<f32>, 6>(vec2<f32>(-1.0, -1.0), vec2<f32>(1.0, -1.0), vec2<f32>(-1.0, 1.0),
+        vec2<f32>(-1.0, 1.0), vec2<f32>(1.0, -1.0), vec2<f32>(1.0, 1.0));
+    let radius = diameter * view.density * 0.5;
+    let offset = corners[index] * (radius + 0.70711);
+    position = vec4<f32>(position.xy + offset * 2.0 / view.size * position.w, position.zw);
+    return Output(position, colour, offset, radius);
+}
+@fragment
+fn fragment(input: Output) -> @location(0) vec4<f32> {
+    let coverage = clamp(input.radius + 0.5 - length(input.offset), 0.0, 1.0);
+    return vec4<f32>(input.colour.rgb, input.colour.a * coverage);
+}
 ```
 
 ### 2. `src/marker.rs`
@@ -199,6 +342,8 @@ Expose the actual marker shader source.
 
 ```rust
 use std::rc::Rc;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -206,6 +351,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```rust
 pub const SHADER: &str = include_str!("marker.wgsl");
 use std::rc::Rc;
+
+#[derive(Clone, Copy, Debug, PartialEq)]
 ```
 
 ## <a id="checkpoint-37b-lane"></a>3. Draw markers with the shared instance lane
@@ -256,60 +403,71 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                4 => Float32x3, 5 => Float32x3, 6 => Uint32])
-    }
-
-    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32,
+                4 => Float32x3, 5 => Float32x3, 6 => Uint32],
+        )
 ```
 
 Replace it with:
 
 ```rust
-                4 => Float32x3, 5 => Float32x3, 6 => Uint32])
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32,
+                4 => Float32x3, 5 => Float32x3, 6 => Uint32],
+        )
     }
 
     pub fn markers(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout(device, format, crate::marker::SHADER, 32, 6,
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32, 2 => Float32x4])
-    }
-
-    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        Self::layout(
+            device,
+            format,
+            crate::marker::SHADER,
+            32,
+            6,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32, 2 => Float32x4],
+        )
 ```
 
 **Locate this block:**
 
 ```rust
-        self.set_bytes(device, data)
     }
 
-    fn set_bytes(&mut self, device: &wgpu::Device, data: Vec<u8>) -> Result<(), &'static str> {
-        use wgpu::util::DeviceExt;
-        u32::try_from(data.len() as u64 / self.stride).map_err(|_| "Too many stroke instances")?;
+    fn set_bytes(
+        &mut self,
+        device: &wgpu::Device,
 ```
 
 Replace it with:
 
 ```rust
-        self.set_bytes(device, data)
     }
 
-    pub fn set_points(&mut self, device: &wgpu::Device, markers: impl IntoIterator<Item = crate::marker::Marker>) -> Result<(), &'static str> {
-        if self.stride != 32 { return Err("Marker data needs the marker layout"); }
+    pub fn set_points(
+        &mut self,
+        device: &wgpu::Device,
+        markers: impl IntoIterator<Item = crate::marker::Marker>,
+    ) -> Result<(), &'static str> {
+        if self.stride != 32 {
+            return Err("Marker data needs the marker layout");
+        }
         let mut data = Vec::new();
         for marker in markers {
-            if marker.diameter <= 0.0 || marker.values().iter().any(|v| !v.is_finite()) { return Err("Invalid marker display data"); }
+            if marker.diameter <= 0.0
+                || marker
+                    .values()
+                    .iter()
+                    .any(|v| !v.is_finite())
+            {
+                return Err("Invalid marker display data");
+            }
             data.extend(marker.bytes());
         }
         self.set_bytes(device, data)
     }
 
-    fn set_bytes(&mut self, device: &wgpu::Device, data: Vec<u8>) -> Result<(), &'static str> {
-        use wgpu::util::DeviceExt;
-        u32::try_from(data.len() as u64 / self.stride).map_err(|_| "Too many stroke instances")?;
+    fn set_bytes(
+        &mut self,
+        device: &wgpu::Device,
 ```
 
 ## <a id="checkpoint-37c-document"></a>4. Retain point rows and placement
@@ -364,8 +522,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
     pub fn clear(&mut self) {
         self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
 ```
 
 Replace it with:
@@ -376,59 +532,99 @@ Replace it with:
     pub fn clear(&mut self) {
         self.points = Vec::new();
         self.paths = Vec::new();
-        self.lines = Vec::new();
-        self.objects = Vec::new();
 ```
 
 **Locate this block:**
 
 ```rust
+        self.lines.capacity() * std::mem::size_of::<LineObject>()
+    }
 
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
-
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
+    pub fn paths(&self) -> &[PathObject] {
+        &self.paths
+    }
 ```
 
 Replace it with:
 
 ```rust
+        self.lines.capacity() * std::mem::size_of::<LineObject>()
+    }
 
-    pub fn line_capacity_bytes(&self) -> usize { self.lines.capacity() * std::mem::size_of::<LineObject>() }
+    pub fn points(&self) -> &[PointObject] {
+        &self.points
+    }
 
-    pub fn points(&self) -> &[PointObject] { &self.points }
+    pub fn point_capacity_bytes(&self) -> usize {
+        self.points.capacity() * std::mem::size_of::<PointObject>()
+    }
 
-    pub fn point_capacity_bytes(&self) -> usize { self.points.capacity() * std::mem::size_of::<PointObject>() }
-
-    pub fn insert_point(&mut self, prepared: crate::marker::PreparedPoint) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
+    pub fn insert_point(
+        &mut self,
+        prepared: crate::marker::PreparedPoint,
+    ) -> Result<ObjectId, &'static str> {
+        let next = self
+            .next_id
+            .checked_add(1)
+            .ok_or("Object IDs exhausted")?;
         let mut guid = prepared.source.guid().to_owned();
-        while self.points.iter().any(|row| row.guid == guid) || self.paths.iter().any(|row| row.guid == guid)
-            || self.objects.iter().any(|row| row.guid == guid) || self.lines.iter().any(|row| row.prepared.source.guid() == guid) {
+        while self
+            .points
+            .iter()
+            .any(|row| row.guid == guid)
+            || self.paths.iter().any(|row| row.guid == guid)
+            || self
+                .objects
+                .iter()
+                .any(|row| row.guid == guid)
+            || self
+                .lines
+                .iter()
+                .any(|row| row.prepared.source.guid() == guid)
+        {
             guid = uuid::Uuid::new_v4().to_string();
         }
-        let id = ObjectId(self.next_id); self.next_id = next;
-        self.points.push(PointObject { id, guid, prepared, model: session_rust::Xform::identity() }); Ok(id)
+        let id = ObjectId(self.next_id);
+        self.next_id = next;
+        self.points.push(PointObject {
+            id,
+            guid,
+            prepared,
+            model: session_rust::Xform::identity(),
+        });
+        Ok(id)
     }
 
-    pub fn place_point(&mut self, id: ObjectId, model: session_rust::Xform) -> Result<(), &'static str> {
-        if !crate::placement::valid(&model.m) { return Err("Invalid point placement"); }
-        let row = self.points.iter_mut().find(|row| row.id == id).ok_or("Point not found")?;
+    pub fn place_point(
+        &mut self,
+        id: ObjectId,
+        model: session_rust::Xform,
+    ) -> Result<(), &'static str> {
+        if !crate::placement::valid(&model.m) {
+            return Err("Invalid point placement");
+        }
+        let row = self
+            .points
+            .iter_mut()
+            .find(|row| row.id == id)
+            .ok_or("Point not found")?;
         let point = model.transform_point(&row.prepared.source);
-        if (0..3).any(|i| !(point[i] as f32).is_finite()) { return Err("Point placement exceeds the display range"); }
-        row.model = model; Ok(())
+        if (0..3).any(|i| !(point[i] as f32).is_finite()) {
+            return Err("Point placement exceeds the display range");
+        }
+        row.model = model;
+        Ok(())
     }
 
-    pub fn paths(&self) -> &[PathObject] { &self.paths }
-
-    pub fn path_capacity_bytes(&self) -> usize { self.paths.capacity() * std::mem::size_of::<PathObject>() }
+    pub fn paths(&self) -> &[PathObject] {
+        &self.paths
+    }
 ```
 
 **Locate this block:**
 
 ```rust
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
+                }
             }
         }
         bounds
@@ -438,12 +634,16 @@ Replace it with:
 Replace it with:
 
 ```rust
-                match &mut bounds { Some(bounds) => bounds.include(point), None => bounds = Some(crate::bounds::Bounds::point(point)) }
+                }
             }
         }
         for row in &self.points {
-            let p = row.point(); let p = [p[0], p[1], p[2]];
-            match &mut bounds { Some(bounds) => bounds.include(p), None => bounds = Some(crate::bounds::Bounds::point(p)) }
+            let p = row.point();
+            let p = [p[0], p[1], p[2]];
+            match &mut bounds {
+                Some(bounds) => bounds.include(p),
+                None => bounds = Some(crate::bounds::Bounds::point(p)),
+            }
         }
         bounds
     }
@@ -452,32 +652,29 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { objects: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            objects: Vec::new(),
+            paths: Vec::new(),
+            lines: Vec::new(),
+            next_id: 1,
 ```
 
 Replace it with:
 
 ```rust
-        let turquoise = PreparedMesh::triangle([
-            [-0.4, -0.2, 0.75], [0.8, -0.2, 0.75], [0.2, 0.8, 0.75],
-        ], [0.05, 0.7, 0.7]).expect("Valid turquoise triangle");
-        let mut scene = Self { objects: Vec::new(), points: Vec::new(), paths: Vec::new(), lines: Vec::new(), next_id: 1, extra: None };
-        scene.insert(pink).expect("ID available");
-        scene.insert(turquoise).expect("ID available");
-        scene
+        .expect("Valid turquoise triangle");
+        let mut scene = Self {
+            objects: Vec::new(),
+            points: Vec::new(),
+            paths: Vec::new(),
+            lines: Vec::new(),
+            next_id: 1,
 ```
 
 **Locate this block:**
 
 ```rust
-}
-
 #[derive(Clone)]
 pub struct Scene {
     paths: Vec<PathObject>,
@@ -488,14 +685,25 @@ pub struct Scene {
 Replace it with:
 
 ```rust
+#[derive(Clone)]
+pub struct PointObject {
+    pub id: ObjectId,
+    pub guid: String,
+    pub prepared: crate::marker::PreparedPoint,
+    pub model: session_rust::Xform,
 }
 
-#[derive(Clone)]
-pub struct PointObject { pub id: ObjectId, pub guid: String, pub prepared: crate::marker::PreparedPoint, pub model: session_rust::Xform }
-
 impl PointObject {
-    pub fn point(&self) -> session_rust::Point { self.model.transform_point(&self.prepared.source) }
-    pub fn marker(&self) -> crate::marker::Marker { crate::marker::Marker { center: self.point().to_f32(), ..self.prepared.display } }
+    pub fn point(&self) -> session_rust::Point {
+        self.model
+            .transform_point(&self.prepared.source)
+    }
+    pub fn marker(&self) -> crate::marker::Marker {
+        crate::marker::Marker {
+            center: self.point().to_f32(),
+            ..self.prepared.display
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -513,14 +721,18 @@ Refuse unsupported point saving rather than silently omit original geometry.
 **Locate this existing block:**
 
 ```rust
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
+pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
+    if !scene.lines().is_empty() || !scene.paths().is_empty() {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
+pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
+    if !scene.points().is_empty() {
+        return Err("This checkpoint cannot save point objects yet");
+    }
+    if !scene.lines().is_empty() || !scene.paths().is_empty() {
 ```
 
 ### 3. `src/lib.rs`
@@ -530,28 +742,76 @@ Register precise point-placement and history checks.
 **Locate this existing block:**
 
 ```rust
-pub mod marker;
+pub mod placement;
+pub mod prepared;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod placement;
 #[cfg(test)]
 mod point_document_tests;
+pub mod prepared;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/point_document_tests.rs`
 
 Copy exact placement, source sharing, identity and complete release checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/37c-document-08.rs"
+```rust
+use crate::{history::History, marker::PreparedPoint, scene::Scene};
+use session_rust::{Point, Xform};
+use std::rc::Rc;
+
+#[test]
+fn original_point_rows_keep_precise_placement_shared_history_and_release() {
+    let mut scene = Scene::demo();
+    let mut history = History::default();
+    let source = Rc::new(Point::new(2.123456789, 0.0, 0.0));
+    let weak = Rc::downgrade(&source);
+    let prepared = PreparedPoint::new(Rc::clone(&source)).unwrap();
+    let first = scene.insert_point(prepared.clone()).unwrap();
+    let second = scene.insert_point(prepared).unwrap();
+    assert_ne!(first, second);
+    assert_ne!(
+        scene.points()[0].guid,
+        scene.points()[1].guid
+    );
+    history
+        .try_edit(&mut scene, |scene| {
+            scene.place_point(first, Xform::translation(10.0, 0.0, 0.0))
+        })
+        .unwrap();
+    assert!((scene.points()[0].point()[0] - 12.123456789).abs() < 1e-12);
+    assert_eq!(source[0], 2.123456789);
+    assert_eq!(scene.bounds().unwrap().max[0], 12.123456789);
+    let model = scene.points()[0].model.clone();
+    let mut invalid = Xform::identity();
+    invalid.m[0] = f64::NAN;
+    assert!(scene.place_point(first, invalid).is_err());
+    assert_eq!(scene.points()[0].model.m, model.m);
+    assert!(history.undo(&mut scene));
+    assert_eq!(scene.points()[0].point()[0], source[0]);
+    assert!(history.redo(&mut scene));
+    assert_eq!(scene.points()[0].id, first);
+    assert!(Rc::ptr_eq(
+        &scene.points()[0].prepared.source,
+        &history.scenes().next().unwrap().points()[0]
+            .prepared
+            .source
+    ));
+    assert!(crate::document::snapshot(&scene).is_err());
+    drop(source);
+    scene.clear();
+    assert!(weak.upgrade().is_some());
+    history.clear();
+    assert!(weak.upgrade().is_none());
+    assert!(scene.points().is_empty());
+    assert!(scene.bounds().is_none());
+}
 ```
 
 ## <a id="checkpoint-37d-render"></a>5. Draw point rows and count their resources
@@ -606,8 +866,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.strokes.draw(&mut pass);
             self.paths.draw(&mut pass);
         }
-        self.queue.submit([encoder.finish()]);
-    }
 ```
 
 Replace it with:
@@ -618,40 +876,42 @@ Replace it with:
             self.paths.draw(&mut pass);
             self.markers.draw(&mut pass);
         }
-        self.queue.submit([encoder.finish()]);
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
+        let mut encoder = self
+            .device
 ```
 
 Replace it with:
 
 ```rust
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
+            self.size,
+            self.density,
+        );
+        self.markers.view(
+            &self.queue,
+            transform,
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
+        let mut encoder = self
+            .device
 ```
 
 **Locate this block:**
 
 ```rust
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 80 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes
+            + self.settings_bytes as u64
+            + self.strokes.uploaded_bytes
+            + self.paths.uploaded_bytes
     }
 
     pub fn stats(&self) -> [usize; 4] {
@@ -660,10 +920,10 @@ Replace it with:
 Replace it with:
 
 ```rust
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 80 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes
+            + self.settings_bytes as u64
+            + self.strokes.uploaded_bytes
+            + self.paths.uploaded_bytes
+            + self.markers.uploaded_bytes
     }
 
     pub fn stats(&self) -> [usize; 4] {
@@ -672,32 +932,67 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
+        ]
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.paths.set_chains(&self.device, scene.paths().iter().flat_map(crate::scene::PathObject::segments))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().map(crate::scene::LineObject::stroke))
+        self.paths
+            .set_chains(
+                &self.device,
 ```
 
 Replace it with:
 
 ```rust
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
+        ]
     }
 
     pub fn point_usage(&self) -> [u64; 4] {
         let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
+        [
+            count,
+            bytes,
+            self.markers.uploads,
+            self.markers.uploaded_bytes,
+        ]
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.markers.set_points(&self.device, scene.points().iter().map(crate::scene::PointObject::marker))
+        self.markers
+            .set_points(
+                &self.device,
+                scene
+                    .points()
+                    .iter()
+                    .map(crate::scene::PointObject::marker),
+            )
             .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().flat_map(crate::scene::PathObject::segments))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().map(crate::scene::LineObject::stroke))
+        self.paths
+            .set_chains(
+                &self.device,
+```
+
+**Locate this block:**
+
+```rust
+            depth,
+            strokes,
+            paths,
+            size: [640, 480],
+            density: 1.0,
+        };
+```
+
+Replace it with:
+
+```rust
+            depth,
+            strokes,
+            paths,
+            markers,
+            size: [640, 480],
+            density: 1.0,
+        };
 ```
 
 **Locate this block:**
@@ -706,12 +1001,9 @@ Replace it with:
         let depth = Self::depth(&device, 640, 480);
         let strokes = crate::stroke_gpu::Lane::new(&device, format);
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, size: [640, 480], density: 1.0 };
-        renderer.set_scene(scene, None);
-        renderer
-    }
+        let mut renderer = Self {
+            device,
+            queue,
 ```
 
 Replace it with:
@@ -721,19 +1013,14 @@ Replace it with:
         let strokes = crate::stroke_gpu::Lane::new(&device, format);
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, size: [640, 480], density: 1.0 };
-        renderer.set_scene(scene, None);
-        renderer
-    }
+        let mut renderer = Self {
+            device,
+            queue,
 ```
 
 **Locate this block:**
 
 ```rust
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
     paths: crate::stroke_gpu::Lane,
     size: [u32; 2],
     density: f32,
@@ -743,8 +1030,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
     paths: crate::stroke_gpu::Lane,
     markers: crate::stroke_gpu::Lane,
     size: [u32; 2],
@@ -759,19 +1044,28 @@ Count actual point rows, unique source owners and retained row capacity.
 **Locate this existing block:**
 
 ```rust
+}
+
 pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 pub fn points<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 3] {
-    let mut sources = HashSet::new(); let mut usage = [0; 3];
+    let mut sources = HashSet::new();
+    let mut usage = [0; 3];
     for scene in scenes {
-        usage[0] += scene.points().len(); usage[2] += scene.point_capacity_bytes();
-        for row in scene.points() { sources.insert(Rc::as_ptr(&row.prepared.source)); }
+        usage[0] += scene.points().len();
+        usage[2] += scene.point_capacity_bytes();
+        for row in scene.points() {
+            sources.insert(Rc::as_ptr(&row.prepared.source));
+        }
     }
-    usage[1] = sources.len(); usage
+    usage[1] = sources.len();
+    usage
 }
 
 pub fn paths<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
@@ -784,15 +1078,23 @@ Inspect point resource categories independently of earlier counters.
 **Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
+    canvas.set_attribute(
+        "data-path-gpu",
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-point-cpu", &serde_json::to_string(&crate::memory::points(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-path-gpu", &serde_json::to_string(&renderer.path_usage()).unwrap())?;
+    canvas.set_attribute(
+        "data-point-gpu",
+        &serde_json::to_string(&renderer.point_usage()).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-point-cpu",
+        &serde_json::to_string(&crate::memory::points(editor.scenes())).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-path-gpu",
 ```
 
 ## <a id="checkpoint-37da-input"></a>6. Insert points through the real dock
@@ -843,36 +1145,33 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                };
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
-            }
-            Action::AddLine => {
-                let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
-                line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert_path(prepared).map(|_| ())
+                    })?;
 ```
 
 Replace it with:
 
 ```rust
-                };
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert_path(prepared).map(|_| ())
+                    })?;
             }
             Action::AddPoint => {
                 let mut point = session_rust::Point::new(0.0, 0.0, 0.0);
-                point.width = 12.0; point.pointcolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
-                let prepared = crate::marker::PreparedPoint::new(std::rc::Rc::new(point))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_point(prepared).map(|_| ()))?;
-            }
-            Action::AddLine => {
-                let mut line = session_rust::Line::new(-0.6, 0.0, 0.0, 0.6, 0.0, 0.0);
-                line.width = 5.0; line.linecolor = session_rust::Color::new(0.0, 0.0, 0.0, 1.0);
+                point.width = 12.0;
+                point.pointcolor = session_rust::Color::new(0.0, 0.0, 0.0, 0.5);
+                let prepared =
+                    crate::marker::PreparedPoint::new(std::rc::Rc::new(point))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert_point(prepared).map(|_| ())
+                    })?;
 ```
 
 **Locate this block:**
 
 ```rust
-    UnloadSources,
-    AddBox,
     AddLine,
     AddPolyline,
     AddArrow,
@@ -882,8 +1181,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    UnloadSources,
-    AddBox,
     AddLine,
     AddPoint,
     AddPolyline,
@@ -900,31 +1197,25 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
-                    "example line" => Action::AddLine,
-                    "example polyline" => Action::AddPolyline,
-                    "example arrow" => Action::AddArrow,
-                    "example triangle" => Action::ToggleExtra,
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example line" => Action::AddLine,
+                        "example polyline" => Action::AddPolyline,
 ```
 
 Replace it with:
 
 ```rust
-                let action = match line.as_str() {
-                    "example box" => Action::AddBox,
-                    "example line" => Action::AddLine,
-                    "example point" => Action::AddPoint,
-                    "example polyline" => Action::AddPolyline,
-                    "example arrow" => Action::AddArrow,
-                    "example triangle" => Action::ToggleExtra,
+                    let action = match line.as_str() {
+                        "example box" => Action::AddBox,
+                        "example line" => Action::AddLine,
+                        "example point" => Action::AddPoint,
+                        "example polyline" => Action::AddPolyline,
 ```
 
 **Locate this block:**
 
 ```rust
-            "Report Previous",
-            "Example Box",
             "Example Line",
             "Example Polyline",
             "Example Arrow",
@@ -934,8 +1225,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Report Previous",
-            "Example Box",
             "Example Line",
             "Example Point",
             "Example Polyline",
@@ -950,28 +1239,60 @@ Register the point input ownership checks.
 **Locate this existing block:**
 
 ```rust
-pub mod marker;
+mod point_document_tests;
+pub mod prepared;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod point_document_tests;
 #[cfg(test)]
 mod point_input_tests;
+pub mod prepared;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/point_input_tests.rs`
 
 Copy original identity, style, one-step history and release checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/37da-input-06.rs"
+```rust
+use crate::{
+    editor::{Action, Editor},
+    memory,
+};
+
+#[test]
+fn point_command_preserves_source_identity_in_one_history_step() {
+    let mut editor = Editor::default();
+    editor.apply(Action::Close).unwrap();
+    editor.apply(Action::AddPoint).unwrap();
+    let id = editor.scene.points()[0].id;
+    let row = &editor.scene.points()[0];
+    let weak = std::rc::Rc::downgrade(&row.prepared.source);
+    assert_eq!(row.prepared.source.width, 12.0);
+    assert_eq!(
+        row.prepared.source.pointcolor.to_f32(),
+        [0.0, 0.0, 0.0, 0.5]
+    );
+    assert_eq!(row.guid, row.prepared.source.guid());
+    editor.apply(Action::Zoom(2.0)).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    assert!(editor.scene.points().is_empty());
+    assert!(weak.upgrade().is_some());
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.points()[0].id, id);
+    assert!(
+        crate::document::snapshot(&editor.scene)
+            .unwrap_err()
+            .contains("cannot save point objects yet")
+    );
+    editor.apply(Action::Close).unwrap();
+    assert!(weak.upgrade().is_none());
+    assert_eq!(memory::points(editor.scenes()), [0; 3]);
+}
 ```
 
 ## <a id="checkpoint-37e-controls"></a>7. Identify controls on the curve owner
@@ -1020,7 +1341,80 @@ Keep an indexed control on its original curve and guard every public layout acce
 Create the file and type:
 
 ```rust
---8<-- "journey/code/37e-controls-01.rs"
+use crate::marker::Marker;
+use session_rust::NurbsCurve;
+use std::rc::Rc;
+
+#[derive(Clone)]
+pub struct Control {
+    pub source: Rc<NurbsCurve>,
+    pub index: usize,
+}
+
+impl Control {
+    pub fn new(source: Rc<NurbsCurve>, index: usize) -> Result<Self, &'static str> {
+        let control = Self { source, index };
+        control.position()?;
+        Ok(control)
+    }
+
+    pub fn position(&self) -> Result<[f64; 3], &'static str> {
+        let c = &self.source;
+        if !(2..=3).contains(&c.m_dim)
+            || !(1..=10_000).contains(&c.m_cv_count)
+            || self.index >= c.m_cv_count
+        {
+            return Err("Control dimension, count or index is invalid");
+        }
+        let size = c.m_dim + usize::from(c.m_is_rat);
+        if c.m_cv_stride < size {
+            return Err("Control stride is too short");
+        }
+        let start = self
+            .index
+            .checked_mul(c.m_cv_stride)
+            .ok_or("Control offset overflows")?;
+        let end = start
+            .checked_add(size)
+            .ok_or("Control range overflows")?;
+        let values = c
+            .m_cv
+            .get(start..end)
+            .ok_or("Control values are incomplete")?;
+        let weight = if c.m_is_rat {
+            values[c.m_dim]
+        } else {
+            1.0
+        };
+        if !weight.is_finite() || weight == 0.0 {
+            return Err("Control weight must be finite and nonzero");
+        }
+        let mut point = [0.0; 3];
+        for axis in 0..c.m_dim {
+            point[axis] = values[axis] / weight;
+        }
+        if point.iter().any(|v| !v.is_finite()) {
+            return Err("Control position must be finite");
+        }
+        Ok(point)
+    }
+
+    pub fn marker(&self) -> Result<Marker, &'static str> {
+        let marker = Marker {
+            center: self.position()?.map(|v| v as f32),
+            diameter: 6.0,
+            colour: [0.0, 0.0, 0.0, 1.0],
+        };
+        if marker
+            .values()
+            .iter()
+            .any(|v| !v.is_finite())
+        {
+            return Err("Control marker exceeds the display range");
+        }
+        Ok(marker)
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1030,29 +1424,101 @@ Register original control references and their refusal checks.
 **Locate this existing block:**
 
 ```rust
-pub mod marker;
+mod close_report_tests;
+pub mod diagnostic;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub mod controls;
+mod close_report_tests;
 #[cfg(test)]
 mod control_tests;
+pub mod controls;
+pub mod diagnostic;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/control_tests.rs`
 
 Copy original rational precision, owner release, dimension and malicious-layout checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/37e-controls-03.rs"
+```rust
+use crate::controls::Control;
+use session_rust::NurbsCurve;
+use std::rc::Rc;
+
+#[test]
+fn rational_controls_share_original_identity_and_keep_homogeneous_precision() {
+    let mut curve = NurbsCurve::new(3, true, 2, 2);
+    curve.m_cv = vec![
+        0.24691357802469,
+        0.8,
+        0.0,
+        2.0,
+        2.0,
+        0.0,
+        0.0,
+        1.0,
+    ];
+    let source = Rc::new(curve);
+    let guid = source.guid().to_owned();
+    let weak = Rc::downgrade(&source);
+    let control = Control::new(Rc::clone(&source), 0).unwrap();
+    let other = Control::new(Rc::clone(&source), 1).unwrap();
+    assert!(Rc::ptr_eq(&control.source, &other.source));
+    assert_eq!(control.index, 0);
+    assert_eq!(other.index, 1);
+    assert_eq!(
+        control.position().unwrap(),
+        [0.123456789012345, 0.4, 0.0]
+    );
+    assert_eq!(control.source.m_cv[0], 0.24691357802469);
+    assert_eq!(control.source.guid(), guid);
+    assert_ne!(
+        control.marker().unwrap().center[0] as f64,
+        control.position().unwrap()[0]
+    );
+    drop(source);
+    drop(control);
+    assert!(weak.upgrade().is_some());
+    drop(other);
+    assert!(weak.upgrade().is_none());
+}
+
+#[test]
+fn control_layout_checks_refuse_malformed_ranges_without_panicking() {
+    for mutate in [0, 1, 2, 3, 4, 5, 6] {
+        let mut curve = NurbsCurve::new(3, true, 2, 2);
+        curve.m_cv = vec![0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0];
+        match mutate {
+            0 => curve.m_dim = 4,
+            1 => curve.m_cv_stride = 2,
+            2 => curve.m_cv.clear(),
+            3 => curve.m_cv_stride = usize::MAX,
+            4 => curve.m_cv[7] = 0.0,
+            5 => curve.m_cv[7] = f64::NAN,
+            _ => curve.m_cv[4] = f64::INFINITY,
+        }
+        assert!(Control::new(Rc::new(curve), 1).is_err());
+    }
+    let source = Rc::new(NurbsCurve::new(3, false, 2, 2));
+    assert!(Control::new(source, 2).is_err());
+    let mut curve = NurbsCurve::new(2, false, 2, 2);
+    curve.m_cv = vec![1.0, 2.0, 3.0, 4.0];
+    assert_eq!(
+        Control::new(Rc::new(curve), 1)
+            .unwrap()
+            .position()
+            .unwrap(),
+        [3.0, 4.0, 0.0]
+    );
+    let mut curve = NurbsCurve::new(3, false, 2, 2);
+    curve.m_cv[0] = 1e100;
+    let control = Control::new(Rc::new(curve), 0).unwrap();
+    assert!(control.marker().is_err());
+}
 ```
 
 ## Build & Run

@@ -106,37 +106,52 @@
 
 Adapt kernel triangle data to the current vertex and index layout with a checked narrowing conversion. Check the adapter using a solid with known topology.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-pub struct Mesh {
-    vertices: Vec<[f32; 6]>,
-    indices: Vec<u16>,
+    }
+
+    pub fn vertices(&self) -> &[[f32; 6]] {
+        &self.vertices
+    }
+
+    pub fn indices(&self) -> &[u16] {
+        &self.indices
+    }
 }
 
-impl Mesh {
-    pub fn new(vertices: Vec<[f32; 6]>, indices: Vec<u16>) -> Result<Self, &'static str> {
-        if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {
-            return Err("Indices must describe complete triangles within the draw limit");
-        }
-        if indices.iter().any(|&index| index as usize >= vertices.len()) {
-            return Err("A triangle refers to a missing vertex");
-        }
-        if vertices.iter().flatten().any(|value| !value.is_finite()) {
-            return Err("Vertex values must be finite");
-        }
-        Ok(Self { vertices, indices })
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     }
 
     pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
         let render = mesh.to_render();
-        let vertices = render.vertices.iter().map(|vertex| {
-            let [x, y, z] = vertex.position;
-            let [r, g, b, _] = vertex.color;
-            [x, y, z, r, g, b]
-        }).collect();
-        let indices: Result<Vec<u16>, _> = render.indices.into_iter().map(u16::try_from).collect();
-        Self::new(vertices, indices.map_err(|_| "Mesh exceeds this lesson's 16-bit index capacity")?)
+        let vertices = render
+            .vertices
+            .iter()
+            .map(|vertex| {
+                let [x, y, z] = vertex.position;
+                let [r, g, b, _] = vertex.color;
+                [x, y, z, r, g, b]
+            })
+            .collect();
+        let indices: Result<Vec<u16>, _> = render
+            .indices
+            .into_iter()
+            .map(u16::try_from)
+            .collect();
+        Self::new(
+            vertices,
+            indices.map_err(|_| "Mesh exceeds this lesson's 16-bit index capacity")?,
+        )
     }
 
     pub fn vertices(&self) -> &[[f32; 6]] {
@@ -161,13 +176,6 @@ mod tests {
     }
 
     #[test]
-    fn invalid_connections_and_nonfinite_vertices_are_rejected() {
-        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 3]).is_err());
-        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1]).is_err());
-        assert!(Mesh::new(vec![[f32::NAN; 6]; 3], vec![0, 1, 2]).is_err());
-        assert!(Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 2]).is_ok());
-    }
-}
 ```
 
 ### 2. `src/scene.rs`
@@ -177,13 +185,28 @@ Construct and place a box, then insert it only after its display mesh is valid.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn toggle_extra(&mut self) {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/17-solid-03.rs"
+    }
+
+    pub fn add_box(&mut self) -> Result<ObjectId, &'static str> {
+        let mut source = session_rust::Mesh::create_box(0.8, 0.8, 0.8);
+        source.transform(&session_rust::Xform::translation(
+            0.9, 0.0, 0.4,
+        ));
+        source.set_objectcolor(session_rust::Color::new(
+            0.65, 0.65, 0.65, 1.0,
+        ));
+        self.insert(Mesh::from_kernel(&source)?)
+    }
+
+    pub fn toggle_extra(&mut self) {
 ```
 
 ### 3. `src/history.rs`
@@ -195,17 +218,16 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+        assert_ne!(scene.objects()[2].id, old_id);
+        assert!(!history.redo(&mut scene));
     }
-
-    #[test]
-    fn retained_history_has_a_fixed_count_limit() {
-        let mut scene = Scene::demo();
-        let mut history = History::default();
 ```
 
 Replace it with:
 
 ```rust
+        assert_ne!(scene.objects()[2].id, old_id);
+        assert!(!history.redo(&mut scene));
     }
 
     #[test]
@@ -213,7 +235,9 @@ Replace it with:
         let mut scene = Scene::demo();
         let mut history = History::default();
         let id = scene.objects()[0].id;
-        history.edit(&mut scene, |scene| { scene.remove(id); });
+        history.edit(&mut scene, |scene| {
+            scene.remove(id);
+        });
         history.undo(&mut scene);
         let result = history.try_edit(&mut scene, |scene| {
             scene.remove(id);
@@ -224,18 +248,11 @@ Replace it with:
         assert!(history.redo(&mut scene));
         assert!(!scene.contains(id));
     }
-
-    #[test]
-    fn retained_history_has_a_fixed_count_limit() {
-        let mut scene = Scene::demo();
-        let mut history = History::default();
 ```
 
 **Locate this block:**
 
 ```rust
-
-impl History {
     pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
         let before = scene.clone();
         action(scene);
@@ -252,10 +269,12 @@ impl History {
 Replace it with:
 
 ```rust
-
-impl History {
     pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
-        self.try_edit(scene, |scene| { action(scene); Ok(()) }).expect("Infallible scene edit");
+        self.try_edit(scene, |scene| {
+            action(scene);
+            Ok(())
+        })
+        .expect("Infallible scene edit");
     }
 
     pub fn try_edit(
@@ -293,7 +312,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     click.forget();
     report("Orbit moves the eye around a fixed target.");
     Ok(())
-}
 ```
 
 Replace it with:
@@ -304,45 +322,42 @@ Replace it with:
     click.forget();
     report("Kernel geometry becomes an undoable scene object.");
     Ok(())
-}
 ```
 
 **Locate this block:**
 
 ```rust
-                        .and_then(|ray| crate::picking::pick(&scene, &ray));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
+                            .and_then(|ray| crate::picking::pick(&scene, &ray));
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "example triangle" => {
+                        history.edit(&mut scene, Scene::toggle_extra);
+                        selected = selected.filter(|id| scene.contains(*id));
 ```
 
 Replace it with:
 
 ```rust
-                        .and_then(|ray| crate::picking::pick(&scene, &ray));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example box" => {
-                    if let Err(error) =
-                        history.try_edit(&mut scene, |scene| scene.add_box().map(|_| ()))
-                    {
-                        report(error);
-                        return;
+                            .and_then(|ray| crate::picking::pick(&scene, &ray));
+                        renderer.set_scene(&scene, selected);
                     }
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
+                    "example box" => {
+                        if let Err(error) = history.try_edit(&mut scene, |scene| {
+                            scene.add_box().map(|_| ())
+                        }) {
+                            report(error);
+                            return;
+                        }
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "example triangle" => {
+                        history.edit(&mut scene, Scene::toggle_extra);
+                        selected = selected.filter(|id| scene.contains(*id));
 ```
 
 **Locate this block:**
 
 ```rust
-        config.format.add_srgb_suffix(),
-        &[
             "Help",
             "Example Triangle",
             "Select Next",
@@ -352,8 +367,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-        config.format.add_srgb_suffix(),
-        &[
             "Help",
             "Example Box",
             "Example Triangle",
@@ -404,10 +417,51 @@ Replace it with:
 
 Pass world positions through the pipeline and turn face direction into brightness.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```wgsl
---8<-- "journey/code/18-light-01.wgsl"
+    @location(0) colour: vec3<f32>,
+}
+
+@vertex
+fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
+    var output: VertexOutput;
+    output.position = transform * vec4<f32>(position, 1.0);
+    output.colour = colour;
+    return output;
+}
+
+@fragment
+fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
+    return vec4<f32>(input.colour, 1.0);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+}
+
+@vertex
+fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
+    var output: VertexOutput;
+    output.position = transform * vec4<f32>(position, 1.0);
+    output.colour = colour;
+    output.world = position;
+    return output;
+}
+
+@fragment
+fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Neighbouring fragments give two directions along this triangle's surface.
+    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));
+    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
+    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
+    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
+    return vec4<f32>(input.colour * brightness, 1.0);
+}
 ```
 
 ### 2. `src/browser.rs`
@@ -417,18 +471,17 @@ Report that lighting changes brightness without changing geometry.
 **Locate this existing block:**
 
 ```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
     click.forget();
     report("Kernel geometry becomes an undoable scene object.");
     Ok(())
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/18-light-window-1.rs"
+    click.forget();
+    report("Surface direction changes brightness, not geometry.");
+    Ok(())
 ```
 
 ## <a id="checkpoint-18a-editor"></a>3. Give application state one owner
@@ -477,7 +530,82 @@ Declare the action names, change kinds and application owner. Check a camera cha
 Create the file and type:
 
 ```rust
---8<-- "journey/code/18a-editor-owner.rs"
+use crate::{
+    background::Background,
+    camera::Camera,
+    history::History,
+    scene::{ObjectId, Scene},
+};
+
+pub enum Action {
+    Pick([f32; 2]),
+    AddBox,
+    ToggleExtra,
+    SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn changing_the_owned_camera_keeps_document_identity() {
+        let mut editor = Editor::default();
+        let ids: Vec<_> = editor
+            .scene
+            .objects()
+            .iter()
+            .map(|object| object.id)
+            .collect();
+        editor.camera.zoom(2.0);
+        assert_eq!(editor.camera.distance, 1.5);
+        assert_eq!(
+            editor
+                .scene
+                .objects()
+                .iter()
+                .map(|object| object.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
+        assert!(editor.selected.is_none());
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -487,18 +615,16 @@ Make the editor available to both the browser and native checks.
 **Locate this existing block:**
 
 ```rust
-pub mod scene;
-pub mod picking;
-pub mod history;
+pub mod camera;
 pub mod gpu_mesh;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/19-actions-fullscreen-1.rs"
+pub mod camera;
+pub mod editor;
+pub mod gpu_mesh;
 ```
 
 ## <a id="checkpoint-18b-actions"></a>4. Apply document and view actions in Rust
@@ -547,6 +673,8 @@ Implement the action route and check history preserves the view. Keep the curren
 **Locate this existing block:**
 
 ```rust
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -554,19 +682,116 @@ mod tests {
     #[test]
     fn changing_the_owned_camera_keeps_document_identity() {
         let mut editor = Editor::default();
-        let ids: Vec<_> = editor.scene.objects().iter().map(|object| object.id).collect();
+        let ids: Vec<_> = editor
+            .scene
+            .objects()
+            .iter()
+            .map(|object| object.id)
+            .collect();
         editor.camera.zoom(2.0);
         assert_eq!(editor.camera.distance, 1.5);
-        assert_eq!(editor.scene.objects().iter().map(|object| object.id).collect::<Vec<_>>(), ids);
+        assert_eq!(
+            editor
+                .scene
+                .objects()
+                .iter()
+                .map(|object| object.id)
+                .collect::<Vec<_>>(),
+            ids
+        );
         assert!(editor.selected.is_none());
     }
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/18b-actions-apply.rs"
+}
+
+impl Editor {
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
+        match action {
+            Action::Pick(screen) => {
+                self.selected = self
+                    .camera
+                    .ray(screen)
+                    .and_then(|ray| crate::picking::pick(&self.scene, &ray));
+            }
+            Action::AddBox => {
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.add_box().map(|_| ())
+                    })?;
+            }
+            Action::ToggleExtra => self
+                .history
+                .edit(&mut self.scene, Scene::toggle_extra),
+            Action::SelectNext => self.selected = self.scene.next(self.selected),
+            Action::Delete => {
+                if let Some(id) = self.selected.take() {
+                    self.history.edit(&mut self.scene, |scene| {
+                        scene.remove(id);
+                    });
+                }
+            }
+            Action::Undo => {
+                self.history.undo(&mut self.scene);
+            }
+            Action::Redo => {
+                self.history.redo(&mut self.scene);
+            }
+            view => {
+                match view {
+                    Action::Background => self.background.toggle(),
+                    Action::Zoom(factor) => self.camera.zoom(factor),
+                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
+                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
+                    Action::Isometric => self.camera.isometric(),
+                    Action::ResetView => {
+                        let aspect = self.camera.aspect;
+                        self.camera = Camera {
+                            aspect,
+                            ..Camera::default()
+                        };
+                    }
+                    _ => unreachable!("Document actions were handled above"),
+                }
+                return Ok(Change::View);
+            }
+        }
+        // Deletion and history travel can invalidate selection; repair it in one place.
+        self.selected = self
+            .selected
+            .filter(|id| self.scene.contains(*id));
+        Ok(Change::Scene)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn resetting_the_view_preserves_its_current_aspect() {
+        let mut editor = Editor::default();
+        editor.camera.aspect = 2.0;
+        editor.apply(Action::Zoom(2.0)).unwrap();
+        editor.apply(Action::ResetView).unwrap();
+        assert_eq!(editor.camera.aspect, 2.0);
+        assert_eq!(editor.camera.distance, 3.0);
+    }
+
+    #[test]
+    fn undo_changes_the_document_without_rewinding_the_view() {
+        let mut editor = Editor::default();
+        editor.apply(Action::AddBox).unwrap();
+        editor.apply(Action::Zoom(2.0)).unwrap();
+        editor.apply(Action::Background).unwrap();
+        editor.apply(Action::Undo).unwrap();
+        assert_eq!(editor.scene.objects().len(), 2);
+        assert_eq!(editor.camera.distance, 1.5);
+        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
+    }
 ```
 
 ## <a id="checkpoint-19-actions"></a>5. Route browser input through the editor
@@ -623,202 +848,166 @@ Check selection repair, redo preservation and picking through the editor’s cur
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/19-actions-tests.rs"
+        assert_eq!(editor.background.rgb(), [0.9, 0.9, 0.9]);
+    }
+
+    #[test]
+    fn undo_repairs_selection_and_empty_delete_preserves_redo() {
+        let mut editor = Editor::default();
+        editor.apply(Action::AddBox).unwrap();
+        for _ in 0..3 {
+            editor.apply(Action::SelectNext).unwrap();
+        }
+        let box_id = editor.selected.unwrap();
+        editor.apply(Action::Undo).unwrap();
+        assert!(editor.selected.is_none());
+        editor.apply(Action::Delete).unwrap();
+        editor.apply(Action::Redo).unwrap();
+        assert!(editor.scene.contains(box_id));
+    }
+
+    #[test]
+    fn picking_a_moved_view_uses_the_editors_current_camera() {
+        let mut editor = Editor::default();
+        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
+        let point = session_rust::Point::new(0.2, 0.3, 0.75);
+        let screen = editor
+            .camera
+            .view_projection()
+            .transform_point(&point);
+        assert_eq!(
+            editor
+                .apply(Action::Pick([
+                    screen[0] as f32,
+                    screen[1] as f32
+                ]))
+                .unwrap(),
+            Change::Scene
+        );
+        assert_eq!(
+            editor.selected,
+            Some(editor.scene.objects()[1].id)
+        );
+        assert_eq!(
+            editor.apply(Action::Zoom(2.0)).unwrap(),
+            Change::View
+        );
+    }
+}
 ```
 
 ### 2. `src/browser.rs`
 
 Import the editor action types. Create one editor and initialize drawing from its scene. Present the editor background and camera. Start converting submitted lines into actions. Map commands to Action, apply through Editor, and synchronize according to Change. Redraw from the editor state. Report the shared action route.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Surface direction changes brightness, not geometry.");
-    Ok(())
-}
-```
+use crate::background::Background;
+use crate::camera::Camera;
+use crate::history::History;
+use crate::renderer::Renderer;
+use crate::scene::Scene;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
-Replace it with:
-
-```rust
-    )?;
-    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
-    click.forget();
-    report("Every document action follows the same editor path.");
-    Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-        if let Err(error) = present(
-            &surface,
-            &renderer,
-            &background,
-            &camera.uniform(),
-            &mut panel,
-        ) {
-            report(&format!("Cannot redraw: {error:?}"));
-```
-
-Replace it with:
-
-```rust
-        if let Err(error) = present(
-            &surface,
-            &renderer,
-            &editor.background,
-            &editor.camera.uniform(),
-            &mut panel,
-        ) {
-            report(&format!("Cannot redraw: {error:?}"));
-```
-
-**Locate this block:**
-
-```rust
-                    if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                        return;
-                    }
-                    let screen = [
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ];
-                    selected = camera
-                        .ray(screen)
-                        .and_then(|ray| crate::picking::pick(&scene, &ray));
-                    renderer.set_scene(&scene, selected);
-                }
-                "example box" => {
-                    if let Err(error) =
-                        history.try_edit(&mut scene, |scene| scene.add_box().map(|_| ()))
-                    {
-                        report(error);
-                        return;
-                    }
-                    renderer.set_scene(&scene, selected);
-                }
-                "example triangle" => {
-                    history.edit(&mut scene, Scene::toggle_extra);
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "select next" => {
-                    selected = scene.next(selected);
-                    renderer.set_scene(&scene, selected);
-                }
-                "delete" => {
-                    if let Some(id) = selected.take() {
-                        history.edit(&mut scene, |scene| {
-                            scene.remove(id);
-                        });
-                        renderer.set_scene(&scene, selected);
-                    }
-                }
-                "undo" | "redo" => {
-                    if line == "undo" {
-                        history.undo(&mut scene);
-                    } else {
-                        history.redo(&mut scene);
-                    }
-                    selected = selected.filter(|id| scene.contains(*id));
-                    renderer.set_scene(&scene, selected);
-                }
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "orbit up" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),
-                "view isometric" => camera.isometric(),
-                "view reset" => camera = Camera { aspect: camera.aspect, ..Camera::default() },
-                _ => return,
+pub fn report(message: &str) {
+    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
+        if let Some(status) = document.get_element_by_id("status") {
+            status.set_text_content(Some(message));
+            if message.starts_with("Cannot") {
+                let _ = status.remove_attribute("hidden");
             }
         }
-        if let Err(error) = panel.update(None, &input_canvas) {
-```
+    }
+}
 
-Replace it with:
-
-```rust
-                    if rect.width() <= 0.0 || rect.height() <= 0.0 {
-                        return;
-                    }
-                    Action::Pick([
-                        (2.0 * (event.client_x() as f64 - rect.left()) / rect.width() - 1.0) as f32,
-                        (1.0 - 2.0 * (event.client_y() as f64 - rect.top()) / rect.height()) as f32,
-                    ])
-                }
-                "example box" => Action::AddBox,
-                "example triangle" => Action::ToggleExtra,
-                "select next" => Action::SelectNext,
-                "delete" => Action::Delete,
-                "undo" => Action::Undo,
-                "redo" => Action::Redo,
-                "background" => Action::Background,
-                "zoom in" => Action::Zoom(2.0),
-                "zoom out" => Action::Zoom(0.5),
-                "pan left" => Action::Pan(-0.25, 0.0),
-                "pan right" => Action::Pan(0.25, 0.0),
-                "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
-                "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
-                "view isometric" => Action::Isometric,
-                "view reset" => Action::ResetView,
-                _ => return,
-            };
-            match editor.apply(action) {
-                Ok(Change::Scene) => renderer.set_scene(&editor.scene, editor.selected),
-                Ok(Change::View) => {}
-                Err(error) => {
-                    report(error);
-                    return;
-                }
-            }
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-```
-
-**Locate this block:**
-
-```rust
-            .then(|| "canvas".into())
-        });
-        if let Some(line) = line {
-            match line.as_str() {
-                "canvas" => {
-                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                        return;
-```
-
-Replace it with:
-
-```rust
-            .then(|| "canvas".into())
-        });
-        if let Some(line) = line {
-            let action = match line.as_str() {
-                "canvas" => {
-                    let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
-                        return;
-```
-
-**Locate this block:**
-
-```rust
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?
+        .dyn_into()?;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::BROWSER_WEBGPU,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+    let surface = instance
+        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            compatible_surface: Some(&surface),
+            ..Default::default()
+        })
+        .await
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let (device, queue) = adapter
+        .request_device(&wgpu::DeviceDescriptor::default())
+        .await
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        report(&error.to_string())
+    }));
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = (window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No window width")? as u32)
+        .clamp(1, limit);
+    let height = (window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No window height")? as u32)
+        .clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let mut config = surface
+        .get_default_config(&adapter, width, height)
+        .ok_or("No compatible surface format")?;
+    config.view_formats = vec![config.format.add_srgb_suffix()];
+    surface.configure(&device, &config);
+    let mut scene = Scene::demo();
+    let mut renderer = Renderer::new(
+        device,
+        queue,
+        config.format.add_srgb_suffix(),
+        &scene,
+    );
+    renderer.resize(width, height);
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+        &[
+            "Help",
+            "Example Box",
+            "Example Triangle",
+            "Select Next",
+            "Delete",
+            "Undo",
+            "Redo",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
+            "Pan Left",
+            "Pan Right",
+            "Orbit Right",
+            "Orbit Up",
+            "View Isometric",
+            "View Reset",
         ],
     );
     panel.update(None, &canvas)?;
     let mut history = History::default();
     let mut selected = None;
     let mut background = Background::default();
-    let mut camera = Camera { aspect: width as f64 / height as f64, ..Camera::default() };
+    let mut camera = Camera {
+        aspect: width as f64 / height as f64,
+        ..Camera::default()
+    };
     present(
         &surface,
         &renderer,
@@ -827,40 +1016,209 @@ Replace it with:
         &mut panel,
     )?;
     let input_canvas = canvas.clone();
-```
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
 
-Replace it with:
-
-```rust
-        ],
-    );
-    panel.update(None, &canvas)?;
-    present(
-        &surface,
-        &renderer,
-        &editor.background,
-        &editor.camera.uniform(),
-        &mut panel,
+            let line = line.or_else(|| {
+                let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
+                (event.type_() == "click"
+                    && !panel.consumed
+                    && mouse
+                        .target()
+                        .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
+                        .is_some_and(|target| target.id() == "canvas"))
+                .then(|| "canvas".into())
+            });
+            if let Some(line) = line {
+                match line.as_str() {
+                    "canvas" => {
+                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+                        };
+                        let rect = input_canvas.get_bounding_client_rect();
+                        if rect.width() <= 0.0 || rect.height() <= 0.0 {
+                            return;
+                        }
+                        let screen = [
+                            (2.0 * (event.client_x() as f64 - rect.left())
+                                / rect.width()
+                                - 1.0) as f32,
+                            (1.0 - 2.0 * (event.client_y() as f64 - rect.top())
+                                / rect.height()) as f32,
+                        ];
+                        selected = camera
+                            .ray(screen)
+                            .and_then(|ray| crate::picking::pick(&scene, &ray));
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "example box" => {
+                        if let Err(error) = history.try_edit(&mut scene, |scene| {
+                            scene.add_box().map(|_| ())
+                        }) {
+                            report(error);
+                            return;
+                        }
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "example triangle" => {
+                        history.edit(&mut scene, Scene::toggle_extra);
+                        selected = selected.filter(|id| scene.contains(*id));
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "select next" => {
+                        selected = scene.next(selected);
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "delete" => {
+                        if let Some(id) = selected.take() {
+                            history.edit(&mut scene, |scene| {
+                                scene.remove(id);
+                            });
+                            renderer.set_scene(&scene, selected);
+                        }
+                    }
+                    "undo" | "redo" => {
+                        if line == "undo" {
+                            history.undo(&mut scene);
+                        } else {
+                            history.redo(&mut scene);
+                        }
+                        selected = selected.filter(|id| scene.contains(*id));
+                        renderer.set_scene(&scene, selected);
+                    }
+                    "background" => background.toggle(),
+                    "zoom in" => camera.zoom(2.0),
+                    "zoom out" => camera.zoom(0.5),
+                    "pan left" => camera.pan(-0.25, 0.0),
+                    "pan right" => camera.pan(0.25, 0.0),
+                    "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                    "orbit up" => camera.orbit(0.0, std::f64::consts::FRAC_PI_6),
+                    "view isometric" => camera.isometric(),
+                    "view reset" => {
+                        camera = Camera {
+                            aspect: camera.aspect,
+                            ..Camera::default()
+                        }
+                    }
+                    _ => return,
+                }
+            }
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
+                return;
+            }
+            if let Err(error) = present(
+                &surface,
+                &renderer,
+                &background,
+                &camera.uniform(),
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
+    for name in [
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+        "lostpointercapture",
+        "contextmenu",
+        "keydown",
+        "keyup",
+        "blur",
+        "click",
+    ] {
+        canvas
+            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        click.as_ref().unchecked_ref(),
+        &options,
     )?;
-    let input_canvas = canvas.clone();
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Surface direction changes brightness, not geometry.");
+    Ok(())
 ```
 
-**Locate this block:**
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let mut scene = Scene::demo();
-    let mut renderer = Renderer::new(device, queue, config.format.add_srgb_suffix(), &scene);
-    renderer.resize(width, height);
-    let mut panel = crate::panel::Panel::new(
-        &renderer,
-```
+use crate::background::Background;
+use crate::editor::{Action, Change, Editor};
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
-Replace it with:
+pub fn report(message: &str) {
+    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
+        if let Some(status) = document.get_element_by_id("status") {
+            status.set_text_content(Some(message));
+            if message.starts_with("Cannot") {
+                let _ = status.remove_attribute("hidden");
+            }
+        }
+    }
+}
 
-```rust
+pub async fn run() -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("Missing canvas")?
+        .dyn_into()?;
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::BROWSER_WEBGPU,
+        flags: Default::default(),
+        memory_budget_thresholds: Default::default(),
+        backend_options: Default::default(),
+        display: None,
+    });
+    let surface = instance
+        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
+            compatible_surface: Some(&surface),
+            ..Default::default()
+        })
+        .await
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    let (device, queue) = adapter
+        .request_device(&wgpu::DeviceDescriptor::default())
+        .await
+        .map_err(|error| JsValue::from_str(&error.to_string()))?;
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        report(&error.to_string())
+    }));
+    let limit = device.limits().max_texture_dimension_2d;
+    let width = (window
+        .inner_width()?
+        .as_f64()
+        .ok_or("No window width")? as u32)
+        .clamp(1, limit);
+    let height = (window
+        .inner_height()?
+        .as_f64()
+        .ok_or("No window height")? as u32)
+        .clamp(1, limit);
+    canvas.set_width(width);
+    canvas.set_height(height);
+    let mut config = surface
+        .get_default_config(&adapter, width, height)
         .ok_or("No compatible surface format")?;
     config.view_formats = vec![config.format.add_srgb_suffix()];
     surface.configure(&device, &config);
@@ -875,30 +1233,143 @@ Replace it with:
     renderer.resize(width, height);
     let mut panel = crate::panel::Panel::new(
         &renderer,
-```
+        config.format.add_srgb_suffix(),
+        &[
+            "Help",
+            "Example Box",
+            "Example Triangle",
+            "Select Next",
+            "Delete",
+            "Undo",
+            "Redo",
+            "Background",
+            "Zoom In",
+            "Zoom Out",
+            "Pan Left",
+            "Pan Right",
+            "Orbit Right",
+            "Orbit Up",
+            "View Isometric",
+            "View Reset",
+        ],
+    );
+    panel.update(None, &canvas)?;
+    present(
+        &surface,
+        &renderer,
+        &editor.background,
+        &editor.camera.uniform(),
+        &mut panel,
+    )?;
+    let input_canvas = canvas.clone();
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
 
-**Locate this block:**
-
-```rust
-use crate::background::Background;
-use crate::camera::Camera;
-use crate::history::History;
-use crate::renderer::Renderer;
-use crate::scene::Scene;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-```
-
-Replace it with:
-
-```rust
-use crate::background::Background;
-use crate::editor::{Action, Change, Editor};
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
+            let line = line.or_else(|| {
+                let mouse = event.dyn_ref::<web_sys::MouseEvent>()?;
+                (event.type_() == "click"
+                    && !panel.consumed
+                    && mouse
+                        .target()
+                        .and_then(|target| target.dyn_into::<web_sys::Element>().ok())
+                        .is_some_and(|target| target.id() == "canvas"))
+                .then(|| "canvas".into())
+            });
+            if let Some(line) = line {
+                let action = match line.as_str() {
+                    "canvas" => {
+                        let Some(event) = event.dyn_ref::<web_sys::MouseEvent>() else {
+                            return;
+                        };
+                        let rect = input_canvas.get_bounding_client_rect();
+                        if rect.width() <= 0.0 || rect.height() <= 0.0 {
+                            return;
+                        }
+                        Action::Pick([
+                            (2.0 * (event.client_x() as f64 - rect.left())
+                                / rect.width()
+                                - 1.0) as f32,
+                            (1.0 - 2.0 * (event.client_y() as f64 - rect.top())
+                                / rect.height()) as f32,
+                        ])
+                    }
+                    "example box" => Action::AddBox,
+                    "example triangle" => Action::ToggleExtra,
+                    "select next" => Action::SelectNext,
+                    "delete" => Action::Delete,
+                    "undo" => Action::Undo,
+                    "redo" => Action::Redo,
+                    "background" => Action::Background,
+                    "zoom in" => Action::Zoom(2.0),
+                    "zoom out" => Action::Zoom(0.5),
+                    "pan left" => Action::Pan(-0.25, 0.0),
+                    "pan right" => Action::Pan(0.25, 0.0),
+                    "orbit right" => Action::Orbit(std::f64::consts::FRAC_PI_4, 0.0),
+                    "orbit up" => Action::Orbit(0.0, std::f64::consts::FRAC_PI_6),
+                    "view isometric" => Action::Isometric,
+                    "view reset" => Action::ResetView,
+                    _ => return,
+                };
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected)
+                    }
+                    Ok(Change::View) => {}
+                    Err(error) => {
+                        report(error);
+                        return;
+                    }
+                }
+            }
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
+                return;
+            }
+            if let Err(error) = present(
+                &surface,
+                &renderer,
+                &editor.background,
+                &editor.camera.uniform(),
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
+    for name in [
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+        "lostpointercapture",
+        "contextmenu",
+        "keydown",
+        "keyup",
+        "blur",
+        "click",
+    ] {
+        canvas
+            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        click.as_ref().unchecked_ref(),
+        &options,
+    )?;
+    // The page has one listener for its lifetime; JavaScript must retain the Rust callback.
+    click.forget();
+    report("Every document action follows the same editor path.");
+    Ok(())
 ```
 
 ## Build & Run

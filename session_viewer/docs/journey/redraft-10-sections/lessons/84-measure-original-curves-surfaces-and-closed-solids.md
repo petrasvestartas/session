@@ -1,6 +1,6 @@
 # 16.4 · Measurements, temporary marks and retained CAD pieces
 
-**Goal:** Count derived pieces before allocating them. · **Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Count derived pieces before allocating them. · **Steps:** 37 · **Source:** [app/command/verbs/project_to_plane.rs](../../../../src/app/command/verbs/project_to_plane.rs) · [app/command/verbs/extend.rs](../../../../src/app/command/verbs/extend.rs) · [app/splitting.rs](../../../../src/app/splitting.rs) · [app/command/verbs/measure.rs](../../../../src/app/command/verbs/measure.rs) · [app/command/verbs/trim/parts.rs](../../../../src/app/command/verbs/trim/parts.rs) · [app/command/verbs/explode.rs](../../../../src/app/command/verbs/explode.rs) · [app/walk/frames.rs](../../../../src/app/walk/frames.rs) (`src/app/booleans.rs,src/app/measurements.rs,src/app/recipes.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,34 +32,29 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/app/booleans.rs</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/app/measurements.rs</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Measure closed-solid volu…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Rg32Uint [R:owner, G:sub]</text>
-  <rect x="624" y="50" width="152" height="92" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <rect x="624" y="50" width="50" height="30" fill="#fee2e2" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="649" y="69" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#dc2626">R:id=4</text>
-  <rect x="674" y="50" width="52" height="30" fill="#dcfce7" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="69" text-anchor="middle" font-family="monospace" font-size="8.5" font-weight="700" fill="#16a34a">G:sub=2</text>
-  <line x1="674" y1="50" x2="674" y2="142" stroke="#111111" stroke-width="1"/>
-  <line x1="726" y1="50" x2="726" y2="142" stroke="#111111" stroke-width="1"/>
-  <line x1="624" y1="80" x2="776" y2="80" stroke="#111111" stroke-width="1"/>
-  <line x1="624" y1="111" x2="776" y2="111" stroke="#111111" stroke-width="1"/>
-  <rect x="674" y="80" width="52" height="31" fill="#fef08a" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[7, 3]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. B-Rep Boolean (A ∪ / ∖ / ∩ B)</text>
+  <rect x="618" y="56" width="84" height="68" rx="4" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <rect x="676" y="72" width="84" height="68" rx="4" fill="#fee2e2" stroke="#111111" stroke-width="1.75"/>
+  <rect x="676" y="72" width="26" height="52" fill="#fef08a" stroke="#dc2626" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="689" y="102" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">SSI</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Measurements, temporary mar…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Priority &amp; 256B Readback</text>
-  <rect x="880" y="54" width="188" height="36" rx="5" fill="#fef08a" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="974" y="76" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Point &gt; Wire &gt; Face</text>
-  <rect x="880" y="100" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="974" y="122" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">256B Aligned Staging</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Split, Trim &amp; Dimensions</text>
+  <line x1="896" y1="92" x2="1056" y2="92" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <line x1="896" y1="76" x2="896" y2="108" stroke="#111111" stroke-width="1.75"/>
+  <line x1="1056" y1="76" x2="1056" y2="108" stroke="#111111" stroke-width="1.75"/>
+  <rect x="932" y="54" width="88" height="24" rx="4" fill="#fef9c3" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="70" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">124.50 mm</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="132" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Area / Volume / Mass</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Explode supported families</text>
 </svg>
 </div>
@@ -96,7 +91,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">placed source</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure or refusal</text>
 </svg>
 </div>
@@ -110,45 +105,17 @@ Type the complete original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84-measure-original-curves-surfaces-and-closed-solids-dedup-volume-1.rs"
-```
-
-### 2. `src/lib.rs`
-
-Register this original measurement owner.
-
-**Locate this existing block:**
-
-```rust
-
-pub mod measure_area;
-```
-
-After that block, type:
-
-```rust
---8<-- "journey/code/84-measure-original-curves-surfaces-and-closed-solids-2.rs" skip=23
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 3. `src/measure_volume.rs`
-
-Supply only the unchanged original validation fixtures.
-
-**Locate this existing block:**
-
-```text
-use crate::measure_math::compute_swept;
 use crate::cad_edges::edge_chains;
 use crate::cad_orient::face_signs;
-use session_rust::{BRep,Geometry,Mesh,Point,Xform};
+use crate::measure_math::compute_swept;
 use session_rust::element::ElementGeometry;
-const OPEN:&str="open";
+use session_rust::{BRep, Geometry, Mesh, Point, Xform};
+const OPEN: &str = "open";
 /// World volume of a closed mesh or solid BRep; Err when open, None when the kind has no volume.
-pub fn compute_volume(geometry: &Geometry, place: &Xform) -> Option<Result<f64, &'static str>> {
+pub fn compute_volume(
+    geometry: &Geometry,
+    place: &Xform,
+) -> Option<Result<f64, &'static str>> {
     match geometry {
         Geometry::Mesh(mesh) => Some(compute_mesh_volume(mesh, place)),
         Geometry::BRep(brep) => Some(compute_brep_volume(brep, place)),
@@ -181,7 +148,10 @@ fn compute_brep_volume(brep: &BRep, place: &Xform) -> Result<f64, &'static str> 
     let meshes = brep.face_meshes_q(Some(crate::cad_boundary::QUALITY));
     let chains = edge_chains(brep, &meshes);
     let signs = face_signs(brep, &meshes, &chains);
-    let Some(origin) = meshes.iter().find(|mesh| !mesh.vertex.is_empty()) else {
+    let Some(origin) = meshes
+        .iter()
+        .find(|mesh| !mesh.vertex.is_empty())
+    else {
         return Err(OPEN);
     };
     let origin = origin_of(origin, place);
@@ -198,14 +168,151 @@ fn origin_of(mesh: &Mesh, place: &Xform) -> Point {
     mesh.faces()
         .first()
         .and_then(|face| mesh.vertex_point(*mesh.face[face].first()?))
-        .map_or(Point::new(0.0, 0.0, 0.0), |p| p.transformed(place))
+        .map_or(Point::new(0.0, 0.0, 0.0), |p| {
+            p.transformed(place)
+        })
 }
 ```
 
-After that block, append this supplied code:
+### 2. `src/lib.rs`
 
-```text
---8<-- "journey/code/84-measure-original-curves-surfaces-and-closed-solids-dedup-volume-3.rs" skip=2289
+Register this original measurement owner.
+
+**Locate this existing block:**
+
+```rust
+pub mod measure_area;
+pub mod source_mesh_topology;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod measure_area;
+
+pub mod measure_volume;
+pub mod source_mesh_topology;
+```
+
+### 3. `src/measure_volume.rs`
+
+Supply only the unchanged original validation fixtures.
+
+**Locate this existing block:**
+
+```rust
+        })
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use session_rust::{Element, Line, NurbsSurface};
+    use std::rc::Rc;
+
+    fn near(value: f64, expected: f64, relative: f64) -> bool {
+        (value - expected).abs() <= relative * expected.abs().max(1.0)
+    }
+
+    fn measured(
+        geometry: Geometry,
+        place: &Xform,
+    ) -> Option<Result<f64, &'static str>> {
+        compute_volume(&geometry, place)
+    }
+
+    #[test]
+    fn closed_meshes_measure_and_open_ones_are_refused() {
+        let identity = Xform::identity();
+        let mesh = Mesh::create_box(2.0, 2.0, 0.4);
+        let volume = measured(
+            Geometry::Mesh(Rc::new(mesh.clone())),
+            &identity,
+        );
+        assert!(near(volume.unwrap().unwrap(), 1.6, 1e-9));
+        let far =
+            &Xform::translation(1e6, -2e6, 5e5) * &Xform::scale_xyz(2.0, 2.0, 2.0);
+        let volume = measured(Geometry::Mesh(Rc::new(mesh)), &far);
+        assert!(near(volume.unwrap().unwrap(), 12.8, 1e-9));
+        let corners = vec![
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(1.0, 0.0, 0.0),
+            Point::new(1.0, 1.0, 0.0),
+            Point::new(0.0, 1.0, 0.0),
+            Point::new(0.0, 0.0, 1.0),
+            Point::new(1.0, 0.0, 1.0),
+            Point::new(1.0, 1.0, 1.0),
+            Point::new(0.0, 1.0, 1.0),
+        ];
+        let sides = vec![
+            vec![0, 3, 2, 1],
+            vec![0, 1, 5, 4],
+            vec![1, 2, 6, 5],
+            vec![2, 3, 7, 6],
+            vec![3, 0, 4, 7],
+        ];
+        let lidless = Mesh::from_vertices_and_faces(corners, sides);
+        let volume = measured(Geometry::Mesh(Rc::new(lidless)), &identity);
+        assert_eq!(volume, Some(Err(OPEN)));
+    }
+
+    #[test]
+    fn solid_breps_measure_whatever_their_face_flags() {
+        let identity = Xform::identity();
+        let brep = BRep::create_box(2.0, 2.0, 0.4);
+        let volume = measured(
+            Geometry::BRep(Rc::new(brep.clone())),
+            &identity,
+        );
+        assert!(near(volume.unwrap().unwrap(), 1.6, 1e-9));
+        let mut flipped = brep.clone();
+        let face = &mut flipped.m_shells[0].faces[0];
+        face.orientation = session_rust::brep::brep_reverse(face.orientation);
+        let volume = measured(Geometry::BRep(Rc::new(flipped)), &identity);
+        assert!(near(volume.unwrap().unwrap(), 1.6, 1e-9));
+        let mut shell = brep.clone();
+        shell.m_solids.clear();
+        let volume = measured(Geometry::BRep(Rc::new(shell)), &identity);
+        assert_eq!(volume, Some(Err(OPEN)));
+        let cylinder = Geometry::BRep(Rc::new(BRep::create_cylinder(150.0, 400.0)));
+        let exact = std::f64::consts::PI * 150.0 * 150.0 * 400.0;
+        assert!(near(
+            measured(cylinder, &identity)
+                .unwrap()
+                .unwrap(),
+            exact,
+            5e-3
+        ));
+        let element = Geometry::Element(Rc::new(Element::from_brep(brep, "beam")));
+        assert!(near(
+            measured(element, &identity)
+                .unwrap()
+                .unwrap(),
+            1.6,
+            1e-9
+        ));
+        let corners = [
+            Point::new(0.0, 0.0, 0.0),
+            Point::new(0.0, 1.0, 0.0),
+            Point::new(1.0, 0.0, 0.0),
+            Point::new(1.0, 1.0, 0.0),
+        ];
+        let surface = NurbsSurface::create(false, false, 1, 1, 2, 2, &corners).unwrap();
+        let surface = Geometry::NurbsSurface(Rc::new(surface));
+        assert_eq!(measured(surface, &identity), Some(Err(OPEN)));
+        let line = Geometry::Line(Rc::new(Line::new(
+            0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+        )));
+        assert_eq!(measured(line, &identity), None);
+    }
+}
 ```
 
 ## <a id="checkpoint-84a-validate-an-original-box-and-derive-wire-only-display"></a>2. Validate an box and derive wire-only display
@@ -240,7 +347,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">finite orthonormal valida…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">twelve display edges</text>
 </svg>
 </div>
@@ -256,47 +363,38 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
+        let label = metadata.name.clone();
+        let node_guid = guid.clone();
+        self.objects.push(Object {
+            cad: None,
 ```
 
 Replace it with:
 
 ```rust
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {original:None,cad:None,surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
-        Ok(id)
-    }
+        let label = metadata.name.clone();
+        let node_guid = guid.clone();
+        self.objects.push(Object {
+            original: None,
+            cad: None,
 ```
 
 **Locate this block:**
 
 ```rust
-
-#[derive(Clone)]
 pub struct Object {
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
+    pub cad: Option<Rc<crate::cad_display::Prepared>>,
+    pub surface: Option<Rc<crate::surface::Prepared>>,
     pub id: ObjectId,
 ```
 
 Replace it with:
 
 ```rust
-
-#[derive(Clone)]
 pub struct Object {
-    pub original:Option<session_rust::Geometry>,
-    pub cad:Option<Rc<crate::cad_display::Prepared>>,
-    pub surface:Option<Rc<crate::surface::Prepared>>,
+    pub original: Option<session_rust::Geometry>,
+    pub cad: Option<Rc<crate::cad_display::Prepared>>,
+    pub surface: Option<Rc<crate::surface::Prepared>>,
     pub id: ObjectId,
 ```
 
@@ -307,7 +405,93 @@ Validate original box frames and prepare a wire-only display.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84a-validate-an-original-box-and-derive-wire-only-display-03.rs"
+use session_rust::{Mesh, OBB, Point, Xform};
+use std::rc::Rc;
+pub fn valid(source: &OBB) -> bool {
+    let axes = [
+        &source.x_axis,
+        &source.y_axis,
+        &source.z_axis,
+    ];
+    (0..3).all(|i| {
+        source.center[i].is_finite()
+            && source.half_size[i].is_finite()
+            && source.half_size[i] >= 0.
+    }) && axes
+        .iter()
+        .all(|a| (0..3).all(|i| a[i].is_finite()) && (a.magnitude() - 1.).abs() < 1e-9)
+        && axes[0].dot(axes[1]).abs() < 1e-9
+        && axes[0].dot(axes[2]).abs() < 1e-9
+        && axes[1].dot(axes[2]).abs() < 1e-9
+}
+pub fn prepared(source: &OBB) -> Result<crate::prepared::PreparedMesh, &'static str> {
+    if !valid(source) {
+        return Err("Invalid original box frame");
+    }
+    let points = source.corners().to_vec();
+    let mut mesh = Mesh::from_vertices_and_faces(
+        points,
+        vec![
+            vec![0, 3, 2, 1],
+            vec![4, 5, 6, 7],
+            vec![0, 1, 5, 4],
+            vec![1, 2, 6, 5],
+            vec![2, 3, 7, 6],
+            vec![3, 0, 4, 7],
+        ],
+    );
+    mesh.set_guid(source.guid().to_owned());
+    mesh.name = source.name.clone();
+    mesh.is_visible = source.is_visible;
+    mesh.is_locked = source.is_locked;
+    let points = source.corners();
+    let edges = vec![
+        (0, 1),
+        (1, 2),
+        (2, 3),
+        (3, 0),
+        (4, 5),
+        (5, 6),
+        (6, 7),
+        (7, 4),
+        (0, 4),
+        (1, 5),
+        (2, 6),
+        (3, 7),
+    ];
+    let endpoints = edges
+        .iter()
+        .map(|&(a, b)| [&points[a], &points[b]].map(|p| [p[0], p[1], p[2]]))
+        .collect();
+    let mut display = crate::mesh::Mesh::new(
+        points
+            .iter()
+            .map(|p| {
+                [
+                    p[0] as f32,
+                    p[1] as f32,
+                    p[2] as f32,
+                    0.,
+                    0.,
+                    0.,
+                ]
+            })
+            .collect(),
+        Vec::new(),
+    )?;
+    display.parts = crate::mesh_parts::Parts {
+        faces: Vec::new(),
+        triangles: Vec::new(),
+        edges,
+        endpoints,
+    };
+    Ok(crate::prepared::PreparedMesh {
+        geometry: Rc::new(mesh),
+        display,
+        source: None,
+        model: Xform::identity(),
+    })
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -317,14 +501,17 @@ Register the measurement component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod measure_volume;
+pub mod source_mesh_topology;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84a-validate-an-original-box-and-derive-wire-only-display-04.rs" skip=25
+pub mod measure_volume;
+
+pub mod bounds_original;
+pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-84b-adopt-original-boxes-and-retain-precise-placed-bounds"></a>3. Adopt boxes and retain precise placed bounds
@@ -359,7 +546,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">stable source row</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked replacement</text>
 </svg>
 </div>
@@ -377,10 +564,49 @@ Adopt and place original boxes without substituting their display proxy.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-01.rs" skip=9
+    })
+}
+pub fn placed(source: &OBB, model: &Xform) -> crate::bounds::Bounds {
+    let points = source
+        .corners()
+        .map(|p| p.transformed(model));
+    let p = &points[0];
+    let mut result = crate::bounds::Bounds::point([p[0], p[1], p[2]]);
+    for p in points {
+        result.include([p[0], p[1], p[2]]);
+    }
+    result
+}
+pub fn insert(
+    scene: &mut crate::scene::Scene,
+    source: Rc<OBB>,
+) -> Result<crate::scene::ObjectId, &'static str> {
+    let id = scene.insert(prepared(&source)?)?;
+    scene
+        .objects_mut()
+        .iter_mut()
+        .find(|r| r.id == id)
+        .unwrap()
+        .original = Some(session_rust::Geometry::OBB(source));
+    Ok(id)
+}
+pub fn box_geometry(bounds: &crate::bounds::Bounds) -> OBB {
+    let c = bounds.centre();
+    OBB::new(
+        Point::new(c[0], c[1], c[2]),
+        session_rust::Vector::x_axis(),
+        session_rust::Vector::y_axis(),
+        session_rust::Vector::z_axis(),
+        session_rust::Vector::new(
+            (bounds.max[0] - bounds.min[0]) * 0.5,
+            (bounds.max[1] - bounds.min[1]) * 0.5,
+            (bounds.max[2] - bounds.min[2]) * 0.5,
+        ),
+    )
+}
 ```
 
 ### 2. `src/scene.rs`
@@ -392,55 +618,77 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if self.objects.iter().any(|row|row.id==target.owner&&(row.surface.is_some()||row.cad.is_some())) {
+        if matches!(target.part, Part::CloudPoint(_)) {
+            return Err("Cloud point editing connects with source transforms");
+        }
 ```
 
 Replace it with:
 
 ```rust
-        use crate::pick_sources::Part;
-        if !target.valid(self) || !crate::placement::valid(&delta.m) {return Err("Invalid part edit");}
-        if matches!(target.part,Part::CloudPoint(_)) {return Err("Cloud point editing connects with source transforms");}
-        if self.objects.iter().any(|row|row.id==target.owner&&row.original.is_some()){return Err("Part editing for this original family connects in the complete command inventory")}
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if self.objects.iter().any(|row|row.id==target.owner&&(row.surface.is_some()||row.cad.is_some())) {
+        if matches!(target.part, Part::CloudPoint(_)) {
+            return Err("Cloud point editing connects with source transforms");
+        }
+        if self
+            .objects
+            .iter()
+            .any(|row| row.id == target.owner && row.original.is_some())
+        {
+            return Err(
+                "Part editing for this original family connects in the complete command inventory",
+            );
+        }
 ```
 
 **Locate this block:**
 
 ```rust
-        let original=crate::source_edit::original(self,id).ok_or("Reload an editable original source")?;
-        let model=self.placement(id).ok_or("Source placement is missing")?;geometry.set_guid(original.guid());
-        match geometry{
-            Geometry::Point(source)=>{let prepared=crate::marker::PreparedPoint::new(source)?;let p=model.transform_point(&prepared.source);if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited point exceeds display range")}self.points.iter_mut().find(|r|r.id==id).ok_or("Expected a point source")?.prepared=prepared;},
-            Geometry::Line(source)if self.lines.iter().any(|r|r.id==id)=>{let prepared=crate::stroke::PreparedLine::new(source)?;for p in [prepared.source.start(),prepared.source.end()]{let p=model.transform_point(&p);if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited line exceeds display range")}}self.lines.iter_mut().find(|r|r.id==id).unwrap().prepared=prepared;},
-            Geometry::Line(_)|Geometry::Polyline(_)|Geometry::NurbsCurve(_)=>{
+            .ok_or("Source placement is missing")?;
+        geometry.set_guid(original.guid());
+        match geometry {
+            Geometry::Point(source) => {
+                let prepared = crate::marker::PreparedPoint::new(source)?;
+                let p = model.transform_point(&prepared.source);
 ```
 
 Replace it with:
 
 ```rust
-        let original=crate::source_edit::original(self,id).ok_or("Reload an editable original source")?;
-        let model=self.placement(id).ok_or("Source placement is missing")?;geometry.set_guid(original.guid());
-        match geometry{
-            Geometry::OBB(source)=>{let prepared=crate::bounds_original::prepared(&source)?;let bounds=crate::bounds_original::placed(&source,&model);if bounds.min.into_iter().chain(bounds.max).any(|v|!(v as f32).is_finite()){return Err("Edited box exceeds display range")}let row=self.objects.iter_mut().find(|r|r.id==id).ok_or("Expected a box source")?;row.mesh=Rc::new(prepared.display);row.original=Some(Geometry::OBB(source));row.editable=crate::edit_source::EditSource::Loaded{geometry:prepared.geometry,source:None};},
-            Geometry::Point(source)=>{let prepared=crate::marker::PreparedPoint::new(source)?;let p=model.transform_point(&prepared.source);if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited point exceeds display range")}self.points.iter_mut().find(|r|r.id==id).ok_or("Expected a point source")?.prepared=prepared;},
-            Geometry::Line(source)if self.lines.iter().any(|r|r.id==id)=>{let prepared=crate::stroke::PreparedLine::new(source)?;for p in [prepared.source.start(),prepared.source.end()]{let p=model.transform_point(&p);if(0..3).any(|i|!(p[i]as f32).is_finite()){return Err("Edited line exceeds display range")}}self.lines.iter_mut().find(|r|r.id==id).unwrap().prepared=prepared;},
-            Geometry::Line(_)|Geometry::Polyline(_)|Geometry::NurbsCurve(_)=>{
+            .ok_or("Source placement is missing")?;
+        geometry.set_guid(original.guid());
+        match geometry {
+            Geometry::OBB(source) => {
+                let prepared = crate::bounds_original::prepared(&source)?;
+                let bounds = crate::bounds_original::placed(&source, &model);
+                if bounds
+                    .min
+                    .into_iter()
+                    .chain(bounds.max)
+                    .any(|v| !(v as f32).is_finite())
+                {
+                    return Err("Edited box exceeds display range");
+                }
+                let row = self
+                    .objects
+                    .iter_mut()
+                    .find(|r| r.id == id)
+                    .ok_or("Expected a box source")?;
+                row.mesh = Rc::new(prepared.display);
+                row.original = Some(Geometry::OBB(source));
+                row.editable = crate::edit_source::EditSource::Loaded {
+                    geometry: prepared.geometry,
+                    source: None,
+                };
+            }
+            Geometry::Point(source) => {
+                let prepared = crate::marker::PreparedPoint::new(source)?;
+                let p = model.transform_point(&prepared.source);
 ```
 
 **Locate this block:**
 
 ```rust
-            else{self.paths.iter().find(|row|row.id==id).map(|row|row.prepared.source.bounds_coordinates().into_iter().map(|p|{let p=row.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));[p[0],p[1],p[2]]}).collect::<Vec<_>>())};
-        if let Some(points)=points{let mut bounds=crate::bounds::Bounds::point(*points.first()?);for p in points{bounds.include(p);}return Some(bounds);}
-        let object = self.objects.iter().find(|object| object.id == id)?;
+            .find(|object| object.id == id)?;
         let mut vertices = object.mesh.vertices().iter();
         let first = vertices.next()?;
         let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
@@ -449,10 +697,13 @@ Replace it with:
 Replace it with:
 
 ```rust
-            else{self.paths.iter().find(|row|row.id==id).map(|row|row.prepared.source.bounds_coordinates().into_iter().map(|p|{let p=row.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2]));[p[0],p[1],p[2]]}).collect::<Vec<_>>())};
-        if let Some(points)=points{let mut bounds=crate::bounds::Bounds::point(*points.first()?);for p in points{bounds.include(p);}return Some(bounds);}
-        let object = self.objects.iter().find(|object| object.id == id)?;
-        if let Some(session_rust::Geometry::OBB(source))=&object.original{return Some(crate::bounds_original::placed(source,&object.model))}
+            .find(|object| object.id == id)?;
+        if let Some(session_rust::Geometry::OBB(source)) = &object.original {
+            return Some(crate::bounds_original::placed(
+                source,
+                &object.model,
+            ));
+        }
         let mut vertices = object.mesh.vertices().iter();
         let first = vertices.next()?;
         let mut bounds = crate::bounds::Bounds::point(object.world_point(*first));
@@ -462,22 +713,46 @@ Replace it with:
 
 Return the original box allocation before considering display geometry.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::scene::{ObjectId, Scene};
-use session_rust::{Geometry, Xform};
-use std::rc::Rc;
-pub fn original(scene: &Scene, id: ObjectId) -> Option<Geometry> {
     if let Some(row) = scene.objects().iter().find(|r| r.id == id) {
-        if let Some(original)=&row.original{return Some(original.clone())}
         if let Some(cad) = &row.cad {
             return Some(Geometry::BRep(cad.source.clone()));
         }
         if let Some(s) = &row.surface {
             return Some(Geometry::NurbsSurface(s.source.clone()));
         }
-        return row.geometry().map(|g| Geometry::Mesh(g.clone()));
+        return row
+            .geometry()
+            .map(|g| Geometry::Mesh(g.clone()));
+    }
+    if let Some(row) = scene.points().iter().find(|r| r.id == id) {
+        return Some(Geometry::Point(row.prepared.source.clone()));
+    }
+    crate::gather_draft::Draft::source(scene, id)
+}
+pub fn same(a: &Geometry, b: &Geometry) -> bool {
+    match (a, b) {
+        (Geometry::Line(a), Geometry::Line(b)) => Rc::ptr_eq(a, b),
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    if let Some(row) = scene.objects().iter().find(|r| r.id == id) {
+        if let Some(original) = &row.original {
+            return Some(original.clone());
+        }
+        if let Some(cad) = &row.cad {
+            return Some(Geometry::BRep(cad.source.clone()));
+        }
+        if let Some(s) = &row.surface {
+            return Some(Geometry::NurbsSurface(s.source.clone()));
+        }
+        return row
+            .geometry()
+            .map(|g| Geometry::Mesh(g.clone()));
     }
     if let Some(row) = scene.points().iter().find(|r| r.id == id) {
         return Some(Geometry::Point(row.prepared.source.clone()));
@@ -488,42 +763,6 @@ pub fn same(a: &Geometry, b: &Geometry) -> bool {
     match (a, b) {
         (Geometry::OBB(a), Geometry::OBB(b)) => Rc::ptr_eq(a, b),
         (Geometry::Line(a), Geometry::Line(b)) => Rc::ptr_eq(a, b),
-        (Geometry::Polyline(a), Geometry::Polyline(b)) => Rc::ptr_eq(a, b),
-        (Geometry::NurbsCurve(a), Geometry::NurbsCurve(b)) => Rc::ptr_eq(a, b),
-        (Geometry::Point(a), Geometry::Point(b)) => Rc::ptr_eq(a, b),
-        (Geometry::Mesh(a), Geometry::Mesh(b)) => Rc::ptr_eq(a, b),
-        (Geometry::BRep(a), Geometry::BRep(b)) => Rc::ptr_eq(a, b),
-        (Geometry::NurbsSurface(a), Geometry::NurbsSurface(b)) => Rc::ptr_eq(a, b),
-        _ => false,
-    }
-}
-#[derive(Clone)]
-pub struct Owner {
-    pub id: ObjectId,
-    pub source: Geometry,
-    pub model: Xform,
-}
-impl Owner {
-    pub fn capture(scene: &Scene, id: ObjectId) -> Result<Self, &'static str> {
-        if scene.pick_id(id.value()) != Some(id) {
-            return Err("Pick a visible unlocked original");
-        }
-        Ok(Self {
-            id,
-            source: original(scene, id).ok_or("Reload an editable original source")?,
-            model: scene.placement(id).ok_or("Source placement is missing")?,
-        })
-    }
-    pub fn valid(&self, scene: &Scene) -> Result<(), &'static str> {
-        if scene.pick_id(self.id.value()) != Some(self.id)
-            || scene.placement(self.id).is_none_or(|p| p.m != self.model.m)
-            || original(scene, self.id).is_none_or(|g| !same(&self.source, &g))
-        {
-            return Err("Original source changed; start again");
-        }
-        Ok(())
-    }
-}
 ```
 
 ### 4. `src/gpu_geometry.rs`
@@ -533,13 +772,18 @@ Skip empty triangle draws before binding a wire-only box index buffer.
 **Locate this existing block:**
 
 ```rust
-    pub fn draw_instances(&self, pass: &mut wgpu::RenderPass<'_>,count:u32) {
+    pub fn draw_instances(&self, pass: &mut wgpu::RenderPass<'_>, count: u32) {
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84b-adopt-original-boxes-and-retain-precise-placed-bounds-wire-draw.rs" skip=78
+    pub fn draw_instances(&self, pass: &mut wgpu::RenderPass<'_>, count: u32) {
+        if self.index_count == 0 || count == 0 {
+            return;
+        }
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
 ```
 
 ### 5. `src/highlight.rs`
@@ -549,13 +793,48 @@ Show whole selection on wire-only original edges without creating selected proxy
 **Locate this existing block:**
 
 ```rust
-            crate::stroke::Stroke { colour: yellow, width: r.prepared.display.width + 2., ..r.stroke() }))?;
+                    ..r.stroke()
+                }),
+        )?;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            crate::stroke::Stroke { colour: yellow, width: r.prepared.display.width + 2., ..r.stroke() }).chain(scene.objects().iter().filter(|r|ids.contains(&r.id)&&scene.visible(r.id)&&r.mesh.indices().is_empty()).flat_map(|r|r.mesh.parts.endpoints.iter().map(move|pair|{let ends=pair.map(|p|r.model.transform_point(&session_rust::Point::new(p[0],p[1],p[2])).to_f32());crate::stroke::Stroke{start:ends[0],end:ends[1],colour:yellow,width:3.}}))))?;
+                    ..r.stroke()
+                })
+                .chain(
+                    scene
+                        .objects()
+                        .iter()
+                        .filter(|r| {
+                            ids.contains(&r.id)
+                                && scene.visible(r.id)
+                                && r.mesh.indices().is_empty()
+                        })
+                        .flat_map(|r| {
+                            r.mesh
+                                .parts
+                                .endpoints
+                                .iter()
+                                .map(move |pair| {
+                                    let ends = pair.map(|p| {
+                                        r.model
+                                            .transform_point(&session_rust::Point::new(
+                                                p[0], p[1], p[2],
+                                            ))
+                                            .to_f32()
+                                    });
+                                    crate::stroke::Stroke {
+                                        start: ends[0],
+                                        end: ends[1],
+                                        colour: yellow,
+                                        width: 3.,
+                                    }
+                                })
+                        }),
+                ),
+        )?;
 ```
 
 ## <a id="checkpoint-84c-save-and-reopen-the-original-box-frame"></a>4. Save and reopen the box frame
@@ -590,7 +869,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked source import</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">same original frame</text>
 </svg>
 </div>
@@ -604,57 +883,63 @@ Retain validated original OBB records through mixed document persistence.
 **Locate this existing block:**
 
 ```rust
-    }
-    for row in scene.objects().iter().filter(|row|ids.contains(&row.id)&&!scene.instances.contains_key(&row.id)) {
-        if let Some(cad)=row.cad.as_ref() {push!(breps,row.id,cad.source.to_proto());}
-        else if let Some(surface)=row.surface.as_ref() {push!(nurbssurfaces,row.id,surface.source.to_proto());}
-        else {push!(meshes,row.id,row.geometry().ok_or("Reload editable sources before saving")?.to_proto());}
+    {
+        if let Some(cad) = row.cad.as_ref() {
+            push!(breps, row.id, cad.source.to_proto());
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-01.rs"
+    {
+        if let Some(session_rust::Geometry::OBB(source)) = &row.original {
+            push!(bboxes, row.id, source.to_proto());
+        } else if let Some(cad) = row.cad.as_ref() {
+            push!(breps, row.id, cad.source.to_proto());
 ```
 
 ### 2. `src/document_source.rs`
 
 Retain validated original OBB records through mixed document persistence.
 
-Replace the entire file with:
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-use session_rust::{proto,Session,Xform};
-use prost::Message;
-use std::{collections::{HashMap,HashSet},rc::Rc};
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !objects.planes.is_empty()
+        || !objects.bboxes.is_empty()
+        || !objects.elements.is_empty()
+```
 
-pub(crate) struct Source {pub document:Rc<Session>,pub origin:Rc<crate::origin::Origin>,pub tree:Option<proto::TreeNode>,pub world:HashMap<String,Xform>,pub sheets:Vec<Rc<crate::sheet_source::Prepared>>}
-pub(crate) fn prepare(bytes:&[u8],place:&Xform,point_px:f32)->Result<Source,String> {
-    if bytes.len()>crate::archive::LIMIT {return Err("Session exceeds the 512 MiB file limit".into());}
-    let message=proto::Session::decode(bytes).map_err(|e|e.to_string())?;
-    crate::source_validate::session(&message)?;
-    supported(&message)?;
-    if !crate::placement::valid(&place.m)||!point_px.is_finite() {return Err("Invalid document placement or point size".into());}
-    let tree=message.tree.as_ref().and_then(|tree|tree.root.clone());
-    let mut guids=HashSet::new();let objects=message.objects.as_ref().ok_or("Session has no objects")?;
-    macro_rules! identity {($field:ident)=>{for object in &objects.$field {if object.guid.is_empty()||!guids.insert(object.guid.as_str()) {return Err("Source GUIDs must be distinct within a document".into());}}};}
-    identity!(bboxes);identity!(meshes);identity!(points);identity!(lines);identity!(polylines);identity!(nurbscurves);identity!(nurbssurfaces);identity!(breps);identity!(pointclouds);identity!(instances);identity!(sheets);
-    if let Some(root)=tree.as_ref() {crate::hierarchy::validate(root,&guids).map_err(str::to_owned)?;}
-    let mut placed=HashSet::new();for entry in &message.xforms {if !placed.insert(entry.guid.as_str())||!crate::placement::valid(&entry.xform.as_ref().ok_or("Missing placement matrix")?.matrix) {return Err("Invalid source placement".into());}}
-    let sheets=objects.sheets.iter().cloned().map(|sheet|crate::sheet_source::Prepared::new(Rc::new(sheet)).map(Rc::new).map_err(str::to_owned)).collect::<Result<Vec<_>,_>>()?;
-    let origin=Rc::new(crate::origin::Origin::new(&message,bytes));
-    let document=Rc::new(Session::from_proto(message).map_err(|e|e.to_string())?);
-    let world=crate::nested_placement::prepare(&document,place).map_err(str::to_owned)?;
-    Ok(Source {document,origin,tree,world,sheets})
-}
+Replace it with:
 
-fn supported(source:&proto::Session)->Result<(),String> {
-    crate::instance_plan::validate(source)?;
-    if !source.interactions.is_empty() {return Err("Interactions arrive with element features".into());}
-    let objects=source.objects.as_ref().ok_or("Session has no objects")?;
-    if !objects.planes.is_empty()||!objects.elements.is_empty()||!objects.components.is_empty() {return Err("This subject cannot open planes, boxes or assemblies yet".into());}
-    Ok(())
-}
+```rust
+        .as_ref()
+        .ok_or("Session has no objects")?;
+    if !objects.planes.is_empty()
+        || !objects.elements.is_empty()
+```
+
+**Locate this block:**
+
+```rust
+    }
+    identity!(meshes);
+    identity!(points);
+    identity!(lines);
+```
+
+Replace it with:
+
+```rust
+    }
+    identity!(bboxes);
+    identity!(meshes);
+    identity!(points);
+    identity!(lines);
 ```
 
 ### 3. `src/document_geometry.rs`
@@ -664,16 +949,21 @@ Retain validated original OBB records through mixed document persistence.
 **Locate this existing block:**
 
 ```rust
-        add!(source,scene.insert(prepared));
     }
-    for source in &loaded.document.objects.points {add!(source,scene.insert_point(crate::marker::PreparedPoint::new(source.clone()).map_err(str::to_owned)?));}
-    for source in &loaded.document.objects.lines {add!(source,scene.insert_line(crate::stroke::PreparedLine::new(source.clone()).map_err(str::to_owned)?));}
+    for source in &loaded.document.objects.points {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-04.rs"
+    }
+    for source in &loaded.document.objects.bboxes {
+        add!(
+            source,
+            crate::bounds_original::insert(scene, source.clone())
+        );
+    }
+    for source in &loaded.document.objects.points {
 ```
 
 ### 4. `src/archive_identity.rs`
@@ -683,70 +973,71 @@ Retain validated original OBB records through mixed document persistence.
 **Locate this existing block:**
 
 ```rust
-pub(crate) fn objects(objects:&mut proto::Objects,names:&HashMap<String,String>) {
-    macro_rules! remap {($field:ident)=>{for object in &mut objects.$field {if let Some(guid)=names.get(&object.guid) {object.guid=guid.clone();}}};}
-    remap!(meshes);remap!(lines);remap!(points);remap!(polylines);remap!(nurbscurves);remap!(nurbssurfaces);remap!(breps);remap!(pointclouds);remap!(instances);remap!(sheets);
-}
-pub(crate) fn tree(node:&mut proto::TreeNode,names:&HashMap<String,String>) {
+    }
+    remap!(meshes);
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84c-save-and-reopen-the-original-box-frame-05.rs"
+    }
+    remap!(bboxes);
+    remap!(meshes);
 ```
 
 ### 5. `src/source_validate.rs`
 
 Retain validated original OBB records through mixed document persistence.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-            return Err(TOO_MANY.into());
-        }
-
-        for item in &objects.points {
-            point(item)?;
-        }
-```
-
-Replace it with:
-
-```rust
-            return Err(TOO_MANY.into());
-        }
-
-        for item in &objects.bboxes {if !crate::bounds_original::valid(&session_rust::OBB::from_proto(item.clone()).map_err(|e|e.to_string())?){return Err("Invalid original box frame".into())}}
-        for item in &objects.points {
-            point(item)?;
-        }
-```
-
-**Locate this block:**
-
-```rust
-/// Check every record of a protobuf session.
-pub fn session(source: &proto::Session) -> Result<(), String> {
     if let Some(objects) = &source.objects {
         let count = objects.points.len()
             + objects.lines.len()
             + objects.polylines.len()
             + objects.meshes.len()
+            + objects.pointclouds.len()
+            + objects.nurbscurves.len()
+            + objects.nurbssurfaces.len()
+            + objects.breps.len()
+            + objects.elements.len();
+
+        if count > MAX_OBJECTS {
+            return Err(TOO_MANY.into());
+        }
+
+        for item in &objects.points {
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-/// Check every record of a protobuf session.
-pub fn session(source: &proto::Session) -> Result<(), String> {
     if let Some(objects) = &source.objects {
-        let count = objects.bboxes.len()+objects.points.len()
+        let count = objects.bboxes.len()
+            + objects.points.len()
             + objects.lines.len()
             + objects.polylines.len()
             + objects.meshes.len()
+            + objects.pointclouds.len()
+            + objects.nurbscurves.len()
+            + objects.nurbssurfaces.len()
+            + objects.breps.len()
+            + objects.elements.len();
+
+        if count > MAX_OBJECTS {
+            return Err(TOO_MANY.into());
+        }
+
+        for item in &objects.bboxes {
+            if !crate::bounds_original::valid(
+                &session_rust::OBB::from_proto(item.clone())
+                    .map_err(|e| e.to_string())?,
+            ) {
+                return Err("Invalid original box frame".into());
+            }
+        }
+        for item in &objects.points {
 ```
 
 ## <a id="checkpoint-84d-own-temporary-measurement-labels-without-scene-identities"></a>5. Own temporary measurement labels without scene identities
@@ -781,7 +1072,7 @@ pub fn session(source: &proto::Session) -> Result<(), String> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unused label IDs</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary presentation wo…</text>
 </svg>
 </div>
@@ -795,7 +1086,89 @@ Own temporary points, unit suffixes and collision-free labels.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84d-own-temporary-measurement-labels-without-scene-identities-01.rs"
+use crate::{
+    scene::{ObjectId, Scene},
+    text::{TextLabel, TextPlacement},
+};
+use session_rust::{Geometry, Point};
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Unit {
+    Millimeters,
+    Meters,
+}
+impl Unit {
+    pub fn suffix(self, power: usize) -> &'static str {
+        let values = match self {
+            Self::Millimeters => ["mm", "mm²", "mm³"],
+            Self::Meters => ["m", "m²", "m³"],
+        };
+        values[power.clamp(1, 3) - 1]
+    }
+}
+#[derive(Clone, Debug, PartialEq)]
+pub struct Mark {
+    pub points: Vec<[f64; 3]>,
+    pub label: String,
+}
+impl Mark {
+    pub fn labels(&self, existing: &[TextLabel]) -> Vec<TextLabel> {
+        if self.points.is_empty() {
+            return Vec::new();
+        }
+        let mut used = existing
+            .iter()
+            .map(|l| l.id)
+            .collect::<std::collections::HashSet<_>>();
+        let mut next = u32::MAX;
+        let mut label =
+            |text: String, font_size: f32, placement: TextPlacement, color: [u8; 4]| {
+                while used.contains(&next) {
+                    next = next
+                        .checked_sub(1)
+                        .expect("Bounded labels leave free identities")
+                }
+                let id = next;
+                used.insert(id);
+                TextLabel {
+                    id,
+                    object: None,
+                    text,
+                    font_size,
+                    line_height: font_size * 1.25,
+                    color,
+                    placement,
+                    clip: None,
+                }
+            };
+        let c = std::array::from_fn(|i| {
+            self.points.iter().map(|p| p[i]).sum::<f64>() / self.points.len() as f64
+        });
+        let mut out = vec![label(
+            self.label.clone(),
+            14.,
+            TextPlacement::Nameplate {
+                world: c,
+                padding: [6., 4.],
+                rounded: true,
+            },
+            [255; 4],
+        )];
+        if self.points.len() > 1 {
+            for &world in &self.points {
+                out.push(label(
+                    "■".into(),
+                    8.,
+                    TextPlacement::Anchor {
+                        world,
+                        offset: [-4., -5.],
+                    },
+                    [20, 20, 20, 255],
+                ));
+            }
+        }
+        out
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -805,14 +1178,17 @@ Register the measurement component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod bounds_original;
+pub mod source_mesh_topology;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84d-own-temporary-measurement-labels-without-scene-identities-02.rs" skip=26
+pub mod bounds_original;
+
+pub mod measure_mark;
+pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-84e-report-distance-and-world-bounding-lengths"></a>6. Report distance and world bounding lengths
@@ -847,7 +1223,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">world extents and deltas</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">formatted result</text>
 </svg>
 </div>
@@ -866,10 +1242,63 @@ Resolve world selected bounds and distance without changing source geometry.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84e-report-distance-and-world-bounding-lengths-01.rs" skip=20
+        out
+    }
+}
+pub fn selected_bounds(
+    scene: &Scene,
+    ids: &[ObjectId],
+) -> Result<crate::bounds::Bounds, String> {
+    let mut out: Option<crate::bounds::Bounds> = None;
+    for id in ids {
+        let Some(bounds) = scene.selected_bounds(*id) else {
+            continue;
+        };
+        if let Some(out) = &mut out {
+            out.include(bounds.min);
+            out.include(bounds.max);
+        } else {
+            out = Some(bounds);
+        }
+    }
+    out.ok_or_else(|| "Select an object with a bounding box".into())
+}
+pub fn distance(a: [f64; 3], b: [f64; 3], unit: Unit) -> (Mark, String) {
+    let (a, b) = (
+        Point::new(a[0], a[1], a[2]),
+        Point::new(b[0], b[1], b[2]),
+    );
+    let delta = &b - &a;
+    let text = crate::measure_math::to_text;
+    let value = format!(
+        "{} {}",
+        text(delta.magnitude()),
+        unit.suffix(1)
+    );
+    let message = format!(
+        "Distance {value} · dx {} · dy {} · dz {}",
+        text(delta[0]),
+        text(delta[1]),
+        text(delta[2])
+    );
+    (
+        Mark {
+            points: vec![[a[0], a[1], a[2]], [b[0], b[1], b[2]]],
+            label: value,
+        },
+        message,
+    )
+}
+#[derive(Clone, Copy)]
+pub enum Kind {
+    Length,
+    Area,
+    Volume,
+    BoundingLengths,
+}
 ```
 
 ## <a id="checkpoint-84f-collect-only-supported-finite-original-measurements"></a>7. Collect only supported finite measurements
@@ -904,7 +1333,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">placed source copies</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">supported totals and refu…</text>
 </svg>
 </div>
@@ -922,10 +1351,78 @@ Collect original length, area and volume while keeping refusals explicit.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84f-collect-only-supported-finite-original-measurements-01.rs" skip=23
+    BoundingLengths,
+}
+pub struct Total {
+    total: f64,
+    count: usize,
+    skipped: usize,
+    open: Vec<String>,
+}
+impl Total {
+    pub fn collect(
+        scene: &Scene,
+        ids: &[ObjectId],
+        face: Option<(ObjectId, usize)>,
+        kind: Kind,
+    ) -> Result<Self, String> {
+        let mut result = Self {
+            total: 0.,
+            count: 0,
+            skipped: 0,
+            open: Vec::new(),
+        };
+        for id in ids {
+            let Some(source) = crate::source_edit::original(scene, *id) else {
+                if scene
+                    .objects()
+                    .iter()
+                    .any(|r| r.id == *id && r.geometry().is_none())
+                {
+                    return Err("Reload editable originals before measuring".into());
+                }
+                result.skipped += 1;
+                continue;
+            };
+            let model = scene
+                .placement(*id)
+                .ok_or("Selected placement is missing")?;
+            let value = match kind {
+                Kind::Length => crate::measure_length::compute_length(&source, &model),
+                Kind::Area => crate::measure_area::compute_area(
+                    &source,
+                    &model,
+                    face.filter(|(owner, _)| owner == id)
+                        .map(|(_, face)| face),
+                ),
+                Kind::Volume => {
+                    match crate::measure_volume::compute_volume(&source, &model) {
+                        Some(Ok(value)) => Some(value),
+                        Some(Err(_)) => {
+                            result.open.push(source.name().to_owned());
+                            continue;
+                        }
+                        None => None,
+                    }
+                }
+                Kind::BoundingLengths => unreachable!(),
+            };
+            if let Some(value) = value {
+                if !value.is_finite() {
+                    return Err("Measurement exceeds numerical range".into());
+                }
+                result.total += value;
+                result.count += 1;
+            } else {
+                result.skipped += 1;
+            }
+        }
+        Ok(result)
+    }
+}
 ```
 
 ## <a id="checkpoint-84g-format-totals-refusals-and-three-axis-box-extents"></a>8. Format totals refusals and three-axis box extents
@@ -960,7 +1457,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current value formatting</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary result chip</text>
 </svg>
 </div>
@@ -982,7 +1479,101 @@ Report current formatted totals and world bounding lengths with bounded errors.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84g-format-totals-refusals-and-three-axis-box-extents-01.rs"
+        Ok(result)
+    }
+    fn open_names(&self) -> String {
+        match self.open.len() {
+            0..=3 => self.open.join(", "),
+            count => format!(
+                "{} and {} more",
+                self.open[..3].join(", "),
+                count - 3
+            ),
+        }
+    }
+    pub fn answer(
+        &self,
+        kind: Kind,
+        unit: Unit,
+        centre: [f64; 3],
+    ) -> Result<(Mark, String), String> {
+        let text = crate::measure_math::to_text;
+        let (name, power, one) = match kind {
+            Kind::Length => ("Length", 1, "curve"),
+            Kind::Area => ("Area", 2, "object"),
+            Kind::Volume => ("Volume", 3, "object"),
+            Kind::BoundingLengths => unreachable!(),
+        };
+        if self.count == 0 {
+            return Err(if self.open.is_empty() {
+                format!("{name}: no supported original is selected")
+            } else {
+                format!(
+                    "Volume needs closed objects; open or inconsistently wound: {}",
+                    self.open_names()
+                )
+            });
+        }
+        let value = format!("{} {}", text(self.total), unit.suffix(power));
+        let refused = if self.open.is_empty() {
+            String::new()
+        } else {
+            format!(
+                " · open, not measured: {}",
+                self.open_names()
+            )
+        };
+        let message = format!(
+            "{name} {value} · {}{refused}{}",
+            crate::measure_math::plural(self.count, one),
+            crate::measure_math::skipped_text(self.skipped)
+        );
+        Ok((
+            Mark {
+                points: vec![centre],
+                label: value,
+            },
+            message,
+        ))
+    }
+}
+pub fn selection(
+    scene: &Scene,
+    ids: &[ObjectId],
+    face: Option<(ObjectId, usize)>,
+    kind: Kind,
+    unit: Unit,
+) -> Result<(Mark, String), String> {
+    for id in ids {
+        if scene
+            .objects()
+            .iter()
+            .any(|r| r.id == *id && r.geometry().is_none())
+        {
+            return Err("Reload editable originals before measuring".into());
+        }
+    }
+    let bounds = selected_bounds(scene, ids)?;
+    let text = crate::measure_math::to_text;
+    if matches!(kind, Kind::BoundingLengths) {
+        let d = std::array::from_fn::<_, 3, _>(|i| bounds.max[i] - bounds.min[i]);
+        let value = format!(
+            "X {} · Y {} · Z {} {}",
+            text(d[0]),
+            text(d[1]),
+            text(d[2]),
+            unit.suffix(1)
+        );
+        return Ok((
+            Mark {
+                points: vec![bounds.centre()],
+                label: value.clone(),
+            },
+            format!("Length BoundingBox · {value}"),
+        ));
+    }
+    Total::collect(scene, ids, face, kind)?.answer(kind, unit, bounds.centre())
+}
 ```
 
 ## <a id="checkpoint-84h-keep-measurements-outside-geometry-history"></a>9. Keep measurements outside geometry history
@@ -1017,7 +1608,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measurement or original b…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">unchanged or single histo…</text>
 </svg>
 </div>
@@ -1033,27 +1624,88 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        self.draft=None;self.gizmo_edit=None;self.edit_preview=None;self.transform_preview=None;self.tool_status=next.prompt();self.split=Some(next);Ok(Change::View)
+            .map_err(|message| self.primitive_failure(message))?;
+        self.tool_status = next.prompt();
+        self.split = Some(next);
+        Ok(Change::View)
     }
-    fn split_pick(&mut self,id:Option<ObjectId>)->Result<Change,&'static str>{let mut next=self.split.clone().ok_or("Start Split first")?;next.pick(&self.scene,id).map_err(|message|self.primitive_failure(message))?;self.tool_status=next.prompt();self.split=Some(next);Ok(Change::View)}
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
-        if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
 ```
 
 Replace it with:
 
 ```rust
-        self.draft=None;self.gizmo_edit=None;self.edit_preview=None;self.transform_preview=None;self.tool_status=next.prompt();self.split=Some(next);Ok(Change::View)
+            .map_err(|message| self.primitive_failure(message))?;
+        self.tool_status = next.prompt();
+        self.split = Some(next);
+        Ok(Change::View)
     }
-    fn split_pick(&mut self,id:Option<ObjectId>)->Result<Change,&'static str>{let mut next=self.split.clone().ok_or("Start Split first")?;next.pick(&self.scene,id).map_err(|message|self.primitive_failure(message))?;self.tool_status=next.prompt();self.split=Some(next);Ok(Change::View)}
-    fn measured_ids(&self)->Vec<ObjectId>{if self.selected_part.is_some(){self.selected.into_iter().filter(|id|self.scene.contains(*id)).collect()}else{self.selected_objects()}}
-    fn measure_selection(&mut self,kind:crate::measure_mark::Kind)->Result<Change,&'static str>{let face=match(self.selected,self.selected_part){(Some(id),Some(crate::pick_sources::Part::Face(face)))=>Some((id,face)),_=>None};let(mark,message)=crate::measure_mark::selection(&self.scene,&self.measured_ids(),face,kind,self.unit).map_err(|message|self.primitive_failure(message))?;self.mark=Some(mark);self.tool_status=message;Ok(Change::View)}
-    fn distance_mark(&mut self,points:[[f64;3];2])->Result<Change,&'static str>{let(mark,message)=crate::measure_mark::distance(points[0],points[1],self.unit);self.mark=Some(mark);self.tool_status=message;self.draft=None;Ok(Change::View)}
-    fn bounding_box(&mut self)->Result<Change,&'static str>{let ids=self.measured_ids();for id in &ids{if self.scene.objects().iter().any(|r|r.id==*id&&r.geometry().is_none()){return Err("Reload original sources before BoundingBox")}}let bounds=crate::measure_mark::selected_bounds(&self.scene,&ids).map_err(|message|self.primitive_failure(message))?;let mut original=crate::bounds_original::box_geometry(&bounds);original.name="bounding box".into();let mut id=None;self.history.try_edit(&mut self.scene,|scene|{id=Some(crate::bounds_original::insert(scene,std::rc::Rc::new(original))?);Ok(())})?;self.select_objects(id,false);self.tool_status="Created a world axis aligned bounding box".into();Ok(Change::Scene)}
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
-        if self.draft.as_ref().is_some_and(|d|d.gather.is_some()&&d.plane_points.is_none()){return self.gather_text(text);}
+    fn measured_ids(&self) -> Vec<ObjectId> {
+        if self.selected_part.is_some() {
+            self.selected
+                .into_iter()
+                .filter(|id| self.scene.contains(*id))
+                .collect()
+        } else {
+            self.selected_objects()
+        }
+    }
+    fn measure_selection(
+        &mut self,
+        kind: crate::measure_mark::Kind,
+    ) -> Result<Change, &'static str> {
+        let face = match (self.selected, self.selected_part) {
+            (Some(id), Some(crate::pick_sources::Part::Face(face))) => Some((id, face)),
+            _ => None,
+        };
+        let (mark, message) = crate::measure_mark::selection(
+            &self.scene,
+            &self.measured_ids(),
+            face,
+            kind,
+            self.unit,
+        )
+        .map_err(|message| self.primitive_failure(message))?;
+        self.mark = Some(mark);
+        self.tool_status = message;
+        Ok(Change::View)
+    }
+    fn distance_mark(&mut self, points: [[f64; 3]; 2]) -> Result<Change, &'static str> {
+        let (mark, message) =
+            crate::measure_mark::distance(points[0], points[1], self.unit);
+        self.mark = Some(mark);
+        self.tool_status = message;
+        self.draft = None;
+        Ok(Change::View)
+    }
+    fn bounding_box(&mut self) -> Result<Change, &'static str> {
+        let ids = self.measured_ids();
+        for id in &ids {
+            if self
+                .scene
+                .objects()
+                .iter()
+                .any(|r| r.id == *id && r.geometry().is_none())
+            {
+                return Err("Reload original sources before BoundingBox");
+            }
+        }
+        let bounds = crate::measure_mark::selected_bounds(&self.scene, &ids)
+            .map_err(|message| self.primitive_failure(message))?;
+        let mut original = crate::bounds_original::box_geometry(&bounds);
+        original.name = "bounding box".into();
+        let mut id = None;
+        self.history
+            .try_edit(&mut self.scene, |scene| {
+                id = Some(crate::bounds_original::insert(
+                    scene,
+                    std::rc::Rc::new(original),
+                )?);
+                Ok(())
+            })?;
+        self.select_objects(id, false);
+        self.tool_status = "Created a world axis aligned bounding box".into();
+        Ok(Change::Scene)
+    }
 ```
 
 **Locate this block:**
@@ -1062,10 +1714,9 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            split: None,
+            canvas_drag: None,
+            gizmo_edit: None,
 ```
 
 Replace it with:
@@ -1074,33 +1725,31 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            mark:None,unit:crate::measure_mark::Unit::Millimeters,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            mark: None,
+            unit: crate::measure_mark::Unit::Millimeters,
+            split: None,
+            canvas_drag: None,
+            gizmo_edit: None,
 ```
 
 **Locate this block:**
 
 ```rust
-}
-
 pub struct Editor {
-    pub split:Option<crate::split_draft::Draft>,
-    pub canvas_drag:Option<crate::canvas_drag::Drag>,
-    pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
+    pub split: Option<crate::split_draft::Draft>,
+    pub canvas_drag: Option<crate::canvas_drag::Drag>,
+    pub gizmo_edit: Option<crate::gizmo_edit::Edit>,
 ```
 
 Replace it with:
 
 ```rust
-}
-
 pub struct Editor {
-    pub mark:Option<crate::measure_mark::Mark>,pub unit:crate::measure_mark::Unit,
-    pub split:Option<crate::split_draft::Draft>,
-    pub canvas_drag:Option<crate::canvas_drag::Drag>,
-    pub gizmo_edit:Option<crate::gizmo_edit::Edit>,
+    pub mark: Option<crate::measure_mark::Mark>,
+    pub unit: crate::measure_mark::Unit,
+    pub split: Option<crate::split_draft::Draft>,
+    pub canvas_drag: Option<crate::canvas_drag::Drag>,
+    pub gizmo_edit: Option<crate::gizmo_edit::Edit>,
 ```
 
 ## <a id="checkpoint-84i-accept-two-distance-points-through-the-drawing-tool"></a>10. Accept two distance points through the drawing tool
@@ -1135,7 +1784,7 @@ pub struct Editor {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">existing snapping tool</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary measured pair</text>
 </svg>
 </div>
@@ -1146,85 +1795,370 @@ pub struct Editor {
 
 Add a two-point measurement result to the existing drawing tool.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    }
-    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
-        match (self, points) {
-            (Self::Point, [p]) => Ok(Built::Point(PreparedPoint::new(Rc::new(session_rust::Point::new(p[0], p[1], p[2])))?)),
-            (Self::Line, [a, b]) => {
-                if a.iter().zip(b).all(|(a, b)| (a-b).abs() < 1e-12) { return Err("Line endpoints must differ"); }
-```
-
-Replace it with:
-
-```rust
-    }
-    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
-        match (self, points) {
-            (Self::Measure,[a,b])=>Ok(Built::Measured([*a,*b])),
-            (Self::Point, [p]) => Ok(Built::Point(PreparedPoint::new(Rc::new(session_rust::Point::new(p[0], p[1], p[2])))?)),
-            (Self::Line, [a, b]) => {
-                if a.iter().zip(b).all(|(a, b)| (a-b).abs() < 1e-12) { return Err("Line endpoints must differ"); }
-```
-
-**Locate this block:**
-
-```rust
+pub enum Built {
+    Point(PreparedPoint),
+    Line(PreparedLine),
+    Move([f64; 3]),
+    Polyline(crate::chain::PreparedChain),
+    Geometry(session_rust::Geometry),
 }
-
-#[derive(Clone, Copy, Debug)]
-pub enum Shape { Project,Extend, Gather(&'static crate::gather_input::Recipe), Point, Line, Move, Polyline, Curve, Rectangle, Polygon {sides:usize}, Primitive(&'static crate::primitive_shape::Shape), Transform(crate::transform_draft::Kind) }
-
-impl Tool for Shape {
-    fn name(&self) -> &'static str { match self { Self::Project=>"Project To Plane",Self::Extend=>"Extend",Self::Gather(recipe)=>recipe.name, Self::Point => "Point", Self::Line => "Line", Self::Move => "Move", Self::Polyline => "Polyline",Self::Curve=>"Curve", Self::Rectangle=>"Polyline Rectangle",Self::Polygon {..}=>"Polyline Polygon",Self::Primitive(shape)=>shape.name,Self::Transform(kind)=>kind.name() } }
-    fn count(&self) -> usize { match self { Self::Project|Self::Extend=>0,Self::Gather(_)=>0, Self::Point => 1, Self::Line | Self::Move => 2, Self::Polyline|Self::Curve => 0,Self::Rectangle|Self::Polygon {..}=>2,Self::Primitive(_)|Self::Transform(_)=>0 } }
-    fn sides(&self)->Option<usize> {if let Self::Polygon {sides}=self {Some(*sides)}else{None}}
-    fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
-        if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
-```
-
-Replace it with:
-
-```rust
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum Shape { Measure, Project,Extend, Gather(&'static crate::gather_input::Recipe), Point, Line, Move, Polyline, Curve, Rectangle, Polygon {sides:usize}, Primitive(&'static crate::primitive_shape::Shape), Transform(crate::transform_draft::Kind) }
-
-impl Tool for Shape {
-    fn name(&self) -> &'static str { match self { Self::Measure=>"Measure Distance",Self::Project=>"Project To Plane",Self::Extend=>"Extend",Self::Gather(recipe)=>recipe.name, Self::Point => "Point", Self::Line => "Line", Self::Move => "Move", Self::Polyline => "Polyline",Self::Curve=>"Curve", Self::Rectangle=>"Polyline Rectangle",Self::Polygon {..}=>"Polyline Polygon",Self::Primitive(shape)=>shape.name,Self::Transform(kind)=>kind.name() } }
-    fn count(&self) -> usize { match self { Self::Project|Self::Extend=>0,Self::Gather(_)=>0, Self::Point => 1, Self::Line | Self::Move | Self::Measure => 2, Self::Polyline|Self::Curve => 0,Self::Rectangle|Self::Polygon {..}=>2,Self::Primitive(_)|Self::Transform(_)=>0 } }
-    fn sides(&self)->Option<usize> {if let Self::Polygon {sides}=self {Some(*sides)}else{None}}
-    fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
-        if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
-```
-
-**Locate this block:**
-
-```rust
-use crate::{marker::PreparedPoint, stroke::PreparedLine};
-use std::rc::Rc;
-
-pub enum Built { Point(PreparedPoint), Line(PreparedLine), Move([f64; 3]), Polyline(crate::chain::PreparedChain), Geometry(session_rust::Geometry) }
 
 pub trait Tool: std::fmt::Debug {
     fn name(&self) -> &'static str;
+    fn count(&self) -> usize;
+    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str>;
+    fn build_on_plane(
+        &self,
+        points: &[[f64; 3]],
+        _plane: crate::cplane::CPlane,
+    ) -> Result<Built, &'static str> {
+        self.build(points)
+    }
+    fn outline(
+        &self,
+        points: &[[f64; 3]],
+        _plane: crate::cplane::CPlane,
+    ) -> Vec<[f64; 3]> {
+        points.to_vec()
+    }
+    fn sides(&self) -> Option<usize> {
+        None
+    }
+    fn set_sides(&mut self, _sides: usize) -> Result<(), &'static str> {
+        Err("Sides works while drawing a polygon")
+    }
+    fn buttons(&self) -> Vec<(String, String)> {
+        vec![("Cancel".into(), "Escape".into())]
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Shape {
+    Project,
+    Extend,
+    Gather(&'static crate::gather_input::Recipe),
+    Point,
+    Line,
+    Move,
+    Polyline,
+    Curve,
+    Rectangle,
+    Polygon { sides: usize },
+    Primitive(&'static crate::primitive_shape::Shape),
+    Transform(crate::transform_draft::Kind),
+}
+
+impl Tool for Shape {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Project => "Project To Plane",
+            Self::Extend => "Extend",
+            Self::Gather(recipe) => recipe.name,
+            Self::Point => "Point",
+            Self::Line => "Line",
+            Self::Move => "Move",
+            Self::Polyline => "Polyline",
+            Self::Curve => "Curve",
+            Self::Rectangle => "Polyline Rectangle",
+            Self::Polygon { .. } => "Polyline Polygon",
+            Self::Primitive(shape) => shape.name,
+            Self::Transform(kind) => kind.name(),
+        }
+    }
+    fn count(&self) -> usize {
+        match self {
+            Self::Project | Self::Extend => 0,
+            Self::Gather(_) => 0,
+            Self::Point => 1,
+            Self::Line | Self::Move => 2,
+            Self::Polyline | Self::Curve => 0,
+            Self::Rectangle | Self::Polygon { .. } => 2,
+            Self::Primitive(_) | Self::Transform(_) => 0,
+        }
+    }
+    fn sides(&self) -> Option<usize> {
+        if let Self::Polygon { sides } = self {
+            Some(*sides)
+        } else {
+            None
+        }
+    }
+    fn set_sides(&mut self, value: usize) -> Result<(), &'static str> {
+        if !(3..MAX_POINTS).contains(&value) {
+            return Err("Polygon sides must be between 3 and 4095");
+        }
+        let Self::Polygon { sides } = self else {
+            return Err("Sides works while drawing a polygon");
+        };
+        *sides = value;
+        Ok(())
+    }
+    fn build_on_plane(
+        &self,
+        points: &[[f64; 3]],
+        plane: crate::cplane::CPlane,
+    ) -> Result<Built, &'static str> {
+        let (kind, sides) = match self {
+            Self::Rectangle => ("rectangle", 4),
+            Self::Polygon { sides } => ("polygon", *sides),
+            _ => return self.build(points),
+        };
+        let points = crate::planar::points(kind, plane, sides, points)?;
+        Self::Polyline.build(&points)
+    }
+    fn outline(
+        &self,
+        points: &[[f64; 3]],
+        plane: crate::cplane::CPlane,
+    ) -> Vec<[f64; 3]> {
+        match self {
+            Self::Rectangle if points.len() == 2 => {
+                crate::planar::points("rectangle", plane, 4, points).unwrap_or_default()
+            }
+            Self::Polygon { sides } if points.len() == 2 => {
+                crate::planar::points("polygon", plane, *sides, points)
+                    .unwrap_or_default()
+            }
+            _ => points.to_vec(),
+        }
+    }
+    fn buttons(&self) -> Vec<(String, String)> {
+        if matches!(self, Self::Project) {
+            return vec![("Cancel".into(), "Escape".into())];
+        }
+        if matches!(self, Self::Extend) {
+            return vec![
+                ("Distance".into(), "Distance".into()),
+                ("Next / Done".into(), "".into()),
+                ("Cancel".into(), "Escape".into()),
+            ];
+        }
+        if let Self::Gather(recipe) = self {
+            return recipe
+                .chips
+                .iter()
+                .map(|(label, line)| ((*label).into(), (*line).into()))
+                .collect();
+        }
+        if let Self::Transform(kind) = self {
+            return crate::transform_draft::Draft::new(
+                *kind,
+                crate::cplane::CPlane::Xy,
+            )
+            .buttons();
+        }
+        if let Self::Primitive(shape) = self {
+            return shape
+                .options
+                .iter()
+                .map(|(label, line)| ((*label).into(), (*line).into()))
+                .collect();
+        }
+        let mut buttons = vec![("Cancel".into(), "Escape".into())];
+        if matches!(
+            self,
+            Self::Polyline | Self::Rectangle | Self::Polygon { .. }
+        ) {
+            for name in ["Points", "Rectangle", "Polygon"] {
+                buttons.push((name.into(), format!("Polyline {name}")));
+            }
+        }
+        if matches!(self, Self::Polyline | Self::Curve) {
+            buttons.insert(0, ("Close".into(), "Close".into()));
+        }
+        buttons
+    }
+    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
+        match (self, points) {
+            (Self::Point, [p]) => Ok(Built::Point(PreparedPoint::new(Rc::new(
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-use crate::{marker::PreparedPoint, stroke::PreparedLine};
-use std::rc::Rc;
-
-pub enum Built { Measured([[f64;3];2]), Point(PreparedPoint), Line(PreparedLine), Move([f64; 3]), Polyline(crate::chain::PreparedChain), Geometry(session_rust::Geometry) }
+pub enum Built {
+    Measured([[f64; 3]; 2]),
+    Point(PreparedPoint),
+    Line(PreparedLine),
+    Move([f64; 3]),
+    Polyline(crate::chain::PreparedChain),
+    Geometry(session_rust::Geometry),
+}
 
 pub trait Tool: std::fmt::Debug {
     fn name(&self) -> &'static str;
+    fn count(&self) -> usize;
+    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str>;
+    fn build_on_plane(
+        &self,
+        points: &[[f64; 3]],
+        _plane: crate::cplane::CPlane,
+    ) -> Result<Built, &'static str> {
+        self.build(points)
+    }
+    fn outline(
+        &self,
+        points: &[[f64; 3]],
+        _plane: crate::cplane::CPlane,
+    ) -> Vec<[f64; 3]> {
+        points.to_vec()
+    }
+    fn sides(&self) -> Option<usize> {
+        None
+    }
+    fn set_sides(&mut self, _sides: usize) -> Result<(), &'static str> {
+        Err("Sides works while drawing a polygon")
+    }
+    fn buttons(&self) -> Vec<(String, String)> {
+        vec![("Cancel".into(), "Escape".into())]
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Shape {
+    Measure,
+    Project,
+    Extend,
+    Gather(&'static crate::gather_input::Recipe),
+    Point,
+    Line,
+    Move,
+    Polyline,
+    Curve,
+    Rectangle,
+    Polygon { sides: usize },
+    Primitive(&'static crate::primitive_shape::Shape),
+    Transform(crate::transform_draft::Kind),
+}
+
+impl Tool for Shape {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Measure => "Measure Distance",
+            Self::Project => "Project To Plane",
+            Self::Extend => "Extend",
+            Self::Gather(recipe) => recipe.name,
+            Self::Point => "Point",
+            Self::Line => "Line",
+            Self::Move => "Move",
+            Self::Polyline => "Polyline",
+            Self::Curve => "Curve",
+            Self::Rectangle => "Polyline Rectangle",
+            Self::Polygon { .. } => "Polyline Polygon",
+            Self::Primitive(shape) => shape.name,
+            Self::Transform(kind) => kind.name(),
+        }
+    }
+    fn count(&self) -> usize {
+        match self {
+            Self::Project | Self::Extend => 0,
+            Self::Gather(_) => 0,
+            Self::Point => 1,
+            Self::Line | Self::Move | Self::Measure => 2,
+            Self::Polyline | Self::Curve => 0,
+            Self::Rectangle | Self::Polygon { .. } => 2,
+            Self::Primitive(_) | Self::Transform(_) => 0,
+        }
+    }
+    fn sides(&self) -> Option<usize> {
+        if let Self::Polygon { sides } = self {
+            Some(*sides)
+        } else {
+            None
+        }
+    }
+    fn set_sides(&mut self, value: usize) -> Result<(), &'static str> {
+        if !(3..MAX_POINTS).contains(&value) {
+            return Err("Polygon sides must be between 3 and 4095");
+        }
+        let Self::Polygon { sides } = self else {
+            return Err("Sides works while drawing a polygon");
+        };
+        *sides = value;
+        Ok(())
+    }
+    fn build_on_plane(
+        &self,
+        points: &[[f64; 3]],
+        plane: crate::cplane::CPlane,
+    ) -> Result<Built, &'static str> {
+        let (kind, sides) = match self {
+            Self::Rectangle => ("rectangle", 4),
+            Self::Polygon { sides } => ("polygon", *sides),
+            _ => return self.build(points),
+        };
+        let points = crate::planar::points(kind, plane, sides, points)?;
+        Self::Polyline.build(&points)
+    }
+    fn outline(
+        &self,
+        points: &[[f64; 3]],
+        plane: crate::cplane::CPlane,
+    ) -> Vec<[f64; 3]> {
+        match self {
+            Self::Rectangle if points.len() == 2 => {
+                crate::planar::points("rectangle", plane, 4, points).unwrap_or_default()
+            }
+            Self::Polygon { sides } if points.len() == 2 => {
+                crate::planar::points("polygon", plane, *sides, points)
+                    .unwrap_or_default()
+            }
+            _ => points.to_vec(),
+        }
+    }
+    fn buttons(&self) -> Vec<(String, String)> {
+        if matches!(self, Self::Project) {
+            return vec![("Cancel".into(), "Escape".into())];
+        }
+        if matches!(self, Self::Extend) {
+            return vec![
+                ("Distance".into(), "Distance".into()),
+                ("Next / Done".into(), "".into()),
+                ("Cancel".into(), "Escape".into()),
+            ];
+        }
+        if let Self::Gather(recipe) = self {
+            return recipe
+                .chips
+                .iter()
+                .map(|(label, line)| ((*label).into(), (*line).into()))
+                .collect();
+        }
+        if let Self::Transform(kind) = self {
+            return crate::transform_draft::Draft::new(
+                *kind,
+                crate::cplane::CPlane::Xy,
+            )
+            .buttons();
+        }
+        if let Self::Primitive(shape) = self {
+            return shape
+                .options
+                .iter()
+                .map(|(label, line)| ((*label).into(), (*line).into()))
+                .collect();
+        }
+        let mut buttons = vec![("Cancel".into(), "Escape".into())];
+        if matches!(
+            self,
+            Self::Polyline | Self::Rectangle | Self::Polygon { .. }
+        ) {
+            for name in ["Points", "Rectangle", "Polygon"] {
+                buttons.push((name.into(), format!("Polyline {name}")));
+            }
+        }
+        if matches!(self, Self::Polyline | Self::Curve) {
+            buttons.insert(0, ("Close".into(), "Close".into()));
+        }
+        buttons
+    }
+    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
+        match (self, points) {
+            (Self::Measure, [a, b]) => Ok(Built::Measured([*a, *b])),
+            (Self::Point, [p]) => Ok(Built::Point(PreparedPoint::new(Rc::new(
 ```
 
 ### 2. `src/editor.rs`
@@ -1236,118 +2170,156 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        if self.split.is_some()&&!matches!(&action,Action::Split|Action::SplitPick(_)|Action::CancelSplit|Action::TreePick{..}|Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::ConstructionPlane(_)|Action::PlaneMenu|Action::Plane3){self.split=None;}
+            self.split = None;
+        }
         match action {
-            Action::Split=>return self.split_command(),
-            Action::SplitPick(id)=>return self.split_pick(id),
-            Action::CancelSplit=>{self.split=None;self.tool_status="Split cancelled".into();return Ok(Change::View)},
+            Action::Split => return self.split_command(),
 ```
 
 Replace it with:
 
 ```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        if self.split.is_some()&&!matches!(&action,Action::Split|Action::SplitPick(_)|Action::CancelSplit|Action::TreePick{..}|Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::ConstructionPlane(_)|Action::PlaneMenu|Action::Plane3){self.split=None;}
+            self.split = None;
+        }
         match action {
-            Action::Measure(kind)=>return self.measure_selection(kind),
-            Action::MeasureDistance(text)=>return self.begin_measure_distance(&text),
-            Action::BoundingBox=>return self.bounding_box(),
-            Action::Split=>return self.split_command(),
-            Action::SplitPick(id)=>return self.split_pick(id),
-            Action::CancelSplit=>{self.split=None;self.tool_status="Split cancelled".into();return Ok(Change::View)},
+            Action::Measure(kind) => return self.measure_selection(kind),
+            Action::MeasureDistance(text) => return self.begin_measure_distance(&text),
+            Action::BoundingBox => return self.bounding_box(),
+            Action::Split => return self.split_command(),
 ```
 
 **Locate this block:**
 
 ```rust
-    fn measured_ids(&self)->Vec<ObjectId>{if self.selected_part.is_some(){self.selected.into_iter().filter(|id|self.scene.contains(*id)).collect()}else{self.selected_objects()}}
-    fn measure_selection(&mut self,kind:crate::measure_mark::Kind)->Result<Change,&'static str>{let face=match(self.selected,self.selected_part){(Some(id),Some(crate::pick_sources::Part::Face(face)))=>Some((id,face)),_=>None};let(mark,message)=crate::measure_mark::selection(&self.scene,&self.measured_ids(),face,kind,self.unit).map_err(|message|self.primitive_failure(message))?;self.mark=Some(mark);self.tool_status=message;Ok(Change::View)}
-    fn distance_mark(&mut self,points:[[f64;3];2])->Result<Change,&'static str>{let(mark,message)=crate::measure_mark::distance(points[0],points[1],self.unit);self.mark=Some(mark);self.tool_status=message;self.draft=None;Ok(Change::View)}
-    fn bounding_box(&mut self)->Result<Change,&'static str>{let ids=self.measured_ids();for id in &ids{if self.scene.objects().iter().any(|r|r.id==*id&&r.geometry().is_none()){return Err("Reload original sources before BoundingBox")}}let bounds=crate::measure_mark::selected_bounds(&self.scene,&ids).map_err(|message|self.primitive_failure(message))?;let mut original=crate::bounds_original::box_geometry(&bounds);original.name="bounding box".into();let mut id=None;self.history.try_edit(&mut self.scene,|scene|{id=Some(crate::bounds_original::insert(scene,std::rc::Rc::new(original))?);Ok(())})?;self.select_objects(id,false);self.tool_status="Created a world axis aligned bounding box".into();Ok(Change::Scene)}
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
-```
-
-Replace it with:
-
-```rust
-    fn measured_ids(&self)->Vec<ObjectId>{if self.selected_part.is_some(){self.selected.into_iter().filter(|id|self.scene.contains(*id)).collect()}else{self.selected_objects()}}
-    fn measure_selection(&mut self,kind:crate::measure_mark::Kind)->Result<Change,&'static str>{let face=match(self.selected,self.selected_part){(Some(id),Some(crate::pick_sources::Part::Face(face)))=>Some((id,face)),_=>None};let(mark,message)=crate::measure_mark::selection(&self.scene,&self.measured_ids(),face,kind,self.unit).map_err(|message|self.primitive_failure(message))?;self.mark=Some(mark);self.tool_status=message;Ok(Change::View)}
-    fn distance_mark(&mut self,points:[[f64;3];2])->Result<Change,&'static str>{let(mark,message)=crate::measure_mark::distance(points[0],points[1],self.unit);self.mark=Some(mark);self.tool_status=message;self.draft=None;Ok(Change::View)}
-    fn begin_measure_distance(&mut self,text:&str)->Result<Change,&'static str>{crate::drawing_coords::set_plane(self.construction_plane);let frame=self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));let points=if text.trim().is_empty(){Vec::new()}else{crate::drawing_input::points(text,self.construction_plane,frame,&[],None)?};if points.len()>2{return Err("Measure Distance takes two points")};self.apply(Action::BeginTool(crate::tool::Shape::Measure))?;self.snapping.objects=true;if !points.is_empty(){let built=self.draft.as_mut().unwrap().submit_many(&points)?;if let Some(crate::tool::Built::Measured(points))=built{return self.distance_mark(points)}}self.tool_status=self.draft.as_ref().unwrap().prompt();Ok(Change::View)}
-    fn bounding_box(&mut self)->Result<Change,&'static str>{let ids=self.measured_ids();for id in &ids{if self.scene.objects().iter().any(|r|r.id==*id&&r.geometry().is_none()){return Err("Reload original sources before BoundingBox")}}let bounds=crate::measure_mark::selected_bounds(&self.scene,&ids).map_err(|message|self.primitive_failure(message))?;let mut original=crate::bounds_original::box_geometry(&bounds);original.name="bounding box".into();let mut id=None;self.history.try_edit(&mut self.scene,|scene|{id=Some(crate::bounds_original::insert(scene,std::rc::Rc::new(original))?);Ok(())})?;self.select_objects(id,false);self.tool_status="Created a world axis aligned bounding box".into();Ok(Change::Scene)}
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.extend.is_some()&&d.plane_points.is_none()){return self.extend_text(text)}
-```
-
-**Locate this block:**
-
-```rust
-            crate::tool::Built::Line(line)=>scene.insert_line(line).map(|_|()),
-            crate::tool::Built::Polyline(line)=>scene.insert_path(line).map(|_|()),
-            crate::tool::Built::Geometry(geometry)=>crate::primitive_geometry::insert(scene,geometry).map(|_|()),
-            crate::tool::Built::Move(_)=>unreachable!("Move uses its placement preview"),
-        })?;
-        self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
-```
-
-Replace it with:
-
-```rust
-            crate::tool::Built::Line(line)=>scene.insert_line(line).map(|_|()),
-            crate::tool::Built::Polyline(line)=>scene.insert_path(line).map(|_|()),
-            crate::tool::Built::Geometry(geometry)=>crate::primitive_geometry::insert(scene,geometry).map(|_|()),
-            crate::tool::Built::Measured(_)=>unreachable!("Measurement changes no original geometry"),
-            crate::tool::Built::Move(_)=>unreachable!("Move uses its placement preview"),
-        })?;
-        self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
-```
-
-**Locate this block:**
-
-```rust
+        self.draft = None;
+        Ok(Change::View)
     }
-
-    fn commit_tool(&mut self,built:crate::tool::Built) -> Result<Change,&'static str> {
-        let name=self.draft.as_ref().ok_or("No point tool is running")?.tool.name();
-        if let crate::tool::Built::Move(offset)=built {
-            let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
+    fn bounding_box(&mut self) -> Result<Change, &'static str> {
+        let ids = self.measured_ids();
+        for id in &ids {
 ```
 
 Replace it with:
 
 ```rust
+        self.draft = None;
+        Ok(Change::View)
     }
-
-    fn commit_tool(&mut self,built:crate::tool::Built) -> Result<Change,&'static str> {
-        if let crate::tool::Built::Measured(points)=built{return self.distance_mark(points)}
-        let name=self.draft.as_ref().ok_or("No point tool is running")?.tool.name();
-        if let crate::tool::Built::Move(offset)=built {
-            let preview=self.edit_preview.as_mut().ok_or("No placement preview is running")?;
+    fn begin_measure_distance(&mut self, text: &str) -> Result<Change, &'static str> {
+        crate::drawing_coords::set_plane(self.construction_plane);
+        let frame = self.construction_plane.unwrap_or_else(|| {
+            crate::cplane::CPlane::view(
+                &self
+                    .camera
+                    .orientation
+                    .rotate_vector(session_rust::Vector::y_axis()),
+            )
+        });
+        let points = if text.trim().is_empty() {
+            Vec::new()
+        } else {
+            crate::drawing_input::points(
+                text,
+                self.construction_plane,
+                frame,
+                &[],
+                None,
+            )?
+        };
+        if points.len() > 2 {
+            return Err("Measure Distance takes two points");
+        };
+        self.apply(Action::BeginTool(
+            crate::tool::Shape::Measure,
+        ))?;
+        self.snapping.objects = true;
+        if !points.is_empty() {
+            let built = self
+                .draft
+                .as_mut()
+                .unwrap()
+                .submit_many(&points)?;
+            if let Some(crate::tool::Built::Measured(points)) = built {
+                return self.distance_mark(points);
+            }
+        }
+        self.tool_status = self.draft.as_ref().unwrap().prompt();
+        Ok(Change::View)
+    }
+    fn bounding_box(&mut self) -> Result<Change, &'static str> {
+        let ids = self.measured_ids();
+        for id in &ids {
 ```
 
 **Locate this block:**
 
 ```rust
-
-pub enum Action {
-    StreamRefresh,
-    Split,SplitPick(Option<ObjectId>),CancelSplit,
-    Project(Vec<String>),ExtendBegin{distance:Option<f64>,asking:bool},ExtendPick(Option<ObjectId>),Interval(crate::interval_geometry::Interval),
-    GatherBegin{recipe:&'static crate::gather_input::Recipe,text:String},GatherPick(Option<ObjectId>),
+                crate::tool::Built::Geometry(geometry) => {
+                    crate::primitive_geometry::insert(scene, geometry).map(|_| ())
+                }
+                crate::tool::Built::Move(_) => {
+                    unreachable!("Move uses its placement preview")
+                }
 ```
 
 Replace it with:
 
 ```rust
+                crate::tool::Built::Geometry(geometry) => {
+                    crate::primitive_geometry::insert(scene, geometry).map(|_| ())
+                }
+                crate::tool::Built::Measured(_) => {
+                    unreachable!("Measurement changes no original geometry")
+                }
+                crate::tool::Built::Move(_) => {
+                    unreachable!("Move uses its placement preview")
+                }
+```
 
-pub enum Action {
+**Locate this block:**
+
+```rust
+        &mut self,
+        built: crate::tool::Built,
+    ) -> Result<Change, &'static str> {
+        let name = self
+            .draft
+            .as_ref()
+```
+
+Replace it with:
+
+```rust
+        &mut self,
+        built: crate::tool::Built,
+    ) -> Result<Change, &'static str> {
+        if let crate::tool::Built::Measured(points) = built {
+            return self.distance_mark(points);
+        }
+        let name = self
+            .draft
+            .as_ref()
+```
+
+**Locate this block:**
+
+```rust
     StreamRefresh,
-    Measure(crate::measure_mark::Kind),MeasureDistance(String),BoundingBox,
-    Split,SplitPick(Option<ObjectId>),CancelSplit,
-    Project(Vec<String>),ExtendBegin{distance:Option<f64>,asking:bool},ExtendPick(Option<ObjectId>),Interval(crate::interval_geometry::Interval),
-    GatherBegin{recipe:&'static crate::gather_input::Recipe,text:String},GatherPick(Option<ObjectId>),
+    Split,
+    SplitPick(Option<ObjectId>),
+    CancelSplit,
+```
+
+Replace it with:
+
+```rust
+    StreamRefresh,
+    Measure(crate::measure_mark::Kind),
+    MeasureDistance(String),
+    BoundingBox,
+    Split,
+    SplitPick(Option<ObjectId>),
+    CancelSplit,
 ```
 
 ## <a id="checkpoint-84j-register-measurements-and-end-temporary-marks-predictably"></a>11. Register measurements and end temporary marks predictably
@@ -1382,7 +2354,7 @@ pub enum Action {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked measurement action</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">explicit mark lifecycle</text>
 </svg>
 </div>
@@ -1398,47 +2370,58 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
+    }
 
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
         match action {
-            Action::StreamRefresh=>{self.snap_index=None;return Ok(Change::Scene);},
-            Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
 ```
 
 Replace it with:
 
 ```rust
-    pub fn snap_usage(&self) -> [u64; 2] { self.snap_index.as_ref().map_or([0,0], |index| [index.builds,index.visits as u64]) }
+    }
 
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Isometric|Action::Background|Action::NormalView(_)|Action::Grid(_)){self.mark=None;}
+        if !matches!(
+            &action,
+            Action::Zoom(_)
+                | Action::ZoomAt { .. }
+                | Action::PanScreen { .. }
+                | Action::Pan(_, _)
+                | Action::Orbit(_, _)
+                | Action::Fit
+                | Action::FitSelected
+                | Action::Projection(_)
+                | Action::ResetView
+                | Action::Isometric
+                | Action::Background
+                | Action::NormalView(_)
+                | Action::Grid(_)
+        ) {
+            self.mark = None;
+        }
         match action {
-            Action::StreamRefresh=>{self.snap_index=None;return Ok(Change::Scene);},
-            Action::Touch(actions)=> {let mut change=Change::View;for action in actions {let next=self.apply(action)?;if next!=Change::View {change=next;}}return Ok(change);},
 ```
 
 **Locate this block:**
 
 ```rust
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
-
     pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.split.is_some(){return match text.trim(){""=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Split")=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelSplit)),_=>None}}
-        if self.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some() || text.trim().eq_ignore_ascii_case("Escape")) {
-            return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
+        if self.split.is_some() {
+            return match text.trim() {
+                "" => Some(Ok(Action::Split)),
 ```
 
 Replace it with:
 
 ```rust
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
-
     pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
-        if self.mark.is_some()&&text.trim().eq_ignore_ascii_case("Escape"){return Some(Ok(Action::CancelTool))}
-        if self.split.is_some(){return match text.trim(){""=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Split")=>Some(Ok(Action::Split)),v if v.eq_ignore_ascii_case("Escape")||v.eq_ignore_ascii_case("Esc")=>Some(Ok(Action::CancelSplit)),_=>None}}
-        if self.gizmo_edit.as_ref().is_some_and(|e|e.gizmo.typing.is_some() || text.trim().eq_ignore_ascii_case("Escape")) {
-            return Some(Ok(if text.trim().eq_ignore_ascii_case("Escape") {Action::GizmoCancel} else {Action::GizmoNumber(text.to_owned())}));
+        if self.mark.is_some() && text.trim().eq_ignore_ascii_case("Escape") {
+            return Some(Ok(Action::CancelTool));
+        }
+        if self.split.is_some() {
+            return match text.trim() {
+                "" => Some(Ok(Action::Split)),
 ```
 
 ### 2. `src/commands.rs`
@@ -1450,52 +2433,61 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    let alias=crate::transform_commands::alias(&line);let line=alias.as_str();
+    let line = alias.as_str();
     let words: Vec<_> = line.split_whitespace().collect();
     let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
-    if name=="Split"{return if words.len()==count{Ok(Command::Editor(Action::Split))}else{Err("Split takes no arguments".into())};}
-    if let Some(action)=crate::editing_commands::action(name,&words[count..]){return action.map(Command::Editor);}
-    if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
+    if name == "Split" {
 ```
 
 Replace it with:
 
 ```rust
-    let alias=crate::transform_commands::alias(&line);let line=alias.as_str();
+    let line = alias.as_str();
     let words: Vec<_> = line.split_whitespace().collect();
     let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
-    if name=="Measure Distance"{if words.len()>count+2{return Err("Measure Distance takes two points".into())}return Ok(Command::Editor(Action::MeasureDistance(words[count..].join(" "))))}
-    if name=="Split"{return if words.len()==count{Ok(Command::Editor(Action::Split))}else{Err("Split takes no arguments".into())};}
-    if let Some(action)=crate::editing_commands::action(name,&words[count..]){return action.map(Command::Editor);}
-    if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
+    if name == "Measure Distance" {
+        if words.len() > count + 2 {
+            return Err("Measure Distance takes two points".into());
+        }
+        return Ok(Command::Editor(Action::MeasureDistance(
+            words[count..].join(" "),
+        )));
+    }
+    if name == "Split" {
 ```
 
 **Locate this block:**
 
 ```rust
-    ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
-    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
-    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
-    ("Curve",||Action::BeginTool(crate::tool::Shape::Curve)),
-    ("Polyline",||Action::BeginTool(crate::tool::Shape::Polyline)),
-    ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
+    }),
+    ("Curve", || {
+        Action::BeginTool(crate::tool::Shape::Curve)
+    }),
 ```
 
 Replace it with:
 
 ```rust
-    ("Move", || Action::BeginTool(crate::tool::Shape::Move)),
-    ("Point", || Action::BeginTool(crate::tool::Shape::Point)),
-    ("Line", || Action::BeginTool(crate::tool::Shape::Line)),
-    ("BoundingBox",||Action::BoundingBox),
-    ("Length BoundingBox",||Action::Measure(crate::measure_mark::Kind::BoundingLengths)),
-    ("Length",||Action::Measure(crate::measure_mark::Kind::Length)),
-    ("Area",||Action::Measure(crate::measure_mark::Kind::Area)),
-    ("Volume",||Action::Measure(crate::measure_mark::Kind::Volume)),
-    ("Measure Distance",||Action::MeasureDistance(String::new())),
-    ("Curve",||Action::BeginTool(crate::tool::Shape::Curve)),
-    ("Polyline",||Action::BeginTool(crate::tool::Shape::Polyline)),
-    ("Polyline Points",||Action::BeginTool(crate::tool::Shape::Polyline)),
+    }),
+    ("BoundingBox", || Action::BoundingBox),
+    ("Length BoundingBox", || {
+        Action::Measure(crate::measure_mark::Kind::BoundingLengths)
+    }),
+    ("Length", || {
+        Action::Measure(crate::measure_mark::Kind::Length)
+    }),
+    ("Area", || {
+        Action::Measure(crate::measure_mark::Kind::Area)
+    }),
+    ("Volume", || {
+        Action::Measure(crate::measure_mark::Kind::Volume)
+    }),
+    ("Measure Distance", || {
+        Action::MeasureDistance(String::new())
+    }),
+    ("Curve", || {
+        Action::BeginTool(crate::tool::Shape::Curve)
+    }),
 ```
 
 ## <a id="checkpoint-84k-draw-cached-unpickable-measurement-strokes"></a>12. Draw cached unpickable measurement strokes
@@ -1530,7 +2522,7 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached CSS-width stroke</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">overlay colour pass</text>
 </svg>
 </div>
@@ -1547,13 +2539,27 @@ Add a colour-only overlay lane with explicit depth behaviour.
     }
 
     pub fn grid(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout_depth(device, format, crate::stroke::SHADER, 44, 6,
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84k-draw-cached-unpickable-measurement-strokes-01.rs"
+    }
+
+    pub fn overlay(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        let mut depth = crate::depth::ink();
+        depth.depth_compare = Some(wgpu::CompareFunction::Always);
+        Self::layout_depth(
+            device,
+            format,
+            crate::stroke::SHADER,
+            44,
+            6,
+            &wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3,2=>Float32x4,3=>Float32],
+            depth,
+        )
+    }
+    pub fn grid(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
 ```
 
 ### 2. `src/measure_gpu.rs`
@@ -1563,7 +2569,60 @@ Cache unchanged marks and account for their actual stroke allocation.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84k-draw-cached-unpickable-measurement-strokes-02.rs"
+use crate::{measure_mark::Mark, stroke_gpu::Lane};
+pub struct Measurement {
+    pub mark: Option<Mark>,
+    strokes: Lane,
+}
+impl Measurement {
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        Self {
+            mark: None,
+            strokes: Lane::overlay(device, format),
+        }
+    }
+    pub fn set(
+        &mut self,
+        device: &wgpu::Device,
+        mark: Option<&Mark>,
+    ) -> Result<(), &'static str> {
+        if self.mark.as_ref() == mark {
+            return Ok(());
+        }
+        let mut strokes = Vec::new();
+        if let Some(mark) = mark {
+            for p in mark.points.windows(2) {
+                if p[0] != p[1] {
+                    strokes.push(crate::stroke::Stroke {
+                        start: p[0].map(|v| v as f32),
+                        end: p[1].map(|v| v as f32),
+                        width: 1.5,
+                        colour: [20. / 255., 20. / 255., 20. / 255., 1.],
+                    });
+                }
+            }
+        }
+        self.strokes.set(device, strokes)?;
+        self.mark = mark.cloned();
+        Ok(())
+    }
+    pub fn view(
+        &self,
+        queue: &wgpu::Queue,
+        transform: &[f32; 16],
+        size: [u32; 2],
+        density: f32,
+    ) {
+        self.strokes
+            .view(queue, transform, size, density)
+    }
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        self.strokes.draw(pass)
+    }
+    pub fn bytes(&self) -> u64 {
+        self.strokes.usage()[1]
+    }
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -1573,14 +2632,17 @@ Register the measurement component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod measure_mark;
+pub mod source_mesh_topology;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84k-draw-cached-unpickable-measurement-strokes-03.rs" skip=23
+pub mod measure_mark;
+
+pub mod measure_gpu;
+pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-84l-merge-measurement-chips-with-cached-scene-text"></a>13. Merge measurement chips with cached scene text
@@ -1615,7 +2677,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">stroke overlay</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">value chip</text>
 </svg>
 </div>
@@ -1634,9 +2696,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.markers.draw(&mut pass);
             self.preview.draw(&mut pass);
         }
-        if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density);
-        } else {self.outline.borrow_mut().take();}
 ```
 
 Replace it with:
@@ -1645,87 +2704,160 @@ Replace it with:
             self.markers.draw(&mut pass);
             self.preview.draw(&mut pass);
         }
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass);}
-        if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density);
-        } else {self.outline.borrow_mut().take();}
-```
-
-**Locate this block:**
-
-```rust
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
         {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("measurement overlay"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Load,
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                depth_stencil_attachment: Some(
+                    wgpu::RenderPassDepthStencilAttachment {
+                        view: &self.depth,
+                        depth_ops: Some(wgpu::Operations {
+                            load: wgpu::LoadOp::Load,
+                            store: wgpu::StoreOp::Store,
+                        }),
+                        stencil_ops: None,
+                    },
+                ),
+                timestamp_writes: None,
+                occlusion_query_set: None,
+                multiview_mask: None,
+            });
+            self.measurement.draw(&mut pass);
+        }
 ```
 
-Replace it with:
+**Locate this block:**
 
 ```rust
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        self.measurement.view(&self.queue,transform,self.size,self.density);
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
-```
-
-**Locate this block:**
-
-```rust
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(merged)?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(merged)?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene) {
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
+        let mut encoder = self
+            .device
 ```
 
 Replace it with:
 
 ```rust
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(self.merge_measurement(merged))?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(merged))?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene) {
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
+            self.size,
+            self.density,
+        );
+        self.measurement.view(
+            &self.queue,
+            transform,
+            self.size,
+            self.density,
+        );
+        let [r, g, b] = background.rgb();
+        let mut encoder = self
+            .device
 ```
 
 **Locate this block:**
 
 ```rust
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
+            .map_err(anyhow::Error::msg)?;
+        let mut merged = labels.clone();
+        merged.extend(self.presentation_text.borrow().clone());
+        self.adopt_text(merged)?;
+        *self.scene_text.borrow_mut() = labels;
+        Ok(())
     }
-
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
 ```
 
 Replace it with:
 
 ```rust
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
+            .map_err(anyhow::Error::msg)?;
+        let mut merged = labels.clone();
+        merged.extend(self.presentation_text.borrow().clone());
+        self.adopt_text(self.merge_measurement(merged))?;
+        *self.scene_text.borrow_mut() = labels;
+        Ok(())
+    }
+```
+
+**Locate this block:**
+
+```rust
+        }
+        let mut merged = self.scene_text.borrow().clone();
+        merged.extend(labels.clone());
+        self.adopt_text(merged)?;
+        *self.presentation_text.borrow_mut() = labels;
+        Ok(())
+    }
+```
+
+Replace it with:
+
+```rust
+        }
+        let mut merged = self.scene_text.borrow().clone();
+        merged.extend(labels.clone());
+        self.adopt_text(self.merge_measurement(merged))?;
+        *self.presentation_text.borrow_mut() = labels;
+        Ok(())
+    }
+```
+
+**Locate this block:**
+
+```rust
+        Ok(())
     }
 
-    pub fn set_measurement(&mut self,mark:Option<&crate::measure_mark::Mark>)->Result<(),&'static str>{if self.measurement.mark.as_ref()==mark{return Ok(())}self.measurement.set(&self.device,mark)?;self.set_scene_measure_text().map_err(|_|"Cannot prepare measurement annotation")}
-    pub fn measurement_bytes(&self)->u64{self.measurement.bytes()}
-    fn merge_measurement(&self,mut labels:Vec<crate::text::TextLabel>)->Vec<crate::text::TextLabel>{if let Some(mark)=&self.measurement.mark{labels.extend(mark.labels(&labels));}labels}
-    fn set_scene_measure_text(&self)->anyhow::Result<()>{let mut labels=self.scene_text.borrow().clone();labels.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(labels))}
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
+    pub fn set_preview(
+        &mut self,
+        draft: Option<&crate::tool::Draft>,
+```
+
+Replace it with:
+
+```rust
+        Ok(())
+    }
+
+    pub fn set_measurement(
+        &mut self,
+        mark: Option<&crate::measure_mark::Mark>,
+    ) -> Result<(), &'static str> {
+        if self.measurement.mark.as_ref() == mark {
+            return Ok(());
+        }
+        self.measurement.set(&self.device, mark)?;
+        self.set_scene_measure_text()
+            .map_err(|_| "Cannot prepare measurement annotation")
+    }
+    pub fn measurement_bytes(&self) -> u64 {
+        self.measurement.bytes()
+    }
+    fn merge_measurement(
+        &self,
+        mut labels: Vec<crate::text::TextLabel>,
+    ) -> Vec<crate::text::TextLabel> {
+        if let Some(mark) = &self.measurement.mark {
+            labels.extend(mark.labels(&labels));
+        }
+        labels
+    }
+    fn set_scene_measure_text(&self) -> anyhow::Result<()> {
+        let mut labels = self.scene_text.borrow().clone();
+        labels.extend(self.presentation_text.borrow().clone());
+        self.adopt_text(self.merge_measurement(labels))
+    }
+    pub fn set_preview(
+        &mut self,
+        draft: Option<&crate::tool::Draft>,
 ```
 
 **Locate this block:**
@@ -1733,11 +2865,11 @@ Replace it with:
 ```rust
         let faces = crate::face_pick::Faces::new(&device);
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let mut renderer = Self {sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
+        let sheets = crate::sheet_gpu::Lane::new(&device, format);
+        let mut renderer = Self {
+            sheets,
+            instances,
+            instance_rows: Default::default(),
 ```
 
 Replace it with:
@@ -1745,35 +2877,32 @@ Replace it with:
 ```rust
         let faces = crate::face_pick::Faces::new(&device);
         let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);
-        let mut renderer = Self {measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
+        let sheets = crate::sheet_gpu::Lane::new(&device, format);
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let mut renderer = Self {
+            measurement,
+            sheets,
+            instances,
+            instance_rows: Default::default(),
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    sheets:crate::sheet_gpu::Lane,
-    clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
-    cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
+    sheets: crate::sheet_gpu::Lane,
+    clouds: std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
+    cloud_view: std::cell::Cell<crate::cloud_gpu::View>,
 ```
 
 Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    measurement:crate::measure_gpu::Measurement,
-    sheets:crate::sheet_gpu::Lane,
-    clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
-    cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
+    measurement: crate::measure_gpu::Measurement,
+    sheets: crate::sheet_gpu::Lane,
+    clouds: std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
+    cloud_view: std::cell::Cell<crate::cloud_gpu::View>,
 ```
 
 ## <a id="checkpoint-84m-exercise-original-boxes-and-temporary-distance-annotations"></a>14. Exercise boxes and temporary distance annotations
@@ -1808,7 +2937,7 @@ pub struct Renderer {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reversible wire box</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary distance line a…</text>
 </svg>
 </div>
@@ -1824,138 +2953,399 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-drawing-originals",&originals.to_string())?;
+        &originals.to_string(),
+    )?;
     canvas.set_attribute("data-cplane",&serde_json::json!({"fixed":editor.construction_plane.is_some(),"mode":format!("{:?}",editor.construction_plane),"chooser":editor.plane_menu}).to_string())?;
     canvas.set_attribute("data-split", &editor.split.as_ref().map_or_else(||"null".into(),|s|serde_json::json!({"target":s.target.id.value(),"face":s.face,"cutters":s.cutters.iter().map(|o|o.id.value()).collect::<Vec<_>>()}).to_string()))?;
-    canvas.set_attribute("data-project", &editor.draft.as_ref().and_then(|d|d.project.as_ref()).map_or_else(||"null".into(), |p|serde_json::json!({"targets":p.targets.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"points":p.points,"unsupported":p.unsupported}).to_string()))?;
-    canvas.set_attribute("data-extend", &editor.draft.as_ref().and_then(|d|d.extend.as_ref()).map_or_else(||"null".into(), |e|serde_json::json!({"boundaries":e.boundaries.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"curves":e.curves,"distance":e.distance,"asking":e.asking,"candidates":e.candidates.len(),"hover":e.hover.as_ref().map(|h|serde_json::json!({"owner":h.owner.id.value(),"end":format!("{:?}",h.end),"tail":h.tail})),"error":e.error}).to_string()))?;
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-curve-originals",&serde_json::to_string(&editor.scene.paths().iter().filter_map(|row|match &row.prepared.source {crate::chain::Source::Curve(source,_)=>Some(serde_json::json!({"guid":source.guid(),"controls":source.m_cv,"knots":source.m_nurbsknot,"rational":source.m_is_rat,"count":source.cv_count()})),_=>None}).collect::<Vec<_>>()).unwrap())?;
-    canvas.set_attribute("data-drawing-originals",&originals.to_string())?;
+        &originals.to_string(),
+    )?;
     canvas.set_attribute("data-cplane",&serde_json::json!({"fixed":editor.construction_plane.is_some(),"mode":format!("{:?}",editor.construction_plane),"chooser":editor.plane_menu}).to_string())?;
-    canvas.set_attribute("data-measurement",&editor.mark.as_ref().map_or_else(||"null".into(),|m|serde_json::json!({"points":m.points,"label":m.label}).to_string()))?;
-    canvas.set_attribute("data-measurement-gpu-bytes",&renderer.measurement_bytes().to_string())?;
+    canvas.set_attribute(
+        "data-measurement",
+        &editor.mark.as_ref().map_or_else(
+            || "null".into(),
+            |m| serde_json::json!({"points":m.points,"label":m.label}).to_string(),
+        ),
+    )?;
+    canvas.set_attribute(
+        "data-measurement-gpu-bytes",
+        &renderer.measurement_bytes().to_string(),
+    )?;
     canvas.set_attribute("data-split", &editor.split.as_ref().map_or_else(||"null".into(),|s|serde_json::json!({"target":s.target.id.value(),"face":s.face,"cutters":s.cutters.iter().map(|o|o.id.value()).collect::<Vec<_>>()}).to_string()))?;
-    canvas.set_attribute("data-project", &editor.draft.as_ref().and_then(|d|d.project.as_ref()).map_or_else(||"null".into(), |p|serde_json::json!({"targets":p.targets.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"points":p.points,"unsupported":p.unsupported}).to_string()))?;
-    canvas.set_attribute("data-extend", &editor.draft.as_ref().and_then(|d|d.extend.as_ref()).map_or_else(||"null".into(), |e|serde_json::json!({"boundaries":e.boundaries.iter().map(|o|o.id.value()).collect::<Vec<_>>(),"curves":e.curves,"distance":e.distance,"asking":e.asking,"candidates":e.candidates.len(),"hover":e.hover.as_ref().map(|h|serde_json::json!({"owner":h.owner.id.value(),"end":format!("{:?}",h.end),"tail":h.tail})),"error":e.error}).to_string()))?;
 ```
 
 **Locate this block:**
 
 ```rust
-        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
-        sheet_query.observe(&editor.scene,editor.selection(),&active_fault);
-        if let Some(reply)=sheet_query.take() {match reply {Ok(entity)=>panel.result(&format!("{} · {} · {}",entity.name,entity.kind,entity.guid)),Err(error)=>panel.result(&error)}}
-        renderer.refresh_text_bounds(&mut editor.scene);
-        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
-        let rect=pointer_canvas.get_bounding_client_rect();
+                    Err(error) => panel.result(&error),
+                }
+            }
+            renderer.refresh_text_bounds(&mut editor.scene);
+            text_fonts.need(
+                editor
 ```
 
 Replace it with:
 
 ```rust
-        if let Some(reply)=text_fonts.reply.borrow_mut().take() {match reply {Ok(fonts)=>{if let Err(error)=renderer.replace_text_fonts(fonts) {text_fonts.failed();panel.result(&format!("Text: {error}"));}},Err(error)=>panel.result(&format!("Text: {error}"))}}
-        sheet_query.observe(&editor.scene,editor.selection(),&active_fault);
-        if let Some(reply)=sheet_query.take() {match reply {Ok(entity)=>panel.result(&format!("{} · {} · {}",entity.name,entity.kind,entity.guid)),Err(error)=>panel.result(&error)}}
-        if let Err(error)=renderer.set_measurement(editor.mark.as_ref()){panel.result(error);}
-        renderer.refresh_text_bounds(&mut editor.scene);
-        text_fonts.need(editor.scene.texts().iter().filter(|row|editor.scene.visible(row.id)).map(|row|row.prepared.source.label.text.as_str()));
-        let rect=pointer_canvas.get_bounding_client_rect();
+                    Err(error) => panel.result(&error),
+                }
+            }
+            if let Err(error) = renderer.set_measurement(editor.mark.as_ref()) {
+                panel.result(error);
+            }
+            renderer.refresh_text_bounds(&mut editor.scene);
+            text_fonts.need(
+                editor
 ```
 
 **Locate this block:**
 
 ```rust
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::Split | Action::SplitPick(_) | Action::CancelSplit | Action::BeginTool(_) | Action::GatherBegin{..} | Action::GatherPick(_) | Action::Project(_) | Action::ExtendBegin{..} | Action::ExtendPick(_) | Action::Interval(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool | Action::CancelSplit) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
-                | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
+                );
+                let tool_action = matches!(
+                    &action,
+                    Action::Split
+                        | Action::SplitPick(_)
+                        | Action::CancelSplit
+                        | Action::BeginTool(_)
 ```
 
 Replace it with:
 
 ```rust
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let rename_action=matches!(&action,Action::LayerEdit {edit:crate::layer_edit::Edit::Rename(_),..});
-            let tool_action = matches!(&action, Action::Measure(_) | Action::MeasureDistance(_) | Action::BoundingBox | Action::Split | Action::SplitPick(_) | Action::CancelSplit | Action::BeginTool(_) | Action::GatherBegin{..} | Action::GatherPick(_) | Action::Project(_) | Action::ExtendBegin{..} | Action::ExtendPick(_) | Action::Interval(_) | Action::ToolPoint(_) | Action::CancelTool | Action::Snap(_) | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::ToolScreen { commit:true,.. });
-            if matches!(&action, Action::CancelTool | Action::CancelSplit) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Live(_) | Action::Undo | Action::Redo
-                | Action::Adopt {..} | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
+                );
+                let tool_action = matches!(
+                    &action,
+                    Action::Measure(_)
+                        | Action::MeasureDistance(_)
+                        | Action::BoundingBox
+                        | Action::Split
+                        | Action::SplitPick(_)
+                        | Action::CancelSplit
+                        | Action::BeginTool(_)
 ```
 
 **Locate this block:**
 
 ```rust
-        } else if let Some(line) = line {
-            let command = editor.tool_line(&line).map(|result| result.map(crate::commands::Command::Editor).map_err(str::to_owned))
-                .unwrap_or_else(|| crate::commands::parse(&line));
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
+                            .map_err(str::to_owned)
+                    })
+                    .unwrap_or_else(|| crate::commands::parse(&line));
+                match command {
+                    Err(error) => {
+                        panel.result(&error);
 ```
 
 Replace it with:
 
 ```rust
-        } else if let Some(line) = line {
-            let command = editor.tool_line(&line).map(|result| result.map(crate::commands::Command::Editor).map_err(str::to_owned))
-                .unwrap_or_else(|| crate::commands::parse(&line));
-            editor.mark=None;
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
+                            .map_err(str::to_owned)
+                    })
+                    .unwrap_or_else(|| crate::commands::parse(&line));
+                editor.mark = None;
+                match command {
+                    Err(error) => {
+                        panel.result(&error);
 ```
 
 **Locate this block:**
 
 ```rust
-
-        let navigation=if line.is_none()&&!panel.consumed {navigation_action(&event,&pointer_canvas,&mut gesture,&mut touch)} else {None};
-        let line=if gesture.take_repeat() {event.prevent_default();if editor.draft.is_some()||editor.gizmo_edit.is_some() {Some(String::new())} else {panel.repeat_line()}} else {line};
-        let line = if (editor.draft.is_some() || editor.gizmo_edit.is_some()) && event.dyn_ref::<web_sys::KeyboardEvent>()
-            .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
-            event.prevent_default(); gesture.cancel(); Some("Escape".into())
-        } else { line };
+            };
+            let line = if (editor.draft.is_some() || editor.gizmo_edit.is_some())
+                && event
+                    .dyn_ref::<web_sys::KeyboardEvent>()
+                    .is_some_and(|key| {
 ```
 
 Replace it with:
 
 ```rust
-
-        let navigation=if line.is_none()&&!panel.consumed {navigation_action(&event,&pointer_canvas,&mut gesture,&mut touch)} else {None};
-        let line=if gesture.take_repeat() {event.prevent_default();if editor.draft.is_some()||editor.gizmo_edit.is_some() {Some(String::new())} else {panel.repeat_line()}} else {line};
-        let line = if (editor.mark.is_some() || editor.split.is_some() || editor.draft.is_some() || editor.gizmo_edit.is_some()) && event.dyn_ref::<web_sys::KeyboardEvent>()
-            .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
-            event.prevent_default(); gesture.cancel(); Some("Escape".into())
-        } else { line };
+            };
+            let line = if (editor.mark.is_some()
+                || editor.split.is_some()
+                || editor.draft.is_some()
+                || editor.gizmo_edit.is_some())
+                && event
+                    .dyn_ref::<web_sys::KeyboardEvent>()
+                    .is_some_and(|key| {
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/measure_tests.rs`
 
 Copy original box, exact archive, numerical, selected-face, history, distance and label-collision fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-06.rs"
+```rust
+use crate::{
+    editor::{Action, Editor},
+    measure_mark::{Kind, Unit},
+    scene::Scene,
+};
+use session_rust::{Geometry, Point, Xform};
+use std::rc::Rc;
+fn editor() -> Editor {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e
+}
+fn command(e: &mut Editor, text: &str) -> Result<(), String> {
+    let action = if let Some(a) = e.tool_line(text) {
+        a.map_err(str::to_owned)?
+    } else {
+        let crate::commands::Command::Editor(a) = crate::commands::parse(text)? else {
+            return Err("Editor action".into());
+        };
+        a
+    };
+    e.apply(action).map_err(|m| {
+        if m == "Shape input invalid" {
+            e.tool_status.clone()
+        } else {
+            m.into()
+        }
+    })?;
+    Ok(())
+}
+#[test]
+fn bounding_box_is_an_original_wire_box_with_world_lengths_exact_archive_and_one_undo()
+{
+    let mut e = editor();
+    command(
+        &mut e,
+        "Line w1000000000.125,23,31 w1000000006.125,29,31",
+    )
+    .unwrap();
+    let old = e.scene.lines()[0].prepared.source.clone();
+    command(&mut e, "Select All").unwrap();
+    command(&mut e, "Bounding Box").unwrap();
+    let row = &e.scene.objects()[0];
+    let target = row.id;
+    let Some(Geometry::OBB(source)) = &row.original else {
+        panic!("Original box")
+    };
+    assert_eq!(source.center[0], 1000000003.125);
+    assert_eq!(
+        [
+            source.half_size[0],
+            source.half_size[1],
+            source.half_size[2]
+        ],
+        [3., 3., 0.]
+    );
+    assert_eq!(row.model.m, Xform::identity().m);
+    assert!(row.mesh.indices().is_empty());
+    assert_eq!(row.mesh.parts.edges.len(), 12);
+    let proto = source.to_proto();
+    command(&mut e, "Length BoundingBox").unwrap();
+    assert_eq!(
+        e.mark.as_ref().unwrap().label,
+        "X 6 · Y 6 · Z 0 mm"
+    );
+    assert_eq!(e.selected_objects(), [target]);
+    assert!(Rc::ptr_eq(
+        &old,
+        &e.scene.lines()[0].prepared.source
+    ));
+    let mut restored = Scene::empty();
+    crate::scene_document::open(
+        &mut restored,
+        &crate::scene_archive::save(&e.scene).unwrap(),
+    )
+    .unwrap();
+    let Some(Geometry::OBB(source)) = &restored.objects()[0].original else {
+        panic!("Reopened original box")
+    };
+    assert_eq!(source.to_proto(), proto);
+    assert!(
+        restored.objects()[0]
+            .mesh
+            .indices()
+            .is_empty()
+    );
+    command(&mut e, "Undo").unwrap();
+    assert!(e.scene.objects().is_empty());
+    assert!(e.mark.is_none());
+    command(&mut e, "Redo").unwrap();
+    assert_eq!(e.scene.objects().len(), 1);
+}
+#[test]
+fn selection_measurements_use_placed_originals_and_preserve_scene_history_and_sources()
+{
+    let mut e = editor();
+    command(&mut e, "Line w0,0,0 w3,4,0").unwrap();
+    let line = e.scene.lines()[0].id;
+    e.scene
+        .place_owner(line, Xform::scale_xyz(2., 3., 1.))
+        .unwrap();
+    let old = e.scene.lines()[0].prepared.source.clone();
+    command(&mut e, "Point w1,1,1").unwrap();
+    command(&mut e, "Undo").unwrap();
+    e.select_objects([line], false);
+    command(&mut e, "Length").unwrap();
+    assert_eq!(e.mark.as_ref().unwrap().label, "13.416 mm");
+    assert!(Rc::ptr_eq(
+        &old,
+        &e.scene.lines()[0].prepared.source
+    ));
+    command(&mut e, "Length BoundingBox").unwrap();
+    assert_eq!(
+        e.mark.as_ref().unwrap().label,
+        "X 6 · Y 12 · Z 0 mm"
+    );
+    command(&mut e, "Redo").unwrap();
+    assert_eq!(e.scene.points().len(), 1);
+    assert!(e.mark.is_none());
+}
+#[test]
+fn area_volume_face_units_and_open_refusal_follow_original_geometry() {
+    let mut e = editor();
+    command(&mut e, "Box w0,0,0 2 2 0.4").unwrap();
+    let target = e.scene.objects()[0].id;
+    e.select_objects([target], false);
+    command(&mut e, "Area").unwrap();
+    assert_eq!(e.mark.as_ref().unwrap().label, "11.2 mm²");
+    command(&mut e, "Volume").unwrap();
+    assert_eq!(e.mark.as_ref().unwrap().label, "1.6 mm³");
+    e.unit = Unit::Meters;
+    command(&mut e, "Volume").unwrap();
+    assert_eq!(e.mark.as_ref().unwrap().label, "1.6 m³");
+    let source = e.scene.objects()[0]
+        .cad
+        .as_ref()
+        .unwrap()
+        .source
+        .clone();
+    e.apply(Action::PickedTarget(Some(
+        crate::pick_sources::Target {
+            owner: target,
+            part: crate::pick_sources::Part::Face(0),
+        },
+    )))
+    .unwrap();
+    command(&mut e, "Area").unwrap();
+    let area = crate::measure_area::compute_area(
+        &Geometry::BRep(source),
+        &Xform::identity(),
+        Some(0),
+    )
+    .unwrap();
+    assert_eq!(
+        e.mark.as_ref().unwrap().label,
+        format!("{} m²", crate::measure_math::to_text(area))
+    );
+    let surface = Rc::new(
+        crate::patch_geometry::patch(&[
+            Point::new(3., 0., 0.),
+            Point::new(4., 0., 0.),
+            Point::new(4., 1., 0.),
+            Point::new(3., 1., 0.),
+        ])
+        .unwrap(),
+    );
+    let id = e.scene.insert_surface(surface).unwrap();
+    e.select_objects([id], false);
+    assert!(command(&mut e, "Volume").is_err());
+    assert!(e.mark.is_none());
+    assert!(
+        e.scene
+            .objects()
+            .iter()
+            .find(|r| r.id == id)
+            .unwrap()
+            .surface
+            .is_some()
+    );
+}
+#[test]
+fn distance_accepts_world_relative_and_plane_inputs_without_creating_originals() {
+    let mut e = editor();
+    command(&mut e, "CPlane XZ").unwrap();
+    command(&mut e, "Measure Distance w0,0,0 w3,4,0").unwrap();
+    assert_eq!(e.mark.as_ref().unwrap().label, "5 mm");
+    assert!(e.tool_status.contains("dx 3 · dy 4 · dz 0"));
+    assert!(e.scene.lines().is_empty());
+    assert!(e.scene.objects().is_empty());
+    command(&mut e, "Snap Off").unwrap();
+    command(&mut e, "Measure Distance").unwrap();
+    assert!(e.snapping.objects);
+    command(&mut e, "0,0,0").unwrap();
+    command(&mut e, "@3,4,0").unwrap();
+    assert_eq!(
+        e.mark.as_ref().unwrap().points,
+        vec![[0., 0., 0.], [3., 0., 4.]]
+    );
+    assert_eq!(e.mark.as_ref().unwrap().label, "5 mm");
+    assert!(e.draft.is_none());
+    e.apply(Action::Zoom(1.1)).unwrap();
+    assert!(e.mark.is_some());
+    command(&mut e, "Escape").unwrap();
+    assert!(e.mark.is_none());
+    assert!(e.scene.lines().is_empty());
+}
+#[test]
+fn invalid_measurement_arguments_keep_pending_answers_and_redo_and_no_source_proxy_is_measured()
+ {
+    let mut e = editor();
+    command(&mut e, "Line w0,0,0 w1,0,0").unwrap();
+    command(&mut e, "Point w1,1,1").unwrap();
+    command(&mut e, "Undo").unwrap();
+    e.select_objects([], false);
+    assert!(command(&mut e, "BoundingBox").is_err());
+    assert!(command(&mut e, "Length").is_err());
+    assert!(crate::commands::parse("Length BoundingBox extra").is_err());
+    command(&mut e, "Curve").unwrap();
+    command(&mut e, "w0,0,0").unwrap();
+    assert!(command(&mut e, "Measure Distance bad").is_err());
+    assert_eq!(e.draft.as_ref().unwrap().points.len(), 1);
+    command(&mut e, "Escape").unwrap();
+    command(&mut e, "Redo").unwrap();
+    assert_eq!(e.scene.points().len(), 1);
+    let id = crate::bounds_original::insert(
+        &mut e.scene,
+        Rc::new(crate::bounds_original::box_geometry(
+            &crate::bounds::Bounds {
+                min: [0.; 3],
+                max: [1.; 3],
+            },
+        )),
+    )
+    .unwrap();
+    e.select_objects([id], false);
+    assert!(command(&mut e, "Area").is_err());
+    assert!(command(&mut e, "Volume").is_err());
+    assert!(command(&mut e, "Length").is_err());
+}
+#[test]
+fn temporary_annotation_ids_do_not_collide_with_scene_labels_or_gain_pick_owners() {
+    let (mark, _) =
+        crate::measure_mark::distance([0.; 3], [3., 4., 0.], Unit::Millimeters);
+    let mut existing = mark.labels(&[]);
+    existing[0].id = u32::MAX;
+    let labels = mark.labels(&existing);
+    assert_eq!(labels.len(), 3);
+    assert!(labels.iter().all(|l| l.object.is_none()));
+    let ids = labels
+        .iter()
+        .map(|l| l.id)
+        .collect::<std::collections::HashSet<_>>();
+    assert_eq!(ids.len(), 3);
+    assert!(
+        labels
+            .iter()
+            .all(|l| existing.iter().all(|old| old.id != l.id))
+    );
+    assert_eq!(labels[0].text, "5 mm");
+    assert_eq!(labels[1].text, "■");
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/lib.rs`
 
@@ -1963,15 +3353,19 @@ Register the measurement component.
 
 **Locate this existing block:**
 
-```text
-
+```rust
 pub mod measure_gpu;
+pub mod source_mesh_topology;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/84m-exercise-original-boxes-and-temporary-distance-annotations-07.rs" skip=22
+```rust
+pub mod measure_gpu;
+
+#[cfg(test)]
+mod measure_tests;
+pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-84zza-describe-removable-cad-parts"></a>15. Describe removable CAD parts
@@ -2006,7 +3400,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2020,7 +3414,91 @@ Type the original CAD part representation and seam-aware curve helpers.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84zza-describe-removable-cad-parts-1.rs"
+use crate::source_cut::{Cutter, planar, samples};
+use session_rust::{
+    BRep, BRepRef, Geometry, Line, Mesh, NurbsCurve, NurbsSurface, Plane, Point,
+    Polyline, Vector, intersection, split,
+};
+use std::collections::HashMap;
+use std::rc::Rc;
+
+pub const TOLERANCE: f64 = 1e-6; // local units, as Split
+
+/// What a cut leaves of one object: the parts a click can remove.
+pub enum Parts {
+    Curve {
+        curve: NurbsCurve, // the object as a curve
+        cuts: Vec<f64>,    // sorted cut parameters inside its domain
+    },
+    Faces {
+        brep: BRep,               // the object with every cut face split
+        groups: Vec<Vec<usize>>,  // faces of each part
+        meshes: Vec<Mesh>,        // one mesh per face, for clicks
+        section: Vec<Vec<Point>>, // the cut edges
+    },
+    Mesh {
+        sides: Vec<Mesh>,         // above and below the plane
+        section: Vec<[Point; 2]>, // the cut segments
+    },
+}
+
+/// One cutter and, for a straight line, the plane it stands for off the object.
+pub struct Blade {
+    pub cutter: Cutter,       // in the target's frame
+    pub fence: Option<Plane>, // a line's vertical plane, in the target's frame
+}
+
+/// The parameter range of curve part `index`; a closed curve's last part runs over the seam.
+fn interval(curve: &NurbsCurve, cuts: &[f64], index: usize) -> (f64, f64) {
+    let (d0, d1) = curve.domain();
+
+    if curve.is_closed() {
+        return (cuts[index], cuts[(index + 1) % cuts.len()]);
+    }
+
+    let a = if index == 0 {
+        d0
+    } else {
+        cuts[index - 1]
+    };
+    (a, cuts.get(index).copied().unwrap_or(d1))
+}
+
+/// The piece of `curve` from `a` to `b`, over the seam when `b <= a`.
+fn piece(curve: &NurbsCurve, a: f64, b: f64) -> Option<NurbsCurve> {
+    let (d0, d1) = curve.domain();
+    let near = (d1 - d0) * 1e-9;
+    let trimmed = |a: f64, b: f64| {
+        let mut part = curve.clone();
+        part.trim(a, b).then_some(part)
+    };
+
+    if a < b {
+        return trimmed(a, b);
+    }
+
+    // over the seam: the tail and the head joined
+    let tail = (a < d1 - near)
+        .then(|| trimmed(a, d1))
+        .flatten();
+    let head = (b > d0 + near)
+        .then(|| trimmed(d0, b))
+        .flatten();
+
+    match (tail, head) {
+        (Some(tail), Some(head)) if curve.degree() == 1 => {
+            let mut points = samples(&tail, 1);
+            points.extend(samples(&head, 1).into_iter().skip(1));
+            Some(NurbsCurve::create(false, 1, &points))
+        }
+        (Some(tail), Some(head)) => {
+            NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
+                .into_iter()
+                .next()
+        }
+        (tail, head) => tail.or(head),
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -2030,14 +3508,21 @@ Register the shared part owner.
 **Locate this existing block:**
 
 ```rust
-#[cfg(test)]
 mod measure_tests;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zza-describe-removable-cad-parts-2.rs" skip=32
+mod measure_tests;
+
+pub mod source_mesh_topology;
+pub mod trim_parts;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-84zzb-read-trim-part-previews"></a>16. Read trim part previews
@@ -2072,7 +3557,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2086,16 +3571,16 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-/// One cutter and, for a straight line, the plane it stands for off the object.
-pub struct Blade {
-    pub cutter: Cutter,       // in the target's frame
-    pub fence: Option<Plane>, // a line's vertical plane, in the target's frame
 }
+
+/// The parameter range of curve part `index`; a closed curve's last part runs over the seam.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 impl Parts {
     /// How many parts there are.
     pub fn count(&self) -> usize {
@@ -2119,7 +3604,10 @@ impl Parts {
     /// The points where a curve was cut.
     pub fn cut_points(&self) -> Vec<Point> {
         match self {
-            Parts::Curve { curve, cuts } => cuts.iter().map(|t| curve.point_at(*t)).collect(),
+            Parts::Curve { curve, cuts } => cuts
+                .iter()
+                .map(|t| curve.point_at(*t))
+                .collect(),
             _ => Vec::new(),
         }
     }
@@ -2129,7 +3617,10 @@ impl Parts {
         match self {
             Parts::Curve { .. } => Vec::new(),
             Parts::Faces { section, .. } => section.clone(),
-            Parts::Mesh { section, .. } => section.iter().map(|pair| pair.to_vec()).collect(),
+            Parts::Mesh { section, .. } => section
+                .iter()
+                .map(|pair| pair.to_vec())
+                .collect(),
         }
     }
 
@@ -2137,7 +3628,9 @@ impl Parts {
     pub fn hit_meshes(&self) -> Vec<(usize, &Mesh)> {
         match self {
             Parts::Curve { .. } => Vec::new(),
-            Parts::Faces { groups, meshes, .. } => groups
+            Parts::Faces {
+                groups, meshes, ..
+            } => groups
                 .iter()
                 .enumerate()
                 .flat_map(|(part, faces)| {
@@ -2150,6 +3643,8 @@ impl Parts {
         }
     }
 }
+
+/// The parameter range of curve part `index`; a closed curve's last part runs over the seam.
 ```
 
 ## <a id="checkpoint-84zzc-collect-curve-crossings"></a>17. Collect curve crossings
@@ -2184,7 +3679,7 @@ impl Parts {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2198,6 +3693,8 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
+}
+
 /// The parameter range of curve part `index`; a closed curve's last part runs over the seam.
 fn interval(curve: &NurbsCurve, cuts: &[f64], index: usize) -> (f64, f64) {
     let (d0, d1) = curve.domain();
@@ -2206,7 +3703,11 @@ fn interval(curve: &NurbsCurve, cuts: &[f64], index: usize) -> (f64, f64) {
         return (cuts[index], cuts[(index + 1) % cuts.len()]);
     }
 
-    let a = if index == 0 { d0 } else { cuts[index - 1] };
+    let a = if index == 0 {
+        d0
+    } else {
+        cuts[index - 1]
+    };
     (a, cuts.get(index).copied().unwrap_or(d1))
 }
 
@@ -2224,8 +3725,12 @@ fn piece(curve: &NurbsCurve, a: f64, b: f64) -> Option<NurbsCurve> {
     }
 
     // over the seam: the tail and the head joined
-    let tail = (a < d1 - near).then(|| trimmed(a, d1)).flatten();
-    let head = (b > d0 + near).then(|| trimmed(d0, b)).flatten();
+    let tail = (a < d1 - near)
+        .then(|| trimmed(a, d1))
+        .flatten();
+    let head = (b > d0 + near)
+        .then(|| trimmed(d0, b))
+        .flatten();
 
     match (tail, head) {
         (Some(tail), Some(head)) if curve.degree() == 1 => {
@@ -2233,17 +3738,150 @@ fn piece(curve: &NurbsCurve, a: f64, b: f64) -> Option<NurbsCurve> {
             points.extend(samples(&head, 1).into_iter().skip(1));
             Some(NurbsCurve::create(false, 1, &points))
         }
-        (Some(tail), Some(head)) => NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
-            .into_iter()
-            .next(),
+        (Some(tail), Some(head)) => {
+            NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
+                .into_iter()
+                .next()
+        }
         (tail, head) => tail.or(head),
     }
+}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zzc-collect-curve-crossings-1.rs"
+}
+
+/// The cut parameters of a curve: crossings with the curves, passes through the planes.
+fn curve_cuts(curve: &NurbsCurve, blades: &[Blade]) -> Result<Vec<f64>, String> {
+    let (d0, d1) = curve.domain();
+    let near = (d1 - d0) * 1e-9;
+    let closed = curve.is_closed();
+    let curves: Vec<NurbsCurve> = blades
+        .iter()
+        .filter_map(|blade| match &blade.cutter {
+            Cutter::Curve(curve) => Some(curve.clone()),
+            Cutter::Plane(_) => None,
+        })
+        .collect();
+    let mut cuts = Vec::new();
+
+    // every piece end is a crossing
+    if !curves.is_empty() {
+        let pieces = split::split_curve_by_curves(curve, &curves, TOLERANCE)?;
+
+        if pieces.len() > 1 {
+            for piece in &pieces {
+                for end in [piece.point_at_start(), piece.point_at_end()] {
+                    cuts.push(intersection::curve_closest_point(curve, &end, d0, d1).0);
+                }
+            }
+        }
+    }
+
+    for blade in blades {
+        if let Cutter::Plane(plane) = &blade.cutter {
+            cuts.extend(intersection::curve_plane(
+                curve,
+                plane,
+                Some(TOLERANCE),
+            ));
+        }
+    }
+
+    // a closed curve's seam is one point; an open curve's ends cut nothing
+    let mut cuts: Vec<f64> = cuts
+        .into_iter()
+        .map(|t| {
+            if closed && t >= d1 - near {
+                d0
+            } else {
+                t
+            }
+        })
+        .filter(|t| closed || (*t > d0 + near && *t < d1 - near))
+        .collect();
+    cuts.sort_by(f64::total_cmp);
+    cuts.dedup_by(|a, b| (*a - *b).abs() <= near.max(1e-12));
+    Ok(cuts)
+}
+
+/// The parameter range of curve part `index`; a closed curve's last part runs over the seam.
+fn interval(curve: &NurbsCurve, cuts: &[f64], index: usize) -> (f64, f64) {
+    let (d0, d1) = curve.domain();
+
+    if curve.is_closed() {
+        return (cuts[index], cuts[(index + 1) % cuts.len()]);
+    }
+
+    let a = if index == 0 {
+        d0
+    } else {
+        cuts[index - 1]
+    };
+    (a, cuts.get(index).copied().unwrap_or(d1))
+}
+
+/// The piece of `curve` from `a` to `b`, over the seam when `b <= a`.
+fn piece(curve: &NurbsCurve, a: f64, b: f64) -> Option<NurbsCurve> {
+    let (d0, d1) = curve.domain();
+    let near = (d1 - d0) * 1e-9;
+    let trimmed = |a: f64, b: f64| {
+        let mut part = curve.clone();
+        part.trim(a, b).then_some(part)
+    };
+
+    if a < b {
+        return trimmed(a, b);
+    }
+
+    // over the seam: the tail and the head joined
+    let tail = (a < d1 - near)
+        .then(|| trimmed(a, d1))
+        .flatten();
+    let head = (b > d0 + near)
+        .then(|| trimmed(d0, b))
+        .flatten();
+
+    match (tail, head) {
+        (Some(tail), Some(head)) if curve.degree() == 1 => {
+            let mut points = samples(&tail, 1);
+            points.extend(samples(&head, 1).into_iter().skip(1));
+            Some(NurbsCurve::create(false, 1, &points))
+        }
+        (Some(tail), Some(head)) => {
+            NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
+                .into_iter()
+                .next()
+        }
+        (tail, head) => tail.or(head),
+    }
+}
+
+/// New indices for the used entries, -1 for the rest.
+fn remap(used: &[bool]) -> Vec<i32> {
+    let mut next = 0;
+    used.iter()
+        .map(|&kept| {
+            if !kept {
+                return -1;
+            }
+
+            next += 1;
+            next - 1
+        })
+        .collect()
+}
+
+/// The entries of `list` marked in `used`.
+fn kept_of<T: Clone>(list: &[T], used: &[bool]) -> Vec<T> {
+    list.iter()
+        .zip(used)
+        .filter(|(_, kept)| **kept)
+        .map(|(item, _)| item.clone())
+        .collect()
+}
 ```
 
 ## <a id="checkpoint-84zzd-preserve-trimmed-source-types"></a>18. Preserve trimmed source types
@@ -2278,7 +3916,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2292,24 +3930,24 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-        (Some(tail), Some(head)) => NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
-            .into_iter()
-            .next(),
-        (tail, head) => tail.or(head),
-    }
 }
+
+/// New indices for the used entries, -1 for the rest.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// The run `a..b` of `curve` as the source's own type, with its name and pen.
 fn rebuilt(source: &Geometry, curve: &NurbsCurve, a: f64, b: f64) -> Option<Geometry> {
     let part = piece(curve, a, b)?;
 
     match source {
         Geometry::Line(line) => {
-            let mut next = Line::from_points(&part.point_at_start(), &part.point_at_end());
+            let mut next =
+                Line::from_points(&part.point_at_start(), &part.point_at_end());
             next.name = line.name.clone();
             next.width = line.width;
             next.dash = line.dash.clone();
@@ -2356,7 +3994,10 @@ fn face_of(surface: &NurbsSurface) -> Result<BRep, String> {
     let away = NurbsCurve::create(
         false,
         1,
-        &[far.clone(), &far + &Vector::new(size, 0.0, 0.0)],
+        &[
+            far.clone(),
+            &far + &Vector::new(size, 0.0, 0.0),
+        ],
     );
     let mut brep = split::split_surface_by_curves(surface, &[away], TOLERANCE)?;
     brep.name = surface.name.clone();
@@ -2370,13 +4011,18 @@ fn planar_size(surface: &NurbsSurface) -> f64 {
     for i in 0..surface.m_cv_count[0] {
         for j in 0..surface.m_cv_count[1] {
             if let Some(p) = surface.get_cv(i, j) {
-                size = size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs());
+                size = size
+                    .max(p[0].abs())
+                    .max(p[1].abs())
+                    .max(p[2].abs());
             }
         }
     }
 
     size
 }
+
+/// New indices for the used entries, -1 for the rest.
 ```
 
 ## <a id="checkpoint-84zze-group-faces-by-cutting-planes"></a>19. Group faces by cutting planes
@@ -2411,7 +4057,7 @@ fn planar_size(surface: &NurbsSurface) -> f64 {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2425,19 +4071,16 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-            if let Some(p) = surface.get_cv(i, j) {
-                size = size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs());
-            }
-        }
-    }
-
-    size
 }
+
+/// New indices for the used entries, -1 for the rest.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// Faces grouped by the side of every plane they lie on; a curve-cut region stays its own part.
 fn sides(
     brep: &BRep,
@@ -2448,9 +4091,10 @@ fn sides(
     let mut groups: Vec<(Vec<bool>, Option<usize>, Vec<usize>)> = Vec::new();
 
     for face in 0..brep.face_count() {
-        let center = meshes
-            .get(face)
-            .map_or_else(|| brep.point_at(face, 0.5, 0.5), |mesh| mesh.centroid());
+        let center = meshes.get(face).map_or_else(
+            || brep.point_at(face, 0.5, 0.5),
+            |mesh| mesh.centroid(),
+        );
         let key: Vec<bool> = planes
             .iter()
             .map(|plane| (&center - &plane.origin()).dot(&plane.z_axis()) >= 0.0)
@@ -2469,7 +4113,10 @@ fn sides(
         }
     }
 
-    groups.into_iter().map(|(_, _, faces)| faces).collect()
+    groups
+        .into_iter()
+        .map(|(_, _, faces)| faces)
+        .collect()
 }
 
 /// A plane-plane line as a segment reaching past every control point of `surface`.
@@ -2499,6 +4146,8 @@ fn across(line: &Line, surface: &NurbsSurface) -> NurbsCurve {
         ],
     )
 }
+
+/// New indices for the used entries, -1 for the rest.
 ```
 
 ## <a id="checkpoint-84zzf-cut-planar-brep-faces"></a>20. Cut planar BRep faces
@@ -2533,7 +4182,7 @@ fn across(line: &Line, surface: &NurbsSurface) -> NurbsCurve {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2547,18 +4196,16 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-            Some((_, _, faces)) => faces.push(face),
-            None => groups.push((key, region, vec![face])),
-        }
-    }
-
-    groups.into_iter().map(|(_, _, faces)| faces).collect()
 }
+
+/// A plane-plane line as a segment reaching past every control point of `surface`.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// Split every face `plane` passes through; returns the new edges on the plane.
 fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, String> {
     let normal = plane.z_axis();
@@ -2567,7 +4214,12 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
     let size = brep
         .m_vertices
         .iter()
-        .map(|v| v.point[0].abs().max(v.point[1].abs()).max(v.point[2].abs()))
+        .map(|v| {
+            v.point[0]
+                .abs()
+                .max(v.point[1].abs())
+                .max(v.point[2].abs())
+        })
         .fold(1.0, f64::max);
     let near = TOLERANCE * size;
     let mut crossed = false;
@@ -2578,7 +4230,9 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
 
         for i in 0..surface.m_cv_count[0] {
             for j in 0..surface.m_cv_count[1] {
-                let d = surface.get_cv(i, j).map_or(0.0, |p| side(&p));
+                let d = surface
+                    .get_cv(i, j)
+                    .map_or(0.0, |p| side(&p));
                 low = low.min(d);
                 high = high.max(d);
             }
@@ -2624,13 +4278,18 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
         };
         let points = samples(curve, 8);
 
-        if points.iter().all(|p| side(p).abs() <= near * 10.0) {
+        if points
+            .iter()
+            .all(|p| side(p).abs() <= near * 10.0)
+        {
             section.push(points);
         }
     }
 
     Ok(section)
 }
+
+/// A plane-plane line as a segment reaching past every control point of `surface`.
 ```
 
 ## <a id="checkpoint-84zzg-assemble-removable-face-groups"></a>21. Assemble removable face groups
@@ -2665,7 +4324,7 @@ fn cut_by_plane(brep: &mut BRep, plane: &Plane) -> Result<Vec<Vec<Point>>, Strin
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2679,19 +4338,16 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-            if let Some(p) = surface.get_cv(i, j) {
-                size = size.max(p[0].abs()).max(p[1].abs()).max(p[2].abs());
-            }
-        }
-    }
-
-    size
 }
+
+/// Faces grouped by the side of every plane they lie on; a curve-cut region stays its own part.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// Split the faces of `brep` by the blades: curves on its faces make regions, planes make sides.
 fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
     let mut brep = brep.clone();
@@ -2786,6 +4442,8 @@ fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
         section,
     })
 }
+
+/// Faces grouped by the side of every plane they lie on; a curve-cut region stays its own part.
 ```
 
 ## <a id="checkpoint-84zzh-mark-retained-brep-topology"></a>22. Mark retained BRep topology
@@ -2820,7 +4478,7 @@ fn faces(brep: &BRep, blades: &[Blade]) -> Result<Parts, String> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2834,21 +4492,16 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-        .map(|&kept| {
-            if !kept {
-                return -1;
-            }
-
-            next += 1;
-            next - 1
-        })
-        .collect()
 }
+
+/// The entries of `list` marked in `used`.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// `brep` without `removed` faces; every table is compacted and a solid left open is dropped.
 pub fn without_faces(brep: &BRep, removed: &[usize]) -> Result<BRep, String> {
     if removed.is_empty() {
@@ -2924,6 +4577,8 @@ pub fn without_faces(brep: &BRep, removed: &[usize]) -> Result<BRep, String> {
 
     Err("BRep table reconstruction is not connected yet".into())
 }
+
+/// The entries of `list` marked in `used`.
 ```
 
 ## <a id="checkpoint-84zzi-rebuild-retained-brep-tables"></a>23. Rebuild retained BRep tables
@@ -2958,7 +4613,7 @@ pub fn without_faces(brep: &BRep, removed: &[usize]) -> Result<BRep, String> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -2972,13 +4627,122 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
+    }
+
     Err("BRep table reconstruction is not connected yet".into())
+}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zzi-rebuild-retained-brep-tables-1.rs"
+    }
+
+    let [
+        faces,
+        wires,
+        edges,
+        vertices,
+        curves,
+        pcurves,
+        surfaces,
+    ] = [
+        &keep_face,
+        &keep_wire,
+        &keep_edge,
+        &keep_vertex,
+        &keep_curve,
+        &keep_pcurve,
+        &keep_surface,
+    ]
+    .map(|used| remap(used));
+    let at = |map: &[i32], index: i32| {
+        if index < 0 {
+            index
+        } else {
+            map[index as usize]
+        }
+    };
+    let mut out = brep.clone();
+    out.m_surfaces = kept_of(&brep.m_surfaces, &keep_surface);
+    out.m_curves_3d = kept_of(&brep.m_curves_3d, &keep_curve);
+    out.m_curves_2d = kept_of(&brep.m_curves_2d, &keep_pcurve);
+    out.m_vertices = kept_of(&brep.m_vertices, &keep_vertex);
+    out.m_edges = kept_of(&brep.m_edges, &keep_edge);
+
+    for edge in &mut out.m_edges {
+        edge.curve_3d_index = at(&curves, edge.curve_3d_index);
+        edge.start_vertex = at(&vertices, edge.start_vertex);
+        edge.end_vertex = at(&vertices, edge.end_vertex);
+        edge.pcurves
+            .retain(|p| keep_surface[p.surface_index as usize]);
+
+        for pcurve in &mut edge.pcurves {
+            pcurve.surface_index = at(&surfaces, pcurve.surface_index);
+            pcurve.curve_2d_index = at(&pcurves, pcurve.curve_2d_index);
+            pcurve.curve_2d_index_2 = at(&pcurves, pcurve.curve_2d_index_2);
+        }
+    }
+
+    let refs = |list: &[BRepRef], map: &[i32]| -> Vec<BRepRef> {
+        list.iter()
+            .filter(|r| map[r.index as usize] >= 0)
+            .map(|r| BRepRef::new(map[r.index as usize], r.orientation))
+            .collect()
+    };
+    out.m_wires = kept_of(&brep.m_wires, &keep_wire);
+
+    for wire in &mut out.m_wires {
+        wire.edges = refs(&wire.edges, &edges);
+    }
+
+    out.m_faces = kept_of(&brep.m_faces, &keep_face);
+
+    for face in &mut out.m_faces {
+        face.surface_index = at(&surfaces, face.surface_index);
+        face.wires = refs(&face.wires, &wires);
+    }
+
+    let mut shells = Vec::new(); // new index of each shell, -1 when it lost every face
+    out.m_shells.clear();
+
+    for shell in &brep.m_shells {
+        let mut shell = shell.clone();
+        shell.faces = refs(&shell.faces, &faces);
+        shells.push(if shell.faces.is_empty() {
+            -1
+        } else {
+            out.m_shells.len() as i32
+        });
+
+        if !shell.faces.is_empty() {
+            out.m_shells.push(shell);
+        }
+    }
+
+    out.m_solids.clear();
+
+    for solid in &brep.m_solids {
+        let mut solid = solid.clone();
+        solid.shells = refs(&solid.shells, &shells);
+
+        // a solid is only a solid while its shells are closed
+        if !solid.shells.is_empty()
+            && solid
+                .shells
+                .iter()
+                .all(|r| out.is_closed(r.index as usize))
+        {
+            out.m_solids.push(solid);
+        }
+    }
+
+    if !out.is_valid() {
+        return Err("Removing these faces leaves an invalid BRep".into());
+    }
+
+    Ok(out)
+}
 ```
 
 ## <a id="checkpoint-84zzj-split-mesh-faces-at-a-plane"></a>24. Split mesh faces at a plane
@@ -3013,7 +4777,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -3027,20 +4791,23 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-fn kept_of<T: Clone>(list: &[T], used: &[bool]) -> Vec<T> {
-    list.iter()
-        .zip(used)
-        .filter(|(_, kept)| **kept)
         .map(|(item, _)| item.clone())
         .collect()
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        .map(|(item, _)| item.clone())
+        .collect()
+}
+
 /// A mesh cut by `plane` into its two sides, sharing the cut vertices; the cut as segments.
-pub fn mesh_sides(mesh: &Mesh, plane: &Plane) -> Result<(Vec<Mesh>, Vec<[Point; 2]>), String> {
+pub fn mesh_sides(
+    mesh: &Mesh,
+    plane: &Plane,
+) -> Result<(Vec<Mesh>, Vec<[Point; 2]>), String> {
     if !mesh.get_face_holes().is_empty() {
         return Err("Trim cannot cut a mesh with holed faces".into());
     }
@@ -3057,7 +4824,11 @@ pub fn mesh_sides(mesh: &Mesh, plane: &Plane) -> Result<(Vec<Mesh>, Vec<[Point; 
         .iter()
         .map(|p| {
             let d = (p - &origin).dot(&normal);
-            if d.abs() <= near { 0.0 } else { d }
+            if d.abs() <= near {
+                0.0
+            } else {
+                d
+            }
         })
         .collect();
 
@@ -3164,7 +4935,7 @@ pub fn mesh_sides(mesh: &Mesh, plane: &Plane) -> Result<(Vec<Mesh>, Vec<[Point; 
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -3178,13 +4949,45 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
+    }
+
     Err("Mesh table reconstruction is not connected yet".into())
+}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zzk-compact-both-trimmed-mesh-sides-1.rs"
+    }
+
+    let sides = halves
+        .into_iter()
+        .map(|faces| {
+            // only the vertices this side uses
+            let mut index = vec![usize::MAX; points.len()];
+            let mut used = Vec::new();
+
+            for face in &faces {
+                for &v in face {
+                    if index[v] == usize::MAX {
+                        index[v] = used.len();
+                        used.push(points[v].clone());
+                    }
+                }
+            }
+
+            let faces = faces
+                .iter()
+                .map(|face| face.iter().map(|v| index[*v]).collect())
+                .collect();
+            let mut side = Mesh::from_vertices_and_faces(used, faces);
+            side.name = mesh.name.clone();
+            side.set_objectcolor(mesh.get_objectcolor().clone());
+            side
+        })
+        .collect();
+    Ok((sides, section))
+}
 ```
 
 ## <a id="checkpoint-84zzl-rebuild-kept-cad-parts"></a>26. Rebuild kept CAD parts
@@ -3219,7 +5022,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -3233,19 +5036,22 @@ Add this part-building behavior to the existing owner.
 **Locate this existing block:**
 
 ```rust
-        (Some(tail), Some(head)) => NurbsCurve::join(&[tail, head], Some(TOLERANCE * 10.0))
-            .into_iter()
-            .next(),
-        (tail, head) => tail.or(head),
-    }
 }
+
+/// The run `a..b` of `curve` as the source's own type, with its name and pen.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// What is left of `source` once `removed` parts are gone: one geometry per unbroken run.
-pub fn kept(source: &Geometry, parts: &Parts, removed: &[usize]) -> Result<Vec<Geometry>, String> {
+pub fn kept(
+    source: &Geometry,
+    parts: &Parts,
+    removed: &[usize],
+) -> Result<Vec<Geometry>, String> {
     let count = parts.count();
 
     if removed.len() >= count {
@@ -3296,16 +5102,22 @@ pub fn kept(source: &Geometry, parts: &Parts, removed: &[usize]) -> Result<Vec<G
                 .iter()
                 .flat_map(|part| groups[*part].iter().copied())
                 .collect();
-            Ok(vec![Geometry::BRep(Rc::new(without_faces(brep, &faces)?))])
+            Ok(vec![Geometry::BRep(Rc::new(without_faces(
+                brep, &faces,
+            )?))])
         }
         Parts::Mesh { sides, .. } => {
             let side = (0..sides.len())
                 .find(|i| !removed.contains(i))
                 .ok_or("The last part stays")?;
-            Ok(vec![Geometry::Mesh(Rc::new(sides[side].clone()))])
+            Ok(vec![Geometry::Mesh(Rc::new(
+                sides[side].clone(),
+            ))])
         }
     }
 }
+
+/// The run `a..b` of `curve` as the source's own type, with its name and pen.
 ```
 
 ## <a id="checkpoint-84zzm-connect-original-trim-recipes"></a>27. Connect trim recipes
@@ -3340,7 +5152,7 @@ pub fn kept(source: &Geometry, parts: &Parts, removed: &[usize]) -> Result<Vec<G
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">removable parts</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">retained source geometry</text>
 </svg>
 </div>
@@ -3349,23 +5161,437 @@ pub fn kept(source: &Geometry, parts: &Parts, removed: &[usize]) -> Result<Vec<G
 
 ### 1. `src/trim_parts.rs`
 
-Add this part-building behavior to the existing owner.
+Add this part-building behavior to the existing owner. Supply the original trim validation fixtures.
 
-**Locate this existing block:**
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-                        .filter_map(move |f| Some((part, meshes.get(*f)?)))
-                })
-                .collect(),
-            Parts::Mesh { sides, .. } => sides.iter().enumerate().collect(),
+        .collect();
+    Ok((sides, section))
+}
+```
+
+Replace it with:
+
+```rust
+        .collect();
+    Ok((sides, section))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A curve cutter.
+    fn blade(a: [f64; 3], b: [f64; 3]) -> Blade {
+        let curve = NurbsCurve::create(
+            false,
+            1,
+            &[
+                Point::new(a[0], a[1], a[2]),
+                Point::new(b[0], b[1], b[2]),
+            ],
+        );
+        Blade {
+            cutter: Cutter::Curve(curve),
+            fence: None,
         }
+    }
+
+    /// A plane cutter.
+    fn plane(origin: [f64; 3], normal: [f64; 3]) -> Blade {
+        let plane = Plane::from_point_normal(
+            Point::new(origin[0], origin[1], origin[2]),
+            Vector::new(normal[0], normal[1], normal[2]),
+            None,
+        );
+        Blade {
+            cutter: Cutter::Plane(plane),
+            fence: None,
+        }
+    }
+
+    /// A line from its ends.
+    fn line(a: [f64; 3], b: [f64; 3]) -> Geometry {
+        Geometry::Line(Rc::new(Line::from_points(
+            &Point::new(a[0], a[1], a[2]),
+            &Point::new(b[0], b[1], b[2]),
+        )))
+    }
+
+    /// The ends of a line geometry.
+    fn ends(geometry: &Geometry) -> [[f64; 3]; 2] {
+        let Geometry::Line(line) = geometry else {
+            panic!("not a line")
+        };
+        let (a, b) = (line.start(), line.end());
+        [[a[0], a[1], a[2]], [b[0], b[1], b[2]]]
+    }
+
+    /// Lines keep the part they were not clicked on; three parts keep the two outer ones.
+    #[test]
+    fn a_line_keeps_what_is_not_removed() {
+        let mut source = Line::from_points(
+            &Point::new(0., 0., 0.),
+            &Point::new(100., 0., 0.),
+        );
+        source.width = 3.0;
+        source.name = "rail".into();
+        let source = Geometry::Line(Rc::new(source));
+        let parts = cut(
+            &source,
+            &[blade([50., -5., 0.], [50., 5., 0.])],
+        )
+        .unwrap();
+        assert_eq!(parts.count(), 2);
+        let kept_left = kept(&source, &parts, &[1]).unwrap();
+        assert_eq!(
+            ends(&kept_left[0]),
+            [[0., 0., 0.], [50., 0., 0.]]
+        );
+        let Geometry::Line(styled) = &kept_left[0] else {
+            panic!()
+        };
+        assert_eq!(
+            (styled.width, styled.name.as_str()),
+            (3.0, "rail")
+        );
+        let parts = cut(
+            &source,
+            &[
+                blade([30., -5., 0.], [30., 5., 0.]),
+                blade([70., -5., 0.], [70., 5., 0.]),
+            ],
+        )
+        .unwrap();
+        assert_eq!(parts.count(), 3);
+        let outer = kept(&source, &parts, &[1]).unwrap();
+        assert_eq!(outer.len(), 2);
+        assert!((ends(&outer[0])[1][0] - 30.0).abs() < 1e-9);
+        assert!((ends(&outer[1])[0][0] - 70.0).abs() < 1e-9);
+        let right = kept(&source, &parts, &[0]).unwrap();
+        assert_eq!(
+            right.len(),
+            1,
+            "the two kept parts stay one line"
+        );
+        assert!(
+            (ends(&right[0])[0][0] - 30.0).abs() < 1e-9
+                && (ends(&right[0])[1][0] - 100.0).abs() < 1e-9
+        );
+        assert!(kept(&source, &parts, &[0, 1, 2]).is_err());
+        assert!(
+            cut(
+                &source,
+                &[blade([50., 5., 0.], [50., 15., 0.])]
+            )
+            .is_err()
+        );
+    }
+
+    /// A polyline keeps its corner; a NURBS curve ends at the cut; a closed square makes two parts.
+    #[test]
+    fn polylines_curves_and_closed_curves() {
+        let corner = Polyline::new(vec![
+            Point::new(0., 60., 0.),
+            Point::new(40., 60., 0.),
+            Point::new(40., 100., 0.),
+        ]);
+        let source = Geometry::Polyline(Rc::new(corner));
+        let parts = cut(
+            &source,
+            &[blade([20., 50., 0.], [20., 70., 0.])],
+        )
+        .unwrap();
+        let rest = kept(&source, &parts, &[0]).unwrap();
+        let Geometry::Polyline(rest) = &rest[0] else {
+            panic!()
+        };
+        let points = rest.get_points();
+        assert_eq!(points.len(), 3);
+        assert!(points[0].distance(&Point::new(20., 60., 0.), None) < 1e-9);
+        assert!(points[1].distance(&Point::new(40., 60., 0.), None) < 1e-9);
+        let curve = NurbsCurve::create(
+            false,
+            2,
+            &[
+                Point::new(0., -60., 0.),
+                Point::new(50., 0., 0.),
+                Point::new(100., -60., 0.),
+            ],
+        );
+        let source = Geometry::NurbsCurve(Rc::new(curve));
+        let parts = cut(
+            &source,
+            &[blade([50., -80., 0.], [50., 10., 0.])],
+        )
+        .unwrap();
+        let left = kept(&source, &parts, &[1]).unwrap();
+        let Geometry::NurbsCurve(left) = &left[0] else {
+            panic!()
+        };
+        assert!((left.point_at_end()[0] - 50.0).abs() < 1e-6);
+        let square = Polyline::new(vec![
+            Point::new(0., 0., 0.),
+            Point::new(10., 0., 0.),
+            Point::new(10., 10., 0.),
+            Point::new(0., 10., 0.),
+            Point::new(0., 0., 0.),
+        ]);
+        let source = Geometry::Polyline(Rc::new(square));
+        let parts = cut(
+            &source,
+            &[blade([5., -5., 0.], [5., 15., 0.])],
+        )
+        .unwrap();
+        assert_eq!(parts.count(), 2);
+        let half = kept(&source, &parts, &[0]).unwrap();
+        assert_eq!(half.len(), 1);
+    }
+
+    /// A plane cuts a vertical line; mixed cutters cut at both.
+    #[test]
+    fn planes_and_curves_cut_together() {
+        let source = line([0., 0., -10.], [0., 0., 10.]);
+        let parts = cut(&source, &[plane([0., 0., 0.], [0., 0., 1.])]).unwrap();
+        assert_eq!(parts.count(), 2);
+        let across = line([0., 0., 0.], [100., 0., 0.]);
+        let parts = cut(
+            &across,
+            &[
+                plane([20., 0., 0.], [1., 0., 0.]),
+                blade([60., -5., 0.], [60., 5., 0.]),
+            ],
+        )
+        .unwrap();
+        assert_eq!(parts.count(), 3);
+        let points = parts.cut_points();
+        assert!(
+            (points[0][0] - 20.0).abs() < 1e-6 && (points[1][0] - 60.0).abs() < 1e-6
+        );
+    }
+
+    /// A box cut by a plane: removing the top leaves an open, valid five-face BRep.
+    #[test]
+    fn a_box_cut_by_a_plane_loses_its_top() {
+        let source = BRep::create_box(10., 10., 10.);
+        let low = source
+            .m_vertices
+            .iter()
+            .map(|v| v.point[2])
+            .fold(f64::INFINITY, f64::min);
+        let parts = cut(
+            &Geometry::BRep(Rc::new(source)),
+            &[plane([0., 0., low + 2.], [0., 0., 1.])],
+        )
+        .unwrap();
+        assert_eq!(parts.count(), 2);
+        let Parts::Faces {
+            brep,
+            groups,
+            section,
+            ..
+        } = &parts
+        else {
+            panic!()
+        };
+        assert_eq!(brep.face_count(), 10);
+        assert_eq!(section.len(), 4, "four cut edges");
+        let upper = groups
+            .iter()
+            .position(|faces| {
+                faces
+                    .iter()
+                    .all(|f| brep.point_at(*f, 0.5, 0.5)[2] > low + 2.0 - 1e-9)
+            })
+            .unwrap();
+        let rest = kept(
+            &Geometry::BRep(Rc::new(BRep::new())),
+            &parts,
+            &[upper],
+        )
+        .unwrap();
+        let Geometry::BRep(rest) = &rest[0] else {
+            panic!()
+        };
+        assert_eq!(rest.face_count(), 5);
+        assert!(rest.is_valid());
+        assert!(!rest.is_solid());
+
+        for edge in 0..rest.m_edges.len() {
+            assert!(
+                !rest.edge_faces(edge).is_empty(),
+                "edge {edge} has a face"
+            );
+        }
+
+        let used: std::collections::HashSet<i32> = rest
+            .m_edges
+            .iter()
+            .flat_map(|e| [e.start_vertex, e.end_vertex])
+            .collect();
+        assert_eq!(
+            used.len(),
+            rest.m_vertices.len(),
+            "no unused vertex"
+        );
+        assert!(
+            cut(
+                &Geometry::BRep(Rc::new(BRep::create_box(10., 10., 10.))),
+                &[plane([0., 0., 100.], [0., 0., 1.])]
+            )
+            .is_err()
+        );
+        assert_eq!(
+            without_faces(rest, &[])
+                .unwrap()
+                .face_count(),
+            5
+        );
+    }
+
+    /// A plane through a curved face is refused rather than cut half way.
+    #[test]
+    fn a_plane_refuses_curved_faces() {
+        let source = Geometry::BRep(Rc::new(BRep::create_cylinder(5., 10.)));
+        let Geometry::BRep(cylinder) = &source else {
+            panic!()
+        };
+        let low = cylinder
+            .m_vertices
+            .iter()
+            .map(|v| v.point[2])
+            .fold(f64::INFINITY, f64::min);
+        let answer = cut(
+            &source,
+            &[plane([0., 0., low + 5.], [0., 0., 1.])],
+        );
+        assert!(answer.is_err_and(|error| error.contains("flat faces")));
+    }
+
+    /// A line off the box cuts it as a vertical fence; a line on the top face splits that face only.
+    #[test]
+    fn lines_fence_or_split_a_box() {
+        let source = Geometry::BRep(Rc::new(BRep::create_box(10., 10., 10.)));
+        let Geometry::BRep(boxed) = &source else {
+            panic!()
+        };
+        let low = boxed
+            .m_vertices
+            .iter()
+            .map(|v| v.point[2])
+            .fold(f64::INFINITY, f64::min);
+        let high = boxed
+            .m_vertices
+            .iter()
+            .map(|v| v.point[2])
+            .fold(f64::NEG_INFINITY, f64::max);
+        let x = boxed
+            .m_vertices
+            .iter()
+            .map(|v| v.point[0])
+            .fold(f64::INFINITY, f64::min)
+            + 3.0;
+        let fence = crate::source_cut::fence_plane(
+            &Line::from_points(
+                &Point::new(x, -50., low - 5.),
+                &Point::new(x, 50., low - 5.),
+            ),
+            &Vector::new(0., 0., 1.),
+        )
+        .unwrap();
+        let mut off = blade([x, -50., low - 5.], [x, 50., low - 5.]);
+        off.fence = Some(fence);
+        let parts = cut(&source, &[off]).unwrap();
+        assert_eq!(parts.count(), 2);
+        let rest = kept(&source, &parts, &[0]).unwrap();
+        let Geometry::BRep(rest) = &rest[0] else {
+            panic!()
+        };
+        assert_eq!(rest.face_count(), 5);
+        assert!(rest.is_valid());
+        let on = blade([x, -50., high], [x, 50., high]);
+        let parts = cut(&source, &[on]).unwrap();
+        assert_eq!(parts.count(), 2);
+        let rest = kept(&source, &parts, &[1]).unwrap();
+        let Geometry::BRep(rest) = &rest[0] else {
+            panic!()
+        };
+        assert_eq!(rest.face_count(), 6);
+        assert!(rest.is_valid());
+    }
+
+    /// A planar surface split by a line keeps the chosen region as a BRep.
+    #[test]
+    fn a_surface_becomes_the_kept_region() {
+        let mut surface = NurbsSurface::new(3, false, 2, 2, 2, 2);
+        surface.set_cv(0, 0, &Point::new(0., 0., 0.));
+        surface.set_cv(1, 0, &Point::new(10., 0., 0.));
+        surface.set_cv(0, 1, &Point::new(0., 10., 0.));
+        surface.set_cv(1, 1, &Point::new(10., 10., 0.));
+        let source = Geometry::NurbsSurface(Rc::new(surface));
+        let parts = cut(
+            &source,
+            &[blade([4., -5., 0.], [4., 15., 0.])],
+        )
+        .unwrap();
+        assert_eq!(parts.count(), 2);
+        let rest = kept(&source, &parts, &[0]).unwrap();
+        let Geometry::BRep(rest) = &rest[0] else {
+            panic!()
+        };
+        assert_eq!(rest.face_count(), 1);
+    }
+
+    /// A mesh box cut at z = 2: the areas add up, both sides are open and share the cut.
+    #[test]
+    fn a_mesh_splits_into_two_open_sides() {
+        let mut source = Mesh::create_box(10., 10., 10.);
+        source.name = "block".into();
+        let area = source.area();
+        let (points, _) = source.to_vertices_and_faces();
+        let low = points
+            .iter()
+            .map(|p| p[2])
+            .fold(f64::INFINITY, f64::min);
+        let cutter = Plane::from_point_normal(
+            Point::new(0., 0., low + 2.),
+            Vector::new(0., 0., 1.),
+            None,
+        );
+        let (sides, section) = mesh_sides(&source, &cutter).unwrap();
+        assert!((sides[0].area() + sides[1].area() - area).abs() < 1e-9);
+        assert!(!sides[0].is_closed() && !sides[1].is_closed());
+        assert_eq!(sides[1].number_of_vertices(), 8);
+        assert_eq!(sides[0].name, "block");
+        assert!(!section.is_empty());
+        let away = Plane::from_point_normal(
+            Point::new(0., 0., 100.),
+            Vector::new(0., 0., 1.),
+            None,
+        );
+        assert!(mesh_sides(&source, &away).is_err());
     }
 }
 ```
 
-After that block, type:
+**Locate this block:**
 
 ```rust
+}
+
+/// The cut parameters of a curve: crossings with the curves, passes through the planes.
+fn curve_cuts(curve: &NurbsCurve, blades: &[Blade]) -> Result<Vec<f64>, String> {
+    let (d0, d1) = curve.domain();
+```
+
+Replace it with:
+
+```rust
+}
+
 /// Cut `target` (in its own frame) by `blades`; an error when nothing is crossed.
 pub fn cut(target: &Geometry, blades: &[Blade]) -> Result<Parts, String> {
     match target {
@@ -3408,7 +5634,9 @@ pub fn cut(target: &Geometry, blades: &[Blade]) -> Result<Parts, String> {
                 answer = mesh_sides(mesh, plane);
 
                 if answer.as_ref().is_ok()
-                    || answer.as_ref().is_err_and(|error| error != "not crossed")
+                    || answer
+                        .as_ref()
+                        .is_err_and(|error| error != "not crossed")
                 {
                     break;
                 }
@@ -3417,145 +5645,15 @@ pub fn cut(target: &Geometry, blades: &[Blade]) -> Result<Parts, String> {
             let (sides, section) = answer?;
             Ok(Parts::Mesh { sides, section })
         }
-        _ => Err("Trim cuts lines, polylines, curves, surfaces, BReps and meshes".into()),
+        _ => {
+            Err("Trim cuts lines, polylines, curves, surfaces, BReps and meshes".into())
+        }
     }
 }
-```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/trim_parts.rs`
-
-Supply the original trim validation fixtures.
-
-**Locate this existing block:**
-
-```text
-/// A mesh cut by `plane` into its two sides, sharing the cut vertices; the cut as segments.
-pub fn mesh_sides(mesh: &Mesh, plane: &Plane) -> Result<(Vec<Mesh>, Vec<[Point; 2]>), String> {
-    if !mesh.get_face_holes().is_empty() {
-        return Err("Trim cannot cut a mesh with holed faces".into());
-    }
-
-    let (mut points, faces) = mesh.to_vertices_and_faces();
-    let normal = plane.z_axis();
-    let origin = plane.origin();
-    let size = points
-        .iter()
-        .map(|p| p[0].abs().max(p[1].abs()).max(p[2].abs()))
-        .fold(1.0, f64::max);
-    let near = 1e-9 * size;
-    let side: Vec<f64> = points
-        .iter()
-        .map(|p| {
-            let d = (p - &origin).dot(&normal);
-            if d.abs() <= near { 0.0 } else { d }
-        })
-        .collect();
-
-    if side.iter().all(|d| *d >= 0.0) || side.iter().all(|d| *d <= 0.0) {
-        return Err("not crossed".into());
-    }
-
-    let mut crossings: HashMap<(usize, usize), usize> = HashMap::new(); // edge to its cut vertex
-    let mut halves: [Vec<Vec<usize>>; 2] = [Vec::new(), Vec::new()];
-    let mut section = Vec::new();
-
-    for face in &faces {
-        if face.iter().all(|v| side[*v] >= 0.0) {
-            halves[0].push(face.clone());
-            continue;
-        }
-
-        if face.iter().all(|v| side[*v] <= 0.0) {
-            halves[1].push(face.clone());
-            continue;
-        }
-
-        let mut above = Vec::new();
-        let mut below = Vec::new();
-        let mut on = Vec::new(); // this face's points on the plane
-
-        for (i, &a) in face.iter().enumerate() {
-            let b = face[(i + 1) % face.len()];
-
-            if side[a] >= 0.0 {
-                above.push(a);
-            }
-
-            if side[a] <= 0.0 {
-                below.push(a);
-            }
-
-            if side[a] == 0.0 {
-                on.push(a);
-            }
-
-            if side[a] * side[b] < 0.0 {
-                let key = (a.min(b), a.max(b));
-                let at = *crossings.entry(key).or_insert_with(|| {
-                    let t = side[a] / (side[a] - side[b]);
-                    let (p, q) = (&points[a], &points[b]);
-                    points.push(Point::new(
-                        p[0] + t * (q[0] - p[0]),
-                        p[1] + t * (q[1] - p[1]),
-                        p[2] + t * (q[2] - p[2]),
-                    ));
-                    points.len() - 1
-                });
-                above.push(at);
-                below.push(at);
-                on.push(at);
-            }
-        }
-
-        if let [a, b] = on.as_slice() {
-            section.push([points[*a].clone(), points[*b].clone()]);
-        }
-
-        for (half, ring) in [(0, above), (1, below)] {
-            if ring.len() >= 3 {
-                halves[half].push(ring);
-            }
-        }
-    }
-
-    let sides = halves
-        .into_iter()
-        .map(|faces| {
-            // only the vertices this side uses
-            let mut index = vec![usize::MAX; points.len()];
-            let mut used = Vec::new();
-
-            for face in &faces {
-                for &v in face {
-                    if index[v] == usize::MAX {
-                        index[v] = used.len();
-                        used.push(points[v].clone());
-                    }
-                }
-            }
-
-            let faces = faces
-                .iter()
-                .map(|face| face.iter().map(|v| index[*v]).collect())
-                .collect();
-            let mut side = Mesh::from_vertices_and_faces(used, faces);
-            side.name = mesh.name.clone();
-            side.set_objectcolor(mesh.get_objectcolor().clone());
-            side
-        })
-        .collect();
-    Ok((sides, section))
-}
-```
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/84zzm-connect-original-trim-recipes-2.rs" skip=3698
+/// The cut parameters of a curve: crossings with the curves, passes through the planes.
+fn curve_cuts(curve: &NurbsCurve, blades: &[Blade]) -> Result<Vec<f64>, String> {
+    let (d0, d1) = curve.domain();
 ```
 
 ## <a id="checkpoint-84zna-index-selection-loops-by-pixel-row"></a>28. Index selection loops by pixel row
@@ -3590,7 +5688,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">screen region</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">window or crossing result</text>
 </svg>
 </div>
@@ -3604,7 +5702,83 @@ Type the shared selection region and row index.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84zna-index-selection-loops-by-pixel-row-1.rs"
+use crate::source_cut::planar;
+use session_rust::element::ElementGeometry;
+use session_rust::{BRep, Geometry, Mesh, NurbsCurve, NurbsSurface, Point};
+const CURVE_STEPS: usize = 64; // steps along a free curve
+pub(crate) const EDGE_STEPS: usize = 16; // steps along a BRep edge
+const FACE_STEPS: usize = 8; // steps across a curved BRep face, each way
+const SURFACE_STEPS: usize = 16; // steps across a surface, each way
+const CLOUD_SAMPLES: usize = 65_536; // most points tested per cloud
+
+/// A closed loop indexed by pixel row: where each row's centre line crosses it, for the even-odd test.
+pub(crate) struct Region {
+    top: f64,               // the first row's top edge, device pixels
+    rows: Vec<Vec<f64>>,    // crossings per row, ascending
+    box_: Option<[f64; 4]>, // left, top, right, bottom when the loop is a rectangle
+}
+
+/// What a region takes: what lies wholly inside it, or whatever it touches.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Reach {
+    Window,   // every sample inside
+    Crossing, // a sample inside, or a stroke across the rectangle
+}
+
+impl Region {
+    /// Index the loop through `points`; the last point joins the first.
+    pub(crate) fn new(points: &[(f64, f64)]) -> Self {
+        let top = points
+            .iter()
+            .map(|p| p.1)
+            .fold(f64::INFINITY, f64::min)
+            .floor();
+        let bottom = points
+            .iter()
+            .map(|p| p.1)
+            .fold(f64::NEG_INFINITY, f64::max)
+            .ceil();
+        let mut rows = vec![Vec::new(); (bottom - top).max(0.0) as usize + 1];
+
+        for (index, a) in points.iter().enumerate() {
+            let b = points[(index + 1) % points.len()];
+            let (low, high) = (a.1.min(b.1), a.1.max(b.1));
+            let mut row = (low - top - 0.5).ceil().max(0.0) as usize;
+
+            // rows whose centre lies in [low, high); a flat edge crosses none
+            while row < rows.len() && top + row as f64 + 0.5 < high {
+                let y = top + row as f64 + 0.5;
+                rows[row].push(a.0 + (y - a.1) * (b.0 - a.0) / (b.1 - a.1));
+                row += 1;
+            }
+        }
+
+        for row in &mut rows {
+            row.sort_by(f64::total_cmp);
+        }
+
+        Self {
+            top,
+            rows,
+            box_: None,
+        }
+    }
+
+    /// The rectangle with corners `a` and `b`, device pixels.
+    pub(crate) fn rectangle(a: (f64, f64), b: (f64, f64)) -> Self {
+        let (left, right) = (a.0.min(b.0), a.0.max(b.0));
+        let (top, bottom) = (a.1.min(b.1), a.1.max(b.1));
+        Self {
+            box_: Some([left, top, right, bottom]),
+            ..Self::new(&[
+                (left, top),
+                (right, top),
+                (right, bottom),
+                (left, bottom),
+            ])
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -3614,18 +5788,15 @@ Register the selection owner.
 **Locate this existing block:**
 
 ```rust
-pub fn validate_source_json(text: &str) -> Result<(), JsValue> {
-    source_validate::json(text).map_err(|error| JsValue::from_str(&error))
-}
-
-mod shader_check;
-#[cfg(test)]
 mod cloud_shader_contract;
+mod shader_check;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod cloud_shader_contract;
+mod shader_check;
 
 pub mod selection_region;
 ```
@@ -3662,7 +5833,7 @@ pub mod selection_region;
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">screen region</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">window or crossing result</text>
 </svg>
 </div>
@@ -3676,16 +5847,15 @@ Extend the existing original selection owner.
 **Locate this existing block:**
 
 ```rust
-        Self {
-            box_: Some([left, top, right, bottom]),
-            ..Self::new(&[(left, top), (right, top), (right, bottom), (left, bottom)])
-        }
     }
+}
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    }
+
     /// True when the segment from `a` to `b` meets the rectangle; false for a loop that is no rectangle.
     fn crosses(&self, a: (f64, f64), b: (f64, f64)) -> bool {
         let Some([left, top, right, bottom]) = self.box_ else {
@@ -3730,6 +5900,7 @@ After that block, type:
 
         self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
     }
+}
 ```
 
 ## <a id="checkpoint-84znc-sample-original-cad-families-for-selection"></a>30. Sample CAD families for selection
@@ -3764,7 +5935,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">screen region</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">window or crossing result</text>
 </svg>
 </div>
@@ -3778,18 +5949,16 @@ Extend the existing original selection owner.
 **Locate this existing block:**
 
 ```rust
-        if !(row >= 0.0 && (row as usize) < self.rows.len()) {
-            return false;
-        }
-
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
     }
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    }
+}
+
 /// Some(true) when every sample passes, Some(false) at the first that fails, None when there are none.
 fn every(
     samples: impl Iterator<Item = [f64; 3]>,
@@ -3820,17 +5989,33 @@ pub(crate) fn curve_samples(
 ) -> impl Iterator<Item = [f64; 3]> + '_ {
     let straight = curve.degree() == 1;
     let (t0, t1) = curve.domain();
-    let corners = (0..if straight { curve.cv_count() } else { 0 }).filter_map(|i| curve.get_cv(i));
-    let even = (0..if straight { 0 } else { steps + 1 })
+    let corners = (0..if straight {
+        curve.cv_count()
+    } else {
+        0
+    })
+        .filter_map(|i| curve.get_cv(i));
+    let even = (0..if straight {
+        0
+    } else {
+        steps + 1
+    })
         .map(move |i| curve.point_at(t0 + (t1 - t0) * i as f64 / steps as f64));
     corners.chain(even).map(|p| xyz(&p))
 }
 
 /// A grid of `steps` by `steps` even steps over the surface's domain.
-fn surface_samples(surface: &NurbsSurface, steps: usize) -> impl Iterator<Item = [f64; 3]> + '_ {
+fn surface_samples(
+    surface: &NurbsSurface,
+    steps: usize,
+) -> impl Iterator<Item = [f64; 3]> + '_ {
     let domains = surface.domain(0).zip(surface.domain(1));
     let ((u0, u1), (v0, v1)) = domains.unwrap_or_default();
-    let side = if domains.is_some() { steps + 1 } else { 0 };
+    let side = if domains.is_some() {
+        steps + 1
+    } else {
+        0
+    };
     (0..side * side)
         .filter_map(move |k| {
             let u = u0 + (u1 - u0) * (k / side) as f64 / steps as f64;
@@ -3847,7 +6032,10 @@ fn mesh_samples(mesh: &Mesh) -> impl Iterator<Item = [f64; 3]> + '_ {
 
 /// Vertices, edges and curved faces; a flat face is bounded by its edges.
 fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
-    let vertices = brep.m_vertices.iter().map(|vertex| xyz(&vertex.point));
+    let vertices = brep
+        .m_vertices
+        .iter()
+        .map(|vertex| xyz(&vertex.point));
     let edges = brep
         .m_curves_3d
         .iter()
@@ -3893,7 +6081,7 @@ fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">screen region</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">window or crossing result</text>
 </svg>
 </div>
@@ -3907,18 +6095,16 @@ Extend the existing original selection owner.
 **Locate this existing block:**
 
 ```rust
-        if !(row >= 0.0 && (row as usize) < self.rows.len()) {
-            return false;
-        }
-
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
-    }
 }
+
+/// Some(true) when every sample passes, Some(false) at the first that fails, None when there are none.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// The surface's grid lines both ways, `steps` steps each.
 fn surface_strokes(surface: &NurbsSurface, steps: usize) -> Vec<Vec<[f64; 3]>> {
     let Some(((u0, u1), (v0, v1))) = surface.domain(0).zip(surface.domain(1)) else {
@@ -3929,8 +6115,16 @@ fn surface_strokes(surface: &NurbsSurface, steps: usize) -> Vec<Vec<[f64; 3]>> {
         let v = v0 + (v1 - v0) * j as f64 / steps as f64;
         surface.point_at(u, v).map(|p| xyz(&p))
     };
-    let rows = (0..=steps).map(|i| (0..=steps).filter_map(|j| at(i, j)).collect());
-    let columns = (0..=steps).map(|j| (0..=steps).filter_map(|i| at(i, j)).collect());
+    let rows = (0..=steps).map(|i| {
+        (0..=steps)
+            .filter_map(|j| at(i, j))
+            .collect()
+    });
+    let columns = (0..=steps).map(|j| {
+        (0..=steps)
+            .filter_map(|i| at(i, j))
+            .collect()
+    });
     rows.chain(columns).collect()
 }
 
@@ -3966,6 +6160,8 @@ fn brep_strokes(brep: &BRep) -> Vec<Vec<[f64; 3]>> {
         .flat_map(|surface| surface_strokes(surface, FACE_STEPS));
     vertices.chain(edges).chain(faces).collect()
 }
+
+/// Some(true) when every sample passes, Some(false) at the first that fails, None when there are none.
 ```
 
 ## <a id="checkpoint-84zne-test-crossing-selection-on-original-strokes"></a>32. Test crossing selection on strokes
@@ -4000,7 +6196,7 @@ fn brep_strokes(brep: &BRep) -> Vec<Vec<[f64; 3]>> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">screen region</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">window or crossing result</text>
 </svg>
 </div>
@@ -4014,18 +6210,16 @@ Extend the existing original selection owner.
 **Locate this existing block:**
 
 ```rust
-        if !(row >= 0.0 && (row as usize) < self.rows.len()) {
-            return false;
-        }
-
-        self.rows[row as usize].partition_point(|x| *x < at.0) % 2 == 1
-    }
 }
+
+/// The surface's grid lines both ways, `steps` steps each.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// Whether `geometry`, its points projected by `project`, has a point inside the region or a stroke across its rectangle; None when only its box can tell.
 pub(crate) fn touched(
     geometry: &Geometry,
@@ -4036,9 +6230,14 @@ pub(crate) fn touched(
     let mut any = false;
 
     for stroke in &strokes {
-        let points: Vec<Option<(f64, f64)>> = stroke.iter().map(|p| project(*p)).collect();
+        let points: Vec<Option<(f64, f64)>> =
+            stroke.iter().map(|p| project(*p)).collect();
 
-        if points.iter().flatten().any(|at| region.contains(*at)) {
+        if points
+            .iter()
+            .flatten()
+            .any(|at| region.contains(*at))
+        {
             return Some(true);
         }
 
@@ -4068,7 +6267,9 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
                 .map(|c| [c[0], c[1], c[2]])
                 .collect(),
         ],
-        Geometry::NurbsCurve(curve) => vec![curve_samples(curve, CURVE_STEPS).collect()],
+        Geometry::NurbsCurve(curve) => {
+            vec![curve_samples(curve, CURVE_STEPS).collect()]
+        }
         Geometry::NurbsSurface(surface) => surface_strokes(surface, SURFACE_STEPS),
         Geometry::Mesh(mesh) => mesh_strokes(mesh),
         Geometry::BRep(brep) => brep_strokes(brep),
@@ -4079,7 +6280,9 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
         },
         Geometry::PointCloud(cloud) => {
             let coords = cloud.coords();
-            let step = (coords.len() / 3).div_ceil(CLOUD_SAMPLES).max(1);
+            let step = (coords.len() / 3)
+                .div_ceil(CLOUD_SAMPLES)
+                .max(1);
             coords
                 .chunks_exact(3)
                 .step_by(step)
@@ -4091,6 +6294,8 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
 
     Some(strokes)
 }
+
+/// The surface's grid lines both ways, `steps` steps each.
 ```
 
 ## <a id="checkpoint-84znf-connect-window-and-bounds-selection-tests"></a>33. Connect window and bounds selection tests
@@ -4125,7 +6330,7 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">screen region</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">window or crossing result</text>
 </svg>
 </div>
@@ -4134,37 +6339,159 @@ fn strokes(geometry: &Geometry) -> Option<Vec<Vec<[f64; 3]>>> {
 
 ### 1. `src/selection_region.rs`
 
-Extend the existing original selection owner.
+Extend the existing original selection owner. Supply the original region-selection validation fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
 
 ```rust
-        .filter(|surface| planar(surface).is_none())
-        .flat_map(|surface| surface_strokes(surface, FACE_STEPS));
-    vertices.chain(edges).chain(faces).collect()
+        .flat_map(|surface| surface_samples(surface, FACE_STEPS));
+    vertices.chain(edges).chain(faces)
+}
 ```
 
 Replace it with:
 
 ```rust
-        .filter(|surface| planar(surface).is_none())
-        .flat_map(|surface| surface_strokes(surface, FACE_STEPS));
+        .flat_map(|surface| surface_samples(surface, FACE_STEPS));
+    vertices.chain(edges).chain(faces)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use session_rust::Line;
+
+    /// The rectangle 10..50 by 10..50, the plan seen from above one pixel per unit.
+    fn rectangle() -> Region {
+        Region::rectangle((50.0, 50.0), (10.0, 10.0))
+    }
+
+    fn plan(p: [f64; 3]) -> Option<(f64, f64)> {
+        Some((p[0], p[1]))
+    }
+
+    /// Either corner first gives one rectangle; segments meet it inside, across or not at all.
+    #[test]
+    fn a_rectangle_holds_and_crosses() {
+        let region = rectangle();
+        assert!(region.contains((30.0, 30.0)) && !region.contains((60.0, 30.0)));
+        assert!(
+            region.crosses((0.0, 30.0), (60.0, 30.0)),
+            "straight through"
+        );
+        assert!(
+            region.crosses((20.0, 20.0), (25.0, 25.0)),
+            "inside"
+        );
+        assert!(
+            !region.crosses((0.0, 0.0), (0.0, 60.0)),
+            "beside"
+        );
+        assert!(
+            !region.crosses((0.0, 70.0), (70.0, 55.0)),
+            "below"
+        );
+        assert!(
+            !Region::new(&[(0.0, 0.0), (9.0, 0.0), (9.0, 9.0)])
+                .crosses((0.0, 5.0), (9.0, 5.0)),
+            "a lasso has no rectangle"
+        );
+    }
+
+    /// A line half inside: a crossing takes it, a window does not; a line through with both ends out is a crossing too.
+    #[test]
+    fn a_window_takes_what_is_inside_a_crossing_what_it_touches() {
+        let region = rectangle();
+        let window = |geometry: &Geometry| {
+            enclosed(geometry, &|p| {
+                plan(p).is_some_and(|at| region.contains(at))
+            })
+        };
+        let crossing = |geometry: &Geometry| touched(geometry, &plan, &region);
+
+        let half = Geometry::Line(Line::new(30.0, 30.0, 0.0, 80.0, 30.0, 0.0).into());
+        assert_eq!(
+            (window(&half), crossing(&half)),
+            (Some(false), Some(true))
+        );
+
+        let through = Geometry::Line(Line::new(0.0, 30.0, 0.0, 80.0, 30.0, 0.0).into());
+        assert_eq!(
+            (window(&through), crossing(&through)),
+            (Some(false), Some(true))
+        );
+
+        let inside = Geometry::Line(Line::new(20.0, 20.0, 0.0, 40.0, 40.0, 0.0).into());
+        assert_eq!(
+            (window(&inside), crossing(&inside)),
+            (Some(true), Some(true))
+        );
+
+        let away = Geometry::Line(Line::new(60.0, 60.0, 0.0, 90.0, 90.0, 0.0).into());
+        assert_eq!(
+            (window(&away), crossing(&away)),
+            (Some(false), Some(false))
+        );
+
+        // a box bigger than the rectangle: its edges cross it
+        let around = Geometry::Mesh(Mesh::create_box(100.0, 100.0, 1.0).into());
+        let shifted = |p: [f64; 3]| plan([p[0] + 30.0, p[1] + 30.0, p[2]]);
+        assert_eq!(
+            touched(&around, &shifted, &region),
+            Some(false),
+            "only the outline; the rectangle sits inside the faces"
+        );
+        let crossing_box = |p: [f64; 3]| plan([p[0] + 80.0, p[1] + 30.0, p[2]]);
+        assert_eq!(
+            touched(&around, &crossing_box, &region),
+            Some(true)
+        );
+    }
+}
+```
+
+**Locate this block:**
+
+```rust
+    vertices.chain(edges).chain(faces).collect()
+}
+
+/// Some(true) when every sample passes, Some(false) at the first that fails, None when there are none.
+fn every(
+    samples: impl Iterator<Item = [f64; 3]>,
+```
+
+Replace it with:
+
+```rust
     vertices.chain(edges).chain(faces).collect()
 }
 
 /// Whether every sample of `geometry`, in its own frame, passes `inside`; None when only its box can tell.
-pub(crate) fn enclosed(geometry: &Geometry, inside: &dyn Fn([f64; 3]) -> bool) -> Option<bool> {
+pub(crate) fn enclosed(
+    geometry: &Geometry,
+    inside: &dyn Fn([f64; 3]) -> bool,
+) -> Option<bool> {
     match geometry {
         Geometry::Point(point) => every(std::iter::once(xyz(point)), inside),
-        Geometry::Line(line) => every([xyz(&line.start()), xyz(&line.end())].into_iter(), inside),
+        Geometry::Line(line) => every(
+            [xyz(&line.start()), xyz(&line.end())].into_iter(),
+            inside,
+        ),
         Geometry::Polyline(polyline) => every(
-            polyline.coords.chunks_exact(3).map(|c| [c[0], c[1], c[2]]),
+            polyline
+                .coords
+                .chunks_exact(3)
+                .map(|c| [c[0], c[1], c[2]]),
             inside,
         ),
         Geometry::NurbsCurve(curve) => every(curve_samples(curve, CURVE_STEPS), inside),
-        Geometry::NurbsSurface(surface) => every(surface_samples(surface, SURFACE_STEPS), inside),
+        Geometry::NurbsSurface(surface) => every(
+            surface_samples(surface, SURFACE_STEPS),
+            inside,
+        ),
         Geometry::Mesh(mesh) => every(mesh_samples(mesh), inside),
         Geometry::BRep(brep) => every(brep_samples(brep), inside),
         Geometry::Element(element) => match element.geometry() {
@@ -4174,7 +6501,9 @@ pub(crate) fn enclosed(geometry: &Geometry, inside: &dyn Fn([f64; 3]) -> bool) -
         },
         Geometry::PointCloud(cloud) => {
             let coords = cloud.coords();
-            let step = (coords.len() / 3).div_ceil(CLOUD_SAMPLES).max(1);
+            let step = (coords.len() / 3)
+                .div_ceil(CLOUD_SAMPLES)
+                .max(1);
             every(
                 coords
                     .chunks_exact(3)
@@ -4185,11 +6514,18 @@ pub(crate) fn enclosed(geometry: &Geometry, inside: &dyn Fn([f64; 3]) -> bool) -
         }
         Geometry::Plane(_) | Geometry::OBB(_) => None,
     }
+}
+
+/// Some(true) when every sample passes, Some(false) at the first that fails, None when there are none.
+fn every(
+    samples: impl Iterator<Item = [f64; 3]>,
 ```
 
 **Locate this block:**
 
 ```rust
+}
+
 /// Whether `geometry`, its points projected by `project`, has a point inside the region or a stroke across its rectangle; None when only its box can tell.
 pub(crate) fn touched(
     geometry: &Geometry,
@@ -4198,6 +6534,8 @@ pub(crate) fn touched(
 Replace it with:
 
 ```rust
+}
+
 /// Device pixels of `p` under the clip matrix `m`; None behind the eye.
 fn screen(m: &[f64; 16], p: [f64; 3], size: (f64, f64)) -> Option<(f64, f64)> {
     let clip = |r: usize| m[r] * p[0] + m[r + 4] * p[1] + m[r + 8] * p[2] + m[r + 12];
@@ -4233,39 +6571,6 @@ pub(crate) fn touched(
     geometry: &Geometry,
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/selection_region.rs`
-
-Supply the original region-selection validation fixtures.
-
-**Locate this existing block:**
-
-```text
-/// Vertices, edges and curved faces; a flat face is bounded by its edges.
-fn brep_samples(brep: &BRep) -> impl Iterator<Item = [f64; 3]> + '_ {
-    let vertices = brep.m_vertices.iter().map(|vertex| xyz(&vertex.point));
-    let edges = brep
-        .m_curves_3d
-        .iter()
-        .flat_map(|curve| curve_samples(curve, EDGE_STEPS));
-    let faces = brep
-        .m_surfaces
-        .iter()
-        .filter(|surface| planar(surface).is_none())
-        .flat_map(|surface| surface_samples(surface, FACE_STEPS));
-    vertices.chain(edges).chain(faces)
-}
-```
-
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/84znf-connect-window-and-bounds-selection-tests-2.rs" skip=559
-```
-
 ## <a id="checkpoint-84zoa-classify-originals-and-isolate-one-mesh-face"></a>34. Classify originals and isolate one mesh face
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
@@ -4298,7 +6603,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">pure calculation</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">result or refusal</text>
 </svg>
 </div>
@@ -4312,7 +6617,57 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84zoa-classify-originals-and-isolate-one-mesh-face-1.rs"
+use session_rust::Geometry;
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Shape {
+    Box,
+    BRep,
+    Element,
+    Line,
+    Mesh,
+    Curve,
+    Surface,
+    Plane,
+    Point,
+    Cloud,
+    Polyline,
+}
+
+impl Shape {
+    /// The type of one geometry.
+    pub fn of(geometry: &Geometry) -> Self {
+        match geometry {
+            Geometry::OBB(_) => Shape::Box,
+            Geometry::BRep(_) => Shape::BRep,
+            Geometry::Element(_) => Shape::Element,
+            Geometry::Line(_) => Shape::Line,
+            Geometry::Mesh(_) => Shape::Mesh,
+            Geometry::NurbsCurve(_) => Shape::Curve,
+            Geometry::NurbsSurface(_) => Shape::Surface,
+            Geometry::Plane(_) => Shape::Plane,
+            Geometry::Point(_) => Shape::Point,
+            Geometry::PointCloud(_) => Shape::Cloud,
+            Geometry::Polyline(_) => Shape::Polyline,
+        }
+    }
+
+    /// The name shown for an unnamed object.
+    pub fn label(self) -> &'static str {
+        match self {
+            Shape::Box => "Box",
+            Shape::BRep => "BRep",
+            Shape::Element => "Element",
+            Shape::Line => "Line",
+            Shape::Mesh => "Mesh",
+            Shape::Curve => "NURBS curve",
+            Shape::Surface => "NURBS surface",
+            Shape::Plane => "Plane",
+            Shape::Point => "Point",
+            Shape::Cloud => "Point cloud",
+            Shape::Polyline => "Polyline",
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -4322,14 +6677,19 @@ Compile the shared original geometry classifier.
 **Locate this existing block:**
 
 ```rust
+mod shader_check;
 
 pub mod selection_region;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zoa-classify-originals-and-isolate-one-mesh-face-2.rs" skip=27
+mod shader_check;
+
+pub mod selection_region;
+
+pub mod source_shape;
 ```
 
 ### 3. `src/explode_geometry.rs`
@@ -4339,7 +6699,42 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/84zoa-classify-originals-and-isolate-one-mesh-face-3.rs"
+use crate::interval_geometry::MAX_POINTS;
+use session_rust::{BRep, BRepRef, Geometry, Line, Mesh};
+use std::{collections::HashMap, rc::Rc};
+/// One face of a mesh as a mesh of its own, holes included.
+fn face_mesh(mesh: &Mesh, face: usize) -> Option<Mesh> {
+    let outer = mesh.face_vertices(face)?;
+    let holes = mesh.face_holes.get(&face);
+    let mut index = HashMap::new(); // old vertex key to new
+    let mut points = Vec::new();
+
+    for &key in outer
+        .iter()
+        .chain(holes.into_iter().flatten().flatten())
+    {
+        if !index.contains_key(&key) {
+            index.insert(key, points.len());
+            points.push(mesh.vertex_point(key)?);
+        }
+    }
+
+    let ring = outer.iter().map(|key| index[key]).collect();
+    let mut part = Mesh::from_vertices_and_faces(points, vec![ring]);
+
+    if let Some(holes) = holes {
+        let rings = holes
+            .iter()
+            .map(|hole| hole.iter().map(|key| index[key]).collect())
+            .collect();
+        let key = *part.faces().first()?;
+        part.set_face_holes(key, rings);
+    }
+
+    part.name = mesh.name.clone();
+    part.set_objectcolor(mesh.get_objectcolor().clone());
+    Some(part)
+}
 ```
 
 ### 4. `src/lib.rs`
@@ -4349,14 +6744,25 @@ Register this original command owner.
 **Locate this existing block:**
 
 ```rust
+mod measure_tests;
 
+pub mod source_mesh_topology;
 pub mod trim_parts;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zoa-classify-originals-and-isolate-one-mesh-face-4.rs" skip=21
+mod measure_tests;
+
+pub mod trim_parts;
+
+pub mod explode_geometry;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-84zob-copy-original-brep-edges-and-pcurves"></a>35. Copy BRep edges and pcurves
@@ -4391,7 +6797,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">pure calculation</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">result or refusal</text>
 </svg>
 </div>
@@ -4405,19 +6811,16 @@ Extend this original owner with today’s complete helper.
 **Locate this existing block:**
 
 ```rust
-        let key = *part.faces().first()?;
-        part.set_face_holes(key, rings);
-    }
-
-    part.name = mesh.name.clone();
-    part.set_objectcolor(mesh.get_objectcolor().clone());
     Some(part)
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    Some(part)
+}
+
 /// Copy edge `old` into `part`: its curve, its two vertices once each, and its pcurves on `surface`.
 fn copy_edge(
     brep: &BRep,
@@ -4426,18 +6829,27 @@ fn copy_edge(
     surface: i32,
     vertices: &mut HashMap<i32, i32>,
 ) -> Option<i32> {
-    let edge = brep.m_edges.get(usize::try_from(old).ok()?)?;
+    let edge = brep
+        .m_edges
+        .get(usize::try_from(old).ok()?)?;
     let curve = match usize::try_from(edge.curve_3d_index) {
-        Ok(curve) if !edge.degenerated => part.add_curve_3d(brep.m_curves_3d.get(curve)?) as i32,
+        Ok(curve) if !edge.degenerated => {
+            part.add_curve_3d(brep.m_curves_3d.get(curve)?) as i32
+        }
         _ => -1, // a pole or apex has no curve
     };
     let mut ends = [0; 2];
 
-    for (end, old) in ends.iter_mut().zip([edge.start_vertex, edge.end_vertex]) {
+    for (end, old) in ends
+        .iter_mut()
+        .zip([edge.start_vertex, edge.end_vertex])
+    {
         *end = match vertices.get(&old) {
             Some(&vertex) => vertex,
             None => {
-                let source = brep.m_vertices.get(usize::try_from(old).ok()?)?;
+                let source = brep
+                    .m_vertices
+                    .get(usize::try_from(old).ok()?)?;
                 let vertex = part.add_vertex(&source.point, source.tolerance) as i32;
                 vertices.insert(old, vertex);
                 vertex
@@ -4502,7 +6914,7 @@ fn copy_edge(
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">pure calculation</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">result or refusal</text>
 </svg>
 </div>
@@ -4516,19 +6928,16 @@ Extend this original owner with today’s complete helper.
 **Locate this existing block:**
 
 ```rust
-        let key = *part.faces().first()?;
-        part.set_face_holes(key, rings);
-    }
-
-    part.name = mesh.name.clone();
-    part.set_objectcolor(mesh.get_objectcolor().clone());
-    Some(part)
 }
+
+/// Copy edge `old` into `part`: its curve, its two vertices once each, and its pcurves on `surface`.
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 /// One face of a BRep as a BRep of its own: its surface, wires, edges, vertices and pcurves on that surface.
 fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
     let face = brep.m_faces.get(index)?;
@@ -4537,20 +6946,32 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
     part.name = brep.name.clone();
     part.width = brep.width;
     part.surfacecolor = brep.surfacecolor.clone();
-    part.add_surface(brep.m_surfaces.get(usize::try_from(surface).ok()?)?);
+    part.add_surface(
+        brep.m_surfaces
+            .get(usize::try_from(surface).ok()?)?,
+    );
     let mut vertices: HashMap<i32, i32> = HashMap::new(); // old index to new
     let mut edges: HashMap<i32, i32> = HashMap::new();
     let mut wires = Vec::with_capacity(face.wires.len());
 
     for wire in &face.wires {
-        let uses = &brep.m_wires.get(usize::try_from(wire.index).ok()?)?.edges;
+        let uses = &brep
+            .m_wires
+            .get(usize::try_from(wire.index).ok()?)?
+            .edges;
         let mut refs = Vec::with_capacity(uses.len());
 
         for used in uses {
             let edge = match edges.get(&used.index) {
                 Some(&edge) => edge,
                 None => {
-                    let edge = copy_edge(brep, &mut part, used.index, surface, &mut vertices)?;
+                    let edge = copy_edge(
+                        brep,
+                        &mut part,
+                        used.index,
+                        surface,
+                        &mut vertices,
+                    )?;
                     edges.insert(used.index, edge);
                     edge
                 }
@@ -4558,7 +6979,10 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
             refs.push(BRepRef::new(edge, used.orientation));
         }
 
-        wires.push(BRepRef::new(part.add_wire(&refs) as i32, wire.orientation));
+        wires.push(BRepRef::new(
+            part.add_wire(&refs) as i32,
+            wire.orientation,
+        ));
     }
 
     let made = part.add_face(0, &wires, face.tolerance);
@@ -4566,6 +6990,8 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
     part.add_shell(&[BRepRef::new(0, brep.face_orientation(index))]);
     Some(part)
 }
+
+/// Copy edge `old` into `part`: its curve, its two vertices once each, and its pcurves on `surface`.
 ```
 
 ## <a id="checkpoint-84zod-explode-supported-original-families"></a>37. Explode supported families
@@ -4600,7 +7026,7 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">pure calculation</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/booleans.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">result or refusal</text>
 </svg>
 </div>
@@ -4609,36 +7035,164 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
 
 ### 1. `src/explode_geometry.rs`
 
-Extend this original owner with today’s complete helper.
+Extend this original owner with today’s complete helper. Supply only the unchanged original validation fixtures.
 
 **Locate this existing block:**
 
 ```rust
-use session_rust::{Geometry,Line,Mesh,BRep,BRepRef};
-use std::{rc::Rc,collections::HashMap};
-use crate::interval_geometry::MAX_POINTS;
+use std::{collections::HashMap, rc::Rc};
+/// One face of a mesh as a mesh of its own, holes included.
+fn face_mesh(mesh: &Mesh, face: usize) -> Option<Mesh> {
+    let outer = mesh.face_vertices(face)?;
+    let holes = mesh.face_holes.get(&face);
+    let mut index = HashMap::new(); // old vertex key to new
+    let mut points = Vec::new();
+
+    for &key in outer
+        .iter()
+        .chain(holes.into_iter().flatten().flatten())
+    {
+        if !index.contains_key(&key) {
+            index.insert(key, points.len());
+            points.push(mesh.vertex_point(key)?);
+        }
+    }
+
+    let ring = outer.iter().map(|key| index[key]).collect();
+    let mut part = Mesh::from_vertices_and_faces(points, vec![ring]);
+
+    if let Some(holes) = holes {
+        let rings = holes
+            .iter()
+            .map(|hole| hole.iter().map(|key| index[key]).collect())
+            .collect();
+        let key = *part.faces().first()?;
+        part.set_face_holes(key, rings);
+    }
+
+    part.name = mesh.name.clone();
+    part.set_objectcolor(mesh.get_objectcolor().clone());
+    Some(part)
+}
+
+/// One face of a BRep as a BRep of its own: its surface, wires, edges, vertices and pcurves on that surface.
+fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
+    let face = brep.m_faces.get(index)?;
+    let surface = face.surface_index;
+    let mut part = BRep::new();
+    part.name = brep.name.clone();
+    part.width = brep.width;
+    part.surfacecolor = brep.surfacecolor.clone();
+    part.add_surface(
+        brep.m_surfaces
+            .get(usize::try_from(surface).ok()?)?,
+    );
+    let mut vertices: HashMap<i32, i32> = HashMap::new(); // old index to new
+    let mut edges: HashMap<i32, i32> = HashMap::new();
+    let mut wires = Vec::with_capacity(face.wires.len());
+
+    for wire in &face.wires {
+        let uses = &brep
+            .m_wires
+            .get(usize::try_from(wire.index).ok()?)?
+            .edges;
+        let mut refs = Vec::with_capacity(uses.len());
+
+        for used in uses {
+            let edge = match edges.get(&used.index) {
+                Some(&edge) => edge,
+                None => {
+                    let edge = copy_edge(
+                        brep,
+                        &mut part,
+                        used.index,
+                        surface,
+                        &mut vertices,
+                    )?;
+                    edges.insert(used.index, edge);
+                    edge
+                }
+            };
+            refs.push(BRepRef::new(edge, used.orientation));
+        }
+
+        wires.push(BRepRef::new(
+            part.add_wire(&refs) as i32,
+            wire.orientation,
+        ));
+    }
+
+    let made = part.add_face(0, &wires, face.tolerance);
+    part.m_faces[made].facecolor = face.facecolor.clone();
+    part.add_shell(&[BRepRef::new(0, brep.face_orientation(index))]);
+    Some(part)
+}
+
+/// Copy edge `old` into `part`: its curve, its two vertices once each, and its pcurves on `surface`.
+fn copy_edge(
+    brep: &BRep,
+    part: &mut BRep,
+    old: i32,
+    surface: i32,
+    vertices: &mut HashMap<i32, i32>,
+) -> Option<i32> {
+    let edge = brep
+        .m_edges
+        .get(usize::try_from(old).ok()?)?;
+    let curve = match usize::try_from(edge.curve_3d_index) {
+        Ok(curve) if !edge.degenerated => {
+            part.add_curve_3d(brep.m_curves_3d.get(curve)?) as i32
+        }
+        _ => -1, // a pole or apex has no curve
+    };
+    let mut ends = [0; 2];
+
+    for (end, old) in ends
+        .iter_mut()
+        .zip([edge.start_vertex, edge.end_vertex])
+    {
+        *end = match vertices.get(&old) {
+            Some(&vertex) => vertex,
+            None => {
+                let source = brep
+                    .m_vertices
+                    .get(usize::try_from(old).ok()?)?;
+                let vertex = part.add_vertex(&source.point, source.tolerance) as i32;
+                vertices.insert(old, vertex);
+                vertex
+            }
+        };
+    }
+
+    let copied = part.add_edge(curve, ends[0], ends[1]);
+    part.m_edges[copied].tolerance = edge.tolerance;
+    part.m_edges[copied].degenerated = edge.degenerated;
+
+    for pcurve in edge
+        .pcurves
+        .iter()
+        .filter(|pcurve| pcurve.surface_index == surface)
+    {
+        let first = part.add_curve_2d(
+            brep.m_curves_2d
+                .get(usize::try_from(pcurve.curve_2d_index).ok()?)?,
+        ) as i32;
+        // a seam runs twice over the surface, once each way
+        let second = match usize::try_from(pcurve.curve_2d_index_2) {
+            Ok(seam) => part.add_curve_2d(brep.m_curves_2d.get(seam)?) as i32,
+            Err(_) => -1,
+        };
+        part.add_pcurve(copied, 0, first, second);
+    }
+
+    Some(copied as i32)
+}
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/84zod-explode-supported-original-families-1.rs" skip=135
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/explode_geometry.rs`
-
-Supply only the unchanged original validation fixtures.
-
-**Locate this existing block:**
-
-```text
-use session_rust::{Geometry,Line,Mesh,BRep,BRepRef};
-use std::{rc::Rc,collections::HashMap};
-use crate::interval_geometry::MAX_POINTS;
+use std::{collections::HashMap, rc::Rc};
 pub fn pieces(geometry: &Geometry) -> Result<Vec<Geometry>, String> {
     let count = match geometry {
         Geometry::Polyline(line) => line.point_count().saturating_sub(1),
@@ -4712,7 +7266,10 @@ fn face_mesh(mesh: &Mesh, face: usize) -> Option<Mesh> {
     let mut index = HashMap::new(); // old vertex key to new
     let mut points = Vec::new();
 
-    for &key in outer.iter().chain(holes.into_iter().flatten().flatten()) {
+    for &key in outer
+        .iter()
+        .chain(holes.into_iter().flatten().flatten())
+    {
         if !index.contains_key(&key) {
             index.insert(key, points.len());
             points.push(mesh.vertex_point(key)?);
@@ -4744,20 +7301,32 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
     part.name = brep.name.clone();
     part.width = brep.width;
     part.surfacecolor = brep.surfacecolor.clone();
-    part.add_surface(brep.m_surfaces.get(usize::try_from(surface).ok()?)?);
+    part.add_surface(
+        brep.m_surfaces
+            .get(usize::try_from(surface).ok()?)?,
+    );
     let mut vertices: HashMap<i32, i32> = HashMap::new(); // old index to new
     let mut edges: HashMap<i32, i32> = HashMap::new();
     let mut wires = Vec::with_capacity(face.wires.len());
 
     for wire in &face.wires {
-        let uses = &brep.m_wires.get(usize::try_from(wire.index).ok()?)?.edges;
+        let uses = &brep
+            .m_wires
+            .get(usize::try_from(wire.index).ok()?)?
+            .edges;
         let mut refs = Vec::with_capacity(uses.len());
 
         for used in uses {
             let edge = match edges.get(&used.index) {
                 Some(&edge) => edge,
                 None => {
-                    let edge = copy_edge(brep, &mut part, used.index, surface, &mut vertices)?;
+                    let edge = copy_edge(
+                        brep,
+                        &mut part,
+                        used.index,
+                        surface,
+                        &mut vertices,
+                    )?;
                     edges.insert(used.index, edge);
                     edge
                 }
@@ -4765,7 +7334,10 @@ fn face_brep(brep: &BRep, index: usize) -> Option<BRep> {
             refs.push(BRepRef::new(edge, used.orientation));
         }
 
-        wires.push(BRepRef::new(part.add_wire(&refs) as i32, wire.orientation));
+        wires.push(BRepRef::new(
+            part.add_wire(&refs) as i32,
+            wire.orientation,
+        ));
     }
 
     let made = part.add_face(0, &wires, face.tolerance);
@@ -4782,18 +7354,27 @@ fn copy_edge(
     surface: i32,
     vertices: &mut HashMap<i32, i32>,
 ) -> Option<i32> {
-    let edge = brep.m_edges.get(usize::try_from(old).ok()?)?;
+    let edge = brep
+        .m_edges
+        .get(usize::try_from(old).ok()?)?;
     let curve = match usize::try_from(edge.curve_3d_index) {
-        Ok(curve) if !edge.degenerated => part.add_curve_3d(brep.m_curves_3d.get(curve)?) as i32,
+        Ok(curve) if !edge.degenerated => {
+            part.add_curve_3d(brep.m_curves_3d.get(curve)?) as i32
+        }
         _ => -1, // a pole or apex has no curve
     };
     let mut ends = [0; 2];
 
-    for (end, old) in ends.iter_mut().zip([edge.start_vertex, edge.end_vertex]) {
+    for (end, old) in ends
+        .iter_mut()
+        .zip([edge.start_vertex, edge.end_vertex])
+    {
         *end = match vertices.get(&old) {
             Some(&vertex) => vertex,
             None => {
-                let source = brep.m_vertices.get(usize::try_from(old).ok()?)?;
+                let source = brep
+                    .m_vertices
+                    .get(usize::try_from(old).ok()?)?;
                 let vertex = part.add_vertex(&source.point, source.tolerance) as i32;
                 vertices.insert(old, vertex);
                 vertex
@@ -4824,15 +7405,108 @@ fn copy_edge(
 
     Some(copied as i32)
 }
-```
 
-After that block, append this supplied code:
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use session_rust::{Color, Point, PointCloud, Vector};
+    #[test]
+    fn a_brep_becomes_its_faces() {
+        let area = |brep: &BRep| {
+            brep.face_meshes_q(None)
+                .iter()
+                .map(|mesh| mesh.area())
+                .sum::<f64>()
+        };
 
-```text
---8<-- "journey/code/84zod-explode-supported-original-families-2.rs" skip=6850
+        for brep in [
+            BRep::create_box(2.0, 3.0, 4.0),
+            BRep::create_cylinder(1.0, 2.0),
+            BRep::create_sphere(1.0),
+        ] {
+            let parts: Vec<BRep> = (0..brep.face_count())
+                .map(|face| face_brep(&brep, face).unwrap())
+                .collect();
+            let mut total = 0.0;
+
+            for part in &parts {
+                assert_eq!(part.face_count(), 1);
+                assert!(part.is_valid());
+                assert!(!part.face_meshes_q(None).is_empty());
+                total += area(part);
+            }
+
+            // a smaller object tessellates a little finer
+            assert!(
+                (total - area(&brep)).abs() < 1e-2 * area(&brep),
+                "{total} {}",
+                area(&brep)
+            );
+        }
+
+        let sphere = Geometry::BRep(Rc::new(BRep::create_sphere(1.0)));
+        assert!(
+            pieces(&sphere).is_err(),
+            "one face is nothing to explode"
+        );
+        assert_eq!(
+            pieces(&Geometry::BRep(Rc::new(BRep::create_box(
+                2.0, 3.0, 4.0
+            ))))
+            .unwrap()
+            .len(),
+            6
+        );
+    }
+
+    /// Clouds give coloured points, meshes their faces; a line is one piece and refused.
+    #[test]
+    fn clouds_and_meshes_explode_and_lines_do_not() {
+        let points: Vec<Point> = (0..25)
+            .map(|i| Point::new(i as f64, 0.0, 0.0))
+            .collect();
+        let colors = vec![Color::red(); 25];
+        let mut cloud = PointCloud::new(
+            points,
+            vec![Vector::new(0.0, 0.0, 1.0); 25],
+            colors,
+        );
+        cloud.name = "scan".into();
+        let parts = pieces(&Geometry::PointCloud(Rc::new(cloud))).unwrap();
+        assert_eq!(parts.len(), 25);
+        let Geometry::Point(point) = &parts[3] else {
+            panic!()
+        };
+        assert_eq!(
+            (
+                point.name.as_str(),
+                point[0],
+                point.pointcolor.r
+            ),
+            ("scan", 3.0, 1.0)
+        );
+        assert_eq!(
+            pieces(&Geometry::Mesh(Rc::new(Mesh::create_box(
+                1.0, 1.0, 1.0
+            ))))
+            .unwrap()
+            .len(),
+            6
+        );
+        let line = Geometry::Line(Rc::new(Line::new(
+            0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+        )));
+        assert_eq!(
+            pieces(&line).err().as_deref(),
+            Some("Line cannot be exploded")
+        );
+    }
+}
 ```
 
 ## Build & Run
+
+![Recorded visual output for Lesson 16.4 (84zod-explode-supported-original-families)](../../../screenshots/journey/84zod-explode-supported-original-families.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 16.4

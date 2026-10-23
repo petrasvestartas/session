@@ -107,21 +107,99 @@ Validate world coordinates and intersect the current ray with the XY plane.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/48-coordinates-01.rs"
+pub fn checked(point: [f64; 3]) -> Result<[f64; 3], &'static str> {
+    if point
+        .iter()
+        .any(|v| !v.is_finite() || v.abs() > 1e12)
+    {
+        return Err("Coordinates must be finite and within ±1e12");
+    }
+    Ok(point)
+}
+
+pub fn parse(text: &str) -> Result<[f64; 3], &'static str> {
+    let parts: Vec<_> = text.split(',').map(str::trim).collect();
+    if !(2..=3).contains(&parts.len()) {
+        return Err("Use world coordinates x,y,z or x,y");
+    }
+    let mut point = [0.; 3];
+    for (value, text) in point.iter_mut().zip(parts) {
+        *value = text
+            .parse()
+            .map_err(|_| "Coordinates must be numbers")?;
+    }
+    checked(point)
+}
+
+// A screen ray intersects the construction plane; parallel or clipped rays cannot supply a drawing point.
+pub fn on_xy(camera: &crate::camera::Camera, screen: [f32; 2]) -> Option<[f64; 3]> {
+    let ray = camera.ray(screen)?;
+    if ray.direction[2].abs() < 1e-10 {
+        return None;
+    }
+    let distance = -ray.origin[2] / ray.direction[2];
+    if distance < 0. || distance > ray.max_distance {
+        return None;
+    }
+    checked(std::array::from_fn(|i| {
+        ray.origin[i] + distance * ray.direction[i]
+    }))
+    .ok()
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/tool_coords_tests.rs`
 
 Copy finite-coordinate, camera round-trip and invalid-ray checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/48-coordinates-02.rs"
+```rust
+#[test]
+fn absolute_points_require_valid_finite_coordinates() {
+    assert_eq!(
+        crate::tool_coords::parse("1, 2").unwrap(),
+        [1., 2., 0.]
+    );
+    assert_eq!(
+        crate::tool_coords::parse("1e-12, -2, 3").unwrap(),
+        [1e-12, -2., 3.]
+    );
+    for text in [
+        "1", "1,,2", "1,2,3,4", "NaN,2,3", "inf,2,3", "1e13,2,3",
+    ] {
+        assert!(
+            crate::tool_coords::parse(text).is_err(),
+            "{text}"
+        );
+    }
+}
+
+#[test]
+fn plane_points_use_the_current_camera_and_reject_parallel_or_clipped_rays() {
+    for projection in [
+        crate::camera::Projection::Perspective,
+        crate::camera::Projection::Orthographic,
+    ] {
+        let mut camera = crate::camera::Camera::default();
+        camera.projection = projection;
+        camera.pan(0.25, -0.5);
+        let p = [0.125, -0.25, 0.];
+        let screen = camera
+            .view_projection()
+            .transform_point(&session_rust::Point::new(p[0], p[1], p[2]));
+        let actual =
+            crate::tool_coords::on_xy(&camera, [screen[0] as f32, screen[1] as f32])
+                .unwrap();
+        for i in 0..3 {
+            assert!((actual[i] - p[i]).abs() < 1e-6);
+        }
+        assert!(crate::tool_coords::on_xy(&camera, [f32::NAN, 0.]).is_none());
+        assert!(crate::tool_coords::on_xy(&camera, [2., 0.]).is_none());
+        camera.orientation = session_rust::Quaternion::identity();
+        assert!(crate::tool_coords::on_xy(&camera, [0., 0.]).is_none());
+    }
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -131,15 +209,21 @@ Register the tool component and copied checks.
 **Locate this existing block:**
 
 ```rust
+mod commands_tests;
 
 #[cfg(test)]
-mod commands_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/48-coordinates-03.rs" skip=34
+mod commands_tests;
+
+pub mod tool_coords;
+#[cfg(test)]
+mod tool_coords_tests;
+
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-48a-draft"></a>2. Keep unfinished point tools outside the document
@@ -188,7 +272,107 @@ Define Point and Line tools with temporary accepted points and a cursor.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/48a-draft-01.rs"
+use crate::{marker::PreparedPoint, stroke::PreparedLine};
+use std::rc::Rc;
+
+pub enum Built {
+    Point(PreparedPoint),
+    Line(PreparedLine),
+}
+
+pub trait Tool: std::fmt::Debug {
+    fn name(&self) -> &'static str;
+    fn count(&self) -> usize;
+    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str>;
+    fn buttons(&self) -> Vec<(String, String)> {
+        vec![("Cancel".into(), "Escape".into())]
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum Shape {
+    Point,
+    Line,
+}
+
+impl Tool for Shape {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Point => "Point",
+            Self::Line => "Line",
+        }
+    }
+    fn count(&self) -> usize {
+        match self {
+            Self::Point => 1,
+            Self::Line => 2,
+        }
+    }
+    fn build(&self, points: &[[f64; 3]]) -> Result<Built, &'static str> {
+        match (self, points) {
+            (Self::Point, [p]) => Ok(Built::Point(PreparedPoint::new(Rc::new(
+                session_rust::Point::new(p[0], p[1], p[2]),
+            ))?)),
+            (Self::Line, [a, b]) => {
+                if a.iter()
+                    .zip(b)
+                    .all(|(a, b)| (a - b).abs() < 1e-12)
+                {
+                    return Err("Line endpoints must differ");
+                }
+                Ok(Built::Line(PreparedLine::new(Rc::new(
+                    session_rust::Line::new(a[0], a[1], a[2], b[0], b[1], b[2]),
+                ))?))
+            }
+            _ => Err("The tool needs more points"),
+        }
+    }
+}
+
+// A draft owns unfinished points and a cursor, so preview motion cannot become saved geometry or an Undo transaction.
+pub struct Draft {
+    pub tool: Box<dyn Tool>,
+    pub points: Vec<[f64; 3]>,
+    pub cursor: Option<[f64; 3]>,
+}
+
+impl Draft {
+    pub fn new(shape: Shape) -> Self {
+        Self {
+            tool: Box::new(shape),
+            points: Vec::new(),
+            cursor: None,
+        }
+    }
+    pub fn prompt(&self) -> String {
+        format!(
+            "{} point {} of {} · Esc cancels",
+            self.tool.name(),
+            self.points.len() + 1,
+            self.tool.count()
+        )
+    }
+    pub fn submit(&mut self, point: [f64; 3]) -> Result<Option<Built>, &'static str> {
+        let point = crate::tool_coords::checked(point)?;
+        let mut points = self.points.clone();
+        points.push(point);
+        if points.len() == self.tool.count() {
+            return self.tool.build(&points).map(Some);
+        }
+        if points.len() > self.tool.count() {
+            return Err("The tool has enough points");
+        }
+        self.points = points;
+        self.cursor = None;
+        Ok(None)
+    }
+    pub fn hover(&mut self, point: Option<[f64; 3]>) -> Result<(), &'static str> {
+        self.cursor = point
+            .map(crate::tool_coords::checked)
+            .transpose()?;
+        Ok(())
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -198,15 +382,19 @@ Register the tool component and copied checks.
 **Locate this existing block:**
 
 ```rust
-pub mod tool_coords;
-#[cfg(test)]
 mod tool_coords_tests;
+
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/48a-draft-02.rs" skip=57
+mod tool_coords_tests;
+
+pub mod tool;
+
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-48b-preview"></a>3. Draw a temporary rubber band and cursor
@@ -255,7 +443,69 @@ Draw and release a bounded temporary band and cursor.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/48b-preview-01.rs"
+use crate::{stroke_gpu::Lane, tool::Draft};
+
+pub struct Preview {
+    strokes: Lane,
+    markers: Lane,
+}
+
+impl Preview {
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        Self {
+            strokes: Lane::new(device, format),
+            markers: Lane::markers(device, format),
+        }
+    }
+    pub fn set(
+        &mut self,
+        device: &wgpu::Device,
+        draft: Option<&Draft>,
+    ) -> Result<(), &'static str> {
+        let yellow = [1., 0.75, 0.05, 1.];
+        let mut strokes = Vec::new();
+        let mut markers = Vec::new();
+        if let Some(draft) = draft {
+            if let Some(cursor) = draft.cursor {
+                markers.push(crate::marker::Marker {
+                    center: cursor.map(|v| v as f32),
+                    diameter: 8.,
+                    colour: yellow,
+                });
+                if let Some(&start) = draft.points.last().filter(|&&p| p != cursor) {
+                    strokes.push(crate::stroke::Stroke {
+                        start: start.map(|v| v as f32),
+                        end: cursor.map(|v| v as f32),
+                        width: 2.,
+                        colour: yellow,
+                    });
+                }
+            }
+        }
+        self.strokes.set(device, strokes)?;
+        self.markers.set_points(device, markers)?;
+        Ok(())
+    }
+    pub fn view(
+        &self,
+        queue: &wgpu::Queue,
+        transform: &[f32; 16],
+        size: [u32; 2],
+        density: f32,
+    ) {
+        self.strokes
+            .view(queue, transform, size, density);
+        self.markers
+            .view(queue, transform, size, density);
+    }
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        self.strokes.draw(pass);
+        self.markers.draw(pass);
+    }
+    pub fn bytes(&self) -> u64 {
+        self.strokes.usage()[1] + self.markers.usage()[1]
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -265,15 +515,19 @@ Register the tool component and copied checks.
 **Locate this existing block:**
 
 ```rust
-mod tool_coords_tests;
-
 pub mod tool;
+
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/48b-preview-02.rs" skip=38
+pub mod tool;
+
+pub mod tool_preview;
+
+#[cfg(test)]
 ```
 
 ### 3. `src/renderer.rs`
@@ -289,8 +543,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             self.paths.draw(&mut pass);
             self.markers.draw(&mut pass);
         }
-        self.queue.submit([encoder.finish()]);
-    }
 ```
 
 Replace it with:
@@ -301,103 +553,114 @@ Replace it with:
             self.markers.draw(&mut pass);
             self.preview.draw(&mut pass);
         }
-        self.queue.submit([encoder.finish()]);
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
+        let mut encoder = self
+            .device
 ```
 
 Replace it with:
 
 ```rust
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
+            self.size,
+            self.density,
+        );
+        self.preview.view(
+            &self.queue,
+            transform,
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
+        let mut encoder = self
+            .device
 ```
 
 **Locate this block:**
 
 ```rust
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; } Ok(())
+        Ok(())
     }
 
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
+    pub fn highlight_bytes(&self) -> u64 {
+        self.highlight.bytes()
+    }
 ```
 
 Replace it with:
 
 ```rust
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; } Ok(())
+        Ok(())
     }
 
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
+    pub fn set_preview(
+        &mut self,
+        draft: Option<&crate::tool::Draft>,
+    ) -> Result<(), &'static str> {
+        self.preview.set(&self.device, draft)
+    }
+    pub fn preview_bytes(&self) -> u64 {
+        self.preview.bytes()
+    }
 
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn stats(&self) -> [usize; 4] {
+    pub fn highlight_bytes(&self) -> u64 {
+        self.highlight.bytes()
+    }
 ```
 
 **Locate this block:**
 
 ```rust
-
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.picker.cancel(); self.faces.clear();
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
+        self.picker.cancel();
+        self.faces.clear();
+        self.highlight
+            .set(
+                &self.device,
 ```
 
 Replace it with:
 
 ```rust
-
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
+        self.picker.cancel();
+        self.faces.clear();
+        self.preview
+            .set(&self.device, None)
+            .expect("Empty tool preview");
+        self.highlight
+            .set(
+                &self.device,
 ```
 
 **Locate this block:**
 
 ```rust
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self { device, queue, pipeline, highlight_pipeline, highlight, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
+            pipeline,
+            highlight_pipeline,
+            highlight,
+            meshes: Vec::new(),
+            geometry: Default::default(),
+            settings_allocations: 0,
 ```
 
 Replace it with:
 
 ```rust
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let mut renderer = Self { device, queue, pipeline, highlight_pipeline, highlight, preview, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        renderer.set_scene(scene, None);
+            pipeline,
+            highlight_pipeline,
+            highlight,
+            preview,
+            meshes: Vec::new(),
+            geometry: Default::default(),
+            settings_allocations: 0,
 ```
 
 **Locate this block:**
@@ -426,8 +689,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
     highlight: crate::highlight::Highlight,
     meshes: Vec<GpuMesh>,
     geometry: crate::geometry_cache::GeometryCache,
@@ -437,8 +698,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
     highlight: crate::highlight::Highlight,
     preview: crate::tool_preview::Preview,
     meshes: Vec<GpuMesh>,
@@ -446,26 +705,67 @@ Replace it with:
     settings_allocations: usize,
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 4. `src/pick_gpu_tests.rs`
 
 Copy actual preview pixels, bounded bytes, no pick ownership and resource release checks.
 
 **Locate this existing block:**
 
-```text
-    assert_eq!(&renderer.stats()[..2], &geometry[..2], "Only selected settings change, not primary geometry");
-    for (x, id) in [(-0.4, a), (0.4, b)] { renderer.request_pick([x, 0.], identity()).unwrap(); assert_eq!(finish(&mut renderer).unwrap()[0], id.value()); }
+```rust
+    }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/48b-preview-10.rs" skip=270
+```rust
+    }
+}
+
+#[test]
+fn actual_tool_preview_is_temporary_bounded_and_absent_from_object_picking() {
+    let mut scene = Scene::demo();
+    scene.clear();
+    let mut renderer = renderer(&scene);
+    let before = colour_pixels(&mut renderer);
+    let stats = renderer.stats();
+    let mut draft = crate::tool::Draft::new(crate::tool::Shape::Line);
+    draft.submit([-0.5, 0., 0.2]).unwrap();
+    draft.hover(Some([0.5, 0., 0.2])).unwrap();
+    renderer.set_preview(Some(&draft)).unwrap();
+    assert_eq!(renderer.preview_bytes(), 76);
+    let after = colour_pixels(&mut renderer);
+    let changed = before
+        .chunks_exact(4)
+        .zip(after.chunks_exact(4))
+        .filter(|(a, b)| a != b)
+        .count();
+    assert!(
+        changed > 100,
+        "The actual unfinished rubber band and cursor render"
+    );
+    let p = &after[(120 * 320 + 160) * 4..(120 * 320 + 160) * 4 + 3];
+    assert!(
+        p[0] > p[1] && p[1] > p[2],
+        "The preview is yellow: {p:?}"
+    );
+    renderer
+        .request_pick([0., 0.], identity())
+        .unwrap();
+    assert!(
+        finish(&mut renderer).is_none(),
+        "Drafts have no saved-object pick owner"
+    );
+    assert_eq!(renderer.stats(), stats);
+    assert!(scene.lines().is_empty());
+    renderer.set_preview(None).unwrap();
+    assert_eq!(renderer.preview_bytes(), 0);
+    assert_eq!(colour_pixels(&mut renderer), before);
+    renderer.set_preview(Some(&draft)).unwrap();
+    scene.clear();
+    renderer.set_scene(&scene, None);
+    assert_eq!(renderer.preview_bytes(), 0);
+}
 ```
 
 ## <a id="checkpoint-48c-commit"></a>4. Commit completed tools in one Undo transaction
@@ -516,49 +816,83 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
+            .filter(|_| self.selected_part.is_none())
+    }
 
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
         match action {
             Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
 
 Replace it with:
 
 ```rust
-
-    pub fn whole_selection(&self) -> Option<ObjectId> { self.selected.filter(|_| self.selected_part.is_none()) }
+            .filter(|_| self.selected_part.is_none())
+    }
 
     pub fn tool_line(&self, text: &str) -> Option<Result<Action, &'static str>> {
         self.draft.as_ref()?;
-        if text.trim().is_empty() || text.eq_ignore_ascii_case("Escape") { return Some(Ok(Action::CancelTool)); }
-        text.contains(',').then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
+        if text.trim().is_empty() || text.eq_ignore_ascii_case("Escape") {
+            return Some(Ok(Action::CancelTool));
+        }
+        text.contains(',')
+            .then(|| crate::tool_coords::parse(text).map(Action::ToolPoint))
     }
 
     fn place_tool_point(&mut self, point: [f64; 3]) -> Result<Change, &'static str> {
-        let draft = self.draft.as_mut().ok_or("No point tool is running")?;
+        let draft = self
+            .draft
+            .as_mut()
+            .ok_or("No point tool is running")?;
         let name = draft.tool.name();
-        let Some(built) = draft.submit(point)? else { self.tool_status = draft.prompt(); return Ok(Change::View); };
-        self.history.try_edit(&mut self.scene, |scene| match built {
-            crate::tool::Built::Point(point) => scene.insert_point(point).map(|_| ()),
-            crate::tool::Built::Line(line) => scene.insert_line(line).map(|_| ()),
-        })?;
-        self.draft = None; self.tool_status = format!("{name} created."); Ok(Change::Scene)
+        let Some(built) = draft.submit(point)? else {
+            self.tool_status = draft.prompt();
+            return Ok(Change::View);
+        };
+        self.history
+            .try_edit(&mut self.scene, |scene| match built {
+                crate::tool::Built::Point(point) => {
+                    scene.insert_point(point).map(|_| ())
+                }
+                crate::tool::Built::Line(line) => scene.insert_line(line).map(|_| ()),
+            })?;
+        self.draft = None;
+        self.tool_status = format!("{name} created.");
+        Ok(Change::Scene)
     }
 
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None; }
+        if matches!(
+            &action,
+            Action::Close
+                | Action::Undo
+                | Action::Redo
+                | Action::Import(_)
+                | Action::Replace(_)
+                | Action::ImportAt(_, _)
+                | Action::ReplaceAt(_, _)
+        ) {
+            self.draft = None;
+        }
         match action {
-            Action::BeginTool(shape) => { self.draft = Some(crate::tool::Draft::new(shape)); self.tool_status = self.draft.as_ref().unwrap().prompt(); return Ok(Change::View); }
+            Action::BeginTool(shape) => {
+                self.draft = Some(crate::tool::Draft::new(shape));
+                self.tool_status = self.draft.as_ref().unwrap().prompt();
+                return Ok(Change::View);
+            }
             Action::ToolPoint(point) => return self.place_tool_point(point),
-            Action::ToolHover(point) => { if let Some(draft) = self.draft.as_mut() { draft.hover(point)?; } return Ok(Change::View); }
-            Action::CancelTool => { self.draft = None; self.tool_status = "Tool cancelled.".into(); return Ok(Change::View); }
+            Action::ToolHover(point) => {
+                if let Some(draft) = self.draft.as_mut() {
+                    draft.hover(point)?;
+                }
+                return Ok(Change::View);
+            }
+            Action::CancelTool => {
+                self.draft = None;
+                self.tool_status = "Tool cancelled.".into();
+                return Ok(Change::View);
+            }
             Action::Picked(id) => self.select_objects(id, false),
-            Action::PickedMany { target, additive } => {
-                if self.pick_mode != crate::pick_sources::Mode::Object { return self.apply(Action::PickedTarget(target)); }
 ```
 
 **Locate this block:**
@@ -568,8 +902,8 @@ impl Default for Editor {
     fn default() -> Self {
         Self {
             scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
-            camera: Camera::default(),
+            selected: None,
+            selected_part: None,
 ```
 
 Replace it with:
@@ -578,10 +912,11 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            draft: None, tool_status: String::new(),
+            draft: None,
+            tool_status: String::new(),
             scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
-            camera: Camera::default(),
+            selected: None,
+            selected_part: None,
 ```
 
 **Locate this block:**
@@ -611,8 +946,6 @@ pub struct Editor {
 **Locate this block:**
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
     Pick([f32; 2]),
     Picked(Option<ObjectId>),
@@ -622,8 +955,6 @@ pub enum Action {
 Replace it with:
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
     BeginTool(crate::tool::Shape),
     ToolPoint([f64; 3]),
@@ -634,18 +965,147 @@ pub enum Action {
     PickedTarget(Option<crate::pick_sources::Target>),
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 2. `src/tool_tests.rs`
 
 Copy source precision, one-Undo completion, invalid draft input and cancellation/history checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/48c-commit-05.rs"
+```rust
+use crate::{
+    editor::{Action, Change, Editor},
+    tool::Shape,
+};
+
+#[test]
+fn preview_and_cancellation_preserve_original_geometry_and_redo() {
+    let mut editor = Editor::default();
+    editor.apply(Action::SelectNext).unwrap();
+    editor
+        .apply(Action::Translate([1., 0., 0.]))
+        .unwrap();
+    editor.apply(Action::Undo).unwrap();
+    let source = editor.scene.objects()[0].mesh.clone();
+    let before = editor.scene.objects()[0].model.m;
+    assert_eq!(
+        editor
+            .apply(Action::BeginTool(Shape::Line))
+            .unwrap(),
+        Change::View
+    );
+    assert_eq!(
+        editor
+            .apply(Action::ToolPoint([0., 0., 0.]))
+            .unwrap(),
+        Change::View
+    );
+    for x in 0..100 {
+        editor
+            .apply(Action::ToolHover(Some([
+                x as f64 / 100.,
+                0.,
+                0.,
+            ])))
+            .unwrap();
+    }
+    assert!(editor.scene.lines().is_empty());
+    assert_eq!(
+        editor.draft.as_ref().unwrap().points.len(),
+        1
+    );
+    assert!(
+        editor
+            .apply(Action::ToolPoint([0., 0., 0.]))
+            .is_err()
+    );
+    assert!(
+        editor
+            .apply(Action::ToolPoint([f64::NAN, 0., 0.]))
+            .is_err()
+    );
+    assert_eq!(
+        editor.draft.as_ref().unwrap().points.len(),
+        1
+    );
+    editor
+        .apply(editor.tool_line("Escape").unwrap().unwrap())
+        .unwrap();
+    assert!(editor.draft.is_none());
+    assert_eq!(editor.scene.objects()[0].model.m, before);
+    assert!(std::rc::Rc::ptr_eq(
+        &source,
+        &editor.scene.objects()[0].mesh
+    ));
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(
+        editor.scene.objects()[0].model.m[12],
+        before[12] + 1.
+    );
+}
+
+#[test]
+fn completing_a_line_commits_once_and_preserves_double_coordinates() {
+    let mut editor = Editor::default();
+    editor.apply(Action::Close).unwrap();
+    editor
+        .apply(Action::BeginTool(Shape::Line))
+        .unwrap();
+    let a = [0.123456789012345, -0.25, 0.];
+    let b = [1.23456789012345, 0.5, 0.];
+    editor.apply(Action::ToolPoint(a)).unwrap();
+    assert_eq!(
+        editor.apply(Action::ToolPoint(b)).unwrap(),
+        Change::Scene
+    );
+    assert!(editor.draft.is_none());
+    assert_eq!(editor.scene.lines().len(), 1);
+    let line = &editor.scene.lines()[0].prepared.source;
+    for i in 0..3 {
+        assert_eq!(line.start()[i], a[i]);
+        assert_eq!(line.end()[i], b[i]);
+    }
+    editor.apply(Action::Undo).unwrap();
+    assert!(editor.scene.lines().is_empty());
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.lines().len(), 1);
+    editor
+        .apply(Action::BeginTool(Shape::Point))
+        .unwrap();
+    editor
+        .apply(Action::ToolPoint([3., 2., 1.]))
+        .unwrap();
+    assert_eq!(editor.scene.points().len(), 1);
+    editor.apply(Action::Undo).unwrap();
+    assert!(editor.scene.points().is_empty());
+    assert_eq!(editor.scene.lines().len(), 1);
+}
+
+#[test]
+fn absolute_points_validate_before_draft_changes_and_empty_enter_cancels() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::BeginTool(Shape::Line))
+        .unwrap();
+    assert!(editor.tool_line("Fit").is_none());
+    assert!(editor.tool_line("NaN,2,3").unwrap().is_err());
+    editor
+        .apply(editor.tool_line("1,2,3").unwrap().unwrap())
+        .unwrap();
+    editor
+        .apply(editor.tool_line("").unwrap().unwrap())
+        .unwrap();
+    assert!(editor.draft.is_none());
+    editor
+        .apply(Action::BeginTool(Shape::Line))
+        .unwrap();
+    editor.apply(Action::Undo).unwrap();
+    assert!(editor.draft.is_none());
+    editor
+        .apply(Action::BeginTool(Shape::Line))
+        .unwrap();
+    editor.apply(Action::Close).unwrap();
+    assert!(editor.draft.is_none());
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -655,15 +1115,18 @@ Register the tool component and copied checks.
 **Locate this existing block:**
 
 ```rust
-pub mod tool;
-
-pub mod tool_preview;
+#[cfg(test)]
+mod selection_cycle_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/48c-commit-06.rs" skip=37
+#[cfg(test)]
+mod tool_tests;
+
+#[cfg(test)]
+mod selection_cycle_tests;
 ```
 
 ## <a id="checkpoint-48d-input"></a>5. Draw points and lines through the shared command dock
@@ -714,53 +1177,51 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let line = self.prepare();
-        canvas.set_attribute("data-command-ui", &self.inspect())?;
-        let Some(line) = line else { return Ok(None); };
-        if !self.model.options.is_empty() { return Ok(Some(line)); }
-        if line == "Escape" { return Ok(None); }
-        if line.eq_ignore_ascii_case("Help") {
-            self.answer(&line, &self.commands.0.join(" · "));
+            return Ok(None);
+        };
+        if !self.model.options.is_empty() {
+            return Ok(Some(line));
 ```
 
 Replace it with:
 
 ```rust
-        let line = self.prepare();
-        canvas.set_attribute("data-command-ui", &self.inspect())?;
-        let Some(line) = line else { return Ok(None); };
-        if !self.model.options.is_empty() { self.answer(&line, "Tool input submitted."); return Ok(Some(line)); }
-        if line == "Escape" { return Ok(None); }
-        if line.eq_ignore_ascii_case("Help") {
-            self.answer(&line, &self.commands.0.join(" · "));
+            return Ok(None);
+        };
+        if !self.model.options.is_empty() {
+            self.answer(&line, "Tool input submitted.");
+            return Ok(Some(line));
 ```
 
 **Locate this block:**
 
 ```rust
-        if !self.model.options.is_empty() { self.model.completion_visible = false; self.model.inline_suffix = false; }
     }
 
-    pub fn command(&self) -> &str { &self.model.command }
-
-    pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
+    pub fn command(&self) -> &str {
+        &self.model.command
+    }
 ```
 
 Replace it with:
 
 ```rust
-        if !self.model.options.is_empty() { self.model.completion_visible = false; self.model.inline_suffix = false; }
     }
 
     pub fn cancel_input(&mut self) {
-        self.model.command.clear(); self.model.completion_visible = false; self.model.inline_suffix = false;
-        self.model.command_open = false; self.model.focus_command = false;
-        self.context.memory_mut(|memory| memory.surrender_focus(egui::Id::new("command-input")));
+        self.model.command.clear();
+        self.model.completion_visible = false;
+        self.model.inline_suffix = false;
+        self.model.command_open = false;
+        self.model.focus_command = false;
+        self.context.memory_mut(|memory| {
+            memory.surrender_focus(egui::Id::new("command-input"))
+        });
     }
 
-    pub fn command(&self) -> &str { &self.model.command }
-
-    pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
+    pub fn command(&self) -> &str {
+        &self.model.command
+    }
 ```
 
 ### 2. `src/commands.rs`
@@ -770,18 +1231,21 @@ Route tool coordinates and canvas gestures, own cancellation and show one comman
 **Locate this existing block:**
 
 ```rust
-
-pub type Factory = fn() -> Action;
 pub const ACTIONS: &[(&str, Factory)] = &[
     ("Example Box", || Action::AddBox),
-    ("Example Line", || Action::AddLine),
-    ("Example Point", || Action::AddPoint),
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/48d-input-03.rs"
+pub const ACTIONS: &[(&str, Factory)] = &[
+    ("Point", || {
+        Action::BeginTool(crate::tool::Shape::Point)
+    }),
+    ("Line", || {
+        Action::BeginTool(crate::tool::Shape::Line)
+    }),
+    ("Example Box", || Action::AddBox),
 ```
 
 ### 3. `src/browser.rs`
@@ -793,183 +1257,230 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-highlight-bytes", &renderer.highlight_bytes().to_string())?;
-    canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
-    canvas.set_attribute("data-pick-mode", &format!("{:?}", editor.pick_mode))?;
+        "data-line-usage",
+        &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap(),
+    )?;
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-path-cpu", &serde_json::to_string(&crate::memory::paths(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
+        "data-line-usage",
+        &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap(),
+    )?;
     canvas.set_attribute("data-tool", &editor.draft.as_ref().map_or_else(|| "null".into(), |d| serde_json::json!({"name":d.tool.name(),"points":d.points,"cursor":d.cursor}).to_string()))?;
-    canvas.set_attribute("data-preview-bytes", &renderer.preview_bytes().to_string())?;
-    canvas.set_attribute("data-highlight-bytes", &renderer.highlight_bytes().to_string())?;
-    canvas.set_attribute("data-selection-part", &editor.selection().map_or_else(String::new, |target| target.describe()))?;
-    canvas.set_attribute("data-pick-mode", &format!("{:?}", editor.pick_mode))?;
+    canvas.set_attribute(
+        "data-preview-bytes",
+        &renderer.preview_bytes().to_string(),
+    )?;
+```
+
+**Locate this block:**
+
+```rust
+                    }
+                }
+            }
+            renderer.set_pick_mode(editor.pick_mode);
+            if highlight_changed {
+                if let Err(error) = renderer
+```
+
+Replace it with:
+
+```rust
+                    }
+                }
+            }
+            if let Some(draft) = editor.draft.as_ref() {
+                panel.tool(draft.prompt(), draft.tool.buttons());
+            } else {
+                panel.tool(String::new(), Vec::new());
+            }
+            if let Err(error) = renderer.set_preview(editor.draft.as_ref()) {
+                panel.result(error);
+            }
+            renderer.set_pick_mode(editor.pick_mode);
+            if highlight_changed {
+                if let Err(error) = renderer
+```
+
+**Locate this block:**
+
+```rust
+                            .map_err(str::to_owned)
+                    }
+                });
+                match change {
+                    Ok(Some(Change::Scene)) => {
+                        highlight_changed = true;
+```
+
+Replace it with:
+
+```rust
+                            .map_err(str::to_owned)
+                    }
+                });
+                if tool_action && change.is_ok() {
+                    panel.result(&editor.tool_status);
+                }
+                match change {
+                    Ok(Some(Change::Scene)) => {
+                        highlight_changed = true;
+```
+
+**Locate this block:**
+
+```rust
+            };
+            if let Some(action) = action {
+                highlight_changed |= matches!(&action, Action::SelectAll);
+                if matches!(
+                    &action,
+                    Action::Close
+```
+
+Replace it with:
+
+```rust
+            };
+            if let Some(action) = action {
+                highlight_changed |= matches!(&action, Action::SelectAll);
+                let tool_action = matches!(
+                    &action,
+                    Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool
+                );
+                if matches!(&action, Action::CancelTool) {
+                    panel.cancel_input();
+                }
+                if matches!(
+                    &action,
+                    Action::Close
 ```
 
 **Locate this block:**
 
 ```rust
                 }
-            }
-        }
-        renderer.set_pick_mode(editor.pick_mode);
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(&editor.scene, editor.selection())
+            } else {
+                match action {
+                    Some(Action::Pick(screen)) => {
+                        pick_additive.set(
+                            event
 ```
 
 Replace it with:
 
 ```rust
                 }
-            }
-        }
-        if let Some(draft) = editor.draft.as_ref() { panel.tool(draft.prompt(), draft.tool.buttons()); }
-        else { panel.tool(String::new(), Vec::new()); }
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(editor.pick_mode);
-        if highlight_changed {
-            if let Err(error) = renderer.set_highlight(&editor.scene, editor.selection())
+            } else {
+                match action {
+                    Some(Action::Pick(screen)) if editor.draft.is_some() => {
+                        crate::tool_coords::on_xy(&editor.camera, screen)
+                            .map(Action::ToolPoint)
+                    }
+                    None if editor.draft.is_some()
+                        && matches!(
+                            event.type_().as_str(),
+                            "blur" | "resize" | "pointercancel" | "lostpointercapture"
+                        ) =>
+                    {
+                        Some(Action::ToolHover(None))
+                    }
+                    None if editor.draft.is_some()
+                        && !panel.consumed
+                        && event.type_() == "pointermove" =>
+                    {
+                        event
+                            .dyn_ref::<web_sys::PointerEvent>()
+                            .filter(|p| p.buttons() == 0)
+                            .map(|p| {
+                                let r = pointer_canvas.get_bounding_client_rect();
+                                let screen = [
+                                    (2. * (p.client_x() as f64 - r.left()) / r.width()
+                                        - 1.)
+                                        as f32,
+                                    (1. - 2. * (p.client_y() as f64 - r.top())
+                                        / r.height())
+                                        as f32,
+                                ];
+                                Action::ToolHover(crate::tool_coords::on_xy(
+                                    &editor.camera,
+                                    screen,
+                                ))
+                            })
+                    }
+                    Some(Action::Pick(screen)) => {
+                        pick_additive.set(
+                            event
 ```
 
 **Locate this block:**
 
 ```rust
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    highlight_changed = true;
+                    }
+                }
+            } else if let Some(line) = line {
+                match crate::commands::parse(&line) {
+                    Err(error) => {
+                        panel.result(&error);
+                        None
 ```
 
 Replace it with:
 
 ```rust
-                if waiting { panel.result("Reloading editable sources…"); Ok(None) }
-                else { editor.apply(action).map(Some).map_err(str::to_owned) }
-            });
-            if tool_action && change.is_ok() { panel.result(&editor.tool_status); }
-            match change {
-                Ok(Some(Change::Scene)) => {
-                    highlight_changed = true;
+                    }
+                }
+            } else if let Some(line) = line {
+                let command = editor
+                    .tool_line(&line)
+                    .map(|result| {
+                        result
+                            .map(crate::commands::Command::Editor)
+                            .map_err(str::to_owned)
+                    })
+                    .unwrap_or_else(|| crate::commands::parse(&line));
+                match command {
+                    Err(error) => {
+                        panel.result(&error);
+                        None
 ```
 
 **Locate this block:**
 
 ```rust
-        } };
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
+            };
+
+            let mut highlight_changed = false;
+            let action = if event.type_() == "cancel"
+                && event
 ```
 
 Replace it with:
 
 ```rust
-        } };
-        if let Some(action) = action {
-            highlight_changed |= matches!(&action, Action::SelectAll);
-            let tool_action = matches!(&action, Action::BeginTool(_) | Action::ToolPoint(_) | Action::CancelTool);
-            if matches!(&action, Action::CancelTool) { panel.cancel_input(); }
-            if matches!(&action, Action::Close | Action::UnloadSources | Action::Undo | Action::Redo
-                | Action::Replace(_) | Action::ReplaceAt(_, _)) { reload.borrow_mut().cancel(); }
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-```
+            };
 
-**Locate this block:**
+            let line = if editor.draft.is_some()
+                && event
+                    .dyn_ref::<web_sys::KeyboardEvent>()
+                    .is_some_and(|key| {
+                        event.type_() == "keydown"
+                            && key.key() == "Escape"
+                            && !key.is_composing()
+                    }) {
+                event.prevent_default();
+                gesture.cancel();
+                Some("Escape".into())
+            } else {
+                line
+            };
 
-```rust
-                None => None,
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) => {
-                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
-                if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
-```
-
-Replace it with:
-
-```rust
-                None => None,
-            }
-        } else { match action {
-            Some(Action::Pick(screen)) if editor.draft.is_some() => {
-                crate::tool_coords::on_xy(&editor.camera, screen).map(Action::ToolPoint)
-            }
-            None if editor.draft.is_some() && matches!(event.type_().as_str(), "blur" | "resize" | "pointercancel" | "lostpointercapture") => Some(Action::ToolHover(None)),
-            None if editor.draft.is_some() && !panel.consumed && event.type_() == "pointermove" => {
-                event.dyn_ref::<web_sys::PointerEvent>().filter(|p| p.buttons() == 0).map(|p| {
-                    let r = pointer_canvas.get_bounding_client_rect();
-                    let screen = [(2. * (p.client_x() as f64-r.left())/r.width()-1.) as f32, (1.-2.*(p.client_y() as f64-r.top())/r.height()) as f32];
-                    Action::ToolHover(crate::tool_coords::on_xy(&editor.camera, screen))
-                })
-            }
-            Some(Action::Pick(screen)) => {
-                pick_additive.set(event.dyn_ref::<web_sys::PointerEvent>().is_some_and(|p| p.shift_key() && !p.ctrl_key() && !p.meta_key()));
-                if let Err(error) = renderer.request_pick(screen, editor.camera.uniform()) { report(error); }
-```
-
-**Locate this block:**
-
-```rust
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            match crate::commands::parse(&line) {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel(); }
-```
-
-Replace it with:
-
-```rust
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            let command = editor.tool_line(&line).map(|result| result.map(crate::commands::Command::Editor).map_err(str::to_owned))
-                .unwrap_or_else(|| crate::commands::parse(&line));
-            match command {
-            Err(error) => { panel.result(&error); None }
-            Ok(crate::commands::Command::Editor(mut action)) => {
-                if matches!(action, Action::Close) { request.borrow_mut().cancel(); }
-```
-
-**Locate this block:**
-
-```rust
-            }
-        } };
-
-        let mut highlight_changed = false;
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
-```
-
-Replace it with:
-
-```rust
-            }
-        } };
-
-        let line = if editor.draft.is_some() && event.dyn_ref::<web_sys::KeyboardEvent>()
-            .is_some_and(|key| event.type_() == "keydown" && key.key() == "Escape" && !key.is_composing()) {
-            event.prevent_default(); gesture.cancel(); Some("Escape".into())
-        } else { line };
-
-        let mut highlight_changed = false;
-        let action = if event.type_() == "cancel" && event.target()
-            .and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok())
+            let mut highlight_changed = false;
+            let action = if event.type_() == "cancel"
+                && event
 ```
 
 ### 4. `src/panel.rs`
@@ -979,16 +1490,18 @@ Release the old option rectangle when a tool completes or cancels.
 **Locate this existing block:**
 
 ```rust
-    pub fn tool(&mut self, prompt: String, options: Vec<(String, String)>) {
-        self.model.drawing_prompt = prompt; self.model.options = options;
-        if !self.model.options.is_empty() { self.model.completion_visible = false; self.model.inline_suffix = false; }
-    }
+        self.model.options = options;
+        if !self.model.options.is_empty() {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/48d-input-ownership.rs"
+        self.model.options = options;
+        if self.model.options.is_empty() {
+            self.model.options_rect = None;
+        }
+        if !self.model.options.is_empty() {
 ```
 
 ## Build & Run

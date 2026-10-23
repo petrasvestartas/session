@@ -107,7 +107,78 @@ Own one Rust callback and every successful browser registration; detach handlers
 Create the file and type:
 
 ```rust
---8<-- "journey/code/33-owner-01.rs"
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub struct Listeners {
+    callback: Closure<dyn FnMut(web_sys::Event)>,
+    bindings: Vec<(web_sys::EventTarget, &'static str)>,
+}
+
+impl Listeners {
+    pub fn new(callback: Closure<dyn FnMut(web_sys::Event)>) -> Self {
+        Self {
+            callback,
+            bindings: Vec::new(),
+        }
+    }
+
+    pub fn listen(
+        &mut self,
+        target: &web_sys::EventTarget,
+        name: &'static str,
+    ) -> Result<(), JsValue> {
+        let options = web_sys::AddEventListenerOptions::new();
+        options.set_passive(false);
+        target.add_event_listener_with_callback_and_add_event_listener_options(
+            name,
+            self.callback.as_ref().unchecked_ref(),
+            &options,
+        )?;
+        self.bindings.push((target.clone(), name));
+        Ok(())
+    }
+}
+
+impl Drop for Listeners {
+    fn drop(&mut self) {
+        for (target, name) in &self.bindings {
+            let _ = target.remove_event_listener_with_callback(
+                name,
+                self.callback.as_ref().unchecked_ref(),
+            );
+        }
+    }
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn listener_probe() -> Result<Vec<u32>, JsValue> {
+    use std::{cell::Cell, rc::Rc};
+    let first = web_sys::EventTarget::new()?;
+    let second = web_sys::EventTarget::new()?;
+    let hits = Rc::new(Cell::new(0));
+    let counted = Rc::clone(&hits);
+    let captured = Rc::new(());
+    let observer = Rc::downgrade(&captured);
+    let callback = Closure::new(move |_: web_sys::Event| {
+        assert_eq!(Rc::strong_count(&captured), 1);
+        counted.set(counted.get() + 1);
+    });
+    let mut listeners = Listeners::new(callback);
+    listeners.listen(&first, "proof")?;
+    listeners.listen(&second, "proof")?;
+    let event = web_sys::Event::new("proof")?;
+    first.dispatch_event(&event)?;
+    second.dispatch_event(&event)?;
+    let before = hits.get();
+    drop(listeners);
+    first.dispatch_event(&event)?;
+    second.dispatch_event(&event)?;
+    Ok(vec![
+        before,
+        hits.get(),
+        observer.strong_count() as u32,
+    ])
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -121,11 +192,13 @@ Register browser-only lifetime ownership without changing native rendering.
 mod panel;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod listeners;
+#[cfg(target_arch = "wasm32")]
+mod panel;
 ```
 
 ## <a id="checkpoint-33a-runtime"></a>2. Dispose the viewer without leaving pending work alive
@@ -174,7 +247,44 @@ Keep the live owner in one runtime slot; Drop cancels read/fetch authority befor
 Create the file and type:
 
 ```rust
---8<-- "journey/code/33a-runtime-01.rs"
+use crate::{browser_reload::Shared, listeners::Listeners, read_gate::ReadGate};
+use std::{cell::RefCell, rc::Rc};
+
+struct Runtime {
+    _listeners: Listeners,
+    request: Rc<RefCell<ReadGate>>,
+    reload: Shared,
+}
+
+impl Drop for Runtime {
+    fn drop(&mut self) {
+        self.request.borrow_mut().cancel();
+        self.reload.borrow_mut().cancel();
+    }
+}
+
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+
+pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared) {
+    ACTIVE.with(|slot| {
+        slot.replace(Some(Runtime {
+            _listeners: listeners,
+            request,
+            reload,
+        }))
+    });
+}
+
+pub fn stop() -> bool {
+    ACTIVE
+        .with(|slot| slot.borrow_mut().take())
+        .is_some()
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn runtime_running() -> bool {
+    ACTIVE.with(|slot| slot.borrow().is_some())
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -184,14 +294,17 @@ Register browser runtime ownership beside the listener owner.
 **Locate this existing block:**
 
 ```rust
+#[cfg(target_arch = "wasm32")]
 mod listeners;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod browser_runtime;
+#[cfg(target_arch = "wasm32")]
+mod listeners;
 ```
 
 ### 3. `src/browser.rs`
@@ -206,7 +319,8 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         "keyup",
         "blur",
     ] {
-        canvas.add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
+        canvas
+            .add_event_listener_with_callback(name, update.as_ref().unchecked_ref())?;
     }
     let options = web_sys::AddEventListenerOptions::new();
     options.set_passive(false);
@@ -215,18 +329,28 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         update.as_ref().unchecked_ref(),
         &options,
     )?;
-    window.add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
+    window
+        .add_event_listener_with_callback("resize", update.as_ref().unchecked_ref())?;
     window.add_event_listener_with_callback("blur", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
-    document.add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-file-error", update.as_ref().unchecked_ref())?;
-    window.add_event_listener_with_callback("viewer-reload", update.as_ref().unchecked_ref())?;
+    document
+        .add_event_listener_with_callback("change", update.as_ref().unchecked_ref())?;
+    document
+        .add_event_listener_with_callback("cancel", update.as_ref().unchecked_ref())?;
+    window.add_event_listener_with_callback(
+        "viewer-file",
+        update.as_ref().unchecked_ref(),
+    )?;
+    window.add_event_listener_with_callback(
+        "viewer-file-error",
+        update.as_ref().unchecked_ref(),
+    )?;
+    window.add_event_listener_with_callback(
+        "viewer-reload",
+        update.as_ref().unchecked_ref(),
+    )?;
     // Both event sources retain this one callback for the lifetime of the page.
     update.forget();
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
+    report(
 ```
 
 Replace it with:
@@ -247,17 +371,15 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-reload")?;
     listeners.listen(window.as_ref(), "pagehide")?;
     crate::browser_runtime::install(listeners, owned_request, owned_reload);
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
+    report(
 ```
 
 **Locate this block:**
 
 ```rust
             }
-        }
-    });
+        },
+    );
     for name in [
         "pointerdown",
         "pointermove",
@@ -267,8 +389,8 @@ Replace it with:
 
 ```rust
             }
-        }
-    });
+        },
+    );
     let mut listeners = crate::listeners::Listeners::new(update);
     for name in [
         "pointerdown",
@@ -278,31 +400,31 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
+        std::rc::Rc::new(std::cell::RefCell::new(None));
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            let shortcut = event
+                .dyn_ref::<web_sys::KeyboardEvent>()
+                .and_then(|key| panel.shortcut(key));
 ```
 
 Replace it with:
 
 ```rust
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let reload: crate::browser_reload::Shared = std::rc::Rc::new(std::cell::RefCell::new(Default::default()));
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new(None));
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if event.type_() == "pagehide" {
-            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
-            return;
-        }
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
-            event.prevent_default();
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if event.type_() == "pagehide" {
+                wasm_bindgen_futures::spawn_local(async {
+                    crate::browser_runtime::stop();
+                });
+                return;
+            }
+            let shortcut = event
+                .dyn_ref::<web_sys::KeyboardEvent>()
+                .and_then(|key| panel.shortcut(key));
 ```
 
 ## <a id="checkpoint-33b-cache"></a>3. Keep a cached viewer ready for Back navigation
@@ -351,13 +473,17 @@ Enable the browser event type that tells us whether the page may return from its
 **Locate this existing block:**
 
 ```toml
+wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
 ### 2. `src/browser.rs`
@@ -367,17 +493,22 @@ Cancel an unfinished drag, retain the cached page’s live owner, and dispose on
 **Locate this existing block:**
 
 ```rust
-        if event.type_() == "pagehide" {
-            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
+            if event.type_() == "pagehide" {
+                wasm_bindgen_futures::spawn_local(async {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        if event.type_() == "pagehide" {
-            gesture.cancel();
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
-            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });
+            if event.type_() == "pagehide" {
+                gesture.cancel();
+                if event
+                    .dyn_ref::<web_sys::PageTransitionEvent>()
+                    .is_some_and(|event| event.persisted())
+                {
+                    return;
+                }
+                wasm_bindgen_futures::spawn_local(async {
 ```
 
 ## Build & Run

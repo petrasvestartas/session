@@ -1,31 +1,101 @@
 # 18.1 · A retained depth and radius pyramid
 
-Reduce actual current surface depth/contact metadata into bounded cached levels for ambient shading.
+**Goal:** Exercise actual depth levels and cache release. · **Steps:** 9 · **Source:** [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
 
-## Ownership and data flow
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="196" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="16" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">1. Lesson 18.1 Code</text>
+  <rect x="34" y="48" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="64" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/pyramid_size.rs</text>
+  <rect x="34" y="78" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <rect x="34" y="108" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.25"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="124" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/ambient_depth.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">9 Coding Steps</text>
+  <line x1="264" y1="100" x2="292" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
+  <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/hzb.wgsl</text>
+  <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/ssao.wgsl</text>
+  <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Reduce depth and radius a…</text>
+  <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. HZB Mip Pyramid &amp; SSAO</text>
+  <rect x="606" y="54" width="84" height="84" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="648" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mip 0</text>
+  <rect x="702" y="68" width="52" height="52" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="728" y="98" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Mip 1</text>
+  <rect x="764" y="82" width="28" height="28" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">A retained depth and radius…</text>
+  <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Timber WoodElement &amp; Joints</text>
+  <polygon points="888,122 924,62 1054,62 1018,122" fill="#fed7aa" stroke="#111111" stroke-width="2"/>
+  <rect x="954" y="62" width="34" height="28" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <line x1="971" y1="46" x2="971" y2="76" stroke="#16a34a" stroke-width="2.25" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mortise/Tenon + Dir</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Exercise actual depth lev…</text>
+</svg>
+</div>
 
-Prepare linear depth and original radius addresses at a density-aware reduced resolution. One owner retains six actual depth/radius levels, their targets and preparation/nearest-depth pipelines. A full input witness invalidates work only when source images, view or relevant metadata changes. Encoded reductions and allocation diagnostics describe real GPU resources; Close releases them. These levels are derived render data, not a second source geometry representation.
+## <a id="checkpoint-89-copy-density-scaled-depth-reduction"></a>1. Reduce depth and radius at a bounded display resolution
 
-## The maintained implementation
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 1 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_size.rs, src/li…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-engine/gpu/ssao.rs owns maintained reduced/full images and pipeline caches; ssao/pipelines.rs defines actual layouts and passes. src/shaders/ambient_depth.wgsl and depth-reduction dependencies consume real source depth. Course forward-depth adapters stage the maintained depth convention; they do not establish final ambient parity.
-
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
-
-Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
-
-## Build the capability
-
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
-
-<a id="checkpoint-89-copy-density-scaled-depth-reduction"></a>
-
-<details>
-<summary>Implementation 89-copy-density-scaled-depth-reduction: Reduce depth and radius at a bounded display resolution</summary>
-
-Write the density policy and nearest-positive depth/radius reduction.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Write the density policy and nearest-positive depth/radius reduction.
 
 ### 1. `src/pyramid_size.rs`
 
@@ -34,27 +104,66 @@ Bound the reduced target dimensions and retain the existing numerical examples.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/89-copy-density-scaled-depth-reduction-01.rs"
+pub fn resolution(full: (u32, u32), dpr: f64) -> (u32, u32) {
+    let scale = (1.0 / dpr.max(1.0)).clamp(0.25, 0.5);
+    (
+        (f64::from(full.0) * scale).ceil().max(1.0) as u32,
+        (f64::from(full.1) * scale).ceil().max(1.0) as u32,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn resolution_follows_device_pixels_without_a_navigation_mode() {
+        assert_eq!(
+            super::resolution((1920, 1080), 1.),
+            (960, 540)
+        );
+        assert_eq!(
+            super::resolution((3840, 2160), 2.),
+            (1920, 1080)
+        );
+        assert_eq!(
+            super::resolution((1179, 2556), 3.),
+            (393, 852)
+        );
+        assert_eq!(
+            super::resolution((1920, 1080), 5.),
+            (480, 270)
+        );
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-#[cfg(test)]
 mod cap_gpu_tests;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/89-copy-density-scaled-depth-reduction-02.rs" skip=32
+mod cap_gpu_tests;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_size;
+pub mod source_mesh_topology;
 ```
 
 ### 3. `src/ambient_depth.wgsl`
@@ -64,19 +173,81 @@ Reduce depth and its radius witness together; mark bounded geometry occupancy.
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/89-copy-density-scaled-depth-reduction-03.rs"
+@group(0) @binding(0) var linear: texture_2d<f32>;
+@group(0) @binding(1) var radii: texture_2d<u32>;
+@vertex fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+    let p = array<vec2<f32>, 3>(vec2<f32>(-1.0,-1.0), vec2<f32>(3.0,-1.0), vec2<f32>(-1.0,3.0));
+    return vec4<f32>(p[i],0.0,1.0);
+}
+struct DepthRadius {
+    @location(0) depth: f32,
+    @location(1) radius: u32,
+};
+@fragment fn fs_reduce(@builtin(position) pixel: vec4<f32>) -> DepthRadius {
+    let dims = vec2<i32>(textureDimensions(linear));
+    let at = vec2<i32>(pixel.xy)*2;
+    var nearest = 1e30;
+    var radius = 0u;
+    for (var i=0; i<4; i++) {
+        let q = min(at+vec2<i32>(i%2,i/2),dims-1);
+        let z = textureLoad(linear,q,0).x;
+        if z>0.0 && z<nearest {
+            nearest = z;
+            radius = textureLoad(radii,q,0).x;
+        }
+    }
+    return DepthRadius(select(nearest,0.0,nearest==1e30),radius);
+}
+
+@fragment fn fs_occupancy(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
+    let dims = vec2<i32>(textureDimensions(linear));
+    let at = vec2<i32>(pixel.xy);
+    for (var i=0; i<25; i++) {
+        let q = clamp(at+vec2<i32>(i%5-2,i/5-2),vec2<i32>(0),dims-1);
+        if textureLoad(linear,q,0).x>0.0 { return 1.0; }
+    }
+    return 0.0;
+}
 ```
 
-</details>
+## <a id="checkpoint-89a-prepare-linear-original-depth-and-radius-addresses"></a>2. Prepare linear depth and radius addresses
 
-<a id="checkpoint-89a-prepare-linear-original-depth-and-radius-addresses"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 2 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_prepare.wgsl</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 89a-prepare-linear-original-depth-and-radius-addresses: Prepare linear original depth and radius addresses</summary>
-
-Prepare linear original depth and radius addresses.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Prepare linear original depth and radius addresses.
 
 ### 1. `src/pyramid_prepare.wgsl`
 
@@ -85,19 +256,58 @@ Adapt the earlier forward-depth image to linear depth and packed radius addresse
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/89a-prepare-linear-original-depth-and-radius-addresses-01.rs"
+struct Frame{inverse:mat4x4<f32>,full:vec2<f32>,size:vec2<f32>,radius:f32,pad:vec3<f32>}
+@group(0) @binding(0) var depth:texture_depth_2d;
+@group(0) @binding(1) var<uniform> frame:Frame;
+@vertex fn vs_main(@builtin(vertex_index) i:u32)->@builtin(position) vec4<f32>{let p=array<vec2<f32>,3>(vec2<f32>(-1.,-1.),vec2<f32>(3.,-1.),vec2<f32>(-1.,3.));return vec4<f32>(p[i],0.,1.);}
+struct DepthRadius{@location(0) depth:f32,@location(1) radius:u32}
+fn world(at:vec2<f32>,z:f32)->vec3<f32>{let uv=at/frame.full;let p=frame.inverse*vec4<f32>(uv.x*2.-1.,1.-uv.y*2.,z,1.);return p.xyz/p.w;}
+@fragment fn fs_prepare(@builtin(position) pixel:vec4<f32>)->DepthRadius{
+ let at=floor(pixel.xy/frame.size*frame.full)+0.5;let z=textureLoad(depth,vec2<i32>(at),0);if(z>=1.){return DepthRadius(0.,0u);}
+ let origin=world(at,0.);let direction=normalize(world(at,1.)-origin);let p=world(at,z);let along=dot(p-origin,direction)/dot(direction,direction);
+ let bits=(pack2x16float(vec2<f32>(frame.radius,0.))+2u)>>2u;let coord=vec2<u32>(pixel.xy);let encoded=(bits<<4u)|(coord.x&3u)|((coord.y&3u)<<2u);
+ return DepthRadius(along,encoded);
+}
 ```
 
-</details>
+## <a id="checkpoint-89b-own-six-real-depth-and-radius-levels"></a>3. Own six real depth and radius levels
 
-<a id="checkpoint-89b-own-six-real-depth-and-radius-levels"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_image.rs, src/l…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 89b-own-six-real-depth-and-radius-levels: Own six real depth and radius levels</summary>
-
-Own six real depth and radius levels.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Own six real depth and radius levels.
 
 ### 1. `src/pyramid_image.rs`
 
@@ -106,39 +316,131 @@ Own exact mip views and actual texture allocation.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/89b-own-six-real-depth-and-radius-levels-01.rs"
+pub struct Image {
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub levels: [wgpu::TextureView; 6],
+    pub bytes: u64,
+}
+impl Image {
+    pub fn new(
+        device: &wgpu::Device,
+        size: [u32; 2],
+        format: wgpu::TextureFormat,
+    ) -> Self {
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("ambient six-level image"),
+            size: wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 6,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        let view = texture.create_view(&Default::default());
+        let levels = std::array::from_fn(|i| {
+            texture.create_view(&wgpu::TextureViewDescriptor {
+                base_mip_level: i as u32,
+                mip_level_count: Some(1),
+                ..Default::default()
+            })
+        });
+        let bytes = (0..6)
+            .map(|i| {
+                u64::from(size[0] >> i)
+                    * u64::from(size[1] >> i)
+                    * u64::from(format.block_copy_size(None).unwrap())
+            })
+            .sum();
+        Self {
+            texture,
+            view,
+            levels,
+            bytes,
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+mod cap_gpu_tests;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_size;
+pub mod source_mesh_topology;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+mod cap_gpu_tests;
 
 pub mod pyramid_size;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_image;
+pub mod source_mesh_topology;
 ```
 
-</details>
+## <a id="checkpoint-89c-build-prepare-and-nearest-depth-pipelines"></a>4. Build prepare and nearest-depth pipelines
 
-After that block, type:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 4 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_pipeline.rs, sr…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-```rust
---8<-- "journey/code/89b-own-six-real-depth-and-radius-levels-02.rs" skip=23
-```
-
-</details>
-
-<a id="checkpoint-89c-build-prepare-and-nearest-depth-pipelines"></a>
-
-<details>
-<summary>Implementation 89c-build-prepare-and-nearest-depth-pipelines: Build prepare and nearest-depth pipelines</summary>
-
-Build prepare and nearest-depth pipelines.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Build prepare and nearest-depth pipelines.
 
 ### 1. `src/pyramid_pipeline.rs`
 
@@ -147,39 +449,187 @@ Build current depth/radius preparation and reduction pipelines.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/89c-build-prepare-and-nearest-depth-pipelines-01.rs"
+pub struct Pipelines {
+    pub prepare: wgpu::RenderPipeline,
+    pub reduce: wgpu::RenderPipeline,
+    pub input: wgpu::BindGroupLayout,
+    pub level: wgpu::BindGroupLayout,
+}
+fn pipeline(
+    device: &wgpu::Device,
+    shader: &str,
+    fragment: &str,
+    layout: &wgpu::BindGroupLayout,
+) -> wgpu::RenderPipeline {
+    let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("ambient linear-depth recipe"),
+        source: wgpu::ShaderSource::Wgsl(shader.into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: None,
+        bind_group_layouts: &[Some(layout)],
+        immediate_size: 0,
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("ambient linear-depth pyramid"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &module,
+            entry_point: Some("vs_main"),
+            compilation_options: Default::default(),
+            buffers: &[],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &module,
+            entry_point: Some(fragment),
+            compilation_options: Default::default(),
+            targets: &[
+                Some(wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::R32Float,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::RED,
+                }),
+                Some(wgpu::ColorTargetState {
+                    format: wgpu::TextureFormat::R16Uint,
+                    blend: None,
+                    write_mask: wgpu::ColorWrites::RED,
+                }),
+            ],
+        }),
+        primitive: Default::default(),
+        depth_stencil: None,
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
+impl Pipelines {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let texture = |binding, sample_type| {
+            crate::text_gpu_support::texture_entry(
+                binding,
+                wgpu::ShaderStages::FRAGMENT,
+                sample_type,
+                false,
+            )
+        };
+        let input = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("ambient original depth and camera"),
+            entries: &[
+                texture(0, wgpu::TextureSampleType::Depth),
+                crate::tile_pipelines::entry(
+                    1,
+                    wgpu::ShaderStages::FRAGMENT,
+                    wgpu::BufferBindingType::Uniform,
+                ),
+            ],
+        });
+        let level = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("ambient depth and radius level"),
+            entries: &[
+                texture(
+                    0,
+                    wgpu::TextureSampleType::Float {
+                        filterable: false,
+                    },
+                ),
+                texture(1, wgpu::TextureSampleType::Uint),
+            ],
+        });
+        let prepare = pipeline(
+            device,
+            include_str!("pyramid_prepare.wgsl"),
+            "fs_prepare",
+            &input,
+        );
+        let reduce = pipeline(
+            device,
+            include_str!("ambient_depth.wgsl"),
+            "fs_reduce",
+            &level,
+        );
+        Self {
+            prepare,
+            reduce,
+            input,
+            level,
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+pub mod pyramid_size;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_image;
+pub mod source_mesh_topology;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod pyramid_size;
 
 pub mod pyramid_image;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_pipeline;
+pub mod source_mesh_topology;
 ```
 
-</details>
+## <a id="checkpoint-89d-prepare-cached-pyramid-inputs-and-images"></a>5. Prepare cached pyramid inputs and images
 
-After that block, type:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 5 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_gpu.rs, src/lib…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-```rust
---8<-- "journey/code/89c-build-prepare-and-nearest-depth-pipelines-02.rs" skip=24
-```
-
-</details>
-
-<a id="checkpoint-89d-prepare-cached-pyramid-inputs-and-images"></a>
-
-<details>
-<summary>Implementation 89d-prepare-cached-pyramid-inputs-and-images: Prepare cached pyramid inputs and images</summary>
-
-Prepare cached pyramid inputs and images.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Prepare cached pyramid inputs and images.
 
 ### 1. `src/pyramid_gpu.rs`
 
@@ -188,105 +638,425 @@ Own lazy pyramid images and their current depth input.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/89d-prepare-cached-pyramid-inputs-and-images-01.rs"
+use crate::pyramid_image::Image;
+struct Images {
+    size: [u32; 2],
+    pub linear: Image,
+    pub radii: Image,
+    groups: [wgpu::BindGroup; 5],
+}
+pub struct Pyramid {
+    pipes: crate::pyramid_pipeline::Pipelines,
+    frame: wgpu::Buffer,
+    images: Option<Images>,
+    input: Option<(wgpu::TextureView, wgpu::BindGroup)>,
+    cached: Option<([u32; 16], [u32; 2], u32, [u64; 2])>,
+    pub preparations: u64,
+    pub writes: u64,
+    pub passes: u64,
+    pub error: Option<&'static str>,
+}
+impl Pyramid {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            pipes: crate::pyramid_pipeline::Pipelines::new(device),
+            frame: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("ambient earlier camera"),
+                size: 112,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            images: None,
+            input: None,
+            cached: None,
+            preparations: 0,
+            writes: 0,
+            passes: 0,
+            error: None,
+        }
+    }
+    fn prepare(
+        &mut self,
+        device: &wgpu::Device,
+        depth: &wgpu::TextureView,
+        full: [u32; 2],
+        density: f32,
+    ) {
+        let (width, height) =
+            crate::pyramid_size::resolution((full[0], full[1]), f64::from(density));
+        let size = [width.max(32), height.max(32)];
+        if self
+            .images
+            .as_ref()
+            .is_none_or(|images| images.size != size)
+        {
+            let linear = Image::new(device, size, wgpu::TextureFormat::R32Float);
+            let radii = Image::new(device, size, wgpu::TextureFormat::R16Uint);
+            let groups = std::array::from_fn(|i| {
+                device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: Some("ambient previous level"),
+                    layout: &self.pipes.level,
+                    entries: &[
+                        wgpu::BindGroupEntry {
+                            binding: 0,
+                            resource: wgpu::BindingResource::TextureView(
+                                &linear.levels[i],
+                            ),
+                        },
+                        wgpu::BindGroupEntry {
+                            binding: 1,
+                            resource: wgpu::BindingResource::TextureView(
+                                &radii.levels[i],
+                            ),
+                        },
+                    ],
+                })
+            });
+            self.images = Some(Images {
+                size,
+                linear,
+                radii,
+                groups,
+            });
+            self.cached = None;
+            self.preparations += 1;
+        }
+        if self
+            .input
+            .as_ref()
+            .is_none_or(|(old, _)| old != depth)
+        {
+            let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("ambient source depth"),
+                layout: &self.pipes.input,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(depth),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: self.frame.as_entire_binding(),
+                    },
+                ],
+            });
+            self.input = Some((depth.clone(), group));
+            self.cached = None;
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
 
 Register the completed section component.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
+pub mod pyramid_image;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_pipeline;
+pub mod source_mesh_topology;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod pyramid_image;
 
 pub mod pyramid_pipeline;
+
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod pyramid_gpu;
+pub mod source_mesh_topology;
 ```
 
-</details>
+## <a id="checkpoint-89e-encode-six-levels-only-when-inputs-change"></a>6. Encode six levels only when inputs change
 
-After that block, type:
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 6 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_gpu.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-```rust
---8<-- "journey/code/89d-prepare-cached-pyramid-inputs-and-images-02.rs" skip=27
-```
-
-</details>
-
-<a id="checkpoint-89e-encode-six-levels-only-when-inputs-change"></a>
-
-<details>
-<summary>Implementation 89e-encode-six-levels-only-when-inputs-change: Encode six levels only when inputs change</summary>
-
-Encode six levels only when inputs change.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Encode six levels only when inputs change.
 
 ### 1. `src/pyramid_gpu.rs`
 
 Validate the current camera and encode changed pyramid contents.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  if self.input.as_ref().is_none_or(|(old,_)|old!=depth){let group=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient source depth"),layout:&self.pipes.input,entries:&[wgpu::BindGroupEntry{binding:0,resource:wgpu::BindingResource::TextureView(depth)},wgpu::BindGroupEntry{binding:1,resource:self.frame.as_entire_binding()}]});self.input=Some((depth.clone(),group));self.cached=None;}
- }
+    }
+}
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/89e-encode-six-levels-only-when-inputs-change-01.rs"
+    }
+    pub fn encode(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        encoder: &mut wgpu::CommandEncoder,
+        depth: &wgpu::TextureView,
+        matrix: [f32; 16],
+        full: [u32; 2],
+        density: f32,
+        revision: [u64; 2],
+    ) {
+        if full.contains(&0)
+            || !density.is_finite()
+            || density <= 0.
+            || matrix.iter().any(|v| !v.is_finite())
+        {
+            self.error = Some("Invalid ambient depth view");
+            self.cached = None;
+            return;
+        }
+        self.prepare(device, depth, full, density);
+        let key = (
+            matrix.map(f32::to_bits),
+            full,
+            density.to_bits(),
+            revision,
+        );
+        if self.cached == Some(key) {
+            return;
+        }
+        let Some(inverse) =
+            session_rust::Xform::from_matrix(matrix.map(f64::from)).inverse()
+        else {
+            self.error = Some("Ambient depth camera is singular");
+            self.cached = None;
+            return;
+        };
+        if inverse
+            .m
+            .iter()
+            .any(|v| !(*v as f32).is_finite())
+        {
+            self.error = Some("Ambient inverse exceeds display range");
+            self.cached = None;
+            return;
+        }
+        let images = self.images.as_ref().unwrap();
+        let mut bytes = inverse
+            .m
+            .into_iter()
+            .flat_map(|v| (v as f32).to_ne_bytes())
+            .collect::<Vec<_>>();
+        bytes.extend(
+            [
+                full[0] as f32,
+                full[1] as f32,
+                images.size[0] as f32,
+                images.size[1] as f32,
+                0.05,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+                0.,
+            ]
+            .into_iter()
+            .flat_map(f32::to_ne_bytes),
+        );
+        queue.write_buffer(&self.frame, 0, &bytes);
+        self.writes += 1;
+        for level in 0..6 {
+            let attachments = [
+                &images.linear.levels[level],
+                &images.radii.levels[level],
+            ]
+            .map(|view| {
+                Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })
+            });
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("ambient nearest positive depth"),
+                color_attachments: &attachments,
+                ..Default::default()
+            });
+            if level == 0 {
+                pass.set_pipeline(&self.pipes.prepare);
+                pass.set_bind_group(0, &self.input.as_ref().unwrap().1, &[]);
+            } else {
+                pass.set_pipeline(&self.pipes.reduce);
+                pass.set_bind_group(0, &images.groups[level - 1], &[]);
+            }
+            pass.draw(0..3, 0..1);
+            self.passes += 1;
+        }
+        self.cached = Some(key);
+        self.error = None;
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-89f-expose-actual-pyramid-allocation-and-levels"></a>7. Expose actual pyramid allocation and levels
 
-<a id="checkpoint-89f-expose-actual-pyramid-allocation-and-levels"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 7 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_gpu.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 89f-expose-actual-pyramid-allocation-and-levels: Expose actual pyramid allocation and levels</summary>
-
-Expose actual pyramid allocation and levels.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Expose actual pyramid allocation and levels.
 
 ### 1. `src/pyramid_gpu.rs`
 
 Expose actual resources and preparation/write/pass counts.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  self.cached=Some(key);self.error=None;
- }
-
-
-
+    }
 }
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/89f-expose-actual-pyramid-allocation-and-levels-01.rs"
+    }
+    pub fn usage(&self) -> [u64; 4] {
+        [
+            self.frame.size()
+                + self
+                    .images
+                    .as_ref()
+                    .map_or(0, |i| i.linear.bytes + i.radii.bytes),
+            self.preparations,
+            self.writes,
+            self.passes,
+        ]
+    }
+    pub fn linear(&self) -> Option<&Image> {
+        self.images.as_ref().map(|i| &i.linear)
+    }
+    pub fn radii(&self) -> Option<&Image> {
+        self.images.as_ref().map(|i| &i.radii)
+    }
+}
 ```
 
-</details>
+## <a id="checkpoint-89g-route-original-depth-into-the-pyramid-owner"></a>8. Route depth into the pyramid owner
 
-<a id="checkpoint-89g-route-original-depth-into-the-pyramid-owner"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 8 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/renderer.rs, src/browse…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 89g-route-original-depth-into-the-pyramid-owner: Route original depth into the pyramid owner</summary>
-
-Route original depth into the pyramid owner.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
+**What this code does:** Route original depth into the pyramid owner.
 
 ### 1. `src/renderer.rs`
 
@@ -294,73 +1064,92 @@ Connect the explicit cached depth owner before its supplied fixtures.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
+                    *self.text_error.borrow_mut() = Some(error.to_string());
+                }
             }
         }
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-}
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
+                    *self.text_error.borrow_mut() = Some(error.to_string());
+                }
             }
         }
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-}
+        if let Some(pyramid) = self.pyramid.borrow_mut().as_mut() {
+            pyramid.encode(
+                &self.device,
+                &self.queue,
+                &mut encoder,
+                &self.depth,
+                *transform,
+                self.size,
+                self.density,
+                [self.pyramid_revision, clip_revision],
+            );
+        }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
-    pub fn cap_usage(&self)->[u64;5]{self.caps.borrow().usage()}
-    pub fn clipping_usage(&self)->[u64;5]{let clip=self.clipping.borrow();[clip.rows.len()as u64,u64::from(clip.enabled),u64::from(clip.solid),clip.writes,clip.buffer.size()]}
+        clip.solid = solid;
+        self.caps.borrow_mut().enabled = enabled;
+    }
+    pub fn cap_error(&self) -> Option<&'static str> {
+        self.caps.borrow().pick_error
+    }
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-    pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
-    pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
-    pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
-    pub fn cap_usage(&self)->[u64;5]{self.caps.borrow().usage()}
-    pub fn clipping_usage(&self)->[u64;5]{let clip=self.clipping.borrow();[clip.rows.len()as u64,u64::from(clip.enabled),u64::from(clip.solid),clip.writes,clip.buffer.size()]}
+        clip.solid = solid;
+        self.caps.borrow_mut().enabled = enabled;
+    }
+    pub fn set_depth_pyramid(&self, enabled: bool) {
+        let mut owner = self.pyramid.borrow_mut();
+        if enabled {
+            if owner.is_none() {
+                *owner = Some(crate::pyramid_gpu::Pyramid::new(
+                    &self.device,
+                ));
+            }
+        } else {
+            *owner = None;
+        }
+    }
+    pub fn depth_pyramid_usage(&self) -> [u64; 4] {
+        self.pyramid
+            .borrow()
+            .as_ref()
+            .map_or([0; 4], crate::pyramid_gpu::Pyramid::usage)
+    }
+    pub fn depth_pyramid_error(&self) -> Option<&'static str> {
+        self.pyramid
+            .borrow()
+            .as_ref()
+            .and_then(|p| p.error)
+    }
+    pub fn cap_error(&self) -> Option<&'static str> {
+        self.caps.borrow().pick_error
+    }
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.picker.cancel(); self.faces.clear();
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
+            outline.invalidate();
 ```
-
-</details>
 
 Replace it with:
 
@@ -368,701 +1157,326 @@ Replace it with:
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
+        self.pyramid_revision = self.pyramid_revision.wrapping_add(1);
         self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.picker.cancel(); self.faces.clear();
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
+            outline.invalidate();
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            caps: std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),
+            clipping: std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(
+                &device,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            pyramid: Default::default(),
+            pyramid_revision: 0,
+            caps: std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),
+            clipping: std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(
+                &device,
 ```
 
-<details>
-<summary>Locate this block</summary>
+**Locate this block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
-    clipping:std::cell::RefCell<crate::clipping_gpu::Clipping>,
-    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
+    caps: std::cell::RefCell<crate::caps_gpu::Caps>,
+    clipping: std::cell::RefCell<crate::clipping_gpu::Clipping>,
+    tiles: std::cell::RefCell<crate::tile_gpu::Tiles>,
 ```
-
-</details>
 
 Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    pyramid:std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
-    pyramid_revision:u64,
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
-    clipping:std::cell::RefCell<crate::clipping_gpu::Clipping>,
-    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
+    pyramid: std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
+    pyramid_revision: u64,
+    caps: std::cell::RefCell<crate::caps_gpu::Caps>,
+    clipping: std::cell::RefCell<crate::clipping_gpu::Clipping>,
+    tiles: std::cell::RefCell<crate::tile_gpu::Tiles>,
 ```
-
-<details>
-<summary>Complete updated block reference</summary>
-
-```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
-pub struct Renderer {
-    pyramid:std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
-    pyramid_revision:u64,
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
-    clipping:std::cell::RefCell<crate::clipping_gpu::Clipping>,
-    tiles:std::cell::RefCell<crate::tile_gpu::Tiles>,
-    guides:crate::guide_gpu::Guide,
-    measurement:crate::measure_gpu::Measurement,
-    sheets:crate::sheet_gpu::Lane,
-    clouds:std::cell::RefCell<Option<crate::cloud_gpu::Lane>>,
-    cloud_view:std::cell::Cell<crate::cloud_gpu::View>,
-    cloud_error:std::cell::RefCell<Option<String>>,
-    outline:std::cell::RefCell<Option<crate::outline_gpu::Outline>>,
-    text:std::cell::RefCell<Option<crate::scene_text_gpu::Lane>>,
-    text_error:std::cell::RefCell<Option<String>>,
-    full_text_fonts:std::cell::RefCell<Option<Vec<Vec<u8>>>>,
-    presentation_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    scene_text:std::cell::RefCell<Vec<crate::text::TextLabel>>,
-    format:wgpu::TextureFormat,
-    pub device: wgpu::Device,
-    pub queue: wgpu::Queue,
-    instances:crate::instance_gpu::Lane,
-    instance_rows:std::collections::HashSet<ObjectId>,
-    pipeline: wgpu::RenderPipeline,
-    highlight_pipeline: wgpu::RenderPipeline,
-    highlight: crate::highlight::Highlight,
-    preview: crate::tool_preview::Preview,
-    widget: crate::widget::Widget,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
-    markers: crate::stroke_gpu::Lane,
-    grid: crate::stroke_gpu::Lane,
-    grid_settings: Option<crate::grid::Settings>,
-    grid_plane:crate::cplane::CPlane,
-    size: [u32; 2],
-    density: f32,
-    picker: crate::pick_gpu::Picker,
-    sources: crate::pick_sources::Sources,
-    faces: crate::face_pick::Faces,
-    mesh_ink: crate::stroke_gpu::Lane,
-    pick_mode: crate::pick_sources::Mode,
-}
-
-impl Renderer {
-    pub fn new(
-        device: wgpu::Device,
-        queue: wgpu::Queue,
-        format: wgpu::TextureFormat,
-        scene: &Scene,
-    ) -> Self {
-        crate::shader_check::check(&device, crate::clipping_gpu::source(include_str!("cloud_points.wgsl"),2,0), "Cloud points");
-        crate::shader_check::check(&device, include_str!("cloud_resolve.wgsl").into(), "Cloud resolve");
-        crate::shader_check::check(&device, crate::finite_project_source::source(), "Finite projection");
-        crate::shader_check::check(&device, crate::finite_project_source::tiles(), "Finite tiles");
-        crate::shader_check::check(&device, crate::finite_project_source::scan(), "Finite scan");
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0).into()),
-        });
-        let view_layout = crate::gpu_layout::uniform(&device, 80);
-        let model_layout = crate::gpu_layout::uniform(&device, 160);
-        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device))], immediate_size: 0 });
-        let mesh_pipeline = |depth| device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("triangle"),
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: &shader,
-                entry_point: Some("vertex"),
-                compilation_options: Default::default(),
-                buffers: &[wgpu::VertexBufferLayout {
-                    array_stride: 24,
-                    step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
-                }, wgpu::VertexBufferLayout {
-                    array_stride: 12, step_mode: wgpu::VertexStepMode::Vertex,
-                    attributes: &wgpu::vertex_attr_array![2 => Float32x3],
-                }],
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: &shader,
-                entry_point: Some("fragment"),
-                compilation_options: Default::default(),
-                targets: &[Some(format.into())],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(),
-            multiview_mask: None,
-            cache: None,
-        });
-        let pipeline = mesh_pipeline(crate::depth::surface());
-        let tiles=std::cell::RefCell::new(crate::tile_gpu::Tiles::new(&device,&view_layout));
-        let instances=crate::instance_gpu::Lane::new(&device,format,&view_layout);
-        let highlight_pipeline = mesh_pipeline(crate::depth::ink());
-        let highlight = crate::highlight::Highlight::new(&device, format);
-        let preview = crate::tool_preview::Preview::new(&device, format);
-        let widget = crate::widget::Widget::new(&device, format);
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform and normal diagnostic"),
-            size: 80,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-            mapped_at_creation: false,
-        });
-        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("view settings"),
-            layout: &pipeline.get_bind_group_layout(0),
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: uniform.as_entire_binding(),
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let strokes = crate::stroke_gpu::Lane::new(&device, format);
-        let paths = crate::stroke_gpu::Lane::joined(&device, format);
-        let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let picker = crate::pick_gpu::Picker::new(&device, &view_layout, &model_layout);
-        let faces = crate::face_pick::Faces::new(&device);
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
-        renderer.highlight.enable_finite(&renderer.device,format);
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
-            label: Some("opaque depth"),
-            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-            mip_level_count: 1,
-            sample_count: 1,
-            dimension: wgpu::TextureDimension::D2,
-            format: crate::depth::FORMAT,
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING,
-            view_formats: &[],
-        });
-        depth_texture.create_view(&Default::default())
-    }
-
-    pub fn resize(&mut self, size: crate::viewport::Viewport) {
-        if self.size != [size.width, size.height] { self.picker.cancel(); }
-        self.size = [size.width, size.height];
-        self.depth = Self::depth(&self.device, size.width, size.height);
-    }
-
-    pub fn set_density(&mut self, density: f32) {
-        if density.is_finite() && density > 0.0 && density != self.density { self.picker.cancel(); self.density = density; }
-    }
-
-    pub fn stroke_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.strokes.usage();
-        [count, bytes, self.strokes.uploads, self.strokes.uploaded_bytes]
-    }
-
-    pub fn path_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.paths.usage();
-        [count, bytes, self.paths.uploads, self.paths.uploaded_bytes]
-    }
-
-    pub fn point_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.markers.usage();
-        [count, bytes, self.markers.uploads, self.markers.uploaded_bytes]
-    }
-
-    pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
-        self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.picker.cancel(); self.faces.clear();
-        self.preview.set(&self.device, None).expect("Empty tool preview");
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, None).expect("Empty selection");
-        self.sources = crate::pick_sources::Sources::new(scene).expect("Prepared source topology is bounded");
-        self.mesh_ink.set(&self.device, self.sources.mesh_ink.iter().copied()).expect("Prepared source edges");
-        self.mesh_ink.set_ids(&self.device, self.sources.mesh_ids.iter().copied()).expect("Source edge IDs match");
-        let planes=crate::clipping_rows::owners(scene);let flags=self.sources.mesh_ids.iter().map(|id|crate::sub_id::decode(id[1]).and_then(|(_,address)|self.sources.edges.get(address)).map_or(0,|target|if planes.contains(&target.owner){4096}else{0})).collect();self.mesh_ink.set_flags(&self.device,flags).expect("Original plane ink flags match source addresses");
-        self.markers.set_points(&self.device, scene.points().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut marker=row.marker();if let Some(colour)=scene.face_rgba(row.id) {marker.colour=colour;}marker}).chain(scene.control_markers().into_iter().map(|c| c.display)))
-            .expect("Prepared point placement fits the display range");
-        self.paths.set_chains(&self.device, scene.paths().iter().filter(|row| scene.visible(row.id)).flat_map(|row| {let mut segments=row.segments();if let Some(colour)=scene.face_rgba(row.id) {for segment in &mut segments {segment.stroke.colour=colour;}}segments}))
-            .expect("Prepared path placement fits the display range");
-        self.strokes.set(&self.device, scene.lines().iter().filter(|row| scene.visible(row.id)).map(|row| {let mut stroke=row.stroke();if let Some(colour)=scene.face_rgba(row.id) {stroke.colour=colour;}stroke}))
-            .expect("Prepared line placement fits the display range");
-        self.markers.set_ids(&self.device, self.sources.marker_ids.iter().copied()).expect("Marker owners match");
-        self.paths.set_ids(&self.device, self.sources.path_ids.iter().copied()).expect("Path owners match");
-        self.strokes.set_ids(&self.device, self.sources.line_ids.iter().copied()).expect("Line owners match");
-        let layout = self.pipeline.get_bind_group_layout(1);
-        let mut old = std::mem::take(&mut self.meshes);
-        for object in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
-            let row = if let Some(index) = matching {
-                let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object,style(scene,object.id,selected==Some(object.id)));
-                self.settings_writes += calls;
-                self.settings_bytes += bytes;
-                row
-            } else {
-                let geometry = self.geometry.get(&self.device, &object.mesh);
-                self.settings_allocations += 1;
-                GpuMesh::with_geometry(&self.device, &layout, object,
-                    style(scene,object.id,selected==Some(object.id)), geometry)
-            };
-            self.meshes.push(row);
-        }
-        drop(old);
-        self.caps.borrow_mut().set_scene(&self.queue,scene,&mut self.meshes,&self.clipping.borrow().rows);
-        self.tiles.borrow_mut().set(&self.device,&self.meshes);
-        self.instance_rows=scene.instances.keys().copied().collect();
-        self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id))).expect("Validated instance records fit device limits");
-        self.sheets.set(&self.device,&self.queue,scene,selected.as_slice(),&self.sources.sheet_bases).expect("Prepared original sheet batches fit device limits");
-        self.geometry.prune();
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        if let Err(error)=self.set_clouds(scene,selected.as_slice()) {*self.cloud_error.borrow_mut()=Some(error.to_string());}
-        if let Err(error)=self.set_scene_text(scene,selected.as_slice()) {*self.text_error.borrow_mut()=Some(error.to_string());}
-    }
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density, mode: self.pick_mode })?;
-        self.pump_pick(transform); Ok(())
-    }
-
-    fn pump_pick(&mut self, transform: [f32; 16]) {
-        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density) else { self.picker.cancel(); return; };
-        if self.pick_mode == crate::pick_sources::Mode::Face && !self.faces.ready(self.meshes.len()) {
-            self.faces.set(&self.device, &self.meshes, &self.sources.mesh_bases,&self.clipping.borrow().buffer);
-        }
-        if let Some(lane)=self.text.borrow_mut().as_mut() {if let Err(error)=lane.prepare(&self.text_context(),&self.text_frame(transform)) {*self.text_error.borrow_mut()=Some(error.to_string());return;}}
-        self.clipping.borrow_mut().frame(&self.queue,transform,self.size[1],self.density);
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) {
-            let mut clipping=self.clipping.borrow_mut();clipping.frame(&self.queue,transform,self.size[1],self.density);
-            let mut bytes=transform.iter().flat_map(|v|v.to_ne_bytes()).collect::<Vec<_>>();bytes.resize(80,0);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),caps:self.caps.borrow().depth.view.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,Some(&mut self.caps.borrow_mut())); }
-    }
-
-    pub fn take_pick(&mut self, transform: [f32; 16]) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let view = match crate::pick_view::View::new(transform, self.size, self.density) { Ok(view) => view, Err(error) => {
-            self.picker.cancel(); return Some(Err(error));
-        } };
-        match self.picker.take(view) {
-            Some(Ok(crate::pick_gpu::Reply::Hit(hit))) => Some(Ok(hit)),
-            Some(Ok(crate::pick_gpu::Reply::Stale)) => { self.pump_pick(transform); None },
-            Some(Err(error)) => Some(Err(error)), None => None,
-        }
-    }
-
-    pub fn set_pick_mode(&mut self, mode: crate::pick_sources::Mode) {
-        if self.pick_mode != mode { self.picker.cancel(); self.pick_mode = mode; }
-    }
-
-    pub fn resolve_pick(&self, scene: &Scene, pixel: [u32; 2]) -> Option<crate::pick_sources::Target> {
-        self.sources.resolve(scene, pixel, self.pick_mode)
-    }
-
-    pub fn part_usage(&self) -> [u64; 4] { let [count, bytes] = self.mesh_ink.usage(); [count, bytes, self.faces.bytes(), self.sources.bytes() as u64] }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
-
-    pub fn pick_usage(&self) -> [u64; 5] {
-        let [active, pending, bytes] = self.picker.usage();
-        [active, pending, bytes + self.strokes.pick_bytes() + self.paths.pick_bytes() + self.markers.pick_bytes() + self.mesh_ink.pick_bytes() + self.mesh_ink.usage()[1] + self.faces.bytes(),
-            self.picker.submitted, self.picker.coalesced]
-    }
-
-    pub fn geometry_owners(&self) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
-        self.meshes.iter().map(|row| &row.geometry)
-    }
-
-    pub fn usage(&self) -> [u64; 4] { crate::memory::gpu(&self.meshes) }
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.instances.written_bytes + self.geometry.uploaded_bytes + self.settings_allocations as u64 * 160 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
-    }
-
-    pub fn set_grid(&mut self,settings:Option<crate::grid::Settings>)->Result<(),&'static str>{self.set_grid_on(settings,crate::cplane::CPlane::Xy)}
-    pub fn set_grid_on(&mut self,settings:Option<crate::grid::Settings>,plane:crate::cplane::CPlane)->Result<(),&'static str>{
-        if settings==self.grid_settings&&plane==self.grid_plane{return Ok(())}
-        let strokes=settings.map(|s|s.strokes_on(plane)).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device,strokes)?;self.grid_settings=settings;self.grid_plane=plane;Ok(())
-    }
-
-    pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
-    }
-
-    pub fn set_highlight(&mut self, scene: &Scene, target: Option<crate::pick_sources::Target>) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        self.highlight.set(&self.device, &self.pipeline.get_bind_group_layout(1), scene, target)
-    }
-
-    pub fn select_objects(&mut self, scene: &Scene, ids: &[ObjectId]) -> Result<(), &'static str> {
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
-        for mesh in &mut self.meshes { if let Some(row) = scene.objects().iter().find(|r| r.id == mesh.id) {
-            let [calls, bytes] = mesh.update(&self.queue, row,style(scene,row.id,ids.contains(&row.id)));
-            self.settings_writes += calls; self.settings_bytes += bytes;
-        } }
-        self.instances.set(&self.device,&self.queue,self.meshes.iter().filter(|row|self.instance_rows.contains(&row.id)))?;
-        if !self.meshes.iter().any(GpuMesh::selected) {self.outline.borrow_mut().take();}
-        self.set_clouds(scene,ids)?;self.sheets.set(&self.device,&self.queue,scene,ids,&self.sources.sheet_bases)?;
-        if !ids.is_empty() { self.highlight.objects(&self.device, scene, ids)?; }self.set_scene_text(scene,ids).map_err(|_|"Cannot prepare scene labels")?; Ok(())
-    }
-
-    pub fn set_guides(&mut self,overlay:&crate::guide_gpu::Overlay)->Result<(),&'static str>{if self.guides.set(&self.device,overlay)?{self.set_scene_measure_text().map_err(|_|"Cannot prepare editing guide label")?}Ok(())}
-    pub fn guide_bytes(&self)->u64{self.guides.bytes()}
-    pub fn set_measurement(&mut self,mark:Option<&crate::measure_mark::Mark>)->Result<(),&'static str>{if self.measurement.mark.as_ref()==mark{return Ok(())}self.measurement.set(&self.device,mark)?;self.set_scene_measure_text().map_err(|_|"Cannot prepare measurement annotation")}
-    pub fn measurement_bytes(&self)->u64{self.measurement.bytes()}
-    fn merge_measurement(&self,mut labels:Vec<crate::text::TextLabel>)->Vec<crate::text::TextLabel>{if let Some(mark)=&self.measurement.mark{labels.extend(mark.labels(&labels));}labels.extend(self.guides.overlay.labels(&labels));labels}
-    fn set_scene_measure_text(&self)->anyhow::Result<()>{let mut labels=self.scene_text.borrow().clone();labels.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(labels))}
-    pub fn set_preview(&mut self, draft: Option<&crate::tool::Draft>) -> Result<(), &'static str> { self.preview.set(&self.device, draft) }
-    pub fn preview_bytes(&self) -> u64 { self.preview.bytes() }
-
-    pub fn set_gizmo(&mut self, camera:&crate::camera::Camera, origin:Option<[f64;3]>, active:f32) {
-        let matrix=camera.view_projection();
-        let layout=origin.and_then(|p|crate::widget_layout::world_per_pixel(&matrix,p,self.size[1] as f64/self.density as f64)
-            .and_then(|scale|crate::widget_layout::layout(&matrix,p,scale,self.size,active)));
-        self.widget.prepare(&self.device,&self.queue,layout);
-    }
-    pub fn gizmo_usage(&self) -> [u64;4] { self.widget.usage() }
-    pub fn gizmo_extent(&self) -> Option<[u32;2]> {self.widget.extent()}
-
-    fn text_context(&self)->crate::text_gpu_support::GpuCtx {crate::text_gpu_support::GpuCtx::new(&self.device,&self.queue)}
-    fn text_frame(&self,transform:[f32;16])->crate::scene_text_gpu::TextFrame {crate::scene_text_gpu::TextFrame {mvp:transform,origin:[0.;3],framebuffer:self.size,logical:[self.size[0] as f64/self.density as f64,self.size[1] as f64/self.density as f64],ortho_half_height:0.,clip:{let clip=self.clipping.borrow();let mut planes=[[0.;4];6];if clip.enabled {for (p,row) in planes.iter_mut().zip(&clip.rows){*p=[row.plane.normal[0],row.plane.normal[1],row.plane.normal[2],row.plane.offset];}}planes}}}
-    fn adopt_text(&self,labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        if labels.is_empty() {self.text.borrow_mut().take();self.text_error.borrow_mut().take();return Ok(());}
-        let mut lane=self.text.borrow_mut();if lane.is_none() {let mut new=crate::scene_text_gpu::Lane::new(&self.text_context(),crate::text_gpu_support::Target {format:self.format,samples:1});if let Some(fonts)=self.full_text_fonts.borrow().as_ref() {new.document.replace_fonts(fonts.clone())?;}*lane=Some(new);}lane.as_mut().unwrap().set_labels(labels)
-    }
-    pub fn set_text(&self,mut labels:Vec<crate::text::TextLabel>)->anyhow::Result<()> {
-        for (i,label) in labels.iter_mut().enumerate() {label.id=u32::MAX-i as u32;label.object=None;}
-        let mut merged=self.scene_text.borrow().clone();merged.extend(labels.clone());self.adopt_text(self.merge_measurement(merged))?;*self.presentation_text.borrow_mut()=labels;Ok(())
-    }
-    fn set_scene_text(&self,scene:&Scene,selected:&[ObjectId])->anyhow::Result<()> {
-        let labels=scene.text_labels(selected).map_err(anyhow::Error::msg)?;let mut merged=labels.clone();merged.extend(self.presentation_text.borrow().clone());self.adopt_text(self.merge_measurement(merged))?;*self.scene_text.borrow_mut()=labels;Ok(())
-    }
-    pub fn refresh_text_bounds(&self,scene:&mut Scene) {
-        if let Some(lane)=self.text.borrow().as_ref() {for row in scene.texts_mut() {if let Some(run)=lane.document.runs.iter().find(|run|run.label.id==row.id.value()) {row.prepared.extent=run.buffer.layout_runs().fold([0f64;2],|[w,h],line|[w.max(line.line_w as f64),h.max((line.line_top+line.line_height) as f64)]);}}}
-    }
-    pub fn text_stats(&self)->Option<crate::scene_text_gpu::TextStats> {self.text.borrow().as_ref().map(|lane|lane.stats.clone())}
-    pub fn text_scene_usage(&self)->[u64;4] {self.text.borrow().as_ref().map_or([0;4],|lane|[lane.allocated_bytes(),lane.texture_bytes(),lane.stats.world_plane_rasterizations,lane.document.runs.len() as u64])}
-    pub fn replace_text_fonts(&self,fonts:Vec<Vec<u8>>)->anyhow::Result<()> {if let Some(lane)=self.text.borrow_mut().as_mut() {lane.document.replace_fonts(fonts.clone())?;} else {let mut document=crate::text::TextDocument::new();document.replace_fonts(fonts.clone())?;}*self.full_text_fonts.borrow_mut()=Some(fonts);Ok(())}
-    pub fn clear_text_fonts(&self) {self.full_text_fonts.borrow_mut().take();}
-
-    pub fn text_error(&self)->Option<String> {self.text_error.borrow().clone()}
-    pub fn text_usage(&self)->[u64;6] {self.text.borrow().as_ref().map_or([0;6],|lane|{[lane.document.shape_count,lane.stats.preparations,lane.stats.skipped_preparations,lane.stats.raster_images as u64,lane.stats.raster_image_capacity_bytes as u64,lane.stats.atlas_resets]})}
-    pub fn text_demo(&self)->anyhow::Result<()> {self.set_text(vec![crate::text_example::label()])}
-
-    pub fn cloud_camera(&self,camera:&crate::camera::Camera) {self.cloud_view.set(crate::cloud_gpu::View::camera(camera));self.sheets.camera(camera);}
-    pub fn cloud_usage(&self)->[u64;5] {self.clouds.borrow().as_ref().map_or([0;5],|lane|lane.usage())}
-    pub fn cloud_error(&self)->Option<String> {self.cloud_error.borrow().clone()}
-    fn set_clouds(&self,scene:&Scene,selected:&[ObjectId])->Result<(),&'static str> {
-        if scene.clouds().is_empty()&&scene.streams().is_empty() {self.clouds.borrow_mut().take();self.cloud_error.borrow_mut().take();return Ok(());}
-        let mut owner=self.clouds.borrow_mut();let lane=owner.get_or_insert_with(||crate::cloud_gpu::Lane::new(&self.text_context(),self.format,&self.clipping.borrow().group));lane.set_scene(&self.text_context(),scene,selected)
-    }
-    fn prepare_clouds(&self,transform:[f32;16]) {
-        if let Some(lane)=self.clouds.borrow_mut().as_mut() {lane.set_clipping(self.clipping.borrow().writes);if let Err(error)=lane.prepare(&self.text_context(),transform,self.size,self.density,self.cloud_view.get()) {lane.failed();*self.cloud_error.borrow_mut()=Some(error.to_string());} else {self.cloud_error.borrow_mut().take();}}
-    }
-    pub fn outline_usage(&self)->[u64;4] {self.outline.borrow().as_ref().map_or([0;4],|outline|outline.usage())}
-
-    pub fn highlight_bytes(&self) -> u64 { self.highlight.bytes() }
-
-    pub fn sheet_camera(&self,camera:&crate::camera::Camera) {self.sheets.camera(camera);}
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-    pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
-    pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
-    pub fn cap_error(&self)->Option<&'static str>{self.caps.borrow().pick_error}
-    pub fn cap_usage(&self)->[u64;5]{self.caps.borrow().usage()}
-    pub fn clipping_usage(&self)->[u64;5]{let clip=self.clipping.borrow();[clip.rows.len()as u64,u64::from(clip.enabled),u64::from(clip.solid),clip.writes,clip.buffer.size()]}
-    pub fn clipping_ink_bytes(&self)->[u64;2]{[&self.mesh_ink,&self.strokes,&self.paths,&self.markers,&self.grid].into_iter().map(crate::stroke_gpu::Lane::clipping_bytes).fold(self.highlight.clipping_bytes(),|a,b|[a[0]+b[0],a[1]+b[1]])}
-    pub fn clipping_error(&self)->Option<&'static str>{self.clipping.borrow().error}
-    pub fn tile_usage(&self)->[u64;7]{self.tiles.borrow().usage()}
-    pub fn sheet_usage(&self)->[u64;5] {self.sheets.usage()}
-    pub fn instance_usage(&self)->[u64;5] {self.instances.usage()}
-    pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
-    ) {
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame(&self.queue,*transform,self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
-        self.prepare_clouds(*transform);
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.sheets.view(&self.queue,transform,self.size,self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
-        self.grid.view(&self.queue, transform, self.size, self.density);
-        self.mesh_ink.view(&self.queue, transform, self.size, self.density);
-        self.highlight.view(&self.queue, transform, self.size, self.density);
-        self.preview.view(&self.queue, transform, self.size, self.density);
-        self.measurement.view(&self.queue,transform,self.size,self.density);self.guides.view(&self.queue,transform,self.size,self.density);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);tiles.encode(&self.device,&mut encoder,&self.view_group,*transform);
-        let tables=crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),caps:self.caps.borrow().depth.view.clone()};for lane in [&self.mesh_ink,&self.strokes,&self.paths,&self.markers,&self.grid]{lane.finite_frame(&self.device,&tables,&self.depth);}self.highlight.finite_frame(&self.device,&tables,&self.depth);
-        {
-            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("canvas"),
-                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth,
-                    depth_ops: Some(wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(1.0),
-                        store: wgpu::StoreOp::Store,
-                    }),
-                    stencil_ops: None,
-                }),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view,
-                    depth_slice: None,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-            pass.set_bind_group(2,&clip_group,&[]);
-            pass.set_pipeline(&self.pipeline);
-            pass.set_bind_group(0, &self.view_group, &[]);
-            for mesh in self.meshes.iter().filter(|row|!self.instance_rows.contains(&row.id)) {mesh.draw(&mut pass);}
-            self.instances.draw(&mut pass);
-            pass.set_pipeline(&self.highlight_pipeline); pass.set_bind_group(0, &self.view_group, &[]);
-            self.highlight.mesh(&mut pass);
-        }
-        self.caps.borrow_mut().draw(&mut encoder,view,&self.depth,&self.view_group,&clip_group,&self.meshes,if self.clipping.borrow().enabled{self.clipping.borrow().rows.len()as u32}else{0});
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("cloud depth composite"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),..Default::default()});if let Some(clouds)=self.clouds.borrow().as_ref(){clouds.draw(&mut pass);}}
-        {
-            let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("finite scene ink"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:None,stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});
-            pass.set_bind_group(2,&clip_group,&[]);
-            self.highlight.ink(&mut pass);
-            self.mesh_ink.draw(&mut pass);
-            self.grid.draw(&mut pass);
-            self.strokes.draw(&mut pass);self.sheets.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
-            self.preview.draw(&mut pass);
-        }
-        {let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor{label:Some("measurement overlay"),color_attachments:&[Some(wgpu::RenderPassColorAttachment{view,depth_slice:None,resolve_target:None,ops:wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment{view:&self.depth,depth_ops:Some(wgpu::Operations{load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),timestamp_writes:None,occlusion_query_set:None,multiview_mask:None});self.measurement.draw(&mut pass);self.guides.draw(&mut pass);}
-        if self.meshes.iter().any(GpuMesh::selected) {
-            let mut outline=self.outline.borrow_mut();let outline=outline.get_or_insert_with(||crate::outline_gpu::Outline::new(&self.text_context(),self.format));outline.encode(&self.text_context(),&mut encoder,view,&self.depth,&self.view_group,&self.meshes,*transform,self.size,self.density,&clip_group,clip_revision);
-        } else {self.outline.borrow_mut().take();}
-        self.widget.draw(&mut encoder,view);
-        self.text_error.borrow_mut().take();
-        if let Some(lane)=self.text.borrow_mut().as_mut() {
-            match lane.prepare(&self.text_context(),&self.text_frame(*transform)) {
-            Ok(())=>{
-                let mut pass=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {label:Some("scene glyphs"),depth_stencil_attachment:Some(wgpu::RenderPassDepthStencilAttachment {view:&self.depth,depth_ops:Some(wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}),stencil_ops:None}),color_attachments:&[Some(wgpu::RenderPassColorAttachment {view,depth_slice:None,resolve_target:None,ops:wgpu::Operations {load:wgpu::LoadOp::Load,store:wgpu::StoreOp::Store}})],..Default::default()});if let Err(error)=lane.draw(&mut pass) {*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
-            }
-        }
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
-}
-
-fn style(scene:&Scene,id:ObjectId,selected:bool)->crate::gpu_mesh::Style {crate::gpu_mesh::Style {selected,pickable:scene.pick_id(id.value()).is_some(),colour:scene.face_rgba(id)}}
-
-fn rgba(rgb:[u8;3])->[f32;4] {[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]}
-
-#[cfg(all(test,not(target_arch="wasm32")))]
-impl Renderer {
- pub fn outline_alpha(&self)->Vec<u8> {
-  let owner=self.outline.borrow();let Some(outline)=owner.as_ref() else {return Vec::new();};let Some(texture)=outline.alpha_texture() else {return Vec::new();};let [width,height]=self.size;let pitch=width.div_ceil(256)*256;
-  let buffer=self.device.create_buffer(&wgpu::BufferDescriptor {label:Some("actual outline alpha readback"),size:pitch as u64*height as u64,usage:wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::MAP_READ,mapped_at_creation:false});let mut encoder=self.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo {buffer:&buffer,layout:wgpu::TexelCopyBufferLayout {offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},wgpu::Extent3d {width,height,depth_or_array_layers:1});self.queue.submit([encoder.finish()]);let (tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|r|tx.send(r).unwrap());self.device.poll(wgpu::PollType::Wait {submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();rx.recv().unwrap().unwrap();let bytes=buffer.slice(..).get_mapped_range();let pixels=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..width as usize].iter().copied()).collect();drop(bytes);buffer.unmap();pixels
- }
-}
-```
-
-</details>
-
-<details>
-<summary>Optional patch references</summary>
-
-Use these original edit fragments when comparing a saved checkpoint. Apply the complete blocks above.
-
-```text
---8<-- "journey/code/89g-route-original-depth-into-the-pyramid-owner-01.rs"
-```
-
-```text
---8<-- "journey/code/89g-route-original-depth-into-the-pyramid-owner-02.rs"
-```
-
-```text
---8<-- "journey/code/89g-route-original-depth-into-the-pyramid-owner-03.rs"
-```
-
-```text
---8<-- "journey/code/89g-route-original-depth-into-the-pyramid-owner-04.rs"
-```
-
-```text
---8<-- "journey/code/89g-route-original-depth-into-the-pyramid-owner-05.rs"
-```
-
-</details>
 
 ### 2. `src/browser.rs`
 
 Observe actual depth owner allocation and errors.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+    )?;
     canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
+    canvas.set_attribute(
 ```
-
-</details>
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/89g-route-original-depth-into-the-pyramid-owner-06.rs"
+    )?;
+    canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"pyramid":renderer.depth_pyramid_usage(),"pyramid_error":renderer.depth_pyramid_error(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
+    canvas.set_attribute(
 ```
 
-</details>
+## <a id="checkpoint-89h-exercise-actual-depth-levels-and-cache-release"></a>9. Exercise actual depth levels and cache release
 
-<a id="checkpoint-89h-exercise-actual-depth-levels-and-cache-release"></a>
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 9 of 9</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/pyramid_gpu_tests.rs, s…</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original rendered depth</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">density-scaled hierarchy</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">nearest positive depth an…</text>
+</svg>
+</div>
 
-<details>
-<summary>Implementation 89h-exercise-actual-depth-levels-and-cache-release: Exercise actual depth levels and cache release</summary>
-
-Exercise actual depth levels and cache release.
-
-Data flow: original rendered depth → density-scaled hierarchy → nearest positive depth and radius.
-
-<details>
-<summary>Supplied validation fixture</summary>
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+**What this code does:** Exercise actual depth levels and cache release.
 
 ### 1. `src/pyramid_gpu_tests.rs`
 
 Copy supplied actual mip/readback and cache fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/89h-exercise-actual-depth-levels-and-cache-release-01.rs"
+```rust
+use crate::cap_gpu_tests::{pixels, renderer, scene, wait};
+fn level(
+    r: &crate::renderer::Renderer,
+    texture: &wgpu::Texture,
+    mip: u32,
+    bytes: u32,
+) -> Vec<u8> {
+    let width = texture.width() >> mip;
+    let height = texture.height() >> mip;
+    let pitch = (width * bytes).div_ceil(256) * 256;
+    let buffer = r
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: Some("actual pyramid fixture"),
+            size: u64::from(pitch) * u64::from(height),
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+    let mut encoder = r
+        .device
+        .create_command_encoder(&Default::default());
+    encoder.copy_texture_to_buffer(
+        wgpu::TexelCopyTextureInfo {
+            mip_level: mip,
+            ..texture.as_image_copy()
+        },
+        wgpu::TexelCopyBufferInfo {
+            buffer: &buffer,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(pitch),
+                rows_per_image: Some(height),
+            },
+        },
+        wgpu::Extent3d {
+            width,
+            height,
+            depth_or_array_layers: 1,
+        },
+    );
+    r.queue.submit([encoder.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    buffer
+        .slice(..)
+        .map_async(wgpu::MapMode::Read, move |v| {
+            tx.send(v).unwrap()
+        });
+    wait(r);
+    rx.recv().unwrap().unwrap();
+    let view = buffer.slice(..).get_mapped_range();
+    let data = view
+        .chunks_exact(pitch as usize)
+        .flat_map(|r| r[..(width * bytes) as usize].iter().copied())
+        .collect();
+    drop(view);
+    buffer.unmap();
+    data
+}
+#[test]
+fn actual_pyramid_uses_six_nearest_positive_depth_levels_and_keeps_radius_addresses() {
+    let (scene, _) = scene(false);
+    let r = renderer(&scene);
+    r.set_depth_pyramid(true);
+    pixels(&r);
+    assert_eq!(r.depth_pyramid_error(), None);
+    let owner = r.pyramid.borrow();
+    let owner = owner.as_ref().unwrap();
+    let linear = owner.linear().unwrap();
+    let radii = owner.radii().unwrap();
+    let mut previous: Option<(Vec<f32>, Vec<u16>, usize, usize)> = None;
+    for mip in 0..6 {
+        let width = (linear.texture.width() >> mip) as usize;
+        let height = (linear.texture.height() >> mip) as usize;
+        let depths = level(&r, &linear.texture, mip, 4)
+            .chunks_exact(4)
+            .map(|b| f32::from_le_bytes(b.try_into().unwrap()))
+            .collect::<Vec<_>>();
+        let encoded = level(&r, &radii.texture, mip, 2)
+            .chunks_exact(2)
+            .map(|b| u16::from_le_bytes(b.try_into().unwrap()))
+            .collect::<Vec<_>>();
+        assert!(
+            depths
+                .iter()
+                .all(|z| z.is_finite() && *z >= 0.)
+        );
+        if let Some((before, radius, w, h)) = &previous {
+            for y in 0..height {
+                for x in 0..width {
+                    let mut nearest = 1e30;
+                    let mut chosen = 0;
+                    for i in 0..4 {
+                        let q =
+                            (y * 2 + i / 2).min(h - 1) * w + (x * 2 + i % 2).min(w - 1);
+                        if before[q] > 0. && before[q] < nearest {
+                            nearest = before[q];
+                            chosen = radius[q];
+                        }
+                    }
+                    let expected = if nearest == 1e30 {
+                        0.
+                    } else {
+                        nearest
+                    };
+                    assert_eq!(
+                        depths[y * width + x],
+                        expected,
+                        "actual reduction mip{mip} at{x},{y}"
+                    );
+                    assert_eq!(encoded[y * width + x], chosen);
+                }
+            }
+        } else {
+            let index = 48 * width + 104;
+            assert!(
+                (depths[index] - 0.5).abs() < 1e-5,
+                "original section depth: {}",
+                depths[index]
+            );
+            assert_eq!(depths[0], 0., "empty depth stays absent");
+            assert!(encoded[index] > 0);
+        }
+        previous = Some((depths, encoded, width, height));
+    }
+    assert_eq!(r.depth_pyramid_usage()[3], 6);
+}
+#[test]
+fn actual_pyramid_caches_resting_views_rebuilds_on_resize_and_releases_on_disable() {
+    let (scene, _) = scene(false);
+    let mut r = renderer(&scene);
+    r.set_depth_pyramid(true);
+    pixels(&r);
+    let first = r.depth_pyramid_usage();
+    pixels(&r);
+    assert_eq!(r.depth_pyramid_usage(), first);
+    r.resize(crate::viewport::Viewport {
+        width: 640,
+        height: 480,
+    });
+    r.set_density(2.);
+    let texture = r
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: None,
+            size: wgpu::Extent3d {
+                width: 640,
+                height: 480,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+    r.draw(
+        &texture.create_view(&Default::default()),
+        &Default::default(),
+        &crate::cap_gpu_tests::matrix(),
+    );
+    assert_eq!(r.depth_pyramid_usage()[1], 2);
+    assert_eq!(r.depth_pyramid_usage()[3], 12);
+    r.set_depth_pyramid(false);
+    assert_eq!(r.depth_pyramid_usage(), [0; 4]);
+}
 ```
-
-</details>
 
 ### 2. `src/renderer.rs`
 
 Register the supplied renderer-local GPU fixtures.
 
-<details>
-<summary>Locate the existing block</summary>
+**Locate this existing block:**
 
 ```rust
-  let buffer=self.device.create_buffer(&wgpu::BufferDescriptor {label:Some("actual outline alpha readback"),size:pitch as u64*height as u64,usage:wgpu::BufferUsages::COPY_DST|wgpu::BufferUsages::MAP_READ,mapped_at_creation:false});let mut encoder=self.device.create_command_encoder(&Default::default());encoder.copy_texture_to_buffer(texture.as_image_copy(),wgpu::TexelCopyBufferInfo {buffer:&buffer,layout:wgpu::TexelCopyBufferLayout {offset:0,bytes_per_row:Some(pitch),rows_per_image:Some(height)}},wgpu::Extent3d {width,height,depth_or_array_layers:1});self.queue.submit([encoder.finish()]);let (tx,rx)=std::sync::mpsc::channel();buffer.slice(..).map_async(wgpu::MapMode::Read,move|r|tx.send(r).unwrap());self.device.poll(wgpu::PollType::Wait {submission_index:None,timeout:Some(std::time::Duration::from_secs(5))}).unwrap();rx.recv().unwrap().unwrap();let bytes=buffer.slice(..).get_mapped_range();let pixels=bytes.chunks_exact(pitch as usize).flat_map(|row|row[..width as usize].iter().copied()).collect();drop(bytes);buffer.unmap();pixels
- }
+        pixels
+    }
 }
 ```
 
-</details>
-
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/89h-exercise-actual-depth-levels-and-cache-release-02.rs" skip=1050
+        pixels
+    }
+}
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "pyramid_gpu_tests.rs"]
+mod pyramid_gpu_tests;
 ```
 
-</details>
+## Build & Run
 
-## Run, check and save
-
-From `session_viewer`, after restoring any experimental edits:
+![Recorded visual output for Lesson 18.1 (89h-exercise-actual-depth-levels-and-cache-release)](../../screenshots/journey/89h-exercise-actual-depth-levels-and-cache-release.png)
 
 ```sh
-npm --prefix ../session_tests run course -- dependencies 89h-exercise-actual-depth-levels-and-cache-release
-npm --prefix ../session_tests run course -- check 89h-exercise-actual-depth-levels-and-cache-release
-npm --prefix ../session_tests run course -- save 89h-exercise-actual-depth-levels-and-cache-release
+npm --prefix ../session_tests run course -- dependencies 18.1
 cd workspace/journey
 REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
+cd ../..
+npm --prefix ../session_tests run course -- check 18.1
+npm --prefix ../session_tests run course -- save 18.1
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
-
-## Result and experiment
-
-The following is the expected runnable-checkpoint behavior. This prose batch did not rerun its GPU fixtures; current finite-ink, section and comparison acceptance remains pending after algorithm reconciliation.
-
-The original grey section stays visible while its actual depth is reduced into six cached levels.
-
-Run source section depth, empty pixels, six exact reductions, unchanged-frame caching, density/resize and disabled-release checks.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
-
-Continue with [Original contact metadata and ambient light](90-copy-maintained-original-contact-radius.md).
+Continue with [18.2 · Original contact metadata and ambient light](90-copy-maintained-original-contact-radius.md).

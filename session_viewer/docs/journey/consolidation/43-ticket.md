@@ -110,7 +110,64 @@ Create checked request freshness and view signatures.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/43-ticket-01.rs"
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Ticket {
+    epoch: u64,
+    request: u64,
+}
+
+#[derive(Default)]
+pub struct Gate {
+    epoch: u64,
+    request: u64,
+    latest: Option<Ticket>,
+    closed: bool,
+}
+
+impl Gate {
+    // A ticket names one request in one scene/view epoch; both must still match before its asynchronous result can change selection.
+    pub fn issue(&mut self) -> Result<Ticket, &'static str> {
+        if self.closed {
+            return Err("Picking owner is closed");
+        }
+        let Some(request) = self.request.checked_add(1) else {
+            self.close();
+            return Err("Pick requests exhausted");
+        };
+        self.request = request;
+        let ticket = Ticket {
+            epoch: self.epoch,
+            request,
+        };
+        self.latest = Some(ticket);
+        Ok(ticket)
+    }
+
+    pub fn invalidate(&mut self) {
+        self.latest = None;
+        match self.epoch.checked_add(1) {
+            Some(epoch) => self.epoch = epoch,
+            None => self.close(),
+        }
+    }
+
+    pub fn accept(&mut self, ticket: Ticket) -> bool {
+        if self.closed || self.latest != Some(ticket) {
+            return false;
+        }
+        self.latest = None;
+        true
+    }
+
+    pub fn close(&mut self) {
+        self.closed = true;
+        self.latest = None;
+    }
+}
+
+#[cfg(test)]
+#[path = "pick_gate_tests.rs"]
+mod tests;
 ```
 
 ### 2. `src/pick_view.rs`
@@ -120,35 +177,126 @@ Create checked request freshness and view signatures.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/43-ticket-02.rs"
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct View {
+    transform: [u32; 16],
+    size: [u32; 2],
+    density: u32,
+}
+
+impl View {
+    // Readback belongs to the camera matrix, physical viewport and CSS density that produced it, even when the document has not changed.
+    pub fn new(
+        transform: [f32; 16],
+        size: [u32; 2],
+        density: f32,
+    ) -> Result<Self, &'static str> {
+        if transform.iter().any(|n| !n.is_finite())
+            || size.contains(&0)
+            || !density.is_finite()
+            || density <= 0.0
+        {
+            return Err("Invalid pick view");
+        }
+        Ok(Self {
+            transform: transform.map(f32::to_bits),
+            size,
+            density: density.to_bits(),
+        })
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/pick_gate_tests.rs`
 
 Copy one-use, superseded, invalidated, closed and exhausted ticket checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/43-ticket-03.rs"
+```rust
+use super::*;
+
+#[test]
+fn only_the_latest_request_in_the_current_epoch_can_be_accepted_once() {
+    let mut gate = Gate::default();
+    let old = gate.issue().unwrap();
+    let latest = gate.issue().unwrap();
+    assert!(!gate.accept(old));
+    assert!(gate.accept(latest));
+    assert!(!gate.accept(latest));
+    let before_edit = gate.issue().unwrap();
+    gate.invalidate();
+    assert!(!gate.accept(before_edit));
+    let after_edit = gate.issue().unwrap();
+    assert_ne!(before_edit, after_edit);
+    assert!(gate.accept(after_edit));
+    let pending = gate.issue().unwrap();
+    gate.close();
+    assert!(!gate.accept(pending));
+    assert!(gate.issue().is_err());
+}
+
+#[test]
+fn exhausted_tickets_close_without_wrapping_to_an_old_identity() {
+    let mut gate = Gate::default();
+    gate.request = u64::MAX - 1;
+    let last = gate.issue().unwrap();
+    assert!(gate.issue().is_err());
+    assert!(!gate.accept(last));
+    let mut gate = Gate::default();
+    gate.epoch = u64::MAX;
+    let last = gate.issue().unwrap();
+    gate.invalidate();
+    assert!(!gate.accept(last));
+    assert!(gate.issue().is_err());
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/pick_view_tests.rs`
 
 Copy camera, viewport, density and invalid-view checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/43-ticket-04.rs"
+```rust
+use crate::pick_view::View;
+
+#[test]
+fn a_camera_viewport_or_density_change_invalidates_the_readback_view() {
+    let transform = session_rust::Xform::identity()
+        .m
+        .map(|n| n as f32);
+    let base = View::new(transform, [640, 480], 1.0).unwrap();
+    assert_eq!(
+        base,
+        View::new(transform, [640, 480], 1.0).unwrap()
+    );
+    let mut orbit = transform;
+    orbit[0] = 0.9;
+    assert_ne!(
+        base,
+        View::new(orbit, [640, 480], 1.0).unwrap()
+    );
+    let mut pan = transform;
+    pan[12] = 0.01;
+    assert_ne!(
+        base,
+        View::new(pan, [640, 480], 1.0).unwrap()
+    );
+    assert_ne!(
+        base,
+        View::new(transform, [641, 480], 1.0).unwrap()
+    );
+    assert_ne!(
+        base,
+        View::new(transform, [640, 480], 2.0).unwrap()
+    );
+    let mut invalid = transform;
+    invalid[3] = f32::NAN;
+    assert!(View::new(invalid, [640, 480], 1.0).is_err());
+    assert!(View::new(transform, [0, 480], 1.0).is_err());
+    assert!(View::new(transform, [640, 480], f32::INFINITY).is_err());
+}
 ```
 
 ### 5. `src/lib.rs`
@@ -158,15 +306,20 @@ Register the freshness component and its checks.
 **Locate this existing block:**
 
 ```rust
-
 #[cfg(test)]
 mod pick_input_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/43-ticket-05.rs" skip=36
+#[cfg(test)]
+mod pick_input_tests;
+
+pub mod pick_gate;
+pub mod pick_view;
+#[cfg(test)]
+mod pick_view_tests;
 ```
 
 ## <a id="checkpoint-43a-flight"></a>2. Carry checked tickets through GPU mapping
@@ -212,18 +365,206 @@ After that block, type:
 
 Carry and check the current request ticket through mapping.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, pick_window::Window, stroke_gpu::Lane};
-use std::sync::{Arc, atomic::{AtomicBool, AtomicU8, Ordering}};
+}
 
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
+pub struct Picker {
+    pipeline: wgpu::RenderPipeline,
+    view: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+    crop: wgpu::Buffer,
+    crop_group: wgpu::BindGroup,
+    image: Option<crate::pick_image::Image>,
+    active: Option<Arc<AtomicU8>>,
+    pending: Option<Request>,
+    alive: Arc<AtomicBool>,
+    pub submitted: u64,
+    pub coalesced: u64,
+}
 
-pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket }
-struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket }
+impl Drop for Picker {
+    fn drop(&mut self) {
+        self.alive.store(false, Ordering::Release);
+    }
+}
 
+impl Picker {
+    pub fn new(
+        device: &wgpu::Device,
+        view_layout: &wgpu::BindGroupLayout,
+        model_layout: &wgpu::BindGroupLayout,
+    ) -> Self {
+        let crop_layout = crate::gpu_layout::uniform(device, 64);
+        let pipeline = crate::pick_pipeline::mesh(
+            device,
+            view_layout,
+            model_layout,
+            &crop_layout,
+        );
+        let buffer = |size| {
+            device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pick view"),
+                size,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            })
+        };
+        let view = buffer(80);
+        let crop = buffer(64);
+        let view_group = crate::gpu_layout::group(device, view_layout, &view);
+        let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
+        Self {
+            pipeline,
+            view,
+            view_group,
+            crop,
+            crop_group,
+            image: None,
+            active: None,
+            pending: None,
+            alive: Arc::new(AtomicBool::new(true)),
+            submitted: 0,
+            coalesced: 0,
+        }
+    }
+
+    pub fn queue(&mut self, request: Request) {
+        if self.pending.replace(request).is_some() {
+            self.coalesced += 1;
+        }
+    }
+
+    pub fn queued(&self) -> bool {
+        self.pending.is_some()
+    }
+
+    pub fn cancel(&mut self) {
+        self.pending = None;
+        let mapped = self
+            .active
+            .take()
+            .is_some_and(|ready| ready.load(Ordering::Acquire) <= 1);
+        if let Some(image) = self.image.take() {
+            if mapped {
+                image.readback.unmap();
+            }
+        }
+    }
+
+    pub fn next(&mut self) -> Option<Request> {
+        if self.active.is_some() {
+            None
+        } else {
+            self.pending.take()
+        }
+    }
+
+    pub fn submit(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        request: Request,
+        meshes: &[GpuMesh],
+        ink: &[&Lane],
+    ) {
+        assert!(
+            self.active.is_none(),
+            "Only one pick may be in flight"
+        );
+        let window = request.window;
+        if self.image.as_ref().is_none_or(|image| {
+            image.window.draw[2..] != window.draw[2..]
+                || image.readback.size() != window.bytes()
+        }) {
+            self.image = Some(crate::pick_image::Image::new(device, window));
+        }
+        let image = self.image.as_mut().unwrap();
+        image.window = window;
+        let mut bytes: Vec<u8> = request
+            .transform
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.resize(80, 0);
+        queue.write_buffer(&self.view, 0, &bytes);
+        let bytes: Vec<u8> = window
+            .crop()
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        queue.write_buffer(&self.crop, 0, &bytes);
+        for lane in ink {
+            lane.view(
+                queue,
+                &request.transform,
+                window.full,
+                request.density,
+            );
+        }
+        queue.submit([crate::pick_encode::draw(
+            device,
+            image,
+            window,
+            &self.pipeline,
+            &self.view_group,
+            &self.crop_group,
+            meshes,
+            ink,
+        )]);
+        let ready = Arc::new(AtomicU8::new(0));
+        self.active = Some(Arc::clone(&ready));
+        let alive = Arc::clone(&self.alive);
+        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
+        image
+            .readback
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                ready.store(
+                    if result.is_ok() {
+                        1
+                    } else {
+                        2
+                    },
+                    Ordering::Release,
+                );
+                if alive.load(Ordering::Acquire) {
+                    #[cfg(target_arch = "wasm32")]
+                    crate::browser_pick::wake();
+                }
+            });
+        self.submitted += 1;
+    }
+
+    pub fn take(&mut self) -> Option<Result<Option<[u32; 2]>, &'static str>> {
+        let status = self.active.as_ref()?.load(Ordering::Acquire);
+        if status == 0 {
+            return None;
+        }
+        self.active = None;
+        let image = self.image.as_ref().unwrap();
+        if status != 1 {
+            return Some(Err("Cannot read GPU pick image"));
+        }
+        let bytes = image.readback.slice(..).get_mapped_range();
+        let result = image.window.closest(&bytes);
+        drop(bytes);
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+}
+
+pub(crate) struct Queued {
+    request: Request,
+    ticket: crate::pick_gate::Ticket,
+}
+struct Flight {
+    ready: Arc<AtomicU8>,
+    ticket: crate::pick_gate::Ticket,
+}
 
 pub struct Picker {
     pipeline: wgpu::RenderPipeline,
@@ -240,79 +581,203 @@ pub struct Picker {
     pub coalesced: u64,
 }
 
-impl Drop for Picker { fn drop(&mut self) { self.alive.store(false, Ordering::Release); self.gate.close(); } }
+impl Drop for Picker {
+    fn drop(&mut self) {
+        self.alive.store(false, Ordering::Release);
+        self.gate.close();
+    }
+}
 
 impl Picker {
-    pub fn new(device: &wgpu::Device, view_layout: &wgpu::BindGroupLayout, model_layout: &wgpu::BindGroupLayout) -> Self {
+    pub fn new(
+        device: &wgpu::Device,
+        view_layout: &wgpu::BindGroupLayout,
+        model_layout: &wgpu::BindGroupLayout,
+    ) -> Self {
         let crop_layout = crate::gpu_layout::uniform(device, 64);
-        let pipeline = crate::pick_pipeline::mesh(device, view_layout, model_layout, &crop_layout);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(80); let crop = buffer(64);
+        let pipeline = crate::pick_pipeline::mesh(
+            device,
+            view_layout,
+            model_layout,
+            &crop_layout,
+        );
+        let buffer = |size| {
+            device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("pick view"),
+                size,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            })
+        };
+        let view = buffer(80);
+        let crop = buffer(64);
         let view_group = crate::gpu_layout::group(device, view_layout, &view);
         let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
-            alive: Arc::new(AtomicBool::new(true)), gate: Default::default(), submitted: 0, coalesced: 0 }
+        Self {
+            pipeline,
+            view,
+            view_group,
+            crop,
+            crop_group,
+            image: None,
+            active: None,
+            pending: None,
+            alive: Arc::new(AtomicBool::new(true)),
+            gate: Default::default(),
+            submitted: 0,
+            coalesced: 0,
+        }
     }
 
     pub fn queue(&mut self, request: Request) -> Result<(), &'static str> {
-        crate::pick_view::View::new(request.transform, request.window.full, request.density)?;
+        crate::pick_view::View::new(
+            request.transform,
+            request.window.full,
+            request.density,
+        )?;
         let ticket = self.gate.issue()?;
-        if self.pending.replace(Queued { request, ticket }).is_some() { self.coalesced += 1; }
+        if self
+            .pending
+            .replace(Queued { request, ticket })
+            .is_some()
+        {
+            self.coalesced += 1;
+        }
         Ok(())
     }
 
-    pub fn queued(&self) -> bool { self.pending.is_some() }
-
-    pub fn cancel(&mut self) {
-        self.gate.invalidate(); self.pending = None;
-        let mapped = self.active.take().is_some_and(|flight| flight.ready.load(Ordering::Acquire) <= 1);
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
+    pub fn queued(&self) -> bool {
+        self.pending.is_some()
     }
 
-    pub(crate) fn next(&mut self) -> Option<Queued> { if self.active.is_some() { None } else { self.pending.take() } }
+    pub fn cancel(&mut self) {
+        self.gate.invalidate();
+        self.pending = None;
+        let mapped = self
+            .active
+            .take()
+            .is_some_and(|flight| flight.ready.load(Ordering::Acquire) <= 1);
+        if let Some(image) = self.image.take() {
+            if mapped {
+                image.readback.unmap();
+            }
+        }
+    }
 
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
-        let request = queued.request; let window = request.window;
-        if self.image.as_ref().is_none_or(|image| image.window.draw[2..] != window.draw[2..] || image.readback.size() != window.bytes()) {
+    pub(crate) fn next(&mut self) -> Option<Queued> {
+        if self.active.is_some() {
+            None
+        } else {
+            self.pending.take()
+        }
+    }
+
+    pub(crate) fn submit(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        queued: Queued,
+        meshes: &[GpuMesh],
+        ink: &[&Lane],
+    ) {
+        assert!(
+            self.active.is_none(),
+            "Only one pick may be in flight"
+        );
+        let request = queued.request;
+        let window = request.window;
+        if self.image.as_ref().is_none_or(|image| {
+            image.window.draw[2..] != window.draw[2..]
+                || image.readback.size() != window.bytes()
+        }) {
             self.image = Some(crate::pick_image::Image::new(device, window));
         }
-        let image = self.image.as_mut().unwrap(); image.window = window;
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
+        let image = self.image.as_mut().unwrap();
+        image.window = window;
+        let mut bytes: Vec<u8> = request
+            .transform
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.resize(80, 0);
         queue.write_buffer(&self.view, 0, &bytes);
-        let bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect(); queue.write_buffer(&self.crop, 0, &bytes);
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket }); let alive = Arc::clone(&self.alive);
-        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
-            if alive.load(Ordering::Acquire) {
-                #[cfg(target_arch = "wasm32")] crate::browser_pick::wake();
-            }
+        let bytes: Vec<u8> = window
+            .crop()
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        queue.write_buffer(&self.crop, 0, &bytes);
+        for lane in ink {
+            lane.view(
+                queue,
+                &request.transform,
+                window.full,
+                request.density,
+            );
+        }
+        queue.submit([crate::pick_encode::draw(
+            device,
+            image,
+            window,
+            &self.pipeline,
+            &self.view_group,
+            &self.crop_group,
+            meshes,
+            ink,
+        )]);
+        let ready = Arc::new(AtomicU8::new(0));
+        self.active = Some(Flight {
+            ready: Arc::clone(&ready),
+            ticket: queued.ticket,
         });
+        let alive = Arc::clone(&self.alive);
+        // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
+        image
+            .readback
+            .slice(..)
+            .map_async(wgpu::MapMode::Read, move |result| {
+                ready.store(
+                    if result.is_ok() {
+                        1
+                    } else {
+                        2
+                    },
+                    Ordering::Release,
+                );
+                if alive.load(Ordering::Acquire) {
+                    #[cfg(target_arch = "wasm32")]
+                    crate::browser_pick::wake();
+                }
+            });
         self.submitted += 1;
     }
 
     pub fn take(&mut self) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let status = self.active.as_ref()?.ready.load(Ordering::Acquire);
-        if status == 0 { return None; }
+        let status = self
+            .active
+            .as_ref()?
+            .ready
+            .load(Ordering::Acquire);
+        if status == 0 {
+            return None;
+        }
         let flight = self.active.take().unwrap();
         let current = self.gate.accept(flight.ticket);
         let image = self.image.as_ref().unwrap();
-        if status != 1 { return Some(if current { Err("Cannot read GPU pick image") } else { Ok(None) }); }
+        if status != 1 {
+            return Some(if current {
+                Err("Cannot read GPU pick image")
+            } else {
+                Ok(None)
+            });
+        }
         let bytes = image.readback.slice(..).get_mapped_range();
-        let result = if current { image.window.closest(&bytes) } else { Ok(None) };
-        drop(bytes); image.readback.unmap(); Some(result)
-    }
-
-    pub fn usage(&self) -> [u64; 3] {
-        [u64::from(self.active.is_some()), u64::from(self.pending.is_some()), self.image.as_ref().map_or(0, |image|
-            image.readback.size() + u64::from(image.window.draw[2]) * u64::from(image.window.draw[3]) * 12) + 144]
-    }
-}
+        let result = if current {
+            image.window.closest(&bytes)
+        } else {
+            Ok(None)
+        };
+        drop(bytes);
 ```
 
 ### 2. `src/renderer.rs`
@@ -322,18 +787,17 @@ Propagate checked request-admission failures before GPU submission.
 **Locate this existing block:**
 
 ```rust
-
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density });
-        self.pump_pick(); Ok(())
-    }
+            density: self.density,
+        });
+        self.pump_pick();
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/43a-flight-06.rs"
+            density: self.density,
+        })?;
+        self.pump_pick();
 ```
 
 ## <a id="checkpoint-43b-view"></a>3. Reject results from an old view or interrupted input
@@ -384,20 +848,59 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+            return None;
+        }
+        let flight = self.active.take().unwrap();
+        let current = self.gate.accept(flight.ticket);
+        let image = self.image.as_ref().unwrap();
+        if status != 1 {
+            return Some(if current {
+                Err("Cannot read GPU pick image")
+            } else {
+                Ok(None)
+            });
+        }
+        let bytes = image.readback.slice(..).get_mapped_range();
+        let result = if current {
+            image.window.closest(&bytes)
+        } else {
+            Ok(None)
+        };
+```
+
+Replace it with:
+
+```rust
+            return None;
+        }
+        let flight = self.active.take().unwrap();
+        let current = self.gate.accept(flight.ticket) && flight.view == view;
+        let image = self.image.as_ref().unwrap();
+        if status != 1 {
+            return Some(if current {
+                Err("Cannot read GPU pick image")
+            } else {
+                Ok(Reply::Stale)
+            });
+        }
+        let bytes = image.readback.slice(..).get_mapped_range();
+        let result = if current {
+            image.window.closest(&bytes).map(Reply::Hit)
+        } else {
+            Ok(Reply::Stale)
+        };
+```
+
+**Locate this block:**
+
+```rust
         self.submitted += 1;
     }
 
     pub fn take(&mut self) -> Option<Result<Option<[u32; 2]>, &'static str>> {
-        let status = self.active.as_ref()?.ready.load(Ordering::Acquire);
-        if status == 0 { return None; }
-        let flight = self.active.take().unwrap();
-        let current = self.gate.accept(flight.ticket);
-        let image = self.image.as_ref().unwrap();
-        if status != 1 { return Some(if current { Err("Cannot read GPU pick image") } else { Ok(None) }); }
-        let bytes = image.readback.slice(..).get_mapped_range();
-        let result = if current { image.window.closest(&bytes) } else { Ok(None) };
-        drop(bytes); image.readback.unmap(); Some(result)
-    }
+        let status = self
+            .active
+            .as_ref()?
 ```
 
 Replace it with:
@@ -406,70 +909,99 @@ Replace it with:
         self.submitted += 1;
     }
 
-    pub fn take(&mut self, view: crate::pick_view::View) -> Option<Result<Reply, &'static str>> {
-        let status = self.active.as_ref()?.ready.load(Ordering::Acquire);
-        if status == 0 { return None; }
-        let flight = self.active.take().unwrap();
-        let current = self.gate.accept(flight.ticket) && flight.view == view;
-        let image = self.image.as_ref().unwrap();
-        if status != 1 { return Some(if current { Err("Cannot read GPU pick image") } else { Ok(Reply::Stale) }); }
-        let bytes = image.readback.slice(..).get_mapped_range();
-        let result = if current { image.window.closest(&bytes).map(Reply::Hit) } else { Ok(Reply::Stale) };
-        drop(bytes); image.readback.unmap(); Some(result)
-    }
+    pub fn take(
+        &mut self,
+        view: crate::pick_view::View,
+    ) -> Option<Result<Reply, &'static str>> {
+        let status = self
+            .active
+            .as_ref()?
 ```
 
 **Locate this block:**
 
 ```rust
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket }); let alive = Arc::clone(&self.alive);
+        self.active = Some(Flight {
+            ready: Arc::clone(&ready),
+            ticket: queued.ticket,
+        });
+        let alive = Arc::clone(&self.alive);
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
 ```
 
 Replace it with:
 
 ```rust
-        for lane in ink { lane.view(queue, &request.transform, window.full, request.density); }
-        queue.submit([crate::pick_encode::draw(device, image, window, &self.pipeline,
-            &self.view_group, &self.crop_group, meshes, ink)]);
-        let ready = Arc::new(AtomicU8::new(0)); self.active = Some(Flight { ready: Arc::clone(&ready), ticket: queued.ticket, view: queued.view }); let alive = Arc::clone(&self.alive);
+        self.active = Some(Flight {
+            ready: Arc::clone(&ready),
+            ticket: queued.ticket,
+            view: queued.view,
+        });
+        let alive = Arc::clone(&self.alive);
         // Mapping finishes asynchronously; the callback publishes readiness, and the owner reads the bytes without blocking browser input.
-        image.readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
-            ready.store(if result.is_ok() { 1 } else { 2 }, Ordering::Release);
 ```
 
 **Locate this block:**
 
 ```rust
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
+        }
     }
 
-    pub(crate) fn next(&mut self) -> Option<Queued> { if self.active.is_some() { None } else { self.pending.take() } }
-
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
+    pub(crate) fn next(&mut self) -> Option<Queued> {
+        if self.active.is_some() {
+            None
+        } else {
+            self.pending.take()
+        }
+    }
 ```
 
 Replace it with:
 
 ```rust
-        if let Some(image) = self.image.take() { if mapped { image.readback.unmap(); } }
+        }
     }
 
     pub(crate) fn next(&mut self, view: crate::pick_view::View) -> Option<Queued> {
-        if self.active.is_some() { return None; }
+        if self.active.is_some() {
+            return None;
+        }
         let queued = self.pending.take()?;
-        if queued.view == view { Some(queued) } else { self.gate.invalidate(); None }
+        if queued.view == view {
+            Some(queued)
+        } else {
+            self.gate.invalidate();
+            None
+        }
     }
+```
 
+**Locate this block:**
 
-    pub(crate) fn submit(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, queued: Queued, meshes: &[GpuMesh], ink: &[&Lane]) {
-        assert!(self.active.is_none(), "Only one pick may be in flight");
+```rust
+        let ticket = self.gate.issue()?;
+        if self
+            .pending
+            .replace(Queued { request, ticket })
+            .is_some()
+        {
+            self.coalesced += 1;
+```
+
+Replace it with:
+
+```rust
+        let ticket = self.gate.issue()?;
+        if self
+            .pending
+            .replace(Queued {
+                request,
+                ticket,
+                view,
+            })
+            .is_some()
+        {
+            self.coalesced += 1;
 ```
 
 **Locate this block:**
@@ -478,11 +1010,10 @@ Replace it with:
     }
 
     pub fn queue(&mut self, request: Request) -> Result<(), &'static str> {
-        crate::pick_view::View::new(request.transform, request.window.full, request.density)?;
-        let ticket = self.gate.issue()?;
-        if self.pending.replace(Queued { request, ticket }).is_some() { self.coalesced += 1; }
-        Ok(())
-    }
+        crate::pick_view::View::new(
+            request.transform,
+            request.window.full,
+            request.density,
 ```
 
 Replace it with:
@@ -491,38 +1022,44 @@ Replace it with:
     }
 
     pub fn queue(&mut self, request: Request) -> Result<(), &'static str> {
-        let view = crate::pick_view::View::new(request.transform, request.window.full, request.density)?;
-        let ticket = self.gate.issue()?;
-        if self.pending.replace(Queued { request, ticket, view }).is_some() { self.coalesced += 1; }
-        Ok(())
-    }
+        let view = crate::pick_view::View::new(
+            request.transform,
+            request.window.full,
+            request.density,
 ```
 
 **Locate this block:**
 
 ```rust
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
-
-pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket }
-struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket }
-
+    ticket: crate::pick_gate::Ticket,
+}
+struct Flight {
+    ready: Arc<AtomicU8>,
+    ticket: crate::pick_gate::Ticket,
+}
 
 pub struct Picker {
+    pipeline: wgpu::RenderPipeline,
 ```
 
 Replace it with:
 
 ```rust
-#[derive(Clone, Copy)]
-pub struct Request { pub window: Window, pub transform: [f32; 16], pub density: f32 }
-
-pub(crate) struct Queued { request: Request, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
-struct Flight { ready: Arc<AtomicU8>, ticket: crate::pick_gate::Ticket, view: crate::pick_view::View }
-pub enum Reply { Hit(Option<[u32; 2]>), Stale }
-
+    ticket: crate::pick_gate::Ticket,
+    view: crate::pick_view::View,
+}
+struct Flight {
+    ready: Arc<AtomicU8>,
+    ticket: crate::pick_gate::Ticket,
+    view: crate::pick_view::View,
+}
+pub enum Reply {
+    Hit(Option<[u32; 2]>),
+    Stale,
+}
 
 pub struct Picker {
+    pipeline: wgpu::RenderPipeline,
 ```
 
 ### 2. `src/renderer.rs`
@@ -532,30 +1069,80 @@ Adopt only the current view and cancel interrupted input.
 **Locate this existing block:**
 
 ```rust
-    pub fn request_pick(&mut self, screen: [f32; 2], transform: [f32; 16]) -> Result<(), &'static str> {
-        let window = crate::pick_window::Window::new(screen, self.size, self.density).ok_or("Invalid pick cursor")?;
-        self.picker.queue(crate::pick_gpu::Request { window, transform, density: self.density })?;
-        self.pump_pick(); Ok(())
+        })?;
+        self.pump_pick();
+        Ok(())
     }
 
     fn pump_pick(&mut self) {
-        if let Some(request) = self.picker.next() { self.picker.submit(&self.device, &self.queue, request,
-            &self.meshes, &[&self.strokes, &self.paths, &self.markers]); }
+        if let Some(request) = self.picker.next() {
+            self.picker.submit(
+                &self.device,
+                &self.queue,
+                request,
+                &self.meshes,
+                &[&self.strokes, &self.paths, &self.markers],
+            );
+        }
     }
 
     pub fn take_pick(&mut self) -> Option<Result<Option<[u32; 2]>, &'static str>> {
         let result = self.picker.take();
-        if result.is_some() && self.picker.queued() { self.pump_pick(); return None; }
+        if result.is_some() && self.picker.queued() {
+            self.pump_pick();
+            return None;
+        }
         result
     }
-
-    pub fn cancel_pick(&mut self) { self.picker.cancel(); }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/43b-view-06.rs"
+        })?;
+        self.pump_pick(transform);
+        Ok(())
+    }
+
+    fn pump_pick(&mut self, transform: [f32; 16]) {
+        let Ok(view) = crate::pick_view::View::new(transform, self.size, self.density)
+        else {
+            self.picker.cancel();
+            return;
+        };
+        if let Some(request) = self.picker.next(view) {
+            self.picker.submit(
+                &self.device,
+                &self.queue,
+                request,
+                &self.meshes,
+                &[&self.strokes, &self.paths, &self.markers],
+            );
+        }
+    }
+
+    pub fn take_pick(
+        &mut self,
+        transform: [f32; 16],
+    ) -> Option<Result<Option<[u32; 2]>, &'static str>> {
+        let view = match crate::pick_view::View::new(transform, self.size, self.density)
+        {
+            Ok(view) => view,
+            Err(error) => {
+                self.picker.cancel();
+                return Some(Err(error));
+            }
+        };
+        match self.picker.take(view) {
+            Some(Ok(crate::pick_gpu::Reply::Hit(hit))) => Some(Ok(hit)),
+            Some(Ok(crate::pick_gpu::Reply::Stale)) => {
+                self.pump_pick(transform);
+                None
+            }
+            Some(Err(error)) => Some(Err(error)),
+            None => None,
+        }
+    }
 ```
 
 ### 3. `src/browser.rs`
@@ -567,127 +1154,194 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            None
-        };
-        let action = if event.type_() == "viewer-pick" {
-            match renderer.take_pick() {
-                Some(Ok(hit)) => Some(Action::Picked(hit.and_then(|hit| editor.scene.pick_id(hit[0])))),
-                Some(Err(error)) => { report(error); None },
-                None => None,
+                None
+            };
+            let action = if event.type_() == "viewer-pick" {
+                match renderer.take_pick() {
+                    Some(Ok(hit)) => Some(Action::Picked(
 ```
 
 Replace it with:
 
 ```rust
-            None
-        };
-        let action = if event.type_() == "viewer-pick" {
-            match renderer.take_pick(editor.camera.uniform()) {
-                Some(Ok(hit)) => Some(Action::Picked(hit.and_then(|hit| editor.scene.pick_id(hit[0])))),
-                Some(Err(error)) => { report(error); None },
-                None => None,
+                None
+            };
+            let action = if event.type_() == "viewer-pick" {
+                match renderer.take_pick(editor.camera.uniform()) {
+                    Some(Ok(hit)) => Some(Action::Picked(
 ```
 
 **Locate this block:**
 
 ```rust
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if active_fault.message().is_some() { return; }
-        let mut editor = shared.borrow_mut();
-        if event.type_() == "pagehide" {
-            gesture.cancel();
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+            let mut editor = shared.borrow_mut();
+            if event.type_() == "pagehide" {
+                gesture.cancel();
+                if event
 ```
 
 Replace it with:
 
 ```rust
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if active_fault.message().is_some() { return; }
-        let mut editor = shared.borrow_mut();
-        if matches!(event.type_().as_str(), "blur" | "pagehide" | "viewer-reload") { renderer.cancel_pick(); }
-        if event.type_() == "pagehide" {
-            gesture.cancel();
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+            let mut editor = shared.borrow_mut();
+            if matches!(
+                event.type_().as_str(),
+                "blur" | "pagehide" | "viewer-reload"
+            ) {
+                renderer.cancel_pick();
+            }
+            if event.type_() == "pagehide" {
+                gesture.cancel();
+                if event
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/pick_gpu_tests.rs`
 
 Copy actual GPU old-view and cancelled-request checks.
 
-**Locate this existing block:**
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
-```text
+**Locate this block:**
 
-fn finish(renderer: &mut Renderer) -> Option<[u32; 2]> {
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    renderer.take_pick().expect("Map callback completed").unwrap()
+```rust
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    assert!(renderer.take_pick().is_none());
+    assert_eq!(renderer.stats(), uploads);
+}
+```
+
+Replace it with:
+
+```rust
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    assert!(renderer.take_pick(identity()).is_none());
+    assert_eq!(renderer.stats(), uploads);
 }
 
-fn identity() -> [f32; 16] { session_rust::Xform::identity().m.map(|n| n as f32) }
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/43b-view-09.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 5. `src/pick_gpu_tests.rs`
-
-Copy actual GPU old-view and cancelled-request checks.
-
-**Locate this existing block:**
-
-```text
-    for _ in 0..20 { renderer.request_pick([0.95, 0.95], identity()).unwrap(); }
-    assert_eq!(&renderer.pick_usage()[..2], &[1, 1]); assert_eq!(renderer.pick_usage()[4], 19);
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    assert!(renderer.take_pick().is_none(), "A newer cursor supersedes the first result");
-    assert_eq!(finish(&mut renderer), None);
+#[test]
+fn a_real_readback_from_an_old_camera_cannot_select_in_the_current_view() {
+    let mut scene = Scene::demo();
+    scene.clear();
+    scene.insert(triangle(0.2)).unwrap();
+    let mut renderer = renderer(&scene);
+    renderer
+        .request_pick([0.0, 0.0], identity())
+        .unwrap();
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    let mut moved = identity();
+    moved[12] = 0.2;
+    assert!(
+        renderer.take_pick(moved).is_none(),
+        "Same scene, different camera: no accepted hit"
+    );
     assert_eq!(&renderer.pick_usage()[..2], &[0, 0]);
-    assert!(renderer.pick_usage()[2] <= 25 * 256 + 31 * 31 * 12 + 176, "Readback does not grow with the full drawing");
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/43b-view-10.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 6. `src/pick_gpu_tests.rs`
-
-Copy actual GPU old-view and cancelled-request checks.
-
-**Locate this existing block:**
-
-```text
-    assert!(weak.upgrade().is_none()); assert_eq!(&renderer.pick_usage()[..3], &[0, 0, 144]);
-    let new = scene.insert(triangle(0.3)).unwrap(); assert_ne!(old, new); renderer.set_scene(&scene, None);
-    renderer.request_pick([0.0, 0.0], identity()).unwrap(); assert_eq!(finish(&mut renderer), Some([new.value(), 0]));
-    assert!(renderer.take_pick().is_none(), "The cancelled map has no result for the replacement");
-    let uploads = renderer.stats(); renderer.request_pick([0.0, 0.0], identity()).unwrap(); renderer.cancel_pick();
-    renderer.device.poll(wgpu::PollType::Wait { submission_index: None, timeout: Some(std::time::Duration::from_secs(5)) }).unwrap();
-    assert!(renderer.take_pick().is_none()); assert_eq!(renderer.stats(), uploads);
+    let submitted = renderer.pick_usage()[3];
+    let mut invalid = moved;
+    invalid[0] = f32::NAN;
+    assert!(
+        renderer
+            .request_pick([0.0, 0.0], invalid)
+            .is_err()
+    );
+    assert_eq!(renderer.pick_usage()[3], submitted);
+    renderer
+        .request_pick([0.0, 0.0], identity())
+        .unwrap();
+    assert!(finish(&mut renderer).is_some());
+    renderer
+        .request_pick([0.0, 0.0], identity())
+        .unwrap();
+    renderer.set_density(2.0);
+    renderer
+        .device
+        .poll(wgpu::PollType::Wait {
+            submission_index: None,
+            timeout: Some(std::time::Duration::from_secs(5)),
+        })
+        .unwrap();
+    assert!(
+        renderer.take_pick(identity()).is_none(),
+        "Density changed while the map was pending"
+    );
 }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+**Locate this block:**
 
-```text
---8<-- "journey/code/43b-view-11.rs"
+```rust
+        .unwrap();
+    assert_eq!(finish(&mut renderer), Some([new.value(), 0]));
+    assert!(
+        renderer.take_pick().is_none(),
+        "The cancelled map has no result for the replacement"
+    );
+    let uploads = renderer.stats();
+```
+
+Replace it with:
+
+```rust
+        .unwrap();
+    assert_eq!(finish(&mut renderer), Some([new.value(), 0]));
+    assert!(
+        renderer.take_pick(identity()).is_none(),
+        "The cancelled map has no result for the replacement"
+    );
+    let uploads = renderer.stats();
+```
+
+**Locate this block:**
+
+```rust
+        })
+        .unwrap();
+    assert!(
+        renderer.take_pick().is_none(),
+        "A newer cursor supersedes the first result"
+    );
+    assert_eq!(finish(&mut renderer), None);
+```
+
+Replace it with:
+
+```rust
+        })
+        .unwrap();
+    assert!(
+        renderer.take_pick(identity()).is_none(),
+        "A newer cursor supersedes the first result"
+    );
+    assert_eq!(finish(&mut renderer), None);
+```
+
+**Locate this block:**
+
+```rust
+    renderer
+        .take_pick()
+        .expect("Map callback completed")
+        .unwrap()
+}
+```
+
+Replace it with:
+
+```rust
+    renderer
+        .take_pick(identity())
+        .expect("Map callback completed")
+        .unwrap()
+}
 ```
 
 ## Build & Run

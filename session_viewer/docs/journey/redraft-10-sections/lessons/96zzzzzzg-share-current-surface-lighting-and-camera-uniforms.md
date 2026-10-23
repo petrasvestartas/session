@@ -1,6 +1,6 @@
 # 22.1 · Original surface colours and lighting controls
 
-**Goal:** Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings. · **Steps:** 2 · **Source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Expose current headlight and backface presentation through the existing surface shader, editor commands and browser settings. · **Steps:** 2 · **Source:** [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/gpu/pass.rs](../../../../src/engine/gpu/pass.rs) · [engine/gpu/targets.rs](../../../../src/engine/gpu/targets.rs) · [engine/gpu/frame.rs](../../../../src/engine/gpu/frame.rs) · [engine/gpu/view.rs](../../../../src/engine/gpu/view.rs) · [engine/pipelines/mod.rs](../../../../src/engine/pipelines/mod.rs) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ribbon.wgsl](../../../../src/shaders/ribbon.wgsl) · [shaders/vector.wgsl](../../../../src/shaders/vector.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [app/scene.rs](../../../../src/app/scene.rs) (`src/shaders/scene.wgsl,src/engine/gpu/msaa.rs,src/engine/gpu/render.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,33 +32,27 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/scene.wgsl</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/msaa.rs</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Share flat and Arctic sur…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Vertex RGB &amp; Uniforms</text>
-  <polygon points="610,56 690,56 610,126" fill="#bfdbfe" stroke="#111111" stroke-width="1.75"/>
-  <polygon points="690,56 690,126 610,126" fill="#fde68a" stroke="#111111" stroke-width="1.75"/>
-  <circle cx="610" cy="56" r="4" fill="#ef4444"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="590" y="58" font-family="monospace" font-size="9" font-weight="700" fill="#111111">v0</text>
-  <circle cx="690" cy="56" r="4" fill="#22c55e"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="696" y="58" font-family="monospace" font-size="9" font-weight="700" fill="#111111">v1</text>
-  <circle cx="610" cy="126" r="4" fill="#3b82f6"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="590" y="130" font-family="monospace" font-size="9" font-weight="700" fill="#111111">v2</text>
-  <circle cx="690" cy="126" r="4" fill="#f59e0b"/><text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="696" y="130" font-family="monospace" font-size="9" font-weight="700" fill="#111111">v3</text>
-  <rect x="720" y="64" width="90" height="54" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="765" y="88" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">view_proj</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="765" y="104" text-anchor="middle" font-family="monospace" font-size="9" fill="#111111">mat4x4&lt;f32&gt;</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. 4x MSAA &amp; Studio Lighting</text>
+  <rect x="596" y="52" width="208" height="38" rx="5" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="75" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">sample_count = 4 Resolve</text>
+  <rect x="596" y="100" width="208" height="38" rx="5" fill="#fef9c3" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="123" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Key / Fill / Rim + SSAO</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Original surface colours an…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Depth32Float &amp; Ray Pick</text>
-  <rect x="936" y="54" width="96" height="62" rx="4" fill="#93c5fd" stroke="#111111" stroke-width="1.5" stroke-dasharray="3 3"/>
-  <rect x="892" y="74" width="96" height="62" rx="4" fill="#fdba74" stroke="#111111" stroke-width="2"/>
-  <line x1="864" y1="138" x2="932" y2="102" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
-  <circle cx="936" cy="100" r="5" fill="#facc15" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="896" y="68" font-family="monospace" font-size="9" font-weight="700" fill="#111111">z=0.2 &lt; z=0.7</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Complete Production Parity</text>
+  <rect x="882" y="52" width="188" height="38" rx="5" fill="#dcfce7" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="75" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Physical Grid + Instances</text>
+  <rect x="882" y="100" width="188" height="38" rx="5" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="123" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ 100% session_viewer</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Connect headlight and bac…</text>
 </svg>
 </div>
@@ -95,7 +89,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared surface shader; sc…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/scene.w…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">ambient and depth pyramid</text>
 </svg>
 </div>
@@ -109,7 +103,28 @@ Encode the existing anchored frame once, on the stack, with its current eye and 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-01.rs"
+pub const BYTES: u64 = 96;
+pub fn layout(device: &wgpu::Device) -> wgpu::BindGroupLayout {
+    crate::gpu_layout::uniform(device, BYTES)
+}
+pub fn bytes(matrix: [f32; 16], display: [f32; 4]) -> [u8; 96] {
+    let frame = session_rust::Xform::from_matrix(matrix.map(f64::from));
+    let eye = frame.eye();
+    let mut values = [0.; 24];
+    values[..16].copy_from_slice(&matrix);
+    values[16..20].copy_from_slice(&display);
+    values[20..].copy_from_slice(&[
+        eye[0] as f32,
+        eye[1] as f32,
+        eye[2] as f32,
+        frame.ortho_half_height() as f32,
+    ]);
+    let mut bytes = [0; 96];
+    for (out, value) in bytes.chunks_exact_mut(4).zip(values) {
+        out.copy_from_slice(&value.to_ne_bytes());
+    }
+    bytes
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -120,12 +135,17 @@ Keep one internal owner for the shared surface-frame layout.
 
 ```rust
 mod shader_check;
+
+mod draw_slots;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod shader_check;
 mod surface_view;
+
+mod draw_slots;
 ```
 
 ### 3. `src/renderer.rs`
@@ -137,52 +157,77 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
+            },
+        );
         self.prepare_clouds(*transform);
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, self.opacity.get(), 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.sheets.view(&self.queue,transform,self.size,self.density);
+        let mut bytes: Vec<u8> = transform
+            .iter()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        let display = [
+            if normals {
+                1.0f32
+            } else {
+                0.0
+            },
+            self.opacity.get(),
+            0.0,
+            0.0,
+        ];
+        bytes.extend(
+            display
+                .iter()
+                .flat_map(|value| value.to_ne_bytes()),
+        );
+        self.queue
 ```
 
 Replace it with:
 
 ```rust
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
+            },
+        );
         self.prepare_clouds(*transform);
-        let display=[f32::from(normals),self.opacity.get(),if self.ambient_enabled.get(){2.}else{0.},0.];
-        let bytes=crate::surface_view::bytes(*transform,display);
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.sheets.view(&self.queue,transform,self.size,self.density);
+        let display = [
+            f32::from(normals),
+            self.opacity.get(),
+            if self.ambient_enabled.get() {
+                2.
+            } else {
+                0.
+            },
+            0.,
+        ];
+        let bytes = crate::surface_view::bytes(*transform, display);
+        self.queue
 ```
 
 **Locate this block:**
 
 ```rust
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) {
-            let mut clipping=self.clipping.borrow_mut();clipping.frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);
-            let mut bytes=transform.iter().flat_map(|v|v.to_ne_bytes()).collect::<Vec<_>>();bytes.resize(80,0);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),primitive:self.primitive.view.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
+                self.size[1],
+                self.density,
+            );
+            let mut bytes = transform
+                .iter()
+                .flat_map(|v| v.to_ne_bytes())
+                .collect::<Vec<_>>();
+            bytes.resize(80, 0);
+            self.queue
+                .write_buffer(&self.uniform, 0, &bytes);
+            let tables = {
 ```
 
 Replace it with:
 
 ```rust
-        self.prepare_clouds(transform);
-        if let Some(request) = self.picker.next(view) {
-            let mut clipping=self.clipping.borrow_mut();clipping.frame_anchored(&self.queue,transform,self.anchor(),self.size[1],self.density);
-            let bytes=crate::surface_view::bytes(transform,[0.;4]);self.queue.write_buffer(&self.uniform,0,&bytes);
-            let tables={let mut tiles=self.tiles.borrow_mut();tiles.prepare(&self.device,&self.queue,self.size);let mut encoder=self.device.create_command_encoder(&Default::default());tiles.encode(&self.device,&mut encoder,&self.view_group,transform);self.queue.submit([encoder.finish()]);tiles.map_report();crate::finite_ink::Tables{projected:tiles.projected.clone(),tiles:tiles.buffer.clone(),primitive:self.primitive.view.clone()}};
-            self.picker.submit_finite(&self.device, &self.queue, request,
-            &self.meshes, &[&self.mesh_ink, &self.strokes, &self.paths, &self.markers], &self.faces,self.text.borrow().as_ref(),self.clouds.borrow().as_ref(),Some(&self.sheets),Some(&tables),&clipping.group,&clipping.buffer,Some(&mut self.caps.borrow_mut()),Some(&self.instances)); }
+                self.size[1],
+                self.density,
+            );
+            let bytes = crate::surface_view::bytes(transform, [0.; 4]);
+            self.queue
+                .write_buffer(&self.uniform, 0, &bytes);
+            let tables = {
 ```
 
 **Locate this block:**
@@ -212,25 +257,21 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0).into()),
         });
         let view_layout = crate::gpu_layout::uniform(&device, 80);
-        let model_layout = crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
+        let model_layout =
+            crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
 ```
 
 Replace it with:
 
 ```rust
-            label: Some("triangle"),
-            source: wgpu::ShaderSource::Wgsl(crate::clipping_gpu::source(include_str!("triangle.wgsl"),2,0).into()),
         });
         let view_layout = crate::surface_view::layout(&device);
-        let model_layout = crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
+        let model_layout =
+            crate::gpu_layout::uniform(&device, crate::object_record::BYTES as u64);
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: Some("mesh settings"), bind_group_layouts: &[Some(&view_layout), Some(&model_layout),Some(&crate::clipping_gpu::layout(&device)),Some(&crate::gpu_geometry::GpuGeometry::storage_layout(&device))], immediate_size: 0 });
 ```
 
 ### 4. `src/face_pick.rs`
@@ -240,13 +281,17 @@ Keep every consumer of the shared frame on the same binding layout.
 **Locate this existing block:**
 
 ```rust
-        let create=|shared| {let storage = layout(device); let view = crate::gpu_layout::uniform(device, 80);
+            let storage = layout(device);
+            let view = crate::gpu_layout::uniform(device, 80);
+            let model = if shared {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        let create=|shared| {let storage = layout(device); let view=crate::surface_view::layout(device);
+            let storage = layout(device);
+            let view = crate::surface_view::layout(device);
+            let model = if shared {
 ```
 
 ### 5. `src/ambient_source_pipeline.rs`
@@ -256,13 +301,17 @@ Keep every consumer of the shared frame on the same binding layout.
 **Locate this existing block:**
 
 ```rust
-  let view=crate::gpu_layout::uniform(device,80);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(if shared {&geometry}else{&radius})],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
+        let create = |shared| {
+            let view = crate::gpu_layout::uniform(device, 80);
+            let model = if shared {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-  let view=crate::surface_view::layout(device);let model=if shared {crate::object_rows::layout(device)}else{crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64)};let clip=crate::clipping_gpu::layout(device);let geometry=crate::gpu_geometry::GpuGeometry::storage_layout(device);let layout=device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor{label:Some("ambient original source metadata"),bind_group_layouts:&[Some(&view),Some(&model),Some(&clip),Some(if shared {&geometry}else{&radius})],immediate_size:0});let source=concat!(include_str!("triangle.wgsl"),"
+        let create = |shared| {
+            let view = crate::surface_view::layout(device);
+            let model = if shared {
 ```
 
 ### 6. `src/cap_pipeline.rs`
@@ -272,13 +321,17 @@ Keep every consumer of the shared frame on the same binding layout.
 **Locate this existing block:**
 
 ```rust
-  let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        let view = crate::gpu_layout::uniform(device, 80);
+        let model =
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-  let view=crate::surface_view::layout(device);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);let clip=crate::clipping_gpu::layout(device);let frame=crate::gpu_layout::uniform(device,16);let counts=device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor{label:Some("section crossing texture"),entries:&[crate::text_gpu_support::texture_entry(0,wgpu::ShaderStages::FRAGMENT,wgpu::TextureSampleType::Float{filterable:false},false)]});
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        let view = crate::surface_view::layout(device);
+        let model =
 ```
 
 ### 7. `src/cap_pick_pipeline.rs`
@@ -288,13 +341,17 @@ Keep every consumer of the shared frame on the same binding layout.
 **Locate this existing block:**
 
 ```rust
-  let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::gpu_layout::uniform(device,80);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);
+        let clip = crate::clipping_gpu::layout(device);
+        let view = crate::gpu_layout::uniform(device, 80);
+        let model =
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-  let frame=crate::gpu_layout::uniform(device,32);let clip=crate::clipping_gpu::layout(device);let view=crate::surface_view::layout(device);let model=crate::gpu_layout::uniform(device,crate::object_record::BYTES as u64);
+        let clip = crate::clipping_gpu::layout(device);
+        let view = crate::surface_view::layout(device);
+        let model =
 ```
 
 ### 8. `src/outline_gpu.rs`
@@ -304,13 +361,17 @@ Keep every consumer of the shared frame on the same binding layout.
 **Locate this existing block:**
 
 ```rust
-  let view = crate::gpu_layout::uniform(device, 80);
+    });
+    let view = crate::gpu_layout::uniform(device, 80);
+    let model = crate::gpu_layout::uniform(device, crate::object_record::BYTES as u64);
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-  let view=crate::surface_view::layout(device);
+    });
+    let view = crate::surface_view::layout(device);
+    let model = crate::gpu_layout::uniform(device, crate::object_record::BYTES as u64);
 ```
 
 ### 9. `src/pick_gpu.rs`
@@ -322,60 +383,98 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            self.image = Some(crate::pick_image::Image::new(device, window));
         }
-        let image = self.image.as_mut().unwrap(); image.window = window;
-        let mut bytes: Vec<u8> = request.transform.iter().flat_map(|n| n.to_ne_bytes()).collect(); bytes.resize(80, 0);
+        let image = self.image.as_mut().unwrap();
+        image.window = window;
+        let mut bytes: Vec<u8> = request
+            .transform
+            .iter()
+            .flat_map(|n| n.to_ne_bytes())
+            .collect();
+        bytes.resize(80, 0);
         queue.write_buffer(&self.view, 0, &bytes);
-        let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
-        bytes.extend((request.mode as u32).to_ne_bytes());bytes.extend(window.draw[0].to_ne_bytes());bytes.extend(window.draw[1].to_ne_bytes());bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
 ```
 
 Replace it with:
 
 ```rust
-            self.image = Some(crate::pick_image::Image::new(device, window));
         }
-        let image = self.image.as_mut().unwrap(); image.window = window;
-        let bytes=crate::surface_view::bytes(request.transform,[0.;4]);
+        let image = self.image.as_mut().unwrap();
+        image.window = window;
+        let bytes = crate::surface_view::bytes(request.transform, [0.; 4]);
         queue.write_buffer(&self.view, 0, &bytes);
-        let mut bytes: Vec<u8> = window.crop().iter().flat_map(|n| n.to_ne_bytes()).collect();
-        bytes.extend((request.mode as u32).to_ne_bytes());bytes.extend(window.draw[0].to_ne_bytes());bytes.extend(window.draw[1].to_ne_bytes());bytes.resize(80, 0); queue.write_buffer(&self.crop, 0, &bytes);
 ```
 
 **Locate this block:**
 
 ```rust
-        let record_pipeline=crate::pick_pipeline::mesh_with(device,view_layout,&crate::object_rows::layout(device),&crop_layout,true);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(80); let crop = buffer(80);
+        };
+        let view = buffer(80);
+        let crop = buffer(80);
         let view_group = crate::gpu_layout::group(device, view_layout, &view);
         let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { legacy_clipping:None,pipeline,record_pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
 ```
 
 Replace it with:
 
 ```rust
-        let record_pipeline=crate::pick_pipeline::mesh_with(device,view_layout,&crate::object_rows::layout(device),&crop_layout,true);
-        let buffer = |size| device.create_buffer(&wgpu::BufferDescriptor { label: Some("pick view"), size,
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST, mapped_at_creation: false });
-        let view = buffer(crate::surface_view::BYTES); let crop = buffer(80);
+        };
+        let view = buffer(crate::surface_view::BYTES);
+        let crop = buffer(80);
         let view_group = crate::gpu_layout::group(device, view_layout, &view);
         let crop_group = crate::gpu_layout::group(device, &crop_layout, &crop);
-        Self { legacy_clipping:None,pipeline,record_pipeline, view, view_group, crop, crop_group, image: None, active: None, pending: None,
 ```
 
 ### 10. `src/triangle.wgsl`
 
 Read the same eye/projection block in both surface-record variants. Use current flat source colors and eye-facing Arctic sky shading in the existing shared shader.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```wgsl
+struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
+@group(0) @binding(0) var<uniform> view: ViewSettings;
+@group(1) @binding(0) var<uniform> object_settings: ObjectSettings;
+fn object_at(index: u32) -> ObjectSettings { return object_settings; }
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+    @location(2) normal: vec3<f32>,
+    @location(3) @interpolate(flat) clip_flags:u32,
+    @location(4) @interpolate(flat) mirrored:u32,
+    @location(5) @interpolate(flat) primitive:u32,
+}
+
+const CONTACT_FLAG:u32=65536u;
+fn geometry(position: vec3<f32>, colour: vec4<f32>, normal: vec3<f32>, object: ObjectSettings) -> VertexOutput {
+    var output: VertexOutput;
+    let world = object.model * vec4<f32>(position, 1.0);
+    output.position = view.transform * world;
+    let contact=abs(colour.a-1./255.)<0.5/255.;
+    let displayed=select(colour.rgb,object.face_colour.xyz,object.face_colour.w>0.5&&!contact);
+    output.colour = select(displayed, SELECTION_COLOR, (object.selection.x & 1u) != 0u);
+    output.mirrored=select(0u,1u,determinant(mat3x3<f32>(object.model[0].xyz,object.model[1].xyz,object.model[2].xyz))<0.);
+    output.world = world.xyz;
+    output.clip_flags=select(object.selection.z,(object.selection.z&~(8192u|32768u))|CONTACT_FLAG,contact);
+    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
+    return output;
+}
+
+fn shade(input: VertexOutput, front: bool) -> vec4<f32> {
+    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
+    let derivative = cross(dpdx(input.world), dpdy(input.world));
+    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
+    let face = select(derivative, -derivative, front);
+    if(clip_active()&&clip_cut(input.clip_flags,input.world)){discard;}
+    let contact=(input.clip_flags&CONTACT_FLAG)!=0u;
+    let closed=(input.clip_flags&8192u)!=0u;
+    let source_front=(front!=(input.mirrored!=0u))!=((input.clip_flags&16384u)!=0u);
+    if((input.clip_flags&32768u)!=0u || (closed&&!source_front&&view.display.y>0.&&view.display.y<1.)){discard;}
+    if(contact){return vec4<f32>(input.colour,1.);}
+    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
+    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
     let bounded = direction / max(scale, 1e-30);
     let normal = bounded / max(length(bounded), 1e-30);
     if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), select(1.,view.display.y,closed)); }
@@ -384,13 +483,54 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     let brightness = 0.3 + 0.7 * abs(dot(normal, light));
     return vec4<f32>(input.colour * brightness, select(1.,view.display.y,closed));
 }
-
-struct FragmentOutput{
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, eye:vec4<f32>, }
+@group(0) @binding(0) var<uniform> view: ViewSettings;
+@group(1) @binding(0) var<uniform> object_settings: ObjectSettings;
+fn object_at(index: u32) -> ObjectSettings { return object_settings; }
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+    @location(2) normal: vec3<f32>,
+    @location(3) @interpolate(flat) clip_flags:u32,
+    @location(4) @interpolate(flat) mirrored:u32,
+    @location(5) @interpolate(flat) primitive:u32,
+}
+
+const CONTACT_FLAG:u32=65536u;
+fn geometry(position: vec3<f32>, colour: vec4<f32>, normal: vec3<f32>, object: ObjectSettings) -> VertexOutput {
+    var output: VertexOutput;
+    let world = object.model * vec4<f32>(position, 1.0);
+    output.position = view.transform * world;
+    let contact=abs(colour.a-1./255.)<0.5/255.;
+    let displayed=select(colour.rgb,object.face_colour.xyz,object.face_colour.w>0.5&&!contact);
+    output.colour = select(displayed, SELECTION_COLOR, (object.selection.x & 1u) != 0u);
+    output.mirrored=select(0u,1u,determinant(mat3x3<f32>(object.model[0].xyz,object.model[1].xyz,object.model[2].xyz))<0.);
+    output.world = world.xyz;
+    output.clip_flags=select(object.selection.z,(object.selection.z&~(8192u|32768u))|CONTACT_FLAG,contact);
+    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
+    return output;
+}
+
+fn shade(input: VertexOutput, front: bool) -> vec4<f32> {
+    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
+    let derivative = cross(dpdx(input.world), dpdy(input.world));
+    // Screen derivatives ignore vertex order; front-facing restores the original face orientation for reversed winding and world-normal inspection.
+    let face = select(derivative, -derivative, front);
+    if(clip_active()&&clip_cut(input.clip_flags,input.world)){discard;}
+    let contact=(input.clip_flags&CONTACT_FLAG)!=0u;
+    let closed=(input.clip_flags&8192u)!=0u;
+    let source_front=(front!=(input.mirrored!=0u))!=((input.clip_flags&16384u)!=0u);
+    if((input.clip_flags&32768u)!=0u || (closed&&!source_front&&view.display.y>0.&&view.display.y<1.)){discard;}
+    if(contact){return vec4<f32>(input.colour,1.);}
+    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
+    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
     let bounded = direction / max(scale, 1e-30);
     let normal = bounded / max(length(bounded), 1e-30);
     if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), select(1.,view.display.y,closed)); }
@@ -400,26 +540,6 @@ Replace it with:
     let brightness=select(1.,mix(0.72,1.,0.5+0.5*n.z),view.display.z>1.5);
     return vec4<f32>(input.colour*brightness,select(1.,view.display.y,closed));
 }
-
-struct FragmentOutput{
-```
-
-**Locate this block:**
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-@group(1) @binding(0) var<uniform> object_settings: ObjectSettings;
-fn object_at(index: u32) -> ObjectSettings { return object_settings; }
-```
-
-Replace it with:
-
-```wgsl
-struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, eye:vec4<f32>, }
-@group(0) @binding(0) var<uniform> view: ViewSettings;
-@group(1) @binding(0) var<uniform> object_settings: ObjectSettings;
-fn object_at(index: u32) -> ObjectSettings { return object_settings; }
 ```
 
 ### 11. `src/clipping_uniform.rs`
@@ -429,14 +549,20 @@ Share the existing scale-stable inverse and reject invalid inputs.
 **Locate this existing block:**
 
 ```rust
+}
 fn inverse(m: &Xform) -> Option<Xform> {
+    let scales: [f64; 4] = std::array::from_fn(|row| {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
 pub(crate) fn inverse(m: &Xform) -> Option<Xform> {
-    if m.m.iter().any(|v|!v.is_finite()){return None;}
+    if m.m.iter().any(|v| !v.is_finite()) {
+        return None;
+    }
+    let scales: [f64; 4] = std::array::from_fn(|row| {
 ```
 
 ### 12. `src/ambient_camera.rs`
@@ -446,13 +572,19 @@ Keep valid wide orthographic cameras in the real ambient pass.
 **Locate this existing block:**
 
 ```rust
- let mvp=session_rust::Xform::from_matrix(matrix.map(f64::from));let inverse=mvp.inverse()?.m.map(|v|v as f32);if inverse.iter().any(|v|!v.is_finite()){return None;}
+    let mvp = session_rust::Xform::from_matrix(matrix.map(f64::from));
+    let inverse = mvp.inverse()?.m.map(|v| v as f32);
+    if inverse.iter().any(|v| !v.is_finite()) {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
- let mvp=session_rust::Xform::from_matrix(matrix.map(f64::from));let inverse=crate::clipping_uniform::inverse(&mvp)?.m.map(|v|v as f32);if inverse.iter().any(|v|!v.is_finite()){return None;}
+    let mvp = session_rust::Xform::from_matrix(matrix.map(f64::from));
+    let inverse = crate::clipping_uniform::inverse(&mvp)?
+        .m
+        .map(|v| v as f32);
+    if inverse.iter().any(|v| !v.is_finite()) {
 ```
 
 ### 13. `src/pyramid_gpu.rs`
@@ -462,32 +594,237 @@ Reuse the same current camera inversion in the optional depth-pyramid path.
 **Locate this existing block:**
 
 ```rust
-  let Some(inverse)=session_rust::Xform::from_matrix(matrix.map(f64::from)).inverse()else{self.error=Some("Ambient depth camera is singular");self.cached=None;return;};if inverse.m.iter().any(|v|!(*v as f32).is_finite()){self.error=Some("Ambient inverse exceeds display range");self.cached=None;return;}let images=self.images.as_ref().unwrap();let mut bytes=inverse.m.into_iter().flat_map(|v|(v as f32).to_ne_bytes()).collect::<Vec<_>>();bytes.extend([full[0]as f32,full[1]as f32,images.size[0]as f32,images.size[1]as f32,0.05,0.,0.,0.,0.,0.,0.,0.].into_iter().flat_map(f32::to_ne_bytes));queue.write_buffer(&self.frame,0,&bytes);self.writes+=1;
+        }
+        let Some(inverse) =
+            session_rust::Xform::from_matrix(matrix.map(f64::from)).inverse()
+        else {
+            self.error = Some("Ambient depth camera is singular");
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-  let Some(inverse)=crate::clipping_uniform::inverse(&session_rust::Xform::from_matrix(matrix.map(f64::from)))else{self.error=Some("Ambient depth camera is singular");self.cached=None;return;};if inverse.m.iter().any(|v|!(*v as f32).is_finite()){self.error=Some("Ambient inverse exceeds display range");self.cached=None;return;}let images=self.images.as_ref().unwrap();let mut bytes=inverse.m.into_iter().flat_map(|v|(v as f32).to_ne_bytes()).collect::<Vec<_>>();bytes.extend([full[0]as f32,full[1]as f32,images.size[0]as f32,images.size[1]as f32,0.05,0.,0.,0.,0.,0.,0.,0.].into_iter().flat_map(f32::to_ne_bytes));queue.write_buffer(&self.frame,0,&bytes);self.writes+=1;
+        }
+        let Some(inverse) = crate::clipping_uniform::inverse(
+            &session_rust::Xform::from_matrix(matrix.map(f64::from)),
+        ) else {
+            self.error = Some("Ambient depth camera is singular");
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 14. `src/surface_lighting_tests.rs`
 
 Supply real mode pixels, uniform/fallback restoration, current camera bytes and wide ambient/pyramid controls.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-19.rs"
+```rust
+use crate::{
+    camera::{Camera, Projection, Unit},
+    cap_gpu_tests::{at, pixels_at, renderer},
+    scene::Scene,
+};
+use session_rust::{Point, Vector, Xform};
+
+fn original() -> session_rust::Mesh {
+    let mut mesh = session_rust::Mesh::from_vertices_and_faces(
+        vec![
+            Point::new(0., -800., -800.),
+            Point::new(0., 800., -800.),
+            Point::new(0., 800., 800.),
+            Point::new(0., -800., 800.),
+        ],
+        vec![vec![0, 1, 2, 3]],
+    );
+    mesh.set_objectcolor(session_rust::Color::new(0.2, 0.4, 0.6, 1.));
+    mesh
+}
+fn camera() -> Camera {
+    let mut c = Camera::default();
+    c.projection = Projection::Orthographic;
+    c.aspect = 4. / 3.;
+    c
+}
+
+#[test]
+fn surface_frame_bytes_preserve_camera_and_display_domains() {
+    assert_eq!(crate::surface_view::BYTES, 96);
+    for unit in [Unit::Millimeters, Unit::Meters] {
+        for projection in [
+            Projection::Perspective,
+            Projection::Orthographic,
+        ] {
+            let mut c = camera();
+            c.unit = unit;
+            c.distance = 3. / unit.to_meters();
+            c.projection = projection;
+            c.target = [1e9, -1e9, 1e9];
+            let matrix = c.view_projection_anchored(c.target).to_f32();
+            let bytes = crate::surface_view::bytes(matrix, [1., 0.7, 2., 1.]);
+            let values = bytes
+                .chunks_exact(4)
+                .map(|b| f32::from_ne_bytes(b.try_into().unwrap()))
+                .collect::<Vec<_>>();
+            assert_eq!(&values[..16], &matrix);
+            assert_eq!(&values[16..20], &[1., 0.7, 2., 1.]);
+            assert!(values.iter().all(|v| v.is_finite()));
+            if projection == Projection::Perspective {
+                assert_eq!(values[23], 0.);
+                let forward = c.orientation.rotate_vector(Vector::y_axis());
+                for i in 0..3 {
+                    let expected = -forward[i] * c.distance;
+                    assert!(
+                        (values[20 + i] as f64 - expected).abs() < c.distance * 2e-6
+                    );
+                }
+            } else {
+                assert!(values[23] > 0.);
+            }
+        }
+    }
+}
+
+#[test]
+fn scaled_camera_inverse_keeps_wide_views_and_invalid_guards() {
+    for unit in [Unit::Millimeters, Unit::Meters] {
+        for projection in [
+            Projection::Perspective,
+            Projection::Orthographic,
+        ] {
+            let mut c = camera();
+            c.unit = unit;
+            c.distance = 24. / unit.to_meters();
+            c.projection = projection;
+            let matrix = c.view_projection().to_f32();
+            let transform = Xform::from_matrix(matrix.map(f64::from));
+            let inverse = crate::clipping_uniform::inverse(&transform).unwrap();
+            let identity = &transform * &inverse;
+            for i in 0..16 {
+                assert!(
+                    (identity.m[i]
+                        - if i % 5 == 0 {
+                            1.
+                        } else {
+                            0.
+                        })
+                    .abs()
+                        < 1e-7
+                );
+            }
+            assert!(
+                crate::ambient_camera::uniform(matrix, [320, 240], [128, 96], [0., 1.])
+                    .is_some()
+            );
+            if unit == Unit::Millimeters && projection == Projection::Orthographic {
+                assert!(
+                    transform.inverse().is_none(),
+                    "The real unscaled-kernel regression control must fail"
+                );
+            }
+        }
+    }
+    for value in [0., f64::NAN, f64::INFINITY] {
+        assert!(
+            crate::clipping_uniform::inverse(&Xform::from_matrix([value; 16]))
+                .is_none()
+        );
+    }
+}
+
+#[test]
+fn actual_unlit_and_sky_preserve_original_records() {
+    let mut scene = Scene::empty();
+    let owner = scene
+        .insert(crate::prepared::PreparedMesh::new(original()).unwrap())
+        .unwrap();
+    let source = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let matrix = camera().uniform();
+    let mut r = renderer(&scene);
+    let uploads = r.stats()[0];
+    let flat = pixels_at(&r, matrix);
+    assert_eq!(
+        at(&flat, 160, 120),
+        &[51, 102, 153, 255],
+        "Unlit fill retains exact original color"
+    );
+    // Isolate the actual sky fragment mode from the separate ambient compositor.
+    r.ambient_enabled.set(true);
+    assert!(r.ambient.borrow().is_none());
+    let sky = pixels_at(&r, matrix);
+    assert_eq!(
+        at(&sky, 160, 120),
+        &[44, 88, 132, 255],
+        "Current vertical-face sky factor is0.86"
+    );
+    r.ambient_enabled.set(false);
+    for uniform in [true, false] {
+        if uniform {
+            r.use_uniform_surface_records();
+        } else {
+            r.set_scene(&scene, None);
+        }
+        assert_eq!(pixels_at(&r, matrix), flat);
+        r.ambient_enabled.set(true);
+        assert_eq!(pixels_at(&r, matrix), sky);
+        r.ambient_enabled.set(false);
+    }
+    assert_eq!(pixels_at(&r, matrix), flat);
+    assert_eq!(r.stats()[0], uploads);
+    assert_eq!(scene.objects()[0].id, owner);
+    assert_eq!(
+        scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        source
+    );
+}
+
+#[test]
+fn wide_ambient_and_depth_pyramid_keep_real_passes_without_geometry_uploads() {
+    let mut scene = Scene::empty();
+    let source = session_rust::Mesh::create_box(6000., 4000., 1000.);
+    scene
+        .insert(crate::prepared::PreparedMesh::new(source).unwrap())
+        .unwrap();
+    let original = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let mut c = camera();
+    c.set_view(crate::camera::View::Top);
+    c.distance = 24000.;
+    let r = renderer(&scene);
+    r.grow_camera(&mut c);
+    r.set_ambient(true);
+    r.set_depth_pyramid(true);
+    let uploads = r.stats()[0];
+    let first = pixels_at(&r, c.uniform());
+    assert_eq!(r.ambient_error(), None);
+    assert_eq!(r.depth_pyramid_error(), None);
+    assert!(r.ambient_usage()[4] > 0);
+    assert_eq!(r.depth_pyramid_usage()[3], 6);
+    let ambient = r.ambient_usage();
+    let pyramid = r.depth_pyramid_usage();
+    assert_eq!(pixels_at(&r, c.uniform()), first);
+    assert_eq!(r.ambient_usage()[3], ambient[3]);
+    assert_eq!(r.depth_pyramid_usage(), pyramid);
+    c.zoom(2.);
+    let _ = pixels_at(&r, c.uniform());
+    assert_eq!(r.ambient_error(), None);
+    assert_eq!(r.depth_pyramid_error(), None);
+    assert_eq!(r.stats()[0], uploads);
+    assert_eq!(
+        scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        original
+    );
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 15. `src/renderer.rs`
 
@@ -495,14 +832,20 @@ Register optional GPU validation outside the required browser graph.
 
 **Locate this existing block:**
 
-```text
+```rust
+#[path = "camera_extent_tests.rs"]
 mod camera_extent_tests;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms-20.rs" skip=24
+```rust
+#[path = "camera_extent_tests.rs"]
+mod camera_extent_tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "surface_lighting_tests.rs"]
+mod surface_lighting_tests;
 ```
 
 ## <a id="checkpoint-96zzzzzzh-connect-headlight-and-backface-controls"></a>2. Connect headlight and backface controls
@@ -537,7 +880,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared frame</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/scene.w…</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">the same surface shader</text>
 </svg>
 </div>
@@ -553,96 +896,105 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
+            },
+        );
         self.prepare_clouds(*transform);
-        let display=[f32::from(normals),self.opacity.get(),if self.ambient_enabled.get(){2.}else{0.},0.];
-        let bytes=crate::surface_view::bytes(*transform,display);
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
+        let display = [
+            f32::from(normals),
+            self.opacity.get(),
+            if self.ambient_enabled.get() {
+                2.
+            } else {
+                0.
+            },
+            0.,
+        ];
 ```
 
 Replace it with:
 
 ```rust
-        let (clip_group,clip_revision)={let mut clip=self.clipping.borrow_mut();clip.frame_anchored(&self.queue,*transform,self.anchor(),self.size[1],self.density);(clip.group.clone(),clip.writes)};
-        self.caps.borrow_mut().prepare(&self.device,&self.queue,self.format,self.size,{let clip=self.clipping.borrow();clip.enabled&&!clip.rows.is_empty()});
+            },
+        );
         self.prepare_clouds(*transform);
-        let options=self.surface_options.get();
-        let display=[f32::from(normals),self.opacity.get(),if self.ambient_enabled.get(){2.}else{f32::from(options[0])},f32::from(options[1])];
-        let bytes=crate::surface_view::bytes(*transform,display);
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
+        let options = self.surface_options.get();
+        let display = [
+            f32::from(normals),
+            self.opacity.get(),
+            if self.ambient_enabled.get() {
+                2.
+            } else {
+                f32::from(options[0])
+            },
+            f32::from(options[1]),
+        ];
 ```
 
 **Locate this block:**
 
 ```rust
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));owner.sources.set(&self.device,&self.queue,&self.ambient_rows.specs);}else if let Some(owner)=ambient.as_mut(){owner.clear(&self.device,&self.queue);}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
+        clip.solid = solid;
+        self.caps.borrow_mut().enabled = enabled;
+    }
+    pub fn set_ambient(&self, enabled: bool) {
+        if self.ambient_enabled.replace(enabled) == enabled {
+            return;
 ```
 
 Replace it with:
 
 ```rust
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_lighting(&self,on:bool,backfaces:bool){self.surface_options.set([on,backfaces]);}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));owner.sources.set(&self.device,&self.queue,&self.ambient_rows.specs);}else if let Some(owner)=ambient.as_mut(){owner.clear(&self.device,&self.queue);}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
+        clip.solid = solid;
+        self.caps.borrow_mut().enabled = enabled;
+    }
+    pub fn set_lighting(&self, on: bool, backfaces: bool) {
+        self.surface_options.set([on, backfaces]);
+    }
+    pub fn set_ambient(&self, enabled: bool) {
+        if self.ambient_enabled.replace(enabled) == enabled {
+            return;
 ```
 
 **Locate this block:**
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {world_bounds:Default::default(),space:Default::default(),opacity:std::cell::Cell::new(1.),ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),global_outline:Default::default(),outlines_enabled:Default::default(),outline_composite:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, primitive, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format);}
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            world_bounds: Default::default(),
+            space: Default::default(),
+            opacity: std::cell::Cell::new(1.),
 ```
 
 Replace it with:
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {surface_options:Default::default(),world_bounds:Default::default(),space:Default::default(),opacity:std::cell::Cell::new(1.),ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),global_outline:Default::default(),outlines_enabled:Default::default(),outline_composite:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, primitive, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy,grid_anchor:[0.;3], size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode:Default::default(),pick_cursor:None };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers]{lane.enable_finite(&renderer.device,format);}
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            surface_options: Default::default(),
+            world_bounds: Default::default(),
+            space: Default::default(),
+            opacity: std::cell::Cell::new(1.),
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    world_bounds:std::cell::RefCell<Option<crate::bounds::Bounds>>,
-    space:crate::render_space::Origin,
-    opacity:std::cell::Cell<f32>,
+    world_bounds: std::cell::RefCell<Option<crate::bounds::Bounds>>,
+    space: crate::render_space::Origin,
+    opacity: std::cell::Cell<f32>,
 ```
 
 Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    surface_options:std::cell::Cell<[bool;2]>,
-    world_bounds:std::cell::RefCell<Option<crate::bounds::Bounds>>,
-    space:crate::render_space::Origin,
-    opacity:std::cell::Cell<f32>,
+    surface_options: std::cell::Cell<[bool; 2]>,
+    world_bounds: std::cell::RefCell<Option<crate::bounds::Bounds>>,
+    space: crate::render_space::Origin,
+    opacity: std::cell::Cell<f32>,
 ```
 
 ### 2. `src/triangle.wgsl`
@@ -652,13 +1004,16 @@ Reuse the current wrapped headlight, soft highlight, sky and backface colors in 
 **Locate this existing block:**
 
 ```wgsl
+    let n=select(normal,-normal,dot(normal,v)<0.);
     let brightness=select(1.,mix(0.72,1.,0.5+0.5*n.z),view.display.z>1.5);
     return vec4<f32>(input.colour*brightness,select(1.,view.display.y,closed));
+}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    let n=select(normal,-normal,dot(normal,v)<0.);
     let l=normalize(v+vec3<f32>(0.,0.,0.35));let h=normalize(l+v);
     let wrap=clamp((dot(n,l)+0.5)/1.5,0.,1.);
     let lit=min(0.40+0.55*wrap+pow(max(dot(n,h),0.),32.)*0.15,1.);
@@ -667,6 +1022,7 @@ Edit the existing block to match this code; keep unchanged lines:
     let back=!source_front&&view.display.w>0.5;
     let base=select(input.colour,vec3<f32>(0.80,0.05,0.05),back);
     return vec4<f32>(base*brightness,select(1.,view.display.y,closed));
+}
 ```
 
 ### 3. `src/editor.rs`
@@ -678,103 +1034,115 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            },
-            Action::Opacity(_)=>unreachable!("Opacity presentation returned before document mutation"),
-            Action::ViewOutline(_)=>unreachable!("Outline presentation returned before editor mutation"),
-            Action::Arctic(_)=>unreachable!("Arctic presentation returned before editor mutation"),
-            Action::Clipping(request)=>{return self.clipping_request(request)},
-            Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
-            Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
+            Action::ViewOutline(_) => {
+                unreachable!("Outline presentation returned before editor mutation")
+            }
+            Action::Arctic(_) => {
+                unreachable!("Arctic presentation returned before editor mutation")
+            }
 ```
 
 Replace it with:
 
 ```rust
-            },
-            Action::Opacity(_)=>unreachable!("Opacity presentation returned before document mutation"),
-            Action::ViewOutline(_)=>unreachable!("Outline presentation returned before editor mutation"),
-            Action::Arctic(_)|Action::Lighting(_)|Action::Backfaces(_)=>unreachable!("Presentation returned before editor mutation"),
-            Action::Clipping(request)=>{return self.clipping_request(request)},
-            Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
-            Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
+            Action::ViewOutline(_) => {
+                unreachable!("Outline presentation returned before editor mutation")
+            }
+            Action::Arctic(_) | Action::Lighting(_) | Action::Backfaces(_) => {
+                unreachable!("Presentation returned before editor mutation")
+            }
 ```
 
 **Locate this block:**
 
 ```rust
-        let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
-        if let Action::Opacity(value)=&action{if !value.is_finite()||!(0.0..=1.0).contains(value){return Err("Opacity takes a value from0 to1")}self.opacity=*value;self.tool_status=format!("Opacity {value}");return Ok(Change::View)}
-        if let Action::ViewOutline(on)=&action{self.outlines=on.unwrap_or(!self.outlines);self.tool_status=format!("View Outline {}",if self.outlines{"On"}else{"Off"});return Ok(Change::View)}
-        if let Action::Arctic(on)=&action{self.arctic=on.unwrap_or(!self.arctic);if self.arctic{self.outlines=true;}self.tool_status=format!("Arctic {}",if self.arctic{"On"}else{"Off"});return Ok(Change::View)}
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
-        if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else if self.pick_mode==crate::pick_sources::Mode::Control{self.apply(Action::Controls(false))}else{self.apply(Action::Picked(None))}}
+            );
+            return Ok(Change::View);
+        }
+        if let Action::Arctic(on) = &action {
+            self.arctic = on.unwrap_or(!self.arctic);
+            if self.arctic {
 ```
 
 Replace it with:
 
 ```rust
-        let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
-        if let Action::Opacity(value)=&action{if !value.is_finite()||!(0.0..=1.0).contains(value){return Err("Opacity takes a value from0 to1")}self.opacity=*value;self.tool_status=format!("Opacity {value}");return Ok(Change::View)}
-        if let Action::ViewOutline(on)=&action{self.outlines=on.unwrap_or(!self.outlines);self.tool_status=format!("View Outline {}",if self.outlines{"On"}else{"Off"});return Ok(Change::View)}
-        let setting=match &action {Action::Lighting(on)=>Some((&mut self.lit,*on,"Lighting")),Action::Backfaces(on)=>Some((&mut self.backfaces,*on,"Backfaces")),_=>None};
-        if let Some((value,on,label))=setting {*value=on.unwrap_or(!*value);self.tool_status=format!("{label} {}",if *value{"On"}else{"Off"});return Ok(Change::View)}
-        if let Action::Arctic(on)=&action{self.arctic=on.unwrap_or(!self.arctic);if self.arctic{self.outlines=true;}self.tool_status=format!("Arctic {}",if self.arctic{"On"}else{"Off"});return Ok(Change::View)}
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
-        if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else if self.pick_mode==crate::pick_sources::Mode::Control{self.apply(Action::Controls(false))}else{self.apply(Action::Picked(None))}}
+            );
+            return Ok(Change::View);
+        }
+        let setting = match &action {
+            Action::Lighting(on) => Some((&mut self.lit, *on, "Lighting")),
+            Action::Backfaces(on) => Some((&mut self.backfaces, *on, "Backfaces")),
+            _ => None,
+        };
+        if let Some((value, on, label)) = setting {
+            *value = on.unwrap_or(!*value);
+            self.tool_status = format!(
+                "{label} {}",
+                if *value {
+                    "On"
+                } else {
+                    "Off"
+                }
+            );
+            return Ok(Change::View);
+        }
+        if let Action::Arctic(on) = &action {
+            self.arctic = on.unwrap_or(!self.arctic);
+            if self.arctic {
 ```
 
 **Locate this block:**
 
 ```rust
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            element:None,element_attributes:false,element_interactions:true,opacity:1.,arctic:false,outlines:false,clipping_enabled:true,clipping_solid:true,interaction_epoch:0,lasso:None,trim:None,last_text_height:0.,mark:None,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            element_interactions: true,
+            opacity: 1.,
+            arctic: false,
+            outlines: false,
+            clipping_enabled: true,
+            clipping_solid: true,
 ```
 
 Replace it with:
 
 ```rust
-impl Default for Editor {
-    fn default() -> Self {
-        Self {
-            element:None,element_attributes:false,element_interactions:true,opacity:1.,arctic:false,lit:false,backfaces:false,outlines:false,clipping_enabled:true,clipping_solid:true,interaction_epoch:0,lasso:None,trim:None,last_text_height:0.,mark:None,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            element_interactions: true,
+            opacity: 1.,
+            arctic: false,
+            lit: false,
+            backfaces: false,
+            outlines: false,
+            clipping_enabled: true,
+            clipping_solid: true,
 ```
 
 **Locate this block:**
 
 ```rust
-    pub element_interactions:bool,
-    pub opacity:f32,
-    pub arctic:bool,
-    pub outlines:bool,
-    pub clipping_enabled:bool,pub clipping_solid:bool,
-    pub interaction_epoch:u64,
+    pub element_interactions: bool,
+    pub opacity: f32,
+    pub arctic: bool,
+    pub outlines: bool,
+    pub clipping_enabled: bool,
+    pub clipping_solid: bool,
 ```
 
 Replace it with:
 
 ```rust
-    pub element_interactions:bool,
-    pub opacity:f32,
-    pub arctic:bool,
-    pub lit:bool,pub backfaces:bool,
-    pub outlines:bool,
-    pub clipping_enabled:bool,pub clipping_solid:bool,
-    pub interaction_epoch:u64,
+    pub element_interactions: bool,
+    pub opacity: f32,
+    pub arctic: bool,
+    pub lit: bool,
+    pub backfaces: bool,
+    pub outlines: bool,
+    pub clipping_enabled: bool,
+    pub clipping_solid: bool,
 ```
 
 **Locate this block:**
 
 ```rust
-    AddCurve,
-    AddColours(crate::colour::Mode),
     NormalView(bool),
     Grid(Option<crate::grid::Settings>),
     AddNormals(crate::normal_example::Mode),
@@ -784,10 +1152,9 @@ Replace it with:
 Replace it with:
 
 ```rust
-    AddCurve,
-    AddColours(crate::colour::Mode),
     NormalView(bool),
-    Lighting(Option<bool>),Backfaces(Option<bool>),
+    Lighting(Option<bool>),
+    Backfaces(Option<bool>),
     Grid(Option<crate::grid::Settings>),
     AddNormals(crate::normal_example::Mode),
     EnableControls,
@@ -802,48 +1169,45 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+        };
+        return Ok(Command::Editor(Action::ViewOutline(on)));
     }
-    if name=="Opacity"{let word=words.get(count).ok_or("Opacity 0..1 · Example: Opacity 0.5")?;let value=word.parse::<f64>().ok().filter(|v|v.is_finite()&&(0.0..=1.0).contains(v)).ok_or("Opacity takes a value from 0 to 1")?;return Ok(Command::Editor(Action::Opacity(value as f32)));}
-    if name=="View Outline"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("View Outline (On Off)".into())};return Ok(Command::Editor(Action::ViewOutline(on)));}
-    if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
-    if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
-    if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
 ```
 
 Replace it with:
 
 ```rust
+        };
+        return Ok(Command::Editor(Action::ViewOutline(on)));
     }
-    if name=="Opacity"{let word=words.get(count).ok_or("Opacity 0..1 · Example: Opacity 0.5")?;let value=word.parse::<f64>().ok().filter(|v|v.is_finite()&&(0.0..=1.0).contains(v)).ok_or("Opacity takes a value from 0 to 1")?;return Ok(Command::Editor(Action::Opacity(value as f32)));}
-    if name=="View Outline"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("View Outline (On Off)".into())};return Ok(Command::Editor(Action::ViewOutline(on)));}
-    if name=="View Lighting"||name=="View Backfaces" {let on=crate::element_input::visibility(&words[count..])?;return Ok(Command::Editor(if name=="View Lighting"{Action::Lighting(on)}else{Action::Backfaces(on)}));}
-    if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
-    if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
-    if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
+    if name == "View Lighting" || name == "View Backfaces" {
+        let on = crate::element_input::visibility(&words[count..])?;
+        return Ok(Command::Editor(if name == "View Lighting" {
+            Action::Lighting(on)
+        } else {
+            Action::Backfaces(on)
+        }));
+    }
 ```
 
 **Locate this block:**
 
 ```rust
-    ("Opacity",||Action::Opacity(1.)),
-    ("View Outline",||Action::ViewOutline(None)),
-    ("Arctic",||Action::Arctic(None)),
-    ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
-    ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
-    ("Add Group",||Action::AddGroup(String::new())),
+    ("Arctic", || Action::Arctic(None)),
+    ("Select By Name", || {
+        Action::Query(crate::selection_query::Query::Name(
+            String::new(),
 ```
 
 Replace it with:
 
 ```rust
-    ("Opacity",||Action::Opacity(1.)),
-    ("View Outline",||Action::ViewOutline(None)),
-    ("Arctic",||Action::Arctic(None)),
-    ("View Lighting",||Action::Lighting(None)),
-    ("View Backfaces",||Action::Backfaces(None)),
-    ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
-    ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
-    ("Add Group",||Action::AddGroup(String::new())),
+    ("Arctic", || Action::Arctic(None)),
+    ("View Lighting", || Action::Lighting(None)),
+    ("View Backfaces", || Action::Backfaces(None)),
+    ("Select By Name", || {
+        Action::Query(crate::selection_query::Query::Name(
+            String::new(),
 ```
 
 ### 5. `src/browser_defaults.rs`
@@ -853,13 +1217,19 @@ Match current presence-based startup queries.
 **Locate this existing block:**
 
 ```rust
-    let query=query();
+    let query = query();
+    let opacity = query.as_ref().and_then(|q| q.get("opacity"));
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    editor.lit=query.as_ref().is_some_and(|q|q.has("lit"));editor.backfaces=query.as_ref().is_some_and(|q|q.has("backface"));
+    let query = query();
+    editor.lit = query.as_ref().is_some_and(|q| q.has("lit"));
+    editor.backfaces = query
+        .as_ref()
+        .is_some_and(|q| q.has("backface"));
+    let opacity = query.as_ref().and_then(|q| q.get("opacity"));
 ```
 
 ### 6. `src/browser.rs`
@@ -871,68 +1241,150 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
     canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"ambient":renderer.ambient_usage(),"ambient_error":renderer.ambient_error(),"arctic":editor.arctic,"opacity":editor.opacity,"outlines":editor.outlines,"global_outline":renderer.global_outline_usage(),"pyramid":renderer.depth_pyramid_usage(),"pyramid_error":renderer.depth_pyramid_error(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
+    canvas.set_attribute(
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
     canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"ambient":renderer.ambient_usage(),"ambient_error":renderer.ambient_error(),"arctic":editor.arctic,"lighting":editor.lit,"backfaces":editor.backfaces,"opacity":editor.opacity,"outlines":editor.outlines,"global_outline":renderer.global_outline_usage(),"pyramid":renderer.depth_pyramid_usage(),"pyramid_error":renderer.depth_pyramid_error(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
+    canvas.set_attribute(
 ```
 
 **Locate this block:**
 
 ```rust
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
-        }
-        renderer.set_clipping(editor.clipping_enabled,editor.clipping_solid);
-        renderer.set_opacity(editor.opacity);renderer.set_ambient(editor.arctic);renderer.set_outlines(editor.outlines);
-        if let Err(error) = renderer.set_grid_on(editor.camera.grid,editor.drawing_plane()) {
-            report(error); return;
-        }
+            renderer.set_opacity(editor.opacity);
+            renderer.set_ambient(editor.arctic);
+            renderer.set_outlines(editor.outlines);
+            if let Err(error) =
 ```
 
 Replace it with:
 
 ```rust
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
-        }
-        renderer.set_clipping(editor.clipping_enabled,editor.clipping_solid);
-        renderer.set_opacity(editor.opacity);renderer.set_lighting(editor.lit,editor.backfaces);renderer.set_ambient(editor.arctic);renderer.set_outlines(editor.outlines);
-        if let Err(error) = renderer.set_grid_on(editor.camera.grid,editor.drawing_plane()) {
-            report(error); return;
-        }
+            renderer.set_opacity(editor.opacity);
+            renderer.set_lighting(editor.lit, editor.backfaces);
+            renderer.set_ambient(editor.arctic);
+            renderer.set_outlines(editor.outlines);
+            if let Err(error) =
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 7. `src/surface_controls_tests.rs`
 
 Supply command, draft/history and actual shared/fallback face-pixel controls.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-16.rs"
+```rust
+use crate::{
+    commands::{Command, parse},
+    editor::{Action, Change, Editor},
+};
+fn command(e: &mut Editor, line: &str) -> Result<Change, &'static str> {
+    let action = if let Some(result) = e.tool_line(line) {
+        result?
+    } else {
+        let Command::Editor(action) = parse(line).map_err(|_| "Invalid command")?
+        else {
+            return Err("Editor command");
+        };
+        action
+    };
+    e.apply(action)
+}
+#[test]
+fn commands_preserve_active_draft_originals_annotations_and_redo() {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddBox).unwrap();
+    let id = e.scene.objects()[0].id;
+    e.select_objects([id], false);
+    let source = e.scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    e.apply(Action::Translate([1., 0., 0.]))
+        .unwrap();
+    let moved = e.scene.placement(id).unwrap();
+    e.apply(Action::Undo).unwrap();
+    command(&mut e, "Length BoundingBox").unwrap();
+    let mark = e.mark.clone();
+    assert!(mark.is_some());
+    let epoch = e.interaction_epoch;
+    for line in [
+        "View Lighting On",
+        "View Backfaces On",
+        "View Lighting Off",
+        "View Backfaces Off",
+    ] {
+        assert!(matches!(
+            command(&mut e, line),
+            Ok(Change::View)
+        ));
+        assert_eq!(e.mark, mark);
+        assert_eq!(e.interaction_epoch, epoch);
+        assert_eq!(
+            e.scene.objects()[0]
+                .geometry()
+                .unwrap()
+                .to_proto(),
+            source
+        );
+    }
+    command(&mut e, "Line").unwrap();
+    command(&mut e, "w0,0,0").unwrap();
+    let points = e.draft.as_ref().unwrap().points.clone();
+    let epoch = e.interaction_epoch;
+    for line in [
+        "vIeW lIgHtInG oN",
+        "View Backfaces On",
+        "View Lighting",
+        "View Backfaces",
+    ] {
+        command(&mut e, line).unwrap();
+        assert_eq!(e.draft.as_ref().unwrap().points, points);
+        assert_eq!(e.interaction_epoch, epoch);
+    }
+    assert!(!e.lit && !e.backfaces);
+    command(&mut e, "Escape").unwrap();
+    e.apply(Action::Redo).unwrap();
+    assert_eq!(e.scene.placement(id).unwrap().m, moved.m);
+    assert_eq!(
+        e.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        source
+    );
+}
+#[test]
+fn strict_view_options_and_completion_share_existing_registry() {
+    let mut e = Editor::default();
+    for prefix in ["View Lighting", "View Backfaces"] {
+        assert!(
+            crate::commands::ACTIONS
+                .iter()
+                .any(|(name, _)| *name == prefix)
+        );
+        command(&mut e, &format!("{prefix} On")).unwrap();
+        let before = [e.lit, e.backfaces];
+        for suffix in ["No", "On Off", "On extra"] {
+            assert!(command(&mut e, &format!("{prefix} {suffix}")).is_err());
+            assert_eq!([e.lit, e.backfaces], before);
+        }
+        command(&mut e, &format!("{prefix} Off")).unwrap();
+    }
+    assert!(!e.lit && !e.backfaces);
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 8. `src/lib.rs`
 
@@ -940,19 +1392,21 @@ Register optional command controls.
 
 **Locate this existing block:**
 
-```text
+```rust
 mod arctic_tests;
+
+pub mod outline_caps;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-17.rs" skip=17
+```rust
+mod arctic_tests;
+#[cfg(test)]
+mod surface_controls_tests;
+
+pub mod outline_caps;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 9. `src/renderer.rs`
 
@@ -960,28 +1414,136 @@ Register actual native GPU controls outside the browser graph.
 
 **Locate this existing block:**
 
-```text
+```rust
+#[path = "surface_lighting_tests.rs"]
 mod surface_lighting_tests;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-18.rs" skip=27
+```rust
+#[path = "surface_lighting_tests.rs"]
+mod surface_lighting_tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "surface_controls_gpu_tests.rs"]
+mod surface_controls_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 10. `src/surface_controls_gpu_tests.rs`
 
 Supply actual headlight/backface, mirrored orientation, projection and exact restoration controls.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/96zzzzzzh-connect-headlight-and-backface-controls-19.rs"
+```rust
+use crate::{
+    camera::{Camera, Projection},
+    cap_gpu_tests::{at, pixels_at, renderer},
+    scene::Scene,
+};
+fn original() -> session_rust::Mesh {
+    let mut mesh = session_rust::Mesh::from_vertices_and_faces(
+        vec![
+            session_rust::Point::new(0., -800., -800.),
+            session_rust::Point::new(0., 800., -800.),
+            session_rust::Point::new(0., 800., 800.),
+            session_rust::Point::new(0., -800., 800.),
+        ],
+        vec![vec![0, 1, 2, 3]],
+    );
+    mesh.set_objectcolor(session_rust::Color::new(0.2, 0.4, 0.6, 1.));
+    mesh
+}
+#[test]
+fn actual_headlight_backfaces_and_original_record_restoration() {
+    let mut scene = Scene::empty();
+    let owner = scene
+        .insert(crate::prepared::PreparedMesh::new(original()).unwrap())
+        .unwrap();
+    let source = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let mut c = Camera::default();
+    c.aspect = 4. / 3.;
+    let mut r = renderer(&scene);
+    for mirrored in [false, true] {
+        scene
+            .place_owner(
+                owner,
+                if mirrored {
+                    session_rust::Xform::scale_xyz(1., -1., 1.)
+                } else {
+                    session_rust::Xform::identity()
+                },
+            )
+            .unwrap();
+        r.set_scene(&scene, None);
+        let uploads = r.stats()[0];
+        for projection in [
+            Projection::Orthographic,
+            Projection::Perspective,
+        ] {
+            c.projection = projection;
+            let matrix = c.uniform();
+            r.set_lighting(false, false);
+            let flat = pixels_at(&r, matrix);
+            assert_eq!(at(&flat, 160, 120), &[51, 102, 153, 255]);
+            r.set_lighting(true, false);
+            let head = pixels_at(&r, matrix);
+            assert_ne!(head, flat);
+            let color = at(&head, 160, 120);
+            assert!(
+                color[0] > 10 && color[0] < 51 && color[1] < 102 && color[2] < 153,
+                "{projection:?} headlight {color:?}"
+            );
+            r.set_lighting(false, true);
+            let back = pixels_at(&r, matrix);
+            assert_eq!(
+                at(&back, 160, 120),
+                &[204, 13, 13, 255],
+                "Original backface survives mirrored placement"
+            );
+            for uniform in [true, false] {
+                if uniform {
+                    r.use_uniform_surface_records();
+                } else {
+                    r.set_scene(&scene, None);
+                }
+                r.set_lighting(true, false);
+                assert_eq!(pixels_at(&r, matrix), head);
+                r.set_lighting(false, true);
+                assert_eq!(pixels_at(&r, matrix), back);
+                r.set_lighting(false, false);
+                assert_eq!(pixels_at(&r, matrix), flat);
+            }
+            assert_eq!(r.stats()[0], uploads);
+            assert_eq!(
+                scene.objects()[0]
+                    .geometry()
+                    .unwrap()
+                    .to_proto(),
+                source
+            );
+        }
+    }
+    let mut front = original();
+    for face in front.face.values_mut() {
+        face.reverse();
+    }
+    let mut scene = Scene::empty();
+    scene
+        .insert(crate::prepared::PreparedMesh::new(front).unwrap())
+        .unwrap();
+    r.set_scene(&scene, None);
+    r.set_lighting(false, true);
+    assert_eq!(
+        at(&pixels_at(&r, c.uniform()), 160, 120),
+        &[51, 102, 153, 255],
+        "Front-facing original retains its source color"
+    );
+}
 ```
 
 ## Build & Run

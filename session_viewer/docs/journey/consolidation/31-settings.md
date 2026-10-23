@@ -106,17 +106,56 @@
 
 Upload original vertex colours regardless of which object is selected. Use one encoder for the complete object uniform. Encode the matrix, selection and padding at their shader offsets.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::scene::Object;
-use wgpu::util::DeviceExt;
+}
 
-pub struct GpuMesh {
-    vertices: wgpu::Buffer,
-    indices: wgpu::Buffer,
-    index_count: u32,
-    model_group: wgpu::BindGroup,
+impl GpuMesh {
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
+        let mesh = &object.mesh;
+        let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
+        for vertex in mesh.vertices() {
+            let mut display = *vertex;
+            if selected {
+                display[3..].copy_from_slice(&[1.0, 0.75, 0.05]);
+            }
+            for value in display {
+                bytes.extend_from_slice(&value.to_ne_bytes());
+            }
+        }
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mesh vertices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let bytes: Vec<u8> = mesh
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
+        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mesh indices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let bytes: Vec<u8> = object
+            .model
+            .m
+            .iter()
+            .flat_map(|value| (*value as f32).to_ne_bytes())
+            .collect();
+        let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
 }
 
 fn settings(object: &Object, selected: bool) -> [u8; 80] {
@@ -124,13 +163,22 @@ fn settings(object: &Object, selected: bool) -> [u8; 80] {
     for (index, value) in object.model.m.iter().enumerate() {
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
     }
-    let flag: f32 = if selected { 1.0 } else { 0.0 };
+    let flag: f32 = if selected {
+        1.0
+    } else {
+        0.0
+    };
     bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
     bytes
 }
 
 impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
         let mesh = &object.mesh;
         let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
         for vertex in mesh.vertices() {
@@ -143,7 +191,11 @@ impl GpuMesh {
             contents: &bytes,
             usage: wgpu::BufferUsages::VERTEX,
         });
-        let bytes: Vec<u8> = mesh.indices().iter().flat_map(|index| index.to_ne_bytes()).collect();
+        let bytes: Vec<u8> = mesh
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
         let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("mesh indices"),
             contents: &bytes,
@@ -151,32 +203,34 @@ impl GpuMesh {
         });
         let bytes = settings(object, selected);
         let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("object placement"),
-            contents: &bytes,
-            usage: wgpu::BufferUsages::UNIFORM,
-        });
-        let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("object placement"),
-            layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
-        });
-        Self { vertices, indices, model_group, index_count: mesh.indices().len() as u32 }
-    }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_bind_group(1, &self.model_group, &[]);
-        pass.set_vertex_buffer(0, self.vertices.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
 ```
 
 ### 2. `src/triangle.wgsl`
 
 Describe the same eighty-byte object layout in WGSL. Read placement from the object settings structure. Choose the displayed colour per object without rewriting vertices.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```wgsl
+@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
+@group(1) @binding(0) var<uniform> model: mat4x4<f32>;
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+}
+
+@vertex
+fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
+    var output: VertexOutput;
+    let world = model * vec4<f32>(position, 1.0);
+    output.position = transform * world;
+    output.colour = colour;
+    output.world = world.xyz;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
@@ -199,18 +253,6 @@ fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> V
     output.position = transform * world;
     output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x > 0.5);
     output.world = world.xyz;
-    return output;
-}
-
-@fragment
-fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
-    // Neighbouring fragments give two directions along this triangle's surface.
-    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));
-    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
 ```
 
 ## <a id="checkpoint-31a-geometry"></a>2. Give immutable GPU geometry one owner
@@ -259,7 +301,58 @@ Create an owner for immutable buffers and the CPU display allocation that produc
 Create the file and type:
 
 ```rust
---8<-- "journey/code/31a-geometry-01.rs"
+use crate::mesh::Mesh;
+use std::rc::Rc;
+use wgpu::util::DeviceExt;
+
+pub struct GpuGeometry {
+    pub source: Rc<Mesh>,
+    vertices: wgpu::Buffer,
+    indices: wgpu::Buffer,
+    index_count: u32,
+}
+
+impl GpuGeometry {
+    pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
+        let bytes: Vec<u8> = source
+            .vertices()
+            .iter()
+            .flatten()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("shared mesh vertices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let bytes: Vec<u8> = source
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
+        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("shared mesh indices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let index_count = source.indices().len() as u32;
+        Self {
+            source,
+            vertices,
+            indices,
+            index_count,
+        }
+    }
+
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+        pass.set_index_buffer(
+            self.indices.slice(..),
+            wgpu::IndexFormat::Uint16,
+        );
+        pass.draw_indexed(0..self.index_count, 0, 0..1);
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -269,20 +362,112 @@ Make geometry storage available to the draw row.
 **Locate this existing block:**
 
 ```rust
+mod gesture_tests;
 pub mod gpu_mesh;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/31a-geometry-02.rs"
+mod gesture_tests;
+pub mod gpu_geometry;
+pub mod gpu_mesh;
 ```
 
 ### 3. `src/gpu_mesh.rs`
 
 Use a shared geometry owner. Keep only the geometry owner beside the object bind group. Accept an existing geometry owner while keeping object settings independent. Return one draw row without copying its shared geometry. Delegate immutable bindings and indexed drawing to the geometry owner.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```rust
+use crate::scene::Object;
+use wgpu::util::DeviceExt;
+
+pub struct GpuMesh {
+    vertices: wgpu::Buffer,
+    indices: wgpu::Buffer,
+    index_count: u32,
+    model_group: wgpu::BindGroup,
+}
+
+fn settings(object: &Object, selected: bool) -> [u8; 80] {
+    let mut bytes = [0; 80];
+    for (index, value) in object.model.m.iter().enumerate() {
+        bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
+    }
+    let flag: f32 = if selected {
+        1.0
+    } else {
+        0.0
+    };
+    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
+    bytes
+}
+
+impl GpuMesh {
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
+        let mesh = &object.mesh;
+        let mut bytes = Vec::with_capacity(mesh.vertices().len() * 24);
+        for vertex in mesh.vertices() {
+            for value in vertex {
+                bytes.extend_from_slice(&value.to_ne_bytes());
+            }
+        }
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mesh vertices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let bytes: Vec<u8> = mesh
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
+        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("mesh indices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let bytes = settings(object, selected);
+        let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("object placement"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+        let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("object placement"),
+            layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: model.as_entire_binding(),
+            }],
+        });
+        Self {
+            vertices,
+            indices,
+            model_group,
+            index_count: mesh.indices().len() as u32,
+        }
+    }
+
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_bind_group(1, &self.model_group, &[]);
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+        pass.set_index_buffer(
+            self.indices.slice(..),
+            wgpu::IndexFormat::Uint16,
+        );
+        pass.draw_indexed(0..self.index_count, 0, 0..1);
+    }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 use crate::{gpu_geometry::GpuGeometry, scene::Object};
@@ -299,20 +484,36 @@ fn settings(object: &Object, selected: bool) -> [u8; 80] {
     for (index, value) in object.model.m.iter().enumerate() {
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
     }
-    let flag: f32 = if selected { 1.0 } else { 0.0 };
+    let flag: f32 = if selected {
+        1.0
+    } else {
+        0.0
+    };
     bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
     bytes
 }
 
 impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
-        let geometry = Rc::new(GpuGeometry::upload(device, Rc::clone(&object.mesh)));
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
+        let geometry = Rc::new(GpuGeometry::upload(
+            device,
+            Rc::clone(&object.mesh),
+        ));
         Self::with_geometry(device, layout, object, selected, geometry)
     }
 
-    pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
-        object: &Object, selected: bool, geometry: Rc<GpuGeometry>) -> Self
-    {
+    pub fn with_geometry(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+        geometry: Rc<GpuGeometry>,
+    ) -> Self {
         let bytes = settings(object, selected);
         let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("object placement"),
@@ -322,16 +523,21 @@ impl GpuMesh {
         let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("object placement"),
             layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: model.as_entire_binding(),
+            }],
         });
-        Self { geometry, model_group }
+        Self {
+            geometry,
+            model_group,
+        }
     }
 
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_bind_group(1, &self.model_group, &[]);
         self.geometry.draw(pass);
     }
-}
 ```
 
 ## <a id="checkpoint-31b-cache"></a>3. Reuse uploads while their geometry is alive
@@ -380,7 +586,47 @@ Keep weak cache entries and cumulative upload evidence without pinning unused GP
 Create the file and type:
 
 ```rust
---8<-- "journey/code/31b-cache-01.rs"
+use crate::{gpu_geometry::GpuGeometry, mesh::Mesh};
+use std::{
+    collections::HashMap,
+    rc::{Rc, Weak},
+};
+
+#[derive(Default)]
+pub struct GeometryCache {
+    entries: HashMap<*const Mesh, Weak<GpuGeometry>>,
+    pub uploads: usize,
+}
+
+impl GeometryCache {
+    pub fn get(&mut self, device: &wgpu::Device, source: &Rc<Mesh>) -> Rc<GpuGeometry> {
+        let key = Rc::as_ptr(source);
+        if let Some(geometry) = self
+            .entries
+            .get(&key)
+            .and_then(Weak::upgrade)
+        {
+            return geometry;
+        }
+        let geometry = Rc::new(GpuGeometry::upload(
+            device,
+            Rc::clone(source),
+        ));
+        self.entries
+            .insert(key, Rc::downgrade(&geometry));
+        self.uploads += 1;
+        geometry
+    }
+
+    pub fn prune(&mut self) {
+        self.entries
+            .retain(|_, geometry| geometry.strong_count() > 0);
+    }
+
+    pub fn entries(&self) -> usize {
+        self.entries.len()
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -390,46 +636,261 @@ Expose the geometry cache to the renderer.
 **Locate this existing block:**
 
 ```rust
-pub mod gpu_geometry;
+mod fit_tests;
+#[cfg(test)]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/31b-cache-02.rs"
+mod fit_tests;
+pub mod geometry_cache;
+#[cfg(test)]
 ```
 
 ### 3. `src/renderer.rs`
 
 Keep geometry reuse and object allocation counts with the renderer. Let the same scene synchronization populate startup rows. Initialize startup through the same ownership path as later edits. Reuse live geometry before replacing the old GPU rows, then prune dead weak entries. Report cumulative geometry uploads, settings allocations and the reserved write counters.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+    meshes: Vec<GpuMesh>,
+    uniform: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+    depth: wgpu::TextureView,
+}
+
+impl Renderer {
+    pub fn new(
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+        scene: &Scene,
+    ) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 24,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        });
+        let layout = pipeline.get_bind_group_layout(1);
+        let meshes = scene
+            .objects()
+            .iter()
+            .map(|object| GpuMesh::upload(&device, &layout, object, false))
+            .collect();
+        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("view transform"),
+            size: 64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("view settings"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        let depth = Self::depth(&device, 640, 480);
+        Self {
+            device,
+            queue,
+            pipeline,
+            meshes,
+            uniform,
+            view_group,
+            depth,
+        }
+    }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("opaque depth"),
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        depth_texture.create_view(&Default::default())
+    }
+
+    pub fn resize(&mut self, size: crate::viewport::Viewport) {
+        self.depth = Self::depth(&self.device, size.width, size.height);
+    }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         let layout = self.pipeline.get_bind_group_layout(1);
-        self.meshes = scene.objects().iter().map(|object| {
-            GpuMesh::upload(&self.device, &layout, object, selected == Some(object.id))
-        }).collect();
+        self.meshes = scene
+            .objects()
+            .iter()
+            .map(|object| {
+                GpuMesh::upload(
+                    &self.device,
+                    &layout,
+                    object,
+                    selected == Some(object.id),
+                )
+            })
+            .collect();
     }
-
-    pub fn draw(
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    meshes: Vec<GpuMesh>,
+    geometry: crate::geometry_cache::GeometryCache,
+    settings_allocations: usize,
+    uniform: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+    depth: wgpu::TextureView,
+}
+
+impl Renderer {
+    pub fn new(
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+        scene: &Scene,
+    ) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 24,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        });
+        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("view transform"),
+            size: 64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("view settings"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        let depth = Self::depth(&device, 640, 480);
+        let mut renderer = Self {
+            device,
+            queue,
+            pipeline,
+            meshes: Vec::new(),
+            geometry: Default::default(),
+            settings_allocations: 0,
+            uniform,
+            view_group,
+            depth,
+        };
+        renderer.set_scene(scene, None);
+        renderer
+    }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("opaque depth"),
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        depth_texture.create_view(&Default::default())
+    }
+
+    pub fn resize(&mut self, size: crate::viewport::Viewport) {
+        self.depth = Self::depth(&self.device, size.width, size.height);
+    }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         let layout = self.pipeline.get_bind_group_layout(1);
         let mut meshes = Vec::with_capacity(scene.objects().len());
         for object in scene.objects() {
             let geometry = self.geometry.get(&self.device, &object.mesh);
-            meshes.push(GpuMesh::with_geometry(&self.device, &layout, object,
-                selected == Some(object.id), geometry));
+            meshes.push(GpuMesh::with_geometry(
+                &self.device,
+                &layout,
+                object,
+                selected == Some(object.id),
+                geometry,
+            ));
             self.settings_allocations += 1;
         }
         self.meshes = meshes;
@@ -437,86 +898,13 @@ Replace it with:
     }
 
     pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, 0, 0]
+        [
+            self.geometry.uploads,
+            self.settings_allocations,
+            0,
+            0,
+        ]
     }
-
-    pub fn draw(
-```
-
-**Locate this block:**
-
-```rust
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        Self { device, queue, pipeline, meshes, uniform, view_group, depth }
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-```
-
-Replace it with:
-
-```rust
-            }],
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, uniform, view_group, depth };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-
-    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
-```
-
-**Locate this block:**
-
-```rust
-            multiview_mask: None,
-            cache: None,
-        });
-        let layout = pipeline.get_bind_group_layout(1);
-        let meshes = scene.objects().iter()
-            .map(|object| GpuMesh::upload(&device, &layout, object, false)).collect();
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform"),
-            size: 64,
-```
-
-Replace it with:
-
-```rust
-            multiview_mask: None,
-            cache: None,
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
-            label: Some("view transform"),
-            size: 64,
-```
-
-**Locate this block:**
-
-```rust
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    meshes: Vec<GpuMesh>,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-```
-
-Replace it with:
-
-```rust
-    pub queue: wgpu::Queue,
-    pipeline: wgpu::RenderPipeline,
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
 ```
 
 ### 4. `src/browser.rs`
@@ -528,22 +916,21 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
+        "data-object-count",
+        &editor.scene.objects().len().to_string(),
+    )?;
 ```
 
 Replace it with:
 
 ```rust
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
-    canvas.set_attribute("data-projection", &format!("{:?}", editor.camera.projection))
-}
+        "data-object-count",
+        &editor.scene.objects().len().to_string(),
+    )?;
+    canvas.set_attribute(
+        "data-gpu-stats",
+        &format!("{:?}", renderer.stats()),
+    )?;
 ```
 
 **Locate this block:**
@@ -573,25 +960,25 @@ fn inspect(editor: &Editor, renderer: &Renderer) -> Result<(), JsValue> {
 **Locate this block:**
 
 ```rust
+                    }
                 }
             }
-        }
-        if let Err(error) = inspect(&editor) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
+            if let Err(error) = inspect(&editor) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
+                ));
 ```
 
 Replace it with:
 
 ```rust
+                    }
                 }
             }
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
-        }
+            if let Err(error) = inspect(&editor, &renderer) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
+                ));
 ```
 
 **Locate this block:**
@@ -620,8 +1007,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
     let mut editor = Editor::default();
     inspect(&editor)?;
     let mut renderer = Renderer::new(
@@ -632,8 +1017,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
     let mut editor = Editor::default();
     let mut renderer = Renderer::new(
         device,
@@ -683,15 +1066,71 @@ Replace it with:
 
 Retain row identity, its writable settings buffer and the bytes last sent. Allow queued updates to the settings buffer. Keep settings ownership beside the bind group. Queue only changed matrix or selection ranges and count their actual calls and bytes.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::{gpu_geometry::GpuGeometry, scene::Object};
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
+    model_group: wgpu::BindGroup,
+}
 
-pub struct GpuMesh {
-    pub geometry: Rc<GpuGeometry>,
+fn settings(object: &Object, selected: bool) -> [u8; 80] {
+    let mut bytes = [0; 80];
+    for (index, value) in object.model.m.iter().enumerate() {
+        bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
+    }
+    let flag: f32 = if selected {
+        1.0
+    } else {
+        0.0
+    };
+    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
+    bytes
+}
+
+impl GpuMesh {
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
+        let geometry = Rc::new(GpuGeometry::upload(
+            device,
+            Rc::clone(&object.mesh),
+        ));
+        Self::with_geometry(device, layout, object, selected, geometry)
+    }
+
+    pub fn with_geometry(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+        geometry: Rc<GpuGeometry>,
+    ) -> Self {
+        let bytes = settings(object, selected);
+        let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("object placement"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+        let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("object placement"),
+            layout,
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: model.as_entire_binding(),
+            }],
+        });
+        Self {
+            geometry,
+            model_group,
+        }
+    }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     model_group: wgpu::BindGroup,
     pub id: crate::scene::ObjectId,
     model: wgpu::Buffer,
@@ -703,20 +1142,36 @@ fn settings(object: &Object, selected: bool) -> [u8; 80] {
     for (index, value) in object.model.m.iter().enumerate() {
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
     }
-    let flag: f32 = if selected { 1.0 } else { 0.0 };
+    let flag: f32 = if selected {
+        1.0
+    } else {
+        0.0
+    };
     bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
     bytes
 }
 
 impl GpuMesh {
-    pub fn upload(device: &wgpu::Device, layout: &wgpu::BindGroupLayout, object: &Object, selected: bool) -> Self {
-        let geometry = Rc::new(GpuGeometry::upload(device, Rc::clone(&object.mesh)));
+    pub fn upload(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+    ) -> Self {
+        let geometry = Rc::new(GpuGeometry::upload(
+            device,
+            Rc::clone(&object.mesh),
+        ));
         Self::with_geometry(device, layout, object, selected, geometry)
     }
 
-    pub fn with_geometry(device: &wgpu::Device, layout: &wgpu::BindGroupLayout,
-        object: &Object, selected: bool, geometry: Rc<GpuGeometry>) -> Self
-    {
+    pub fn with_geometry(
+        device: &wgpu::Device,
+        layout: &wgpu::BindGroupLayout,
+        object: &Object,
+        selected: bool,
+        geometry: Rc<GpuGeometry>,
+    ) -> Self {
         let bytes = settings(object, selected);
         let model = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("object placement"),
@@ -726,12 +1181,26 @@ impl GpuMesh {
         let model_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: Some("object placement"),
             layout,
-            entries: &[wgpu::BindGroupEntry { binding: 0, resource: model.as_entire_binding() }],
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: model.as_entire_binding(),
+            }],
         });
-        Self { geometry, model_group, id: object.id, model, previous: bytes }
+        Self {
+            geometry,
+            model_group,
+            id: object.id,
+            model,
+            previous: bytes,
+        }
     }
 
-    pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
+    pub fn update(
+        &mut self,
+        queue: &wgpu::Queue,
+        object: &Object,
+        selected: bool,
+    ) -> [usize; 2] {
         let next = settings(object, selected);
         let mut writes = [0, 0];
         for (start, end) in [(0, 64), (64, 80)] {
@@ -744,31 +1213,127 @@ impl GpuMesh {
         self.previous = next;
         writes
     }
-
-    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
-        pass.set_bind_group(1, &self.model_group, &[]);
-        self.geometry.draw(pass);
-    }
-}
 ```
 
 ### 2. `src/renderer.rs`
 
 Accumulate settings write evidence. Initialize the cumulative write counters. Retain matching GPU rows, preserve scene draw order and drop unused rows before cache pruning. Report actual update calls and bytes rather than reserved zeros.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+    settings_allocations: usize,
+    uniform: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+    depth: wgpu::TextureView,
+}
+
+impl Renderer {
+    pub fn new(
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+        scene: &Scene,
+    ) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 24,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        });
+        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("view transform"),
+            size: 64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("view settings"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        let depth = Self::depth(&device, 640, 480);
+        let mut renderer = Self {
+            device,
+            queue,
+            pipeline,
+            meshes: Vec::new(),
+            geometry: Default::default(),
+            settings_allocations: 0,
+            uniform,
+            view_group,
+            depth,
+        };
+        renderer.set_scene(scene, None);
+        renderer
+    }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("opaque depth"),
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        depth_texture.create_view(&Default::default())
+    }
+
+    pub fn resize(&mut self, size: crate::viewport::Viewport) {
+        self.depth = Self::depth(&self.device, size.width, size.height);
+    }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         let layout = self.pipeline.get_bind_group_layout(1);
         let mut meshes = Vec::with_capacity(scene.objects().len());
         for object in scene.objects() {
             let geometry = self.geometry.get(&self.device, &object.mesh);
-            meshes.push(GpuMesh::with_geometry(&self.device, &layout, object,
-                selected == Some(object.id), geometry));
+            meshes.push(GpuMesh::with_geometry(
+                &self.device,
+                &layout,
+                object,
+                selected == Some(object.id),
+                geometry,
+            ));
             self.settings_allocations += 1;
         }
         self.meshes = meshes;
@@ -776,33 +1341,149 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     }
 
     pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, 0, 0]
-    }
-
-    pub fn draw(
+        [
+            self.geometry.uploads,
+            self.settings_allocations,
+            0,
+            0,
+        ]
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    settings_allocations: usize,
+    settings_writes: usize,
+    settings_bytes: usize,
+    uniform: wgpu::Buffer,
+    view_group: wgpu::BindGroup,
+    depth: wgpu::TextureView,
+}
+
+impl Renderer {
+    pub fn new(
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+        scene: &Scene,
+    ) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("triangle"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("triangle"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: 24,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(format.into())],
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(wgpu::DepthStencilState {
+                format: wgpu::TextureFormat::Depth32Float,
+                depth_write_enabled: Some(true),
+                depth_compare: Some(wgpu::CompareFunction::Less),
+                stencil: Default::default(),
+                bias: Default::default(),
+            }),
+            multisample: Default::default(),
+            multiview_mask: None,
+            cache: None,
+        });
+        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("view transform"),
+            size: 64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("view settings"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        let depth = Self::depth(&device, 640, 480);
+        let mut renderer = Self {
+            device,
+            queue,
+            pipeline,
+            meshes: Vec::new(),
+            geometry: Default::default(),
+            settings_allocations: 0,
+            settings_writes: 0,
+            settings_bytes: 0,
+            uniform,
+            view_group,
+            depth,
+        };
+        renderer.set_scene(scene, None);
+        renderer
+    }
+
+    fn depth(device: &wgpu::Device, width: u32, height: u32) -> wgpu::TextureView {
+        let depth_texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("opaque depth"),
+            size: wgpu::Extent3d {
+                width,
+                height,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        depth_texture.create_view(&Default::default())
+    }
+
+    pub fn resize(&mut self, size: crate::viewport::Viewport) {
+        self.depth = Self::depth(&self.device, size.width, size.height);
+    }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
         let layout = self.pipeline.get_bind_group_layout(1);
         let mut old = std::mem::take(&mut self.meshes);
         for object in scene.objects() {
-            let matching = old.iter().position(|row| row.id == object.id
-                && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh));
+            let matching = old.iter().position(|row| {
+                row.id == object.id
+                    && std::rc::Rc::ptr_eq(&row.geometry.source, &object.mesh)
+            });
             let row = if let Some(index) = matching {
                 let mut row = old.swap_remove(index);
-                let [calls, bytes] = row.update(&self.queue, object, selected == Some(object.id));
+                let [calls, bytes] = row.update(
+                    &self.queue,
+                    object,
+                    selected == Some(object.id),
+                );
                 self.settings_writes += calls;
                 self.settings_bytes += bytes;
                 row
             } else {
                 let geometry = self.geometry.get(&self.device, &object.mesh);
                 self.settings_allocations += 1;
-                GpuMesh::with_geometry(&self.device, &layout, object,
-                    selected == Some(object.id), geometry)
+                GpuMesh::with_geometry(
+                    &self.device,
+                    &layout,
+                    object,
+                    selected == Some(object.id),
+                    geometry,
+                )
             };
             self.meshes.push(row);
         }
@@ -811,59 +1492,12 @@ Replace it with:
     }
 
     pub fn stats(&self) -> [usize; 4] {
-        [self.geometry.uploads, self.settings_allocations, self.settings_writes, self.settings_bytes]
-    }
-
-    pub fn draw(
-```
-
-**Locate this block:**
-
-```rust
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, uniform, view_group, depth };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-```
-
-Replace it with:
-
-```rust
-        });
-        let depth = Self::depth(&device, 640, 480);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth };
-        renderer.set_scene(scene, None);
-        renderer
-    }
-```
-
-**Locate this block:**
-
-```rust
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
-```
-
-Replace it with:
-
-```rust
-    meshes: Vec<GpuMesh>,
-    geometry: crate::geometry_cache::GeometryCache,
-    settings_allocations: usize,
-    settings_writes: usize,
-    settings_bytes: usize,
-    uniform: wgpu::Buffer,
-    view_group: wgpu::BindGroup,
-    depth: wgpu::TextureView,
+        [
+            self.geometry.uploads,
+            self.settings_allocations,
+            self.settings_writes,
+            self.settings_bytes,
+        ]
 ```
 
 ## <a id="checkpoint-32-history"></a>5. Find the owners retained by history
@@ -909,22 +1543,121 @@ Replace it with:
 
 Expose borrowed snapshot roots and an explicit reset of both branches. Prove deletion differs from dropping the owners retained by Undo and Redo.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+impl History {
+    pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
+        self.try_edit(scene, |scene| {
+            action(scene);
+            Ok(())
+        })
+        .expect("Infallible scene edit");
+    }
+
+    pub fn try_edit(
+        &mut self,
+        scene: &mut Scene,
+        action: impl FnOnce(&mut Scene) -> Result<(), &'static str>,
+    ) -> Result<(), &'static str> {
+        let before = scene.clone();
+        if let Err(error) = action(scene) {
+            scene.restore(before);
+            return Err(error);
+        }
+        if self.undo.len() == LIMIT {
+            self.undo.remove(0);
+        }
+        self.undo.push(before);
+        self.redo.clear();
+        Ok(())
+    }
+
+    pub fn undo(&mut self, scene: &mut Scene) -> bool {
+        Self::travel(&mut self.undo, &mut self.redo, scene)
+    }
+
+    pub fn redo(&mut self, scene: &mut Scene) -> bool {
+        Self::travel(&mut self.redo, &mut self.undo, scene)
+    }
+
+    fn travel(from: &mut Vec<Scene>, to: &mut Vec<Scene>, scene: &mut Scene) -> bool {
+        let Some(saved) = from.pop() else {
+            return false;
+        };
+        to.push(scene.clone());
+        scene.restore(saved);
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
     use std::rc::Rc;
 
     #[test]
-    fn undo_restores_identity_and_shares_the_original_mesh() {
-        let mut scene = Scene::demo();
-        let mut history = History::default();
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+impl History {
+    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
+        self.undo.iter().chain(&self.redo)
+    }
+
+    pub fn clear(&mut self) {
+        *self = Self::default();
+    }
+
+    pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
+        self.try_edit(scene, |scene| {
+            action(scene);
+            Ok(())
+        })
+        .expect("Infallible scene edit");
+    }
+
+    pub fn try_edit(
+        &mut self,
+        scene: &mut Scene,
+        action: impl FnOnce(&mut Scene) -> Result<(), &'static str>,
+    ) -> Result<(), &'static str> {
+        let before = scene.clone();
+        if let Err(error) = action(scene) {
+            scene.restore(before);
+            return Err(error);
+        }
+        if self.undo.len() == LIMIT {
+            self.undo.remove(0);
+        }
+        self.undo.push(before);
+        self.redo.clear();
+        Ok(())
+    }
+
+    pub fn undo(&mut self, scene: &mut Scene) -> bool {
+        Self::travel(&mut self.undo, &mut self.redo, scene)
+    }
+
+    pub fn redo(&mut self, scene: &mut Scene) -> bool {
+        Self::travel(&mut self.redo, &mut self.undo, scene)
+    }
+
+    fn travel(from: &mut Vec<Scene>, to: &mut Vec<Scene>, scene: &mut Scene) -> bool {
+        let Some(saved) = from.pop() else {
+            return false;
+        };
+        to.push(scene.clone());
+        scene.restore(saved);
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
     use std::rc::Rc;
 
     #[test]
@@ -934,7 +1667,9 @@ Replace it with:
         let id = scene.objects()[0].id;
         let display = Rc::downgrade(&scene.objects()[0].mesh);
         let source = Rc::downgrade(&scene.objects()[0].geometry);
-        history.edit(&mut scene, |scene| { scene.remove(id); });
+        history.edit(&mut scene, |scene| {
+            scene.remove(id);
+        });
         assert!(display.upgrade().is_some() && source.upgrade().is_some());
         assert_eq!(history.scenes().count(), 1);
         history.clear();
@@ -958,39 +1693,6 @@ Replace it with:
     }
 
     #[test]
-    fn undo_restores_identity_and_shares_the_original_mesh() {
-        let mut scene = Scene::demo();
-        let mut history = History::default();
-```
-
-**Locate this block:**
-
-```rust
-}
-
-impl History {
-    pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
-        self.try_edit(scene, |scene| { action(scene); Ok(()) }).expect("Infallible scene edit");
-    }
-```
-
-Replace it with:
-
-```rust
-}
-
-impl History {
-    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
-        self.undo.iter().chain(&self.redo)
-    }
-
-    pub fn clear(&mut self) {
-        *self = Self::default();
-    }
-
-    pub fn edit(&mut self, scene: &mut Scene, action: impl FnOnce(&mut Scene)) {
-        self.try_edit(scene, |scene| { action(scene); Ok(()) }).expect("Infallible scene edit");
-    }
 ```
 
 ## <a id="checkpoint-32a-cpu"></a>6. Count shared CPU displays once
@@ -1039,13 +1741,22 @@ Count allocated display-vector capacity rather than just occupied elements.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn vertices(&self) -> &[[f32; 6]] {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32a-cpu-01.rs"
+    }
+
+    pub fn payload_bytes(&self) -> usize {
+        self.vertices.capacity() * std::mem::size_of::<[f32; 6]>()
+            + self.indices.capacity() * std::mem::size_of::<u16>()
+    }
+
+    pub fn vertices(&self) -> &[[f32; 6]] {
 ```
 
 ### 2. `src/editor.rs`
@@ -1055,13 +1766,19 @@ Inspect active and retained snapshot roots without creating new owners.
 **Locate this existing block:**
 
 ```rust
+impl Editor {
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32a-cpu-02.rs"
+impl Editor {
+    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
+        std::iter::once(&self.scene).chain(self.history.scenes())
+    }
+
+    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
 ```
 
 ### 3. `src/renderer.rs`
@@ -1071,13 +1788,23 @@ Expose borrowed live geometry owners for accounting and weak lifetime checks.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn stats(&self) -> [usize; 4] {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32a-cpu-03.rs"
+    }
+
+    pub fn geometry_owners(
+        &self,
+    ) -> impl Iterator<Item = &std::rc::Rc<crate::gpu_geometry::GpuGeometry>> {
+        self.meshes.iter().map(|row| &row.geometry)
+    }
+
+    pub fn stats(&self) -> [usize; 4] {
 ```
 
 ### 4. `src/memory.rs`
@@ -1087,7 +1814,82 @@ Count unique live owners and known display capacities across editor and GPU root
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32a-cpu-04.rs"
+use crate::{mesh::Mesh, scene::Scene};
+use std::{collections::HashSet, rc::Rc};
+
+pub fn cpu<'a>(
+    scenes: impl IntoIterator<Item = &'a Scene>,
+    gpu_displays: impl IntoIterator<Item = &'a Rc<Mesh>>,
+) -> [usize; 6] {
+    let (mut sources, mut documents, mut displays) = (
+        HashSet::new(),
+        HashSet::new(),
+        HashSet::new(),
+    );
+    let mut count = [0; 6];
+    for scene in scenes {
+        count[5] += 1;
+        for object in scene.objects() {
+            count[0] += 1;
+            sources.insert(Rc::as_ptr(&object.geometry));
+            if displays.insert(Rc::as_ptr(&object.mesh)) {
+                count[4] += object.mesh.payload_bytes();
+            }
+            if let Some(source) = &object.source {
+                if documents.insert(Rc::as_ptr(&source.document)) {
+                    for mesh in &source.document.objects.meshes {
+                        sources.insert(Rc::as_ptr(mesh));
+                    }
+                }
+            }
+        }
+    }
+    for display in gpu_displays {
+        if displays.insert(Rc::as_ptr(display)) {
+            count[4] += display.payload_bytes();
+        }
+    }
+    count[1] = sources.len();
+    count[2] = documents.len();
+    count[3] = displays.len();
+    count
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shared_snapshots_count_spare_capacity_once() {
+        let scene = Scene::demo();
+        let saved = scene.clone();
+        let baseline = cpu([&scene], std::iter::empty());
+        let shared = cpu([&scene, &saved], std::iter::empty());
+        assert_eq!(shared[0], 4);
+        assert_eq!(shared[5], 2);
+        assert_eq!(&shared[1..5], &baseline[1..5]);
+        let mut vertices = Vec::with_capacity(16);
+        vertices.extend([[0.0; 6]; 3]);
+        let mut indices = Vec::with_capacity(16);
+        indices.extend([0, 1, 2]);
+        let extra = Rc::new(Mesh::new(vertices, indices).unwrap());
+        let retained = cpu([&scene], [&extra, &extra]);
+        assert_eq!(retained[3], baseline[3] + 1);
+        assert_eq!(retained[4], baseline[4] + 16 * 24 + 16 * 2);
+    }
+
+    #[test]
+    fn a_document_retains_sources_whose_display_row_was_removed() {
+        let mut scene = Scene::demo();
+        scene
+            .import(crate::document::load(&crate::specimen::bytes()).unwrap())
+            .unwrap();
+        let id = scene.objects()[2].id;
+        scene.remove(id);
+        let count = cpu([&scene], std::iter::empty());
+        assert_eq!(&count[..4], &[4, 5, 1, 4]);
+    }
+}
 ```
 
 ### 5. `src/lib.rs`
@@ -1097,13 +1899,16 @@ Expose the scoped ownership ledger.
 **Locate this existing block:**
 
 ```rust
+pub mod history;
 pub mod mesh;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32a-cpu-05.rs"
+pub mod history;
+pub mod memory;
+pub mod mesh;
 ```
 
 ### 6. `src/browser.rs`
@@ -1113,13 +1918,26 @@ Publish accounting only through private canvas diagnostics.
 **Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-gpu-stats", &format!("{:?}", renderer.stats()))?;
+        &format!("{:?}", renderer.stats()),
+    )?;
+    canvas.set_attribute(
+        "data-projection",
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32a-cpu-06.rs" skip=81
+        &format!("{:?}", renderer.stats()),
+    )?;
+    let cpu = crate::memory::cpu(
+        editor.scenes(),
+        renderer
+            .geometry_owners()
+            .map(|owner| &owner.source),
+    );
+    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
+    canvas.set_attribute(
+        "data-projection",
 ```
 
 ## <a id="checkpoint-32b-gpu"></a>7. Count each shared GPU buffer once
@@ -1168,13 +1986,21 @@ Read actual buffer sizes, including initialization alignment.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32b-gpu-01.rs"
+    }
+
+    pub fn allocated_bytes(&self) -> u64 {
+        self.vertices.size() + self.indices.size()
+    }
+
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
 ```
 
 ### 2. `src/gpu_mesh.rs`
@@ -1184,13 +2010,21 @@ Report the independent settings buffer owned by one GPU row.
 **Locate this existing block:**
 
 ```rust
-    pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
+    }
+
+    pub fn update(
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32b-gpu-02.rs"
+    }
+
+    pub fn settings_bytes(&self) -> u64 {
+        self.model.size()
+    }
+
+    pub fn update(
 ```
 
 ### 3. `src/memory.rs`
@@ -1200,14 +2034,33 @@ Count shared geometry once while retaining each row’s separate settings cost.
 **Locate this existing block:**
 
 ```rust
+}
+
 #[cfg(test)]
-mod tests {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32b-gpu-03.rs"
+}
+
+pub fn gpu<'a>(
+    rows: impl IntoIterator<Item = &'a crate::gpu_mesh::GpuMesh>,
+) -> [u64; 4] {
+    let mut geometry = HashSet::new();
+    let mut count = [0; 4];
+    for row in rows {
+        if geometry.insert(Rc::as_ptr(&row.geometry)) {
+            count[0] += 1;
+            count[1] += row.geometry.allocated_bytes();
+        }
+        count[2] += 1;
+        count[3] += row.settings_bytes();
+    }
+    count
+}
+
+#[cfg(test)]
 ```
 
 ### 4. `src/renderer.rs`
@@ -1217,13 +2070,21 @@ Distinguish live document resources from cumulative upload/write counters.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn stats(&self) -> [usize; 4] {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32b-gpu-04.rs"
+    }
+
+    pub fn usage(&self) -> [u64; 4] {
+        crate::memory::gpu(&self.meshes)
+    }
+
+    pub fn stats(&self) -> [usize; 4] {
 ```
 
 ### 5. `src/browser.rs`
@@ -1233,13 +2094,19 @@ Expose live document buffer sizes without adding runtime controls.
 **Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-cpu-usage", &format!("{cpu:?}"))?;
+    canvas.set_attribute(
+        "data-projection",
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32b-gpu-05.rs" skip=66
+    canvas.set_attribute(
+        "data-gpu-usage",
+        &format!("{:?}", renderer.usage()),
+    )?;
+    canvas.set_attribute(
+        "data-projection",
 ```
 
 ## <a id="checkpoint-32c-close"></a>8. Close the document without resetting the view
@@ -1288,17 +2155,33 @@ Release row storage while preserving issued identities; reuse this inside atomic
 **Locate this existing block:**
 
 ```rust
-    pub fn replace(&mut self, loaded: crate::document::Loaded) -> Result<(), &'static str> {
+    }
+
+    pub fn replace(
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
         self.objects.clear();
         self.extra = None;
         self.import(loaded)
-    }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32c-close-01.rs"
+    }
+
+    pub fn clear(&mut self) {
+        self.objects = Vec::new();
+        self.extra = None;
+    }
+
+    pub fn replace(
+        &mut self,
+        loaded: crate::document::Loaded,
+    ) -> Result<(), &'static str> {
+        self.clear();
+        self.import(loaded)
 ```
 
 ### 2. `src/editor.rs`
@@ -1313,9 +2196,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     use super::*;
 
     #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
 ```
 
 Replace it with:
@@ -1326,18 +2206,28 @@ Replace it with:
     #[test]
     fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
         let mut editor = Editor::default();
-        editor.apply(Action::Import(crate::specimen::bytes())).unwrap();
-        editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
+        editor
+            .apply(Action::Import(crate::specimen::bytes()))
+            .unwrap();
+        editor.apply(Action::AddBox).unwrap();
+        editor.apply(Action::Undo).unwrap();
+        let old: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| scene.objects().iter().map(|row| row.id))
+            .collect();
         editor.apply(Action::SelectNext).unwrap();
-        editor.apply(Action::Pan(0.2, 0.1)).unwrap(); editor.apply(Action::Background).unwrap();
-        let view = editor.camera.uniform(); let background = editor.background.rgb();
+        editor.apply(Action::Pan(0.2, 0.1)).unwrap();
+        editor.apply(Action::Background).unwrap();
+        let view = editor.camera.uniform();
+        let background = editor.background.rgb();
         editor.apply(Action::Close).unwrap();
         assert!(editor.scene.objects().is_empty() && editor.selected.is_none());
         assert_eq!(editor.scenes().count(), 1);
-        editor.apply(Action::Undo).unwrap(); editor.apply(Action::Redo).unwrap();
+        editor.apply(Action::Undo).unwrap();
+        editor.apply(Action::Redo).unwrap();
         assert!(editor.scene.objects().is_empty());
-        assert_eq!(editor.camera.uniform(), view); assert_eq!(editor.background.rgb(), background);
+        assert_eq!(editor.camera.uniform(), view);
+        assert_eq!(editor.background.rgb(), background);
         editor.apply(Action::AddBox).unwrap();
         assert!(!old.contains(&editor.scene.objects()[0].id));
     }
@@ -1347,32 +2237,33 @@ Replace it with:
         let mut editor = Editor::default();
         let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
         let source = std::rc::Rc::downgrade(&editor.scene.objects()[0].geometry);
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
+        editor.apply(Action::Close).unwrap();
+        editor.apply(Action::Close).unwrap();
         assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
+        assert_eq!(
+            crate::memory::cpu(editor.scenes(), std::iter::empty()),
+            [0, 0, 0, 0, 0, 1]
+        );
     }
 
     #[test]
-    fn resetting_the_view_preserves_its_current_aspect() {
-        let mut editor = Editor::default();
-        editor.camera.aspect = 2.0;
 ```
 
 **Locate this block:**
 
 ```rust
-                self.selected = self.camera.ray(screen)
+                    .ray(screen)
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
             }
             Action::Replace(bytes) => {
                 let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
+                self.history
 ```
 
 Replace it with:
 
 ```rust
-                self.selected = self.camera.ray(screen)
+                    .ray(screen)
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
             }
             Action::Close => {
@@ -1382,14 +2273,12 @@ Replace it with:
             }
             Action::Replace(bytes) => {
                 let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
+                self.history
 ```
 
 **Locate this block:**
 
 ```rust
-    Pick([f32; 2]),
-    Import(Vec<u8>),
     Replace(Vec<u8>),
     AddBox,
     Translate([f64; 3]),
@@ -1399,8 +2288,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Pick([f32; 2]),
-    Import(Vec<u8>),
     Replace(Vec<u8>),
     Close,
     AddBox,
@@ -1456,69 +2343,63 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        };
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_));
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if event.type_() == "viewer-file" {
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
+            };
+            if let Some(action) = action {
+                let replacement = matches!(&action, Action::Replace(_));
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if event.type_() == "viewer-file" {
+                            let message = if replacement {
 ```
 
 Replace it with:
 
 ```rust
-        };
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_));
-            let closing = matches!(&action, Action::Close);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
-                        let message = if replacement { "Document replaced. Undo restores the previous document." }
-                            else { "File imported. Undo removes the entire import." };
-                        report(message);
+            };
+            if let Some(action) = action {
+                let replacement = matches!(&action, Action::Replace(_));
+                let closing = matches!(&action, Action::Close);
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if closing {
+                            report("Document closed.");
+                            panel.result("Document closed.");
+                        } else if event.type_() == "viewer-file" {
+                            let message = if replacement {
 ```
 
 **Locate this block:**
 
 ```rust
-        } else if event.type_() == "viewer-file" {
-            crate::file_input::action(&event)
-        } else if let Some(line) = line {
-            if line == "cancel open" {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::action(&event)
+            } else if let Some(line) = line {
+                if line == "cancel open" {
+                    request.borrow_mut().cancel();
+                    report("Open cancelled.");
+                    panel.result("Open cancelled.");
 ```
 
 Replace it with:
 
 ```rust
-        } else if event.type_() == "viewer-file" {
-            crate::file_input::action(&event)
-        } else if let Some(line) = line {
-            if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
-                request.borrow_mut().cancel();
-                report("Open cancelled.");
-                panel.result("Open cancelled.");
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::action(&event)
+            } else if let Some(line) = line {
+                if line == "close" {
+                    request.borrow_mut().cancel();
+                    Some(Action::Close)
+                } else if line == "cancel open" {
+                    request.borrow_mut().cancel();
+                    report("Open cancelled.");
+                    panel.result("Open cancelled.");
 ```
 
 **Locate this block:**
 
 ```rust
-            "Open",
-            "Open Replace",
             "Cancel Open",
             "Save",
             "Example Box",
@@ -1528,8 +2409,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Open",
-            "Open Replace",
             "Cancel Open",
             "Close",
             "Save",
@@ -1590,7 +2469,78 @@ Verify imported source/document release across history and fresh identities afte
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32e-release-01.rs"
+    #[test]
+    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
+        use std::rc::Rc;
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        editor
+            .apply(Action::Import(bytes.clone()))
+            .unwrap();
+        editor
+            .apply(Action::Replace(bytes.clone()))
+            .unwrap();
+        let displays: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene
+                    .objects()
+                    .iter()
+                    .map(|row| Rc::downgrade(&row.mesh))
+            })
+            .collect();
+        let sources: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene
+                    .objects()
+                    .iter()
+                    .map(|row| Rc::downgrade(&row.geometry))
+            })
+            .collect();
+        let documents: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene.objects().iter().filter_map(|row| {
+                    row.source
+                        .as_ref()
+                        .map(|source| Rc::downgrade(&source.document))
+                })
+            })
+            .collect();
+        let old: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| scene.objects().iter().map(|row| row.id))
+            .collect();
+        assert!(!documents.is_empty());
+        editor.apply(Action::Close).unwrap();
+        assert!(
+            displays
+                .iter()
+                .all(|owner| owner.upgrade().is_none())
+        );
+        assert!(
+            sources
+                .iter()
+                .all(|owner| owner.upgrade().is_none())
+        );
+        assert!(
+            documents
+                .iter()
+                .all(|owner| owner.upgrade().is_none())
+        );
+        editor.apply(Action::Import(bytes)).unwrap();
+        assert!(
+            editor
+                .scene
+                .objects()
+                .iter()
+                .all(|row| !old.contains(&row.id))
+        );
+    }
+
+    #[test]
+    fn resetting_the_view_preserves_its_current_aspect() {
 ```
 
 ## <a id="checkpoint-32f-metadata"></a>11. Keep row metadata separate from editable geometry
@@ -1640,12 +2590,15 @@ Give independently retained row metadata its own small module.
 
 ```rust
 pub mod prepared;
+pub mod scene;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32f-metadata-01.rs" skip=18
+pub mod prepared;
+pub mod row_metadata;
+pub mod scene;
 ```
 
 ### 2. `src/row_metadata.rs`
@@ -1655,7 +2608,84 @@ Copy source identity and flags without copying or retaining kernel payload; test
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32f-metadata-02.rs"
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RowMetadata {
+    pub source_guid: String,
+    pub name: String,
+    pub is_visible: bool,
+    pub is_locked: bool,
+}
+
+impl RowMetadata {
+    pub fn from_mesh(mesh: &session_rust::Mesh) -> Self {
+        Self {
+            source_guid: mesh.guid().to_owned(),
+            name: mesh.name.clone(),
+            is_visible: mesh.is_visible,
+            is_locked: mesh.is_locked,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::editor::{Action, Editor};
+    use std::rc::Rc;
+
+    #[test]
+    fn metadata_does_not_keep_a_closed_kernel_source_alive() {
+        let mut editor = Editor::default();
+        let mut mesh = session_rust::Mesh::create_box(1.0, 1.0, 1.0);
+        mesh.name = "Released beam".into();
+        mesh.is_visible = false;
+        mesh.is_locked = true;
+        let id = editor
+            .scene
+            .insert(crate::prepared::PreparedMesh::new(mesh).unwrap())
+            .unwrap();
+        let row = editor
+            .scene
+            .objects()
+            .iter()
+            .find(|row| row.id == id)
+            .unwrap();
+        let weak = Rc::downgrade(&row.geometry);
+        let metadata = Rc::clone(&row.metadata);
+        editor.apply(Action::Close).unwrap();
+        assert!(weak.upgrade().is_none());
+        assert_eq!(metadata.name, "Released beam");
+        assert!(!metadata.is_visible && metadata.is_locked);
+        assert!(!metadata.source_guid.is_empty());
+    }
+
+    #[test]
+    fn duplicate_sources_keep_metadata_through_move_and_undo() {
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        editor
+            .apply(Action::Replace(bytes.clone()))
+            .unwrap();
+        editor.apply(Action::Import(bytes)).unwrap();
+        let original = &editor.scene.objects()[0];
+        let copy = &editor.scene.objects()[3];
+        assert_eq!(original.metadata, copy.metadata);
+        assert_ne!(original.guid, copy.guid);
+        let metadata = Rc::clone(&original.metadata);
+        editor.apply(Action::SelectNext).unwrap();
+        editor
+            .apply(Action::Translate([0.25, 0.0, 0.0]))
+            .unwrap();
+        assert!(Rc::ptr_eq(
+            &metadata,
+            &editor.scene.objects()[0].metadata
+        ));
+        editor.apply(Action::Undo).unwrap();
+        assert!(Rc::ptr_eq(
+            &metadata,
+            &editor.scene.objects()[0].metadata
+        ));
+    }
+}
 ```
 
 ### 3. `src/scene.rs`
@@ -1667,33 +2697,34 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        while self.objects.iter().any(|object| object.guid == guid) {
+        {
             guid = uuid::Uuid::new_v4().to_string();
         }
-        self.objects.push(Object { id, guid, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
-            model: prepared.model, source: prepared.source });
-        Ok(id)
-    }
+        self.objects.push(Object {
+            id,
+            guid,
+            mesh: Rc::new(prepared.display),
 ```
 
 Replace it with:
 
 ```rust
-        while self.objects.iter().any(|object| object.guid == guid) {
+        {
             guid = uuid::Uuid::new_v4().to_string();
         }
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
-            model: prepared.model, source: prepared.source });
-        Ok(id)
-    }
+        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(
+            &prepared.geometry,
+        ));
+        self.objects.push(Object {
+            id,
+            guid,
+            metadata,
+            mesh: Rc::new(prepared.display),
 ```
 
 **Locate this block:**
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub guid: String,
     pub mesh: Rc<Mesh>,
     pub geometry: Rc<session_rust::Mesh>,
@@ -1703,8 +2734,6 @@ pub struct Object {
 Replace it with:
 
 ```rust
-pub struct Object {
-    pub id: ObjectId,
     pub guid: String,
     pub metadata: Rc<crate::row_metadata::RowMetadata>,
     pub mesh: Rc<Mesh>,
@@ -1719,13 +2748,39 @@ Expose row values through hidden inspection for actual Chrome import/history che
 **Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+        &editor.scene.objects().len().to_string(),
+    )?;
+    canvas.set_attribute(
+        "data-gpu-stats",
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32f-metadata-05.rs" skip=91
+        &editor.scene.objects().len().to_string(),
+    )?;
+    let metadata: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|row| {
+            let m = &row.metadata;
+            (
+                &row.guid,
+                &m.source_guid,
+                &m.name,
+                m.is_visible,
+                m.is_locked,
+            )
+        })
+        .collect();
+    canvas.set_attribute(
+        "data-row-metadata",
+        &serde_json::to_string(&metadata)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
+        "data-gpu-stats",
 ```
 
 ## <a id="checkpoint-32fa-access"></a>12. Ask whether an editable source is available
@@ -1781,7 +2836,16 @@ impl Object {
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fa-access-01.rs"
+impl Object {
+    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
+        Some(&self.geometry)
+    }
+
+    pub fn source(&self) -> Option<&crate::document::Source> {
+        self.source.as_ref()
+    }
+
+    pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
 ```
 
 ### 2. `src/document.rs`
@@ -1791,71 +2855,68 @@ Require original editable geometry instead of silently exporting display floats.
 **Locate this existing block:**
 
 ```rust
+    for object in scene.objects() {
         let mut mesh = object.geometry.to_proto();
+        mesh.guid = object.guid.clone();
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fa-access-02.rs"
+    for object in scene.objects() {
+        let geometry = object
+            .geometry()
+            .ok_or("Reload editable sources before saving")?;
+        let mut mesh = geometry.to_proto();
+        mesh.guid = object.guid.clone();
 ```
 
 ### 3. `src/memory.rs`
 
 Count kernel owners only when they are available. Keep provenance absence independent of row/display accounting.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        count[5] += 1;
-        for object in scene.objects() {
             count[0] += 1;
             sources.insert(Rc::as_ptr(&object.geometry));
-            if displays.insert(Rc::as_ptr(&object.mesh)) { count[4] += object.mesh.payload_bytes(); }
+            if displays.insert(Rc::as_ptr(&object.mesh)) {
+                count[4] += object.mesh.payload_bytes();
+            }
             if let Some(source) = &object.source {
                 if documents.insert(Rc::as_ptr(&source.document)) {
-                    for mesh in &source.document.objects.meshes { sources.insert(Rc::as_ptr(mesh)); }
-                }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        count[5] += 1;
-        for object in scene.objects() {
             count[0] += 1;
-            if let Some(geometry) = object.geometry() { sources.insert(Rc::as_ptr(geometry)); }
-            if displays.insert(Rc::as_ptr(&object.mesh)) { count[4] += object.mesh.payload_bytes(); }
+            if let Some(geometry) = object.geometry() {
+                sources.insert(Rc::as_ptr(geometry));
+            }
+            if displays.insert(Rc::as_ptr(&object.mesh)) {
+                count[4] += object.mesh.payload_bytes();
+            }
             if let Some(source) = object.source() {
                 if documents.insert(Rc::as_ptr(&source.document)) {
-                    for mesh in &source.document.objects.meshes { sources.insert(Rc::as_ptr(mesh)); }
-                }
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/source_tests.rs`
 
-Optional authoring fixture. Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion.
+Optional authoring fixture. Update generated_source_and_display_survive_move_and_history through borrowed source access while preserving every existing assertion. Optional authoring fixture. Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
-```text
-fn generated_source_and_display_survive_move_and_history() {
-    let mut editor = Editor::default();
-    editor.apply(Action::AddBox).unwrap();
-    for _ in 0..3 { editor.apply(Action::SelectNext).unwrap(); }
+```rust
     let object = &editor.scene.objects()[2];
     let geometry = Rc::clone(&object.geometry);
     let display = Rc::clone(&object.mesh);
     let point = geometry.vertex_point(0).unwrap();
     let guid = geometry.guid().to_owned();
     let before = object.model.m;
-    editor.apply(Action::Translate([2.0, -1.0, 0.5])).unwrap();
+    editor
+        .apply(Action::Translate([2.0, -1.0, 0.5]))
+        .unwrap();
     let moved = editor.scene.objects()[2].model.m;
     editor.apply(Action::Undo).unwrap();
     assert_eq!(editor.scene.objects()[2].model.m, before);
@@ -1864,124 +2925,272 @@ fn generated_source_and_display_survive_move_and_history() {
     assert_eq!(restored.model.m, moved);
     assert!(Rc::ptr_eq(&geometry, &restored.geometry));
     assert!(Rc::ptr_eq(&display, &restored.mesh));
-    assert_eq!(restored.geometry.vertex_point(0).unwrap(), point);
+    assert_eq!(
+        restored.geometry.vertex_point(0).unwrap(),
+        point
+    );
     assert_eq!(restored.geometry.guid(), guid);
     assert!(restored.source.is_none());
 }
-```
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fa-access-05.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 5. `src/source_tests.rs`
-
-Optional authoring fixture. Update imported_source_survives_a_change_of_display_row through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```text
+#[test]
 fn imported_source_survives_a_change_of_display_row() {
     let mut editor = Editor::default();
-    editor.apply(Action::Import(specimen::bytes())).unwrap();
+    editor
+        .apply(Action::Import(specimen::bytes()))
+        .unwrap();
     let imported = editor.scene.objects()[2].clone();
     let first = editor.scene.objects()[0].id;
     let second = editor.scene.objects()[1].id;
-    editor.scene.remove(first); editor.scene.remove(second);
+    editor.scene.remove(first);
+    editor.scene.remove(second);
     let current = &editor.scene.objects()[0];
     assert_eq!(current.id, imported.id);
-    assert!(Rc::ptr_eq(&current.geometry, &imported.geometry));
+    assert!(Rc::ptr_eq(
+        &current.geometry,
+        &imported.geometry
+    ));
     let source = current.source.as_ref().unwrap();
     assert_eq!(current.geometry.guid(), source.guid);
-    assert!(source.document.objects.meshes.iter().any(|m| m.guid() == source.guid));
-    assert!(Rc::ptr_eq(&source.document, &imported.source.as_ref().unwrap().document));
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| m.guid() == source.guid)
+    );
+    assert!(Rc::ptr_eq(
+        &source.document,
+        &imported.source.as_ref().unwrap().document
+    ));
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    let object = &editor.scene.objects()[2];
+    let geometry = Rc::clone(object.geometry().unwrap());
+    let display = Rc::clone(&object.mesh);
+    let point = geometry.vertex_point(0).unwrap();
+    let guid = geometry.guid().to_owned();
+    let before = object.model.m;
+    editor
+        .apply(Action::Translate([2.0, -1.0, 0.5]))
+        .unwrap();
+    let moved = editor.scene.objects()[2].model.m;
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects()[2].model.m, before);
+    editor.apply(Action::Redo).unwrap();
+    let restored = &editor.scene.objects()[2];
+    assert_eq!(restored.model.m, moved);
+    assert!(Rc::ptr_eq(
+        &geometry,
+        restored.geometry().unwrap()
+    ));
+    assert!(Rc::ptr_eq(&display, &restored.mesh));
+    assert_eq!(
+        restored
+            .geometry()
+            .unwrap()
+            .vertex_point(0)
+            .unwrap(),
+        point
+    );
+    assert_eq!(restored.geometry().unwrap().guid(), guid);
+    assert!(restored.source().is_none());
 }
+
+#[test]
+fn imported_source_survives_a_change_of_display_row() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Import(specimen::bytes()))
+        .unwrap();
+    let imported = editor.scene.objects()[2].clone();
+    let first = editor.scene.objects()[0].id;
+    let second = editor.scene.objects()[1].id;
+    editor.scene.remove(first);
+    editor.scene.remove(second);
+    let current = &editor.scene.objects()[0];
+    assert_eq!(current.id, imported.id);
+    assert!(Rc::ptr_eq(
+        current.geometry().unwrap(),
+        imported.geometry().unwrap()
+    ));
+    let source = current.source().unwrap();
+    assert_eq!(
+        current.geometry().unwrap().guid(),
+        source.guid
+    );
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| m.guid() == source.guid)
+    );
+    assert!(Rc::ptr_eq(
+        &source.document,
+        &imported.source().unwrap().document
+    ));
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fa-access-06.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 6. `src/imported_source_tests.rs`
+### 5. `src/imported_source_tests.rs`
 
 Optional authoring fixture. Update import_shares_the_retained_sessions_source_allocation through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
-```text
-fn import_shares_the_retained_sessions_source_allocation() {
-    let mut editor = Editor::default();
-    editor.apply(Action::Import(specimen::bytes())).unwrap();
+```rust
     let imported = editor.scene.objects()[2].clone();
     let geometry = Rc::clone(&imported.geometry);
     let source = imported.source.as_ref().unwrap();
-    assert!(source.document.objects.meshes.iter().any(|m| Rc::ptr_eq(m, &geometry)));
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| Rc::ptr_eq(m, &geometry))
+    );
     let first = editor.scene.objects()[0].id;
     let second = editor.scene.objects()[1].id;
-    editor.scene.remove(first); editor.scene.remove(second);
+    editor.scene.remove(first);
+    editor.scene.remove(second);
     let moved_row = &editor.scene.objects()[0];
     assert_eq!(moved_row.id, imported.id);
     assert!(Rc::ptr_eq(&moved_row.geometry, &geometry));
 }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/32fa-access-07.rs"
+```rust
+    let imported = editor.scene.objects()[2].clone();
+    let geometry = Rc::clone(imported.geometry().unwrap());
+    let source = imported.source().unwrap();
+    assert!(
+        source
+            .document
+            .objects
+            .meshes
+            .iter()
+            .any(|m| Rc::ptr_eq(m, &geometry))
+    );
+    let first = editor.scene.objects()[0].id;
+    let second = editor.scene.objects()[1].id;
+    editor.scene.remove(first);
+    editor.scene.remove(second);
+    let moved_row = &editor.scene.objects()[0];
+    assert_eq!(moved_row.id, imported.id);
+    assert!(Rc::ptr_eq(
+        moved_row.geometry().unwrap(),
+        &geometry
+    ));
+}
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 7. `src/snapshot_tests.rs`
+### 6. `src/snapshot_tests.rs`
 
 Optional authoring fixture. Update snapshot_uses_live_local_sources_and_separate_placements through borrowed source access while preserving every existing assertion.
 
 **Locate this existing block:**
 
-```text
-fn snapshot_uses_live_local_sources_and_separate_placements() {
-    let mut editor = Editor::default();
-    editor.apply(Action::SelectNext).unwrap();
-    editor.apply(Action::Delete).unwrap();
-    editor.apply(Action::AddBox).unwrap();
-    let object = editor.scene.objects().last().unwrap().clone();
+```rust
+        .clone();
     let source = object.geometry.to_proto();
-    let message = proto::Session::decode(document::snapshot(&editor.scene).unwrap().as_slice()).unwrap();
+    let message = proto::Session::decode(
+        document::snapshot(&editor.scene)
+            .unwrap()
+            .as_slice(),
+    )
+    .unwrap();
     let meshes = &message.objects.as_ref().unwrap().meshes;
     assert_eq!(meshes.len(), 2);
-    let saved = meshes.iter().find(|mesh| mesh.guid == object.guid).unwrap();
+    let saved = meshes
+        .iter()
+        .find(|mesh| mesh.guid == object.guid)
+        .unwrap();
     assert_eq!(saved.vertices, source.vertices);
     assert_eq!(saved.faces, source.faces);
     assert_eq!(saved.objectcolor, source.objectcolor);
-    assert_eq!((saved.is_visible, saved.is_locked), (source.is_visible, source.is_locked));
-    let placement = message.xforms.iter().find(|entry| entry.guid == object.guid).unwrap();
-    assert_eq!(placement.xform.as_ref().unwrap().matrix, object.model.m.to_vec());
-    assert_eq!(message.tree.unwrap().root.unwrap().children.len(), meshes.len());
+    assert_eq!(
+        (saved.is_visible, saved.is_locked),
+        (source.is_visible, source.is_locked)
+    );
+    let placement = message
+        .xforms
+        .iter()
+        .find(|entry| entry.guid == object.guid)
+        .unwrap();
+    assert_eq!(
+        placement.xform.as_ref().unwrap().matrix,
+        object.model.m.to_vec()
+    );
+    assert_eq!(
+        message
+            .tree
+            .unwrap()
+            .root
+            .unwrap()
+            .children
+            .len(),
+        meshes.len()
+    );
     assert_eq!(object.geometry.guid(), source.guid);
     editor.apply(Action::Undo).unwrap();
-    assert_eq!(editor.scene.objects().len(), 1, "Saving must not create a history entry");
-}
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/32fa-access-08.rs"
+```rust
+        .clone();
+    let source = object.geometry().unwrap().to_proto();
+    let message = proto::Session::decode(
+        document::snapshot(&editor.scene)
+            .unwrap()
+            .as_slice(),
+    )
+    .unwrap();
+    let meshes = &message.objects.as_ref().unwrap().meshes;
+    assert_eq!(meshes.len(), 2);
+    let saved = meshes
+        .iter()
+        .find(|mesh| mesh.guid == object.guid)
+        .unwrap();
+    assert_eq!(saved.vertices, source.vertices);
+    assert_eq!(saved.faces, source.faces);
+    assert_eq!(saved.objectcolor, source.objectcolor);
+    assert_eq!(
+        (saved.is_visible, saved.is_locked),
+        (source.is_visible, source.is_locked)
+    );
+    let placement = message
+        .xforms
+        .iter()
+        .find(|entry| entry.guid == object.guid)
+        .unwrap();
+    assert_eq!(
+        placement.xform.as_ref().unwrap().matrix,
+        object.model.m.to_vec()
+    );
+    assert_eq!(
+        message
+            .tree
+            .unwrap()
+            .root
+            .unwrap()
+            .children
+            .len(),
+        meshes.len()
+    );
+    assert_eq!(
+        object.geometry().unwrap().guid(),
+        source.guid
+    );
+    editor.apply(Action::Undo).unwrap();
 ```
 
 ## <a id="checkpoint-32fb-boundary"></a>13. Make editable ownership a private row boundary
@@ -2027,58 +3236,108 @@ Update the existing block with this supplied code; keep unchanged lines:
 
 Update repeated_close_is_empty_and_drops_sources_without_gpu_owners through borrowed source access while preserving every existing assertion. Update close_releases_imported_history_documents_and_reopening_uses_fresh_ids through borrowed source access while preserving every existing assertion.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.geometry))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source.as_ref().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-```
-
-Replace it with:
-
-```rust
-        let displays: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(&row.mesh))).collect();
-        let sources: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .map(|row| Rc::downgrade(row.geometry().unwrap()))).collect();
-        let documents: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter()
-            .filter_map(|row| row.source().map(|source| Rc::downgrade(&source.document)))).collect();
-        let old: Vec<_> = editor.scenes().flat_map(|scene| scene.objects().iter().map(|row| row.id)).collect();
-        assert!(!documents.is_empty());
-        editor.apply(Action::Close).unwrap();
-```
-
-**Locate this block:**
-
-```rust
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
         let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
         let source = std::rc::Rc::downgrade(&editor.scene.objects()[0].geometry);
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
+        editor.apply(Action::Close).unwrap();
+        editor.apply(Action::Close).unwrap();
         assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
+        assert_eq!(
+            crate::memory::cpu(editor.scenes(), std::iter::empty()),
+            [0, 0, 0, 0, 0, 1]
+        );
+    }
+
+    #[test]
+    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
+        use std::rc::Rc;
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        editor
+            .apply(Action::Import(bytes.clone()))
+            .unwrap();
+        editor
+            .apply(Action::Replace(bytes.clone()))
+            .unwrap();
+        let displays: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene
+                    .objects()
+                    .iter()
+                    .map(|row| Rc::downgrade(&row.mesh))
+            })
+            .collect();
+        let sources: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene
+                    .objects()
+                    .iter()
+                    .map(|row| Rc::downgrade(&row.geometry))
+            })
+            .collect();
+        let documents: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene.objects().iter().filter_map(|row| {
+                    row.source
+                        .as_ref()
+                        .map(|source| Rc::downgrade(&source.document))
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    fn repeated_close_is_empty_and_drops_sources_without_gpu_owners() {
-        let mut editor = Editor::default();
         let display = std::rc::Rc::downgrade(&editor.scene.objects()[0].mesh);
-        let source = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
-        editor.apply(Action::Close).unwrap(); editor.apply(Action::Close).unwrap();
+        let source =
+            std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
+        editor.apply(Action::Close).unwrap();
+        editor.apply(Action::Close).unwrap();
         assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert_eq!(crate::memory::cpu(editor.scenes(), std::iter::empty()), [0, 0, 0, 0, 0, 1]);
+        assert_eq!(
+            crate::memory::cpu(editor.scenes(), std::iter::empty()),
+            [0, 0, 0, 0, 0, 1]
+        );
+    }
+
+    #[test]
+    fn close_releases_imported_history_documents_and_reopening_uses_fresh_ids() {
+        use std::rc::Rc;
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        editor
+            .apply(Action::Import(bytes.clone()))
+            .unwrap();
+        editor
+            .apply(Action::Replace(bytes.clone()))
+            .unwrap();
+        let displays: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene
+                    .objects()
+                    .iter()
+                    .map(|row| Rc::downgrade(&row.mesh))
+            })
+            .collect();
+        let sources: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene
+                    .objects()
+                    .iter()
+                    .map(|row| Rc::downgrade(row.geometry().unwrap()))
+            })
+            .collect();
+        let documents: Vec<_> = editor
+            .scenes()
+            .flat_map(|scene| {
+                scene.objects().iter().filter_map(|row| {
+                    row.source()
+                        .map(|source| Rc::downgrade(&source.document))
 ```
 
 ### 2. `src/history.rs`
@@ -2088,31 +3347,18 @@ Update cleared_history_releases_a_deleted_source_and_display through borrowed so
 **Locate this existing block:**
 
 ```rust
-    fn cleared_history_releases_a_deleted_source_and_display() {
-        let mut scene = Scene::demo();
-        let mut history = History::default();
-        let id = scene.objects()[0].id;
         let display = Rc::downgrade(&scene.objects()[0].mesh);
         let source = Rc::downgrade(&scene.objects()[0].geometry);
-        history.edit(&mut scene, |scene| { scene.remove(id); });
-        assert!(display.upgrade().is_some() && source.upgrade().is_some());
-        assert_eq!(history.scenes().count(), 1);
-        history.clear();
-        assert!(display.upgrade().is_none() && source.upgrade().is_none());
-        assert!(!history.undo(&mut scene) && !history.redo(&mut scene));
-        assert_eq!(scene.objects().len(), 1);
-    }
+        history.edit(&mut scene, |scene| {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fb-boundary-03.rs"
+        let display = Rc::downgrade(&scene.objects()[0].mesh);
+        let source = Rc::downgrade(scene.objects()[0].geometry().unwrap());
+        history.edit(&mut scene, |scene| {
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/file_identity_tests.rs`
 
@@ -2120,271 +3366,348 @@ Optional authoring fixture. Update duplicate_imports_keep_distinct_stored_identi
 
 **Locate this existing block:**
 
-```text
-fn duplicate_imports_keep_distinct_stored_identity_through_history() {
-    let mut editor = Editor::default();
-    let bytes = specimen::bytes();
-    editor.apply(Action::Import(bytes.clone())).unwrap();
-    editor.apply(Action::Import(bytes)).unwrap();
-    let objects = editor.scene.objects();
-    assert_eq!(objects.len(), 8);
-    let distinct: HashSet<_> = objects.iter().map(|object| object.guid.as_str()).collect();
+```rust
     assert_eq!(distinct.len(), objects.len());
     assert_eq!(objects[2].guid, objects[2].geometry.guid());
-    assert_eq!(objects[2].geometry.guid(), objects[5].geometry.guid());
-    assert_eq!(objects[2].source.as_ref().unwrap().guid, objects[5].source.as_ref().unwrap().guid);
+    assert_eq!(
+        objects[2].geometry.guid(),
+        objects[5].geometry.guid()
+    );
+    assert_eq!(
+        objects[2].source.as_ref().unwrap().guid,
+        objects[5].source.as_ref().unwrap().guid
+    );
     assert_ne!(objects[2].guid, objects[5].guid);
     assert!(uuid::Uuid::parse_str(&objects[5].guid).is_ok());
     let copy = objects[5].clone();
     editor.apply(Action::SelectNext).unwrap();
     editor.apply(Action::Delete).unwrap();
-    let current = editor.scene.objects().iter().find(|object| object.id == copy.id).unwrap();
+    let current = editor
+        .scene
+        .objects()
+        .iter()
+        .find(|object| object.id == copy.id)
+        .unwrap();
     assert_eq!(current.guid, copy.guid);
     editor.apply(Action::Undo).unwrap();
     editor.apply(Action::Redo).unwrap();
-    let current = editor.scene.objects().iter().find(|object| object.id == copy.id).unwrap();
+    let current = editor
+        .scene
+        .objects()
+        .iter()
+        .find(|object| object.id == copy.id)
+        .unwrap();
     assert_eq!(current.guid, copy.guid);
     assert_eq!(current.geometry.guid(), copy.geometry.guid());
 }
 ```
 
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fb-boundary-04.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 4. `src/document_tests.rs`
-
-Optional authoring fixture. Update import_retains_source_and_undo_removes_the_whole_file through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```text
-fn import_retains_source_and_undo_removes_the_whole_file() {
-    let mut editor = Editor::default();
-    editor.apply(Action::Import(specimen::bytes())).unwrap();
-    assert_eq!(editor.scene.objects().len(), 5);
-    let source = editor.scene.objects()[2].source.as_ref().unwrap();
-    let document = Rc::clone(&source.document);
-    let guid = source.guid.clone();
-    let id = editor.scene.objects()[2].id;
-    assert_eq!(document.name, "Three-piece frame");
-    assert!(document.objects.meshes.iter().any(|mesh| mesh.guid() == guid));
-    editor.apply(Action::Undo).unwrap();
-    assert_eq!(editor.scene.objects().len(), 2);
-    editor.apply(Action::Redo).unwrap();
-    let restored = &editor.scene.objects()[2];
-    assert_eq!(restored.id, id);
-    assert!(Rc::ptr_eq(&restored.source.as_ref().unwrap().document, &document));
-}
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fb-boundary-05.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 5. `src/document_tests.rs`
-
-Optional authoring fixture. Update repeated_imports_keep_distinct_viewer_ids_and_original_source_guids through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```text
-fn repeated_imports_keep_distinct_viewer_ids_and_original_source_guids() {
-    let bytes = specimen::bytes();
-    let mut editor = Editor::default();
-    editor.apply(Action::Import(bytes.clone())).unwrap();
-    editor.apply(Action::Import(bytes)).unwrap();
-    let objects = editor.scene.objects();
-    assert_ne!(objects[2].id, objects[5].id);
-    assert_eq!(objects[2].source.as_ref().unwrap().guid, objects[5].source.as_ref().unwrap().guid);
-    assert!(!Rc::ptr_eq(&objects[2].source.as_ref().unwrap().document, &objects[5].source.as_ref().unwrap().document));
-}
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fb-boundary-06.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 6. `src/replace_tests.rs`
-
-Optional authoring fixture. Update replacement_history_retains_camera_and_distinct_local_identity through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```text
-fn replacement_history_retains_camera_and_distinct_local_identity() {
-    let mut editor = Editor::default();
-    editor.apply(Action::SelectNext).unwrap();
-    let old = editor.scene.objects()[0].clone();
-    editor.camera.distance = 7.0; editor.camera.aspect = 2.0;
-    editor.apply(Action::Replace(specimen::bytes())).unwrap();
-    let ids: Vec<_> = editor.scene.objects().iter().map(|object| object.id).collect();
-    assert_eq!(ids.len(), 3);
-    assert!(!editor.scene.contains(old.id));
-    assert!(editor.selected.is_none());
-    editor.apply(Action::Undo).unwrap();
-    assert_eq!(editor.scene.objects().len(), 2);
-    assert_eq!(editor.scene.objects()[0].id, old.id);
-    assert!(Rc::ptr_eq(&editor.scene.objects()[0].geometry, &old.geometry));
-    assert!(Rc::ptr_eq(&editor.scene.objects()[0].mesh, &old.mesh));
-    editor.apply(Action::Redo).unwrap();
-    assert_eq!(editor.scene.objects().iter().map(|object| object.id).collect::<Vec<_>>(), ids);
-    assert_eq!((editor.camera.distance, editor.camera.aspect), (7.0, 2.0));
-}
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fb-boundary-07.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 7. `src/replace_tests.rs`
-
-Optional authoring fixture. Update refused_replacement_preserves_selection_source_owners_and_redo through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```text
-fn refused_replacement_preserves_selection_source_owners_and_redo() {
-    let mut editor = Editor::default();
-    editor.apply(Action::AddBox).unwrap(); editor.apply(Action::Undo).unwrap();
-    editor.apply(Action::SelectNext).unwrap();
-    let selected = editor.selected;
-    let old = editor.scene.objects()[0].clone();
-    assert!(editor.apply(Action::Replace(vec![255])).is_err());
-    assert_eq!(editor.selected, selected);
-    assert_eq!(editor.scene.objects().len(), 2);
-    assert!(Rc::ptr_eq(&editor.scene.objects()[0].geometry, &old.geometry));
-    editor.apply(Action::Redo).unwrap();
-    assert_eq!(editor.scene.objects().len(), 3);
-}
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fb-boundary-08.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 8. `src/save_roundtrip_tests.rs`
-
-Optional authoring fixture. Update both_imported_copies_reopen_with_their_stored_identity through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```text
-fn both_imported_copies_reopen_with_their_stored_identity() {
-    let mut editor = Editor::default();
-    let bytes = specimen::bytes();
-    editor.apply(Action::Import(bytes.clone())).unwrap();
-    editor.apply(Action::Import(bytes)).unwrap();
-    let saved = document::snapshot(&editor.scene).unwrap();
-    let reopened = document::load(&saved).unwrap();
-    assert_eq!(reopened.meshes.len(), editor.scene.objects().len());
-    for object in editor.scene.objects() {
-        let prepared = reopened.meshes.iter().find(|mesh| mesh.geometry.guid() == object.guid).unwrap();
-        assert_eq!(prepared.model.m, object.model.m);
-        assert_eq!(prepared.geometry.name, object.geometry.name);
-    }
-    assert_eq!(editor.scene.objects()[2].geometry.guid(), editor.scene.objects()[5].geometry.guid());
-    assert_ne!(editor.scene.objects()[2].guid, editor.scene.objects()[5].guid);
-}
-```
-
-Update the existing block with this supplied code; keep unchanged lines:
-
-```text
---8<-- "journey/code/32fb-boundary-09.rs"
-```
-
-### 9. `src/row_metadata.rs`
-
-Update metadata_does_not_keep_a_closed_kernel_source_alive through borrowed source access while preserving every existing assertion.
-
-**Locate this existing block:**
-
-```rust
-    fn metadata_does_not_keep_a_closed_kernel_source_alive() {
-        let mut editor = Editor::default();
-        let mut mesh = session_rust::Mesh::create_box(1.0, 1.0, 1.0);
-        mesh.name = "Released beam".into(); mesh.is_visible = false; mesh.is_locked = true;
-        let id = editor.scene.insert(crate::prepared::PreparedMesh::new(mesh).unwrap()).unwrap();
-        let row = editor.scene.objects().iter().find(|row| row.id == id).unwrap();
-        let weak = Rc::downgrade(&row.geometry);
-        let metadata = Rc::clone(&row.metadata);
-        editor.apply(Action::Close).unwrap();
-        assert!(weak.upgrade().is_none());
-        assert_eq!(metadata.name, "Released beam");
-        assert!(!metadata.is_visible && metadata.is_locked);
-        assert!(!metadata.source_guid.is_empty());
-    }
-```
-
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fb-boundary-10.rs"
+    assert_eq!(distinct.len(), objects.len());
+    assert_eq!(
+        objects[2].guid,
+        objects[2].geometry().unwrap().guid()
+    );
+    assert_eq!(
+        objects[2].geometry().unwrap().guid(),
+        objects[5].geometry().unwrap().guid()
+    );
+    assert_eq!(
+        objects[2].source().unwrap().guid,
+        objects[5].source().unwrap().guid
+    );
+    assert_ne!(objects[2].guid, objects[5].guid);
+    assert!(uuid::Uuid::parse_str(&objects[5].guid).is_ok());
+    let copy = objects[5].clone();
+    editor.apply(Action::SelectNext).unwrap();
+    editor.apply(Action::Delete).unwrap();
+    let current = editor
+        .scene
+        .objects()
+        .iter()
+        .find(|object| object.id == copy.id)
+        .unwrap();
+    assert_eq!(current.guid, copy.guid);
+    editor.apply(Action::Undo).unwrap();
+    editor.apply(Action::Redo).unwrap();
+    let current = editor
+        .scene
+        .objects()
+        .iter()
+        .find(|object| object.id == copy.id)
+        .unwrap();
+    assert_eq!(current.guid, copy.guid);
+    assert_eq!(
+        current.geometry().unwrap().guid(),
+        copy.geometry().unwrap().guid()
+    );
+}
 ```
 
-### 10. `src/scene.rs`
+### 4. `src/document_tests.rs`
 
-Confine editable kernel storage to the scene row implementation. Prevent other modules from bypassing imported-source availability.
+Optional authoring fixture. Update import_retains_source_and_undo_removes_the_whole_file through borrowed source access while preserving every existing assertion. Optional authoring fixture. Update repeated_imports_keep_distinct_viewer_ids_and_original_source_guids through borrowed source access while preserving every existing assertion.
 
 Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 
 **Locate this block:**
 
 ```rust
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
-    pub mesh: Rc<Mesh>,
-    pub geometry: Rc<session_rust::Mesh>,
-    pub model: session_rust::Xform,
-    pub source: Option<crate::document::Source>,
-}
-
-impl Object {
+    let objects = editor.scene.objects();
+    assert_ne!(objects[2].id, objects[5].id);
+    assert_eq!(
+        objects[2].source.as_ref().unwrap().guid,
+        objects[5].source.as_ref().unwrap().guid
+    );
+    assert!(!Rc::ptr_eq(
+        &objects[2].source.as_ref().unwrap().document,
+        &objects[5].source.as_ref().unwrap().document
+    ));
 ```
 
 Replace it with:
 
 ```rust
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
+    let objects = editor.scene.objects();
+    assert_ne!(objects[2].id, objects[5].id);
+    assert_eq!(
+        objects[2].source().unwrap().guid,
+        objects[5].source().unwrap().guid
+    );
+    assert!(!Rc::ptr_eq(
+        &objects[2].source().unwrap().document,
+        &objects[5].source().unwrap().document
+    ));
+```
+
+**Locate this block:**
+
+```rust
+    let restored = &editor.scene.objects()[2];
+    assert_eq!(restored.id, id);
+    assert!(Rc::ptr_eq(
+        &restored.source.as_ref().unwrap().document,
+        &document
+    ));
+}
+```
+
+Replace it with:
+
+```rust
+    let restored = &editor.scene.objects()[2];
+    assert_eq!(restored.id, id);
+    assert!(Rc::ptr_eq(
+        &restored.source().unwrap().document,
+        &document
+    ));
+}
+```
+
+**Locate this block:**
+
+```rust
+    assert_eq!(editor.scene.objects().len(), 5);
+    let source = editor.scene.objects()[2]
+        .source
+        .as_ref()
+        .unwrap();
+    let document = Rc::clone(&source.document);
+    let guid = source.guid.clone();
+    let id = editor.scene.objects()[2].id;
+```
+
+Replace it with:
+
+```rust
+    assert_eq!(editor.scene.objects().len(), 5);
+    let source = editor.scene.objects()[2].source().unwrap();
+    let document = Rc::clone(&source.document);
+    let guid = source.guid.clone();
+    let id = editor.scene.objects()[2].id;
+```
+
+### 5. `src/replace_tests.rs`
+
+Optional authoring fixture. Update replacement_history_retains_camera_and_distinct_local_identity through borrowed source access while preserving every existing assertion. Optional authoring fixture. Update refused_replacement_preserves_selection_source_owners_and_redo through borrowed source access while preserving every existing assertion.
+
+**Locate this existing block:**
+
+```rust
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].geometry,
+        &old.geometry
+    ));
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].mesh,
+        &old.mesh
+    ));
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(
+        editor
+            .scene
+            .objects()
+            .iter()
+            .map(|object| object.id)
+            .collect::<Vec<_>>(),
+        ids
+    );
+    assert_eq!(
+        (editor.camera.distance, editor.camera.aspect),
+        (7.0, 2.0)
+    );
+}
+
+#[test]
+fn refused_replacement_preserves_selection_source_owners_and_redo() {
+    let mut editor = Editor::default();
+    editor.apply(Action::AddBox).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    let selected = editor.selected;
+    let old = editor.scene.objects()[0].clone();
+    assert!(
+        editor
+            .apply(Action::Replace(vec![255]))
+            .is_err()
+    );
+    assert_eq!(editor.selected, selected);
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].geometry,
+        &old.geometry
+    ));
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    assert!(Rc::ptr_eq(
+        editor.scene.objects()[0].geometry().unwrap(),
+        old.geometry().unwrap()
+    ));
+    assert!(Rc::ptr_eq(
+        &editor.scene.objects()[0].mesh,
+        &old.mesh
+    ));
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(
+        editor
+            .scene
+            .objects()
+            .iter()
+            .map(|object| object.id)
+            .collect::<Vec<_>>(),
+        ids
+    );
+    assert_eq!(
+        (editor.camera.distance, editor.camera.aspect),
+        (7.0, 2.0)
+    );
+}
+
+#[test]
+fn refused_replacement_preserves_selection_source_owners_and_redo() {
+    let mut editor = Editor::default();
+    editor.apply(Action::AddBox).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    let selected = editor.selected;
+    let old = editor.scene.objects()[0].clone();
+    assert!(
+        editor
+            .apply(Action::Replace(vec![255]))
+            .is_err()
+    );
+    assert_eq!(editor.selected, selected);
+    assert_eq!(editor.scene.objects().len(), 2);
+    assert!(Rc::ptr_eq(
+        editor.scene.objects()[0].geometry().unwrap(),
+        old.geometry().unwrap()
+    ));
+```
+
+### 6. `src/save_roundtrip_tests.rs`
+
+Optional authoring fixture. Update both_imported_copies_reopen_with_their_stored_identity through borrowed source access while preserving every existing assertion.
+
+**Locate this existing block:**
+
+```rust
+        assert_eq!(prepared.model.m, object.model.m);
+        assert_eq!(prepared.geometry.name, object.geometry.name);
+    }
+    assert_eq!(
+        editor.scene.objects()[2].geometry.guid(),
+        editor.scene.objects()[5].geometry.guid()
+    );
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+        assert_eq!(prepared.model.m, object.model.m);
+        assert_eq!(
+            prepared.geometry.name,
+            object.geometry().unwrap().name
+        );
+    }
+    assert_eq!(
+        editor.scene.objects()[2]
+            .geometry()
+            .unwrap()
+            .guid(),
+        editor.scene.objects()[5]
+            .geometry()
+            .unwrap()
+            .guid()
+    );
+```
+
+### 7. `src/row_metadata.rs`
+
+Update metadata_does_not_keep_a_closed_kernel_source_alive through borrowed source access while preserving every existing assertion.
+
+**Locate this existing block:**
+
+```rust
+            .unwrap();
+        let weak = Rc::downgrade(&row.geometry);
+        let metadata = Rc::clone(&row.metadata);
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+            .unwrap();
+        let weak = Rc::downgrade(row.geometry().unwrap());
+        let metadata = Rc::clone(&row.metadata);
+```
+
+### 8. `src/scene.rs`
+
+Confine editable kernel storage to the scene row implementation. Prevent other modules from bypassing imported-source availability.
+
+**Locate this existing block:**
+
+```rust
+    pub mesh: Rc<Mesh>,
+    pub geometry: Rc<session_rust::Mesh>,
+    pub model: session_rust::Xform,
+    pub source: Option<crate::document::Source>,
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     pub mesh: Rc<Mesh>,
     geometry: Rc<session_rust::Mesh>,
     pub model: session_rust::Xform,
     source: Option<crate::document::Source>,
 }
-
-impl Object {
 ```
 
 ## <a id="checkpoint-32fc-version"></a>14. Record a reload version without retaining geometry
@@ -2434,12 +3757,15 @@ Pin SHA-256 for immutable file-version checks.
 
 ```toml
 prost = "=0.14.4"
+uuid = { version = "=1.26.1", features = ["v4", "js"] }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/32fc-version-01.toml" skip=18
+prost = "=0.14.4"
+sha2 = "=0.10.8"
+uuid = { version = "=1.26.1", features = ["v4", "js"] }
 ```
 
 ### 2. `src/lib.rs`
@@ -2449,13 +3775,16 @@ Introduce geometry-free reload metadata.
 **Locate this existing block:**
 
 ```rust
-pub mod row_metadata;
+pub mod offset;
+pub mod picking;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fc-version-02.rs" skip=22
+pub mod offset;
+pub mod origin;
+pub mod picking;
 ```
 
 ### 3. `src/origin.rs`
@@ -2465,7 +3794,86 @@ Keep descriptive protobuf data and a byte version without retaining kernel objec
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32fc-version-03.rs"
+use session_rust::proto;
+use sha2::{Digest, Sha256};
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct FileVersion([u8; 32]);
+
+impl FileVersion {
+    pub fn of(bytes: &[u8]) -> Self {
+        Self(Sha256::digest(bytes).into())
+    }
+
+    pub fn hex(&self) -> String {
+        self.0
+            .iter()
+            .map(|b| format!("{b:02x}"))
+            .collect()
+    }
+}
+
+pub struct Origin {
+    pub id: uuid::Uuid,
+    pub header: proto::Session,
+    pub version: FileVersion,
+}
+
+impl Origin {
+    pub fn new(message: &proto::Session, bytes: &[u8]) -> Self {
+        let header = proto::Session {
+            name: message.name.clone(),
+            guid: message.guid.clone(),
+            tree: message.tree.clone(),
+            graph: message.graph.clone(),
+            bvh_boxes: message.bvh_boxes.clone(),
+            xforms: message.xforms.clone(),
+            ..Default::default()
+        };
+        Self {
+            id: uuid::Uuid::new_v4(),
+            header,
+            version: FileVersion::of(bytes),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn file_version_matches_a_known_vector_and_changed_bytes_differ() {
+        assert_eq!(
+            FileVersion::of(b"abc").hex(),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+        assert_eq!(
+            FileVersion::of(b"abc"),
+            FileVersion::of(b"abc")
+        );
+        assert_ne!(
+            FileVersion::of(b"abc"),
+            FileVersion::of(b"abd")
+        );
+    }
+
+    #[test]
+    fn identical_files_have_distinct_origins_and_geometry_free_headers() {
+        use prost::Message;
+        let bytes = crate::specimen::bytes();
+        let message = proto::Session::decode(bytes.as_slice()).unwrap();
+        let first = Origin::new(&message, &bytes);
+        let second = Origin::new(&message, &bytes);
+        assert_ne!(first.id, second.id);
+        assert_eq!(first.version, second.version);
+        assert_eq!(first.header.name, message.name);
+        assert_eq!(first.header.guid, message.guid);
+        assert_eq!(first.header.tree, message.tree);
+        assert_eq!(first.header.xforms, message.xforms);
+        assert!(first.header.objects.is_none() && first.header.definitions.is_none());
+    }
+}
 ```
 
 ## <a id="checkpoint-32fd-origin"></a>15. Attach one origin to an imported document
@@ -2511,66 +3919,75 @@ Create the file and type:
 
 Retain reload metadata separately from the kernel Session. Record accepted original bytes and a geometry-free header before kernel construction. Share one import origin among all its source rows.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
-    validate(&message)?;
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-    let mut meshes = Vec::new();
-    for mesh in document.objects.meshes.iter() {
-        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-        prepared.model = document.xforms.get(mesh.guid()).cloned().unwrap_or_else(session_rust::Xform::identity);
-        prepared.source = Some(Source {
-            document: Rc::clone(&document), guid: mesh.guid().to_owned(),
-        });
-        meshes.push(prepared);
-    }
-```
-
-Replace it with:
-
-```rust
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
-    validate(&message)?;
-    let origin = Rc::new(crate::origin::Origin::new(&message, bytes));
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-    let mut meshes = Vec::new();
-    for mesh in document.objects.meshes.iter() {
-        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
-        prepared.model = document.xforms.get(mesh.guid()).cloned().unwrap_or_else(session_rust::Xform::identity);
-        prepared.source = Some(Source {
-            document: Rc::clone(&document), guid: mesh.guid().to_owned(), origin: Rc::clone(&origin),
-        });
-        meshes.push(prepared);
-    }
-```
-
-**Locate this block:**
-
-```rust
-pub struct Source {
-    pub document: Rc<Session>,
     pub guid: String,
 }
 
 pub struct Loaded {
+    pub document: Rc<Session>,
+    pub meshes: Vec<PreparedMesh>,
+}
+
+pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    validate(&message)?;
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let mut meshes = Vec::new();
+    for mesh in document.objects.meshes.iter() {
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.model = document
+            .xforms
+            .get(mesh.guid())
+            .cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
+        prepared.source = Some(Source {
+            document: Rc::clone(&document),
+            guid: mesh.guid().to_owned(),
+        });
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub struct Source {
-    pub document: Rc<Session>,
     pub guid: String,
     pub origin: Rc<crate::origin::Origin>,
 }
 
 pub struct Loaded {
+    pub document: Rc<Session>,
+    pub meshes: Vec<PreparedMesh>,
+}
+
+pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    validate(&message)?;
+    let origin = Rc::new(crate::origin::Origin::new(&message, bytes));
+    let document =
+        Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
+    let mut meshes = Vec::new();
+    for mesh in document.objects.meshes.iter() {
+        let mut prepared = PreparedMesh::from_shared(Rc::clone(mesh))?;
+        prepared.model = document
+            .xforms
+            .get(mesh.guid())
+            .cloned()
+            .unwrap_or_else(session_rust::Xform::identity);
+        prepared.source = Some(Source {
+            document: Rc::clone(&document),
+            guid: mesh.guid().to_owned(),
+            origin: Rc::clone(&origin),
+        });
 ```
 
 ### 2. `src/lib.rs`
@@ -2581,26 +3998,94 @@ Check source ownership independently of drawing.
 
 ```rust
 pub mod origin;
+pub mod picking;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fd-origin-04.rs" skip=16
+pub mod origin;
+#[cfg(test)]
+mod origin_tests;
+pub mod picking;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/origin_tests.rs`
 
 Optional authoring fixture. Observe true kernel expiration while retaining only header/version metadata.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/32fd-origin-05.rs"
+```rust
+use crate::editor::{Action, Editor};
+use std::rc::Rc;
+
+#[test]
+fn origin_does_not_pin_a_closed_source_document() {
+    let mut editor = Editor::default();
+    editor
+        .apply(Action::Replace(crate::specimen::bytes()))
+        .unwrap();
+    let row = &editor.scene.objects()[0];
+    let source = row.source().unwrap();
+    let origin = Rc::clone(&source.origin);
+    let document = Rc::downgrade(&source.document);
+    let mesh = Rc::downgrade(row.geometry().unwrap());
+    assert!(
+        editor
+            .scene
+            .objects()
+            .iter()
+            .all(|row| Rc::ptr_eq(&row.source().unwrap().origin, &origin))
+    );
+    editor.apply(Action::Close).unwrap();
+    assert!(document.upgrade().is_none() && mesh.upgrade().is_none());
+    assert_eq!(origin.header.name, "Three-piece frame");
+    assert!(origin.header.objects.is_none());
+}
+
+#[test]
+fn duplicate_imports_and_history_keep_their_own_origins() {
+    let mut editor = Editor::default();
+    let bytes = crate::specimen::bytes();
+    editor
+        .apply(Action::Replace(bytes.clone()))
+        .unwrap();
+    editor.apply(Action::Import(bytes)).unwrap();
+    let first = Rc::clone(
+        &editor.scene.objects()[0]
+            .source()
+            .unwrap()
+            .origin,
+    );
+    let second = Rc::clone(
+        &editor.scene.objects()[3]
+            .source()
+            .unwrap()
+            .origin,
+    );
+    assert_ne!(first.id, second.id);
+    assert_eq!(first.version, second.version);
+    editor.apply(Action::SelectNext).unwrap();
+    editor
+        .apply(Action::Translate([0.25, 0.0, 0.0]))
+        .unwrap();
+    editor.apply(Action::Undo).unwrap();
+    assert!(Rc::ptr_eq(
+        &first,
+        &editor.scene.objects()[0]
+            .source()
+            .unwrap()
+            .origin
+    ));
+    assert!(Rc::ptr_eq(
+        &second,
+        &editor.scene.objects()[3]
+            .source()
+            .unwrap()
+            .origin
+    ));
+}
 ```
 
 ### 4. `src/browser.rs`
@@ -2610,13 +4095,34 @@ Inspect shared import identity and exact versions without adding controls.
 **Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
+        .collect();
+    canvas.set_attribute(
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fd-origin-06.rs"
+        .collect();
+    let origins: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .filter_map(|row| {
+            row.source().map(|source| {
+                (
+                    &row.guid,
+                    source.origin.id.to_string(),
+                    source.origin.version.hex(),
+                )
+            })
+        })
+        .collect();
+    canvas.set_attribute(
+        "data-source-origins",
+        &serde_json::to_string(&origins)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
 ```
 
 ## <a id="checkpoint-32fe-location"></a>16. Give a reload URL an explicit owner
@@ -2665,13 +4171,16 @@ Keep browser URL lifetime explicit and independent of kernel ownership.
 **Locate this existing block:**
 
 ```rust
-pub mod origin;
+pub mod prepared;
+pub mod row_metadata;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fe-location-01.rs" skip=16
+pub mod prepared;
+pub mod reload_url;
+pub mod row_metadata;
 ```
 
 ### 2. `src/reload_url.rs`
@@ -2681,108 +4190,124 @@ Revoke a viewer-created Blob URL when its actual resource owner drops.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32fe-location-02.rs"
+pub struct ReloadUrl(String);
+
+impl ReloadUrl {
+    pub fn new(value: String) -> Self {
+        Self(value)
+    }
+
+    pub fn value(&self) -> &str {
+        &self.0
+    }
+
+    #[cfg(target_arch = "wasm32")]
+    pub fn from_file(file: &web_sys::File) -> Result<Self, wasm_bindgen::JsValue> {
+        web_sys::Url::create_object_url_with_blob(file).map(Self)
+    }
+}
+
+impl Drop for ReloadUrl {
+    fn drop(&mut self) {
+        #[cfg(target_arch = "wasm32")]
+        let _ = web_sys::Url::revoke_object_url(&self.0);
+    }
+}
 ```
 
 ### 3. `src/origin.rs`
 
 Retain an optional reload location without retaining geometry. Ordinary native loads start without an owned browser location.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use session_rust::proto;
-use sha2::{Digest, Sha256};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct FileVersion([u8; 32]);
-
-impl FileVersion {
-    pub fn of(bytes: &[u8]) -> Self { Self(Sha256::digest(bytes).into()) }
-
-    pub fn hex(&self) -> String { self.0.iter().map(|b| format!("{b:02x}")).collect() }
+    pub version: FileVersion,
 }
 
-pub struct Origin {
-    pub id: uuid::Uuid,
-    pub header: proto::Session,
+impl Origin {
+    pub fn new(message: &proto::Session, bytes: &[u8]) -> Self {
+        let header = proto::Session {
+            name: message.name.clone(),
+            guid: message.guid.clone(),
+            tree: message.tree.clone(),
+            graph: message.graph.clone(),
+            bvh_boxes: message.bvh_boxes.clone(),
+            xforms: message.xforms.clone(),
+            ..Default::default()
+        };
+        Self {
+            id: uuid::Uuid::new_v4(),
+            header,
+            version: FileVersion::of(bytes),
+        }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     pub version: FileVersion,
     pub location: Option<std::rc::Rc<crate::reload_url::ReloadUrl>>,
 }
 
 impl Origin {
     pub fn new(message: &proto::Session, bytes: &[u8]) -> Self {
-        let header = proto::Session { name: message.name.clone(), guid: message.guid.clone(),
-            tree: message.tree.clone(), graph: message.graph.clone(),
-            bvh_boxes: message.bvh_boxes.clone(), xforms: message.xforms.clone(), ..Default::default() };
-        Self { id: uuid::Uuid::new_v4(), header, version: FileVersion::of(bytes), location: None }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn file_version_matches_a_known_vector_and_changed_bytes_differ() {
-        assert_eq!(FileVersion::of(b"abc").hex(),
-            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
-        assert_eq!(FileVersion::of(b"abc"), FileVersion::of(b"abc"));
-        assert_ne!(FileVersion::of(b"abc"), FileVersion::of(b"abd"));
-    }
-
-    #[test]
-    fn identical_files_have_distinct_origins_and_geometry_free_headers() {
-        use prost::Message;
-        let bytes = crate::specimen::bytes(); let message = proto::Session::decode(bytes.as_slice()).unwrap();
-        let first = Origin::new(&message, &bytes); let second = Origin::new(&message, &bytes);
-        assert_ne!(first.id, second.id); assert_eq!(first.version, second.version);
-        assert_eq!(first.header.name, message.name); assert_eq!(first.header.guid, message.guid);
-        assert_eq!(first.header.tree, message.tree); assert_eq!(first.header.xforms, message.xforms);
-        assert!(first.header.objects.is_none() && first.header.definitions.is_none());
-    }
-}
+        let header = proto::Session {
+            name: message.name.clone(),
+            guid: message.guid.clone(),
+            tree: message.tree.clone(),
+            graph: message.graph.clone(),
+            bvh_boxes: message.bvh_boxes.clone(),
+            xforms: message.xforms.clone(),
+            ..Default::default()
+        };
+        Self {
+            id: uuid::Uuid::new_v4(),
+            header,
+            version: FileVersion::of(bytes),
+            location: None,
+        }
 ```
 
 ### 4. `src/document.rs`
 
 Accept location ownership before a read/validation error can occur. Adopt the already owned URL only into validated source metadata.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    pub meshes: Vec<PreparedMesh>,
-}
-
 pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
     validate(&message)?;
     let origin = Rc::new(crate::origin::Origin::new(&message, bytes));
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-    let mut meshes = Vec::new();
-    for mesh in document.objects.meshes.iter() {
+    let document =
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    pub meshes: Vec<PreparedMesh>,
+pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> {
+    load_at(bytes, None)
 }
 
-pub fn load(bytes: &[u8]) -> Result<Loaded, &'static str> { load_at(bytes, None) }
-
-pub fn load_at(bytes: &[u8], location: Option<Rc<crate::reload_url::ReloadUrl>>) -> Result<Loaded, &'static str> {
-    if bytes.len() > MAX_BYTES { return Err("This checkpoint accepts files up to 4 MiB"); }
-    let message = proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
+pub fn load_at(
+    bytes: &[u8],
+    location: Option<Rc<crate::reload_url::ReloadUrl>>,
+) -> Result<Loaded, &'static str> {
+    if bytes.len() > MAX_BYTES {
+        return Err("This checkpoint accepts files up to 4 MiB");
+    }
+    let message =
+        proto::Session::decode(bytes).map_err(|_| "Invalid session protobuf")?;
     validate(&message)?;
-    let mut origin = crate::origin::Origin::new(&message, bytes); origin.location = location;
+    let mut origin = crate::origin::Origin::new(&message, bytes);
+    origin.location = location;
     let origin = Rc::new(origin);
-    let document = Rc::new(Session::from_proto(message).map_err(|_| "Cannot construct session")?);
-    let mut meshes = Vec::new();
-    for mesh in document.objects.meshes.iter() {
+    let document =
 ```
 
 ### 5. `src/editor.rs`
@@ -2794,38 +4319,34 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| scene.import(loaded))?;
             }
 ```
 
 Replace it with:
 
 ```rust
-                let loaded = crate::document::load(&bytes)?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| scene.import(loaded))?;
             }
             Action::ImportAt(bytes, location) => {
                 let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.import(loaded))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| scene.import(loaded))?;
             }
             Action::ReplaceAt(bytes, location) => {
                 let loaded = crate::document::load_at(&bytes, Some(location))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.replace(loaded))?;
-            }
-            Action::AddBox => {
-                self.history.try_edit(&mut self.scene, |scene| scene.add_box().map(|_| ()))?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.replace(loaded)
+                    })?;
             }
 ```
 
 **Locate this block:**
 
 ```rust
-    Pick([f32; 2]),
-    Import(Vec<u8>),
     Replace(Vec<u8>),
     Close,
     AddBox,
@@ -2835,19 +4356,19 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Pick([f32; 2]),
-    Import(Vec<u8>),
     Replace(Vec<u8>),
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
+    ImportAt(
+        Vec<u8>,
+        std::rc::Rc<crate::reload_url::ReloadUrl>,
+    ),
+    ReplaceAt(
+        Vec<u8>,
+        std::rc::Rc<crate::reload_url::ReloadUrl>,
+    ),
     Close,
     AddBox,
     Translate([f64; 3]),
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/origin_tests.rs`
 
@@ -2855,40 +4376,47 @@ Optional authoring fixture. Prove successful/history and failed-import URL lifet
 
 **Locate this existing block:**
 
-```text
-use crate::editor::{Action, Editor};
-use std::rc::Rc;
-
-#[test]
-fn origin_does_not_pin_a_closed_source_document() {
-    let mut editor = Editor::default(); editor.apply(Action::Replace(crate::specimen::bytes())).unwrap();
-    let row = &editor.scene.objects()[0]; let source = row.source().unwrap();
-    let origin = Rc::clone(&source.origin);
-    let document = Rc::downgrade(&source.document); let mesh = Rc::downgrade(row.geometry().unwrap());
-    assert!(editor.scene.objects().iter().all(|row| Rc::ptr_eq(&row.source().unwrap().origin, &origin)));
-    editor.apply(Action::Close).unwrap();
-    assert!(document.upgrade().is_none() && mesh.upgrade().is_none());
-    assert_eq!(origin.header.name, "Three-piece frame"); assert!(origin.header.objects.is_none());
-}
-
-#[test]
-fn duplicate_imports_and_history_keep_their_own_origins() {
-    let mut editor = Editor::default(); let bytes = crate::specimen::bytes();
-    editor.apply(Action::Replace(bytes.clone())).unwrap(); editor.apply(Action::Import(bytes)).unwrap();
-    let first = Rc::clone(&editor.scene.objects()[0].source().unwrap().origin);
-    let second = Rc::clone(&editor.scene.objects()[3].source().unwrap().origin);
-    assert_ne!(first.id, second.id); assert_eq!(first.version, second.version);
-    editor.apply(Action::SelectNext).unwrap(); editor.apply(Action::Translate([0.25, 0.0, 0.0])).unwrap();
-    editor.apply(Action::Undo).unwrap();
-    assert!(Rc::ptr_eq(&first, &editor.scene.objects()[0].source().unwrap().origin));
-    assert!(Rc::ptr_eq(&second, &editor.scene.objects()[3].source().unwrap().origin));
+```rust
+    ));
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/32fe-location-09.rs" skip=1582
+```rust
+    ));
+}
+
+#[test]
+fn located_sources_keep_the_url_through_history_and_release_it_on_close() {
+    let mut editor = Editor::default();
+    let url = Rc::new(crate::reload_url::ReloadUrl::new(
+        "test:source".into(),
+    ));
+    let weak = Rc::downgrade(&url);
+    editor
+        .apply(Action::ReplaceAt(
+            crate::specimen::bytes(),
+            url,
+        ))
+        .unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    editor.apply(Action::Delete).unwrap();
+    editor.apply(Action::Undo).unwrap();
+    assert!(weak.upgrade().is_some());
+    editor.apply(Action::Close).unwrap();
+    assert!(weak.upgrade().is_none());
+    let url = Rc::new(crate::reload_url::ReloadUrl::new(
+        "test:invalid".into(),
+    ));
+    let weak = Rc::downgrade(&url);
+    assert!(
+        editor
+            .apply(Action::ImportAt(vec![255], url))
+            .is_err()
+    );
+    assert!(weak.upgrade().is_none());
+}
 ```
 
 ## <a id="checkpoint-32ff-bridge"></a>17. Adopt the selected file as a reloadable source
@@ -2934,34 +4462,159 @@ After that block, append this supplied code:
 
 Hold an accepted File only across one synchronous editor delivery. Give the accepted read access to its scoped handoff slot. Transfer the File only after request ownership has been accepted. Pair bytes with their retained immutable File during dispatch. Always drop an unclaimed File after synchronous delivery, including dispatch failure. Adopt URL ownership only for a validated event with an accepted File.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use std::{cell::RefCell, rc::Rc};
-use wasm_bindgen::{JsCast, JsValue};
+}
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Mode { Append, Replace }
-
-pub type Delivery = Rc<RefCell<Option<web_sys::File>>>;
-
-pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::ReadGate>>, mode: Mode, delivery: Delivery) {
-    let Some(input) = event.target().and_then(|target| target.dyn_into::<web_sys::HtmlInputElement>().ok()) else { return; };
-    if input.id() != "open" { return; }
-    let Some(file) = input.files().and_then(|files| files.get(0)) else { request.borrow_mut().cancel(); return; };
+pub fn choose(
+    event: &web_sys::Event,
+    request: Rc<RefCell<crate::read_gate::ReadGate>>,
+    mode: Mode,
+) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        request.borrow_mut().cancel();
+        return;
+    };
     input.set_value("");
-    let Some(id) = request.borrow().pending() else { return; };
+    let Some(id) = request.borrow().pending() else {
+        return;
+    };
     super::browser::report("Reading the selected file…");
     wasm_bindgen_futures::spawn_local(async move {
-        if request.borrow().pending() != Some(id) { return; }
+        if request.borrow().pending() != Some(id) {
+            return;
+        }
         if file.size() > crate::document::MAX_BYTES as f64 {
             let accepted = request.borrow_mut().finish(id);
-            if accepted { failure("This checkpoint accepts files up to 4 MiB"); }
+            if accepted {
+                failure("This checkpoint accepts files up to 4 MiB");
+            }
             return;
         }
         let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
         let accepted = request.borrow_mut().finish(id);
-        if !accepted { return; }
+        if !accepted {
+            return;
+        }
+        let result = result.and_then(|buffer| deliver(buffer, mode));
+        if let Err(error) = result {
+            failure(&format!("Cannot read file: {error:?}"));
+        }
+    });
+}
+
+fn failure(message: &str) {
+    let detail = web_sys::CustomEventInit::new();
+    detail.set_detail(&JsValue::from_str(message));
+    let result =
+        web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
+            .and_then(|event| {
+                web_sys::window()
+                    .ok_or_else(|| JsValue::from_str("No window"))?
+                    .dispatch_event(&event)
+            });
+    if result.is_err() {
+        super::browser::report(message);
+    }
+}
+
+fn deliver(buffer: JsValue, mode: Mode) -> Result<(), JsValue> {
+    let detail = web_sys::CustomEventInit::new();
+    let payload = js_sys::Array::new();
+    payload.push(&JsValue::from_bool(mode == Mode::Replace));
+    payload.push(&js_sys::Uint8Array::new(&buffer));
+    detail.set_detail(&payload);
+    let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
+    web_sys::window()
+        .ok_or("No browser window")?
+        .dispatch_event(&event)?;
+    Ok(())
+}
+
+pub fn action(event: &web_sys::Event) -> Option<crate::editor::Action> {
+    let event = event.dyn_ref::<web_sys::CustomEvent>()?;
+    let payload = event
+        .detail()
+        .dyn_into::<js_sys::Array>()
+        .ok()?;
+    if payload.length() != 2 {
+        return None;
+    }
+    let replace = payload.get(0).as_bool()?;
+    let array = payload
+        .get(1)
+        .dyn_into::<js_sys::Uint8Array>()
+        .ok()?;
+    if array.length() as usize > crate::document::MAX_BYTES {
+        return None;
+    }
+    Some(if replace {
+        crate::editor::Action::Replace(array.to_vec())
+    } else {
+        crate::editor::Action::Import(array.to_vec())
+    })
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+}
+
+pub type Delivery = Rc<RefCell<Option<web_sys::File>>>;
+
+pub fn choose(
+    event: &web_sys::Event,
+    request: Rc<RefCell<crate::read_gate::ReadGate>>,
+    mode: Mode,
+    delivery: Delivery,
+) {
+    let Some(input) = event.target().and_then(|target| {
+        target
+            .dyn_into::<web_sys::HtmlInputElement>()
+            .ok()
+    }) else {
+        return;
+    };
+    if input.id() != "open" {
+        return;
+    }
+    let Some(file) = input.files().and_then(|files| files.get(0)) else {
+        request.borrow_mut().cancel();
+        return;
+    };
+    input.set_value("");
+    let Some(id) = request.borrow().pending() else {
+        return;
+    };
+    super::browser::report("Reading the selected file…");
+    wasm_bindgen_futures::spawn_local(async move {
+        if request.borrow().pending() != Some(id) {
+            return;
+        }
+        if file.size() > crate::document::MAX_BYTES as f64 {
+            let accepted = request.borrow_mut().finish(id);
+            if accepted {
+                failure("This checkpoint accepts files up to 4 MiB");
+            }
+            return;
+        }
+        let result = wasm_bindgen_futures::JsFuture::from(file.array_buffer()).await;
+        let accepted = request.borrow_mut().finish(id);
+        if !accepted {
+            return;
+        }
         let result = result.and_then(|buffer| deliver(buffer, mode, file, &delivery));
         if let Err(error) = result {
             failure(&format!("Cannot read file: {error:?}"));
@@ -2972,12 +4625,24 @@ pub fn choose(event: &web_sys::Event, request: Rc<RefCell<crate::read_gate::Read
 fn failure(message: &str) {
     let detail = web_sys::CustomEventInit::new();
     detail.set_detail(&JsValue::from_str(message));
-    let result = web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
-        .and_then(|event| web_sys::window().ok_or_else(|| JsValue::from_str("No window"))?.dispatch_event(&event));
-    if result.is_err() { super::browser::report(message); }
+    let result =
+        web_sys::CustomEvent::new_with_event_init_dict("viewer-file-error", &detail)
+            .and_then(|event| {
+                web_sys::window()
+                    .ok_or_else(|| JsValue::from_str("No window"))?
+                    .dispatch_event(&event)
+            });
+    if result.is_err() {
+        super::browser::report(message);
+    }
 }
 
-fn deliver(buffer: JsValue, mode: Mode, file: web_sys::File, delivery: &Delivery) -> Result<(), JsValue> {
+fn deliver(
+    buffer: JsValue,
+    mode: Mode,
+    file: web_sys::File,
+    delivery: &Delivery,
+) -> Result<(), JsValue> {
     let detail = web_sys::CustomEventInit::new();
     let payload = js_sys::Array::new();
     payload.push(&JsValue::from_bool(mode == Mode::Replace));
@@ -2985,23 +4650,49 @@ fn deliver(buffer: JsValue, mode: Mode, file: web_sys::File, delivery: &Delivery
     detail.set_detail(&payload);
     let event = web_sys::CustomEvent::new_with_event_init_dict("viewer-file", &detail)?;
     *delivery.borrow_mut() = Some(file);
-    let result = web_sys::window().ok_or_else(|| JsValue::from_str("No browser window"))
+    let result = web_sys::window()
+        .ok_or_else(|| JsValue::from_str("No browser window"))
         .and_then(|window| window.dispatch_event(&event));
     delivery.borrow_mut().take();
     result.map(|_| ())
 }
 
-pub fn action(event: &web_sys::Event, delivery: &Delivery) -> Result<Option<crate::editor::Action>, JsValue> {
-    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else { return Ok(None); };
-    let Ok(payload) = event.detail().dyn_into::<js_sys::Array>() else { return Ok(None); };
-    if payload.length() != 2 { return Ok(None); }
-    let Some(replace) = payload.get(0).as_bool() else { return Ok(None); };
-    let Ok(array) = payload.get(1).dyn_into::<js_sys::Uint8Array>() else { return Ok(None); };
-    if array.length() as usize > crate::document::MAX_BYTES { return Ok(None); }
-    let Some(file) = delivery.borrow_mut().take() else { return Ok(None); };
-    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(&file)?);
-    Ok(Some(if replace { crate::editor::Action::ReplaceAt(array.to_vec(), location) }
-        else { crate::editor::Action::ImportAt(array.to_vec(), location) }))
+pub fn action(
+    event: &web_sys::Event,
+    delivery: &Delivery,
+) -> Result<Option<crate::editor::Action>, JsValue> {
+    let Some(event) = event.dyn_ref::<web_sys::CustomEvent>() else {
+        return Ok(None);
+    };
+    let Ok(payload) = event.detail().dyn_into::<js_sys::Array>() else {
+        return Ok(None);
+    };
+    if payload.length() != 2 {
+        return Ok(None);
+    }
+    let Some(replace) = payload.get(0).as_bool() else {
+        return Ok(None);
+    };
+    let Ok(array) = payload
+        .get(1)
+        .dyn_into::<js_sys::Uint8Array>()
+    else {
+        return Ok(None);
+    };
+    if array.length() as usize > crate::document::MAX_BYTES {
+        return Ok(None);
+    }
+    let Some(file) = delivery.borrow_mut().take() else {
+        return Ok(None);
+    };
+    let location = Rc::new(crate::reload_url::ReloadUrl::from_file(
+        &file,
+    )?);
+    Ok(Some(if replace {
+        crate::editor::Action::ReplaceAt(array.to_vec(), location)
+    } else {
+        crate::editor::Action::ImportAt(array.to_vec(), location)
+    }))
 }
 ```
 
@@ -3014,125 +4705,126 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.source().map(|source|
-        (&row.guid, source.origin.id.to_string(), source.origin.version.hex()))).collect();
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
+                    &row.guid,
+                    source.origin.id.to_string(),
+                    source.origin.version.hex(),
+                )
 ```
 
 Replace it with:
 
 ```rust
-        (&row.guid, &m.source_guid, &m.name, m.is_visible, m.is_locked)
-    }).collect();
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.source().map(|source|
-        (&row.guid, source.origin.id.to_string(), source.origin.version.hex(),
-            source.origin.location.as_ref().map(|location| location.value())))).collect();
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
+                    &row.guid,
+                    source.origin.id.to_string(),
+                    source.origin.version.hex(),
+                    source
+                        .origin
+                        .location
+                        .as_ref()
+                        .map(|location| location.value()),
+                )
 ```
 
 **Locate this block:**
 
 ```rust
-            None
-        };
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_));
-            let closing = matches!(&action, Action::Close);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
+                None
+            };
+            if let Some(action) = action {
+                let replacement = matches!(&action, Action::Replace(_));
+                let closing = matches!(&action, Action::Close);
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
 ```
 
 Replace it with:
 
 ```rust
-            None
-        };
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
+                None
+            };
+            if let Some(action) = action {
+                let replacement = matches!(
+                    &action,
+                    Action::Replace(_) | Action::ReplaceAt(_, _)
+                );
+                let closing = matches!(&action, Action::Close);
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
 ```
 
 **Locate this block:**
 
 ```rust
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            crate::file_input::action(&event)
-        } else if let Some(line) = line {
-            if line == "close" {
-                request.borrow_mut().cancel();
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                crate::file_input::action(&event)
+            } else if let Some(line) = line {
+                if line == "close" {
+                    request.borrow_mut().cancel();
 ```
 
 Replace it with:
 
 ```rust
-            }
-            None
-        } else if event.type_() == "viewer-file" {
-            match crate::file_input::action(&event, &delivery) {
-                Ok(action) => action,
-                Err(error) => { let message = format!("Cannot retain reload file: {error:?}");
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "close" {
-                request.borrow_mut().cancel();
+                }
+                None
+            } else if event.type_() == "viewer-file" {
+                match crate::file_input::action(&event, &delivery) {
+                    Ok(action) => action,
+                    Err(error) => {
+                        let message = format!("Cannot retain reload file: {error:?}");
+                        report(&message);
+                        panel.answer("Open", &message);
+                        None
+                    }
+                }
+            } else if let Some(line) = line {
+                if line == "close" {
+                    request.borrow_mut().cancel();
 ```
 
 **Locate this block:**
 
 ```rust
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get());
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
+                    &event,
+                    std::rc::Rc::clone(&request),
+                    read_mode.get(),
+                );
+                None
+            } else if event.type_() == "viewer-file-error" {
 ```
 
 Replace it with:
 
 ```rust
-            panel.answer("Open", "Open cancelled.");
-            None
-        } else if event.type_() == "change" {
-            crate::file_input::choose(&event, std::rc::Rc::clone(&request), read_mode.get(), std::rc::Rc::clone(&delivery));
-            None
-        } else if event.type_() == "viewer-file-error" {
-            if let Some(message) = event.dyn_ref::<web_sys::CustomEvent>().and_then(|event| event.detail().as_string()) {
+                    &event,
+                    std::rc::Rc::clone(&request),
+                    read_mode.get(),
+                    std::rc::Rc::clone(&delivery),
+                );
+                None
+            } else if event.type_() == "viewer-file-error" {
 ```
 
 **Locate this block:**
 
 ```rust
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            let shortcut = event
 ```
 
 Replace it with:
 
 ```rust
-    let mut gesture = Gesture::default();
-    let request = std::rc::Rc::new(std::cell::RefCell::new(crate::read_gate::ReadGate::default()));
     let read_mode = std::cell::Cell::new(crate::file_input::Mode::Append);
-    let delivery: crate::file_input::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let shortcut = event.dyn_ref::<web_sys::KeyboardEvent>().and_then(|key| panel.shortcut(key));
-        let line = if let Some(shortcut) = shortcut {
+    let delivery: crate::file_input::Delivery =
+        std::rc::Rc::new(std::cell::RefCell::new(None));
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            let shortcut = event
 ```
 
 ## <a id="checkpoint-32fg-state"></a>18. Separate loaded and released editable ownership
@@ -3181,13 +4873,16 @@ Confine source residency representation to the viewer implementation.
 **Locate this existing block:**
 
 ```rust
-pub mod reload_url;
+pub mod camera;
+pub mod editor;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fg-state-01.rs" skip=20
+pub mod camera;
+mod edit_source;
+pub mod editor;
 ```
 
 ### 2. `src/edit_source.rs`
@@ -3197,7 +4892,19 @@ Keep Released ownership free of kernel mesh and Session values.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/32fg-state-02.rs"
+use std::rc::Rc;
+
+#[derive(Clone)]
+pub enum EditSource {
+    Loaded {
+        geometry: Rc<session_rust::Mesh>,
+        source: Option<crate::document::Source>,
+    },
+    Released {
+        origin: Rc<crate::origin::Origin>,
+        epoch: u64,
+    },
+}
 ```
 
 ### 3. `src/scene.rs`
@@ -3214,8 +4921,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             assert_eq!(object.id, old.id);
             assert!(Rc::ptr_eq(&object.geometry, &old.geometry));
             assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
 ```
 
 Replace it with:
@@ -3224,20 +4929,28 @@ Replace it with:
         assert_eq!(scene.objects.len(), before.len());
         for (object, old) in scene.objects.iter().zip(&before) {
             assert_eq!(object.id, old.id);
-            assert!(Rc::ptr_eq(object.geometry().unwrap(), old.geometry().unwrap()));
+            assert!(Rc::ptr_eq(
+                object.geometry().unwrap(),
+                old.geometry().unwrap()
+            ));
             assert!(Rc::ptr_eq(&object.mesh, &old.mesh));
-        }
-        assert!(!history.undo(&mut scene));
 ```
 
 **Locate this block:**
 
 ```rust
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), geometry: prepared.geometry,
-            model: prepared.model, source: prepared.source });
+        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(
+            &prepared.geometry,
+        ));
+        self.objects.push(Object {
+            id,
+            guid,
+            metadata,
+            mesh: Rc::new(prepared.display),
+            geometry: prepared.geometry,
+            model: prepared.model,
+            source: prepared.source,
+        });
         Ok(id)
     }
 ```
@@ -3245,11 +4958,21 @@ Replace it with:
 Replace it with:
 
 ```rust
-            guid = uuid::Uuid::new_v4().to_string();
-        }
-        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(&prepared.geometry));
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
+        let metadata = Rc::new(crate::row_metadata::RowMetadata::from_mesh(
+            &prepared.geometry,
+        ));
+        let editable = crate::edit_source::EditSource::Loaded {
+            geometry: prepared.geometry,
+            source: prepared.source,
+        };
+        self.objects.push(Object {
+            id,
+            guid,
+            metadata,
+            mesh: Rc::new(prepared.display),
+            model: prepared.model,
+            editable,
+        });
         Ok(id)
     }
 ```
@@ -3257,8 +4980,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
     pub mesh: Rc<Mesh>,
     geometry: Rc<session_rust::Mesh>,
     pub model: session_rust::Xform,
@@ -3266,19 +4987,20 @@ Replace it with:
 }
 
 impl Object {
-    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> { Some(&self.geometry) }
+    pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
+        Some(&self.geometry)
+    }
 
-    pub fn source(&self) -> Option<&crate::document::Source> { self.source.as_ref() }
+    pub fn source(&self) -> Option<&crate::document::Source> {
+        self.source.as_ref()
+    }
 
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
 ```
 
 Replace it with:
 
 ```rust
-    pub guid: String,
-    pub metadata: Rc<crate::row_metadata::RowMetadata>,
     pub mesh: Rc<Mesh>,
     pub model: session_rust::Xform,
     editable: crate::edit_source::EditSource,
@@ -3286,26 +5008,36 @@ Replace it with:
 
 impl Object {
     pub fn geometry(&self) -> Option<&Rc<session_rust::Mesh>> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry), _ => None }
+        match &self.editable {
+            crate::edit_source::EditSource::Loaded { geometry, .. } => Some(geometry),
+            _ => None,
+        }
     }
 
     pub fn source(&self) -> Option<&crate::document::Source> {
-        match &self.editable { crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(), _ => None }
+        match &self.editable {
+            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref(),
+            _ => None,
+        }
     }
 
     pub fn origin(&self) -> Option<&Rc<crate::origin::Origin>> {
         match &self.editable {
-            crate::edit_source::EditSource::Loaded { source, .. } => source.as_ref().map(|source| &source.origin),
+            crate::edit_source::EditSource::Loaded { source, .. } => {
+                source.as_ref().map(|source| &source.origin)
+            }
             crate::edit_source::EditSource::Released { origin, .. } => Some(origin),
         }
     }
 
     pub fn release_epoch(&self) -> Option<u64> {
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
+        match &self.editable {
+            crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch),
+            _ => None,
+        }
     }
 
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
 ```
 
 ### 4. `src/browser.rs`
@@ -3315,15 +5047,28 @@ Retain origin inspection even when editable kernel ownership is absent.
 **Locate this existing block:**
 
 ```rust
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.source().map(|source|
-        (&row.guid, source.origin.id.to_string(), source.origin.version.hex(),
-            source.origin.location.as_ref().map(|location| location.value())))).collect();
+        .filter_map(|row| {
+            row.source().map(|source| {
+                (
+                    &row.guid,
+                    source.origin.id.to_string(),
+                    source.origin.version.hex(),
+                    source
+                        .origin
+                        .location
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fg-state-07.rs"
+        .filter_map(|row| {
+            row.origin().map(|origin| {
+                (
+                    &row.guid,
+                    origin.id.to_string(),
+                    origin.version.hex(),
+                    origin
+                        .location
 ```
 
 ## <a id="checkpoint-32fh-policy"></a>19. Protect sources that cannot be unloaded faithfully
@@ -3377,9 +5122,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     use super::*;
 
     #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
 ```
 
 Replace it with:
@@ -3389,24 +5131,32 @@ Replace it with:
 
     #[test]
     fn unloading_policy_protects_generated_unlocated_and_modified_sources() {
-        let mut scene = Scene::demo(); assert!(!scene.objects[0].can_unload());
+        let mut scene = Scene::demo();
+        assert!(!scene.objects[0].can_unload());
         let bytes = crate::specimen::bytes();
-        scene.replace(crate::document::load(&bytes).unwrap()).unwrap(); assert!(!scene.objects[0].can_unload());
-        let url = Rc::new(crate::reload_url::ReloadUrl::new("test:policy".into()));
-        scene.replace(crate::document::load_at(&bytes, Some(url)).unwrap()).unwrap();
+        scene
+            .replace(crate::document::load(&bytes).unwrap())
+            .unwrap();
+        assert!(!scene.objects[0].can_unload());
+        let url = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:policy".into(),
+        ));
+        scene
+            .replace(crate::document::load_at(&bytes, Some(url)).unwrap())
+            .unwrap();
         assert!(scene.objects.iter().all(Object::can_unload));
         let row = &mut scene.objects[0];
-        Rc::make_mut(&mut row.metadata).is_locked = true; assert!(!row.can_unload());
+        Rc::make_mut(&mut row.metadata).is_locked = true;
+        assert!(!row.can_unload());
         Rc::make_mut(&mut row.metadata).is_locked = row.geometry().unwrap().is_locked;
         assert!(row.can_unload());
-        let source = row.source().cloned(); let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
-        row.editable = crate::edit_source::EditSource::Loaded { geometry, source }; assert!(!row.can_unload());
+        let source = row.source().cloned();
+        let geometry = Rc::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0));
+        row.editable = crate::edit_source::EditSource::Loaded { geometry, source };
+        assert!(!row.can_unload());
     }
 
     #[test]
-    fn partial_replacement_failure_restores_owners_without_reusing_ids() {
-        let mut scene = Scene::demo();
-        let before = scene.objects.clone();
 ```
 
 **Locate this block:**
@@ -3416,8 +5166,8 @@ Replace it with:
     }
 
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
+        let next = self
+            .next_id
 ```
 
 Replace it with:
@@ -3426,50 +5176,71 @@ Replace it with:
         &self.objects
     }
 
-    pub(crate) fn objects_mut(&mut self) -> &mut [Object] { &mut self.objects }
+    pub(crate) fn objects_mut(&mut self) -> &mut [Object] {
+        &mut self.objects
+    }
 
-    pub(crate) fn unload(&mut self, origins: &std::collections::HashSet<uuid::Uuid>, epoch: u64) {
+    pub(crate) fn unload(
+        &mut self,
+        origins: &std::collections::HashSet<uuid::Uuid>,
+        epoch: u64,
+    ) {
         for row in &mut self.objects {
-            if let Some(origin) = row.origin().filter(|origin| origins.contains(&origin.id)).cloned() {
-                row.editable = crate::edit_source::EditSource::Released { origin, epoch };
+            if let Some(origin) = row
+                .origin()
+                .filter(|origin| origins.contains(&origin.id))
+                .cloned()
+            {
+                row.editable =
+                    crate::edit_source::EditSource::Released { origin, epoch };
             }
         }
     }
 
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
-        let id = ObjectId(self.next_id);
+        let next = self
+            .next_id
 ```
 
 **Locate this block:**
 
 ```rust
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
     }
 
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
+        let local = session_rust::Point::new(
+            vertex[0] as f64,
 ```
 
 Replace it with:
 
 ```rust
-        match &self.editable { crate::edit_source::EditSource::Released { epoch, .. } => Some(*epoch), _ => None }
     }
 
     pub fn can_unload(&self) -> bool {
-        let Some(source) = self.source() else { return false; };
-        let Some(geometry) = self.geometry() else { return false; };
-        source.origin.location.is_some() && self.metadata.source_guid == source.guid
-            && geometry.guid() == source.guid && self.metadata.name == geometry.name
-            && self.metadata.is_visible == geometry.is_visible && self.metadata.is_locked == geometry.is_locked
-            && source.document.objects.meshes.iter().any(|mesh| Rc::ptr_eq(mesh, geometry))
+        let Some(source) = self.source() else {
+            return false;
+        };
+        let Some(geometry) = self.geometry() else {
+            return false;
+        };
+        source.origin.location.is_some()
+            && self.metadata.source_guid == source.guid
+            && geometry.guid() == source.guid
+            && self.metadata.name == geometry.name
+            && self.metadata.is_visible == geometry.is_visible
+            && self.metadata.is_locked == geometry.is_locked
+            && source
+                .document
+                .objects
+                .meshes
+                .iter()
+                .any(|mesh| Rc::ptr_eq(mesh, geometry))
     }
 
     pub fn world_point(&self, vertex: [f32; 6]) -> [f64; 3] {
-        let local = session_rust::Point::new(vertex[0] as f64, vertex[1] as f64, vertex[2] as f64);
-        let world = self.model.transform_point(&local);
+        let local = session_rust::Point::new(
+            vertex[0] as f64,
 ```
 
 ## <a id="checkpoint-32fi-history"></a>20. Unload sources across active and history roots
@@ -3518,41 +5289,144 @@ Visit both history branches without cloning or dropping their rows.
 **Locate this existing block:**
 
 ```rust
+    }
+
     pub fn clear(&mut self) {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fi-history-01.rs"
+    }
+
+    pub(crate) fn scenes_mut(&mut self) -> impl Iterator<Item = &mut Scene> {
+        self.undo.iter_mut().chain(&mut self.redo)
+    }
+
+    pub fn clear(&mut self) {
 ```
 
 ### 2. `src/editor.rs`
 
 Add a residency operation distinct from document close. Issue epochs independently of document history and Close. Start the first viewer-owned release sequence without wraparound. Validate every retained origin row before issuing an epoch or changing any owner. Keep source unloading out of document Undo transactions.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+    Close,
+    AddBox,
+    Translate([f64; 3]),
+    ToggleExtra,
+    SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+    Fit,
+    FitSelected,
+    Projection(crate::camera::Projection),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+        }
+    }
+}
+
+impl Editor {
+    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
         std::iter::once(&self.scene).chain(self.history.scenes())
     }
 
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
         match action {
             Action::Pick(screen) => {
-                self.selected = self.camera.ray(screen)
+                self.selected = self
+                    .camera
+                    .ray(screen)
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
             }
             Action::Close => {
-                self.scene.clear();
-                self.history.clear();
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    Close,
+    UnloadSources,
+    AddBox,
+    Translate([f64; 3]),
+    ToggleExtra,
+    SelectNext,
+    Delete,
+    Undo,
+    Redo,
+    Background,
+    Zoom(f32),
+    Pan(f32, f32),
+    Orbit(f64, f64),
+    Isometric,
+    ResetView,
+    Fit,
+    FitSelected,
+    Projection(crate::camera::Projection),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Change {
+    View,
+    Scene,
+}
+
+pub struct Editor {
+    pub scene: Scene,
+    pub selected: Option<ObjectId>,
+    pub camera: Camera,
+    pub background: Background,
+    history: History,
+    last_release: u64,
+}
+
+impl Default for Editor {
+    fn default() -> Self {
+        Self {
+            scene: Scene::demo(),
+            selected: None,
+            camera: Camera::default(),
+            background: Background::default(),
+            history: History::default(),
+            last_release: 0,
+        }
+    }
+}
+
+impl Editor {
+    pub fn scenes(&self) -> impl Iterator<Item = &Scene> {
         std::iter::once(&self.scene).chain(self.history.scenes())
     }
 
@@ -3561,16 +5435,32 @@ Replace it with:
     }
 
     fn unload_sources(&mut self) -> Result<(), &'static str> {
-        let mut origins: std::collections::HashSet<_> = self.scenes().flat_map(|scene| scene.objects())
-            .filter(|row| row.can_unload()).filter_map(|row| row.origin().map(|origin| origin.id)).collect();
-        for row in self.scenes().flat_map(|scene| scene.objects()) {
+        let mut origins: std::collections::HashSet<_> = self
+            .scenes()
+            .flat_map(|scene| scene.objects())
+            .filter(|row| row.can_unload())
+            .filter_map(|row| row.origin().map(|origin| origin.id))
+            .collect();
+        for row in self
+            .scenes()
+            .flat_map(|scene| scene.objects())
+        {
             if let Some(origin) = row.origin() {
-                if !row.can_unload() { origins.remove(&origin.id); }
+                if !row.can_unload() {
+                    origins.remove(&origin.id);
+                }
             }
         }
-        if origins.is_empty() { return Err("No eligible imported sources to unload"); }
-        let epoch = self.last_release.checked_add(1).ok_or("Release epochs exhausted")?;
-        for scene in self.scenes_mut() { scene.unload(&origins, epoch); }
+        if origins.is_empty() {
+            return Err("No eligible imported sources to unload");
+        }
+        let epoch = self
+            .last_release
+            .checked_add(1)
+            .ok_or("Release epochs exhausted")?;
+        for scene in self.scenes_mut() {
+            scene.unload(&origins, epoch);
+        }
         self.last_release = epoch;
         Ok(())
     }
@@ -3578,82 +5468,13 @@ Replace it with:
     pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
         match action {
             Action::Pick(screen) => {
-                self.selected = self.camera.ray(screen)
+                self.selected = self
+                    .camera
+                    .ray(screen)
                     .and_then(|ray| crate::picking::pick(&self.scene, &ray));
             }
             Action::UnloadSources => self.unload_sources()?,
             Action::Close => {
-                self.scene.clear();
-                self.history.clear();
-```
-
-**Locate this block:**
-
-```rust
-            camera: Camera::default(),
-            background: Background::default(),
-            history: History::default(),
-        }
-    }
-}
-```
-
-Replace it with:
-
-```rust
-            camera: Camera::default(),
-            background: Background::default(),
-            history: History::default(),
-            last_release: 0,
-        }
-    }
-}
-```
-
-**Locate this block:**
-
-```rust
-    pub camera: Camera,
-    pub background: Background,
-    history: History,
-}
-
-impl Default for Editor {
-```
-
-Replace it with:
-
-```rust
-    pub camera: Camera,
-    pub background: Background,
-    history: History,
-    last_release: u64,
-}
-
-impl Default for Editor {
-```
-
-**Locate this block:**
-
-```rust
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    AddBox,
-    Translate([f64; 3]),
-    ToggleExtra,
-```
-
-Replace it with:
-
-```rust
-    ImportAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    ReplaceAt(Vec<u8>, std::rc::Rc<crate::reload_url::ReloadUrl>),
-    Close,
-    UnloadSources,
-    AddBox,
-    Translate([f64; 3]),
-    ToggleExtra,
 ```
 
 ### 3. `src/scene.rs`
@@ -3663,13 +5484,18 @@ Refuse an edit until its original editable source has been restored.
 **Locate this existing block:**
 
 ```rust
+            .ok_or("Object not found")?;
         object.model = model;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fi-history-07.rs"
+            .ok_or("Object not found")?;
+        if object.geometry().is_none() {
+            return Err("Reload editable sources before Move");
+        }
+        object.model = model;
 ```
 
 ### 4. `src/editor.rs`
@@ -3686,7 +5512,19 @@ Keep selection/history unchanged when a cold edit requires hydration.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fi-history-08.rs"
+            Action::Delete => {
+                if let Some(id) = self.selected {
+                    let row = self
+                        .scene
+                        .objects()
+                        .iter()
+                        .find(|row| row.id == id)
+                        .ok_or("Object not found")?;
+                    if row.geometry().is_none() {
+                        return Err("Reload editable sources before Delete");
+                    }
+                }
+                if let Some(id) = self.selected.take() {
 ```
 
 ## <a id="checkpoint-32fj-proof"></a>21. Prove unloading preserves placed history
@@ -3735,27 +5573,83 @@ Verify actual source release independently of GPU drawing.
 **Locate this existing block:**
 
 ```rust
-mod origin_tests;
+mod shortcuts_tests;
+pub mod viewport;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fj-proof-01.rs" skip=18
+mod shortcuts_tests;
+#[cfg(test)]
+mod unload_tests;
+pub mod viewport;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/unload_tests.rs`
 
 Optional authoring fixture. Prove old source values expire while placed drawing data and history remain available.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/32fj-proof-02.rs"
+```rust
+use crate::editor::{Action, Editor};
+use std::rc::Rc;
+
+#[test]
+fn unloading_drops_imported_kernel_owners_but_keeps_display_and_history() {
+    let mut editor = Editor::default();
+    let url = Rc::new(crate::reload_url::ReloadUrl::new(
+        "test:unload".into(),
+    ));
+    editor
+        .apply(Action::ReplaceAt(
+            crate::specimen::bytes(),
+            url,
+        ))
+        .unwrap();
+    editor.apply(Action::SelectNext).unwrap();
+    let row = &editor.scene.objects()[0];
+    let id = row.id;
+    let guid = row.guid.clone();
+    let display = Rc::clone(&row.mesh);
+    let source = Rc::downgrade(row.geometry().unwrap());
+    let document = Rc::downgrade(&row.source().unwrap().document);
+    let initial = row.model.m;
+    let view = editor.camera.uniform();
+    editor
+        .apply(Action::Translate([0.25, 0.0, 0.0]))
+        .unwrap();
+    let moved = editor.scene.objects()[0].model.m;
+    let roots = editor.scenes().count();
+    editor.apply(Action::UnloadSources).unwrap();
+    assert!(source.upgrade().is_none() && document.upgrade().is_none());
+    let row = &editor.scene.objects()[0];
+    assert_eq!(row.id, id);
+    assert_eq!(row.guid, guid);
+    assert_eq!(row.model.m, moved);
+    assert!(Rc::ptr_eq(&display, &row.mesh));
+    assert_eq!(row.release_epoch(), Some(1));
+    assert!(row.geometry().is_none() && row.source().is_none());
+    assert_eq!(editor.scenes().count(), roots);
+    assert_eq!(editor.camera.uniform(), view);
+    assert!(crate::document::snapshot(&editor.scene).is_err());
+    assert!(
+        editor
+            .apply(Action::Translate([1.0, 0.0, 0.0]))
+            .is_err()
+    );
+    assert_eq!(editor.scenes().count(), roots);
+    editor.apply(Action::Undo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, initial);
+    assert_eq!(
+        editor.scene.objects()[0].release_epoch(),
+        Some(1)
+    );
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects()[0].model.m, moved);
+    assert!(source.upgrade().is_none());
+}
 ```
 
 ## <a id="checkpoint-32fk-command"></a>22. Unload editable sources through the command line
@@ -3806,94 +5700,102 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
+            })
+        })
+        .collect();
+    canvas.set_attribute(
 ```
 
 Replace it with:
 
 ```rust
-    let origins: Vec<_> = editor.scene.objects().iter().filter_map(|row| row.origin().map(|origin|
-        (&row.guid, origin.id.to_string(), origin.version.hex(),
-            origin.location.as_ref().map(|location| location.value())))).collect();
-    let residency: Vec<_> = editor.scene.objects().iter().map(|row|
-        (&row.guid, row.geometry().is_some(), row.release_epoch())).collect();
-    canvas.set_attribute("data-source-residency", &serde_json::to_string(&residency)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-source-origins", &serde_json::to_string(&origins)
-        .map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-row-metadata", &serde_json::to_string(&metadata)
+            })
+        })
+        .collect();
+    let residency: Vec<_> = editor
+        .scene
+        .objects()
+        .iter()
+        .map(|row| {
+            (
+                &row.guid,
+                row.geometry().is_some(),
+                row.release_epoch(),
+            )
+        })
+        .collect();
+    canvas.set_attribute(
+        "data-source-residency",
+        &serde_json::to_string(&residency)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
+    canvas.set_attribute(
 ```
 
 **Locate this block:**
 
 ```rust
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
+                    Action::Replace(_) | Action::ReplaceAt(_, _)
+                );
+                let closing = matches!(&action, Action::Close);
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if closing {
+                            report("Document closed.");
+                            panel.result("Document closed.");
+                        } else if event.type_() == "viewer-file" {
 ```
 
 Replace it with:
 
 ```rust
-        if let Some(action) = action {
-            let replacement = matches!(&action, Action::Replace(_) | Action::ReplaceAt(_, _));
-            let closing = matches!(&action, Action::Close);
-            let unloading = matches!(&action, Action::UnloadSources);
-            match editor.apply(action) {
-                Ok(Change::Scene) => {
-                    renderer.set_scene(&editor.scene, editor.selected);
-                    if unloading {
-                        report("Editable sources unloaded; display retained.");
-                        panel.result("Editable sources unloaded; display retained.");
-                    } else if closing {
-                        report("Document closed.");
-                        panel.result("Document closed.");
-                    } else if event.type_() == "viewer-file" {
+                    Action::Replace(_) | Action::ReplaceAt(_, _)
+                );
+                let closing = matches!(&action, Action::Close);
+                let unloading = matches!(&action, Action::UnloadSources);
+                match editor.apply(action) {
+                    Ok(Change::Scene) => {
+                        renderer.set_scene(&editor.scene, editor.selected);
+                        if unloading {
+                            report("Editable sources unloaded; display retained.");
+                            panel
+                                .result("Editable sources unloaded; display retained.");
+                        } else if closing {
+                            report("Document closed.");
+                            panel.result("Document closed.");
+                        } else if event.type_() == "viewer-file" {
 ```
 
 **Locate this block:**
 
 ```rust
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
+                    }
+                }
+            } else if let Some(line) = line {
+                if line == "close" {
+                    request.borrow_mut().cancel();
+                    Some(Action::Close)
+                } else if line == "cancel open" {
 ```
 
 Replace it with:
 
 ```rust
-                    report(&message); panel.answer("Open", &message); None }
-            }
-        } else if let Some(line) = line {
-            if line == "unload sources" {
-                Some(Action::UnloadSources)
-            } else if line == "close" {
-                request.borrow_mut().cancel();
-                Some(Action::Close)
-            } else if line == "cancel open" {
+                    }
+                }
+            } else if let Some(line) = line {
+                if line == "unload sources" {
+                    Some(Action::UnloadSources)
+                } else if line == "close" {
+                    request.borrow_mut().cancel();
+                    Some(Action::Close)
+                } else if line == "cancel open" {
 ```
 
 **Locate this block:**
 
 ```rust
-            "Open Replace",
-            "Cancel Open",
             "Close",
             "Save",
             "Example Box",
@@ -3903,8 +5805,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Open Replace",
-            "Cancel Open",
             "Close",
             "Unload Sources",
             "Save",
@@ -3965,7 +5865,102 @@ Check modified history, independent imports and exhausted/reopened release issua
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/32fl-guards-01.rs"
+    #[test]
+    fn a_modified_history_row_protects_only_its_own_import_origin() {
+        use std::rc::Rc;
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        let first = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:first".into(),
+        ));
+        editor
+            .apply(Action::ReplaceAt(bytes.clone(), first))
+            .unwrap();
+        let origin = editor.scene.objects()[0]
+            .origin()
+            .unwrap()
+            .id;
+        let original = Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
+        let second = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:second".into(),
+        ));
+        editor
+            .apply(Action::ImportAt(bytes, second))
+            .unwrap();
+        let copy = Rc::downgrade(editor.scene.objects()[3].geometry().unwrap());
+        editor.apply(Action::SelectNext).unwrap();
+        editor
+            .apply(Action::Translate([0.25, 0.0, 0.0]))
+            .unwrap();
+        editor.apply(Action::Undo).unwrap();
+        let saved = editor.history.scenes_mut().last().unwrap();
+        assert_eq!(
+            saved.objects()[0].origin().unwrap().id,
+            origin
+        );
+        Rc::make_mut(&mut saved.objects_mut()[0].metadata).is_locked = true;
+        assert!(editor.scene.objects()[0].can_unload());
+        editor.apply(Action::UnloadSources).unwrap();
+        assert!(original.upgrade().is_some());
+        assert!(copy.upgrade().is_none());
+        assert!(
+            editor.scene.objects()[0]
+                .geometry()
+                .is_some()
+        );
+        assert!(
+            editor.scene.objects()[3]
+                .geometry()
+                .is_none()
+        );
+        assert_eq!(editor.last_release, 1);
+        assert!(editor.apply(Action::UnloadSources).is_err());
+        assert_eq!(editor.last_release, 1);
+    }
+
+    #[test]
+    fn release_epochs_do_not_wrap_or_reset_on_close() {
+        use std::rc::Rc;
+        let mut editor = Editor::default();
+        let bytes = crate::specimen::bytes();
+        let url = Rc::new(crate::reload_url::ReloadUrl::new(
+            "test:epoch".into(),
+        ));
+        editor
+            .apply(Action::ReplaceAt(
+                bytes.clone(),
+                Rc::clone(&url),
+            ))
+            .unwrap();
+        editor.last_release = u64::MAX;
+        assert_eq!(
+            editor.apply(Action::UnloadSources),
+            Err("Release epochs exhausted")
+        );
+        assert!(
+            editor.scene.objects()[0]
+                .geometry()
+                .is_some()
+        );
+        editor.last_release = 0;
+        editor.apply(Action::UnloadSources).unwrap();
+        assert_eq!(
+            editor.scene.objects()[0].release_epoch(),
+            Some(1)
+        );
+        editor.apply(Action::Close).unwrap();
+        editor
+            .apply(Action::ImportAt(bytes, url))
+            .unwrap();
+        editor.apply(Action::UnloadSources).unwrap();
+        assert_eq!(
+            editor.scene.objects()[0].release_epoch(),
+            Some(2)
+        );
+    }
+
+    #[test]
+    fn close_ends_history_and_keeps_issued_ids_and_view_settings() {
 ```
 
 ## Build & Run

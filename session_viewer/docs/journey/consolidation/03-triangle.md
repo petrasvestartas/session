@@ -106,24 +106,77 @@ Create GPU vertex and fragment functions; the vertex function chooses a corner a
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/03-triangle-01.wgsl"
+@vertex
+fn vertex(@builtin(vertex_index) index: u32) -> @builtin(position) vec4<f32> {
+    let corners = array<vec2<f32>, 3>(
+        vec2<f32>(-0.6, -0.5),
+        vec2<f32>(0.6, -0.5),
+        vec2<f32>(0.0, 0.6),
+    );
+    return vec4<f32>(corners[index], 0.0, 1.0);
+}
+
+@fragment
+fn fragment() -> @location(0) vec4<f32> {
+    return vec4<f32>(0.9, 0.25, 0.45, 1.0);
+}
 ```
 
 ### 2. `src/renderer.rs`
 
 Create and retain the triangle shader pipeline. Bind the pipeline and draw its three vertices.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-pub struct Renderer {
-    pub device: wgpu::Device,
+    pub queue: wgpu::Queue,
+}
+
+impl Renderer {
+    pub fn new(device: wgpu::Device, queue: wgpu::Queue) -> Self {
+        Self { device, queue }
+    }
+
+    pub fn draw(&self, view: &wgpu::TextureView) {
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
+        {
+            // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
+                    },
+                })],
+                ..Default::default()
+            });
+        }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     pub queue: wgpu::Queue,
     pipeline: wgpu::RenderPipeline,
 }
 
 impl Renderer {
-    pub fn new(device: wgpu::Device, queue: wgpu::Queue, format: wgpu::TextureFormat) -> Self {
+    pub fn new(
+        device: wgpu::Device,
+        queue: wgpu::Queue,
+        format: wgpu::TextureFormat,
+    ) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("triangle"),
             source: wgpu::ShaderSource::Wgsl(include_str!("triangle.wgsl").into()),
@@ -149,11 +202,17 @@ impl Renderer {
             multiview_mask: None,
             cache: None,
         });
-        Self { device, queue, pipeline }
+        Self {
+            device,
+            queue,
+            pipeline,
+        }
     }
 
     pub fn draw(&self, view: &wgpu::TextureView) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -164,7 +223,10 @@ impl Renderer {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
+                            a: 1.0,
                         }),
                         store: wgpu::StoreOp::Store,
                     },
@@ -174,9 +236,6 @@ impl Renderer {
             pass.set_pipeline(&self.pipeline);
             pass.draw(0..3, 0..1);
         }
-        self.queue.submit([encoder.finish()]);
-    }
-}
 ```
 
 ### 3. `src/browser.rs`
@@ -186,20 +245,25 @@ Pass the surface format to the renderer; a pipeline must agree with the texture 
 **Locate this existing block:**
 
 ```rust
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
     surface.configure(&device, &config);
     let renderer = Renderer::new(device, queue);
     present(&surface, &renderer)?;
     report("The GPU painted the canvas.");
     Ok(())
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03-triangle-window-1.rs"
+    surface.configure(&device, &config);
+    let renderer = Renderer::new(
+        device,
+        queue,
+        config.format.add_srgb_suffix(),
+    );
+    present(&surface, &renderer)?;
+    report("Three corners became a triangle.");
+    Ok(())
 ```
 
 ## <a id="checkpoint-03a-fonts"></a>2. Prepare the command fonts and painter
@@ -248,18 +312,20 @@ Add egui and its GPU painter.
 **Locate this existing block:**
 
 ```toml
-wasm-bindgen-futures = "=0.4.78"
 wgpu = "=29.0.4"
 
 [dev-dependencies]
-pollster = "=0.4.0"
-log = "=0.4.34"
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/03a-fonts-01.toml"
+wgpu = "=29.0.4"
+
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
+
+[dev-dependencies]
 ```
 
 ### 2. `src/panel.rs`
@@ -269,7 +335,31 @@ Keep the context and painter together.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/03a-fonts-02.rs"
+use crate::command_dock::theme;
+use crate::renderer::Renderer;
+
+pub struct Panel {
+    context: egui::Context,
+    painter: egui_wgpu::Renderer,
+}
+
+impl Panel {
+    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
+        let context = egui::Context::default();
+        context.set_fonts(theme::fonts([
+            include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+        ]));
+        context.set_theme(egui::Theme::Light);
+        context.set_visuals(theme::visuals());
+        // One layout pass prevents a future text event from being replayed.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self { context, painter }
+    }
+}
 ```
 
 ### 3. `src/browser.rs`
@@ -279,18 +369,16 @@ Create the painter owner before presenting the scene.
 **Locate this existing block:**
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    );
     present(&surface, &renderer)?;
-    report("Three corners became a triangle.");
-    Ok(())
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03a-fonts-03.rs"
+    );
+    let _panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
+    present(&surface, &renderer)?;
 ```
 
 ### 4. `src/lib.rs`
@@ -300,15 +388,20 @@ Register the browser-only drawing modules.
 **Locate this existing block:**
 
 ```rust
-        }
     });
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03a-fonts-04.rs" skip=20
+    });
+}
+
+#[cfg(target_arch = "wasm32")]
+mod command_dock;
+#[cfg(target_arch = "wasm32")]
+mod panel;
 ```
 
 ### 5. `src/command_dock/theme.rs`
@@ -318,7 +411,60 @@ Configure Noto fonts and the light theme.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/03a-fonts-05.rs"
+/// The panel fonts: the label fonts, Noto Sans first, then its symbol fallbacks.
+pub(crate) fn fonts(faces: [&'static [u8]; 3]) -> egui::FontDefinitions {
+    let mut fonts = egui::FontDefinitions::empty();
+    let names = [
+        "Noto Sans",
+        "Noto Sans Symbols 2",
+        "Noto Sans Symbols",
+    ];
+
+    for (name, bytes) in names.into_iter().zip(faces) {
+        let data = std::sync::Arc::new(egui::FontData::from_static(bytes));
+        fonts.font_data.insert(name.to_owned(), data);
+
+        for family in [
+            egui::FontFamily::Proportional,
+            egui::FontFamily::Monospace,
+        ] {
+            fonts
+                .families
+                .entry(family)
+                .or_default()
+                .push(name.to_owned());
+        }
+    }
+
+    fonts
+}
+
+/// The white theme.
+pub(crate) fn visuals() -> egui::Visuals {
+    let mut visuals = egui::Visuals::light();
+    visuals.override_text_color = Some(egui::Color32::BLACK);
+    visuals.window_fill = egui::Color32::WHITE;
+    visuals.panel_fill = egui::Color32::from_gray(245);
+    visuals.window_stroke = egui::Stroke::NONE;
+    visuals.extreme_bg_color = egui::Color32::WHITE;
+    visuals.text_cursor.blink = false; // frames are drawn on demand
+    visuals.indent_has_left_vline = false;
+
+    for widget in [
+        &mut visuals.widgets.noninteractive,
+        &mut visuals.widgets.inactive,
+        &mut visuals.widgets.hovered,
+        &mut visuals.widgets.active,
+        &mut visuals.widgets.open,
+    ] {
+        widget.bg_stroke = egui::Stroke::NONE;
+        widget.bg_fill = egui::Color32::from_gray(245);
+        widget.weak_bg_fill = egui::Color32::WHITE;
+        widget.fg_stroke.color = egui::Color32::BLACK;
+    }
+
+    visuals
+}
 ```
 
 ### 6. `src/command_dock/mod.rs`
@@ -328,7 +474,7 @@ Register the shared styling module.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/03a-fonts-06.rs"
+pub(crate) mod theme;
 ```
 
 ## <a id="checkpoint-03a-paint"></a>3. Paint command text over the scene
@@ -377,53 +523,93 @@ Lay out the label, upload its font atlas and draw over the scene.
 **Locate this existing block:**
 
 ```rust
-        Self { context, painter }
     }
-
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03a-paint-01.rs"
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            egui::Panel::bottom("command-line-collapsed")
+                .exact_size(30.0)
+                .frame(
+                    egui::Frame::new()
+                        .fill(egui::Color32::WHITE)
+                        .inner_margin(egui::Margin::symmetric(6, 4)),
+                )
+                .show_inside(root, |ui| {
+                    ui.label("Command:");
+                });
+        });
+        // The font atlas is a texture: upload its changed pixels before drawing the letters.
+        for (id, delta) in &output.textures_delta.set {
+            self.painter
+                .update_texture(&renderer.device, &renderer.queue, *id, delta);
+        }
+        let jobs = self
+            .context
+            .tessellate(output.shapes, output.pixels_per_point);
+        let mut encoder = renderer
+            .device
+            .create_command_encoder(&Default::default());
+        let mut buffers = self.painter.update_buffers(
+            &renderer.device,
+            &renderer.queue,
+            &mut encoder,
+            &jobs,
+            &screen,
+        );
+        let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("command panel"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: target,
+                resolve_target: None,
+                depth_slice: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            ..Default::default()
+        });
+        self.painter
+            .render(&mut pass.forget_lifetime(), &jobs, &screen);
+        buffers.push(encoder.finish());
+        renderer.queue.submit(buffers);
+        for id in output.textures_delta.free {
+            self.painter.free_texture(&id);
+        }
+    }
+}
 ```
 
 ### 2. `src/browser.rs`
 
 Create the panel and pass it into presentation. Draw the panel over the scene before presenting.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        ..Default::default()
-    });
-    renderer.draw(&view);
-    frame.present();
-    Ok(())
-}
-```
-
-Replace it with:
-
-```rust
-        ..Default::default()
-    });
-    renderer.draw(&view);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
+    );
     let _panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
     present(&surface, &renderer)?;
     report("Three corners became a triangle.");
@@ -434,24 +620,56 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer) -> Result<(), JsVal
     let frame = match surface.get_current_texture() {
         wgpu::CurrentSurfaceTexture::Success(frame)
         | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        other => {
+            return Err(JsValue::from_str(&format!(
+                "Surface unavailable: {other:?}"
+            )));
+        }
+    };
+    let view = frame
+        .texture
+        .create_view(&wgpu::TextureViewDescriptor {
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
+    renderer.draw(&view);
+    frame.present();
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
+    );
+    let mut panel =
+        crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
     present(&surface, &renderer, &mut panel)?;
     report("Our command line is drawn. Input comes next.");
     Ok(())
 }
 
-fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::panel::Panel) -> Result<(), JsValue> {
+fn present(
+    surface: &wgpu::Surface<'_>,
+    renderer: &Renderer,
+    panel: &mut crate::panel::Panel,
+) -> Result<(), JsValue> {
     let frame = match surface.get_current_texture() {
         wgpu::CurrentSurfaceTexture::Success(frame)
         | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
+        other => {
+            return Err(JsValue::from_str(&format!(
+                "Surface unavailable: {other:?}"
+            )));
+        }
+    };
+    let view = frame
+        .texture
+        .create_view(&wgpu::TextureViewDescriptor {
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
+    renderer.draw(&view);
+    panel.draw(renderer, &view);
+    frame.present();
 ```
 
 ## <a id="checkpoint-03a-panel"></a>4. Lay out the command field
@@ -497,68 +715,7 @@ fn present(surface: &wgpu::Surface<'_>, renderer: &Renderer, panel: &mut crate::
 
 Own the field text in Panel and import its layout helpers. Initialize empty text and limit input to one layout pass. Lay out the command label, field and history fold control.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
-
-```rust
-            ..Default::default()
-        };
-        let output = self.context.run_ui(input, |root| {
-            egui::Panel::bottom("command-line-collapsed").exact_size(30.0)
-                .frame(egui::Frame::new().fill(egui::Color32::WHITE)
-                    .inner_margin(egui::Margin::symmetric(6, 4)))
-                .show_inside(root, |ui| {
-                ui.label("Command:");
-            });
-        });
-        // The font atlas is a texture: upload its changed pixels before drawing the letters.
-```
-
-Replace it with:
-
-```rust
-            ..Default::default()
-        };
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, false, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    view::field(ui, &mut self.line, "Type a command", 0.0, false);
-                    let _ = ui.button("+").on_hover_text("Collapse or expand history");
-                });
-            });
-        });
-        // The font atlas is a texture: upload its changed pixels before drawing the letters.
-```
-
-**Locate this block:**
-
-```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter }
-    }
-
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-```
-
-Replace it with:
-
-```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, line: String::new() }
-    }
-
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-```
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
 use crate::command_dock::theme;
@@ -570,9 +727,53 @@ pub struct Panel {
 }
 
 impl Panel {
+    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
+        let context = egui::Context::default();
+        context.set_fonts(theme::fonts([
+            include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+        ]));
+        context.set_theme(egui::Theme::Light);
+        context.set_visuals(theme::visuals());
+        // One layout pass prevents a future text event from being replayed.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self { context, painter }
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            egui::Panel::bottom("command-line-collapsed")
+                .exact_size(30.0)
+                .frame(
+                    egui::Frame::new()
+                        .fill(egui::Color32::WHITE)
+                        .inner_margin(egui::Margin::symmetric(6, 4)),
+                )
+                .show_inside(root, |ui| {
+                    ui.label("Command:");
+                });
+        });
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 use crate::command_dock::{theme, view};
@@ -585,6 +786,61 @@ pub struct Panel {
 }
 
 impl Panel {
+    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
+        let context = egui::Context::default();
+        context.set_fonts(theme::fonts([
+            include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+        ]));
+        context.set_theme(egui::Theme::Light);
+        context.set_visuals(theme::visuals());
+        // One layout pass prevents a future text event from being replayed.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            context,
+            painter,
+            line: String::new(),
+        }
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, false, 0.0).show_inside(root, |ui| {
+                view::prepare(ui);
+                ui.horizontal(|ui| {
+                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                    ui.label("Command:");
+                    view::field(
+                        ui,
+                        &mut self.line,
+                        "Type a command",
+                        0.0,
+                        false,
+                    );
+                    let _ = ui
+                        .button("+")
+                        .on_hover_text("Collapse or expand history");
+                });
+            });
+        });
 ```
 
 ### 2. `src/command_dock/theme.rs`
@@ -594,33 +850,29 @@ Style selection and the caret for the command field.
 **Locate this existing block:**
 
 ```rust
-    visuals.panel_fill = egui::Color32::from_gray(245);
-    visuals.window_stroke = egui::Stroke::NONE;
     visuals.extreme_bg_color = egui::Color32::WHITE;
     visuals.text_cursor.blink = false; // frames are drawn on demand
-    visuals.indent_has_left_vline = false;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03a-panel-04.rs"
+    visuals.extreme_bg_color = egui::Color32::WHITE;
+    visuals.selection.bg_fill = egui::Color32::from_rgb(200, 222, 245);
+    visuals.selection.stroke = egui::Stroke::new(1.0_f32, egui::Color32::BLACK);
+    visuals.text_cursor.stroke = egui::Stroke::new(1.5_f32, egui::Color32::BLACK);
+    visuals.text_cursor.blink = false; // frames are drawn on demand
 ```
 
 ### 3. `src/command_dock/mod.rs`
 
 Register the shared field layout.
 
-**Locate this existing block:**
+Replace the entire file with:
 
 ```rust
 pub(crate) mod theme;
-```
-
-After that block, type:
-
-```rust
---8<-- "journey/code/03a-panel-05.rs" skip=22
+pub(crate) mod view;
 ```
 
 ### 4. `src/command_dock/view.rs`
@@ -630,7 +882,72 @@ Add reusable panel, spacing and field functions.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/03a-panel-06.rs"
+/// The production command panel: folded input or resizable history.
+pub(crate) fn panel(root: &egui::Ui, expanded: bool, extra: f32) -> egui::Panel {
+    let panel = if !expanded {
+        egui::Panel::bottom("command-line-collapsed").exact_size(30.0 + extra)
+    } else {
+        egui::Panel::bottom("command-line")
+            .default_size(104.0)
+            .resizable(true)
+            .size_range(
+                (64.0 + extra)..=(root.available_height() * 0.75).max(104.0 + extra),
+            )
+    };
+    panel.show_separator_line(false).frame(
+        egui::Frame::new()
+            .fill(egui::Color32::WHITE)
+            .inner_margin(egui::Margin::symmetric(6, 4)),
+    )
+}
+
+/// Set the dock's spacing, type size and top rule.
+pub(crate) fn prepare(ui: &mut egui::Ui) {
+    ui.set_min_height(ui.max_rect().height());
+    ui.painter().hline(
+        ui.max_rect().x_range().expand(6.0),
+        ui.max_rect().top() - 4.0,
+        egui::Stroke::new(1.0_f32, egui::Color32::from_gray(110)),
+    );
+    ui.set_clip_rect(ui.max_rect().expand(6.0));
+    ui.style_mut().override_font_id = Some(egui::FontId::proportional(14.0));
+    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
+}
+
+/// Draw the same text field for the introductory and complete command handlers.
+pub(crate) fn field(
+    ui: &mut egui::Ui,
+    command: &mut String,
+    hint: &str,
+    option_width: f32,
+    focused: bool,
+) -> egui::Response {
+    let id = egui::Id::new("command-input");
+    let response = ui.add_sized(
+        [
+            (ui.available_width() - option_width - 28.0).max(40.0),
+            22.0,
+        ],
+        egui::TextEdit::singleline(command)
+            .id(id)
+            .font(egui::FontId::proportional(14.0))
+            .vertical_align(egui::Align::Center)
+            .frame(egui::Frame::NONE)
+            .clip_text(true)
+            .char_limit(2048)
+            .hint_text(hint),
+    );
+    // caret visible on an empty field
+    if focused && command.is_empty() {
+        let y = response.rect.center().y;
+        ui.painter().vline(
+            response.rect.left(),
+            y - 7.0..=y + 7.0,
+            ui.visuals().text_cursor.stroke,
+        );
+    }
+    response
+}
 ```
 
 ## <a id="checkpoint-03b-memory"></a>5. Give the command field its memory
@@ -676,60 +993,7 @@ Create the file and type:
 
 Replace the local String with an owned CommandLine. Give the model its initial status; keep all other fields at their defaults. Borrow the model text for editing and its status for the empty-field hint.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
-
-```rust
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    view::field(ui, &mut self.line, "Type a command", 0.0, false);
-                    let _ = ui.button("+").on_hover_text("Collapse or expand history");
-                });
-            });
-```
-
-Replace it with:
-
-```rust
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, false), 0.0, false);
-                    let _ = ui.button("+").on_hover_text("Collapse or expand history");
-                });
-            });
-```
-
-**Locate this block:**
-
-```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, line: String::new() }
-    }
-
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-```
-
-Replace it with:
-
-```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, model: CommandLine {
-            status: "The field now belongs to CommandLine.".into(),
-            ..Default::default()
-        } }
-    }
-
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-```
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
 use crate::command_dock::{theme, view};
@@ -742,9 +1006,56 @@ pub struct Panel {
 }
 
 impl Panel {
+    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
+        let context = egui::Context::default();
+        context.set_fonts(theme::fonts([
+            include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+        ]));
+        context.set_theme(egui::Theme::Light);
+        context.set_visuals(theme::visuals());
+        // One layout pass prevents a future text event from being replayed.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            context,
+            painter,
+            line: String::new(),
+        }
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, false, 0.0).show_inside(root, |ui| {
+                view::prepare(ui);
+                ui.horizontal(|ui| {
+                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                    ui.label("Command:");
+                    view::field(
+                        ui,
+                        &mut self.line,
+                        "Type a command",
+                        0.0,
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 use crate::command_dock::{CommandLine, placeholder, theme, view};
@@ -757,6 +1068,56 @@ pub struct Panel {
 }
 
 impl Panel {
+    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat) -> Self {
+        let context = egui::Context::default();
+        context.set_fonts(theme::fonts([
+            include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+            include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+        ]));
+        context.set_theme(egui::Theme::Light);
+        context.set_visuals(theme::visuals());
+        // One layout pass prevents a future text event from being replayed.
+        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            context,
+            painter,
+            model: CommandLine {
+                status: "The field now belongs to CommandLine.".into(),
+                ..Default::default()
+            },
+        }
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, false, 0.0).show_inside(root, |ui| {
+                view::prepare(ui);
+                ui.horizontal(|ui| {
+                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                    ui.label("Command:");
+                    view::field(
+                        ui,
+                        &mut self.model.command,
+                        placeholder("", &self.model.status, false),
+                        0.0,
 ```
 
 ### 2. `src/browser.rs`
@@ -766,18 +1127,17 @@ Report that the field now uses the command model.
 **Locate this existing block:**
 
 ```rust
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
     present(&surface, &renderer, &mut panel)?;
     report("Our command line is drawn. Input comes next.");
     Ok(())
-}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03b-memory-04.rs"
+    present(&surface, &renderer, &mut panel)?;
+    report("The command model owns the text and history.");
+    Ok(())
 ```
 
 ### 3. `src/command_dock/mod.rs`
@@ -787,7 +1147,46 @@ Define the state and choose the empty-field hint from borrowed text.
 Replace the entire file with:
 
 ```rust
---8<-- "journey/code/03b-memory-05.rs"
+use std::collections::VecDeque;
+
+pub(crate) mod theme;
+pub(crate) mod view;
+
+/// What the command line shows and remembers between frames.
+#[derive(Default)]
+pub struct CommandLine {
+    pub(crate) command_open: bool,        // command line shown
+    pub(crate) command: String,           // text in the command field
+    pub(crate) drawing_prompt: String,    // prompt while drawing
+    pub(crate) focus_command: bool,       // give the field focus next frame
+    pub(crate) status: String,            // status line text
+    pub(crate) history: VecDeque<String>, // past commands and answers
+    pub(crate) command_expanded: bool,    // history shown above the field
+    pub(crate) completion: usize,         // highlighted completion index
+    pub(crate) completion_prefix: String, // text the completions match
+    pub(crate) inline_suffix: bool,       // completion suffix shown in the field
+    pub(crate) completion_visible: bool,  // completion list shown
+    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) agent_edit: Option<bool>,  // phone keyboard set the text, true on delete
+}
+
+/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.
+pub(crate) fn placeholder<'a>(
+    prompt: &'a str,
+    status: &'a str,
+    expanded: bool,
+) -> &'a str {
+    if !prompt.is_empty() {
+        return prompt;
+    }
+
+    if !expanded && !status.is_empty() {
+        return status;
+    }
+
+    "Type a command"
+}
 ```
 
 ## <a id="checkpoint-03b-state"></a>6. Prepare the dock completion helpers
@@ -833,20 +1232,24 @@ Replace the entire file with:
 
 Enable the browser event, canvas geometry and focus bindings. Add serde serialization and JSON inspection dependencies.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```toml
-[package]
-name = "viewer_journey"
-version = "0.1.0"
-edition = "2024"
+wasm-bindgen = "=0.2.128"
+web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "Event"] }
+console_error_panic_hook = "=0.1.7"
+wasm-bindgen-futures = "=0.4.78"
+wgpu = "=29.0.4"
 
-[lib]
-crate-type = ["cdylib", "rlib"]
+egui = { version = "=0.34.3", default-features = false }
+egui-wgpu = { version = "=0.34.3", default-features = false }
 
-[workspace]
+[dev-dependencies]
+```
 
-[dependencies]
+Edit the existing block to match this code; keep unchanged lines:
+
+```toml
 wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "Event", "PointerEvent", "MouseEvent", "KeyboardEvent", "WheelEvent", "FocusOptions", "DomRect", "HtmlElement"] }
 console_error_panic_hook = "=0.1.7"
@@ -860,20 +1263,57 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 [dev-dependencies]
-pollster = "=0.4.0"
-log = "=0.4.34"
 ```
 
 ### 2. `src/command_dock/mod.rs`
 
 Define the application vocabulary contract without coupling the dock to scene types. Record actual widget bounds only when inspection is enabled. Add character-based caret and prefix helpers for the dock. Keep the helper declarations separated by a blank line.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use std::collections::VecDeque;
+pub(crate) mod view;
 
-pub(crate) mod theme;
+/// What the command line shows and remembers between frames.
+#[derive(Default)]
+pub struct CommandLine {
+    pub(crate) command_open: bool,        // command line shown
+    pub(crate) command: String,           // text in the command field
+    pub(crate) drawing_prompt: String,    // prompt while drawing
+    pub(crate) focus_command: bool,       // give the field focus next frame
+    pub(crate) status: String,            // status line text
+    pub(crate) history: VecDeque<String>, // past commands and answers
+    pub(crate) command_expanded: bool,    // history shown above the field
+    pub(crate) completion: usize,         // highlighted completion index
+    pub(crate) completion_prefix: String, // text the completions match
+    pub(crate) inline_suffix: bool,       // completion suffix shown in the field
+    pub(crate) completion_visible: bool,  // completion list shown
+    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) agent_edit: Option<bool>,  // phone keyboard set the text, true on delete
+}
+
+/// The grey text of the empty field: the prompt, else the last answer when the history is folded away.
+pub(crate) fn placeholder<'a>(
+    prompt: &'a str,
+    status: &'a str,
+    expanded: bool,
+) -> &'a str {
+    if !prompt.is_empty() {
+        return prompt;
+    }
+
+    if !expanded && !status.is_empty() {
+        return status;
+    }
+
+    "Type a command"
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
 pub(crate) mod view;
 
 /// The command vocabulary supplied by the application using the dock.
@@ -888,22 +1328,22 @@ pub trait Commands {
 /// What the command line shows and remembers between frames.
 #[derive(Default)]
 pub struct CommandLine {
-    pub(crate) command_open: bool,                  // command line shown
-    pub(crate) command: String,                     // text in the command field
-    pub(crate) drawing_prompt: String,              // prompt while drawing
-    pub(crate) focus_command: bool,                 // give the field focus next frame
-    pub(crate) status: String,                      // status line text
-    pub(crate) history: VecDeque<String>,           // past commands and answers
-    pub(crate) command_expanded: bool,              // history shown above the field
-    pub(crate) completion: usize,                   // highlighted completion index
-    pub(crate) completion_prefix: String,           // text the completions match
-    pub(crate) inline_suffix: bool,                 // completion suffix shown in the field
-    pub(crate) completion_visible: bool,            // completion list shown
+    pub(crate) command_open: bool,        // command line shown
+    pub(crate) command: String,           // text in the command field
+    pub(crate) drawing_prompt: String,    // prompt while drawing
+    pub(crate) focus_command: bool,       // give the field focus next frame
+    pub(crate) status: String,            // status line text
+    pub(crate) history: VecDeque<String>, // past commands and answers
+    pub(crate) command_expanded: bool,    // history shown above the field
+    pub(crate) completion: usize,         // highlighted completion index
+    pub(crate) completion_prefix: String, // text the completions match
+    pub(crate) inline_suffix: bool,       // completion suffix shown in the field
+    pub(crate) completion_visible: bool,  // completion list shown
     pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
-    pub(crate) command_rect: Option<egui::Rect>,    // where the field is, for taps
-    pub(crate) agent_edit: Option<bool>,            // phone keyboard set the text, true on delete
-    pub(crate) options: Vec<(String, String)>,      // the running command's buttons: label, line it runs
-    pub(crate) options_rect: Option<egui::Rect>,    // where those buttons are, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) agent_edit: Option<bool>,  // phone keyboard set the text, true on delete
+    pub(crate) options: Vec<(String, String)>, // the running command's buttons: label, line it runs
+    pub(crate) options_rect: Option<egui::Rect>, // where those buttons are, for taps
 }
 
 /// One clickable control and where it was drawn, for browser tests.
@@ -940,7 +1380,10 @@ pub(crate) fn command_cursor_end(context: &egui::Context, id: egui::Id, command:
 
 /// The characters of `name` that spell `typed`, spaces aside: `orient3p` is `Orient 3 P`.
 pub(crate) fn spelled(name: &str, typed: &str) -> usize {
-    let typed = typed.chars().filter(|c| !c.is_whitespace()).count();
+    let typed = typed
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .count();
     let (mut prefix, mut letters) = (0, 0);
 
     for c in name.chars() {
@@ -956,7 +1399,11 @@ pub(crate) fn spelled(name: &str, typed: &str) -> usize {
 }
 
 /// The grey text of the empty field: the prompt, else the last answer when the history is folded away.
-pub(crate) fn placeholder<'a>(prompt: &'a str, status: &'a str, expanded: bool) -> &'a str {
+pub(crate) fn placeholder<'a>(
+    prompt: &'a str,
+    status: &'a str,
+    expanded: bool,
+) -> &'a str {
     if !prompt.is_empty() {
         return prompt;
     }
@@ -1001,7 +1448,8 @@ use crate::renderer::Renderer;
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03b-state-direct-04.rs"
+use crate::command_dock::{self, CommandLine, placeholder, theme, view};
+use crate::renderer::Renderer;
 ```
 
 ## <a id="checkpoint-03c-history"></a>7. Draw retained command history
@@ -1058,7 +1506,9 @@ Report that history is drawn.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03c-history-direct-01.rs"
+    present(&surface, &renderer, &mut panel)?;
+    report("The history panel is drawn.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -1072,21 +1522,91 @@ Draw retained history and its divider.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03c-history-direct-02.rs" skip=9
+    }
+}
+
+/// Draw retained history above the field.
+pub(crate) fn history(
+    ui: &mut egui::Ui,
+    model: &CommandLine,
+    controls: &mut Option<Vec<Control>>,
+) {
+    if model.command_expanded {
+        egui::ScrollArea::vertical()
+            .id_salt("command-history")
+            .auto_shrink([false, false])
+            .stick_to_bottom(true)
+            .min_scrolled_height(0.0)
+            .max_height((ui.available_height() - 38.0).max(0.0))
+            .show(ui, |ui| {
+                ui.set_max_width(ui.available_width());
+                for text in &model.history {
+                    ui.add(egui::Label::new(text).wrap());
+                }
+                if !model.status.is_empty()
+                    && !model
+                        .history
+                        .back()
+                        .is_some_and(|text| text.ends_with(&model.status))
+                {
+                    ui.label(&model.status);
+                }
+                if !model.drawing_prompt.is_empty() {
+                    let response =
+                        ui.add(egui::Label::new(&model.drawing_prompt).wrap());
+                    record(
+                        controls,
+                        "command/hint",
+                        &model.drawing_prompt,
+                        &response,
+                    );
+                }
+            });
+        // divider between history and the field
+        let (rect, _) = ui.allocate_exact_size(
+            egui::vec2(ui.available_width(), 1.0),
+            egui::Sense::hover(),
+        );
+        ui.painter().hline(
+            ui.max_rect().x_range().expand(6.0),
+            rect.center().y,
+            egui::Stroke::new(1.0_f32, egui::Color32::from_gray(210)),
+        );
+    }
+}
 ```
 
 ### 3. `src/panel.rs`
 
 Start with expanded history and one retained sentence. Choose panel height from the expanded state. Draw history before laying out the field. Use the expanded state for the hint and fold symbol.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+            model: CommandLine {
+                status: "The field now belongs to CommandLine.".into(),
+                ..Default::default()
+            },
+        }
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
             ..Default::default()
         };
         let output = self.context.run_ui(input, |root| {
@@ -1095,55 +1615,79 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 ui.horizontal(|ui| {
                     ui.set_max_width((ui.available_width() - 26.0).max(80.0));
                     ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, false), 0.0, false);
-                    let _ = ui.button("+").on_hover_text("Collapse or expand history");
+                    view::field(
+                        ui,
+                        &mut self.model.command,
+                        placeholder("", &self.model.status, false),
+                        0.0,
+                        false,
+                    );
+                    let _ = ui
+                        .button("+")
+                        .on_hover_text("Collapse or expand history");
                 });
             });
         });
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+            model: CommandLine {
+                command_expanded: true,
+                history: ["Command history lives here.".into()].into(),
+                ..Default::default()
+            },
+        }
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
             ..Default::default()
         };
         let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, false);
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-                });
-            });
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            false,
+                        );
+                        let _ = ui
+                            .button(if self.model.command_expanded {
+                                "–"
+                            } else {
+                                "+"
+                            })
+                            .on_hover_text("Collapse or expand history");
+                    });
+                },
+            );
         });
-```
-
-**Locate this block:**
-
-```rust
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, model: CommandLine {
-            status: "The field now belongs to CommandLine.".into(),
-            ..Default::default()
-        } }
-    }
-```
-
-Replace it with:
-
-```rust
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
-        } }
-    }
 ```
 
 ## <a id="checkpoint-03ca-typing"></a>8. Type directly into the command field
@@ -1200,7 +1744,30 @@ Retain the panel in keyboard callbacks; redraw and inspect accepted input.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ca-typing-direct-01.rs"
+    present(&surface, &renderer, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let redraw =
+        wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
+            move |event| {
+                if panel.key(&event) {
+                    if let Err(error) = present(&surface, &renderer, &mut panel) {
+                        report(&format!("Cannot redraw: {error:?}"));
+                    }
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command", panel.command())
+                    {
+                        report(&format!("Cannot inspect text: {error:?}"));
+                    }
+                }
+            },
+        );
+    for name in ["keydown", "keyup"] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    }
+    redraw.forget();
+    report("Typing goes directly into the command field.");
+    Ok(())
 ```
 
 ### 2. `src/panel.rs`
@@ -1212,77 +1779,89 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, false);
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-                });
-            });
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            false,
+                        );
 ```
 
 Replace it with:
 
 ```rust
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-                });
-            });
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
 ```
 
 **Locate this block:**
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
-        } }
-    }
-
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        let size = [target.texture().width(), target.texture().height()];
-        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
+            pixels_per_point: 1.0,
+        };
         let input = egui::RawInput {
             screen_rect: Some(egui::Rect::from_min_size(
-                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),
-            )),
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
 ```
 
 Replace it with:
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, events: Vec::new(), model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
-        } }
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+```
+
+**Locate this block:**
+
+```rust
+        }
     }
 
-    pub fn command(&self) -> &str { &self.model.command }
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+```
+
+Replace it with:
+
+```rust
+        }
+    }
+
+    pub fn command(&self) -> &str {
+        &self.model.command
+    }
 
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
-        if event.ctrl_key() || event.alt_key() || event.meta_key() { return false; }
+        if event.ctrl_key() || event.alt_key() || event.meta_key() {
+            return false;
+        }
         let key = event.key();
         let down = event.type_() == "keydown";
         let input = if key == "Backspace" {
             egui::Event::Key {
-                key: egui::Key::Backspace, physical_key: None,
-                pressed: down, repeat: event.repeat(), modifiers: Default::default(),
+                key: egui::Key::Backspace,
+                physical_key: None,
+                pressed: down,
+                repeat: event.repeat(),
+                modifiers: Default::default(),
             }
         } else if down && key.chars().count() == 1 {
             egui::Event::Text(key)
-        } else { return false; };
-        self.context.memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
+        } else {
+            return false;
+        };
+        self.context
+            .memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
         self.model.command_open = true;
         self.events.push(input);
         event.prevent_default();
@@ -1290,21 +1869,36 @@ Replace it with:
     }
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        let size = [target.texture().width(), target.texture().height()];
-        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
-        let input = egui::RawInput {
-            focused: true,
-            events: std::mem::take(&mut self.events),
-            screen_rect: Some(egui::Rect::from_min_size(
-                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),
-            )),
+        let size = [
+            target.texture().width(),
 ```
 
 **Locate this block:**
 
 ```rust
-    context: egui::Context,
-    painter: egui_wgpu::Renderer,
+        Self {
+            context,
+            painter,
+            model: CommandLine {
+                command_expanded: true,
+                history: ["Command history lives here.".into()].into(),
+```
+
+Replace it with:
+
+```rust
+        Self {
+            context,
+            painter,
+            events: Vec::new(),
+            model: CommandLine {
+                command_expanded: true,
+                history: ["Command history lives here.".into()].into(),
+```
+
+**Locate this block:**
+
+```rust
     model: CommandLine,
 }
 
@@ -1314,8 +1908,6 @@ impl Panel {
 Replace it with:
 
 ```rust
-    context: egui::Context,
-    painter: egui_wgpu::Renderer,
     model: CommandLine,
     events: Vec<egui::Event>,
 }
@@ -1366,43 +1958,42 @@ impl Panel {
 
 Expose the actual retained history to browser inspection. Report that Enter submits text.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-            if let Err(error) = input_canvas.set_attribute("data-command", panel.command()) {
-                report(&format!("Cannot inspect text: {error:?}"));
-            }
-        }
-    });
+                    }
+                }
+            },
+        );
     for name in ["keydown", "keyup"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("Typing goes directly into the command field.");
     Ok(())
-}
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            if let Err(error) = input_canvas.set_attribute("data-command", panel.command()) {
-                report(&format!("Cannot inspect text: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-history", &serde_json::to_string(panel.history()).unwrap()) {
-                report(&format!("Cannot inspect history: {error:?}"));
-            }
-        }
-    });
+                    }
+                    if let Err(error) = input_canvas.set_attribute(
+                        "data-history",
+                        &serde_json::to_string(panel.history()).unwrap(),
+                    ) {
+                        report(&format!("Cannot inspect history: {error:?}"));
+                    }
+                }
+            },
+        );
     for name in ["keydown", "keyup"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("Enter submits the owned command text.");
     Ok(())
-}
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -1417,82 +2008,165 @@ Take nonblank owned text and retain at most 200 history entries.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cb-submit-direct-03.rs" skip=19
+        );
+    }
+}
+
+impl CommandLine {
+    pub(crate) fn take_command(&mut self) -> Option<String> {
+        if self.command.trim().is_empty() {
+            return None;
+        }
+        Some(std::mem::take(&mut self.command))
+    }
+
+    pub(crate) fn remember(&mut self, line: String) {
+        if self.history.len() == 200 {
+            self.history.pop_front();
+        }
+        self.history.push_back(line);
+    }
+}
 ```
 
 ### 3. `src/panel.rs`
 
 Expose the model’s retained history by reference. Recognize Enter as an editing key. Queue the corresponding Enter or Backspace event. Consume Enter once; retain the submitted line and answer.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-```
-
-Replace it with:
-
-```rust
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                if ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)) {
-                    if let Some(line) = self.model.take_command() {
-                        self.model.status = "Command submitted.".into();
-                        self.model.remember(format!("> {line}\n{}", self.model.status));
-                    }
-                }
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-```
-
-**Locate this block:**
-
-```rust
-
-    pub fn command(&self) -> &str { &self.model.command }
+    }
 
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
-        if event.ctrl_key() || event.alt_key() || event.meta_key() { return false; }
+        if event.ctrl_key() || event.alt_key() || event.meta_key() {
+            return false;
+        }
         let key = event.key();
         let down = event.type_() == "keydown";
         let input = if key == "Backspace" {
             egui::Event::Key {
-                key: egui::Key::Backspace, physical_key: None,
-                pressed: down, repeat: event.repeat(), modifiers: Default::default(),
+                key: egui::Key::Backspace,
+                physical_key: None,
+                pressed: down,
+                repeat: event.repeat(),
+                modifiers: Default::default(),
             }
         } else if down && key.chars().count() == 1 {
+            egui::Event::Text(key)
+        } else {
+            return false;
+        };
+        self.context
+            .memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
+        self.model.command_open = true;
+        self.events.push(input);
+        event.prevent_default();
+        true
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut None);
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    }
 
-    pub fn command(&self) -> &str { &self.model.command }
-
-    pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
+    pub fn history(&self) -> &std::collections::VecDeque<String> {
+        &self.model.history
+    }
 
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
-        if event.ctrl_key() || event.alt_key() || event.meta_key() { return false; }
+        if event.ctrl_key() || event.alt_key() || event.meta_key() {
+            return false;
+        }
         let key = event.key();
         let down = event.type_() == "keydown";
         let input = if key == "Backspace" || key == "Enter" {
             egui::Event::Key {
-                key: if key == "Enter" { egui::Key::Enter } else { egui::Key::Backspace }, physical_key: None,
-                pressed: down, repeat: event.repeat(), modifiers: Default::default(),
+                key: if key == "Enter" {
+                    egui::Key::Enter
+                } else {
+                    egui::Key::Backspace
+                },
+                physical_key: None,
+                pressed: down,
+                repeat: event.repeat(),
+                modifiers: Default::default(),
             }
         } else if down && key.chars().count() == 1 {
+            egui::Event::Text(key)
+        } else {
+            return false;
+        };
+        self.context
+            .memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
+        self.model.command_open = true;
+        self.events.push(input);
+        event.prevent_default();
+        true
+    }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    if ui.input_mut(|input| {
+                        input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                    }) {
+                        if let Some(line) = self.model.take_command() {
+                            self.model.status = "Command submitted.".into();
+                            self.model
+                                .remember(format!("> {line}\n{}", self.model.status));
+                        }
+                    }
+                    command_dock::history(ui, &self.model, &mut None);
 ```
 
 ## <a id="checkpoint-03cc-edit"></a>10. Edit the command text
@@ -1549,7 +2223,9 @@ Report that editing stays in the field.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cc-edit-direct-01.rs"
+    redraw.forget();
+    report("Editing stays in the command field.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -1564,98 +2240,173 @@ Separate the model helpers with a blank line.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cc-edit-direct-02.rs" skip=46
+        self.history.push_back(line);
+    }
+}
 ```
 
 ### 3. `src/panel.rs`
 
 Translate modifiers and named editing keys; ignore composing text. Consume Escape, clear text and surrender field focus.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                        self.model.remember(format!("> {line}\n{}", self.model.status));
-                    }
-                }
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-```
-
-Replace it with:
-
-```rust
-                        self.model.remember(format!("> {line}\n{}", self.model.status));
-                    }
-                }
-                if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
-                    self.model.command.clear();
-                    self.model.command_open = false;
-                    ui.memory_mut(|memory| memory.surrender_focus(egui::Id::new("command-input")));
-                }
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-```
-
-**Locate this block:**
-
-```rust
-    pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
-
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
-        if event.ctrl_key() || event.alt_key() || event.meta_key() { return false; }
+        if event.ctrl_key() || event.alt_key() || event.meta_key() {
+            return false;
+        }
         let key = event.key();
         let down = event.type_() == "keydown";
         let input = if key == "Backspace" || key == "Enter" {
             egui::Event::Key {
-                key: if key == "Enter" { egui::Key::Enter } else { egui::Key::Backspace }, physical_key: None,
-                pressed: down, repeat: event.repeat(), modifiers: Default::default(),
+                key: if key == "Enter" {
+                    egui::Key::Enter
+                } else {
+                    egui::Key::Backspace
+                },
+                physical_key: None,
+                pressed: down,
+                repeat: event.repeat(),
+                modifiers: Default::default(),
             }
         } else if down && key.chars().count() == 1 {
             egui::Event::Text(key)
-        } else { return false; };
-        self.context.memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
+        } else {
+            return false;
+        };
+        self.context
+            .memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
         self.model.command_open = true;
         self.events.push(input);
         event.prevent_default();
         true
     }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    if ui.input_mut(|input| {
+                        input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                    }) {
+                        if let Some(line) = self.model.take_command() {
+                            self.model.status = "Command submitted.".into();
+                            self.model
+                                .remember(format!("> {line}\n{}", self.model.status));
+                        }
+                    }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    pub fn history(&self) -> &std::collections::VecDeque<String> { &self.model.history }
-
     pub fn key(&mut self, event: &web_sys::KeyboardEvent) -> bool {
-        if event.is_composing() { return false; }
+        if event.is_composing() {
+            return false;
+        }
         let modifiers = egui::Modifiers {
-            alt: event.alt_key(), ctrl: event.ctrl_key(), shift: event.shift_key(),
-            mac_cmd: event.meta_key(), command: event.ctrl_key() || event.meta_key(),
+            alt: event.alt_key(),
+            ctrl: event.ctrl_key(),
+            shift: event.shift_key(),
+            mac_cmd: event.meta_key(),
+            command: event.ctrl_key() || event.meta_key(),
         };
-        let text = event.type_() == "keydown" && event.key().chars().count() == 1
-            && !modifiers.command && !modifiers.alt;
+        let text = event.type_() == "keydown"
+            && event.key().chars().count() == 1
+            && !modifiers.command
+            && !modifiers.alt;
         if text {
-            self.context.memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
+            self.context.memory_mut(|memory| {
+                memory.request_focus(egui::Id::new("command-input"))
+            });
             self.model.command_open = true;
         }
-        if !self.context.egui_wants_keyboard_input() { return false; }
+        if !self.context.egui_wants_keyboard_input() {
+            return false;
+        }
         if let Some(key) = egui::Key::from_name(&event.key()) {
             self.events.push(egui::Event::Key {
-                key, physical_key: None, pressed: event.type_() == "keydown",
-                repeat: event.repeat(), modifiers,
+                key,
+                physical_key: None,
+                pressed: event.type_() == "keydown",
+                repeat: event.repeat(),
+                modifiers,
             });
         }
-        if text { self.events.push(egui::Event::Text(event.key())); }
+        if text {
+            self.events
+                .push(egui::Event::Text(event.key()));
+        }
         event.prevent_default();
         true
     }
+
+    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
+            )),
+            ..Default::default()
+        };
+        let output = self.context.run_ui(input, |root| {
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    if ui.input_mut(|input| {
+                        input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                    }) {
+                        if let Some(line) = self.model.take_command() {
+                            self.model.status = "Command submitted.".into();
+                            self.model
+                                .remember(format!("> {line}\n{}", self.model.status));
+                        }
+                    }
+                    if self.model.command_open
+                        && ui.input_mut(|input| {
+                            input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)
+                        })
+                    {
+                        self.model.command.clear();
+                        self.model.command_open = false;
+                        ui.memory_mut(|memory| {
+                            memory.surrender_focus(egui::Id::new("command-input"))
+                        });
+                    }
 ```
 
 ## <a id="checkpoint-03cd-vocabulary"></a>11. Recognize Help
@@ -1704,59 +2455,113 @@ Rank exact words, then a whole-word extension, then remaining prefixes without r
 Create the file and type:
 
 ```rust
---8<-- "journey/code/03cd-vocabulary-ranked.rs"
+pub(crate) fn ranked(names: &[&'static str], line: &str) -> Vec<&'static str> {
+    let prefix = line.to_ascii_lowercase();
+    let mut choices = names
+        .iter()
+        .copied()
+        .filter(|name| {
+            name.to_ascii_lowercase()
+                .starts_with(&prefix)
+        })
+        .collect::<Vec<_>>();
+    choices.sort_by_key(|name| {
+        if name.eq_ignore_ascii_case(line) {
+            0
+        } else if name
+            .get(line.len()..)
+            .is_some_and(|rest| rest.starts_with(' '))
+        {
+            1
+        } else {
+            2
+        }
+    });
+    choices
+}
 ```
 
 ### 2. `src/browser.rs`
 
 Supply Help as the initial application vocabulary. Report that Help is recognized.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    );
+    let mut panel =
+        crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
+    present(&surface, &renderer, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let redraw =
+        wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
+            move |event| {
+                if panel.key(&event) {
+                    if let Err(error) = present(&surface, &renderer, &mut panel) {
+                        report(&format!("Cannot redraw: {error:?}"));
+                    }
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command", panel.command())
+                    {
+                        report(&format!("Cannot inspect text: {error:?}"));
+                    }
+                    if let Err(error) = input_canvas.set_attribute(
+                        "data-history",
+                        &serde_json::to_string(panel.history()).unwrap(),
+                    ) {
+                        report(&format!("Cannot inspect history: {error:?}"));
+                    }
+                }
+            },
+        );
+    for name in ["keydown", "keyup"] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("Editing stays in the command field.");
     Ok(())
-}
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    );
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+        &["Help"],
+    );
+    present(&surface, &renderer, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let redraw =
+        wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
+            move |event| {
+                if panel.key(&event) {
+                    if let Err(error) = present(&surface, &renderer, &mut panel) {
+                        report(&format!("Cannot redraw: {error:?}"));
+                    }
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command", panel.command())
+                    {
+                        report(&format!("Cannot inspect text: {error:?}"));
+                    }
+                    if let Err(error) = input_canvas.set_attribute(
+                        "data-history",
+                        &serde_json::to_string(panel.history()).unwrap(),
+                    ) {
+                        report(&format!("Cannot inspect history: {error:?}"));
+                    }
+                }
+            },
+        );
+    for name in ["keydown", "keyup"] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("Help recognizes the command vocabulary.");
     Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix());
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
-```
-
-Replace it with:
-
-```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
 ```
 
 ### 3. `src/panel.rs`
@@ -1768,50 +2573,46 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                view::prepare(ui);
-                if ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)) {
-                    if let Some(line) = self.model.take_command() {
-                        self.model.status = "Command submitted.".into();
-                        self.model.remember(format!("> {line}\n{}", self.model.status));
-                    }
-                }
-                if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
+                        input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                    }) {
+                        if let Some(line) = self.model.take_command() {
+                            self.model.status = "Command submitted.".into();
+                            self.model
+                                .remember(format!("> {line}\n{}", self.model.status));
+                        }
 ```
 
 Replace it with:
 
 ```rust
-                view::prepare(ui);
-                if ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)) {
-                    if let Some(line) = self.model.take_command() {
-                        self.commands.reply(&mut self.model, &line);
-                    }
-                }
-                if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
+                        input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                    }) {
+                        if let Some(line) = self.model.take_command() {
+                            self.commands.reply(&mut self.model, &line);
+                        }
 ```
 
 **Locate this block:**
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { context, painter, events: Vec::new(), model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            context,
+            painter,
+            events: Vec::new(),
 ```
 
 Replace it with:
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), context, painter, events: Vec::new(), model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
+        let painter =
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            context,
+            painter,
+            events: Vec::new(),
 ```
 
 **Locate this block:**
@@ -1832,7 +2633,11 @@ Replace it with:
 }
 
 impl Panel {
-    pub fn new(renderer: &Renderer, format: wgpu::TextureFormat, commands: &'static [&'static str]) -> Self {
+    pub fn new(
+        renderer: &Renderer,
+        format: wgpu::TextureFormat,
+        commands: &'static [&'static str],
+    ) -> Self {
         let context = egui::Context::default();
         context.set_fonts(theme::fonts([
             include_bytes!("../assets/text/NotoSans-Regular.subset.ttf"),
@@ -1860,7 +2665,10 @@ struct Commands(&'static [&'static str]);
 
 impl command_dock::Commands for Commands {
     fn canonical(&self, line: &str) -> String {
-        let line = line.split_whitespace().collect::<Vec<_>>().join(" ");
+        let line = line
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ");
         self.0
             .iter()
             .find(|name| name.eq_ignore_ascii_case(&line))
@@ -1883,8 +2691,11 @@ impl command_dock::Commands for Commands {
 impl Commands {
     fn reply(&self, model: &mut CommandLine, line: &str) {
         let line = self.canonical(line);
-        let message = if line.eq_ignore_ascii_case("Help") { self.0.join(" · ") }
-            else { "Unknown command. Type Help.".into() };
+        let message = if line.eq_ignore_ascii_case("Help") {
+            self.0.join(" · ")
+        } else {
+            "Unknown command. Type Help.".into()
+        };
         model.status = message;
         model.remember(format!("> {line}\n{}", model.status));
     }
@@ -1904,18 +2715,18 @@ Compile the shared ranking helper alongside the first command dictionary.
 **Locate this existing block:**
 
 ```rust
+mod command_dock;
 #[cfg(target_arch = "wasm32")]
-mod panel;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod command_dock;
 #[cfg(any(test, target_arch = "wasm32"))]
 mod command_vocabulary;
 
 #[cfg(target_arch = "wasm32")]
-mod panel;
 ```
 
 ## <a id="checkpoint-03ce-complete"></a>12. Complete a command name
@@ -1972,7 +2783,9 @@ Report that inline completion is connected.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ce-complete-direct-01.rs"
+    redraw.forget();
+    report("The field completes known names.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -1987,10 +2800,67 @@ Match names after changes and select only the suggested suffix.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ce-complete-direct-02.rs" skip=47
+        self.history.push_back(line);
+    }
+}
+
+pub(crate) fn refresh(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    response: &egui::Response,
+    commands: &impl Commands,
+    id: egui::Id,
+    deletes: bool,
+) {
+    if response.gained_focus() {
+        model.command_open = true;
+    }
+    let agent_edit = model.agent_edit.take();
+    if (response.changed() || agent_edit.is_some()) && model.command.starts_with(':') {
+        model.command.remove(0);
+    }
+    if response.changed() || agent_edit.is_some() {
+        model.completion = 0;
+        model.completion_visible = !model.command.is_empty();
+        model
+            .completion_prefix
+            .clone_from(&model.command);
+        model.inline_suffix = false;
+        let at_end = egui::TextEdit::load_state(ui.ctx(), id)
+            .and_then(|state| state.cursor.char_range())
+            .is_some_and(|range| {
+                range.is_empty() && range.primary.index == model.command.chars().count()
+            });
+        if !deletes
+            && model.options.is_empty()
+            && agent_edit != Some(true)
+            && at_end
+            && !model.command.is_empty()
+            && !model.command.ends_with(' ')
+            && let Some(name) = commands.completions(&model.command).first()
+        {
+            let prefix = spelled(name, &commands.canonical(&model.command));
+            if name.chars().count() > prefix {
+                model.command = (*name).into();
+                command_cursor_select(
+                    ui.ctx(),
+                    id,
+                    prefix,
+                    model.command.chars().count(),
+                );
+                model.inline_suffix = true;
+                ui.ctx().request_repaint();
+            }
+        }
+    } else if !model.inline_suffix {
+        model
+            .completion_prefix
+            .clone_from(&model.command);
+    }
+}
 ```
 
 ### 3. `src/panel.rs`
@@ -2000,15 +2870,47 @@ Keep the field response and refresh completion after editing.
 **Locate this existing block:**
 
 ```rust
-                    ui.label("Command:");
-                    view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
+                        ui.label("Command:");
+                        view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ce-complete-direct-03.rs"
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let response = view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &self.commands,
+                            id,
+                            ui.input(|input| {
+                                input.key_pressed(egui::Key::Backspace)
+                                    || input.key_pressed(egui::Key::Delete)
+                            }),
+                        );
 ```
 
 ## <a id="checkpoint-03cf-accept"></a>13. Accept or cancel a completion
@@ -2054,20 +2956,132 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Retain the editing-key results for this frame. Accept completion, submit Enter or cancel Escape once.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        model.completion_prefix.clone_from(&model.command);
+}
+
+pub(crate) fn refresh(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    response: &egui::Response,
+    commands: &impl Commands,
+    id: egui::Id,
+    deletes: bool,
+) {
+    if response.gained_focus() {
+        model.command_open = true;
+    }
+    let agent_edit = model.agent_edit.take();
+    if (response.changed() || agent_edit.is_some()) && model.command.starts_with(':') {
+        model.command.remove(0);
+    }
+    if response.changed() || agent_edit.is_some() {
+        model.completion = 0;
+        model.completion_visible = !model.command.is_empty();
+        model
+            .completion_prefix
+            .clone_from(&model.command);
+        model.inline_suffix = false;
+        let at_end = egui::TextEdit::load_state(ui.ctx(), id)
+            .and_then(|state| state.cursor.char_range())
+            .is_some_and(|range| {
+                range.is_empty() && range.primary.index == model.command.chars().count()
+            });
+        if !deletes
+            && model.options.is_empty()
+            && agent_edit != Some(true)
+            && at_end
+            && !model.command.is_empty()
+            && !model.command.ends_with(' ')
+            && let Some(name) = commands.completions(&model.command).first()
+        {
+            let prefix = spelled(name, &commands.canonical(&model.command));
+            if name.chars().count() > prefix {
+                model.command = (*name).into();
+                command_cursor_select(
+                    ui.ctx(),
+                    id,
+                    prefix,
+                    model.command.chars().count(),
+                );
+                model.inline_suffix = true;
+                ui.ctx().request_repaint();
+            }
+        }
+    } else if !model.inline_suffix {
+        model
+            .completion_prefix
+            .clone_from(&model.command);
     }
 }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        model.completion_prefix.clone_from(&model.command);
+}
+
+#[derive(Default)]
+pub(crate) struct Keys {
+    pub(crate) browse: isize,
+    pub(crate) enter: bool,
+    pub(crate) tab: bool,
+    pub(crate) deletes: bool,
+}
+
+pub(crate) fn refresh(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    response: &egui::Response,
+    commands: &impl Commands,
+    id: egui::Id,
+    deletes: bool,
+) {
+    if response.gained_focus() {
+        model.command_open = true;
+    }
+    let agent_edit = model.agent_edit.take();
+    if (response.changed() || agent_edit.is_some()) && model.command.starts_with(':') {
+        model.command.remove(0);
+    }
+    if response.changed() || agent_edit.is_some() {
+        model.completion = 0;
+        model.completion_visible = !model.command.is_empty();
+        model
+            .completion_prefix
+            .clone_from(&model.command);
+        model.inline_suffix = false;
+        let at_end = egui::TextEdit::load_state(ui.ctx(), id)
+            .and_then(|state| state.cursor.char_range())
+            .is_some_and(|range| {
+                range.is_empty() && range.primary.index == model.command.chars().count()
+            });
+        if !deletes
+            && model.options.is_empty()
+            && agent_edit != Some(true)
+            && at_end
+            && !model.command.is_empty()
+            && !model.command.ends_with(' ')
+            && let Some(name) = commands.completions(&model.command).first()
+        {
+            let prefix = spelled(name, &commands.canonical(&model.command));
+            if name.chars().count() > prefix {
+                model.command = (*name).into();
+                command_cursor_select(
+                    ui.ctx(),
+                    id,
+                    prefix,
+                    model.command.chars().count(),
+                );
+                model.inline_suffix = true;
+                ui.ctx().request_repaint();
+            }
+        }
+    } else if !model.inline_suffix {
+        model
+            .completion_prefix
+            .clone_from(&model.command);
     }
 }
 
@@ -2087,13 +3101,19 @@ pub(crate) fn finish(
             *command = Some(text);
             model.command.clear();
         } else {
-            model.command = if run { format!("{text} ") } else { text };
+            model.command = if run {
+                format!("{text} ")
+            } else {
+                text
+            };
         }
         model.completion_visible = false;
         model.inline_suffix = false;
         model.focus_command = true;
     }
-    if keys.enter && (!model.command.trim().is_empty() || !model.drawing_prompt.is_empty()) {
+    if keys.enter
+        && (!model.command.trim().is_empty() || !model.drawing_prompt.is_empty())
+    {
         let line = model
             .take_command()
             .unwrap_or_else(|| std::mem::take(&mut model.command));
@@ -2112,7 +3132,10 @@ pub(crate) fn finish(
         model.focus_command = true;
     }
     let focused = model.command_open || response.has_focus() || response.lost_focus();
-    if focused && ui.input(|input| input.key_pressed(egui::Key::Escape)) && escape_allowed {
+    if focused
+        && ui.input(|input| input.key_pressed(egui::Key::Escape))
+        && escape_allowed
+    {
         model.command.clear();
         model.completion_visible = false;
         model.inline_suffix = false;
@@ -2126,96 +3149,129 @@ pub(crate) fn finish(
 }
 ```
 
-**Locate this block:**
-
-```rust
-    }
-}
-
-pub(crate) fn refresh(
-    ui: &egui::Ui,
-    model: &mut CommandLine,
-```
-
-Replace it with:
-
-```rust
-    }
-}
-
-#[derive(Default)]
-pub(crate) struct Keys {
-    pub(crate) browse: isize,
-    pub(crate) enter: bool,
-    pub(crate) tab: bool,
-    pub(crate) deletes: bool,
-}
-
-pub(crate) fn refresh(
-    ui: &egui::Ui,
-    model: &mut CommandLine,
-```
-
 ### 2. `src/panel.rs`
 
 Consume Enter and Tab before the field handles input. Route completion and submission through finish.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                if ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)) {
-                    if let Some(line) = self.model.take_command() {
-                        self.commands.reply(&mut self.model, &line);
+                    view::prepare(ui);
+                    if ui.input_mut(|input| {
+                        input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                    }) {
+                        if let Some(line) = self.model.take_command() {
+                            self.commands.reply(&mut self.model, &line);
+                        }
                     }
-                }
-                if self.model.command_open && ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)) {
-                    self.model.command.clear();
-                    self.model.command_open = false;
-                    ui.memory_mut(|memory| memory.surrender_focus(egui::Id::new("command-input")));
-                }
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, ui.input(|input| input.key_pressed(egui::Key::Backspace) || input.key_pressed(egui::Key::Delete)));
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-                });
-            });
+                    if self.model.command_open
+                        && ui.input_mut(|input| {
+                            input.consume_key(egui::Modifiers::NONE, egui::Key::Escape)
+                        })
+                    {
+                        self.model.command.clear();
+                        self.model.command_open = false;
+                        ui.memory_mut(|memory| {
+                            memory.surrender_focus(egui::Id::new("command-input"))
+                        });
+                    }
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let response = view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &self.commands,
+                            id,
+                            ui.input(|input| {
+                                input.key_pressed(egui::Key::Backspace)
+                                    || input.key_pressed(egui::Key::Delete)
+                            }),
+                        );
+                        let _ = ui
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                let keys = command_dock::Keys {
-                    enter: ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)),
-                    tab: ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Tab)),
-                    deletes: ui.input(|input| input.key_pressed(egui::Key::Backspace) || input.key_pressed(egui::Key::Delete)),
-                    ..Default::default()
-                };
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
-                    let complete = keys.tab.then(|| self.commands.completions(&self.model.completion_prefix).first().copied()).flatten();
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-                    if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-                });
-            });
+                    view::prepare(ui);
+                    let keys = command_dock::Keys {
+                        enter: ui.input_mut(|input| {
+                            input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                        }),
+                        tab: ui.input_mut(|input| {
+                            input.consume_key(egui::Modifiers::NONE, egui::Key::Tab)
+                        }),
+                        deletes: ui.input(|input| {
+                            input.key_pressed(egui::Key::Backspace)
+                                || input.key_pressed(egui::Key::Delete)
+                        }),
+                        ..Default::default()
+                    };
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let response = view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &self.commands,
+                            id,
+                            keys.deletes,
+                        );
+                        let mut line = None;
+                        let complete = keys
+                            .tab
+                            .then(|| {
+                                self.commands
+                                    .completions(&self.model.completion_prefix)
+                                    .first()
+                                    .copied()
+                            })
+                            .flatten();
+                        command_dock::finish(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &mut line,
+                            &self.commands,
+                            complete,
+                            &keys,
+                            true,
+                        );
+                        if let Some(line) = line {
+                            if line != "Escape" {
+                                self.commands.reply(&mut self.model, &line);
+                            }
+                        }
+                        let _ = ui
 ```
 
 ## <a id="checkpoint-03cg-keys"></a>14. Read editing keys before the field
@@ -2272,7 +3328,9 @@ Report that editing keys are read first.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cg-keys-direct-01.rs"
+    redraw.forget();
+    report("Editing keys are handled before the field.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -2282,6 +3340,7 @@ Handle a space inside the selected suffix; centralize editing and focus keys.
 **Locate this existing block:**
 
 ```rust
+}
 
 pub(crate) fn refresh(
 ```
@@ -2289,7 +3348,85 @@ pub(crate) fn refresh(
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cg-keys-direct-02.rs"
+}
+
+pub(crate) fn suffix_space(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    id: egui::Id,
+    focused: bool,
+) {
+    if model.inline_suffix
+        && focused
+        && model.command.chars().nth(spelled(
+            &model.command,
+            &model.completion_prefix,
+        )) != Some(' ')
+        && ui.input(|input| {
+            input
+                .events
+                .iter()
+                .find_map(|event| match event {
+                    egui::Event::Text(text) => Some(text),
+                    _ => None,
+                })
+                .is_some_and(|text| text.starts_with(' '))
+        })
+    {
+        command_cursor_end(ui.ctx(), id, &model.command);
+        model.inline_suffix = false;
+    }
+}
+
+pub(crate) fn keys(
+    ui: &mut egui::Ui,
+    model: &mut CommandLine,
+    previous: Option<egui::Rect>,
+    id: egui::Id,
+) -> Keys {
+    if model.focus_command || model.command_open {
+        ui.memory_mut(|memory| memory.request_focus(id));
+        if model.focus_command {
+            command_cursor_end(ui.ctx(), id, &model.command);
+            model.focus_command = false;
+        }
+        model.command_open = true;
+    }
+    let focused = ui.memory(|memory| memory.has_focus(id));
+    let browse = if focused {
+        ui.input_mut(|input| {
+            if input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown) {
+                1
+            } else if input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowUp) {
+                -1
+            } else {
+                0
+            }
+        })
+    } else {
+        0
+    };
+    let enter = focused
+        && ui.input_mut(|input| {
+            input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+        });
+    let tab = focused
+        && ui.input_mut(|input| {
+            input.consume_key(egui::Modifiers::NONE, egui::Key::Tab)
+        });
+    let deletes = ui.input(|input| {
+        input.key_pressed(egui::Key::Backspace) || input.key_pressed(egui::Key::Delete)
+    });
+    suffix_space(ui, model, id, focused);
+    Keys {
+        browse,
+        enter,
+        tab,
+        deletes,
+    }
+}
+
+pub(crate) fn refresh(
 ```
 
 ### 3. `src/panel.rs`
@@ -2301,63 +3438,64 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                let keys = command_dock::Keys {
-                    enter: ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)),
-                    tab: ui.input_mut(|input| input.consume_key(egui::Modifiers::NONE, egui::Key::Tab)),
-                    deletes: ui.input(|input| input.key_pressed(egui::Key::Backspace) || input.key_pressed(egui::Key::Delete)),
-                    ..Default::default()
-                };
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    let keys = command_dock::Keys {
+                        enter: ui.input_mut(|input| {
+                            input.consume_key(egui::Modifiers::NONE, egui::Key::Enter)
+                        }),
+                        tab: ui.input_mut(|input| {
+                            input.consume_key(egui::Modifiers::NONE, egui::Key::Tab)
+                        }),
+                        deletes: ui.input(|input| {
+                            input.key_pressed(egui::Key::Backspace)
+                                || input.key_pressed(egui::Key::Delete)
+                        }),
+                        ..Default::default()
+                    };
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let response = view::field(
 ```
 
 Replace it with:
 
 ```rust
-        let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let keys = command_dock::keys(ui, &mut self.model, None, id);
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let keys = command_dock::keys(ui, &mut self.model, None, id);
+                        let response = view::field(
 ```
 
 **Locate this block:**
 
 ```rust
-        let text = event.type_() == "keydown" && event.key().chars().count() == 1
-            && !modifiers.command && !modifiers.alt;
         if text {
-            self.context.memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
-            self.model.command_open = true;
-        }
+            self.context.memory_mut(|memory| {
+                memory.request_focus(egui::Id::new("command-input"))
+            });
 ```
 
 Replace it with:
 
 ```rust
-        let text = event.type_() == "keydown" && event.key().chars().count() == 1
-            && !modifiers.command && !modifiers.alt;
         if text {
-            if !self.context.egui_wants_keyboard_input() { self.model.focus_command = true; }
-            self.context.memory_mut(|memory| memory.request_focus(egui::Id::new("command-input")));
-            self.model.command_open = true;
-        }
+            if !self.context.egui_wants_keyboard_input() {
+                self.model.focus_command = true;
+            }
+            self.context.memory_mut(|memory| {
+                memory.request_focus(egui::Id::new("command-input"))
+            });
 ```
 
 ## <a id="checkpoint-03ch-popup"></a>15. Show matching commands
@@ -2414,7 +3552,9 @@ Report that matching commands are drawn.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ch-popup-direct-01.rs"
+    redraw.forget();
+    report("Matching commands appear above the field.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -2424,6 +3564,7 @@ Draw matching names in a bounded popup and remember its rectangle.
 **Locate this existing block:**
 
 ```rust
+}
 
 pub(crate) fn finish(
 ```
@@ -2431,62 +3572,177 @@ pub(crate) fn finish(
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ch-popup-direct-02.rs"
+}
+
+pub(crate) fn popup(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    controls: &mut Option<Vec<Control>>,
+    choices: &[&'static str],
+    response: &egui::Response,
+    browse: isize,
+) -> Option<&'static str> {
+    let width = (ui.ctx().content_rect().right() - response.rect.left() - 12.0)
+        .clamp(60.0, 220.0);
+    let height = (response.rect.top() - 12.0).clamp(22.0, 220.0);
+    let mut complete = None;
+    let popup = egui::Area::new(egui::Id::new("command-completions"))
+        .pivot(egui::Align2::LEFT_BOTTOM)
+        .fixed_pos(egui::pos2(
+            response.rect.left(),
+            response.rect.top(),
+        ))
+        .order(egui::Order::Foreground)
+        .show(ui.ctx(), |ui| {
+            egui::Frame::new()
+                .fill(egui::Color32::WHITE)
+                .stroke(egui::Stroke::new(
+                    1.0_f32,
+                    egui::Color32::from_gray(215),
+                ))
+                .inner_margin(5)
+                .show(ui, |ui| {
+                    ui.set_width(width);
+                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Wrap);
+                    egui::ScrollArea::vertical()
+                        .id_salt("command-choices")
+                        .max_height(height)
+                        .show(ui, |ui| {
+                            for (index, name) in choices.iter().enumerate() {
+                                let item = ui
+                                    .selectable_label(index == model.completion, *name);
+                                record(
+                                    controls,
+                                    &format!("command/completion/{name}"),
+                                    name,
+                                    &item,
+                                );
+                                if index == model.completion && browse != 0 {
+                                    item.scroll_to_me(None);
+                                }
+                                if item.clicked() {
+                                    complete = Some(*name);
+                                }
+                            }
+                        });
+                });
+        });
+    model.completion_rect = Some(popup.response.rect);
+    complete
+}
+
+pub(crate) fn finish(
 ```
 
 ### 3. `src/panel.rs`
 
 Clear the previous popup rectangle before layout. Draw current matches; preserve Tab acceptance.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
-                    let complete = keys.tab.then(|| self.commands.completions(&self.model.completion_prefix).first().copied()).flatten();
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-                    if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-```
-
-Replace it with:
-
-```rust
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
-                    let choices = self.commands.completions(&self.model.completion_prefix);
-                    let complete = if self.model.completion_visible && !choices.is_empty() { command_dock::popup(ui, &mut self.model, &mut None, &choices, &response, 0) } else { None };
-                    let complete = complete.or_else(|| keys.tab.then(|| choices.first().copied()).flatten());
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-                    if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-```
-
-**Locate this block:**
-
-```rust
-            )),
-            ..Default::default()
         };
         let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let keys = command_dock::keys(ui, &mut self.model, None, id);
+                        let response = view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &self.commands,
+                            id,
+                            keys.deletes,
+                        );
+                        let mut line = None;
+                        let complete = keys
+                            .tab
+                            .then(|| {
+                                self.commands
+                                    .completions(&self.model.completion_prefix)
+                                    .first()
+                                    .copied()
+                            })
+                            .flatten();
+                        command_dock::finish(
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            )),
-            ..Default::default()
         };
         self.model.completion_rect = None;
         let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let keys = command_dock::keys(ui, &mut self.model, None, id);
+                        let response = view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &self.commands,
+                            id,
+                            keys.deletes,
+                        );
+                        let mut line = None;
+                        let choices = self
+                            .commands
+                            .completions(&self.model.completion_prefix);
+                        let complete =
+                            if self.model.completion_visible && !choices.is_empty() {
+                                command_dock::popup(
+                                    ui,
+                                    &mut self.model,
+                                    &mut None,
+                                    &choices,
+                                    &response,
+                                    0,
+                                )
+                            } else {
+                                None
+                            };
+                        let complete = complete.or_else(|| {
+                            keys.tab
+                                .then(|| choices.first().copied())
+                                .flatten()
+                        });
+                        command_dock::finish(
 ```
 
 ## <a id="checkpoint-03ci-browse"></a>16. Browse matching names
@@ -2543,7 +3799,9 @@ Report that arrow browsing is connected.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ci-browse-direct-01.rs"
+    redraw.forget();
+    report("Arrow keys browse matching commands.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -2553,6 +3811,7 @@ Wrap the match index and retain the original typed prefix.
 **Locate this existing block:**
 
 ```rust
+}
 
 pub(crate) fn finish(
 ```
@@ -2560,7 +3819,88 @@ pub(crate) fn finish(
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ci-browse-direct-02.rs"
+}
+
+pub(crate) fn browse(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    controls: &mut Option<Vec<Control>>,
+    commands: &impl Commands,
+    response: &egui::Response,
+    keys: &Keys,
+    id: egui::Id,
+) -> Option<&'static str> {
+    let choices = commands.browse(&model.completion_prefix);
+    let opening = !model.completion_visible;
+    if keys.browse != 0 || keys.tab {
+        model.completion_visible = true;
+    }
+    let focused = model.command_open || response.has_focus() || response.lost_focus();
+    if !focused
+        || !model.completion_visible
+        || choices.is_empty()
+        || !model.options.is_empty()
+    {
+        return None;
+    }
+    model.completion = model.completion.min(choices.len() - 1);
+    if commands.choosing_option(&model.completion_prefix)
+        && let Some(index) = choices
+            .iter()
+            .position(|name| name.eq_ignore_ascii_case(model.command.trim()))
+    {
+        model.completion = index;
+    }
+    if keys.browse != 0 {
+        model.completion =
+            if opening && !commands.choosing_option(&model.completion_prefix) {
+                if keys.browse < 0 {
+                    choices.len() - 1
+                } else {
+                    0
+                }
+            } else {
+                (model.completion as isize + keys.browse)
+                    .rem_euclid(choices.len() as isize) as usize
+            };
+        model.command = choices[model.completion].into();
+        let start = if model
+            .command
+            .to_ascii_lowercase()
+            .starts_with(&model.completion_prefix.to_ascii_lowercase())
+        {
+            model.completion_prefix.chars().count()
+        } else {
+            0
+        };
+        command_cursor_select(
+            ui.ctx(),
+            id,
+            start,
+            model.command.chars().count(),
+        );
+        model.inline_suffix = true;
+        ui.ctx().request_repaint();
+    }
+    let mut complete = if keys.tab {
+        Some(choices[model.completion])
+    } else {
+        None
+    };
+    // the list shows the verbs, or the options of the verb typed
+    complete = popup(
+        ui,
+        model,
+        controls,
+        &choices,
+        response,
+        keys.browse,
+    )
+    .or(complete);
+    complete
+}
+
+pub(crate) fn finish(
 ```
 
 ### 3. `src/panel.rs`
@@ -2570,17 +3910,45 @@ Use browse for arrow keys, Tab and popup choices.
 **Locate this existing block:**
 
 ```rust
-                    let mut line = None;
-                    let choices = self.commands.completions(&self.model.completion_prefix);
-                    let complete = if self.model.completion_visible && !choices.is_empty() { command_dock::popup(ui, &mut self.model, &mut None, &choices, &response, 0) } else { None };
-                    let complete = complete.or_else(|| keys.tab.then(|| choices.first().copied()).flatten());
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
+                        let mut line = None;
+                        let choices = self
+                            .commands
+                            .completions(&self.model.completion_prefix);
+                        let complete =
+                            if self.model.completion_visible && !choices.is_empty() {
+                                command_dock::popup(
+                                    ui,
+                                    &mut self.model,
+                                    &mut None,
+                                    &choices,
+                                    &response,
+                                    0,
+                                )
+                            } else {
+                                None
+                            };
+                        let complete = complete.or_else(|| {
+                            keys.tab
+                                .then(|| choices.first().copied())
+                                .flatten()
+                        });
+                        command_dock::finish(
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ci-browse-direct-03.rs"
+                        let mut line = None;
+                        let complete = command_dock::browse(
+                            ui,
+                            &mut self.model,
+                            &mut None,
+                            &self.commands,
+                            &response,
+                            &keys,
+                            id,
+                        );
+                        command_dock::finish(
 ```
 
 ## <a id="checkpoint-03cj-prepare"></a>17. Prepare the dock before painting
@@ -2637,7 +4005,9 @@ Report that prepared UI is painted once.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cj-prepare-direct-01.rs"
+    redraw.forget();
+    report("The prepared dock is painted once.");
+    Ok(())
 ```
 
 ### 2. `src/panel.rs`
@@ -2652,10 +4022,9 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             })],
             ..Default::default()
         });
-        self.painter.render(&mut pass.forget_lifetime(), &jobs, &screen);
+        self.painter
+            .render(&mut pass.forget_lifetime(), &jobs, &screen);
         buffers.push(encoder.finish());
-        renderer.queue.submit(buffers);
-        for id in output.textures_delta.free { self.painter.free_texture(&id); }
 ```
 
 Replace it with:
@@ -2664,19 +4033,21 @@ Replace it with:
             })],
             ..Default::default()
         });
-        self.painter.render(&mut pass.forget_lifetime(), &jobs, &self.screen);
+        self.painter.render(
+            &mut pass.forget_lifetime(),
+            &jobs,
+            &self.screen,
+        );
         buffers.push(encoder.finish());
-        renderer.queue.submit(buffers);
-        for id in output.textures_delta.free { self.painter.free_texture(&id); }
 ```
 
 **Locate this block:**
 
 ```rust
-        let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);
-        let mut encoder = renderer.device.create_command_encoder(&Default::default());
-        let mut buffers = self.painter.update_buffers(
-            &renderer.device, &renderer.queue, &mut encoder, &jobs, &screen,
+            &renderer.queue,
+            &mut encoder,
+            &jobs,
+            &screen,
         );
         let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("command panel"),
@@ -2685,10 +4056,10 @@ Replace it with:
 Replace it with:
 
 ```rust
-        let jobs = self.context.tessellate(output.shapes, output.pixels_per_point);
-        let mut encoder = renderer.device.create_command_encoder(&Default::default());
-        let mut buffers = self.painter.update_buffers(
-            &renderer.device, &renderer.queue, &mut encoder, &jobs, &self.screen,
+            &renderer.queue,
+            &mut encoder,
+            &jobs,
+            &self.screen,
         );
         let pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("command panel"),
@@ -2697,31 +4068,39 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-                });
-            });
+                },
+            );
         });
         // The font atlas is a texture: upload its changed pixels before drawing the letters.
         for (id, delta) in &output.textures_delta.set {
-            self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);
+            self.painter
 ```
 
 Replace it with:
 
 ```rust
-                });
-            });
+                },
+            );
         });
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
+        if let Some(previous) = self.output.as_mut() {
+            previous.append(output);
+        } else {
+            self.output = Some(output);
+        }
     }
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        self.screen.size_in_pixels = [target.texture().width(), target.texture().height()];
+        self.screen.size_in_pixels = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
         self.prepare();
-        let Some(output) = self.output.take() else { return; };
+        let Some(output) = self.output.take() else {
+            return;
+        };
         // The font atlas is a texture: upload its changed pixels before drawing the letters.
         for (id, delta) in &output.textures_delta.set {
-            self.painter.update_texture(&renderer.device, &renderer.queue, *id, delta);
+            self.painter
 ```
 
 **Locate this block:**
@@ -2731,13 +4110,20 @@ Replace it with:
     }
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        let size = [target.texture().width(), target.texture().height()];
-        let screen = egui_wgpu::ScreenDescriptor { size_in_pixels: size, pixels_per_point: 1.0 };
+        let size = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
+        let screen = egui_wgpu::ScreenDescriptor {
+            size_in_pixels: size,
+            pixels_per_point: 1.0,
+        };
         let input = egui::RawInput {
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
-                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32),
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32),
             )),
             ..Default::default()
         };
@@ -2755,7 +4141,9 @@ Replace it with:
             focused: true,
             events: std::mem::take(&mut self.events),
             screen_rect: Some(egui::Rect::from_min_size(
-                egui::Pos2::ZERO, egui::vec2(size[0] as f32, size[1] as f32) / self.screen.pixels_per_point,
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32)
+                    / self.screen.pixels_per_point,
             )),
             ..Default::default()
         };
@@ -2764,33 +4152,33 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), context, painter, events: Vec::new(), model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
+            context,
+            painter,
+            events: Vec::new(),
+            model: CommandLine {
+                command_expanded: true,
+                history: ["Command history lives here.".into()].into(),
 ```
 
 Replace it with:
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
+            context,
+            painter,
+            events: Vec::new(),
+            output: None,
+            screen: egui_wgpu::ScreenDescriptor {
+                size_in_pixels: [640, 480],
+                pixels_per_point: 1.0,
+            },
+            model: CommandLine {
+                command_expanded: true,
+                history: ["Command history lives here.".into()].into(),
 ```
 
 **Locate this block:**
 
 ```rust
-    painter: egui_wgpu::Renderer,
-    model: CommandLine,
     events: Vec<egui::Event>,
 }
 
@@ -2800,8 +4188,6 @@ impl Panel {
 Replace it with:
 
 ```rust
-    painter: egui_wgpu::Renderer,
-    model: CommandLine,
     events: Vec<egui::Event>,
     output: Option<egui::FullOutput>,
     screen: egui_wgpu::ScreenDescriptor,
@@ -2853,53 +4239,61 @@ impl Panel {
 
 Expose actual dock state and rectangles for inspection. Report that drawn bounds are recorded.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command", panel.command())
+                    {
+                        report(&format!("Cannot inspect text: {error:?}"));
+                    }
+                    if let Err(error) = input_canvas.set_attribute(
+                        "data-history",
+                        &serde_json::to_string(panel.history()).unwrap(),
+                    ) {
+                        report(&format!("Cannot inspect history: {error:?}"));
+                    }
+                }
+            },
+        );
+    for name in ["keydown", "keyup"] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("The prepared dock is painted once.");
     Ok(())
-}
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command-ui", &panel.inspect())
+                    {
+                        report(&format!("Cannot inspect dock: {error:?}"));
+                    }
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command", panel.command())
+                    {
+                        report(&format!("Cannot inspect text: {error:?}"));
+                    }
+                    if let Err(error) = input_canvas.set_attribute(
+                        "data-history",
+                        &serde_json::to_string(panel.history()).unwrap(),
+                    ) {
+                        report(&format!("Cannot inspect history: {error:?}"));
+                    }
+                }
+            },
+        );
+    for name in ["keydown", "keyup"] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("The dock records its actual rectangles.");
     Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-command", panel.command()) {
-                report(&format!("Cannot inspect text: {error:?}"));
-            }
-```
-
-Replace it with:
-
-```rust
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-command-ui", &panel.inspect()) {
-                report(&format!("Cannot inspect dock: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-command", panel.command()) {
-                report(&format!("Cannot inspect text: {error:?}"));
-            }
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -2913,10 +4307,35 @@ Record the fold control and toggle expanded history on click.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03ck-rects-direct-03.rs" skip=13
+    false
+}
+
+pub(crate) fn collapse(
+    ui: &mut egui::Ui,
+    model: &mut CommandLine,
+    controls: &mut Option<Vec<Control>>,
+) {
+    let response = ui
+        .button(if model.command_expanded {
+            "–"
+        } else {
+            "+"
+        })
+        .on_hover_text("Collapse or expand history");
+    record(
+        controls,
+        "command/collapse",
+        "Collapse or expand history",
+        &response,
+    );
+    if response.clicked() {
+        model.command_expanded = !model.command_expanded;
+        ui.ctx().request_repaint();
+    }
+}
 ```
 
 ### 3. `src/panel.rs`
@@ -2928,24 +4347,107 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        self.screen.size_in_pixels = [target.texture().width(), target.texture().height()];
+            target.texture().height(),
+        ];
         self.prepare();
-        let Some(output) = self.output.take() else { return; };
-        // The font atlas is a texture: upload its changed pixels before drawing the letters.
-        for (id, delta) in &output.textures_delta.set {
 ```
 
 Replace it with:
 
 ```rust
-    pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        self.screen.size_in_pixels = [target.texture().width(), target.texture().height()];
+            target.texture().height(),
+        ];
         self.prepare();
         self.prepare();
-        let Some(output) = self.output.take() else { return; };
-        // The font atlas is a texture: upload its changed pixels before drawing the letters.
-        for (id, delta) in &output.textures_delta.set {
+```
+
+**Locate this block:**
+
+```rust
+                                self.commands.reply(&mut self.model, &line);
+                            }
+                        }
+                        let _ = ui
+                            .button(if self.model.command_expanded {
+                                "–"
+                            } else {
+                                "+"
+                            })
+                            .on_hover_text("Collapse or expand history");
+                    });
+                },
+            );
+        });
+        if let Some(previous) = self.output.as_mut() {
+            previous.append(output);
+```
+
+Replace it with:
+
+```rust
+                                self.commands.reply(&mut self.model, &line);
+                            }
+                        }
+                        command_dock::collapse(ui, &mut self.model, &mut self.controls);
+                    });
+                });
+            self.top = panel.response.rect.top() - 4.0;
+        });
+        if let Some(previous) = self.output.as_mut() {
+            previous.append(output);
+```
+
+**Locate this block:**
+
+```rust
+                        let complete = command_dock::browse(
+                            ui,
+                            &mut self.model,
+                            &mut None,
+                            &self.commands,
+                            &response,
+                            &keys,
+```
+
+Replace it with:
+
+```rust
+                        let complete = command_dock::browse(
+                            ui,
+                            &mut self.model,
+                            &mut self.controls,
+                            &self.commands,
+                            &response,
+                            &keys,
+```
+
+**Locate this block:**
+
+```rust
+                            0.0,
+                            self.model.command_open,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+```
+
+Replace it with:
+
+```rust
+                            0.0,
+                            self.model.command_open,
+                        );
+                        self.model.command_rect = Some(response.rect);
+                        command_dock::record(
+                            &mut self.controls,
+                            "command/input",
+                            "Command",
+                            &response,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
 ```
 
 **Locate this block:**
@@ -2955,26 +4457,14 @@ Replace it with:
         };
         self.model.completion_rect = None;
         let output = self.context.run_ui(input, |root| {
-            view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                command_dock::history(ui, &self.model, &mut None);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let keys = command_dock::keys(ui, &mut self.model, None, id);
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
-                    let complete = command_dock::browse(ui, &mut self.model, &mut None, &self.commands, &response, &keys, id);
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-                    if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-                    let _ = ui.button(if self.model.command_expanded { "–" } else { "+" }).on_hover_text("Collapse or expand history");
-                });
-            });
-        });
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
+            view::panel(root, self.model.command_expanded, 0.0).show_inside(
+                root,
+                |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut None);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
 ```
 
 Replace it with:
@@ -2985,29 +4475,13 @@ Replace it with:
         self.model.completion_rect = None;
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
-            let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                command_dock::history(ui, &self.model, &mut self.controls);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let keys = command_dock::keys(ui, &mut self.model, None, id);
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    self.model.command_rect = Some(response.rect);
-                    command_dock::record(&mut self.controls, "command/input", "Command", &response);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
-                    let complete = command_dock::browse(ui, &mut self.model, &mut self.controls, &self.commands, &response, &keys, id);
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-                    if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-                    command_dock::collapse(ui, &mut self.model, &mut self.controls);
-                });
-            });
-            self.top = panel.response.rect.top() - 4.0;
-        });
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
+            let panel = view::panel(root, self.model.command_expanded, 0.0)
+                .show_inside(root, |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut self.controls);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
 ```
 
 **Locate this block:**
@@ -3041,32 +4515,30 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            context,
+            painter,
+            events: Vec::new(),
 ```
 
 Replace it with:
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            top: f32::INFINITY,
+            controls: None,
+            context,
+            painter,
+            events: Vec::new(),
 ```
 
 **Locate this block:**
 
 ```rust
-
-pub struct Panel {
     commands: Commands,
     context: egui::Context,
     painter: egui_wgpu::Renderer,
@@ -3076,8 +4548,6 @@ pub struct Panel {
 Replace it with:
 
 ```rust
-
-pub struct Panel {
     commands: Commands,
     top: f32,
     controls: Option<Vec<command_dock::Control>>,
@@ -3129,64 +4599,94 @@ pub struct Panel {
 
 Dispatch keyboard and pointer events through one retained callback. Register pointer press, movement, release and cancellation. Report that mouse input is connected.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-            }
-        }
-    });
+    let input_canvas = canvas.clone();
+    let redraw =
+        wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
+            move |event| {
+                if panel.key(&event) {
+                    if let Err(error) = present(&surface, &renderer, &mut panel) {
+                        report(&format!("Cannot redraw: {error:?}"));
+                    }
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command-ui", &panel.inspect())
+                    {
+                        report(&format!("Cannot inspect dock: {error:?}"));
+                    }
+                    if let Err(error) =
+                        input_canvas.set_attribute("data-command", panel.command())
+                    {
+                        report(&format!("Cannot inspect text: {error:?}"));
+                    }
+                    if let Err(error) = input_canvas.set_attribute(
+                        "data-history",
+                        &serde_json::to_string(panel.history()).unwrap(),
+                    ) {
+                        report(&format!("Cannot inspect history: {error:?}"));
+                    }
+                }
+            },
+        );
     for name in ["keydown", "keyup"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("The dock records its actual rectangles.");
     Ok(())
-}
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    let input_canvas = canvas.clone();
+    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() {
+                panel.key(key);
             }
-        }
-    });
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
+                panel.pointer(pointer, &input_canvas);
+            }
+            {
+                if let Err(error) = present(&surface, &renderer, &mut panel) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command-ui", &panel.inspect())
+                {
+                    report(&format!("Cannot inspect dock: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command", panel.command())
+                {
+                    report(&format!("Cannot inspect text: {error:?}"));
+                }
+                if let Err(error) = input_canvas.set_attribute(
+                    "data-history",
+                    &serde_json::to_string(panel.history()).unwrap(),
+                ) {
+                    report(&format!("Cannot inspect history: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "keydown",
+        "keyup",
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+    ] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("The mouse operates the command dock.");
     Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(move |event| {
-        if panel.key(&event) {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-```
-
-Replace it with:
-
-```rust
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { panel.key(key); }
-        if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() { panel.pointer(pointer, &input_canvas); }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
 ```
 
 ### 2. `src/panel.rs`
@@ -3204,8 +4704,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     pub fn inspect(&self) -> String {
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
             "top": self.top, "focused": self.context.egui_wants_keyboard_input(),
-            "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()
-    }
 ```
 
 Replace it with:
@@ -3214,31 +4712,76 @@ Replace it with:
         true
     }
 
-    pub fn pointer(&mut self, event: &web_sys::PointerEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {
+    pub fn pointer(
+        &mut self,
+        event: &web_sys::PointerEvent,
+        canvas: &web_sys::HtmlCanvasElement,
+    ) -> bool {
         let rect = canvas.get_bounding_client_rect();
-        let pos = egui::pos2((event.client_x() as f64 - rect.left()) as f32, (event.client_y() as f64 - rect.top()) as f32);
-        let over = pos.y >= self.top || self.model.completion_rect.is_some_and(|r| r.contains(pos));
+        let pos = egui::pos2(
+            (event.client_x() as f64 - rect.left()) as f32,
+            (event.client_y() as f64 - rect.top()) as f32,
+        );
+        let over = pos.y >= self.top
+            || self
+                .model
+                .completion_rect
+                .is_some_and(|r| r.contains(pos));
         let owned = over || self.pointer_owned;
         if event.type_() == "pointerdown" {
             self.pointer_owned = over;
             if !over {
                 self.model.command_open = false;
                 self.model.focus_command = false;
-                self.context.memory_mut(|memory| memory.surrender_focus(egui::Id::new("command-input")));
+                self.context.memory_mut(|memory| {
+                    memory.surrender_focus(egui::Id::new("command-input"))
+                });
             }
         }
-        self.events.push(egui::Event::PointerMoved(pos));
-        if matches!(event.type_().as_str(), "pointercancel" | "lostpointercapture") {
-            for button in [egui::PointerButton::Primary, egui::PointerButton::Middle, egui::PointerButton::Secondary] {
-                self.events.push(egui::Event::PointerButton { pos, button, pressed: false, modifiers: Default::default() });
+        self.events
+            .push(egui::Event::PointerMoved(pos));
+        if matches!(
+            event.type_().as_str(),
+            "pointercancel" | "lostpointercapture"
+        ) {
+            for button in [
+                egui::PointerButton::Primary,
+                egui::PointerButton::Middle,
+                egui::PointerButton::Secondary,
+            ] {
+                self.events.push(egui::Event::PointerButton {
+                    pos,
+                    button,
+                    pressed: false,
+                    modifiers: Default::default(),
+                });
             }
             self.events.push(egui::Event::PointerGone);
-        } else if matches!(event.type_().as_str(), "pointerdown" | "pointerup") {
-            let button = match event.button() { 0 => egui::PointerButton::Primary, 1 => egui::PointerButton::Middle, _ => egui::PointerButton::Secondary };
-            self.events.push(egui::Event::PointerButton { pos, button, pressed: event.type_() == "pointerdown", modifiers: Default::default() });
+        } else if matches!(
+            event.type_().as_str(),
+            "pointerdown" | "pointerup"
+        ) {
+            let button = match event.button() {
+                0 => egui::PointerButton::Primary,
+                1 => egui::PointerButton::Middle,
+                _ => egui::PointerButton::Secondary,
+            };
+            self.events.push(egui::Event::PointerButton {
+                pos,
+                button,
+                pressed: event.type_() == "pointerdown",
+                modifiers: Default::default(),
+            });
         }
-        if matches!(event.type_().as_str(), "pointerup" | "pointercancel" | "lostpointercapture") { self.pointer_owned = false; }
-        if owned { event.prevent_default(); }
+        if matches!(
+            event.type_().as_str(),
+            "pointerup" | "pointercancel" | "lostpointercapture"
+        ) {
+            self.pointer_owned = false;
+        }
+        if owned {
+            event.prevent_default();
+        }
         owned
     }
 
@@ -3246,39 +4789,34 @@ Replace it with:
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
             "pointer_owned": self.pointer_owned,
             "top": self.top, "focused": self.context.egui_wants_keyboard_input(),
-            "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()
-    }
 ```
 
 **Locate this block:**
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            top: f32::INFINITY,
+            controls: None,
+            context,
 ```
 
 Replace it with:
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), pointer_owned: false, top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            pointer_owned: false,
+            top: f32::INFINITY,
+            controls: None,
+            context,
 ```
 
 **Locate this block:**
 
 ```rust
-
-pub struct Panel {
     commands: Commands,
     top: f32,
     controls: Option<Vec<command_dock::Control>>,
@@ -3288,8 +4826,6 @@ pub struct Panel {
 Replace it with:
 
 ```rust
-
-pub struct Panel {
     commands: Commands,
     pointer_owned: bool,
     top: f32,
@@ -3340,120 +4876,184 @@ pub struct Panel {
 
 Dispatch wheel events to Panel. Register wheel input with preventDefault enabled. Report that scrolling selects command names.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+            }
+            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
+                panel.pointer(pointer, &input_canvas);
+            }
+            {
+                if let Err(error) = present(&surface, &renderer, &mut panel) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command-ui", &panel.inspect())
+                {
+                    report(&format!("Cannot inspect dock: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command", panel.command())
+                {
+                    report(&format!("Cannot inspect text: {error:?}"));
+                }
+                if let Err(error) = input_canvas.set_attribute(
+                    "data-history",
+                    &serde_json::to_string(panel.history()).unwrap(),
+                ) {
+                    report(&format!("Cannot inspect history: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "keydown",
+        "keyup",
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+    ] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     redraw.forget();
     report("The mouse operates the command dock.");
     Ok(())
-}
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
-        window.add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+            }
+            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() {
+                panel.wheel(wheel, &input_canvas);
+            }
+            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
+                panel.pointer(pointer, &input_canvas);
+            }
+            {
+                if let Err(error) = present(&surface, &renderer, &mut panel) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command-ui", &panel.inspect())
+                {
+                    report(&format!("Cannot inspect dock: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command", panel.command())
+                {
+                    report(&format!("Cannot inspect text: {error:?}"));
+                }
+                if let Err(error) = input_canvas.set_attribute(
+                    "data-history",
+                    &serde_json::to_string(panel.history()).unwrap(),
+                ) {
+                    report(&format!("Cannot inspect history: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "keydown",
+        "keyup",
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+    ] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
     }
     let options = web_sys::AddEventListenerOptions::new();
     options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options("wheel", redraw.as_ref().unchecked_ref(), &options)?;
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        redraw.as_ref().unchecked_ref(),
+        &options,
+    )?;
     redraw.forget();
     report("Scrolling selects a command name.");
     Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { panel.key(key); }
-        if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() { panel.pointer(pointer, &input_canvas); }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-```
-
-Replace it with:
-
-```rust
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { panel.key(key); }
-        if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() { panel.wheel(wheel, &input_canvas); }
-        if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() { panel.pointer(pointer, &input_canvas); }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
 ```
 
 ### 2. `src/command_dock/mod.rs`
 
 Consume wheel movement over the field or previous popup. Focus the field when scrolling its command names. Give wheel browsing priority over arrow browsing.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+}
+
+pub(crate) fn suffix_space(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    id: egui::Id,
+    focused: bool,
+) {
+    if model.inline_suffix
+        && focused
+        && model.command.chars().nth(spelled(
+            &model.command,
+            &model.completion_prefix,
+        )) != Some(' ')
+        && ui.input(|input| {
+            input
+                .events
+                .iter()
+                .find_map(|event| match event {
+                    egui::Event::Text(text) => Some(text),
+                    _ => None,
+                })
+                .is_some_and(|text| text.starts_with(' '))
+        })
+    {
+        command_cursor_end(ui.ctx(), id, &model.command);
+        model.inline_suffix = false;
+    }
+}
+
+pub(crate) fn keys(
+    ui: &mut egui::Ui,
+    model: &mut CommandLine,
+    previous: Option<egui::Rect>,
+    id: egui::Id,
+) -> Keys {
+    if model.focus_command || model.command_open {
+        ui.memory_mut(|memory| memory.request_focus(id));
+        if model.focus_command {
+            command_cursor_end(ui.ctx(), id, &model.command);
+            model.focus_command = false;
         }
         model.command_open = true;
     }
     let focused = ui.memory(|memory| memory.has_focus(id));
     let browse = if focused {
         ui.input_mut(|input| {
-            if input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown) {
-                1
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        }
-        model.command_open = true;
-    }
-    let wheel = wheel(ui, model, previous);
-    if wheel != 0 {
-        ui.memory_mut(|memory| memory.request_focus(id));
-        model.command_open = true;
-    }
-    let focused = ui.memory(|memory| memory.has_focus(id));
-    let browse = if wheel != 0 {
-        wheel
-    } else if focused {
-        ui.input_mut(|input| {
-            if input.consume_key(egui::Modifiers::NONE, egui::Key::ArrowDown) {
-                1
-```
-
-**Locate this block:**
-
-```rust
-    pub(crate) deletes: bool,
 }
 
-pub(crate) fn suffix_space(ui: &egui::Ui, model: &mut CommandLine, id: egui::Id, focused: bool) {
-    if model.inline_suffix
-        && focused
-```
-
-Replace it with:
-
-```rust
-    pub(crate) deletes: bool,
-}
-
-pub(crate) fn wheel(ui: &mut egui::Ui, model: &CommandLine, previous: Option<egui::Rect>) -> isize {
+pub(crate) fn wheel(
+    ui: &mut egui::Ui,
+    model: &CommandLine,
+    previous: Option<egui::Rect>,
+) -> isize {
     ui.input_mut(|input| {
-        let over = input.pointer.hover_pos().is_some_and(|point| {
-            model.command_rect.is_some_and(|rect| rect.contains(point))
-                || previous.is_some_and(|rect| rect.contains(point))
-        });
+        let over = input
+            .pointer
+            .hover_pos()
+            .is_some_and(|point| {
+                model
+                    .command_rect
+                    .is_some_and(|rect| rect.contains(point))
+                    || previous.is_some_and(|rect| rect.contains(point))
+            });
         if !over {
             return 0;
         }
@@ -3476,98 +5076,177 @@ pub(crate) fn wheel(ui: &mut egui::Ui, model: &CommandLine, previous: Option<egu
     })
 }
 
-pub(crate) fn suffix_space(ui: &egui::Ui, model: &mut CommandLine, id: egui::Id, focused: bool) {
+pub(crate) fn suffix_space(
+    ui: &egui::Ui,
+    model: &mut CommandLine,
+    id: egui::Id,
+    focused: bool,
+) {
     if model.inline_suffix
         && focused
+        && model.command.chars().nth(spelled(
+            &model.command,
+            &model.completion_prefix,
+        )) != Some(' ')
+        && ui.input(|input| {
+            input
+                .events
+                .iter()
+                .find_map(|event| match event {
+                    egui::Event::Text(text) => Some(text),
+                    _ => None,
+                })
+                .is_some_and(|text| text.starts_with(' '))
+        })
+    {
+        command_cursor_end(ui.ctx(), id, &model.command);
+        model.inline_suffix = false;
+    }
+}
+
+pub(crate) fn keys(
+    ui: &mut egui::Ui,
+    model: &mut CommandLine,
+    previous: Option<egui::Rect>,
+    id: egui::Id,
+) -> Keys {
+    if model.focus_command || model.command_open {
+        ui.memory_mut(|memory| memory.request_focus(id));
+        if model.focus_command {
+            command_cursor_end(ui.ctx(), id, &model.command);
+            model.focus_command = false;
+        }
+        model.command_open = true;
+    }
+    let wheel = wheel(ui, model, previous);
+    if wheel != 0 {
+        ui.memory_mut(|memory| memory.request_focus(id));
+        model.command_open = true;
+    }
+    let focused = ui.memory(|memory| memory.has_focus(id));
+    let browse = if wheel != 0 {
+        wheel
+    } else if focused {
+        ui.input_mut(|input| {
 ```
 
 ### 3. `src/panel.rs`
 
 Queue wheel units and deltas at the canvas pointer position. Take the previous popup rectangle before drawing. Pass previous popup bounds to key and wheel handling.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let keys = command_dock::keys(ui, &mut self.model, None, id);
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    self.model.command_rect = Some(response.rect);
-                    command_dock::record(&mut self.controls, "command/input", "Command", &response);
-```
+    }
 
-Replace it with:
+    pub fn inspect(&self) -> String {
+        serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
+            "pointer_owned": self.pointer_owned,
+            "top": self.top, "focused": self.context.egui_wants_keyboard_input(),
+            "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()
+    }
 
-```rust
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let keys = command_dock::keys(ui, &mut self.model, previous, id);
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    self.model.command_rect = Some(response.rect);
-                    command_dock::record(&mut self.controls, "command/input", "Command", &response);
-```
-
-**Locate this block:**
-
-```rust
+    fn prepare(&mut self) {
+        let size = self.screen.size_in_pixels;
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32)
+                    / self.screen.pixels_per_point,
             )),
             ..Default::default()
         };
         self.model.completion_rect = None;
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
-            let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
+            let panel = view::panel(root, self.model.command_expanded, 0.0)
+                .show_inside(root, |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut self.controls);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let keys = command_dock::keys(ui, &mut self.model, None, id);
+                        let response = view::field(
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            )),
-            ..Default::default()
-        };
-        let previous = self.model.completion_rect.take();
-        self.controls = Some(Vec::new());
-        let output = self.context.run_ui(input, |root| {
-            let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-```
-
-**Locate this block:**
-
-```rust
-        owned
     }
 
-    pub fn inspect(&self) -> String {
-        serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
-            "pointer_owned": self.pointer_owned,
-```
-
-Replace it with:
-
-```rust
-        owned
-    }
-
-    pub fn wheel(&mut self, event: &web_sys::WheelEvent, canvas: &web_sys::HtmlCanvasElement) -> bool {
+    pub fn wheel(
+        &mut self,
+        event: &web_sys::WheelEvent,
+        canvas: &web_sys::HtmlCanvasElement,
+    ) -> bool {
         let rect = canvas.get_bounding_client_rect();
-        let pos = egui::pos2((event.client_x() as f64 - rect.left()) as f32, (event.client_y() as f64 - rect.top()) as f32);
-        self.events.push(egui::Event::PointerMoved(pos));
+        let pos = egui::pos2(
+            (event.client_x() as f64 - rect.left()) as f32,
+            (event.client_y() as f64 - rect.top()) as f32,
+        );
+        self.events
+            .push(egui::Event::PointerMoved(pos));
         self.events.push(egui::Event::MouseWheel {
-            unit: match event.delta_mode() { 1 => egui::MouseWheelUnit::Line, 2 => egui::MouseWheelUnit::Page, _ => egui::MouseWheelUnit::Point },
-            phase: egui::TouchPhase::Move, delta: egui::vec2(-event.delta_x() as f32, -event.delta_y() as f32), modifiers: Default::default(),
+            unit: match event.delta_mode() {
+                1 => egui::MouseWheelUnit::Line,
+                2 => egui::MouseWheelUnit::Page,
+                _ => egui::MouseWheelUnit::Point,
+            },
+            phase: egui::TouchPhase::Move,
+            delta: egui::vec2(
+                -event.delta_x() as f32,
+                -event.delta_y() as f32,
+            ),
+            modifiers: Default::default(),
         });
-        let over = pos.y >= self.top || self.model.completion_rect.is_some_and(|r| r.contains(pos));
-        if over { event.prevent_default(); }
+        let over = pos.y >= self.top
+            || self
+                .model
+                .completion_rect
+                .is_some_and(|r| r.contains(pos));
+        if over {
+            event.prevent_default();
+        }
         over
     }
 
     pub fn inspect(&self) -> String {
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
             "pointer_owned": self.pointer_owned,
+            "top": self.top, "focused": self.context.egui_wants_keyboard_input(),
+            "completion_rect": self.model.completion_rect.map(|r| [r.min.x, r.min.y, r.max.x, r.max.y])}).to_string()
+    }
+
+    fn prepare(&mut self) {
+        let size = self.screen.size_in_pixels;
+        let input = egui::RawInput {
+            focused: true,
+            events: std::mem::take(&mut self.events),
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(size[0] as f32, size[1] as f32)
+                    / self.screen.pixels_per_point,
+            )),
+            ..Default::default()
+        };
+        let previous = self.model.completion_rect.take();
+        self.controls = Some(Vec::new());
+        let output = self.context.run_ui(input, |root| {
+            let panel = view::panel(root, self.model.command_expanded, 0.0)
+                .show_inside(root, |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut self.controls);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let keys =
+                            command_dock::keys(ui, &mut self.model, previous, id);
+                        let response = view::field(
 ```
 
 ## <a id="checkpoint-03c-layout"></a>21. Share the production dock layout
@@ -3624,7 +5303,9 @@ Report that the shared production layout is connected.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03c-layout-direct-01.rs"
+    redraw.forget();
+    report("The shared production dock is drawn.");
+    Ok(())
 ```
 
 ### 2. `src/command_dock/mod.rs`
@@ -3639,10 +5320,111 @@ Combine the connected field, history and controls into row and draw.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03c-layout-direct-04.rs" skip=44
+        ui.ctx().request_repaint();
+    }
+}
+
+pub(crate) fn row(
+    ui: &mut egui::Ui,
+    model: &mut CommandLine,
+    controls: &mut Option<Vec<Control>>,
+    command: &mut Option<String>,
+    commands: &impl Commands,
+    previous: Option<egui::Rect>,
+    escape_allowed: bool,
+) -> bool {
+    let mut focus_canvas = false;
+    ui.horizontal(|ui| {
+        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+        ui.label("Command:");
+        let id = egui::Id::new("command-input");
+        let keys = keys(ui, model, previous, id);
+        let response = view::field(
+            ui,
+            &mut model.command,
+            placeholder(
+                &model.drawing_prompt,
+                &model.status,
+                model.command_expanded,
+            ),
+            0.0,
+            model.command_open,
+        );
+        model.command_rect = Some(response.rect);
+        record(
+            controls,
+            "command/input",
+            "Command",
+            &response,
+        );
+        refresh(
+            ui,
+            model,
+            &response,
+            commands,
+            id,
+            keys.deletes,
+        );
+        let complete = browse(
+            ui, model, controls, commands, &response, &keys, id,
+        );
+        focus_canvas = finish(
+            ui,
+            model,
+            &response,
+            command,
+            commands,
+            complete,
+            &keys,
+            escape_allowed,
+        );
+        collapse(ui, model, controls);
+    });
+    focus_canvas
+}
+
+pub fn draw(
+    root: &mut egui::Ui,
+    model: &mut CommandLine,
+    controls: &mut Option<Vec<Control>>,
+    command: &mut Option<String>,
+    commands: &impl Commands,
+    escape_allowed: bool,
+) -> bool {
+    let previous = model.completion_rect.take();
+    let mut focus_canvas = false;
+    let panel =
+        view::panel(root, model.command_expanded, 0.0).show_inside(root, |ui| {
+            view::prepare(ui);
+            history(ui, model, controls);
+            focus_canvas = row(
+                ui,
+                model,
+                controls,
+                command,
+                commands,
+                previous,
+                escape_allowed,
+            );
+        });
+    if let Some(controls) = controls {
+        let rect = panel.response.rect;
+        controls.push(Control {
+            key: "command/resize".into(),
+            label: "Drag to resize command history".into(),
+            rect: [
+                rect.left(),
+                rect.top() - 4.0,
+                rect.right(),
+                rect.top() + 4.0,
+            ],
+        });
+    }
+    focus_canvas
+}
 ```
 
 ### 3. `src/panel.rs`
@@ -3660,30 +5442,73 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let previous = self.model.completion_rect.take();
         self.controls = Some(Vec::new());
         let output = self.context.run_ui(input, |root| {
-            let panel = view::panel(root, self.model.command_expanded, 0.0).show_inside(root, |ui| {
-                view::prepare(ui);
-                command_dock::history(ui, &self.model, &mut self.controls);
-                ui.horizontal(|ui| {
-                    ui.set_max_width((ui.available_width() - 26.0).max(80.0));
-                    ui.label("Command:");
-                    let id = egui::Id::new("command-input");
-                    let keys = command_dock::keys(ui, &mut self.model, previous, id);
-                    let response = view::field(ui, &mut self.model.command, placeholder("", &self.model.status, self.model.command_expanded), 0.0, self.model.command_open);
-                    self.model.command_rect = Some(response.rect);
-                    command_dock::record(&mut self.controls, "command/input", "Command", &response);
-                    command_dock::refresh(ui, &mut self.model, &response, &self.commands, id, keys.deletes);
-                    let mut line = None;
-                    let complete = command_dock::browse(ui, &mut self.model, &mut self.controls, &self.commands, &response, &keys, id);
-                    command_dock::finish(ui, &mut self.model, &response, &mut line, &self.commands, complete, &keys, true);
-                    if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-                    command_dock::collapse(ui, &mut self.model, &mut self.controls);
+            let panel = view::panel(root, self.model.command_expanded, 0.0)
+                .show_inside(root, |ui| {
+                    view::prepare(ui);
+                    command_dock::history(ui, &self.model, &mut self.controls);
+                    ui.horizontal(|ui| {
+                        ui.set_max_width((ui.available_width() - 26.0).max(80.0));
+                        ui.label("Command:");
+                        let id = egui::Id::new("command-input");
+                        let keys =
+                            command_dock::keys(ui, &mut self.model, previous, id);
+                        let response = view::field(
+                            ui,
+                            &mut self.model.command,
+                            placeholder(
+                                "",
+                                &self.model.status,
+                                self.model.command_expanded,
+                            ),
+                            0.0,
+                            self.model.command_open,
+                        );
+                        self.model.command_rect = Some(response.rect);
+                        command_dock::record(
+                            &mut self.controls,
+                            "command/input",
+                            "Command",
+                            &response,
+                        );
+                        command_dock::refresh(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &self.commands,
+                            id,
+                            keys.deletes,
+                        );
+                        let mut line = None;
+                        let complete = command_dock::browse(
+                            ui,
+                            &mut self.model,
+                            &mut self.controls,
+                            &self.commands,
+                            &response,
+                            &keys,
+                            id,
+                        );
+                        command_dock::finish(
+                            ui,
+                            &mut self.model,
+                            &response,
+                            &mut line,
+                            &self.commands,
+                            complete,
+                            &keys,
+                            true,
+                        );
+                        if let Some(line) = line {
+                            if line != "Escape" {
+                                self.commands.reply(&mut self.model, &line);
+                            }
+                        }
+                        command_dock::collapse(ui, &mut self.model, &mut self.controls);
+                    });
                 });
-            });
             self.top = panel.response.rect.top() - 4.0;
         });
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
-    }
+        if let Some(previous) = self.output.as_mut() {
 ```
 
 Replace it with:
@@ -3695,15 +5520,28 @@ Replace it with:
         self.controls = Some(Vec::new());
         let mut line = None;
         let output = self.context.run_ui(input, |root| {
-            command_dock::draw(root, &mut self.model, &mut self.controls, &mut line, &self.commands, true);
+            command_dock::draw(
+                root,
+                &mut self.model,
+                &mut self.controls,
+                &mut line,
+                &self.commands,
+                true,
+            );
         });
-        if let Some(control) = self.controls.as_ref().and_then(|items| items.iter().find(|item| item.key == "command/resize")) {
+        if let Some(control) = self.controls.as_ref().and_then(|items| {
+            items
+                .iter()
+                .find(|item| item.key == "command/resize")
+        }) {
             self.top = control.rect[1];
         }
-        if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
-    }
+        if let Some(line) = line {
+            if line != "Escape" {
+                self.commands.reply(&mut self.model, &line);
+            }
+        }
+        if let Some(previous) = self.output.as_mut() {
 ```
 
 **Locate this block:**
@@ -3772,24 +5610,20 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    let mut focus_canvas = false;
-    let panel = view::panel(root, model.command_expanded, 0.0).show_inside(root, |ui| {
-        view::prepare(ui);
-        history(ui, model, controls);
-        focus_canvas = row(
-            ui,
+    let panel =
+        view::panel(root, model.command_expanded, 0.0).show_inside(root, |ui| {
+            view::prepare(ui);
+            history(ui, model, controls);
 ```
 
 Replace it with:
 
 ```rust
-    let mut focus_canvas = false;
-    let panel = view::panel(root, model.command_expanded, 0.0).show_inside(root, |ui| {
-        view::prepare(ui);
-        model.dock_top = Some(ui.max_rect().top());
-        history(ui, model, controls);
-        focus_canvas = row(
-            ui,
+    let panel =
+        view::panel(root, model.command_expanded, 0.0).show_inside(root, |ui| {
+            view::prepare(ui);
+            model.dock_top = Some(ui.max_rect().top());
+            history(ui, model, controls);
 ```
 
 **Locate this block:**
@@ -3822,24 +5656,40 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    pub(crate) command: String,                     // text in the command field
-    pub(crate) drawing_prompt: String,              // prompt while drawing
-    pub(crate) focus_command: bool,                 // give the field focus next frame
-    pub(crate) status: String,                      // status line text
-    pub(crate) history: VecDeque<String>,           // past commands and answers
-    pub(crate) command_expanded: bool,              // history shown above the field
+    pub(crate) focus_command: bool,       // give the field focus next frame
+    pub(crate) status: String,            // status line text
+    pub(crate) history: VecDeque<String>, // past commands and answers
+    pub(crate) command_expanded: bool,    // history shown above the field
+    pub(crate) completion: usize,         // highlighted completion index
+    pub(crate) completion_prefix: String, // text the completions match
+    pub(crate) inline_suffix: bool,       // completion suffix shown in the field
+    pub(crate) completion_visible: bool,  // completion list shown
+    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) agent_edit: Option<bool>,  // phone keyboard set the text, true on delete
+    pub(crate) options: Vec<(String, String)>, // the running command's buttons: label, line it runs
+    pub(crate) options_rect: Option<egui::Rect>, // where those buttons are, for taps
+}
 ```
 
 Replace it with:
 
 ```rust
-    pub(crate) command: String,                     // text in the command field
-    pub(crate) drawing_prompt: String,              // prompt while drawing
-    pub(crate) focus_command: bool,                 // give the field focus next frame
-    pub(crate) dock_top: Option<f32>,               // the dock's top edge in CSS px, for fitting above it
-    pub(crate) status: String,                      // status line text
-    pub(crate) history: VecDeque<String>,           // past commands and answers
-    pub(crate) command_expanded: bool,              // history shown above the field
+    pub(crate) focus_command: bool,       // give the field focus next frame
+    pub(crate) dock_top: Option<f32>, // the dock's top edge in CSS px, for fitting above it
+    pub(crate) status: String,        // status line text
+    pub(crate) history: VecDeque<String>, // past commands and answers
+    pub(crate) command_expanded: bool, // history shown above the field
+    pub(crate) completion: usize,     // highlighted completion index
+    pub(crate) completion_prefix: String, // text the completions match
+    pub(crate) inline_suffix: bool,   // completion suffix shown in the field
+    pub(crate) completion_visible: bool, // completion list shown
+    pub(crate) completion_rect: Option<egui::Rect>, // where the list is, for taps
+    pub(crate) command_rect: Option<egui::Rect>, // where the field is, for taps
+    pub(crate) agent_edit: Option<bool>, // phone keyboard set the text, true on delete
+    pub(crate) options: Vec<(String, String)>, // the running command's buttons: label, line it runs
+    pub(crate) options_rect: Option<egui::Rect>, // where those buttons are, for taps
+}
 ```
 
 ## <a id="checkpoint-03cp-options"></a>23. Reserve command-row space for active tool values
@@ -3890,17 +5740,15 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
+    });
     focus_canvas
 }
-
-pub fn draw(
-    root: &mut egui::Ui,
-    model: &mut CommandLine,
 ```
 
 Replace it with:
 
 ```rust
+    });
     focus_canvas
 }
 
@@ -3911,9 +5759,12 @@ fn options(
     controls: &mut Option<Vec<Control>>,
     command: &mut Option<String>,
 ) {
-    let prompt = model.drawing_prompt.trim_end_matches(" · Esc cancels");
+    let prompt = model
+        .drawing_prompt
+        .trim_end_matches(" · Esc cancels");
     // the prompt gives way to the options and a field of at least 120 px
-    let room = (ui.available_width() - options_width(ui, &model.options) - 150.0).max(60.0);
+    let room =
+        (ui.available_width() - options_width(ui, &model.options) - 150.0).max(60.0);
     ui.scope(|ui| {
         ui.set_max_width(room);
         // the prompt grey, the options in it black
@@ -3965,16 +5816,16 @@ fn options_width(ui: &egui::Ui, options: &[(String, String)]) -> f32 {
         .iter()
         .map(|(label, _)| {
             let text = ui.fonts_mut(|fonts| {
-                fonts.layout_no_wrap(label.clone(), font.clone(), egui::Color32::BLACK)
+                fonts.layout_no_wrap(
+                    label.clone(),
+                    font.clone(),
+                    egui::Color32::BLACK,
+                )
             });
             text.size().x + ui.spacing().item_spacing.x
         })
         .sum()
 }
-
-pub fn draw(
-    root: &mut egui::Ui,
-    model: &mut CommandLine,
 ```
 
 **Locate this block:**
@@ -3986,13 +5837,14 @@ pub fn draw(
         let response = view::field(
             ui,
             &mut model.command,
-            placeholder(&model.drawing_prompt, &model.status, model.command_expanded),
+            placeholder(
+                &model.drawing_prompt,
+                &model.status,
+                model.command_expanded,
+            ),
             0.0,
             model.command_open,
         );
-        model.command_rect = Some(response.rect);
-        record(controls, "command/input", "Command", &response);
-        refresh(ui, model, &response, commands, id, keys.deletes);
 ```
 
 Replace it with:
@@ -4003,38 +5855,41 @@ Replace it with:
         let keys = keys(ui, model, previous, id);
         // a command with options reads as its prompt with the options in it; the field takes the answer
         let hint = if model.options.is_empty() {
-            placeholder(&model.drawing_prompt, &model.status, model.command_expanded)
+            placeholder(
+                &model.drawing_prompt,
+                &model.status,
+                model.command_expanded,
+            )
         } else {
             options(ui, model, controls, command);
             ""
         };
-        let response = view::field(ui, &mut model.command, hint, 0.0, model.command_open);
-        model.command_rect = Some(response.rect);
-        record(controls, "command/input", "Command", &response);
-        refresh(ui, model, &response, commands, id, keys.deletes);
+        let response = view::field(
+            ui,
+            &mut model.command,
+            hint,
+            0.0,
+            model.command_open,
+        );
 ```
 
 **Locate this block:**
 
 ```rust
-        model.completion_visible = true;
-    }
     let focused = model.command_open || response.has_focus() || response.lost_focus();
-    if !focused || !model.completion_visible || choices.is_empty() || !model.options.is_empty() {
-        return None;
-    }
+    if !focused
+        || !model.completion_visible
+        || choices.is_empty()
 ```
 
 Replace it with:
 
 ```rust
-        model.completion_visible = true;
-    }
     let focused = model.command_open || response.has_focus() || response.lost_focus();
     // a running command takes values, not other commands
-    if !focused || !model.completion_visible || choices.is_empty() || !model.options.is_empty() {
-        return None;
-    }
+    if !focused
+        || !model.completion_visible
+        || choices.is_empty()
 ```
 
 ### 2. `src/lib.rs`
@@ -4044,28 +5899,227 @@ Compile the shared dock for native widget checks.
 **Locate this existing block:**
 
 ```rust
+}
+
 #[cfg(target_arch = "wasm32")]
 mod command_dock;
+#[cfg(any(test, target_arch = "wasm32"))]
+mod command_vocabulary;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/03cp-options-04.rs"
+}
+
+#[cfg(any(test, target_arch = "wasm32"))]
+mod command_dock;
+
+#[cfg(any(test, target_arch = "wasm32"))]
+mod command_vocabulary;
+#[cfg(test)]
+#[path = "command_dock/tool_buttons_tests.rs"]
+mod tool_buttons_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/command_dock/tool_buttons_tests.rs`
 
 Copy actual value-button, focus, text, completion and Enter checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/03cp-options-05.rs"
+```rust
+use crate::command_dock::*;
+
+struct Vocabulary;
+impl Commands for Vocabulary {
+    fn canonical(&self, line: &str) -> String {
+        line.into()
+    }
+    fn choosing_option(&self, _: &str) -> bool {
+        false
+    }
+    fn accept(&self, line: &str) -> (String, bool) {
+        (line.into(), true)
+    }
+    fn completions(&self, _: &str) -> Vec<&'static str> {
+        vec!["Thickness", "Help"]
+    }
+    fn browse(&self, line: &str) -> Vec<&'static str> {
+        self.completions(line)
+    }
+}
+
+fn frame(
+    context: &egui::Context,
+    model: &mut CommandLine,
+    events: Vec<egui::Event>,
+) -> (Option<String>, Vec<Control>) {
+    let mut line = None;
+    let mut controls = Some(Vec::new());
+    let _ = context.run_ui(
+        egui::RawInput {
+            screen_rect: Some(egui::Rect::from_min_size(
+                egui::Pos2::ZERO,
+                egui::vec2(960., 640.),
+            )),
+            focused: true,
+            events,
+            ..Default::default()
+        },
+        |root| {
+            draw(
+                root,
+                model,
+                &mut controls,
+                &mut line,
+                &Vocabulary,
+                true,
+            );
+        },
+    );
+    (line, controls.unwrap())
+}
+
+fn context() -> egui::Context {
+    let context = egui::Context::default();
+    context.options_mut(|o| o.max_passes = 1.try_into().unwrap());
+    context.set_fonts(theme::fonts([
+        include_bytes!("../../assets/text/NotoSans-Regular.subset.ttf"),
+        include_bytes!("../../assets/text/NotoSansSymbols2-Regular.subset.ttf"),
+        include_bytes!("../../assets/text/NotoSansSymbols-Regular.subset.ttf"),
+    ]));
+    context
+}
+
+fn model() -> CommandLine {
+    CommandLine {
+        drawing_prompt: "Thickness <40>: type a number · Enter keeps it".into(),
+        command_open: true,
+        focus_command: true,
+        options: vec![
+            ("Thickness 40".into(), "Thickness".into()),
+            ("Create".into(), "".into()),
+            ("Cancel".into(), "Escape".into()),
+        ],
+        ..Default::default()
+    }
+}
+
+#[test]
+fn real_value_buttons_return_their_option_and_keep_keyboard_focus() {
+    let context = context();
+    let mut model = model();
+    let (_, controls) = frame(&context, &mut model, vec![]);
+    let button = controls
+        .iter()
+        .find(|c| c.key == "command/option/Thickness 40")
+        .unwrap();
+    let pos = egui::pos2(
+        (button.rect[0] + button.rect[2]) / 2.,
+        (button.rect[1] + button.rect[3]) / 2.,
+    );
+    let rect = model.options_rect.unwrap();
+    assert!(rect.contains(pos));
+    assert!(
+        rect.right() <= model.command_rect.unwrap().left(),
+        "Value buttons must end before the answer field"
+    );
+    frame(
+        &context,
+        &mut model,
+        vec![
+            egui::Event::PointerMoved(pos),
+            egui::Event::PointerButton {
+                pos,
+                button: egui::PointerButton::Primary,
+                pressed: true,
+                modifiers: Default::default(),
+            },
+        ],
+    );
+    let (line, _) = frame(
+        &context,
+        &mut model,
+        vec![egui::Event::PointerButton {
+            pos,
+            button: egui::PointerButton::Primary,
+            pressed: false,
+            modifiers: Default::default(),
+        }],
+    );
+    assert_eq!(line.as_deref(), Some("Thickness"));
+    assert!(model.command_open && model.focus_command);
+    frame(
+        &context,
+        &mut model,
+        vec![egui::Event::Text("60".into())],
+    );
+    assert_eq!(
+        model.command, "60",
+        "Active values must not acquire an unrelated command suffix"
+    );
+    let (line, _) = frame(
+        &context,
+        &mut model,
+        vec![egui::Event::Key {
+            key: egui::Key::Enter,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: Default::default(),
+        }],
+    );
+    assert_eq!(line.as_deref(), Some("60"));
+    assert!(model.completion_rect.is_none());
+}
+
+#[test]
+fn a_running_tool_suppresses_suggestions_and_empty_enter_reaches_the_owner() {
+    let context = context();
+    let mut model = model();
+    frame(&context, &mut model, vec![]);
+    frame(
+        &context,
+        &mut model,
+        vec![egui::Event::Text("Th".into())],
+    );
+    assert_eq!(model.command, "Th");
+    assert!(!model.inline_suffix);
+    assert!(model.completion_rect.is_none());
+    model.command.clear();
+    let (line, _) = frame(
+        &context,
+        &mut model,
+        vec![egui::Event::Key {
+            key: egui::Key::Enter,
+            physical_key: None,
+            pressed: true,
+            repeat: false,
+            modifiers: Default::default(),
+        }],
+    );
+    assert_eq!(
+        line.as_deref(),
+        Some(""),
+        "The tool decides whether Enter keeps a value or creates geometry"
+    );
+    model.options.clear();
+    model.drawing_prompt.clear();
+    frame(
+        &context,
+        &mut model,
+        vec![egui::Event::Text("Th".into())],
+    );
+    assert!(
+        model.inline_suffix,
+        "Ordinary command completion returns after the tool ends"
+    );
+}
 ```
 
 ## <a id="checkpoint-03cn-handoff"></a>24. Return accepted application commands
@@ -4111,83 +6165,114 @@ Copy this supplied file:
 
 Prepare the initial dock before presenting. Use Panel.update for input and the final layout pass. Remove inspection writes now handled inside update. Report that Panel returns application commands.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+    );
+    present(&surface, &renderer, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() {
+                panel.key(key);
+            }
+            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() {
+                panel.wheel(wheel, &input_canvas);
+            }
+            if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
+                panel.pointer(pointer, &input_canvas);
+            }
+            {
+                if let Err(error) = present(&surface, &renderer, &mut panel) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command-ui", &panel.inspect())
+                {
+                    report(&format!("Cannot inspect dock: {error:?}"));
+                }
+                if let Err(error) =
+                    input_canvas.set_attribute("data-command", panel.command())
+                {
+                    report(&format!("Cannot inspect text: {error:?}"));
+                }
+                if let Err(error) = input_canvas.set_attribute(
+                    "data-history",
+                    &serde_json::to_string(panel.history()).unwrap(),
+                ) {
+                    report(&format!("Cannot inspect history: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "keydown",
+        "keyup",
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+    ] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
     options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options("wheel", redraw.as_ref().unchecked_ref(), &options)?;
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        redraw.as_ref().unchecked_ref(),
+        &options,
+    )?;
     redraw.forget();
     report("The shared production dock is drawn.");
     Ok(())
-}
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-    options.set_passive(false);
-    canvas.add_event_listener_with_callback_and_add_event_listener_options("wheel", redraw.as_ref().unchecked_ref(), &options)?;
-    redraw.forget();
-    report("Panel returns accepted application commands.");
-    Ok(())
-}
-```
-
-**Locate this block:**
-
-```rust
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
-    present(&surface, &renderer, &mut panel)?;
-    let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { panel.key(key); }
-        if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() { panel.wheel(wheel, &input_canvas); }
-        if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() { panel.pointer(pointer, &input_canvas); }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-command-ui", &panel.inspect()) {
-                report(&format!("Cannot inspect dock: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-command", panel.command()) {
-                report(&format!("Cannot inspect text: {error:?}"));
-            }
-            if let Err(error) = input_canvas.set_attribute("data-history", &serde_json::to_string(panel.history()).unwrap()) {
-                report(&format!("Cannot inspect history: {error:?}"));
-            }
-        }
-    });
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
-```
-
-Replace it with:
-
-```rust
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
+    );
     panel.update(None, &canvas)?;
     present(&surface, &renderer, &mut panel)?;
     let input_canvas = canvas.clone();
-    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if let Err(error) = panel.update(Some(&event), &input_canvas) {
-            report(&format!("Cannot read command: {error:?}"));
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-        }
-        {
-            if let Err(error) = present(&surface, &renderer, &mut panel) {
-                report(&format!("Cannot redraw: {error:?}"));
+    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if let Err(error) = panel.update(Some(&event), &input_canvas) {
+                report(&format!("Cannot read command: {error:?}"));
             }
-        }
-    });
-    for name in ["keydown", "keyup", "pointerdown", "pointermove", "pointerup", "pointercancel"] {
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
+            }
+            {
+                if let Err(error) = present(&surface, &renderer, &mut panel) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "keydown",
+        "keyup",
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+    ] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        redraw.as_ref().unchecked_ref(),
+        &options,
+    )?;
+    redraw.forget();
+    report("Panel returns accepted application commands.");
+    Ok(())
 ```
 
 ### 2. `src/panel.rs`
@@ -4199,38 +6284,47 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        if let Some(control) = self.controls.as_ref().and_then(|items| items.iter().find(|item| item.key == "command/resize")) {
+        }) {
             self.top = control.rect[1];
         }
-        if let Some(line) = line { if line != "Escape" { self.commands.reply(&mut self.model, &line); } }
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
+        if let Some(line) = line {
+            if line != "Escape" {
+                self.commands.reply(&mut self.model, &line);
+            }
+        }
+        if let Some(previous) = self.output.as_mut() {
+            previous.append(output);
+        } else {
+            self.output = Some(output);
+        }
     }
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        self.screen.size_in_pixels = [target.texture().width(), target.texture().height()];
+        self.screen.size_in_pixels = [
+            target.texture().width(),
+            target.texture().height(),
+        ];
         self.prepare();
         self.prepare();
-        let Some(output) = self.output.take() else { return; };
-        // The font atlas is a texture: upload its changed pixels before drawing the letters.
-        for (id, delta) in &output.textures_delta.set {
+        let Some(output) = self.output.take() else {
 ```
 
 Replace it with:
 
 ```rust
-        if let Some(control) = self.controls.as_ref().and_then(|items| items.iter().find(|item| item.key == "command/resize")) {
+        }) {
             self.top = control.rect[1];
         }
-        if let Some(previous) = self.output.as_mut() { previous.append(output); }
-        else { self.output = Some(output); }
+        if let Some(previous) = self.output.as_mut() {
+            previous.append(output);
+        } else {
+            self.output = Some(output);
+        }
         line
     }
 
     pub fn draw(&mut self, renderer: &Renderer, target: &wgpu::TextureView) {
-        let Some(output) = self.output.take() else { return; };
-        // The font atlas is a texture: upload its changed pixels before drawing the letters.
-        for (id, delta) in &output.textures_delta.set {
+        let Some(output) = self.output.take() else {
 ```
 
 **Locate this block:**
@@ -4250,7 +6344,11 @@ Replace it with:
             )),
             ..Default::default()
         };
-        input.viewports.get_mut(&egui::ViewportId::ROOT).unwrap().native_pixels_per_point = Some(self.screen.pixels_per_point);
+        input
+            .viewports
+            .get_mut(&egui::ViewportId::ROOT)
+            .unwrap()
+            .native_pixels_per_point = Some(self.screen.pixels_per_point);
         self.controls = Some(Vec::new());
         let mut line = None;
         let output = self.context.run_ui(input, |root| {
@@ -4277,7 +6375,8 @@ Replace it with:
     }
 
     pub fn answer(&mut self, line: &str, message: &str) {
-        self.model.remember(format!("> {line}\n{message}"));
+        self.model
+            .remember(format!("> {line}\n{message}"));
         self.model.status = message.into();
     }
 
@@ -4292,26 +6391,38 @@ Replace it with:
         self.screen.pixels_per_point = canvas.width() as f32 / rect.width() as f32;
         self.consumed = false;
         if let Some(event) = event {
-            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() { self.consumed = self.key(key); }
+            if let Some(key) = event.dyn_ref::<web_sys::KeyboardEvent>() {
+                self.consumed = self.key(key);
+            }
             if let Some(pointer) = event.dyn_ref::<web_sys::PointerEvent>() {
                 self.consumed = self.pointer(pointer, canvas);
                 if event.type_() == "pointerdown" {
-                    let options = web_sys::FocusOptions::new(); options.set_prevent_scroll(true);
+                    let options = web_sys::FocusOptions::new();
+                    options.set_prevent_scroll(true);
                     canvas.focus_with_options(&options)?;
                     event.prevent_default();
                 }
             }
-            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() { self.consumed = self.wheel(wheel, canvas); }
+            if let Some(wheel) = event.dyn_ref::<web_sys::WheelEvent>() {
+                self.consumed = self.wheel(wheel, canvas);
+            }
         }
         let line = self.prepare();
         canvas.set_attribute("data-command-ui", &self.inspect())?;
-        let Some(line) = line else { return Ok(None); };
-        if line == "Escape" { return Ok(None); }
+        let Some(line) = line else {
+            return Ok(None);
+        };
+        if line == "Escape" {
+            return Ok(None);
+        }
         if line.eq_ignore_ascii_case("Help") {
             self.answer(&line, &self.commands.0.join(" · "));
             return Ok(None);
         }
-        if !self.commands.0.iter()
+        if !self
+            .commands
+            .0
+            .iter()
             .any(|name| name.eq_ignore_ascii_case(&line))
         {
             self.answer(&line, "Unknown command. Type Help.");
@@ -4332,43 +6443,64 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), pointer_owned: false, top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            command_expanded: true,
-            history: ["Command history lives here.".into()].into(),
-            ..Default::default()
-        } }
-    }
+                pixels_per_point: 1.0,
+            },
+            model: CommandLine {
+                command_expanded: true,
+                history: ["Command history lives here.".into()].into(),
+                ..Default::default()
+            },
+        }
 ```
 
 Replace it with:
 
 ```rust
-        // One layout pass prevents a future text event from being replayed.
-        context.options_mut(|options| options.max_passes = 1.try_into().unwrap());
-        let painter = egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
-        Self { commands: Commands(commands), consumed: false, pointer_owned: false, top: f32::INFINITY, controls: None, context, painter, events: Vec::new(), output: None,
-            screen: egui_wgpu::ScreenDescriptor { size_in_pixels: [640, 480], pixels_per_point: 1.0 }, model: CommandLine {
-            focus_command: true,
-            ..Default::default()
-        } }
-    }
+                pixels_per_point: 1.0,
+            },
+            model: CommandLine {
+                focus_command: true,
+                ..Default::default()
+            },
+        }
 ```
 
 **Locate this block:**
 
 ```rust
-    }
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            pointer_owned: false,
+            top: f32::INFINITY,
+            controls: None,
+```
+
+Replace it with:
+
+```rust
+            egui_wgpu::Renderer::new(&renderer.device, format, Default::default());
+        Self {
+            commands: Commands(commands),
+            consumed: false,
+            pointer_owned: false,
+            top: f32::INFINITY,
+            controls: None,
+```
+
+**Locate this block:**
+
+```rust
 }
 
 impl Commands {
     fn reply(&self, model: &mut CommandLine, line: &str) {
         let line = self.canonical(line);
-        let message = if line.eq_ignore_ascii_case("Help") { self.0.join(" · ") }
-            else { "Unknown command. Type Help.".into() };
+        let message = if line.eq_ignore_ascii_case("Help") {
+            self.0.join(" · ")
+        } else {
+            "Unknown command. Type Help.".into()
+        };
         model.status = message;
         model.remember(format!("> {line}\n{}", model.status));
     }
@@ -4384,7 +6516,6 @@ pub struct Panel {
 Replace it with:
 
 ```rust
-    }
 }
 
 pub struct Panel {
@@ -4438,81 +6569,79 @@ pub struct Panel {
 
 Import the retained Closure type. Keep canvas acquisition ready for canvas-owned input. Keep GPU setup with the final browser event owner. Remove the intermediate event callback setup. Keep surface configuration before the canvas input owner. Handle command update errors in the canvas callback. Stop the callback after a layout failure. Present after preparing the final command layout. Register drawing and keyboard events on the canvas. Retain the wheel callback for the page lifetime. Give surface presentation its complete function. Return a useful error when the surface is unavailable.
 
-Replace the entire file with:
+Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
+
+**Locate this block:**
 
 ```rust
-use crate::renderer::Renderer;
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
-
-pub fn report(message: &str) {
-    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
-        if let Some(status) = document.get_element_by_id("status") {
-            status.set_text_content(Some(message));
-            if message.starts_with("Cannot") { let _ = status.remove_attribute("hidden"); }
-        }
-    }
-}
-
-pub async fn run() -> Result<(), JsValue> {
-    let window = web_sys::window().ok_or("No browser window")?;
-    let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document
-        .get_element_by_id("canvas")
-        .ok_or("Missing canvas")?
-        .dyn_into()?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-        backends: wgpu::Backends::BROWSER_WEBGPU,
-        flags: Default::default(),
-        memory_budget_thresholds: Default::default(),
-        backend_options: Default::default(),
-        display: None,
-    });
-    let surface = instance
-        .create_surface(wgpu::SurfaceTarget::Canvas(canvas.clone()))
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let adapter = instance
-        .request_adapter(&wgpu::RequestAdapterOptions {
-            compatible_surface: Some(&surface),
-            ..Default::default()
-        })
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    let (device, queue) = adapter
-        .request_device(&wgpu::DeviceDescriptor::default())
-        .await
-        .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
-    let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
-    canvas.set_width(width);
-    canvas.set_height(height);
-    let mut config = surface
-        .get_default_config(&adapter, width, height)
-        .ok_or("No compatible surface format")?;
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
     panel.update(None, &canvas)?;
     present(&surface, &renderer, &mut panel)?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let _line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
+    let redraw = wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if let Err(error) = panel.update(Some(&event), &input_canvas) {
                 report(&format!("Cannot read command: {error:?}"));
+            }
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
+            }
+            {
+                if let Err(error) = present(&surface, &renderer, &mut panel) {
+                    report(&format!("Cannot redraw: {error:?}"));
+                }
+            }
+        },
+    );
+    for name in [
+        "keydown",
+        "keyup",
+        "pointerdown",
+        "pointermove",
+        "pointerup",
+        "pointercancel",
+    ] {
+        window
+            .add_event_listener_with_callback(name, redraw.as_ref().unchecked_ref())?;
+    }
+    let options = web_sys::AddEventListenerOptions::new();
+    options.set_passive(false);
+    canvas.add_event_listener_with_callback_and_add_event_listener_options(
+        "wheel",
+        redraw.as_ref().unchecked_ref(),
+        &options,
+    )?;
+    redraw.forget();
+    report("Panel returns accepted application commands.");
+    Ok(())
+```
+
+Replace it with:
+
+```rust
+    panel.update(None, &canvas)?;
+    present(&surface, &renderer, &mut panel)?;
+    let input_canvas = canvas.clone();
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let _line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
                 return;
             }
-        };
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+            if let Err(error) = present(&surface, &renderer, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
     for name in [
         "pointerdown",
         "pointermove",
@@ -4524,7 +6653,8 @@ pub async fn run() -> Result<(), JsValue> {
         "keyup",
         "blur",
     ] {
-        canvas.add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
+        canvas
+            .add_event_listener_with_callback(name, click.as_ref().unchecked_ref())?;
     }
     let options = web_sys::AddEventListenerOptions::new();
     options.set_passive(false);
@@ -4537,31 +6667,26 @@ pub async fn run() -> Result<(), JsValue> {
     click.forget();
     report("Type Help in the command field and press Enter.");
     Ok(())
-}
+```
 
-fn present(
-    surface: &wgpu::Surface<'_>,
-    renderer: &Renderer,
-    panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
-        wgpu::CurrentSurfaceTexture::Success(frame)
-        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => frame,
-        other => {
-            return Err(JsValue::from_str(&format!(
-                "Surface unavailable: {other:?}"
-            )));
-        }
-    };
-    let view = frame.texture.create_view(&wgpu::TextureViewDescriptor {
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
-    renderer.draw(&view);
-    panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
-}
+**Locate this block:**
+
+```rust
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue};
+
+pub fn report(message: &str) {
+    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
+```
+
+Replace it with:
+
+```rust
+use crate::renderer::Renderer;
+use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+
+pub fn report(message: &str) {
+    if let Some(document) = web_sys::window().and_then(|window| window.document()) {
 ```
 
 ## <a id="checkpoint-04-input"></a>26. Make a choice change the picture
@@ -4610,7 +6735,24 @@ Create the small piece of application state. It knows colours, but knows nothing
 Create the file and type:
 
 ```rust
---8<-- "journey/code/04-input-02.rs"
+#[derive(Default)]
+pub struct Background {
+    light: bool,
+}
+
+impl Background {
+    pub fn toggle(&mut self) {
+        self.light = !self.light;
+    }
+
+    pub fn rgb(&self) -> [f64; 3] {
+        if self.light {
+            [0.9, 0.9, 0.9]
+        } else {
+            [1.0, 1.0, 1.0]
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -4620,7 +6762,6 @@ Register the state module so both the browser and the renderer can use it.
 **Locate this existing block:**
 
 ```rust
-pub mod renderer;
 #[cfg(target_arch = "wasm32")]
 mod browser;
 ```
@@ -4628,62 +6769,67 @@ mod browser;
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/04-input-fullscreen-1.rs"
+pub mod background;
+#[cfg(target_arch = "wasm32")]
+mod browser;
 ```
 
 ### 3. `src/renderer.rs`
 
 Borrow Background in draw and read its RGB value. Clear the render target with that RGB value.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 1.0, g: 1.0, b: 1.0, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-```
-
-Replace it with:
-
-```rust
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r, g, b, a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-```
-
-**Locate this block:**
-
-```rust
-        Self { device, queue, pipeline }
     }
 
     pub fn draw(&self, view: &wgpu::TextureView) {
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color {
+                            r: 1.0,
+                            g: 1.0,
+                            b: 1.0,
+                            a: 1.0,
+                        }),
+                        store: wgpu::StoreOp::Store,
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        Self { device, queue, pipeline }
     }
 
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
+    pub fn draw(
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
+    ) {
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&Default::default());
         {
             // The pass borrows the encoder. This scope ends that borrow before finish takes it.
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("canvas"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view,
+                    depth_slice: None,
+                    resolve_target: None,
+                    ops: wgpu::Operations {
+                        load: wgpu::LoadOp::Clear(wgpu::Color { r, g, b, a: 1.0 }),
+                        store: wgpu::StoreOp::Store,
 ```
 
 ### 4. `src/browser.rs`
@@ -4695,25 +6841,21 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 Replace it with:
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view, background);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 **Locate this block:**
@@ -4756,37 +6898,38 @@ fn present(
 **Locate this block:**
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
-    let mut panel = crate::panel::Panel::new(&renderer, config.format.add_srgb_suffix(), &["Help"]);
+    let mut panel = crate::panel::Panel::new(
+        &renderer,
+        config.format.add_srgb_suffix(),
+        &["Help"],
+    );
     panel.update(None, &canvas)?;
     present(&surface, &renderer, &mut panel)?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let _line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let _line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
                 return;
             }
-        };
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+            if let Err(error) = present(&surface, &renderer, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
 ```
 
 Replace it with:
 
 ```rust
-    config.view_formats = vec![config.format.add_srgb_suffix()];
-    surface.configure(&device, &config);
-    let renderer = Renderer::new(device, queue, config.format.add_srgb_suffix());
     let mut panel = crate::panel::Panel::new(
         &renderer,
         config.format.add_srgb_suffix(),
@@ -4796,25 +6939,28 @@ Replace it with:
     let mut background = Background::default();
     present(&surface, &renderer, &background, &mut panel)?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
-            Ok(line) => line,
-            Err(error) => {
-                report(&format!("Cannot read command: {error:?}"));
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
+            let line = match panel.update(Some(&event), &input_canvas) {
+                Ok(line) => line,
+                Err(error) => {
+                    report(&format!("Cannot read command: {error:?}"));
+                    return;
+                }
+            };
+            if line.as_deref() == Some("background") {
+                background.toggle();
+            }
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+                    "Cannot lay out commands: {error:?}"
+                ));
                 return;
             }
-        };
-        if line.as_deref() == Some("background") {
-            background.toggle();
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+            if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
 ```
 
 **Locate this block:**

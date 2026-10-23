@@ -1,6 +1,6 @@
 # 18.2 · Original contact metadata and ambient light
 
-**Goal:** Exercise actual contacts cache and source ownership. · **Steps:** 33 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Exercise actual contacts cache and source ownership. · **Steps:** 33 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,35 +32,28 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/hzb.wgsl</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/ssao.wgsl</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Derive contact radius</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Scene Tree Hierarchy</text>
-  <rect x="650" y="50" width="100" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="68" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Group (Mp)</text>
-  <line x1="680" y1="78" x2="640" y2="108" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="720" y1="78" x2="760" y2="108" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
-  <rect x="600" y="112" width="80" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="129" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part A</text>
-  <rect x="720" y="112" width="80" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="760" y="129" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. HZB Mip Pyramid &amp; SSAO</text>
+  <rect x="606" y="54" width="84" height="84" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="648" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mip 0</text>
+  <rect x="702" y="68" width="52" height="52" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="728" y="98" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Mip 1</text>
+  <rect x="764" y="82" width="28" height="28" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Original contact metadata a…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Layer Colours &amp; Lamps</text>
-  <rect x="880" y="52" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="898" cy="70" r="6" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <rect x="912" y="63" width="14" height="14" rx="3" fill="#ef4444" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="994" y="74" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Layer_01 (Lamp ON)</text>
-  <rect x="880" y="98" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="898" cy="116" r="6" fill="#e5e7eb" stroke="#111111" stroke-width="1.25"/>
-  <rect x="912" y="109" width="14" height="14" rx="3" fill="#3b82f6" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="994" y="120" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[Rename Layer_02|]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Timber WoodElement &amp; Joints</text>
+  <polygon points="888,122 924,62 1054,62 1018,122" fill="#fed7aa" stroke="#111111" stroke-width="2"/>
+  <rect x="954" y="62" width="34" height="28" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <line x1="971" y1="46" x2="971" y2="76" stroke="#16a34a" stroke-width="2.25" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mortise/Tenon + Dir</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Exercise actual contacts…</text>
 </svg>
 </div>
@@ -97,7 +90,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -111,7 +104,13 @@ Type the complete original geometry query and reuse its current consumer.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90-copy-maintained-original-contact-radius-typed-ambient_radius.rs"
+use session_rust::AABB;
+pub fn ambient_radius(bounds: &AABB) -> f32 {
+    if !bounds.is_valid() {
+        return 0.0;
+    }
+    (0.05 * bounds.hx.hypot(bounds.hy).hypot(bounds.hz)).max(0.01) as f32
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -121,14 +120,31 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
+pub mod pyramid_pipeline;
 
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
 pub mod pyramid_gpu;
+pub mod source_mesh_topology;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90-copy-maintained-original-contact-radius-02.rs" skip=22
+pub mod pyramid_pipeline;
+
+pub mod pyramid_gpu;
+
+pub mod ambient_radius;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 ```
 
 ## <a id="checkpoint-90a-copy-current-viewing-rays"></a>2. Write current viewing rays
@@ -163,7 +179,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -175,72 +191,6 @@ After that block, type:
 Type the complete existing WebGPU helper and reuse its current consumer.
 
 Create the file and type:
-
-```rust
---8<-- "journey/code/90a-copy-current-viewing-rays-typed-ambient_camera.rs"
-```
-
-### 2. `src/lib.rs`
-
-Register the completed section component.
-
-**Locate this existing block:**
-
-```rust
-
-pub mod ambient_radius;
-```
-
-After that block, type:
-
-```rust
---8<-- "journey/code/90a-copy-current-viewing-rays-02.rs" skip=25
-```
-
-## <a id="checkpoint-90b-adapt-the-earlier-forward-camera"></a>3. Adapt the earlier forward camera
-
-<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
-<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
-  <defs>
-    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
-    </marker>
-    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
-    </marker>
-    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
-    </marker>
-    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
-    </marker>
-  </defs>
-  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3 of 33</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/ambient_camera.rs</text>
-  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original properties</text>
-  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
-  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
-</svg>
-</div>
-
-**What this code does:** Adapt the earlier forward camera.
-
-### 1. `src/ambient_camera.rs`
-
-Adapt the earlier camera to the maintained ambient convention.
-
-**Locate this existing block:**
 
 ```rust
 pub fn pixel_rays(inverse: &[f32; 16], size: (u32, u32)) -> [f32; 24] {
@@ -283,10 +233,113 @@ pub fn pixel_rays(inverse: &[f32; 16], size: (u32, u32)) -> [f32; 24] {
 }
 ```
 
-After that block, type:
+### 2. `src/lib.rs`
+
+Register the completed section component.
+
+**Locate this existing block:**
 
 ```rust
---8<-- "journey/code/90b-adapt-the-earlier-forward-camera-01.rs" skip=1245
+pub mod ambient_radius;
+pub mod finite_project_source;
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub mod ambient_radius;
+
+pub mod ambient_camera;
+pub mod finite_project_source;
+```
+
+## <a id="checkpoint-90b-adapt-the-earlier-forward-camera"></a>3. Adapt the earlier forward camera
+
+<div class="webgpu-schematic" style="width:100%;margin:6px auto;">
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="72" viewBox="0 0 1120 72" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#111111"/>
+    </marker>
+    <marker id="arrR" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arrG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+  </defs>
+  <rect x="2" y="2" width="1116" height="68" rx="10" fill="#ffffff" stroke="#111111" stroke-width="2"/>
+  <rect x="14" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="30" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Step 3 of 33</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="140" y="48" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">src/ambient_camera.rs</text>
+  <line x1="266" y1="36" x2="292" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="296" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1. CPU / Rust Input</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="422" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original properties</text>
+  <line x1="548" y1="36" x2="574" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="578" y="10" width="252" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">2. WebGPU / WGSL</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
+  <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
+  <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
+</svg>
+</div>
+
+**What this code does:** Adapt the earlier forward camera.
+
+### 1. `src/ambient_camera.rs`
+
+Adapt the earlier camera to the maintained ambient convention.
+
+**Locate this existing block:**
+
+```rust
+    out
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+    out
+}
+
+pub fn uniform(
+    matrix: [f32; 16],
+    full: [u32; 2],
+    size: [u32; 2],
+    ground: [f32; 2],
+) -> Option<[f32; 80]> {
+    let forward = session_rust::Xform::from_matrix(matrix.map(f64::from));
+    let mut flip = session_rust::Xform::identity();
+    flip.m[10] = -1.;
+    flip.m[14] = 1.;
+    let mvp = &flip * &forward;
+    let inverse = mvp.inverse()?.m.map(|v| v as f32);
+    if inverse.iter().any(|v| !v.is_finite()) {
+        return None;
+    }
+    let mut out = [0.; 80];
+    out[..16].copy_from_slice(&inverse);
+    out[16..32].copy_from_slice(&mvp.m.map(|v| v as f32));
+    out[32..40].copy_from_slice(&[
+        ground[0],
+        ground[1],
+        full[0] as f32,
+        full[1] as f32,
+        size[0] as f32,
+        size[0] as f32,
+        size[1] as f32,
+        size[1] as f32,
+    ]);
+    out[40..64].copy_from_slice(&pixel_rays(&inverse, (full[0], full[1])));
+    Some(out)
+}
 ```
 
 ## <a id="checkpoint-90c-gather-weak-original-ambient-properties"></a>4. Gather weak ambient properties
@@ -321,7 +374,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -335,7 +388,46 @@ Gather current original contact properties without retaining source documents.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90c-gather-weak-original-ambient-properties-01.rs"
+#[derive(Default)]
+pub struct Rows {
+    bounds: crate::cap_source_bounds::Bounds,
+    pub specs: Vec<(u32, f32)>,
+    pub ground: [f32; 2],
+}
+impl Rows {
+    pub fn set(&mut self, scene: &crate::scene::Scene) {
+        self.specs.clear();
+        let mut floor = f64::INFINITY;
+        let mut radius = 0f32;
+        for object in scene
+            .objects()
+            .iter()
+            .filter(|r| scene.visible(r.id) && !r.mesh.indices().is_empty())
+        {
+            if let Some(bounds) = self
+                .bounds
+                .placed(&object.mesh, &object.model)
+            {
+                let r = crate::ambient_radius::ambient_radius(&bounds);
+                self.specs.push((object.id.value(), r));
+                floor = floor.min(bounds.cz - bounds.hz);
+                radius = radius.max(r);
+            }
+        }
+        self.ground = [
+            if floor.is_finite() {
+                floor as f32
+            } else {
+                0.
+            },
+            radius,
+        ];
+        self.bounds.prune();
+        if self.specs.is_empty() {
+            self.specs.shrink_to_fit();
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -345,14 +437,17 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_camera;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90c-gather-weak-original-ambient-properties-02.rs" skip=25
+pub mod ambient_camera;
+
+pub mod ambient_rows;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-90d-copy-current-horizon-and-bilateral-recipes"></a>5. Declare the ambient pass resource contracts
@@ -387,7 +482,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">declare the ambient pass…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">declare the ambient pass…</text>
 </svg>
 </div>
@@ -401,7 +496,49 @@ Keep ray, depth, normal, radius and history inputs in explicit bind groups.
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/90d-copy-current-horizon-and-bilateral-recipes-01.wgsl"
+const MSAA: bool = false;
+@group(3) @binding(0) var<storage,read_write> corrections: array<u32>;
+@group(3) @binding(1) var<storage,read_write> edge_flags: array<atomic<u32>>;
+@group(3) @binding(2) var<storage,read_write> edge_tiles: array<u32>;
+@group(3) @binding(4) var history_ao: texture_2d<f32>;
+@group(3) @binding(5) var history_depth: texture_2d<f32>;
+struct Draw { vertices: u32, instances: atomic<u32>, first_vertex: u32, first_instance: u32 };
+@group(3) @binding(3) var<storage,read_write> draw_edges: Draw;
+struct Ambient {
+    inverse_mvp: mat4x4<f32>,
+    mvp: mat4x4<f32>,
+    params: vec4<f32>,
+    extent: vec4<f32>,
+    near: vec4<f32>,
+    near_x: vec4<f32>,
+    near_y: vec4<f32>,
+    ray: vec4<f32>,
+    ray_x: vec4<f32>,
+    ray_y: vec4<f32>,
+    previous_mvp: mat4x4<f32>,
+};
+@group(0) @binding(0) var depth: texture_depth_2d;
+@group(0) @binding(1) var<uniform> ambient: Ambient;
+@group(0) @binding(2) var source_radii:texture_2d<f32>;
+@group(0) @binding(3) var source_normals:texture_2d<f32>;
+@group(0) @binding(4) var source_sections:texture_2d<f32>;
+// Geometry access: ambient_geometry.wgsl, appended by ssao.rs
+@group(1) @binding(0) var linear: texture_2d<f32>;
+@group(1) @binding(1) var radii: texture_2d<u32>;
+@group(1) @binding(2) var normals: texture_2d<f32>;
+@group(2) @binding(0) var occlusion: texture_2d<f32>;
+@group(2) @binding(1) var linear_sampler: sampler;
+
+struct DepthRadius {
+    @location(0) depth: f32,
+    @location(1) radius: u32,
+    @location(2) normal: vec2<f32>,
+};
+struct Hit {
+    point: vec3<f32>,
+    along: f32,
+    radius: f32,
+};
 ```
 
 ## <a id="checkpoint-90da-reconstruct-original-surfaces-from-depth"></a>6. Reconstruct surfaces from depth
@@ -436,7 +573,7 @@ Create the file and type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reconstruct original surf…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reconstruct original surf…</text>
 </svg>
 </div>
@@ -450,28 +587,15 @@ Unproject framebuffer depth and recover ray positions without changing original 
 **Locate this existing block:**
 
 ```wgsl
-// Geometry access: ambient_geometry.wgsl, appended by ssao.rs
-@group(1) @binding(0) var linear: texture_2d<f32>;
-@group(1) @binding(1) var radii: texture_2d<u32>;
-@group(1) @binding(2) var normals: texture_2d<f32>;
-@group(2) @binding(0) var occlusion: texture_2d<f32>;
-@group(2) @binding(1) var linear_sampler: sampler;
-
-struct DepthRadius {
-    @location(0) depth: f32,
-    @location(1) radius: u32,
-    @location(2) normal: vec2<f32>,
-};
-struct Hit {
-    point: vec3<f32>,
-    along: f32,
     radius: f32,
 };
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    radius: f32,
+};
 
 fn fullscreen(i: u32) -> vec4<f32> {
     let p = array<vec2<f32>, 3>(vec2<f32>(-1.0,-1.0), vec2<f32>(3.0,-1.0), vec2<f32>(-1.0,3.0));
@@ -542,7 +666,7 @@ fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">encode normals and read o…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">encode normals and read o…</text>
 </svg>
 </div>
@@ -556,23 +680,15 @@ Read original radii, section normals and geometric fallback normals through the 
 **Locate this existing block:**
 
 ```wgsl
-    if direction.z>=-1e-7 || near.z<ambient.params.x { return vec4<f32>(0.0); }
-    return vec4<f32>(near+direction*((ambient.params.x-near.z)/direction.z),1.0);
-}
-fn surface(pixel: vec2<f32>, sample: i32) -> vec4<f32> {
-    return surface_at_depth(pixel,depth_sample(pixel,sample));
-}
-fn full_pixel(pixel: vec2<f32>) -> vec2<f32> {
-    return floor(pixel/ambient.extent.yz*ambient.params.zw)+0.5;
-}
-fn position_at(pixel: vec2<f32>, along: f32) -> vec3<f32> {
     return ray_origin(pixel)+ray_direction(pixel)*abs(along);
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return ray_origin(pixel)+ray_direction(pixel)*abs(along);
+}
 
 fn encode_normal(n: vec3<f32>) -> vec2<f32> {
     let p = n.xy/(abs(n.x)+abs(n.y)+abs(n.z));
@@ -636,7 +752,7 @@ fn normal_of(pixel:vec2<f32>,p:vec3<f32>,sample:i32)->vec3<f32>{
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">prepare a compact depth r…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">prepare a compact depth r…</text>
 </svg>
 </div>
@@ -650,15 +766,15 @@ Write ray distance, contact radius and octahedral normal into separate attachmen
 **Locate this existing block:**
 
 ```wgsl
- if(cap>=0.5){let plane=(u32(cap)-1u)&7u;let n=-clipping.planes[plane].xyz;return select(-n,n,dot(n,-ray_direction(pixel))>0.0);}
- let a=surface(pixel+vec2<f32>(1.,0.),sample);let b=surface(pixel-vec2<f32>(1.,0.),sample);let c=surface(pixel+vec2<f32>(0.,1.),sample);let d=surface(pixel-vec2<f32>(0.,1.),sample);
  let dx=select(p-b.xyz,a.xyz-p,a.w>0.&& (b.w==0.||distance(a.xyz,p)<distance(b.xyz,p)));let dy=select(p-d.xyz,c.xyz-p,c.w>0.&&(d.w==0.||distance(c.xyz,p)<distance(d.xyz,p)));let n=cross(dx,dy);let normal=n/max(length(n),1e-12);return select(-normal,normal,dot(normal,-ray_direction(pixel))>0.);
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+ let dx=select(p-b.xyz,a.xyz-p,a.w>0.&& (b.w==0.||distance(a.xyz,p)<distance(b.xyz,p)));let dy=select(p-d.xyz,c.xyz-p,c.w>0.&&(d.w==0.||distance(c.xyz,p)<distance(d.xyz,p)));let n=cross(dx,dy);let normal=n/max(length(n),1e-12);return select(-normal,normal,dot(normal,-ray_direction(pixel))>0.);
+}
 
 @fragment fn fs_prepare(@builtin(position) pixel: vec4<f32>) -> DepthRadius {
     let at = full_pixel(pixel.xy);
@@ -732,7 +848,7 @@ fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure ground contact al…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure ground contact al…</text>
 </svg>
 </div>
@@ -746,23 +862,15 @@ Sample bounded directions and steps using the retained mip levels and physical c
 **Locate this existing block:**
 
 ```wgsl
-    let mask = (1u<<u32(level))-1u;
-    let offset_coord = vec2<u32>(encoded&3u,(encoded>>2u)&3u)&vec2<u32>(mask);
-    let source_coord = (vec2<u32>(coord)<<vec2<u32>(u32(level)))+offset_coord;
-    let pixel = full_pixel(vec2<f32>(source_coord)+0.5);
-    return Hit(position_at(pixel,along),along,unpack2x16float((encoded>>4u)<<2u).x*ambient.params.y);
-}
-fn stride() -> u32 {
-    return select(1u,2u,ambient.near.w!=0.0);
-}
-fn phase(pixel: vec2<f32>, stride: u32) -> u32 {
     return (u32(pixel.x)+u32(pixel.y))%stride;
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return (u32(pixel.x)+u32(pixel.y))%stride;
+}
 
 fn ground_contact(at: vec2<f32>, p: vec3<f32>, pixel_world: f32, noise: f32, phase: u32) -> f32 {
     let dims = vec2<i32>(textureDimensions(occlusion));
@@ -844,7 +952,7 @@ fn filtered_ground(at: vec2<f32>) -> f32 {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">integrate cosine weighted…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">integrate cosine weighted…</text>
 </svg>
 </div>
@@ -858,21 +966,15 @@ Accumulate the occluded part of each projected normal slice, with bounded horizo
 **Locate this existing block:**
 
 ```wgsl
-    if ray.z>=-1e-7 || origin.z<ambient.params.x { return 0.0; }
-    let along = (ambient.params.x-origin.z)/ray.z;
-    let p = origin+ray*along;
-    let pixel_world = max(length(ambient.near_x.xyz+ambient.ray_x.xyz*along),1e-6);
-    let noise = fract(52.9829189*fract(dot(floor(pixel.xy),vec2<f32>(0.06711056,0.00583715))));
-    return ground_contact(at,p,pixel_world,noise,phase(pixel.xy,stride()));
-}
-fn filtered_ground(at: vec2<f32>) -> f32 {
     return textureSampleLevel(occlusion,linear_sampler,at/ambient.params.zw,0.0).x;
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return textureSampleLevel(occlusion,linear_sampler,at/ambient.params.zw,0.0).x;
+}
 
 fn arc(h: f32, n: f32) -> f32 {
     return (cos(n)+2.0*h*sin(n)-cos(2.0*h-n))*0.25;
@@ -966,7 +1068,7 @@ fn arc(h: f32, n: f32) -> f32 {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">filter contact without cr…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">filter contact without cr…</text>
 </svg>
 </div>
@@ -980,22 +1082,15 @@ Weight neighboring occlusion by surface separation, normal and contact radius.
 **Locate this existing block:**
 
 ```wgsl
-                if dot(delta,normal)<=span*0.07+bias { continue; }
-                let weight = max(1.0-smoothstep(radius*0.5,radius*2.0,span),0.75*(1.0-smoothstep(radius*4.0,radius*16.0,span)));
-                horizon = max(horizon,mix(low,dot(delta/span,view),weight));
-            }
-            let h = acos(clamp(horizon,-1.0,1.0));
-            slice_occ += arc(signed_n+1.570796327,signed_n)-arc(h,signed_n);
-        }
-        occluded += normal_length*slice_occ;
-    }
     return clamp(occluded*(1.08*f32(stride)/4.0),0.0,0.65);
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return clamp(occluded*(1.08*f32(stride)/4.0),0.0,0.65);
+}
 
 fn weight_at(q: vec2<i32>, p: vec3<f32>, n: vec3<f32>, geometry: bool, radius: f32) -> f32 {
     let along = textureLoad(linear,q,0).x;
@@ -1070,7 +1165,7 @@ fn denoise(pixel: vec2<f32>, axis: vec2<i32>) -> vec3<f32> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reject invalid ambient hi…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reject invalid ambient hi…</text>
 </svg>
 </div>
@@ -1084,25 +1179,15 @@ Reproject into the prior frame, validate signed depth and clamp reused visibilit
 **Locate this existing block:**
 
 ```wgsl
-    let radius = select(ambient.params.y,radius_at(coord),along>0.0);
-    var sum = 0.0;
-    var weights = 0.0;
-    var low = 1.0;
-    var high = 0.0;
-    for (var i=0; i<7; i++) {
-        let q = clamp(coord+axis*(i-3),vec2<i32>(0),vec2<i32>(ambient.extent.yz)-1);
-        let weight = exp(-f32((i-3)*(i-3))*0.12)*weight_at(q,p,n,along>0.0,radius);
-        if weight>0.05 { low=min(low,values[i]); high=max(high,values[i]); }
-        sum += values[i]*weight;
-        weights += weight;
-    }
     return vec3<f32>(sum/max(weights,1e-6),low,high);
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return vec3<f32>(sum/max(weights,1e-6),low,high);
+}
 
 @fragment fn fs_filter_x(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     return denoise(pixel.xy,vec2<i32>(1,0)).x;
@@ -1172,7 +1257,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reconstruct full resoluti…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reconstruct full resoluti…</text>
 </svg>
 </div>
@@ -1186,22 +1271,15 @@ Use surface-aware weights to combine the four nearby low-resolution values.
 **Locate this existing block:**
 
 ```wgsl
-    let previous = textureSampleLevel(history_ao,linear_sampler,uv,0.0).x;
-    return mix(current.x,clamp(previous,current.y,current.z),0.8);
-}
-@fragment fn fs_history(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
-    let coord = min(vec2<i32>(pixel.xy)*2+1,vec2<i32>(ambient.extent.yz)-1);
-    let along = textureLoad(linear,coord,0).x;
-    if along==0.0 { return 0.0; }
-    let p = position_at(full_pixel(vec2<f32>(coord)+0.5),along);
-    let clip = ambient.mvp*vec4<f32>(p,1.0);
     return select(-clip.z/clip.w,clip.z/clip.w,along>0.0);
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return select(-clip.z/clip.w,clip.z/clip.w,along>0.0);
+}
 
 fn source_base(at: vec2<f32>) -> vec2<i32> {
     let base = vec2<i32>(floor(at/ambient.params.zw*ambient.extent.yz-0.5));
@@ -1266,7 +1344,7 @@ fn reconstruct(at: vec2<f32>, sample: i32, z: f32, values: vec4<f32>) -> f32 {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">collect bounded sample co…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">collect bounded sample co…</text>
 </svg>
 </div>
@@ -1280,25 +1358,15 @@ Pack per-sample corrections and claim each affected tile once for indirect edge 
 **Locate this existing block:**
 
 ```wgsl
-    let origin = full_pixel(vec2<f32>(base)+0.5);
-    let blend = (at-origin)/(full_pixel(vec2<f32>(base)+1.5)-origin);
-    var sum = 0.0;
-    var weights = 0.0;
-    for (var i=0; i<4; i++) {
-        let offset = vec2<i32>(i%2,i/2);
-        let q = clamp(base+offset,vec2<i32>(0),vec2<i32>(ambient.extent.yz)-1);
-        let spatial = mix(1.0-blend,blend,vec2<f32>(offset));
-        let w = spatial.x*spatial.y*weight_at(q,p.xyz,n,geometry,radius);
-        sum += values[i]*w;
-        weights += w;
-    }
     return sum/max(weights,1e-6);
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
+    return sum/max(weights,1e-6);
+}
 
 @fragment fn fs_upsample(@builtin(position) pixel: vec4<f32>) -> @location(0) f32 {
     let xy = vec2<u32>(pixel.xy);
@@ -1370,7 +1438,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">composite contact as blac…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">composite contact as blac…</text>
 </svg>
 </div>
@@ -1384,7 +1452,53 @@ Load the current contact amount and use per-sample masks for corrected edge draw
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/90dj-composite-contact-as-black-alpha-over-the-original-scene-01.wgsl"
+struct Ambient {
+    inverse_mvp: mat4x4<f32>,
+    mvp: mat4x4<f32>,
+    params: vec4<f32>,
+    extent: vec4<f32>,
+    near: vec4<f32>,
+    near_x: vec4<f32>,
+    near_y: vec4<f32>,
+    ray: vec4<f32>,
+    ray_x: vec4<f32>,
+    ray_y: vec4<f32>,
+    previous_mvp: mat4x4<f32>,
+};
+@group(0) @binding(0) var<uniform> ambient: Ambient;
+@group(0) @binding(1) var<storage,read> corrections: array<u32>;
+@group(0) @binding(2) var<storage,read> tiles: array<u32>;
+@group(1) @binding(0) var occlusion: texture_2d<f32>;
+@vertex fn vs_main(@builtin(vertex_index) i: u32) -> @builtin(position) vec4<f32> {
+    let p = array<vec2<f32>,3>(vec2<f32>(-1.0,-1.0),vec2<f32>(3.0,-1.0),vec2<f32>(-1.0,3.0));
+    return vec4<f32>(p[i],0.0,1.0);
+}
+@fragment fn fs_main(@builtin(position) pixel: vec4<f32>) -> @location(0) vec4<f32> {
+    return vec4<f32>(0.0,0.0,0.0,textureLoad(occlusion,vec2<i32>(pixel.xy),0).x);
+}
+struct Vertex {
+    @builtin(position) position: vec4<f32>,
+    @location(0) @interpolate(flat) sample: u32,
+};
+@vertex fn vs_edges(@builtin(vertex_index) i: u32, @builtin(instance_index) instance: u32) -> Vertex {
+    let tile = tiles[instance/4u];
+    let width = (u32(ambient.params.z)+15u)/16u;
+    let origin = vec2<f32>(f32(tile%width),f32(tile/width))*16.0;
+    let corners = array<vec2<f32>,6>(vec2<f32>(0.0,0.0),vec2<f32>(1.0,0.0),vec2<f32>(0.0,1.0),vec2<f32>(0.0,1.0),vec2<f32>(1.0,0.0),vec2<f32>(1.0,1.0));
+    let xy = (origin+corners[i]*16.0)/ambient.params.zw;
+    return Vertex(vec4<f32>(xy.x*2.0-1.0,1.0-xy.y*2.0,0.0,1.0),instance%4u);
+}
+struct Shade {
+    @location(0) color: vec4<f32>,
+    @builtin(sample_mask) mask: u32,
+};
+@fragment fn fs_edges(pixel: Vertex) -> Shade {
+    let xy = vec2<u32>(pixel.position.xy);
+    let packed = corrections[xy.y*u32(ambient.params.z)+xy.x];
+    let alpha = f32((packed>>(pixel.sample*8u))&255u)/255.0;
+    if alpha==0.0 { discard; }
+    return Shade(vec4<f32>(0.0,0.0,0.0,alpha),1u<<pixel.sample);
+}
 ```
 
 ## <a id="checkpoint-90e-bind-real-original-normals-and-radii"></a>16. Validate the assembled ambient shader contracts
@@ -1419,30 +1533,50 @@ Create the file and type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">type/entry validation</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">later pipeline creation</text>
 </svg>
 </div>
 
 **What this code does:** Read optional shader-interface validation before runtime pipeline creation.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/ambient_shader_contract.rs`
 
 Validate the actual shader types and public entry points.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/90e-bind-real-original-normals-and-radii-validate.rs"
+```rust
+#[test]
+fn ambient_shader_contracts_validate_before_pipeline_connection() {
+    let sources = [
+        crate::clipping_gpu::source(include_str!("ambient.wgsl"), 0, 5),
+        include_str!("ambient_composite.wgsl").to_string(),
+    ];
+    for source in sources {
+        let module = wgpu::naga::front::wgsl::parse_str(&source)
+            .unwrap_or_else(|error| panic!("{}", error.emit_to_string(&source)));
+        wgpu::naga::valid::Validator::new(
+            wgpu::naga::valid::ValidationFlags::all(),
+            wgpu::naga::valid::Capabilities::all(),
+        )
+        .validate(&module)
+        .expect("valid ambient GPU contract");
+        assert!(
+            module
+                .entry_points
+                .iter()
+                .any(|entry| entry.name == "vs_main")
+        );
+        assert!(
+            module
+                .entry_points
+                .iter()
+                .any(|entry| entry.name == "fs_main")
+        );
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -1450,14 +1584,18 @@ Compile the shader contract at the completed owner boundary.
 
 **Locate this existing block:**
 
-```text
+```rust
 pub mod ambient_rows;
+pub mod finite_project_source;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/90e-bind-real-original-normals-and-radii-register.rs" skip=22
+```rust
+pub mod ambient_rows;
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-90f-write-original-surface-contact-properties"></a>17. Write surface contact properties
@@ -1492,7 +1630,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1506,7 +1644,20 @@ Derive original ambient properties without changing color or source geometry.
 Create the file and type:
 
 ```wgsl
---8<-- "journey/code/90f-write-original-surface-contact-properties-01.rs"
+struct View{transform:mat4x4<f32>,display:vec4<f32>}
+struct Object{model:mat4x4<f32>,selection:vec4<u32>,normal_matrix:mat4x4<f32>,face_colour:vec4<f32>}
+@group(0) @binding(0) var<uniform> view:View;
+@group(1) @binding(0) var<uniform> object:Object;
+@group(3) @binding(0) var<uniform> ambient_radius:vec4<f32>;
+struct Vertex{@builtin(position) position:vec4<f32>,@location(0) world:vec3<f32>,@location(1) normal:vec3<f32>,@location(2) @interpolate(flat) flags:u32}
+@vertex fn vs_main(@location(0) position:vec3<f32>,@location(2) normal:vec3<f32>)->Vertex{let world=object.model*vec4<f32>(position,1.);return Vertex(view.transform*world,world.xyz,(object.normal_matrix*vec4<f32>(normal,0.)).xyz,object.selection.z);}
+fn encode_normal(n:vec3<f32>)->vec2<f32>{let p=n.xy/(abs(n.x)+abs(n.y)+abs(n.z));let folded=(1.-abs(p.yx))*select(vec2<f32>(-1.),vec2<f32>(1.),p>=vec2<f32>(0.));return select(folded,p,n.z>=0.);}
+struct Source{@location(0) radius:f32,@location(1) normal:vec2<f32>}
+@fragment fn fs_main(in:Vertex,@builtin(front_facing) front:bool)->Source{
+ let face=cross(dpdx(in.world),dpdy(in.world));if(clip_active()&&clip_cut(in.flags,in.world)){discard;}
+ let normal=normalize(select(select(face,-face,front),in.normal,dot(in.normal,in.normal)>0.));
+ return Source(ambient_radius.x,encode_normal(normal)*0.5+0.5);
+}
 ```
 
 ## <a id="checkpoint-90g-build-the-depth-equal-original-property-pass"></a>18. Build the depth-equal property pass
@@ -1541,7 +1692,7 @@ Create the file and type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1555,14 +1706,19 @@ Add an explicit depth-equal read-only property state.
 **Locate this existing block:**
 
 ```rust
-        stencil: Default::default(), bias: Default::default() }
+    }
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90g-build-the-depth-equal-original-property-pass-01.rs" skip=66
+    }
+}
+
+pub fn state_for_ambient() -> wgpu::DepthStencilState {
+    state(false, wgpu::CompareFunction::Equal)
+}
 ```
 
 ### 2. `src/ambient_source_pipeline.rs`
@@ -1572,7 +1728,37 @@ Build the compatible original property pass.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90g-build-the-depth-equal-original-property-pass-02.rs"
+pub struct Pipeline {
+    pub draw: wgpu::RenderPipeline,
+    pub radius: wgpu::BindGroupLayout,
+}
+impl Pipeline {
+    pub fn new(device: &wgpu::Device) -> Self {
+        let view = crate::gpu_layout::uniform(device, 80);
+        let model = crate::gpu_layout::uniform(device, 160);
+        let clip = crate::clipping_gpu::layout(device);
+        let radius = crate::gpu_layout::uniform(device, 16);
+        let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: Some("ambient original source metadata"),
+            bind_group_layouts: &[
+                Some(&view),
+                Some(&model),
+                Some(&clip),
+                Some(&radius),
+            ],
+            immediate_size: 0,
+        });
+        let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("ambient original normals and radii"),
+            source: wgpu::ShaderSource::Wgsl(
+                crate::clipping_gpu::source(include_str!("ambient_sources.wgsl"), 2, 0)
+                    .into(),
+            ),
+        });
+        let draw=device.create_render_pipeline(&wgpu::RenderPipelineDescriptor{label:Some("ambient original normals and radii"),layout:Some(&layout),vertex:wgpu::VertexState{module:&module,entry_point:Some("vs_main"),compilation_options:Default::default(),buffers:&[wgpu::VertexBufferLayout{array_stride:24,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![0=>Float32x3,1=>Float32x3]},wgpu::VertexBufferLayout{array_stride:12,step_mode:wgpu::VertexStepMode::Vertex,attributes:&wgpu::vertex_attr_array![2=>Float32x3]}]},fragment:Some(wgpu::FragmentState{module:&module,entry_point:Some("fs_main"),compilation_options:Default::default(),targets:&[Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::R32Float,blend:None,write_mask:wgpu::ColorWrites::RED}),Some(wgpu::ColorTargetState{format:wgpu::TextureFormat::Rg8Unorm,blend:None,write_mask:wgpu::ColorWrites::ALL})]}),primitive:Default::default(),depth_stencil:Some(crate::depth::state_for_ambient()),multisample:Default::default(),multiview_mask:None,cache:None});
+        Self { draw, radius }
+    }
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -1582,14 +1768,21 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_rows;
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90g-build-the-depth-equal-original-property-pass-03.rs" skip=23
+pub mod ambient_rows;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod ambient_source_pipeline;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-90h-cache-original-radius-buffers-and-draw-properties"></a>19. Cache radius buffers and draw properties
@@ -1624,7 +1817,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1638,7 +1831,105 @@ Own original property uniforms and compatible metadata draws.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90h-cache-original-radius-buffers-and-draw-properties-01.rs"
+use std::collections::HashMap;
+pub struct Sources {
+    pipes: crate::ambient_source_pipeline::Pipeline,
+    rows: HashMap<u32, (wgpu::Buffer, wgpu::BindGroup, f32)>,
+    pub writes: u64,
+    pub draws: u64,
+}
+impl Sources {
+    pub fn new(device: &wgpu::Device) -> Self {
+        Self {
+            pipes: crate::ambient_source_pipeline::Pipeline::new(device),
+            rows: Default::default(),
+            writes: 0,
+            draws: 0,
+        }
+    }
+    pub fn set(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        specs: &[(u32, f32)],
+    ) {
+        let live = specs
+            .iter()
+            .map(|(id, _)| *id)
+            .collect::<std::collections::HashSet<_>>();
+        self.rows.retain(|id, _| live.contains(id));
+        for &(id, radius) in specs {
+            let row = self.rows.entry(id).or_insert_with(|| {
+                let buffer = device.create_buffer(&wgpu::BufferDescriptor {
+                    label: Some("original ambient contact radius"),
+                    size: 16,
+                    usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                    mapped_at_creation: false,
+                });
+                let group =
+                    crate::gpu_layout::group(device, &self.pipes.radius, &buffer);
+                (buffer, group, f32::NAN)
+            });
+            if row.2 != radius {
+                queue.write_buffer(&row.0, 0, &radius.to_ne_bytes());
+                row.2 = radius;
+                self.writes += 1;
+            }
+        }
+        if self.rows.is_empty() {
+            self.rows.shrink_to_fit();
+        }
+    }
+    pub fn encode(
+        &mut self,
+        encoder: &mut wgpu::CommandEncoder,
+        radius: &wgpu::TextureView,
+        normals: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        view: &wgpu::BindGroup,
+        clip: &wgpu::BindGroup,
+        meshes: &[crate::gpu_mesh::GpuMesh],
+    ) {
+        let attachments = [radius, normals].map(|view| {
+            Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                    store: wgpu::StoreOp::Store,
+                },
+            })
+        });
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("original ambient source properties"),
+            color_attachments: &attachments,
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth,
+                depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Load,
+                    store: wgpu::StoreOp::Store,
+                }),
+                stencil_ops: None,
+            }),
+            ..Default::default()
+        });
+        pass.set_pipeline(&self.pipes.draw);
+        pass.set_bind_group(0, view, &[]);
+        pass.set_bind_group(2, clip, &[]);
+        for mesh in meshes {
+            if let Some((_, group, _)) = self.rows.get(&mesh.id.value()) {
+                mesh.bind_model(&mut pass);
+                pass.set_bind_group(3, group, &[]);
+                mesh.geometry.draw(&mut pass);
+                self.draws += 1;
+            }
+        }
+    }
+    pub fn bytes(&self) -> u64 {
+        self.rows.values().map(|r| r.0.size()).sum()
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1648,14 +1939,25 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
+pub mod ambient_rows;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod ambient_source_pipeline;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90h-cache-original-radius-buffers-and-draw-properties-02.rs" skip=34
+pub mod ambient_rows;
+
+pub mod ambient_source_pipeline;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod ambient_source_gpu;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-90i-own-actual-ambient-image-allocation"></a>20. Own actual ambient image allocation
@@ -1690,7 +1992,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1704,7 +2006,46 @@ Own actual single-level ambient images.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90i-own-actual-ambient-image-allocation-01.rs"
+pub struct Image {
+    pub texture: wgpu::Texture,
+    pub view: wgpu::TextureView,
+    pub bytes: u64,
+    pub size: [u32; 2],
+}
+impl Image {
+    pub fn new(
+        device: &wgpu::Device,
+        size: [u32; 2],
+        format: wgpu::TextureFormat,
+    ) -> Self {
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("ambient actual image"),
+            size: wgpu::Extent3d {
+                width: size[0],
+                height: size[1],
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING
+                | wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        let view = texture.create_view(&Default::default());
+        let bytes = u64::from(size[0])
+            * u64::from(size[1])
+            * u64::from(format.block_copy_size(None).unwrap());
+        Self {
+            texture,
+            view,
+            bytes,
+            size,
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1714,14 +2055,25 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
+pub mod ambient_source_pipeline;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod ambient_source_gpu;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90i-own-actual-ambient-image-allocation-02.rs" skip=29
+pub mod ambient_source_pipeline;
+
+pub mod ambient_source_gpu;
+
+pub mod ambient_image;
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-90j-prepare-reduced-and-full-ambient-targets"></a>21. Prepare reduced and full ambient targets
@@ -1756,7 +2108,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1770,7 +2122,74 @@ Own compatible current ambient targets and exact allocation.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90j-prepare-reduced-and-full-ambient-targets-01.rs"
+use crate::{ambient_image::Image, pyramid_image::Image as Pyramid};
+pub struct Images {
+    pub full: [u32; 2],
+    pub size: [u32; 2],
+    pub source_radius: Image,
+    pub source_normals: Image,
+    pub linear: Pyramid,
+    pub radii: Pyramid,
+    pub normals: Image,
+    pub occupancy: Image,
+    pub ground: Image,
+    pub ao: [Image; 3],
+    pub history: Image,
+    pub history_depth: Image,
+}
+impl Images {
+    pub fn new(device: &wgpu::Device, full: [u32; 2], density: f32) -> Self {
+        let (w, h) =
+            crate::pyramid_size::resolution((full[0], full[1]), f64::from(density));
+        let size = [w.max(32), h.max(32)];
+        let image = |size, format| Image::new(device, size, format);
+        let source_radius = image(full, wgpu::TextureFormat::R32Float);
+        let source_normals = image(full, wgpu::TextureFormat::Rg8Unorm);
+        let linear = Pyramid::new(device, size, wgpu::TextureFormat::R32Float);
+        let radii = Pyramid::new(device, size, wgpu::TextureFormat::R16Uint);
+        let normals = image(size, wgpu::TextureFormat::Rg8Unorm);
+        let occupancy = image(size, wgpu::TextureFormat::R8Unorm);
+        let ground = image(size, wgpu::TextureFormat::R8Unorm);
+        let ao = std::array::from_fn(|i| {
+            image(
+                if i == 2 {
+                    full
+                } else {
+                    size
+                },
+                wgpu::TextureFormat::R8Unorm,
+            )
+        });
+        let history = image(size, wgpu::TextureFormat::R8Unorm);
+        let history_depth = image(size, wgpu::TextureFormat::R32Float);
+        Self {
+            full,
+            size,
+            source_radius,
+            source_normals,
+            linear,
+            radii,
+            normals,
+            occupancy,
+            ground,
+            ao,
+            history,
+            history_depth,
+        }
+    }
+    pub fn bytes(&self) -> u64 {
+        self.source_radius.bytes
+            + self.source_normals.bytes
+            + self.linear.bytes
+            + self.radii.bytes
+            + self.normals.bytes
+            + self.occupancy.bytes
+            + self.ground.bytes
+            + self.ao.iter().map(|i| i.bytes).sum::<u64>()
+            + self.history.bytes
+            + self.history_depth.bytes
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1780,14 +2199,17 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_image;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90j-prepare-reduced-and-full-ambient-targets-02.rs" skip=24
+pub mod ambient_image;
+
+pub mod ambient_images;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-90k-build-explicit-ambient-fullscreen-pipelines"></a>22. Build explicit ambient fullscreen pipelines
@@ -1822,7 +2244,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1836,7 +2258,75 @@ Build compatible fullscreen ambient pipelines.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90k-build-explicit-ambient-fullscreen-pipelines-01.rs"
+use wgpu::{BufferBindingType as B, ShaderStages as S, TextureSampleType as T};
+pub struct Pipelines {
+    pub source: wgpu::BindGroupLayout,
+    pub level: wgpu::BindGroupLayout,
+    pub sample: wgpu::BindGroupLayout,
+    pub history: wgpu::BindGroupLayout,
+    pub prepare: wgpu::RenderPipeline,
+    pub reduce: wgpu::RenderPipeline,
+    pub occupancy: wgpu::RenderPipeline,
+    pub ground: wgpu::RenderPipeline,
+    pub raw: wgpu::RenderPipeline,
+    pub filter: [wgpu::RenderPipeline; 2],
+    pub upsample: wgpu::RenderPipeline,
+    pub composite: wgpu::RenderPipeline,
+}
+fn pipeline(
+    device: &wgpu::Device,
+    source: &str,
+    fragment: &str,
+    groups: &[Option<&wgpu::BindGroupLayout>],
+    formats: &[wgpu::TextureFormat],
+    blend: bool,
+) -> wgpu::RenderPipeline {
+    let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("current ambient recipe"),
+        source: wgpu::ShaderSource::Wgsl(source.into()),
+    });
+    let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: Some("current ambient recipe"),
+        bind_group_layouts: groups,
+        immediate_size: 0,
+    });
+    let targets = formats
+        .iter()
+        .map(|format| {
+            Some(wgpu::ColorTargetState {
+                format: *format,
+                blend: if blend {
+                    Some(wgpu::BlendState::ALPHA_BLENDING)
+                } else {
+                    None
+                },
+                write_mask: wgpu::ColorWrites::ALL,
+            })
+        })
+        .collect::<Vec<_>>();
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("current ambient recipe"),
+        layout: Some(&layout),
+        vertex: wgpu::VertexState {
+            module: &module,
+            entry_point: Some("vs_main"),
+            compilation_options: Default::default(),
+            buffers: &[],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &module,
+            entry_point: Some(fragment),
+            compilation_options: Default::default(),
+            targets: &targets,
+        }),
+        primitive: Default::default(),
+        depth_stencil: None,
+        multisample: Default::default(),
+        multiview_mask: None,
+        cache: None,
+    })
+}
+impl Pipelines {}
 ```
 
 ### 2. `src/lib.rs`
@@ -1846,14 +2336,17 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_images;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90k-build-explicit-ambient-fullscreen-pipelines-02.rs" skip=25
+pub mod ambient_images;
+
+pub mod ambient_pipeline;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-90l-match-current-ambient-sampling-layouts"></a>23. Match current ambient sampling layouts
@@ -1888,7 +2381,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1903,15 +2396,177 @@ Build each compatible current ambient stage.
 
 ```rust
 }
-impl Pipelines{
-
-}
+impl Pipelines {}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90l-match-current-ambient-sampling-layouts-01.rs"
+}
+impl Pipelines {
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        let texture = |binding, sample| {
+            crate::text_gpu_support::texture_entry(binding, S::FRAGMENT, sample, false)
+        };
+        let uniform =
+            |binding| crate::tile_pipelines::entry(binding, S::FRAGMENT, B::Uniform);
+        let source =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("ambient source images and precise camera"),
+                entries: &[
+                    texture(0, T::Depth),
+                    uniform(1),
+                    texture(
+                        2,
+                        T::Float {
+                            filterable: false,
+                        },
+                    ),
+                    texture(
+                        3,
+                        T::Float {
+                            filterable: false,
+                        },
+                    ),
+                    texture(
+                        4,
+                        T::Float {
+                            filterable: false,
+                        },
+                    ),
+                    uniform(5),
+                ],
+            });
+        let level = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+            label: Some("ambient reduced original properties"),
+            entries: &[
+                texture(
+                    0,
+                    T::Float {
+                        filterable: false,
+                    },
+                ),
+                texture(1, T::Uint),
+                texture(
+                    2,
+                    T::Float {
+                        filterable: false,
+                    },
+                ),
+            ],
+        });
+        let sample =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("ambient filtered samples"),
+                entries: &[
+                    texture(0, T::Float { filterable: true }),
+                    wgpu::BindGroupLayoutEntry {
+                        binding: 1,
+                        visibility: S::FRAGMENT,
+                        ty: wgpu::BindingType::Sampler(
+                            wgpu::SamplerBindingType::Filtering,
+                        ),
+                        count: None,
+                    },
+                ],
+            });
+        let mut entries = (0..4)
+            .map(|i| {
+                crate::tile_pipelines::entry(
+                    i,
+                    S::FRAGMENT,
+                    B::Storage { read_only: false },
+                )
+            })
+            .collect::<Vec<_>>();
+        entries.push(texture(4, T::Float { filterable: true }));
+        entries.push(texture(
+            5,
+            T::Float {
+                filterable: false,
+            },
+        ));
+        let history =
+            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                label: Some("ambient reserved current history bindings"),
+                entries: &entries,
+            });
+        let shader = crate::clipping_gpu::source(include_str!("ambient.wgsl"), 0, 5);
+        let groups = [
+            Some(&source),
+            Some(&level),
+            Some(&sample),
+            Some(&history),
+        ];
+        let prepare = pipeline(
+            device,
+            &shader,
+            "fs_prepare",
+            &[Some(&source)],
+            &[
+                wgpu::TextureFormat::R32Float,
+                wgpu::TextureFormat::R16Uint,
+                wgpu::TextureFormat::Rg8Unorm,
+            ],
+            false,
+        );
+        let make = |fragment| {
+            pipeline(
+                device,
+                &shader,
+                fragment,
+                &groups,
+                &[wgpu::TextureFormat::R8Unorm],
+                false,
+            )
+        };
+        let ground = make("fs_ground");
+        let raw = make("fs_main");
+        let filter = [make("fs_filter_x"), make("fs_filter_y")];
+        let upsample = make("fs_upsample");
+        let composite = pipeline(
+            device,
+            include_str!("ambient_composite.wgsl"),
+            "fs_main",
+            &[None, Some(&sample)],
+            &[format],
+            true,
+        );
+        let reduce = pipeline(
+            device,
+            include_str!("ambient_depth.wgsl"),
+            "fs_reduce",
+            &[Some(&level)],
+            &[
+                wgpu::TextureFormat::R32Float,
+                wgpu::TextureFormat::R16Uint,
+            ],
+            false,
+        );
+        let occupancy = pipeline(
+            device,
+            include_str!("ambient_depth.wgsl"),
+            "fs_occupancy",
+            &[Some(&level)],
+            &[wgpu::TextureFormat::R8Unorm],
+            false,
+        );
+        Self {
+            source,
+            level,
+            sample,
+            history,
+            prepare,
+            reduce,
+            occupancy,
+            ground,
+            raw,
+            filter,
+            upsample,
+            composite,
+        }
+    }
+}
 ```
 
 ## <a id="checkpoint-90m-cache-reduced-levels-and-filtered-samples"></a>24. Cache reduced levels and filtered samples
@@ -1946,7 +2601,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -1960,7 +2615,131 @@ Cache actual reduced-level and sample bindings.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90m-cache-reduced-levels-and-filtered-samples-01.rs"
+pub struct Groups {
+    pub levels: [wgpu::BindGroup; 6],
+    pub occupancy: wgpu::BindGroup,
+    pub ground: wgpu::BindGroup,
+    pub ao: [wgpu::BindGroup; 3],
+    pub history: wgpu::BindGroup,
+    pub buffers: [wgpu::Buffer; 4],
+}
+fn sampled(
+    device: &wgpu::Device,
+    layout: &wgpu::BindGroupLayout,
+    view: &wgpu::TextureView,
+    sampler: &wgpu::Sampler,
+) -> wgpu::BindGroup {
+    device.create_bind_group(&wgpu::BindGroupDescriptor {
+        label: Some("ambient retained sample"),
+        layout,
+        entries: &[
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: wgpu::BindingResource::Sampler(sampler),
+            },
+        ],
+    })
+}
+impl Groups {
+    pub fn new(
+        device: &wgpu::Device,
+        pipes: &crate::ambient_pipeline::Pipelines,
+        images: &crate::ambient_images::Images,
+    ) -> Self {
+        let levels = std::array::from_fn(|i| {
+            device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("ambient retained depth and properties"),
+                layout: &pipes.level,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(
+                            &images.linear.levels[i],
+                        ),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::TextureView(
+                            &images.radii.levels[i],
+                        ),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 2,
+                        resource: wgpu::BindingResource::TextureView(
+                            &images.normals.view,
+                        ),
+                    },
+                ],
+            })
+        });
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            ..Default::default()
+        });
+        let occupancy = sampled(
+            device,
+            &pipes.sample,
+            &images.occupancy.view,
+            &sampler,
+        );
+        let ground = sampled(
+            device,
+            &pipes.sample,
+            &images.ground.view,
+            &sampler,
+        );
+        let ao = std::array::from_fn(|i| {
+            sampled(
+                device,
+                &pipes.sample,
+                &images.ao[i].view,
+                &sampler,
+            )
+        });
+        let buffers = std::array::from_fn(|_| {
+            device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("ambient reserved single-sample work"),
+                size: 16,
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            })
+        });
+        let mut entries = buffers
+            .iter()
+            .enumerate()
+            .map(|(i, b)| wgpu::BindGroupEntry {
+                binding: i as u32,
+                resource: b.as_entire_binding(),
+            })
+            .collect::<Vec<_>>();
+        entries.push(wgpu::BindGroupEntry {
+            binding: 4,
+            resource: wgpu::BindingResource::TextureView(&images.history.view),
+        });
+        entries.push(wgpu::BindGroupEntry {
+            binding: 5,
+            resource: wgpu::BindingResource::TextureView(&images.history_depth.view),
+        });
+        let history = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("ambient inactive single-sample history"),
+            layout: &pipes.history,
+            entries: &entries,
+        });
+        Self {
+            levels,
+            occupancy,
+            ground,
+            ao,
+            history,
+            buffers,
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1970,14 +2749,17 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_pipeline;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90m-cache-reduced-levels-and-filtered-samples-02.rs" skip=27
+pub mod ambient_pipeline;
+
+pub mod ambient_groups;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-90n-bind-exact-current-ambient-source-images"></a>25. Bind exact current ambient source images
@@ -2012,7 +2794,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2026,16 +2808,60 @@ Bind exact current original inputs and camera resources.
 **Locate this existing block:**
 
 ```rust
-  let buffers=std::array::from_fn(|_|device.create_buffer(&wgpu::BufferDescriptor{label:Some("ambient reserved single-sample work"),size:16,usage:wgpu::BufferUsages::STORAGE|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}));let mut entries=buffers.iter().enumerate().map(|(i,b)|wgpu::BindGroupEntry{binding:i as u32,resource:b.as_entire_binding()}).collect::<Vec<_>>();entries.push(wgpu::BindGroupEntry{binding:4,resource:wgpu::BindingResource::TextureView(&images.history.view)});entries.push(wgpu::BindGroupEntry{binding:5,resource:wgpu::BindingResource::TextureView(&images.history_depth.view)});let history=device.create_bind_group(&wgpu::BindGroupDescriptor{label:Some("ambient inactive single-sample history"),layout:&pipes.history,entries:&entries});Self{levels,occupancy,ground,ao,history,buffers}
- }
-
+    }
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90n-bind-exact-current-ambient-source-images-01.rs"
+    }
+    pub fn source(
+        device: &wgpu::Device,
+        pipes: &crate::ambient_pipeline::Pipelines,
+        images: &crate::ambient_images::Images,
+        depth: &wgpu::TextureView,
+        sections: &wgpu::TextureView,
+        frame: &wgpu::Buffer,
+        clip: &wgpu::Buffer,
+    ) -> wgpu::BindGroup {
+        let entries = [
+            wgpu::BindGroupEntry {
+                binding: 0,
+                resource: wgpu::BindingResource::TextureView(depth),
+            },
+            wgpu::BindGroupEntry {
+                binding: 1,
+                resource: frame.as_entire_binding(),
+            },
+            wgpu::BindGroupEntry {
+                binding: 2,
+                resource: wgpu::BindingResource::TextureView(
+                    &images.source_radius.view,
+                ),
+            },
+            wgpu::BindGroupEntry {
+                binding: 3,
+                resource: wgpu::BindingResource::TextureView(
+                    &images.source_normals.view,
+                ),
+            },
+            wgpu::BindGroupEntry {
+                binding: 4,
+                resource: wgpu::BindingResource::TextureView(sections),
+            },
+            wgpu::BindGroupEntry {
+                binding: 5,
+                resource: clip.as_entire_binding(),
+            },
+        ];
+        device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("ambient exact current input"),
+            layout: &pipes.source,
+            entries: &entries,
+        })
+    }
+}
 ```
 
 ## <a id="checkpoint-90o-record-explicit-ambient-passes"></a>26. Record explicit ambient passes
@@ -2070,7 +2896,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2084,7 +2910,42 @@ Record one compatible ambient stage.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90o-record-explicit-ambient-passes-01.rs"
+pub fn draw(
+    encoder: &mut wgpu::CommandEncoder,
+    pipeline: &wgpu::RenderPipeline,
+    targets: &[&wgpu::TextureView],
+    groups: &[(u32, &wgpu::BindGroup)],
+    clear: bool,
+) {
+    let attachments = targets
+        .iter()
+        .map(|view| {
+            Some(wgpu::RenderPassColorAttachment {
+                view,
+                depth_slice: None,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: if clear {
+                        wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                    } else {
+                        wgpu::LoadOp::Load
+                    },
+                    store: wgpu::StoreOp::Store,
+                },
+            })
+        })
+        .collect::<Vec<_>>();
+    let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("ambient current recipe"),
+        color_attachments: &attachments,
+        ..Default::default()
+    });
+    pass.set_pipeline(pipeline);
+    for (index, group) in groups {
+        pass.set_bind_group(*index, *group, &[]);
+    }
+    pass.draw(0..3, 0..1);
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -2094,14 +2955,17 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_groups;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90o-record-explicit-ambient-passes-02.rs" skip=25
+pub mod ambient_groups;
+
+pub mod ambient_pass;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-90p-own-cached-ambient-pipelines-and-release-images"></a>27. Own cached ambient pipelines and release images
@@ -2136,7 +3000,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2150,7 +3014,53 @@ Own lazy ambient state and cached pipelines.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/90p-own-cached-ambient-pipelines-and-release-images-01.rs"
+use crate::{ambient_groups::Groups, ambient_images::Images, ambient_pass::draw};
+struct State {
+    images: Images,
+    groups: Groups,
+    input: (
+        wgpu::TextureView,
+        wgpu::TextureView,
+        wgpu::BindGroup,
+    ),
+}
+pub struct Ambient {
+    pipes: crate::ambient_pipeline::Pipelines,
+    pub sources: crate::ambient_source_gpu::Sources,
+    frame: wgpu::Buffer,
+    state: Option<State>,
+    cached: Option<([f32; 80], [u64; 2])>,
+    pub preparations: u64,
+    pub writes: u64,
+    pub passes: u64,
+    pub error: Option<&'static str>,
+}
+impl Ambient {
+    pub fn new(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
+        Self {
+            pipes: crate::ambient_pipeline::Pipelines::new(device, format),
+            sources: crate::ambient_source_gpu::Sources::new(device),
+            frame: device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("current ambient camera"),
+                size: 320,
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+                mapped_at_creation: false,
+            }),
+            state: None,
+            cached: None,
+            preparations: 0,
+            writes: 0,
+            passes: 0,
+            error: None,
+        }
+    }
+    pub fn clear(&mut self, device: &wgpu::Device, queue: &wgpu::Queue) {
+        self.state = None;
+        self.cached = None;
+        self.sources.set(device, queue, &[]);
+        self.error = None;
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -2160,14 +3070,17 @@ Register the completed section component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod ambient_pass;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90p-own-cached-ambient-pipelines-and-release-images-02.rs" skip=23
+pub mod ambient_pass;
+
+pub mod ambient_gpu;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-90q-prepare-changed-ambient-framebuffer-inputs"></a>28. Prepare changed ambient framebuffer inputs
@@ -2202,7 +3115,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2216,14 +3129,69 @@ Prepare exact current ambient images and source bindings.
 **Locate this existing block:**
 
 ```rust
- pub fn new(device:&wgpu::Device,format:wgpu::TextureFormat)->Self{Self{pipes:crate::ambient_pipeline::Pipelines::new(device,format),sources:crate::ambient_source_gpu::Sources::new(device),frame:device.create_buffer(&wgpu::BufferDescriptor{label:Some("current ambient camera"),size:320,usage:wgpu::BufferUsages::UNIFORM|wgpu::BufferUsages::COPY_DST,mapped_at_creation:false}),state:None,cached:None,preparations:0,writes:0,passes:0,error:None}}
- pub fn clear(&mut self,device:&wgpu::Device,queue:&wgpu::Queue){self.state=None;self.cached=None;self.sources.set(device,queue,&[]);self.error=None;}
+    }
+}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90q-prepare-changed-ambient-framebuffer-inputs-01.rs"
+    }
+    fn prepare(
+        &mut self,
+        device: &wgpu::Device,
+        full: [u32; 2],
+        density: f32,
+        depth: &wgpu::TextureView,
+        sections: &wgpu::TextureView,
+        clip: &wgpu::Buffer,
+    ) {
+        let (w, h) =
+            crate::pyramid_size::resolution((full[0], full[1]), f64::from(density));
+        let size = [w.max(32), h.max(32)];
+        if self
+            .state
+            .as_ref()
+            .is_none_or(|s| s.images.full != full || s.images.size != size)
+        {
+            let images = Images::new(device, full, density);
+            let groups = Groups::new(device, &self.pipes, &images);
+            let group = Groups::source(
+                device,
+                &self.pipes,
+                &images,
+                depth,
+                sections,
+                &self.frame,
+                clip,
+            );
+            self.state = Some(State {
+                images,
+                groups,
+                input: (depth.clone(), sections.clone(), group),
+            });
+            self.cached = None;
+            self.preparations += 1;
+        }
+        let state = self.state.as_mut().unwrap();
+        if state.input.0 != *depth || state.input.1 != *sections {
+            state.input = (
+                depth.clone(),
+                sections.clone(),
+                Groups::source(
+                    device,
+                    &self.pipes,
+                    &state.images,
+                    depth,
+                    sections,
+                    &self.frame,
+                    clip,
+                ),
+            );
+            self.cached = None;
+        }
+    }
+}
 ```
 
 ## <a id="checkpoint-90r-render-a-complete-ambient-result-in-one-frame"></a>29. Render a complete ambient result in one frame
@@ -2258,7 +3226,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2272,17 +3240,180 @@ Render complete current single-sample ambient recipes with cached inputs.
 **Locate this existing block:**
 
 ```rust
-  let state=self.state.as_mut().unwrap();if state.input.0!=*depth||state.input.1!=*sections{state.input=(depth.clone(),sections.clone(),Groups::source(device,&self.pipes,&state.images,depth,sections,&self.frame,clip));self.cached=None;}
- }
-
-
+    }
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90r-render-a-complete-ambient-result-in-one-frame-01.rs"
+    }
+    pub fn draw(
+        &mut self,
+        device: &wgpu::Device,
+        queue: &wgpu::Queue,
+        encoder: &mut wgpu::CommandEncoder,
+        color: &wgpu::TextureView,
+        depth: &wgpu::TextureView,
+        view: &wgpu::BindGroup,
+        clipping: &wgpu::BindGroup,
+        clip: &wgpu::Buffer,
+        sections: &wgpu::TextureView,
+        meshes: &[crate::gpu_mesh::GpuMesh],
+        matrix: [f32; 16],
+        full: [u32; 2],
+        density: f32,
+        ground: [f32; 2],
+        revision: [u64; 2],
+    ) {
+        if ground[1] <= 0.0 {
+            self.clear(device, queue);
+            return;
+        }
+        if matrix.iter().any(|v| !v.is_finite())
+            || full.contains(&0)
+            || !density.is_finite()
+            || density <= 0.
+        {
+            self.error = Some("Invalid ambient view");
+            return;
+        }
+        self.prepare(device, full, density, depth, sections, clip);
+        let state = self.state.as_ref().unwrap();
+        let Some(uniform) =
+            crate::ambient_camera::uniform(matrix, full, state.images.size, ground)
+        else {
+            self.error = Some("Invalid ambient camera inverse");
+            return;
+        };
+        if self.cached != Some((uniform, revision)) {
+            queue.write_buffer(
+                &self.frame,
+                0,
+                &uniform
+                    .into_iter()
+                    .flat_map(f32::to_ne_bytes)
+                    .collect::<Vec<_>>(),
+            );
+            self.writes += 1;
+            let images = &state.images;
+            let groups = &state.groups;
+            let source = &state.input.2;
+            self.sources.encode(
+                encoder,
+                &images.source_radius.view,
+                &images.source_normals.view,
+                depth,
+                view,
+                clipping,
+                meshes,
+            );
+            self.passes += 1;
+            draw(
+                encoder,
+                &self.pipes.prepare,
+                &[
+                    &images.linear.levels[0],
+                    &images.radii.levels[0],
+                    &images.normals.view,
+                ],
+                &[(0, source)],
+                true,
+            );
+            for level in 1..6 {
+                draw(
+                    encoder,
+                    &self.pipes.reduce,
+                    &[
+                        &images.linear.levels[level],
+                        &images.radii.levels[level],
+                    ],
+                    &[(0, &groups.levels[level - 1])],
+                    true,
+                );
+            }
+            self.passes += 6;
+            draw(
+                encoder,
+                &self.pipes.occupancy,
+                &[&images.occupancy.view],
+                &[(0, &groups.levels[0])],
+                true,
+            );
+            draw(
+                encoder,
+                &self.pipes.ground,
+                &[&images.ground.view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.occupancy),
+                    (3, &groups.history),
+                ],
+                true,
+            );
+            draw(
+                encoder,
+                &self.pipes.raw,
+                &[&images.ao[0].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ground),
+                    (3, &groups.history),
+                ],
+                true,
+            );
+            draw(
+                encoder,
+                &self.pipes.filter[0],
+                &[&images.ao[1].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ao[0]),
+                    (3, &groups.history),
+                ],
+                true,
+            );
+            draw(
+                encoder,
+                &self.pipes.filter[1],
+                &[&images.ao[0].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ao[1]),
+                    (3, &groups.history),
+                ],
+                true,
+            );
+            draw(
+                encoder,
+                &self.pipes.upsample,
+                &[&images.ao[2].view],
+                &[
+                    (0, source),
+                    (1, &groups.levels[0]),
+                    (2, &groups.ao[0]),
+                    (3, &groups.history),
+                ],
+                true,
+            );
+            self.passes += 6;
+            self.cached = Some((uniform, revision));
+        }
+        draw(
+            encoder,
+            &self.pipes.composite,
+            &[color],
+            &[(1, &state.groups.ao[2])],
+            false,
+        );
+        self.passes += 1;
+        self.error = None;
+    }
+}
 ```
 
 ## <a id="checkpoint-90s-count-actual-ambient-resources-and-work"></a>30. Count actual ambient resources and work
@@ -2317,7 +3448,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2331,16 +3462,33 @@ Expose exact allocation and explicit ambient work counters.
 **Locate this existing block:**
 
 ```rust
-  draw(encoder,&self.pipes.composite,&[color],&[(1,&state.groups.ao[2])],false);self.passes+=1;self.error=None;
- }
-
+    }
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/90s-count-actual-ambient-resources-and-work-01.rs"
+    }
+    pub fn usage(&self) -> [u64; 5] {
+        [
+            self.frame.size()
+                + self.sources.bytes()
+                + self.state.as_ref().map_or(0, |s| {
+                    s.images.bytes()
+                        + s.groups
+                            .buffers
+                            .iter()
+                            .map(wgpu::Buffer::size)
+                            .sum::<u64>()
+                }),
+            1,
+            self.preparations,
+            self.writes,
+            self.passes,
+        ]
+    }
+}
 ```
 
 ## <a id="checkpoint-90t-route-original-scene-properties-into-ambient-shading"></a>31. Route scene properties into ambient shading
@@ -2375,7 +3523,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2391,49 +3539,91 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
+                    *self.text_error.borrow_mut() = Some(error.to_string());
+                }
             }
-        }
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
 ```
 
 Replace it with:
 
 ```rust
-            Err(error)=>{*self.text_error.borrow_mut()=Some(error.to_string());}
+                    *self.text_error.borrow_mut() = Some(error.to_string());
+                }
             }
         }
-        if self.ambient_enabled.get(){let clip=self.clipping.borrow();if let Some(ambient)=self.ambient.borrow_mut().as_mut(){ambient.draw(&self.device,&self.queue,&mut encoder,view,&self.depth,&self.view_group,&clip_group,&clip.buffer,&self.caps.borrow().depth.view,&self.meshes,*transform,self.size,self.density,self.ambient_rows.ground,[self.pyramid_revision,clip_revision]);}}
-        if let Some(pyramid)=self.pyramid.borrow_mut().as_mut(){pyramid.encode(&self.device,&self.queue,&mut encoder,&self.depth,*transform,self.size,self.density,[self.pyramid_revision,clip_revision]);}
-        self.queue.submit([encoder.finish()]);tiles.map_report();
-    }
+        if self.ambient_enabled.get() {
+            let clip = self.clipping.borrow();
+            if let Some(ambient) = self.ambient.borrow_mut().as_mut() {
+                ambient.draw(
+                    &self.device,
+                    &self.queue,
+                    &mut encoder,
+                    view,
+                    &self.depth,
+                    &self.view_group,
+                    &clip_group,
+                    &clip.buffer,
+                    &self.caps.borrow().depth.view,
+                    &self.meshes,
+                    *transform,
+                    self.size,
+                    self.density,
+                    self.ambient_rows.ground,
+                    [self.pyramid_revision, clip_revision],
+                );
+            }
 ```
 
 **Locate this block:**
 
 ```rust
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-    pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
-    pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
+        clip.solid = solid;
+        self.caps.borrow_mut().enabled = enabled;
+    }
+    pub fn set_depth_pyramid(&self, enabled: bool) {
+        let mut owner = self.pyramid.borrow_mut();
+        if enabled {
 ```
 
 Replace it with:
 
 ```rust
-    #[cfg(test)]
-    pub(crate) fn tile_buffers(&self)->[wgpu::Buffer;2]{let tiles=self.tiles.borrow();[tiles.projected.clone(),tiles.buffer.clone()]}
-    pub fn set_clipping(&self,enabled:bool,solid:bool){let mut clip=self.clipping.borrow_mut();clip.enabled=enabled;clip.solid=solid;self.caps.borrow_mut().enabled=enabled;}
-    pub fn set_ambient(&self,enabled:bool){if self.ambient_enabled.replace(enabled)==enabled{return;}let mut ambient=self.ambient.borrow_mut();if enabled{let owner=ambient.get_or_insert_with(||crate::ambient_gpu::Ambient::new(&self.device,self.format));owner.sources.set(&self.device,&self.queue,&self.ambient_rows.specs);}else if let Some(owner)=ambient.as_mut(){owner.clear(&self.device,&self.queue);}}
-    pub fn ambient_usage(&self)->[u64;5]{self.ambient.borrow().as_ref().map_or([0;5],crate::ambient_gpu::Ambient::usage)}
-    pub fn ambient_error(&self)->Option<&'static str>{self.ambient.borrow().as_ref().and_then(|owner|owner.error)}
-    pub fn set_depth_pyramid(&self,enabled:bool){let mut owner=self.pyramid.borrow_mut();if enabled {if owner.is_none(){*owner=Some(crate::pyramid_gpu::Pyramid::new(&self.device));}}else{*owner=None;}}
-    pub fn depth_pyramid_usage(&self)->[u64;4]{self.pyramid.borrow().as_ref().map_or([0;4],crate::pyramid_gpu::Pyramid::usage)}
-    pub fn depth_pyramid_error(&self)->Option<&'static str>{self.pyramid.borrow().as_ref().and_then(|p|p.error)}
+        clip.solid = solid;
+        self.caps.borrow_mut().enabled = enabled;
+    }
+    pub fn set_ambient(&self, enabled: bool) {
+        if self.ambient_enabled.replace(enabled) == enabled {
+            return;
+        }
+        let mut ambient = self.ambient.borrow_mut();
+        if enabled {
+            let owner = ambient.get_or_insert_with(|| {
+                crate::ambient_gpu::Ambient::new(&self.device, self.format)
+            });
+            owner.sources.set(
+                &self.device,
+                &self.queue,
+                &self.ambient_rows.specs,
+            );
+        } else if let Some(owner) = ambient.as_mut() {
+            owner.clear(&self.device, &self.queue);
+        }
+    }
+    pub fn ambient_usage(&self) -> [u64; 5] {
+        self.ambient
+            .borrow()
+            .as_ref()
+            .map_or([0; 5], crate::ambient_gpu::Ambient::usage)
+    }
+    pub fn ambient_error(&self) -> Option<&'static str> {
+        self.ambient
+            .borrow()
+            .as_ref()
+            .and_then(|owner| owner.error)
+    }
+    pub fn set_depth_pyramid(&self, enabled: bool) {
+        let mut owner = self.pyramid.borrow_mut();
+        if enabled {
 ```
 
 **Locate this block:**
@@ -2442,9 +3632,9 @@ Replace it with:
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
+        self.pyramid_revision = self.pyramid_revision.wrapping_add(1);
         self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
 ```
 
 Replace it with:
@@ -2453,59 +3643,65 @@ Replace it with:
     }
 
     pub fn set_scene(&mut self, scene: &Scene, selected: Option<ObjectId>) {
-        self.ambient_rows.set(scene);if let Some(ambient)=self.ambient.borrow_mut().as_mut(){if self.ambient_enabled.get(){ambient.sources.set(&self.device,&self.queue,&self.ambient_rows.specs);}}
-        self.pyramid_revision=self.pyramid_revision.wrapping_add(1);
+        self.ambient_rows.set(scene);
+        if let Some(ambient) = self.ambient.borrow_mut().as_mut() {
+            if self.ambient_enabled.get() {
+                ambient.sources.set(
+                    &self.device,
+                    &self.queue,
+                    &self.ambient_rows.specs,
+                );
+            }
+        }
+        self.pyramid_revision = self.pyramid_revision.wrapping_add(1);
         self.clipping.borrow_mut().set(scene);
-        if let Some(outline)=self.outline.borrow_mut().as_mut() {outline.invalidate();}
+        if let Some(outline) = self.outline.borrow_mut().as_mut() {
 ```
 
 **Locate this block:**
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            pyramid: Default::default(),
+            pyramid_revision: 0,
+            caps: std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),
 ```
 
 Replace it with:
 
 ```rust
-        let mesh_ink = crate::stroke_gpu::Lane::new(&device, format);
-        let sheets=crate::sheet_gpu::Lane::new(&device,format);
-        let measurement=crate::measure_gpu::Measurement::new(&device,format);let guides=crate::guide_gpu::Guide::new(&device,format);
-        let mut renderer = Self {ambient_enabled:Default::default(),ambient:Default::default(),ambient_rows:Default::default(),pyramid:Default::default(),pyramid_revision:0,caps:std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),clipping:std::cell::RefCell::new(crate::clipping_gpu::Clipping::new(&device)),tiles,guides,measurement,sheets,instances,instance_rows:Default::default(),clouds:Default::default(),cloud_view:Default::default(),cloud_error:Default::default(),outline:Default::default(),full_text_fonts:Default::default(),presentation_text:Default::default(),scene_text:Default::default(), text:std::cell::RefCell::new(None),text_error:std::cell::RefCell::new(None),format,device, queue, pipeline, highlight_pipeline, highlight, preview, widget, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None,grid_plane:crate::cplane::CPlane::Xy, size: [640, 480], density: 1.0, picker, faces, mesh_ink, sources: Default::default(), pick_mode: Default::default() };
-        for lane in [&mut renderer.mesh_ink,&mut renderer.strokes,&mut renderer.paths,&mut renderer.markers,&mut renderer.grid]{lane.enable_finite(&renderer.device,format);}
+        let measurement = crate::measure_gpu::Measurement::new(&device, format);
+        let guides = crate::guide_gpu::Guide::new(&device, format);
+        let mut renderer = Self {
+            ambient_enabled: Default::default(),
+            ambient: Default::default(),
+            ambient_rows: Default::default(),
+            pyramid: Default::default(),
+            pyramid_revision: 0,
+            caps: std::cell::RefCell::new(crate::caps_gpu::Caps::new(&device)),
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    pyramid:std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
-    pyramid_revision:u64,
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
+    pyramid: std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
+    pyramid_revision: u64,
+    caps: std::cell::RefCell<crate::caps_gpu::Caps>,
 ```
 
 Replace it with:
 
 ```rust
-use crate::{gpu_mesh::GpuMesh, scene::{ObjectId, Scene}};
-
 pub struct Renderer {
-    ambient_enabled:std::cell::Cell<bool>,
-    ambient:std::cell::RefCell<Option<crate::ambient_gpu::Ambient>>,
-    ambient_rows:crate::ambient_rows::Rows,
-    pyramid:std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
-    pyramid_revision:u64,
-    caps:std::cell::RefCell<crate::caps_gpu::Caps>,
+    ambient_enabled: std::cell::Cell<bool>,
+    ambient: std::cell::RefCell<Option<crate::ambient_gpu::Ambient>>,
+    ambient_rows: crate::ambient_rows::Rows,
+    pyramid: std::cell::RefCell<Option<crate::pyramid_gpu::Pyramid>>,
+    pyramid_revision: u64,
+    caps: std::cell::RefCell<crate::caps_gpu::Caps>,
 ```
 
 ## <a id="checkpoint-90u-enable-arctic-as-a-presentation-change"></a>32. Enable Arctic as a presentation change
@@ -2540,7 +3736,7 @@ pub struct Renderer {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
@@ -2556,47 +3752,56 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        if self.split.is_some()&&!matches!(&action,Action::Split|Action::SplitPick(_)|Action::CancelSplit|Action::TreePick{..}|Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::ConstructionPlane(_)|Action::PlaneMenu|Action::Plane3){self.split=None;}
+            self.split = None;
+        }
         match action {
-            Action::Clipping(request)=>{return self.clipping_request(request)},
-            Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
-            Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
+            Action::Clipping(request) => return self.clipping_request(request),
 ```
 
 Replace it with:
 
 ```rust
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
-        if self.split.is_some()&&!matches!(&action,Action::Split|Action::SplitPick(_)|Action::CancelSplit|Action::TreePick{..}|Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::ConstructionPlane(_)|Action::PlaneMenu|Action::Plane3){self.split=None;}
+            self.split = None;
+        }
         match action {
-            Action::Arctic(_)=>unreachable!("Arctic presentation returned before editor mutation"),
-            Action::Clipping(request)=>{return self.clipping_request(request)},
-            Action::SelectLasso=>{self.lasso=Some(Default::default());self.tool_status="Select Lasso · drag a loop · Shift adds · Ctrl removes · Esc cancels".into();return Ok(Change::View)},
-            Action::LassoCancel=>{self.lasso=None;self.tool_status="Select Lasso cancelled; selection unchanged".into();return Ok(Change::View)},
+            Action::Arctic(_) => {
+                unreachable!("Arctic presentation returned before editor mutation")
+            }
+            Action::Clipping(request) => return self.clipping_request(request),
 ```
 
 **Locate this block:**
 
 ```rust
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
-        if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else{self.apply(Action::Picked(None))}}
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel){self.mark=None;}
+            }
+            action => action,
+        };
+        if !matches!(
+            &action,
+            Action::Zoom(_)
 ```
 
 Replace it with:
 
 ```rust
-
-    pub fn apply(&mut self, action: Action) -> Result<Change, &'static str> {
-        let action=match action{Action::Touch(actions)=>{let mut change=Change::View;for action in actions{let next=self.apply(action)?;if next!=Change::View{change=next;}}return Ok(change)},action=>action};
-        if let Action::Arctic(on)=&action{self.arctic=on.unwrap_or(!self.arctic);self.tool_status=format!("Arctic {}",if self.arctic{"On"}else{"Off"});return Ok(Change::View)}
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel|Action::ToolScreen{commit:false,..}|Action::TrimScreen{commit:false,..}|Action::ToolHover(_)){self.interaction_epoch=self.interaction_epoch.wrapping_add(1);}
-        if matches!(&action,Action::Escape){return if self.lasso.is_some(){self.apply(Action::LassoCancel)}else if self.trim.is_some(){self.apply(Action::CancelTrim)}else if self.split.is_some(){self.apply(Action::CancelSplit)}else if self.gizmo_edit.is_some(){self.apply(Action::GizmoCancel)}else if self.draft.is_some()||self.plane_menu{self.apply(Action::CancelTool)}else{self.apply(Action::Picked(None))}}
-        if !matches!(&action,Action::Zoom(_)|Action::ZoomAt{..}|Action::PanScreen{..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::NamedView(_)|Action::Isometric|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::CanvasCancel){self.mark=None;}
+            }
+            action => action,
+        };
+        if let Action::Arctic(on) = &action {
+            self.arctic = on.unwrap_or(!self.arctic);
+            self.tool_status = format!(
+                "Arctic {}",
+                if self.arctic {
+                    "On"
+                } else {
+                    "Off"
+                }
+            );
+            return Ok(Change::View);
+        }
+        if !matches!(
+            &action,
+            Action::Zoom(_)
 ```
 
 **Locate this block:**
@@ -2605,10 +3810,9 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            clipping_enabled:true,clipping_solid:true,interaction_epoch:0,lasso:None,trim:None,last_text_height:0.,mark:None,unit:crate::measure_mark::Unit::Millimeters,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            clipping_enabled: true,
+            clipping_solid: true,
+            interaction_epoch: 0,
 ```
 
 Replace it with:
@@ -2617,10 +3821,10 @@ Replace it with:
 impl Default for Editor {
     fn default() -> Self {
         Self {
-            arctic:false,clipping_enabled:true,clipping_solid:true,interaction_epoch:0,lasso:None,trim:None,last_text_height:0.,mark:None,unit:crate::measure_mark::Unit::Millimeters,split:None,canvas_drag:None, gizmo_edit:None, gizmo_hover:None, edit_preview: None, snapping: Default::default(), snap_index: None,
-            transform_preview:None,draft: None, tool_status: String::new(), construction_plane:None, plane_menu:false, plane_only:false,
-            scene: Scene::demo(),
-            selected: None, selected_part: None, pick_mode: Default::default(), objects: Default::default(),
+            arctic: false,
+            clipping_enabled: true,
+            clipping_solid: true,
+            interaction_epoch: 0,
 ```
 
 **Locate this block:**
@@ -2629,9 +3833,9 @@ impl Default for Editor {
 }
 
 pub struct Editor {
-    pub clipping_enabled:bool,pub clipping_solid:bool,
-    pub interaction_epoch:u64,
-    pub lasso:Option<crate::lasso::Lasso>,
+    pub clipping_enabled: bool,
+    pub clipping_solid: bool,
+    pub interaction_epoch: u64,
 ```
 
 Replace it with:
@@ -2640,33 +3844,29 @@ Replace it with:
 }
 
 pub struct Editor {
-    pub arctic:bool,
-    pub clipping_enabled:bool,pub clipping_solid:bool,
-    pub interaction_epoch:u64,
-    pub lasso:Option<crate::lasso::Lasso>,
+    pub arctic: bool,
+    pub clipping_enabled: bool,
+    pub clipping_solid: bool,
+    pub interaction_epoch: u64,
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
     Clipping(crate::clipping_input::Request),
-    SelectLasso,LassoPress{at:[f64;2],size:[f64;2],density:f64,pointer:i32},LassoMove{at:[f64;2],pointer:i32},LassoRelease{at:[f64;2],pointer:i32,add:bool,remove:bool},LassoCancel,
-    AddGroup(String),AddEdge,
+    SelectLasso,
+    LassoPress {
 ```
 
 Replace it with:
 
 ```rust
-use crate::{background::Background, camera::Camera, history::History, scene::{ObjectId, Scene}};
-
 pub enum Action {
     Arctic(Option<bool>),
     Clipping(crate::clipping_input::Request),
-    SelectLasso,LassoPress{at:[f64;2],size:[f64;2],density:f64,pointer:i32},LassoMove{at:[f64;2],pointer:i32},LassoRelease{at:[f64;2],pointer:i32,add:bool,remove:bool},LassoCancel,
-    AddGroup(String),AddEdge,
+    SelectLasso,
+    LassoPress {
 ```
 
 ### 2. `src/commands.rs`
@@ -2678,47 +3878,45 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
-    if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
-    if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
-    if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
-    if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
-    if matches!(name,"Arrow"|"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
+    {
+        return Ok(Command::Editor(action));
+    }
 ```
 
 Replace it with:
 
 ```rust
-    if let Some(action)=crate::transform_commands::action(name,&words[count..]){return action.map(Command::Editor);}
-    if let Some(action)=crate::gather_registry::command(name,&words[count..].join(" ")){return action.map(Command::Editor);}
-    if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
-    if name=="Arctic"{let on=match &words[count..]{[]=>None,[word]if word.eq_ignore_ascii_case("On")=>Some(true),[word]if word.eq_ignore_ascii_case("Off")=>Some(false),_=>return Err("Arctic (On Off)".into())};return Ok(Command::Editor(Action::Arctic(on)));}
-    if name=="Clipping Plane"{return crate::clipping_input::parse(&words[count..]).map(|r|Command::Editor(Action::Clipping(r)));}
-    if name=="Construction Plane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
-    if matches!(name,"Arrow"|"Point"|"Line"|"Curve"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
+    {
+        return Ok(Command::Editor(action));
+    }
+    if name == "Arctic" {
+        let on = match &words[count..] {
+            [] => None,
+            [word] if word.eq_ignore_ascii_case("On") => Some(true),
+            [word] if word.eq_ignore_ascii_case("Off") => Some(false),
+            _ => return Err("Arctic (On Off)".into()),
+        };
+        return Ok(Command::Editor(Action::Arctic(on)));
+    }
 ```
 
 **Locate this block:**
 
 ```rust
-
-pub type Factory = fn() -> Action;
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
-    ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
-    ("Add Group",||Action::AddGroup(String::new())),
+    ("Select By Name", || {
+        Action::Query(crate::selection_query::Query::Name(
+            String::new(),
 ```
 
 Replace it with:
 
 ```rust
-
-pub type Factory = fn() -> Action;
 pub const ACTIONS: &[(&str, Factory)] = &[
-    ("Arctic",||Action::Arctic(None)),
-    ("Select By Name",||Action::Query(crate::selection_query::Query::Name(String::new()))),
-    ("Select Small",||Action::Query(crate::selection_query::Query::Small(0.))),
-    ("Add Group",||Action::AddGroup(String::new())),
+    ("Arctic", || Action::Arctic(None)),
+    ("Select By Name", || {
+        Action::Query(crate::selection_query::Query::Name(
+            String::new(),
 ```
 
 ### 3. `src/browser.rs`
@@ -2730,48 +3928,40 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
     canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"pyramid":renderer.depth_pyramid_usage(),"pyramid_error":renderer.depth_pyramid_error(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
+    canvas.set_attribute(
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-tree",&serde_json::json!(crate::hierarchy::rows(&editor.scene).iter().map(|r|serde_json::json!({"key":r.key,"label":r.label,"depth":r.depth,"end":r.end,"readonly":r.readonly,"ids":r.ids.iter().map(|id|id.value()).collect::<Vec<_>>()})).collect::<Vec<_>>()).to_string())?;
-    canvas.set_attribute("data-gizmo",&serde_json::json!({"origin":editor.gizmo_origin(),"active":editor.gizmo_active(),"pointer":editor.gizmo_edit.as_ref().and_then(|e|e.pointer),"typing":editor.gizmo_edit.as_ref().and_then(|e|e.gizmo.typing).map(|h|h.title()),"matrix":editor.gizmo_edit.as_ref().map(|e|e.preview.matrix()),"gpu":renderer.gizmo_usage()}).to_string())?;
-    canvas.set_attribute("data-row-placements", &serde_json::to_string(&placements).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
+        &serde_json::to_string(&placements)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
+    )?;
     canvas.set_attribute("data-clipping",&serde_json::json!({"usage":renderer.clipping_usage(),"caps":renderer.cap_usage(),"ambient":renderer.ambient_usage(),"ambient_error":renderer.ambient_error(),"arctic":editor.arctic,"pyramid":renderer.depth_pyramid_usage(),"pyramid_error":renderer.depth_pyramid_error(),"cap_error":renderer.cap_error(),"ink_flags":renderer.clipping_ink_bytes(),"error":renderer.clipping_error(),"rows":crate::clipping_rows::current(&editor.scene).ok().map(|rows|rows.iter().map(|r|serde_json::json!({"id":r.id.value(),"normal":r.plane.normal,"offset":r.plane.offset})).collect::<Vec<_>>())}).to_string())?;
-    canvas.set_attribute("data-triangle-tiles",&serde_json::to_string(&renderer.tile_usage()).unwrap())?;
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
+    canvas.set_attribute(
 ```
 
 **Locate this block:**
 
 ```rust
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
-        }
-        renderer.set_clipping(editor.clipping_enabled,editor.clipping_solid);
-        if let Err(error) = renderer.set_grid_on(editor.camera.grid,editor.drawing_plane()) {
-            report(error); return;
-        }
+            );
+            if let Err(error) =
+                renderer.set_grid_on(editor.camera.grid, editor.drawing_plane())
+            {
 ```
 
 Replace it with:
 
 ```rust
-                .and_then(|()| renderer.select_objects(editor.display_scene(), &editor.highlighted_objects())) { report(error); return; }
-        }
-        renderer.set_clipping(editor.clipping_enabled,editor.clipping_solid);
-        renderer.set_ambient(editor.arctic);
-        if let Err(error) = renderer.set_grid_on(editor.camera.grid,editor.drawing_plane()) {
-            report(error); return;
-        }
+            );
+            renderer.set_ambient(editor.arctic);
+            if let Err(error) =
+                renderer.set_grid_on(editor.camera.grid, editor.drawing_plane())
+            {
 ```
 
 ## <a id="checkpoint-90v-exercise-actual-contacts-cache-and-source-ownership"></a>33. Exercise actual contacts cache and source ownership
@@ -2806,30 +3996,160 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">cached ambient recipes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shaded contact</text>
 </svg>
 </div>
 
 **What this code does:** Exercise actual contacts cache and source ownership.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/ambient_gpu_tests.rs`
 
 Copy supplied actual contact/frame/cache/release fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-01.rs"
+```rust
+use crate::{
+    cap_gpu_tests::{renderer, source, wait},
+    scene::Scene,
+};
+fn pixels(r: &super::Renderer, matrix: &[f32; 16]) -> Vec<u8> {
+    let texture = r
+        .device
+        .create_texture(&wgpu::TextureDescriptor {
+            label: Some("actual original ambient fixture"),
+            size: wgpu::Extent3d {
+                width: 320,
+                height: 240,
+                depth_or_array_layers: 1,
+            },
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT
+                | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+    r.draw(
+        &texture.create_view(&Default::default()),
+        &Default::default(),
+        matrix,
+    );
+    let read = r
+        .device
+        .create_buffer(&wgpu::BufferDescriptor {
+            label: None,
+            size: 1280 * 240,
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+    let mut encoder = r
+        .device
+        .create_command_encoder(&Default::default());
+    encoder.copy_texture_to_buffer(
+        texture.as_image_copy(),
+        wgpu::TexelCopyBufferInfo {
+            buffer: &read,
+            layout: wgpu::TexelCopyBufferLayout {
+                offset: 0,
+                bytes_per_row: Some(1280),
+                rows_per_image: Some(240),
+            },
+        },
+        texture.size(),
+    );
+    r.queue.submit([encoder.finish()]);
+    let (tx, rx) = std::sync::mpsc::channel();
+    read.slice(..)
+        .map_async(wgpu::MapMode::Read, move |v| {
+            tx.send(v).unwrap()
+        });
+    wait(r);
+    rx.recv().unwrap().unwrap();
+    let data = read.slice(..).get_mapped_range().to_vec();
+    read.unmap();
+    data
+}
+#[test]
+fn actual_ambient_darkens_original_contacts_in_one_frame_caches_and_releases_large_images()
+ {
+    let mut scene = Scene::empty();
+    let owner = scene
+        .insert(crate::prepared::PreparedMesh::new(source(false)).unwrap())
+        .unwrap();
+    let original = scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    let mut camera = crate::camera::Camera::default();
+    camera.isometric();
+    camera.aspect = 4. / 3.;
+    camera.target = [0., 0., -0.5];
+    camera.distance = 3.;
+    let matrix = camera.uniform();
+    let r = renderer(&scene);
+    let plain = pixels(&r, &matrix);
+    let uploads = r.stats()[0];
+    r.set_ambient(true);
+    let shaded = pixels(&r, &matrix);
+    assert_eq!(r.ambient_error(), None);
+    let usage = r.ambient_usage();
+    assert!(usage[0] > 100_000);
+    assert_eq!(usage[1], 1);
+    assert_eq!(usage[3], 1);
+    let second = pixels(&r, &matrix);
+    assert_eq!(
+        second, shaded,
+        "one frame completes ambient shading"
+    );
+    assert_eq!(&r.ambient_usage()[1..4], &usage[1..4]);
+    assert_eq!(r.stats()[0], uploads);
+    let darker = plain
+        .chunks_exact(4)
+        .zip(shaded.chunks_exact(4))
+        .filter(|(a, b)| {
+            a[..3]
+                .iter()
+                .zip(&b[..3])
+                .any(|(a, b)| a.saturating_sub(*b) > 3)
+        })
+        .count();
+    assert!(
+        darker > 100,
+        "actual ambient shading: {darker} pixels"
+    );
+    let shadow = plain
+        .chunks_exact(4)
+        .zip(shaded.chunks_exact(4))
+        .filter(|(a, b)| a[..3] == [255, 255, 255] && b[..3].iter().any(|v| *v < 250))
+        .count();
+    assert!(
+        shadow > 20,
+        "actual virtual-ground contacts: {shadow}"
+    );
+    assert_eq!(scene.objects()[0].id, owner);
+    assert_eq!(
+        scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        original
+    );
+    r.set_ambient(false);
+    assert_eq!(r.ambient_usage()[0], 320);
+    assert_eq!(pixels(&r, &matrix), plain);
+    r.set_ambient(true);
+    assert_eq!(pixels(&r, &matrix), shaded);
+    assert_eq!(
+        r.ambient_usage()[1],
+        1,
+        "style toggles retain compiled pipelines"
+    );
+    assert_eq!(r.stats()[0], uploads);
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/renderer.rs`
 
@@ -2837,34 +4157,107 @@ Register actual renderer-local ambient fixtures.
 
 **Locate this existing block:**
 
-```text
-#[path="pyramid_gpu_tests.rs"]
+```rust
+#[path = "pyramid_gpu_tests.rs"]
 mod pyramid_gpu_tests;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-02.rs" skip=54
+```rust
+#[path = "pyramid_gpu_tests.rs"]
+mod pyramid_gpu_tests;
+
+#[cfg(all(test, not(target_arch = "wasm32")))]
+#[path = "ambient_gpu_tests.rs"]
+mod ambient_gpu_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/arctic_tests.rs`
 
 Copy supplied current presentation and original-history fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-03.rs"
+```rust
+use crate::{
+    commands::{Command, parse},
+    editor::{Action, Editor},
+};
+fn command(e: &mut Editor, line: &str) -> Result<crate::editor::Change, &'static str> {
+    let action = if let Some(result) = e.tool_line(line) {
+        result?
+    } else {
+        let Command::Editor(action) = parse(line).map_err(|_| "Invalid command")?
+        else {
+            return Err("Editor command");
+        };
+        action
+    };
+    e.apply(action)
+}
+#[test]
+fn arctic_toggle_and_strict_options_preserve_originals_pending_points_annotations_and_redo()
+ {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddBox).unwrap();
+    let id = e.scene.objects()[0].id;
+    e.select_objects([id], false);
+    let before = e.scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    e.apply(Action::Translate([1., 0., 0.]))
+        .unwrap();
+    let moved = e.scene.placement(id).unwrap();
+    e.apply(Action::Undo).unwrap();
+    command(&mut e, "Length BoundingBox").unwrap();
+    let mark = e.mark.clone();
+    assert!(mark.is_some());
+    let epoch = e.interaction_epoch;
+    command(&mut e, "aRcTiC oN").unwrap();
+    assert!(e.arctic);
+    assert_eq!(e.mark, mark);
+    assert_eq!(e.interaction_epoch, epoch);
+    assert_eq!(
+        e.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        before
+    );
+    command(&mut e, "Arctic Off").unwrap();
+    assert!(!e.arctic);
+    command(&mut e, "Arctic").unwrap();
+    assert!(e.arctic);
+    for line in [
+        "Arctic No",
+        "Arctic On Off",
+        "Arctic On extra",
+    ] {
+        assert!(command(&mut e, line).is_err());
+        assert!(e.arctic);
+    }
+    command(&mut e, "Line").unwrap();
+    command(&mut e, "w0,0,0").unwrap();
+    let points = e.draft.as_ref().unwrap().points.clone();
+    let epoch = e.interaction_epoch;
+    command(&mut e, "Arctic Off").unwrap();
+    assert_eq!(e.draft.as_ref().unwrap().points, points);
+    assert_eq!(e.interaction_epoch, epoch);
+    command(&mut e, "Escape").unwrap();
+    e.apply(Action::Redo).unwrap();
+    assert_eq!(e.scene.placement(id).unwrap().m, moved.m);
+    assert_eq!(
+        e.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        before
+    );
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/lib.rs`
 
@@ -2872,18 +4265,28 @@ Register the completed section component.
 
 **Locate this existing block:**
 
-```text
-
+```rust
 pub mod ambient_gpu;
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/90v-exercise-actual-contacts-cache-and-source-ownership-04.rs" skip=22
+```rust
+pub mod ambient_gpu;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+#[cfg(test)]
+mod arctic_tests;
+pub mod finite_project_source;
 ```
 
 ## Build & Run
+
+![Recorded visual output for Lesson 18.2 (90v-exercise-actual-contacts-cache-and-source-ownership)](../../../screenshots/journey/90v-exercise-actual-contacts-cache-and-source-ownership.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.2

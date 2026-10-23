@@ -112,13 +112,18 @@ Pin the production text renderer and explicit glyph coverage parser.
 serde_json = "1.0"
 
 [dev-dependencies]
-pollster = "=0.4.0"
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
---8<-- "journey/code/60-fonts-01.rs"
+serde_json = "1.0"
+
+glyphon = "=0.11.0"
+anyhow = "=1.0.104"
+ttf-parser = {version="=0.25.1",default-features=false}
+
+[dev-dependencies]
 ```
 
 ### 2. `index.html`
@@ -128,16 +133,16 @@ Make the supplied whole fonts available at the current text asset URLs.
 **Locate this existing block:**
 
 ```html
-  <title>Session Viewer</title>
   <link data-trunk rel="rust">
   <style>
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```html
---8<-- "journey/code/60-fonts-02.rs"
+  <link data-trunk rel="rust">
+  <link data-trunk rel="copy-dir" href="assets/text" data-target-path="text">
+  <style>
 ```
 
 ## <a id="checkpoint-60a-labels"></a>2. Keep source words metrics and placement together
@@ -186,7 +191,86 @@ Define current label/source placement types and explicit bundled font constants.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/60a-labels-01.rs"
+use glyphon::{Attrs, Buffer, Family, FontSystem, Metrics, Shaping, Wrap, fontdb};
+use serde::Serialize;
+
+pub const FONT_FAMILY: &str = "Noto Sans";
+
+pub static FONT_BYTES: &[u8] =
+    include_bytes!("../assets/text/NotoSans-Regular.subset.ttf");
+
+pub static SYMBOL_BYTES: &[u8] =
+    include_bytes!("../assets/text/NotoSansSymbols-Regular.subset.ttf");
+
+pub static FALLBACK_BYTES: &[u8] =
+    include_bytes!("../assets/text/NotoSansSymbols2-Regular.subset.ttf");
+
+#[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
+pub const FULL_FONTS: [&str; 3] = [
+    "NotoSans-Regular.ttf",
+    "NotoSansSymbols2-Regular.ttf",
+    "NotoSansSymbols-Regular.ttf",
+];
+
+const MAX_TEXT_BYTES: usize = 256 * 1024;
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub enum TextPlacement {
+    Screen {
+        left: f32,
+        top: f32,
+    },
+    Anchor {
+        world: [f64; 3],
+        offset: [f32; 2],
+    },
+    Nameplate {
+        world: [f64; 3],
+        padding: [f32; 2],
+        rounded: bool,
+    },
+    WorldPlane {
+        world: [f64; 3],
+        right: [f64; 3],
+        up: [f64; 3],
+        world_height: f64,
+    },
+    WorldBillboard {
+        world: [f64; 3],
+        world_height: f64,
+    },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextObject {
+    pub row: u32,
+    pub selected: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct TextLabel {
+    pub id: u32,
+    pub object: Option<TextObject>,
+    pub text: String,
+    pub font_size: f32,
+    pub line_height: f32,
+    pub color: [u8; 4],
+    pub placement: TextPlacement,
+    pub clip: Option<[f32; 4]>,
+}
+
+impl TextLabel {
+    pub fn ink_color(&self) -> [u8; 4] {
+        if self
+            .object
+            .is_some_and(|object| object.selected)
+        {
+            [0, 0, 0, 255]
+        } else {
+            self.color
+        }
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -200,10 +284,13 @@ Register the source component.
 mod cad_display_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/60a-labels-02.rs" skip=36
+#[cfg(test)]
+mod cad_display_tests;
+
+pub mod text;
 ```
 
 ## <a id="checkpoint-60b-coverage"></a>3. Load explicit fonts and inspect missing coverage
@@ -256,10 +343,51 @@ Load shared font bytes and inspect their actual Unicode coverage.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/60b-coverage-01.rs" skip=9
+    }
+}
+
+pub fn covers(text: &str) -> bool {
+    text.is_ascii()
+        || text
+            .chars()
+            .all(|c| c.is_control() || bundled_glyph(c))
+}
+
+fn bundled_glyph(c: char) -> bool {
+    thread_local! {
+        static MAPS: Vec<ttf_parser::cmap::Table<'static>> = [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES]
+            .into_iter()
+            .filter_map(|bytes| {
+                let face = ttf_parser::RawFace::parse(bytes, 0).ok()?;
+                ttf_parser::cmap::Table::parse(face.table(ttf_parser::Tag::from_bytes(b"cmap"))?)
+            })
+            .collect();
+    }
+
+    MAPS.with(|maps| {
+        maps.iter().any(|map| {
+            map.subtables.into_iter().any(|table| {
+                table.is_unicode() && table.glyph_index(u32::from(c)).is_some()
+            })
+        })
+    })
+}
+
+fn bundled_fonts() -> FontSystem {
+    let mut db = fontdb::Database::new();
+
+    for bytes in [FONT_BYTES, FALLBACK_BYTES, SYMBOL_BYTES] {
+        db.load_font_source(fontdb::Source::Binary(std::sync::Arc::new(
+            bytes,
+        )));
+    }
+
+    db.set_sans_serif_family(FONT_FAMILY);
+    FontSystem::new_with_locale_and_db("en-US".into(), db)
+}
 ```
 
 ## Build & Run

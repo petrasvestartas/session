@@ -1,6 +1,6 @@
 # 14.4 · Solid questions, previews and one original commit
 
-**Goal:** Reuse the cylinder’s existing center, radius and height questions for a cone. · **Steps:** 19 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Reuse the cylinder’s existing center, radius and height questions for a cone. · **Steps:** 19 · **Source:** [app/walk/sheet.rs](../../../../src/app/walk/sheet.rs) · [app/sheet_query.rs](../../../../src/app/sheet_query.rs) · [app/stream.rs](../../../../src/app/stream.rs) · [app/cplane.rs](../../../../src/app/cplane.rs) · [app/coords.rs](../../../../src/app/coords.rs) · [app/command/tool/shape.rs](../../../../src/app/command/tool/shape.rs) · [app/command/tool/gather.rs](../../../../src/app/command/tool/gather.rs) · [app/deform.rs](../../../../src/app/deform.rs) (`src/app/cplane.rs,src/app/primitives.rs,src/app/curves.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,31 +32,27 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/app/cplane.rs</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/app/primitives.rs</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Add the remaining regular…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Tab Visibility &amp; Drop</text>
-  <rect x="598" y="66" width="84" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="96" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Active</text>
-  <path d="M 682 82 L 718 82" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <path d="M 722 102 L 686 102" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
-  <rect x="722" y="66" width="84" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="2"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="764" y="96" text-anchor="middle" font-family="monospace" font-size="10.5" font-weight="700" fill="#111111">Paused</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Local C-Plane Triad &amp; OSnap</text>
+  <polygon points="602,130 650,74 798,74 750,130" fill="#f8fafc" stroke="#111111" stroke-width="1.5"/>
+  <line x1="686" y1="108" x2="742" y2="108" stroke="#dc2626" stroke-width="2.25" marker-end="url(#arrR)"/>
+  <line x1="686" y1="108" x2="658" y2="132" stroke="#16a34a" stroke-width="2.25" marker-end="url(#arrG)"/>
+  <line x1="686" y1="108" x2="686" y2="54" stroke="#2563eb" stroke-width="2.25" marker-end="url(#arrB)"/>
+  <circle cx="686" cy="108" r="4.5" fill="#facc15" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Solid questions, previews a…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Fault Ring &amp; 1x Recovery</text>
-  <circle cx="934" cy="96" r="36" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <circle cx="934" cy="96" r="22" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="934" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Ring</text>
-  <rect x="986" y="72" width="86" height="48" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1029" y="94" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">1x Safe</text>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="1029" y="108" text-anchor="middle" font-family="sans-serif" font-size="9" fill="#111111">Rebuild</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Exact Curves &amp; Primitives</text>
+  <circle cx="928" cy="94" r="32" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <rect x="982" y="64" width="62" height="60" rx="4" fill="#dcfce7" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="144" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">NURBS Arc + B-Rep Box</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Build cones and spheres</text>
 </svg>
 </div>
@@ -93,7 +89,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shared radius normalizati…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">existing frame and solid…</text>
 </svg>
 </div>
@@ -107,7 +103,37 @@ Type the regular-solid wrapper using the existing common helpers.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74-copy-current-solid-geometry-and-question-definitions-1.rs"
+use crate::primitive_shape as shape;
+use crate::primitive_shape::{BREP_MESH, Part, Shape};
+use session_rust::{Geometry, Mesh, Point};
+use std::sync::OnceLock;
+
+pub static SHAPE: Shape = Shape {
+    name: "Icosahedron",
+    options: BREP_MESH,
+    upfront: false,
+    ask: shape::center_radius,
+    read: shape::read_radius,
+    outline,
+    build,
+};
+
+static UNIT: OnceLock<Vec<Vec<[f64; 3]>>> = OnceLock::new(); // faces at radius 1
+
+/// The kernel mesh of edge length `edge`.
+fn make(edge: f64) -> Mesh {
+    session_rust::Primitives::icosahedron(edge)
+}
+
+/// The faces at the radius.
+fn outline(part: &Part) -> Vec<Vec<Point>> {
+    shape::polyhedron_outline(part, shape::unit_faces(&UNIT, make))
+}
+
+/// The kernel mesh scaled so its corners lie at the radius.
+fn build(part: &Part, option: &str) -> Result<Geometry, String> {
+    shape::polyhedron_of(part, option, make, "icosahedron")
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -117,19 +143,20 @@ Register this completed kernel solid.
 **Locate this existing block:**
 
 ```rust
-
 pub mod primitive_octahedron;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74-copy-current-solid-geometry-and-question-definitions-2.rs" skip=31
+pub mod primitive_octahedron;
+
+pub mod primitive_icosahedron;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/primitive_icosahedron.rs`
 
@@ -137,17 +164,47 @@ Supply the original kernel-solid validation fixture.
 
 **Locate this existing block:**
 
-```text
-/// The kernel mesh scaled so its corners lie at the radius.
-fn build(part: &Part, option: &str) -> Result<Geometry, String> {
+```rust
     shape::polyhedron_of(part, option, make, "icosahedron")
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/74-copy-current-solid-geometry-and-question-definitions-3.rs" skip=190
+```rust
+    shape::polyhedron_of(part, option, make, "icosahedron")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitive_shape::Answer;
+    use crate::primitive_shape::tests::{XZ, build, corners, p, plane};
+
+    /// Every corner at the radius; the Brep option is a closed solid of 20 faces.
+    #[test]
+    fn the_corners_lie_at_the_radius() {
+        let center = p(1.0, 2.0, 3.0);
+        let answers = [
+            Answer::Point(center.clone()),
+            Answer::Number(300.0),
+        ];
+        let mesh = build(&SHAPE, &plane(XZ.0, XZ.1), &answers, "Mesh").unwrap();
+        assert!(matches!(mesh, Geometry::Mesh(_)));
+
+        for q in corners(&mesh) {
+            assert!((q.distance(&center, None) - 300.0).abs() < 1e-9 * 300.0);
+        }
+
+        let Geometry::BRep(brep) =
+            build(&SHAPE, &plane(XZ.0, XZ.1), &answers, "Brep").unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(brep.face_count(), 20);
+        assert!(brep.is_solid());
+    }
+}
 ```
 
 ### 4. `src/primitive_dodecahedron.rs`
@@ -157,7 +214,37 @@ Type the regular-solid wrapper using the existing common helpers.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74-copy-current-solid-geometry-and-question-definitions-4.rs"
+use crate::primitive_shape as shape;
+use crate::primitive_shape::{BREP_MESH, Part, Shape};
+use session_rust::{Geometry, Mesh, Point};
+use std::sync::OnceLock;
+
+pub static SHAPE: Shape = Shape {
+    name: "Dodecahedron",
+    options: BREP_MESH,
+    upfront: false,
+    ask: shape::center_radius,
+    read: shape::read_radius,
+    outline,
+    build,
+};
+
+static UNIT: OnceLock<Vec<Vec<[f64; 3]>>> = OnceLock::new(); // faces at radius 1
+
+/// The kernel mesh of edge length `edge`.
+fn make(edge: f64) -> Mesh {
+    Mesh::create_dodecahedron(edge)
+}
+
+/// The faces at the radius.
+fn outline(part: &Part) -> Vec<Vec<Point>> {
+    shape::polyhedron_outline(part, shape::unit_faces(&UNIT, make))
+}
+
+/// The kernel mesh scaled so its corners lie at the radius.
+fn build(part: &Part, option: &str) -> Result<Geometry, String> {
+    shape::polyhedron_of(part, option, make, "dodecahedron")
+}
 ```
 
 ### 5. `src/lib.rs`
@@ -167,19 +254,20 @@ Register this completed kernel solid.
 **Locate this existing block:**
 
 ```rust
-
 pub mod primitive_icosahedron;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74-copy-current-solid-geometry-and-question-definitions-5.rs" skip=32
+pub mod primitive_icosahedron;
+
+pub mod primitive_dodecahedron;
+
+#[cfg(target_arch = "wasm32")]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/primitive_dodecahedron.rs`
 
@@ -187,17 +275,47 @@ Supply the original kernel-solid validation fixture.
 
 **Locate this existing block:**
 
-```text
-/// The kernel mesh scaled so its corners lie at the radius.
-fn build(part: &Part, option: &str) -> Result<Geometry, String> {
+```rust
     shape::polyhedron_of(part, option, make, "dodecahedron")
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/74-copy-current-solid-geometry-and-question-definitions-6.rs" skip=191
+```rust
+    shape::polyhedron_of(part, option, make, "dodecahedron")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitive_shape::Answer;
+    use crate::primitive_shape::tests::{XZ, build, corners, p, plane};
+
+    /// Every corner at the radius; the Brep option is a closed solid of 12 faces.
+    #[test]
+    fn the_corners_lie_at_the_radius() {
+        let center = p(1.0, 2.0, 3.0);
+        let answers = [
+            Answer::Point(center.clone()),
+            Answer::Number(300.0),
+        ];
+        let mesh = build(&SHAPE, &plane(XZ.0, XZ.1), &answers, "Mesh").unwrap();
+        assert!(matches!(mesh, Geometry::Mesh(_)));
+
+        for q in corners(&mesh) {
+            assert!((q.distance(&center, None) - 300.0).abs() < 1e-9 * 300.0);
+        }
+
+        let Geometry::BRep(brep) =
+            build(&SHAPE, &plane(XZ.0, XZ.1), &answers, "Brep").unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(brep.face_count(), 12);
+        assert!(brep.is_solid());
+    }
+}
 ```
 
 ## <a id="checkpoint-74a-own-current-shape-questions-and-answer-state"></a>2. Own current shape questions and answer state
@@ -232,7 +350,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original answers</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current frame and part</text>
 </svg>
 </div>
@@ -246,7 +364,65 @@ Own checked current primitive questions, representation choice and original answ
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74a-own-current-shape-questions-and-answer-state-01.rs"
+use crate::{
+    cplane::CPlane,
+    primitive_shape::{Answer, Ask, Kind, Part, Shape, frame_of},
+};
+use session_rust::{Geometry, Plane, Point, Vector};
+
+#[derive(Clone)]
+pub struct Draft {
+    pub shape: &'static Shape,
+    pub option: usize,
+    pub answers: Vec<Answer>,
+    pub part: Part,
+    pub plane: CPlane,
+}
+
+impl Draft {
+    pub fn new(
+        shape: &'static Shape,
+        plane: CPlane,
+        option: usize,
+    ) -> Result<Self, String> {
+        if option >= shape.choices().count().max(1) {
+            return Err("Unknown shape option".into());
+        }
+        let (x, y) = plane.axes();
+        let part = Part::new(frame_of(
+            &Plane::new(plane.origin(), x, y),
+            &[],
+        ));
+        Ok(Self {
+            shape,
+            option,
+            answers: Vec::new(),
+            part,
+            plane,
+        })
+    }
+    pub fn choice(&self) -> &'static str {
+        self.shape
+            .choices()
+            .nth(self.option)
+            .unwrap_or("")
+    }
+    pub fn next(&self) -> Option<Ask> {
+        (self.shape.ask)(&self.answers, &self.part, self.choice())
+    }
+    pub fn prompt(&self) -> String {
+        let Some(ask) = self.next() else {
+            return String::new();
+        };
+        let default = ask.default.map_or(String::new(), |value| {
+            format!(" · Enter uses {value}")
+        });
+        format!(
+            "{} · {}{default} · Esc cancels",
+            self.shape.name, ask.prompt
+        )
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -256,14 +432,19 @@ Register the primitive component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod primitive_dodecahedron;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74a-own-current-shape-questions-and-answer-state-02.rs" skip=33
+pub mod primitive_dodecahedron;
+
+pub mod primitive_draft;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-74b-validate-a-new-answer-before-changing-its-original-state"></a>3. Validate a new answer before changing its state
@@ -298,7 +479,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked current frame</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">validated part</text>
 </svg>
 </div>
@@ -312,7 +493,6 @@ Validate original answer candidates and changed frames without partially adoptin
 **Locate this existing block:**
 
 ```rust
-        format!("{} · {}{default} · Esc cancels",self.shape.name,ask.prompt)
     }
 }
 ```
@@ -320,7 +500,46 @@ Validate original answer candidates and changed frames without partially adoptin
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74b-validate-a-new-answer-before-changing-its-original-state-01.rs"
+    }
+    pub fn set_plane(&mut self, plane: CPlane) -> Result<(), String> {
+        let (x, y) = plane.axes();
+        let frame = frame_of(
+            &Plane::new(plane.origin(), x, y),
+            &self.answers,
+        );
+        let part = (self.shape.read)(&frame, &self.answers, self.choice())?;
+        self.plane = plane;
+        self.part = part;
+        Ok(())
+    }
+    fn with(&self, answer: Answer) -> Result<(Vec<Answer>, Part), String> {
+        match &answer {
+            Answer::Point(p) => {
+                crate::tool_coords::checked([p[0], p[1], p[2]])
+                    .map_err(str::to_owned)?;
+            }
+            Answer::Number(value) if !value.is_finite() || value.abs() > 1e12 => {
+                return Err("Shape sizes must be finite and within ±1e12".into());
+            }
+            _ => {}
+        }
+        if self.next().is_none() {
+            return Err("The shape already has all its answers".into());
+        }
+        let mut answers = self.answers.clone();
+        answers.push(answer);
+        if answers.len() > crate::tool::MAX_POINTS {
+            return Err("Too many shape answers".into());
+        }
+        let (x, y) = self.plane.axes();
+        let frame = frame_of(
+            &Plane::new(self.plane.origin(), x, y),
+            &answers,
+        );
+        let part = (self.shape.read)(&frame, &answers, self.choice())?;
+        Ok((answers, part))
+    }
+}
 ```
 
 ## <a id="checkpoint-74c-build-only-after-the-last-shape-question"></a>4. Build only after the last shape question
@@ -355,7 +574,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original kernel geometry</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">accepted answer state</text>
 </svg>
 </div>
@@ -369,7 +588,6 @@ Build a complete original primitive before adopting the completed answer set.
 **Locate this existing block:**
 
 ```rust
-        let part=(self.shape.read)(&frame,&answers,self.choice())?;Ok((answers,part))
     }
 }
 ```
@@ -377,7 +595,20 @@ Build a complete original primitive before adopting the completed answer set.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74c-build-only-after-the-last-shape-question-01.rs"
+    }
+    pub fn accept(&mut self, answer: Answer) -> Result<Option<Geometry>, String> {
+        let (answers, part) = self.with(answer)?;
+        let complete = (self.shape.ask)(&answers, &part, self.choice()).is_none();
+        let geometry = if complete {
+            Some((self.shape.build)(&part, self.choice())?)
+        } else {
+            None
+        };
+        self.answers = answers;
+        self.part = part;
+        Ok(geometry)
+    }
+}
 ```
 
 ## <a id="checkpoint-74d-answer-shape-dimensions-with-atomic-typed-batches"></a>5. Answer shape dimensions with atomic typed batches
@@ -412,7 +643,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked original answers</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one result</text>
 </svg>
 </div>
@@ -426,7 +657,6 @@ Resolve current shape choices, numbers, coordinates and Enter defaults atomicall
 **Locate this existing block:**
 
 ```rust
-        self.answers=answers;self.part=part;Ok(geometry)
     }
 }
 ```
@@ -434,7 +664,85 @@ Resolve current shape choices, numbers, coordinates and Enter defaults atomicall
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74d-answer-shape-dimensions-with-atomic-typed-batches-01.rs"
+    }
+    pub fn text(
+        &mut self,
+        text: &str,
+        cursor: Option<[f64; 3]>,
+        fixed: Option<CPlane>,
+    ) -> Result<Option<Geometry>, String> {
+        // A cloned answer set makes a multiword input atomic, including its final build and any extra invalid words.
+        let mut candidate = self.clone();
+        let mut geometry = None;
+        let words: Vec<_> = text.split_whitespace().collect();
+        if words.is_empty() {
+            let value = candidate
+                .next()
+                .and_then(|ask| ask.default)
+                .ok_or_else(|| {
+                    format!(
+                        "{} needs the {}",
+                        candidate.shape.name,
+                        candidate
+                            .next()
+                            .map_or("next answer", |ask| ask.prompt)
+                    )
+                })?;
+            geometry = candidate.accept(Answer::Number(value))?;
+        } else {
+            let mut index = 0;
+            while index < words.len() {
+                if geometry.is_some() {
+                    return Err("The shape already has all its answers".into());
+                }
+                if let Some((option, count)) =
+                    candidate.shape.option_in(&words[index..])
+                {
+                    if candidate.shape.upfront
+                        && !candidate.answers.is_empty()
+                        && candidate.option != option
+                    {
+                        return Err("Choose this option before the first point".into());
+                    }
+                    candidate.option = option;
+                    candidate.set_plane(candidate.plane)?;
+                    index += count;
+                    continue;
+                }
+                let ask = candidate
+                    .next()
+                    .ok_or("The shape already has all its answers")?;
+                let answer = match (ask.kind, words[index].parse::<f64>().ok()) {
+                    (Kind::Size | Kind::Height, Some(value)) => Answer::Number(value),
+                    _ => {
+                        let previous = candidate
+                            .answers
+                            .iter()
+                            .filter_map(|answer| match answer {
+                                Answer::Point(p) => Some([p[0], p[1], p[2]]),
+                                _ => None,
+                            })
+                            .collect::<Vec<_>>();
+                        let points = crate::drawing_input::points(
+                            words[index],
+                            fixed,
+                            candidate.plane,
+                            &previous,
+                            cursor,
+                        )
+                        .map_err(str::to_owned)?;
+                        let p = points[0];
+                        Answer::Point(Point::new(p[0], p[1], p[2]))
+                    }
+                };
+                geometry = candidate.accept(answer)?;
+                index += 1;
+            }
+        }
+        *self = candidate;
+        Ok(geometry)
+    }
+}
 ```
 
 ## <a id="checkpoint-74e-preview-solid-wires-and-measure-normal-axis-clicks"></a>6. Preview solid wires and measure normal axis clicks
@@ -469,7 +777,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current part</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary wires or normal…</text>
 </svg>
 </div>
@@ -483,7 +791,6 @@ Derive temporary current solid wires and finite height-axis click locations.
 **Locate this existing block:**
 
 ```rust
-        *self=candidate;Ok(geometry)
     }
 }
 ```
@@ -491,7 +798,50 @@ Derive temporary current solid wires and finite height-axis click locations.
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74e-preview-solid-wires-and-measure-normal-axis-clicks-01.rs"
+    }
+    pub fn outline(&self, cursor: Option<[f64; 3]>) -> Vec<Vec<[f64; 3]>> {
+        let pending = cursor
+            .and_then(|p| {
+                self.with(Answer::Point(Point::new(p[0], p[1], p[2])))
+                    .ok()
+            })
+            .map(|(_, part)| part);
+        (self.shape.outline)(pending.as_ref().unwrap_or(&self.part))
+            .into_iter()
+            .map(|wire| {
+                wire.into_iter()
+                    .map(|p| [p[0], p[1], p[2]])
+                    .collect()
+            })
+            .collect()
+    }
+    pub fn on_axis(
+        &self,
+        camera: &crate::camera::Camera,
+        screen: [f32; 2],
+    ) -> Option<[f64; 3]> {
+        let ray = camera.ray(screen)?;
+        let axis = &self.part.frame;
+        let direction = &ray.direction;
+        let (a, b) = (
+            direction.dot(direction),
+            direction.dot(&axis.z),
+        );
+        let denominator = a - b * b;
+        if denominator <= 0.01 * a {
+            return None;
+        }
+        let offset = Vector::new(
+            ray.origin[0] - axis.origin[0],
+            ray.origin[1] - axis.origin[1],
+            ray.origin[2] - axis.origin[2],
+        );
+        let height =
+            (a * offset.dot(&axis.z) - b * offset.dot(direction)) / denominator;
+        let p = axis.at(0., 0., height);
+        crate::tool_coords::checked([p[0], p[1], p[2]]).ok()
+    }
+}
 ```
 
 ## <a id="checkpoint-74f-adopt-original-primitive-geometry-through-existing-rows"></a>7. Adopt primitive geometry through existing rows
@@ -526,7 +876,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original scene row</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one transaction</text>
 </svg>
 </div>
@@ -540,7 +890,21 @@ Adopt original kernel geometry through existing original-source scene rows.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74f-adopt-original-primitive-geometry-through-existing-rows-01.rs"
+use crate::scene::{ObjectId, Scene};
+use session_rust::Geometry;
+
+pub fn insert(scene: &mut Scene, geometry: Geometry) -> Result<ObjectId, &'static str> {
+    match geometry {
+        Geometry::BRep(source) => scene.insert_cad(source),
+        Geometry::Mesh(source) => scene.insert(crate::prepared::PreparedMesh::new(
+            (*source).clone(),
+        )?),
+        Geometry::NurbsCurve(source) => {
+            scene.insert_path(crate::chain::PreparedChain::curve(source)?)
+        }
+        _ => Err("This primitive geometry is not supported"),
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -550,14 +914,19 @@ Register the primitive component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod primitive_draft;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74f-adopt-original-primitive-geometry-through-existing-rows-02.rs" skip=26
+pub mod primitive_draft;
+
+pub mod primitive_geometry;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ### 3. `src/tool.rs`
@@ -567,17 +936,16 @@ Carry an original completed primitive result beside existing point and placement
 **Locate this existing block:**
 
 ```rust
-use std::rc::Rc;
-
-pub enum Built { Point(PreparedPoint), Line(PreparedLine), Move([f64; 3]), Polyline(crate::chain::PreparedChain) }
-
-pub trait Tool: std::fmt::Debug {
+    Polyline(crate::chain::PreparedChain),
+}
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74f-adopt-original-primitive-geometry-through-existing-rows-03.rs"
+    Polyline(crate::chain::PreparedChain),
+    Geometry(session_rust::Geometry),
+}
 ```
 
 ### 4. `src/editor.rs`
@@ -587,16 +955,18 @@ Commit completed original primitive geometry inside the existing history transac
 **Locate this existing block:**
 
 ```rust
-            crate::tool::Built::Line(line)=>scene.insert_line(line).map(|_|()),
-            crate::tool::Built::Polyline(line)=>scene.insert_path(line).map(|_|()),
-            crate::tool::Built::Move(_)=>unreachable!("Move uses its placement preview"),
-        })?;
+                }
+                crate::tool::Built::Move(_) => {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74f-adopt-original-primitive-geometry-through-existing-rows-04.rs"
+                }
+                crate::tool::Built::Geometry(geometry) => {
+                    crate::primitive_geometry::insert(scene, geometry).map(|_| ())
+                }
+                crate::tool::Built::Move(_) => {
 ```
 
 ## <a id="checkpoint-74g-keep-primitive-answers-beside-the-existing-drawing-draft"></a>8. Keep primitive answers beside the existing drawing draft
@@ -631,7 +1001,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">mixed primitive answers</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary wire sets</text>
 </svg>
 </div>
@@ -647,114 +1017,186 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let world=crate::drawing_input::points(text,crate::drawing_coords::plane(),self.frame,&[],None)?;
-        self.tool.build_on_plane(&world,self.frame)
+        )?;
+        self.tool.build_on_plane(&world, self.frame)
     }
-    pub fn outline(&self)->Vec<[f64;3]> {
-        let mut points=self.points.clone();if let Some(cursor)=self.cursor {points.push(cursor);}
-        self.tool.outline(&points,self.frame)
 ```
 
 Replace it with:
 
 ```rust
-        let world=crate::drawing_input::points(text,crate::drawing_coords::plane(),self.frame,&[],None)?;
-        self.tool.build_on_plane(&world,self.frame)
+        )?;
+        self.tool.build_on_plane(&world, self.frame)
     }
-    pub fn outlines(&self)->Vec<Vec<[f64;3]>> {
-        if let Some(primitive)=&self.primitive {primitive.outline(self.cursor)}else{vec![self.outline()]}
+    pub fn outlines(&self) -> Vec<Vec<[f64; 3]>> {
+        if let Some(primitive) = &self.primitive {
+            primitive.outline(self.cursor)
+        } else {
+            vec![self.outline()]
+        }
     }
-    pub fn outline(&self)->Vec<[f64;3]> {
-        let mut points=self.points.clone();if let Some(cursor)=self.cursor {points.push(cursor);}
-        self.tool.outline(&points,self.frame)
 ```
 
 **Locate this block:**
 
 ```rust
-pub const MAX_POINTS: usize = 4096;
-
-// A draft owns unfinished points and a cursor, so preview motion cannot become saved geometry or an Undo transaction.
-pub struct Draft { pub tool: Box<dyn Tool>, pub points: Vec<[f64; 3]>, pub cursor: Option<[f64; 3]>, pub snapped: Option<crate::snap::Kind>, pub frame: crate::cplane::CPlane, pub plane_points: Option<Vec<[f64;3]>> }
-
-impl Draft {
-    pub fn new(shape: Shape) -> Self { Self { tool: Box::new(shape), points: Vec::new(), cursor: None, snapped: None, frame: crate::cplane::CPlane::Xy, plane_points: None } }
+            snapped: None,
+            frame: crate::cplane::CPlane::Xy,
+            plane_points: None,
+        }
+    }
     pub fn prompt(&self) -> String {
-        let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
-            else if self.tool.count()==0 {format!("{} point {} · Enter finishes · Esc cancels",self.tool.name(),self.points.len()+1)}
-            else {format!("{} point {} of {} · Esc cancels", self.tool.name(), self.points.len()+1, self.tool.count())};
+        let mut prompt = if let Some(points) = &self.plane_points {
+            format!(
+                "CPlane 3 Point · point {} of 3 · Esc cancels",
 ```
 
 Replace it with:
 
 ```rust
-pub const MAX_POINTS: usize = 4096;
-
-// A draft owns unfinished points and a cursor, so preview motion cannot become saved geometry or an Undo transaction.
-pub struct Draft { pub tool: Box<dyn Tool>, pub points: Vec<[f64; 3]>, pub cursor: Option<[f64; 3]>, pub snapped: Option<crate::snap::Kind>, pub frame: crate::cplane::CPlane, pub plane_points: Option<Vec<[f64;3]>>, pub primitive:Option<crate::primitive_draft::Draft> }
-
-impl Draft {
-    pub fn new(shape: Shape) -> Self { Self { tool: Box::new(shape), points: Vec::new(), cursor: None, snapped: None, frame: crate::cplane::CPlane::Xy, plane_points: None, primitive:if let Shape::Primitive(shape)=shape {Some(crate::primitive_draft::Draft::new(shape,crate::cplane::CPlane::Xy,0).expect("Registered primitive option"))}else{None} } }
+            snapped: None,
+            frame: crate::cplane::CPlane::Xy,
+            plane_points: None,
+            primitive: if let Shape::Primitive(shape) = shape {
+                Some(
+                    crate::primitive_draft::Draft::new(
+                        shape,
+                        crate::cplane::CPlane::Xy,
+                        0,
+                    )
+                    .expect("Registered primitive option"),
+                )
+            } else {
+                None
+            },
+        }
+    }
     pub fn prompt(&self) -> String {
-        if self.plane_points.is_none() {if let Some(primitive)=&self.primitive {return primitive.prompt();}}
-        let mut prompt=if let Some(points)=&self.plane_points {format!("CPlane 3 Point · point {} of 3 · Esc cancels",points.len()+1)}
-            else if self.tool.count()==0 {format!("{} point {} · Enter finishes · Esc cancels",self.tool.name(),self.points.len()+1)}
-            else {format!("{} point {} of {} · Esc cancels", self.tool.name(), self.points.len()+1, self.tool.count())};
+        if self.plane_points.is_none() {
+            if let Some(primitive) = &self.primitive {
+                return primitive.prompt();
+            }
+        }
+        let mut prompt = if let Some(points) = &self.plane_points {
+            format!(
+                "CPlane 3 Point · point {} of 3 · Esc cancels",
 ```
 
 **Locate this block:**
 
 ```rust
-            Self::Polygon {sides} if points.len()==2=>crate::planar::points("polygon",plane,*sides,points).unwrap_or_default(),_=>points.to_vec()}
-    }
-    fn buttons(&self)->Vec<(String,String)> {
-        let mut buttons=vec![("Cancel".into(),"Escape".into())];
-        if matches!(self,Self::Polyline|Self::Rectangle|Self::Polygon {..}) {
-            for name in ["Points","Rectangle","Polygon"] {buttons.push((name.into(),format!("Polyline {name}")));}
-```
-
-Replace it with:
-
-```rust
-            Self::Polygon {sides} if points.len()==2=>crate::planar::points("polygon",plane,*sides,points).unwrap_or_default(),_=>points.to_vec()}
-    }
-    fn buttons(&self)->Vec<(String,String)> {
-        if let Self::Primitive(shape)=self {return shape.options.iter().map(|(label,line)|((*label).into(),(*line).into())).collect();}
-        let mut buttons=vec![("Cancel".into(),"Escape".into())];
-        if matches!(self,Self::Polyline|Self::Rectangle|Self::Polygon {..}) {
-            for name in ["Points","Rectangle","Polygon"] {buttons.push((name.into(),format!("Polyline {name}")));}
-```
-
-**Locate this block:**
-
-```rust
+    pub snapped: Option<crate::snap::Kind>,
+    pub frame: crate::cplane::CPlane,
+    pub plane_points: Option<Vec<[f64; 3]>>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Shape { Point, Line, Move, Polyline, Rectangle, Polygon {sides:usize} }
-
-impl Tool for Shape {
-    fn name(&self) -> &'static str { match self { Self::Point => "Point", Self::Line => "Line", Self::Move => "Move", Self::Polyline => "Polyline", Self::Rectangle=>"Polyline Rectangle",Self::Polygon {..}=>"Polyline Polygon" } }
-    fn count(&self) -> usize { match self { Self::Point => 1, Self::Line | Self::Move => 2, Self::Polyline => 0,Self::Rectangle|Self::Polygon {..}=>2 } }
-    fn sides(&self)->Option<usize> {if let Self::Polygon {sides}=self {Some(*sides)}else{None}}
-    fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
-        if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
+impl Draft {
 ```
 
 Replace it with:
 
 ```rust
+    pub snapped: Option<crate::snap::Kind>,
+    pub frame: crate::cplane::CPlane,
+    pub plane_points: Option<Vec<[f64; 3]>>,
+    pub primitive: Option<crate::primitive_draft::Draft>,
 }
 
-#[derive(Clone, Copy, Debug)]
-pub enum Shape { Point, Line, Move, Polyline, Rectangle, Polygon {sides:usize}, Primitive(&'static crate::primitive_shape::Shape) }
+impl Draft {
+```
+
+**Locate this block:**
+
+```rust
+        }
+    }
+    fn buttons(&self) -> Vec<(String, String)> {
+        let mut buttons = vec![("Cancel".into(), "Escape".into())];
+        if matches!(
+            self,
+```
+
+Replace it with:
+
+```rust
+        }
+    }
+    fn buttons(&self) -> Vec<(String, String)> {
+        if let Self::Primitive(shape) = self {
+            return shape
+                .options
+                .iter()
+                .map(|(label, line)| ((*label).into(), (*line).into()))
+                .collect();
+        }
+        let mut buttons = vec![("Cancel".into(), "Escape".into())];
+        if matches!(
+            self,
+```
+
+**Locate this block:**
+
+```rust
+            Self::Line | Self::Move => 2,
+            Self::Polyline => 0,
+            Self::Rectangle | Self::Polygon { .. } => 2,
+        }
+    }
+    fn sides(&self) -> Option<usize> {
+```
+
+Replace it with:
+
+```rust
+            Self::Line | Self::Move => 2,
+            Self::Polyline => 0,
+            Self::Rectangle | Self::Polygon { .. } => 2,
+            Self::Primitive(_) => 0,
+        }
+    }
+    fn sides(&self) -> Option<usize> {
+```
+
+**Locate this block:**
+
+```rust
+            Self::Polyline => "Polyline",
+            Self::Rectangle => "Polyline Rectangle",
+            Self::Polygon { .. } => "Polyline Polygon",
+        }
+    }
+    fn count(&self) -> usize {
+```
+
+Replace it with:
+
+```rust
+            Self::Polyline => "Polyline",
+            Self::Rectangle => "Polyline Rectangle",
+            Self::Polygon { .. } => "Polyline Polygon",
+            Self::Primitive(shape) => shape.name,
+        }
+    }
+    fn count(&self) -> usize {
+```
+
+**Locate this block:**
+
+```rust
+    Polygon { sides: usize },
+}
 
 impl Tool for Shape {
-    fn name(&self) -> &'static str { match self { Self::Point => "Point", Self::Line => "Line", Self::Move => "Move", Self::Polyline => "Polyline", Self::Rectangle=>"Polyline Rectangle",Self::Polygon {..}=>"Polyline Polygon",Self::Primitive(shape)=>shape.name } }
-    fn count(&self) -> usize { match self { Self::Point => 1, Self::Line | Self::Move => 2, Self::Polyline => 0,Self::Rectangle|Self::Polygon {..}=>2,Self::Primitive(_)=>0 } }
-    fn sides(&self)->Option<usize> {if let Self::Polygon {sides}=self {Some(*sides)}else{None}}
-    fn set_sides(&mut self,value:usize)->Result<(),&'static str> {
-        if !(3..MAX_POINTS).contains(&value) {return Err("Polygon sides must be between 3 and 4095");}
+```
+
+Replace it with:
+
+```rust
+    Polygon { sides: usize },
+    Primitive(&'static crate::primitive_shape::Shape),
+}
+
+impl Tool for Shape {
 ```
 
 ## <a id="checkpoint-74h-route-clicked-points-to-the-current-shape-question"></a>9. Route clicked points to the current shape question
@@ -789,7 +1231,7 @@ impl Tool for Shape {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">shape answer</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">completed original result</text>
 </svg>
 </div>
@@ -805,55 +1247,74 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
+        Ok(Change::Scene)
     }
 
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        let draft=self.draft.as_ref().ok_or("No point tool is running")?;
-        let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
+    fn tool_text(&mut self, text: &str) -> Result<Change, &'static str> {
 ```
 
 Replace it with:
 
 ```rust
-        self.draft=None;self.tool_status=format!("{name} created.");Ok(Change::Scene)
+        Ok(Change::Scene)
     }
 
-    fn primitive_failure(&mut self,message:String)->&'static str {self.tool_status=message;"Shape input invalid"}
-    fn primitive_answer(&mut self,point:session_rust::Point)->Result<Change,&'static str> {
-        let draft=self.draft.as_mut().ok_or("No shape tool is running")?;
-        let result=draft.primitive.as_mut().ok_or("No shape tool is running")?.accept(crate::primitive_shape::Answer::Point(point.clone()));
-        let geometry=result.map_err(|message|self.primitive_failure(message))?;
-        let draft=self.draft.as_mut().unwrap();draft.points.push([point[0],point[1],point[2]]);draft.cursor=None;draft.snapped=None;
-        if let Some(geometry)=geometry {return self.commit_tool(crate::tool::Built::Geometry(geometry));}
-        self.tool_status=draft.prompt();Ok(Change::View)
+    fn primitive_failure(&mut self, message: String) -> &'static str {
+        self.tool_status = message;
+        "Shape input invalid"
     }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        let draft=self.draft.as_ref().ok_or("No point tool is running")?;
-        let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
+    fn primitive_answer(
+        &mut self,
+        point: session_rust::Point,
+    ) -> Result<Change, &'static str> {
+        let draft = self
+            .draft
+            .as_mut()
+            .ok_or("No shape tool is running")?;
+        let result = draft
+            .primitive
+            .as_mut()
+            .ok_or("No shape tool is running")?
+            .accept(crate::primitive_shape::Answer::Point(
+                point.clone(),
+            ));
+        let geometry = result.map_err(|message| self.primitive_failure(message))?;
+        let draft = self.draft.as_mut().unwrap();
+        draft
+            .points
+            .push([point[0], point[1], point[2]]);
+        draft.cursor = None;
+        draft.snapped = None;
+        if let Some(geometry) = geometry {
+            return self.commit_tool(crate::tool::Built::Geometry(geometry));
+        }
+        self.tool_status = draft.prompt();
+        Ok(Change::View)
+    }
+    fn tool_text(&mut self, text: &str) -> Result<Change, &'static str> {
 ```
 
 **Locate this block:**
 
 ```rust
-            }
-            *points=picked;self.tool_status=draft.prompt();return Ok(Change::View);
         }
         crate::drawing_coords::set_plane(self.construction_plane);
-        let Some(built)=draft.submit(point)? else {self.tool_status=draft.prompt();self.snap_index=None;return self.update_edit_preview();};
-        self.commit_tool(built)
+        let Some(built) = draft.submit(point)? else {
+            self.tool_status = draft.prompt();
 ```
 
 Replace it with:
 
 ```rust
-            }
-            *points=picked;self.tool_status=draft.prompt();return Ok(Change::View);
         }
-        if draft.primitive.is_some() {return self.primitive_answer(session_rust::Point::new(point[0],point[1],point[2]));}
+        if draft.primitive.is_some() {
+            return self.primitive_answer(session_rust::Point::new(
+                point[0], point[1], point[2],
+            ));
+        }
         crate::drawing_coords::set_plane(self.construction_plane);
-        let Some(built)=draft.submit(point)? else {self.tool_status=draft.prompt();self.snap_index=None;return self.update_edit_preview();};
-        self.commit_tool(built)
+        let Some(built) = draft.submit(point)? else {
+            self.tool_status = draft.prompt();
 ```
 
 ## <a id="checkpoint-74i-route-typed-shape-input-and-preserve-detailed-errors"></a>10. Route typed shape input and preserve detailed errors
@@ -888,7 +1349,7 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked batch</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original point list or er…</text>
 </svg>
 </div>
@@ -904,61 +1365,94 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        if let Some(geometry)=geometry {return self.commit_tool(crate::tool::Built::Geometry(geometry));}
-        self.tool_status=draft.prompt();Ok(Change::View)
+        self.tool_status = draft.prompt();
+        Ok(Change::View)
     }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        let draft=self.draft.as_ref().ok_or("No point tool is running")?;
-        let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
-        let added=crate::drawing_input::points(text,self.construction_plane,draft.frame,points,draft.cursor)?;
+    fn tool_text(&mut self, text: &str) -> Result<Change, &'static str> {
+        let draft = self
 ```
 
 Replace it with:
 
 ```rust
-        if let Some(geometry)=geometry {return self.commit_tool(crate::tool::Built::Geometry(geometry));}
-        self.tool_status=draft.prompt();Ok(Change::View)
+        self.tool_status = draft.prompt();
+        Ok(Change::View)
     }
-    fn primitive_text(&mut self,text:&str)->Result<Change,&'static str> {
-        let draft=self.draft.as_mut().ok_or("No shape tool is running")?;
-        let result=draft.primitive.as_mut().ok_or("No shape tool is running")?.text(text,draft.cursor,self.construction_plane);
-        let geometry=result.map_err(|message|self.primitive_failure(message))?;
-        let draft=self.draft.as_mut().unwrap();draft.points=draft.primitive.as_ref().unwrap().answers.iter().filter_map(|answer|match answer {crate::primitive_shape::Answer::Point(p)=>Some([p[0],p[1],p[2]]),_=>None}).collect();draft.cursor=None;draft.snapped=None;
-        if let Some(geometry)=geometry {return self.commit_tool(crate::tool::Built::Geometry(geometry));}
-        self.tool_status=draft.prompt();Ok(Change::View)
+    fn primitive_text(&mut self, text: &str) -> Result<Change, &'static str> {
+        let draft = self
+            .draft
+            .as_mut()
+            .ok_or("No shape tool is running")?;
+        let result = draft
+            .primitive
+            .as_mut()
+            .ok_or("No shape tool is running")?
+            .text(text, draft.cursor, self.construction_plane);
+        let geometry = result.map_err(|message| self.primitive_failure(message))?;
+        let draft = self.draft.as_mut().unwrap();
+        draft.points = draft
+            .primitive
+            .as_ref()
+            .unwrap()
+            .answers
+            .iter()
+            .filter_map(|answer| match answer {
+                crate::primitive_shape::Answer::Point(p) => Some([p[0], p[1], p[2]]),
+                _ => None,
+            })
+            .collect();
+        draft.cursor = None;
+        draft.snapped = None;
+        if let Some(geometry) = geometry {
+            return self.commit_tool(crate::tool::Built::Geometry(geometry));
+        }
+        self.tool_status = draft.prompt();
+        Ok(Change::View)
     }
-    fn tool_text(&mut self,text:&str) -> Result<Change,&'static str> {
-        if self.draft.as_ref().is_some_and(|d|d.primitive.is_some() && d.plane_points.is_none()) {return self.primitive_text(text);}
-        let draft=self.draft.as_ref().ok_or("No point tool is running")?;
-        let points=draft.plane_points.as_deref().unwrap_or(&draft.points);
-        let added=crate::drawing_input::points(text,self.construction_plane,draft.frame,points,draft.cursor)?;
+    fn tool_text(&mut self, text: &str) -> Result<Change, &'static str> {
+        if self
+            .draft
+            .as_ref()
+            .is_some_and(|d| d.primitive.is_some() && d.plane_points.is_none())
+        {
+            return self.primitive_text(text);
+        }
+        let draft = self
 ```
 
 **Locate this block:**
 
 ```rust
-        if self.plane_menu {return Some(crate::drawing_input::choice(text).ok_or("Choose XY, XZ, YZ, 3 Point, View or Cancel"));}
-        let draft=self.draft.as_ref()?;
-        if let Some(choice)=crate::drawing_input::choice(text) {return Some(Ok(choice));}
-        if text.trim().eq_ignore_ascii_case("Close") && draft.tool.count()==0 {return Some(Ok(Action::CloseTool));}
-        if text.trim().is_empty() {return Some(Ok(if draft.tool.count()==0 && !self.plane_only {Action::FinishTool}else{Action::CancelTool}));}
-        let word=text.trim();
+        }
+        if text.trim().eq_ignore_ascii_case("Close") && draft.tool.count() == 0 {
+            return Some(Ok(Action::CloseTool));
+        }
 ```
 
 Replace it with:
 
 ```rust
-        if self.plane_menu {return Some(crate::drawing_input::choice(text).ok_or("Choose XY, XZ, YZ, 3 Point, View or Cancel"));}
-        let draft=self.draft.as_ref()?;
-        if let Some(choice)=crate::drawing_input::choice(text) {return Some(Ok(choice));}
+        }
         if draft.plane_points.is_none() && draft.primitive.is_some() {
-            let words:Vec<_>=text.split_whitespace().collect();let primitive=draft.primitive.as_ref().unwrap();
-            if text.trim().is_empty() || primitive.shape.option_in(&words).is_some() || words.first().is_some_and(|word|word.parse::<f64>().is_ok() || crate::drawing_coords::parse_world(word).is_some() || word.contains(',') || word.contains('<') || word.starts_with('@')) {return Some(Ok(Action::ToolText(text.to_owned())));}
+            let words: Vec<_> = text.split_whitespace().collect();
+            let primitive = draft.primitive.as_ref().unwrap();
+            if text.trim().is_empty()
+                || primitive.shape.option_in(&words).is_some()
+                || words.first().is_some_and(|word| {
+                    word.parse::<f64>().is_ok()
+                        || crate::drawing_coords::parse_world(word).is_some()
+                        || word.contains(',')
+                        || word.contains('<')
+                        || word.starts_with('@')
+                })
+            {
+                return Some(Ok(Action::ToolText(text.to_owned())));
+            }
             return None;
         }
-        if text.trim().eq_ignore_ascii_case("Close") && draft.tool.count()==0 {return Some(Ok(Action::CloseTool));}
-        if text.trim().is_empty() {return Some(Ok(if draft.tool.count()==0 && !self.plane_only {Action::FinishTool}else{Action::CancelTool}));}
-        let word=text.trim();
+        if text.trim().eq_ignore_ascii_case("Close") && draft.tool.count() == 0 {
+            return Some(Ok(Action::CloseTool));
+        }
 ```
 
 ## <a id="checkpoint-74j-synchronize-shape-frames-before-accepting-plane-changes"></a>11. Synchronize shape frames before accepting plane changes
@@ -993,7 +1487,7 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">validated shape part</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">active input context</text>
 </svg>
 </div>
@@ -1009,48 +1503,65 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                let changed=preview.is_some() || self.edit_preview.is_some(); self.edit_preview=preview;
-                self.snap_index=None;let mut draft=crate::tool::Draft::new(shape);
-                draft.frame=self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
-                self.draft=Some(draft);self.tool_status=self.draft.as_ref().unwrap().prompt();
-                return Ok(if changed { Change::Preview } else { Change::View });
-            }
+                            .rotate_vector(session_rust::Vector::y_axis()),
+                    )
+                });
+                self.draft = Some(draft);
 ```
 
 Replace it with:
 
 ```rust
-                let changed=preview.is_some() || self.edit_preview.is_some(); self.edit_preview=preview;
-                self.snap_index=None;let mut draft=crate::tool::Draft::new(shape);
-                draft.frame=self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
-                if let Some(primitive)=draft.primitive.as_mut() {primitive.set_plane(draft.frame).map_err(|message|{self.tool_status=message;"Shape input invalid"})?;}
-                self.draft=Some(draft);self.tool_status=self.draft.as_ref().unwrap().prompt();
-                return Ok(if changed { Change::Preview } else { Change::View });
-            }
+                            .rotate_vector(session_rust::Vector::y_axis()),
+                    )
+                });
+                if let Some(primitive) = draft.primitive.as_mut() {
+                    primitive
+                        .set_plane(draft.frame)
+                        .map_err(|message| {
+                            self.tool_status = message;
+                            "Shape input invalid"
+                        })?;
+                }
+                self.draft = Some(draft);
 ```
 
 **Locate this block:**
 
 ```rust
-                let draft=self.draft.as_mut().ok_or("Sides works while drawing a polygon")?;draft.tool.set_sides(sides)?;self.tool_status=draft.prompt();return Ok(Change::View);
-            },
-            Action::ConstructionPlane(plane)=>{
-                self.construction_plane=plane;crate::drawing_coords::set_plane(plane);self.plane_menu=false;
-                let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
-                if let Some(draft)=self.draft.as_mut() {draft.frame=frame;draft.cursor=None;draft.snapped=None;}
+            Action::ConstructionPlane(plane) => {
+                self.construction_plane = plane;
+                crate::drawing_coords::set_plane(plane);
+                self.plane_menu = false;
 ```
 
 Replace it with:
 
 ```rust
-                let draft=self.draft.as_mut().ok_or("Sides works while drawing a polygon")?;draft.tool.set_sides(sides)?;self.tool_status=draft.prompt();return Ok(Change::View);
-            },
-            Action::ConstructionPlane(plane)=>{
-                let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
-                if let Some(primitive)=self.draft.as_mut().and_then(|draft|draft.primitive.as_mut()) {primitive.set_plane(frame).map_err(|message|{self.tool_status=message;"Shape input invalid"})?;}
-                self.construction_plane=plane;crate::drawing_coords::set_plane(plane);self.plane_menu=false;
-                let frame=plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
-                if let Some(draft)=self.draft.as_mut() {draft.frame=frame;draft.cursor=None;draft.snapped=None;}
+            Action::ConstructionPlane(plane) => {
+                let frame = plane.unwrap_or_else(|| {
+                    crate::cplane::CPlane::view(
+                        &self
+                            .camera
+                            .orientation
+                            .rotate_vector(session_rust::Vector::y_axis()),
+                    )
+                });
+                if let Some(primitive) = self
+                    .draft
+                    .as_mut()
+                    .and_then(|draft| draft.primitive.as_mut())
+                {
+                    primitive
+                        .set_plane(frame)
+                        .map_err(|message| {
+                            self.tool_status = message;
+                            "Shape input invalid"
+                        })?;
+                }
+                self.construction_plane = plane;
+                crate::drawing_coords::set_plane(plane);
+                self.plane_menu = false;
 ```
 
 ## <a id="checkpoint-74k-resolve-height-clicks-without-closing-an-open-shape-collector"></a>12. Resolve height clicks without closing an open shape collector
@@ -1085,7 +1596,7 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">normal-axis click</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">original answer</text>
 </svg>
 </div>
@@ -1101,57 +1612,53 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                let hit = self.snap_point(screen,size);
-                if let Some(draft) = self.draft.as_mut() { draft.snapped = hit.filter(|h| h.owner.is_some() || h.kind == crate::snap::Kind::Grid).map(|h| h.kind); }
                 if commit {
-                    if hit.is_some_and(|h|self.draft.as_ref().is_some_and(|d|d.tool.count()==0 && d.points.len()>=2 && d.points.first().is_some_and(|p|(0..3).all(|i|(p[i]-h.point[i]).abs()<=1e-12)))) {return self.apply(Action::CloseTool);}
-                    return hit.map_or(Ok(Change::View), |hit| self.place_tool_point(hit.point));
-                }
-                if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
+                    if hit.is_some_and(|h| {
+                        self.draft.as_ref().is_some_and(|d| {
+                            d.tool.count() == 0
+                                && d.points.len() >= 2
 ```
 
 Replace it with:
 
 ```rust
-                let hit = self.snap_point(screen,size);
-                if let Some(draft) = self.draft.as_mut() { draft.snapped = hit.filter(|h| h.owner.is_some() || h.kind == crate::snap::Kind::Grid).map(|h| h.kind); }
                 if commit {
-                    if hit.is_some_and(|h|self.draft.as_ref().is_some_and(|d|d.primitive.is_none() && d.tool.count()==0 && d.points.len()>=2 && d.points.first().is_some_and(|p|(0..3).all(|i|(p[i]-h.point[i]).abs()<=1e-12)))) {return self.apply(Action::CloseTool);}
-                    return hit.map_or(Ok(Change::View), |hit| self.place_tool_point(hit.point));
-                }
-                if let Some(draft) = self.draft.as_mut() { draft.hover(hit.map(|h| h.point))?; }
+                    if hit.is_some_and(|h| {
+                        self.draft.as_ref().is_some_and(|d| {
+                            d.primitive.is_none()
+                                && d.tool.count() == 0
+                                && d.points.len() >= 2
 ```
 
 **Locate this block:**
 
 ```rust
-            let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
-            index.query(viewport, &ray, [(screen[0] as f64+1.)*size[0]/2., (1.-screen[1] as f64)*size[1]/2.], self.snapping.modes, from)
-        } else { None };
-        let own=self.draft.as_ref().filter(|d|d.tool.count()==0 && d.points.len()>=2 && self.snapping.objects && self.snapping.modes&crate::snap::END!=0).and_then(|d|{
-            let point=*d.points.first()?;let viewport=crate::snap_math::Screen {matrix:self.camera.view_projection().m,size};let p=viewport.point(point)?;
-            let cursor=[(screen[0] as f64+1.)*size[0]/2.,(1.-screen[1] as f64)*size[1]/2.];
-            ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
+            .draft
+            .as_ref()
+            .filter(|d| {
+                d.tool.count() == 0
+                    && d.points.len() >= 2
+                    && self.snapping.objects
+                    && self.snapping.modes & crate::snap::END != 0
 ```
 
 Replace it with:
 
 ```rust
-            let viewport = crate::snap_math::Screen { matrix: self.camera.view_projection().m, size };
-            index.query(viewport, &ray, [(screen[0] as f64+1.)*size[0]/2., (1.-screen[1] as f64)*size[1]/2.], self.snapping.modes, from)
-        } else { None };
-        let own=self.draft.as_ref().filter(|d|d.primitive.is_none() && d.tool.count()==0 && d.points.len()>=2 && self.snapping.objects && self.snapping.modes&crate::snap::END!=0).and_then(|d|{
-            let point=*d.points.first()?;let viewport=crate::snap_math::Screen {matrix:self.camera.view_projection().m,size};let p=viewport.point(point)?;
-            let cursor=[(screen[0] as f64+1.)*size[0]/2.,(1.-screen[1] as f64)*size[1]/2.];
-            ((p[0]-cursor[0]).hypot(p[1]-cursor[1])<=12.).then_some(crate::snap::Hit {point,kind:crate::snap::Kind::End,owner:None})
+            .draft
+            .as_ref()
+            .filter(|d| {
+                d.primitive.is_none()
+                    && d.tool.count() == 0
+                    && d.points.len() >= 2
+                    && self.snapping.objects
+                    && self.snapping.modes & crate::snap::END != 0
 ```
 
 **Locate this block:**
 
 ```rust
-    }
-
-    pub fn snap_point(&mut self, screen: [f32; 2], size: [f64; 2]) -> Option<crate::snap::Hit> {
+    ) -> Option<crate::snap::Hit> {
         let ray = self.camera.ray(screen)?;
         let from = self.draft.as_ref()?.points.last().copied();
         let hit = if self.snapping.objects {
@@ -1160,10 +1667,21 @@ Replace it with:
 Replace it with:
 
 ```rust
-    }
-
-    pub fn snap_point(&mut self, screen: [f32; 2], size: [f64; 2]) -> Option<crate::snap::Hit> {
-        if let Some(primitive)=self.draft.as_ref()?.primitive.as_ref() {if primitive.next().is_some_and(|ask|ask.kind==crate::primitive_shape::Kind::Height) {return primitive.on_axis(&self.camera,screen).map(|point|crate::snap::Hit {point,kind:crate::snap::Kind::Near,owner:None});}}
+    ) -> Option<crate::snap::Hit> {
+        if let Some(primitive) = self.draft.as_ref()?.primitive.as_ref() {
+            if primitive
+                .next()
+                .is_some_and(|ask| ask.kind == crate::primitive_shape::Kind::Height)
+            {
+                return primitive
+                    .on_axis(&self.camera, screen)
+                    .map(|point| crate::snap::Hit {
+                        point,
+                        kind: crate::snap::Kind::Near,
+                        owner: None,
+                    });
+            }
+        }
         let ray = self.camera.ray(screen)?;
         let from = self.draft.as_ref()?.points.last().copied();
         let hit = if self.snapping.objects {
@@ -1201,7 +1719,7 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">validated current answers</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">draft adoption or origina…</text>
 </svg>
 </div>
@@ -1217,79 +1735,112 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
+            self.plane_only = false;
+        }
         match action {
-            Action::ToolSides(sides)=>{
-                let draft=self.draft.as_mut().ok_or("Sides works while drawing a polygon")?;draft.tool.set_sides(sides)?;self.tool_status=draft.prompt();return Ok(Change::View);
-            },
+            Action::ToolSides(sides) => {
 ```
 
 Replace it with:
 
 ```rust
-
-        if matches!(&action, Action::Close | Action::Undo | Action::Redo | Action::Adopt {..} | Action::Live(_) | Action::Import(_) | Action::Replace(_) | Action::ImportAt(_, _) | Action::ReplaceAt(_, _)) { self.draft = None;self.plane_menu=false;self.plane_only=false; }
+            self.plane_only = false;
+        }
         match action {
-            Action::PrimitiveBegin {shape,option,text}=>{
-                let frame=self.construction_plane.unwrap_or_else(||crate::cplane::CPlane::view(&self.camera.orientation.rotate_vector(session_rust::Vector::y_axis())));
-                let mut primitive=crate::primitive_draft::Draft::new(shape,frame,option).map_err(|message|self.primitive_failure(message))?;
-                let geometry=if text.trim().is_empty() {None}else{primitive.text(&text,None,self.construction_plane).map_err(|message|self.primitive_failure(message))?};
-                self.apply(Action::BeginTool(crate::tool::Shape::Primitive(shape)))?;
-                let draft=self.draft.as_mut().unwrap();draft.primitive=Some(primitive);draft.points=draft.primitive.as_ref().unwrap().answers.iter().filter_map(|answer|match answer {crate::primitive_shape::Answer::Point(p)=>Some([p[0],p[1],p[2]]),_=>None}).collect();
-                if let Some(geometry)=geometry {return self.commit_tool(crate::tool::Built::Geometry(geometry));}
-                self.tool_status=draft.prompt();return Ok(Change::View);
-            },
-            Action::ToolSides(sides)=>{
-                let draft=self.draft.as_mut().ok_or("Sides works while drawing a polygon")?;draft.tool.set_sides(sides)?;self.tool_status=draft.prompt();return Ok(Change::View);
-            },
+            Action::PrimitiveBegin {
+                shape,
+                option,
+                text,
+            } => {
+                let frame = self.construction_plane.unwrap_or_else(|| {
+                    crate::cplane::CPlane::view(
+                        &self
+                            .camera
+                            .orientation
+                            .rotate_vector(session_rust::Vector::y_axis()),
+                    )
+                });
+                let mut primitive =
+                    crate::primitive_draft::Draft::new(shape, frame, option)
+                        .map_err(|message| self.primitive_failure(message))?;
+                let geometry = if text.trim().is_empty() {
+                    None
+                } else {
+                    primitive
+                        .text(&text, None, self.construction_plane)
+                        .map_err(|message| self.primitive_failure(message))?
+                };
+                self.apply(Action::BeginTool(
+                    crate::tool::Shape::Primitive(shape),
+                ))?;
+                let draft = self.draft.as_mut().unwrap();
+                draft.primitive = Some(primitive);
+                draft.points = draft
+                    .primitive
+                    .as_ref()
+                    .unwrap()
+                    .answers
+                    .iter()
+                    .filter_map(|answer| match answer {
+                        crate::primitive_shape::Answer::Point(p) => {
+                            Some([p[0], p[1], p[2]])
+                        }
+                        _ => None,
+                    })
+                    .collect();
+                if let Some(geometry) = geometry {
+                    return self.commit_tool(crate::tool::Built::Geometry(geometry));
+                }
+                self.tool_status = draft.prompt();
+                return Ok(Change::View);
+            }
+            Action::ToolSides(sides) => {
 ```
 
 **Locate this block:**
 
 ```rust
-        }
-        self.canvas_drag=None;
-        let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoTouch {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::ZoomAt {..}|Action::PanScreen {..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
-        let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoTouch {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::Draw {..} | Action::ToolText(_) | Action::FinishTool | Action::CloseTool | Action::ConstructionPlane(_) | Action::PlaneMenu | Action::Plane3 | Action::ToolSides(_) | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
-        let mut change=self.apply_action(action)?;
-        self.gizmo_hover=None;
-        if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
+                | Action::PlaneMenu
+                | Action::Plane3
+                | Action::ToolSides(_)
+                | Action::ToolPoint(_)
+                | Action::ToolScreen { .. }
+                | Action::ToolHover(_)
 ```
 
 Replace it with:
 
 ```rust
-        }
-        self.canvas_drag=None;
-        let keep_gizmo=matches!(&action,Action::GizmoPress {..}|Action::GizmoTouch {..}|Action::GizmoMove {..}|Action::GizmoRelease {..}|Action::GizmoCancel|Action::GizmoNumber(_)|Action::Zoom(_)|Action::ZoomAt {..}|Action::PanScreen {..}|Action::Pan(_,_)|Action::Orbit(_,_)|Action::Fit|Action::FitSelected|Action::Projection(_)|Action::ResetView|Action::Background|Action::NormalView(_)|Action::Grid(_)|Action::Snap(_));
-        let keep_edit=matches!(&action, Action::GizmoPress {..} | Action::GizmoTouch {..} | Action::GizmoMove {..} | Action::GizmoRelease {..} | Action::GizmoCancel | Action::GizmoNumber(_) | Action::BeginTool(_) | Action::Draw {..} | Action::ToolText(_) | Action::FinishTool | Action::CloseTool | Action::ConstructionPlane(_) | Action::PlaneMenu | Action::Plane3 | Action::ToolSides(_) | Action::PrimitiveBegin {..} | Action::ToolPoint(_) | Action::ToolScreen {..} | Action::ToolHover(_) | Action::CancelTool | Action::Snap(_) | Action::Zoom(_) | Action::ZoomAt {..} | Action::PanScreen {..} | Action::Pan(_,_) | Action::Orbit(_,_) | Action::Fit | Action::FitSelected | Action::Projection(_) | Action::ResetView | Action::Background | Action::NormalView(_) | Action::Grid(_));
-        let mut change=self.apply_action(action)?;
-        self.gizmo_hover=None;
-        if !keep_gizmo && self.gizmo_edit.take().is_some() && change==Change::View {change=Change::Preview;}
+                | Action::PlaneMenu
+                | Action::Plane3
+                | Action::ToolSides(_)
+                | Action::PrimitiveBegin { .. }
+                | Action::ToolPoint(_)
+                | Action::ToolScreen { .. }
+                | Action::ToolHover(_)
 ```
 
 **Locate this block:**
 
 ```rust
-
-pub enum Action {
     StreamRefresh,
     ToolSides(usize),
-    ConstructionPlane(Option<crate::cplane::CPlane>), PlaneMenu, Plane3,
-    Draw {shape:crate::tool::Shape,text:String}, ToolText(String), FinishTool, CloseTool,
+    ConstructionPlane(Option<crate::cplane::CPlane>),
+    PlaneMenu,
 ```
 
 Replace it with:
 
 ```rust
-
-pub enum Action {
     StreamRefresh,
-    PrimitiveBegin {shape:&'static crate::primitive_shape::Shape,option:usize,text:String},
+    PrimitiveBegin {
+        shape: &'static crate::primitive_shape::Shape,
+        option: usize,
+        text: String,
+    },
     ToolSides(usize),
-    ConstructionPlane(Option<crate::cplane::CPlane>), PlaneMenu, Plane3,
-    Draw {shape:crate::tool::Shape,text:String}, ToolText(String), FinishTool, CloseTool,
+    ConstructionPlane(Option<crate::cplane::CPlane>),
+    PlaneMenu,
 ```
 
 ## <a id="checkpoint-74m-register-every-current-solid-name-and-representation"></a>14. Register every current solid name and representation
@@ -1324,7 +1875,7 @@ pub enum Action {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">maintained definition and…</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">Editor action</text>
 </svg>
 </div>
@@ -1338,7 +1889,115 @@ Register current solid names, representation options and the existing Box alias.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74m-register-every-current-solid-name-and-representation-01.rs"
+use crate::{editor::Action, primitive_shape::Shape};
+
+pub const ENTRIES: &[(&str, &Shape, usize)] = &[
+    ("Box", &crate::primitive_box::SHAPE, 0),
+    ("Box Brep", &crate::primitive_box::SHAPE, 0),
+    ("Box Mesh", &crate::primitive_box::SHAPE, 1),
+    (
+        "Pyramid",
+        &crate::primitive_pyramid::SHAPE,
+        0,
+    ),
+    (
+        "Pyramid Brep",
+        &crate::primitive_pyramid::SHAPE,
+        0,
+    ),
+    (
+        "Pyramid Mesh",
+        &crate::primitive_pyramid::SHAPE,
+        1,
+    ),
+    (
+        "Block With Hole",
+        &crate::primitive_block_with_hole::SHAPE,
+        0,
+    ),
+    (
+        "Block With Hole Brep",
+        &crate::primitive_block_with_hole::SHAPE,
+        0,
+    ),
+    (
+        "Block With Hole Mesh",
+        &crate::primitive_block_with_hole::SHAPE,
+        1,
+    ),
+    (
+        "Tetrahedron",
+        &crate::primitive_tetrahedron::SHAPE,
+        0,
+    ),
+    (
+        "Tetrahedron Brep",
+        &crate::primitive_tetrahedron::SHAPE,
+        0,
+    ),
+    (
+        "Tetrahedron Mesh",
+        &crate::primitive_tetrahedron::SHAPE,
+        1,
+    ),
+    (
+        "Octahedron",
+        &crate::primitive_octahedron::SHAPE,
+        0,
+    ),
+    (
+        "Octahedron Brep",
+        &crate::primitive_octahedron::SHAPE,
+        0,
+    ),
+    (
+        "Octahedron Mesh",
+        &crate::primitive_octahedron::SHAPE,
+        1,
+    ),
+    (
+        "Icosahedron",
+        &crate::primitive_icosahedron::SHAPE,
+        0,
+    ),
+    (
+        "Icosahedron Brep",
+        &crate::primitive_icosahedron::SHAPE,
+        0,
+    ),
+    (
+        "Icosahedron Mesh",
+        &crate::primitive_icosahedron::SHAPE,
+        1,
+    ),
+    (
+        "Dodecahedron",
+        &crate::primitive_dodecahedron::SHAPE,
+        0,
+    ),
+    (
+        "Dodecahedron Brep",
+        &crate::primitive_dodecahedron::SHAPE,
+        0,
+    ),
+    (
+        "Dodecahedron Mesh",
+        &crate::primitive_dodecahedron::SHAPE,
+        1,
+    ),
+    ("bo", &crate::primitive_box::SHAPE, 0),
+];
+
+pub fn command(name: &str, text: &str) -> Option<Action> {
+    ENTRIES
+        .iter()
+        .find(|(key, _, _)| *key == name)
+        .map(|(_, shape, option)| Action::PrimitiveBegin {
+            shape,
+            option: *option,
+            text: text.to_owned(),
+        })
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1348,67 +2007,131 @@ Register the primitive component.
 **Locate this existing block:**
 
 ```rust
-
 pub mod primitive_geometry;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74m-register-every-current-solid-name-and-representation-02.rs" skip=29
+pub mod primitive_geometry;
+
+pub mod primitive_registry;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ### 3. `src/commands.rs`
 
 Route every current solid name and representation to its maintained original builder.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-pub fn parse(line: &str) -> Result<Command, String> {
-    let words: Vec<_> = line.split_whitespace().collect();
-    let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
-    if name=="CPlane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
-    if matches!(name,"Point"|"Line"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
-        let shape=match name {"Point"=>crate::tool::Shape::Point,"Line"=>crate::tool::Shape::Line,"Polyline Rectangle"=>crate::tool::Shape::Rectangle,"Polyline Polygon"=>crate::tool::Shape::Polygon {sides:6},_=>crate::tool::Shape::Polyline};
-```
-
-Replace it with:
-
-```rust
-pub fn parse(line: &str) -> Result<Command, String> {
-    let words: Vec<_> = line.split_whitespace().collect();
-    let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
-    if let Some(action)=crate::primitive_registry::command(name,&words[count..].join(" ")) {return Ok(Command::Editor(action));}
-    if name=="CPlane" && words.len()>count {return crate::drawing_input::choice(&words[count..].join(" ")).map(Command::Editor).ok_or_else(||"CPlane (XY XZ YZ 3 Point View Cancel)".into());}
-    if matches!(name,"Point"|"Line"|"Polyline"|"Polyline Points"|"Polyline Rectangle"|"Polyline Polygon") && words.len()>count {
-        let shape=match name {"Point"=>crate::tool::Shape::Point,"Line"=>crate::tool::Shape::Line,"Polyline Rectangle"=>crate::tool::Shape::Rectangle,"Polyline Polygon"=>crate::tool::Shape::Polygon {sides:6},_=>crate::tool::Shape::Polyline};
-```
-
-**Locate this block:**
-
-```rust
-];
-
-pub fn names() -> Vec<&'static str> {
-    HOSTS.iter().map(|(name, _)| *name).chain(ACTIONS.iter().map(|(name, _)| *name)).collect()
+        .chain(ACTIONS.iter().map(|(name, _)| *name))
+        .collect()
 }
 
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
+fn matched(words: &[&str]) -> Option<(&'static str, usize)> {
+    names()
+        .into_iter()
+        .filter_map(|name| {
+            let compact = name
+                .split_whitespace()
+                .collect::<String>()
+                .to_ascii_lowercase();
+            let mut rest = compact.as_str();
+            for (index, word) in words.iter().enumerate() {
+                let word = word.to_ascii_lowercase();
+                rest = rest.strip_prefix(&word)?;
+                if rest.is_empty() {
+                    return Some((name, index + 1, compact.len()));
+                }
+            }
+            None
+        })
+        .max_by_key(|(_, _, letters)| *letters)
+        .map(|(name, count, _)| (name, count))
+}
+
+pub fn canonical(line: &str) -> String {
+    let words: Vec<_> = line.split_whitespace().collect();
+    matched(&words).map_or_else(
+        || line.trim().to_owned(),
+        |(name, count)| {
+            std::iter::once(name)
+                .chain(words[count..].iter().copied())
+                .collect::<Vec<_>>()
+                .join(" ")
+        },
+    )
+}
+
+pub fn parse(line: &str) -> Result<Command, String> {
+    let words: Vec<_> = line.split_whitespace().collect();
+    let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
+    if name == "CPlane" && words.len() > count {
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-];
-
-pub fn names() -> Vec<&'static str> {
-    HOSTS.iter().map(|(name, _)| *name).chain(ACTIONS.iter().map(|(name, _)| *name)).chain(crate::primitive_registry::ENTRIES.iter().map(|(name,_,_)|*name)).collect()
+        .chain(ACTIONS.iter().map(|(name, _)| *name))
+        .chain(
+            crate::primitive_registry::ENTRIES
+                .iter()
+                .map(|(name, _, _)| *name),
+        )
+        .collect()
 }
 
 // Choose the longest known name so Open Replace cannot become Open with an unwanted argument.
+fn matched(words: &[&str]) -> Option<(&'static str, usize)> {
+    names()
+        .into_iter()
+        .filter_map(|name| {
+            let compact = name
+                .split_whitespace()
+                .collect::<String>()
+                .to_ascii_lowercase();
+            let mut rest = compact.as_str();
+            for (index, word) in words.iter().enumerate() {
+                let word = word.to_ascii_lowercase();
+                rest = rest.strip_prefix(&word)?;
+                if rest.is_empty() {
+                    return Some((name, index + 1, compact.len()));
+                }
+            }
+            None
+        })
+        .max_by_key(|(_, _, letters)| *letters)
+        .map(|(name, count, _)| (name, count))
+}
+
+pub fn canonical(line: &str) -> String {
+    let words: Vec<_> = line.split_whitespace().collect();
+    matched(&words).map_or_else(
+        || line.trim().to_owned(),
+        |(name, count)| {
+            std::iter::once(name)
+                .chain(words[count..].iter().copied())
+                .collect::<Vec<_>>()
+                .join(" ")
+        },
+    )
+}
+
+pub fn parse(line: &str) -> Result<Command, String> {
+    let words: Vec<_> = line.split_whitespace().collect();
+    let (name, count) = matched(&words).ok_or("Unknown command. Type Help.")?;
+    if let Some(action) =
+        crate::primitive_registry::command(name, &words[count..].join(" "))
+    {
+        return Ok(Command::Editor(action));
+    }
+    if name == "CPlane" && words.len() > count {
 ```
 
 ## <a id="checkpoint-74n-draw-temporary-solid-wire-sets-and-report-current-input-failures"></a>15. Draw temporary solid wire sets and report current input failures
@@ -1443,7 +2166,7 @@ pub fn names() -> Vec<&'static str> {
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">temporary GPU strokes</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">current prompt and error</text>
 </svg>
 </div>
@@ -1457,17 +2180,33 @@ Preview independent temporary solid wire sets without connecting unrelated bound
 **Locate this existing block:**
 
 ```rust
-        let yellow = [1., 0.75, 0.05, 1.]; let mut strokes = Vec::new(); let mut markers = Vec::new();
         if let Some(draft) = draft {
-            for pair in draft.outline().windows(2) {if pair[0]!=pair[1] {strokes.push(crate::stroke::Stroke {start:pair[0].map(|v|v as f32),end:pair[1].map(|v|v as f32),width:2.,colour:yellow});}}
-            if let Some(cursor) = draft.cursor {
-                markers.push(crate::marker::Marker { center: cursor.map(|v| v as f32), diameter: 8., colour: yellow });
+            for pair in draft.outline().windows(2) {
+                if pair[0] != pair[1] {
+                    strokes.push(crate::stroke::Stroke {
+                        start: pair[0].map(|v| v as f32),
+                        end: pair[1].map(|v| v as f32),
+                        width: 2.,
+                        colour: yellow,
+                    });
+                }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74n-draw-temporary-solid-wire-sets-and-report-current-input-failures-01.rs"
+        if let Some(draft) = draft {
+            for wire in draft.outlines() {
+                for pair in wire.windows(2) {
+                    if pair[0] != pair[1] {
+                        strokes.push(crate::stroke::Stroke {
+                            start: pair[0].map(|v| v as f32),
+                            end: pair[1].map(|v| v as f32),
+                            width: 2.,
+                            colour: yellow,
+                        });
+                    }
+                }
 ```
 
 ### 2. `src/browser.rs`
@@ -1477,17 +2216,22 @@ Show current detailed shape input failures without changing the existing browser
 **Locate this existing block:**
 
 ```rust
-                Ok(Some(Change::View)) | Ok(None) => {}
-                Err(error) => {
-                    report(&error);
-                    if event.type_() == "viewer-file" { panel.answer("Open", &error); }
-                    else { panel.result(&error); }
+                    Err(error) => {
+                        report(&error);
+                        if event.type_() == "viewer-file" {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/74n-draw-temporary-solid-wire-sets-and-report-current-input-failures-02.rs"
+                    Err(error) => {
+                        let error = if error == "Shape input invalid" {
+                            editor.tool_status.as_str()
+                        } else {
+                            error.as_str()
+                        };
+                        report(error);
+                        if event.type_() == "viewer-file" {
 ```
 
 ## <a id="checkpoint-74o-keep-quick-mouse-drift-as-a-click-using-current-event-time"></a>16. Keep quick mouse drift as a click using current event time
@@ -1522,7 +2266,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">CSS motion and hold</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">click or owned drag</text>
 </svg>
 </div>
@@ -1531,102 +2275,372 @@ Edit the existing block to match this code; keep unchanged lines:
 
 ### 1. `src/gesture.rs`
 
-Use current430accda quick-click drift thresholds and explicit gesture timestamps.
-
-Replace the entire file with:
-
-```rust
-use crate::editor::Action;
-
-#[derive(Debug, PartialEq)]
-pub enum Motion {
-    Pick([f64;2]),Orbit([f64;2]),Pan([f64;2]),
-    Probe {from:[f64;2],to:[f64;2]},Drag([f64;2]),Finish([f64;2]),
-}
-
-impl Motion {
-    pub fn action(self,rect:[f64;4])->Option<Action> {
-        let [left,top,width,height]=rect;
-        if rect.iter().any(|v|!v.is_finite())||width<=0.||height<=0. {return None;}
-        let screen=|[x,y]:[f64;2]|[(2.*(x-left)/width-1.) as f32,(1.-2.*(y-top)/height) as f32];let size=[width,height];
-        Some(match self {
-            Self::Pick(at)=>Action::Pick(screen(at)),
-            Self::Orbit([dx,dy])=>Action::Orbit(-0.005*dx,-0.005*dy),
-            Self::Pan(delta)=>Action::PanScreen {delta,size},
-            Self::Probe {from,to}=>Action::CanvasStart {from:screen(from),to:screen(to),size,modified:false,pointer:0},
-            Self::Drag(at)=>Action::CanvasMove {screen:screen(at),size},
-            Self::Finish(at)=>Action::CanvasRelease {screen:screen(at),size,add:false,remove:false},
-        })
-    }
-}
-
-struct Drag {started:f64,id:i32,button:i16,start:[f64;2],last:[f64;2],moved:bool,pan:bool}
-#[derive(Default)]
-pub struct Gesture {active:Option<Drag>,repeat:bool}
-impl Gesture {
-    pub fn press(&mut self,id:i32,button:i16,position:[f64;2])->bool {self.press_with(id,button,position,false)}
-    pub fn press_with(&mut self,id:i32,button:i16,position:[f64;2],pan:bool)->bool {self.press_at(id,button,position,pan,0.)}
-    pub fn press_at(&mut self,id:i32,button:i16,position:[f64;2],pan:bool,now:f64)->bool {
-        if !now.is_finite()||now<0.||self.active.is_some()||!matches!(button,0|1|2)||position.iter().any(|v|!v.is_finite()) {return false;}
-        self.repeat=false;self.active=Some(Drag {started:now,id,button,start:position,last:position,moved:false,pan:pan||button==1});true
-    }
-    pub fn move_to(&mut self,id:i32,position:[f64;2])->Option<Motion> {self.move_at(id,position,200.)}
-    pub fn move_at(&mut self,id:i32,position:[f64;2],now:f64)->Option<Motion> {
-        let drag=self.active.as_mut().filter(|d|d.id==id)?;
-        if !now.is_finite()||now<drag.started||position.iter().any(|v|!v.is_finite()) {return None;}
-        let moved=(position[0]-drag.start[0]).abs().max((position[1]-drag.start[1]).abs());
-        let was=drag.moved;drag.moved|=if drag.button==0 {drags(moved,now-drag.started)}else{moved>4.};
-        let from=if was {drag.last} else {drag.start};let delta=std::array::from_fn(|i|position[i]-from[i]);drag.last=position;
-        if !drag.moved {return None;}
-        if drag.button==0 {Some(if was {Motion::Drag(position)} else {Motion::Probe {from:drag.start,to:position}})}
-        else if delta==[0.;2] {None} else {Some(if drag.pan {Motion::Pan(delta)} else {Motion::Orbit(delta)})}
-    }
-    pub fn release(&mut self,id:i32,position:[f64;2])->Option<Motion> {self.release_at(id,position,200.)}
-    pub fn release_at(&mut self,id:i32,position:[f64;2],now:f64)->Option<Motion> {
-        if self.active.as_ref()?.id!=id {return None;}
-        let motion=self.move_at(id,position,now);let drag=self.active.take()?;
-        if position.iter().any(|v|!v.is_finite()) {return None;}
-        if drag.button!=0 {self.repeat=drag.button==2&&!drag.moved;return motion;}
-        Some(if drag.moved {if matches!(motion,Some(Motion::Probe {..})) {motion.unwrap()} else {Motion::Finish(position)}} else {Motion::Pick(position)})
-    }
-    pub fn take_repeat(&mut self)->bool {std::mem::take(&mut self.repeat)}
-    pub fn cancel(&mut self) {self.active=None;self.repeat=false;}
-    pub fn cancel_pointer(&mut self,id:i32) {if self.active.as_ref().is_some_and(|d|d.id==id) {self.cancel();}}
-}
-
-// A quick press may wobble without moving geometry; a longer held press uses the narrower threshold for intentional dragging.
-pub fn drags(moved:f64,held:f64)->bool {moved>10. || (moved>4. && held>=200.)}
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/gesture.rs`
-
-Copy current quick-wobble and owned event-clock fixtures.
+Use current430accda quick-click drift thresholds and explicit gesture timestamps. Copy current quick-wobble and owned event-clock fixtures.
 
 **Locate this existing block:**
 
-```text
-pub fn drags(moved:f64,held:f64)->bool {moved>10. || (moved>4. && held>=200.)}
+```rust
+struct Drag {
+    id: i32,
+    button: i16,
+    start: [f64; 2],
+    last: [f64; 2],
+    moved: bool,
+    pan: bool,
+}
+#[derive(Default)]
+pub struct Gesture {
+    active: Option<Drag>,
+    repeat: bool,
+}
+impl Gesture {
+    pub fn press(&mut self, id: i32, button: i16, position: [f64; 2]) -> bool {
+        self.press_with(id, button, position, false)
+    }
+    pub fn press_with(
+        &mut self,
+        id: i32,
+        button: i16,
+        position: [f64; 2],
+        pan: bool,
+    ) -> bool {
+        if self.active.is_some()
+            || !matches!(button, 0 | 1 | 2)
+            || position.iter().any(|v| !v.is_finite())
+        {
+            return false;
+        }
+        self.repeat = false;
+        self.active = Some(Drag {
+            id,
+            button,
+            start: position,
+            last: position,
+            moved: false,
+            pan: pan || button == 1,
+        });
+        true
+    }
+    pub fn move_to(&mut self, id: i32, position: [f64; 2]) -> Option<Motion> {
+        let drag = self.active.as_mut().filter(|d| d.id == id)?;
+        if position.iter().any(|v| !v.is_finite()) {
+            return None;
+        }
+        let was = drag.moved;
+        drag.moved |= (position[0] - drag.start[0])
+            .abs()
+            .max((position[1] - drag.start[1]).abs())
+            > 4.;
+        let from = if was {
+            drag.last
+        } else {
+            drag.start
+        };
+        let delta = std::array::from_fn(|i| position[i] - from[i]);
+        drag.last = position;
+        if !drag.moved {
+            return None;
+        }
+        if drag.button == 0 {
+            Some(if was {
+                Motion::Drag(position)
+            } else {
+                Motion::Probe {
+                    from: drag.start,
+                    to: position,
+                }
+            })
+        } else if delta == [0.; 2] {
+            None
+        } else {
+            Some(if drag.pan {
+                Motion::Pan(delta)
+            } else {
+                Motion::Orbit(delta)
+            })
+        }
+    }
+    pub fn release(&mut self, id: i32, position: [f64; 2]) -> Option<Motion> {
+        if self.active.as_ref()?.id != id {
+            return None;
+        }
+        let motion = self.move_to(id, position);
+        let drag = self.active.take()?;
+        if position.iter().any(|v| !v.is_finite()) {
+            return None;
+        }
+        if drag.button != 0 {
+            self.repeat = drag.button == 2 && !drag.moved;
+            return motion;
+        }
+        Some(if drag.moved {
+            if matches!(motion, Some(Motion::Probe { .. })) {
+                motion.unwrap()
+            } else {
+                Motion::Finish(position)
+            }
+        } else {
+            Motion::Pick(position)
+        })
+    }
+    pub fn take_repeat(&mut self) -> bool {
+        std::mem::take(&mut self.repeat)
+    }
+    pub fn cancel(&mut self) {
+        self.active = None;
+        self.repeat = false;
+    }
+    pub fn cancel_pointer(&mut self, id: i32) {
+        if self
+            .active
+            .as_ref()
+            .is_some_and(|d| d.id == id)
+        {
+            self.cancel();
+        }
+    }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/74o-keep-quick-mouse-drift-as-a-click-using-current-event-time-04.rs" skip=80
+```rust
+struct Drag {
+    started: f64,
+    id: i32,
+    button: i16,
+    start: [f64; 2],
+    last: [f64; 2],
+    moved: bool,
+    pan: bool,
+}
+#[derive(Default)]
+pub struct Gesture {
+    active: Option<Drag>,
+    repeat: bool,
+}
+impl Gesture {
+    pub fn press(&mut self, id: i32, button: i16, position: [f64; 2]) -> bool {
+        self.press_with(id, button, position, false)
+    }
+    pub fn press_with(
+        &mut self,
+        id: i32,
+        button: i16,
+        position: [f64; 2],
+        pan: bool,
+    ) -> bool {
+        self.press_at(id, button, position, pan, 0.)
+    }
+    pub fn press_at(
+        &mut self,
+        id: i32,
+        button: i16,
+        position: [f64; 2],
+        pan: bool,
+        now: f64,
+    ) -> bool {
+        if !now.is_finite()
+            || now < 0.
+            || self.active.is_some()
+            || !matches!(button, 0 | 1 | 2)
+            || position.iter().any(|v| !v.is_finite())
+        {
+            return false;
+        }
+        self.repeat = false;
+        self.active = Some(Drag {
+            started: now,
+            id,
+            button,
+            start: position,
+            last: position,
+            moved: false,
+            pan: pan || button == 1,
+        });
+        true
+    }
+    pub fn move_to(&mut self, id: i32, position: [f64; 2]) -> Option<Motion> {
+        self.move_at(id, position, 200.)
+    }
+    pub fn move_at(&mut self, id: i32, position: [f64; 2], now: f64) -> Option<Motion> {
+        let drag = self.active.as_mut().filter(|d| d.id == id)?;
+        if !now.is_finite()
+            || now < drag.started
+            || position.iter().any(|v| !v.is_finite())
+        {
+            return None;
+        }
+        let moved = (position[0] - drag.start[0])
+            .abs()
+            .max((position[1] - drag.start[1]).abs());
+        let was = drag.moved;
+        drag.moved |= if drag.button == 0 {
+            drags(moved, now - drag.started)
+        } else {
+            moved > 4.
+        };
+        let from = if was {
+            drag.last
+        } else {
+            drag.start
+        };
+        let delta = std::array::from_fn(|i| position[i] - from[i]);
+        drag.last = position;
+        if !drag.moved {
+            return None;
+        }
+        if drag.button == 0 {
+            Some(if was {
+                Motion::Drag(position)
+            } else {
+                Motion::Probe {
+                    from: drag.start,
+                    to: position,
+                }
+            })
+        } else if delta == [0.; 2] {
+            None
+        } else {
+            Some(if drag.pan {
+                Motion::Pan(delta)
+            } else {
+                Motion::Orbit(delta)
+            })
+        }
+    }
+    pub fn release(&mut self, id: i32, position: [f64; 2]) -> Option<Motion> {
+        self.release_at(id, position, 200.)
+    }
+    pub fn release_at(
+        &mut self,
+        id: i32,
+        position: [f64; 2],
+        now: f64,
+    ) -> Option<Motion> {
+        if self.active.as_ref()?.id != id {
+            return None;
+        }
+        let motion = self.move_at(id, position, now);
+        let drag = self.active.take()?;
+        if position.iter().any(|v| !v.is_finite()) {
+            return None;
+        }
+        if drag.button != 0 {
+            self.repeat = drag.button == 2 && !drag.moved;
+            return motion;
+        }
+        Some(if drag.moved {
+            if matches!(motion, Some(Motion::Probe { .. })) {
+                motion.unwrap()
+            } else {
+                Motion::Finish(position)
+            }
+        } else {
+            Motion::Pick(position)
+        })
+    }
+    pub fn take_repeat(&mut self) -> bool {
+        std::mem::take(&mut self.repeat)
+    }
+    pub fn cancel(&mut self) {
+        self.active = None;
+        self.repeat = false;
+    }
+    pub fn cancel_pointer(&mut self, id: i32) {
+        if self
+            .active
+            .as_ref()
+            .is_some_and(|d| d.id == id)
+        {
+            self.cancel();
+        }
+    }
+}
+
+// A quick press may wobble without moving geometry; a longer held press uses the narrower threshold for intentional dragging.
+pub fn drags(moved: f64, held: f64) -> bool {
+    moved > 10. || (moved > 4. && held >= 200.)
+}
+
+#[cfg(test)]
+mod drift_tests {
+    use super::*;
+    #[test]
+    fn a_quick_wobble_is_a_click() {
+        assert!(!drags(5., 60.));
+        assert!(!drags(9., 150.));
+        assert!(drags(12., 40.));
+        assert!(drags(5., 250.));
+        assert!(!drags(3., 900.));
+    }
+    #[test]
+    fn quick_and_held_mouse_events_keep_the_original_click_or_drag_owner() {
+        let mut input = Gesture::default();
+        assert!(input.press_at(1, 0, [10., 20.], false, 1000.));
+        assert_eq!(input.move_at(1, [15., 20.], 1060.), None);
+        assert_eq!(
+            input.release_at(1, [19., 20.], 1150.),
+            Some(Motion::Pick([19., 20.]))
+        );
+        assert!(input.press_at(1, 0, [10., 20.], false, 2000.));
+        assert_eq!(
+            input.move_at(1, [15., 20.], 2250.),
+            Some(Motion::Probe {
+                from: [10., 20.],
+                to: [15., 20.]
+            })
+        );
+        assert_eq!(
+            input.release_at(1, [15., 20.], 2260.),
+            Some(Motion::Finish([15., 20.]))
+        );
+        assert!(input.press_at(1, 0, [0., 0.], false, 3000.));
+        assert_eq!(
+            input.release_at(1, [12., 0.], 3040.),
+            Some(Motion::Probe {
+                from: [0., 0.],
+                to: [12., 0.]
+            })
+        );
+    }
+    #[test]
+    fn invalid_timestamps_and_other_pointers_cannot_begin_a_drag() {
+        let mut input = Gesture::default();
+        assert!(!input.press_at(1, 0, [0., 0.], false, f64::NAN));
+        assert!(input.press_at(1, 0, [0., 0.], false, 1000.));
+        assert_eq!(input.move_at(2, [20., 0.], 1200.), None);
+        assert_eq!(input.move_at(1, [20., 0.], 900.), None);
+        assert_eq!(input.move_at(1, [20., 0.], f64::NAN), None);
+        assert_eq!(
+            input.release_at(1, [3., 0.], 1900.),
+            Some(Motion::Pick([3., 0.]))
+        );
+    }
 ```
 
-### 3. `src/browser.rs`
+### 2. `src/browser.rs`
 
 Supply actual browser pointer event times to current click and drag ownership.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
+            if pointer.is_primary()
+                && gesture.press_with(
+                    id,
+                    pointer.button(),
+                    position,
+                    pointer.ctrl_key() || pointer.meta_key(),
+                )
+            {
+                event.prevent_default();
+                let options = web_sys::FocusOptions::new();
+                options.set_prevent_scroll(true);
+                if canvas.focus_with_options(&options).is_err()
+                    || canvas.set_pointer_capture(id).is_err()
+                {
+                    gesture.cancel();
+                }
             }
             None
         }
@@ -1634,46 +2648,35 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         "pointerup" => {
             let motion = gesture.release(id, position);
             let _ = canvas.release_pointer_capture(id);
-            motion
-        }
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+            if pointer.is_primary()
+                && gesture.press_at(
+                    id,
+                    pointer.button(),
+                    position,
+                    pointer.ctrl_key() || pointer.meta_key(),
+                    pointer.time_stamp(),
+                )
+            {
+                event.prevent_default();
+                let options = web_sys::FocusOptions::new();
+                options.set_prevent_scroll(true);
+                if canvas.focus_with_options(&options).is_err()
+                    || canvas.set_pointer_capture(id).is_err()
+                {
+                    gesture.cancel();
+                }
             }
             None
         }
-        "pointermove" => gesture.move_at(id, position,pointer.time_stamp()),
+        "pointermove" => gesture.move_at(id, position, pointer.time_stamp()),
         "pointerup" => {
-            let motion = gesture.release_at(id, position,pointer.time_stamp());
+            let motion = gesture.release_at(id, position, pointer.time_stamp());
             let _ = canvas.release_pointer_capture(id);
-            motion
-        }
-```
-
-**Locate this block:**
-
-```rust
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press_with(id, pointer.button(), position,pointer.ctrl_key()||pointer.meta_key()) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
-```
-
-Replace it with:
-
-```rust
-    let position = [pointer.client_x() as f64, pointer.client_y() as f64];
-    let motion = match event.type_().as_str() {
-        "pointerdown" => {
-            if pointer.is_primary() && gesture.press_at(id, pointer.button(), position,pointer.ctrl_key()||pointer.meta_key(),pointer.time_stamp()) {
-                event.prevent_default();
-                let options = web_sys::FocusOptions::new();
-                options.set_prevent_scroll(true);
 ```
 
 ## <a id="checkpoint-74p-exercise-current-solid-input-and-original-persistence"></a>17. Exercise current solid input and persistence
@@ -1708,30 +2711,228 @@ Replace it with:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">one history transaction</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">exact reopening</text>
 </svg>
 </div>
 
 **What this code does:** Exercise current solid input and original persistence.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/primitive_tests.rs`
 
 Copy current integrated solid input, original persistence, axis clicks, temporary preview and atomic error fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/74p-exercise-current-solid-input-and-original-persistence-01.rs"
+```rust
+use crate::{
+    cplane::CPlane,
+    editor::{Action, Editor},
+    primitive_draft::Draft,
+    primitive_shape::{Answer, Kind},
+};
+use session_rust::Point;
+fn editor() -> Editor {
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e
+}
+fn command(e: &mut Editor, line: &str) -> Result<(), String> {
+    let action = if let Some(action) = e.tool_line(line) {
+        action.map_err(str::to_owned)?
+    } else {
+        let crate::commands::Command::Editor(action) = crate::commands::parse(line)?
+        else {
+            return Err("Editor command".into());
+        };
+        action
+    };
+    e.apply(action).map_err(|s| {
+        if s == "Shape input invalid" {
+            e.tool_status.clone()
+        } else {
+            s.into()
+        }
+    })?;
+    Ok(())
+}
+#[test]
+fn direct_maintained_solid_builders_create_original_geometry_as_one_transaction() {
+    let mut e = editor();
+    for (line, faces) in [
+        ("Box 0,0,0 2 3 4", 6),
+        ("Pyramid 4,0,0 2 3", 5),
+        ("Block With Hole 8,0,0 4 3 2 0.4", 7),
+        ("Tetrahedron 12,0,0 2", 4),
+        ("Octahedron 16,0,0 2", 8),
+        ("Icosahedron 20,0,0 2", 20),
+        ("Dodecahedron 24,0,0 2", 12),
+    ] {
+        let count = e.scene.objects().len();
+        command(&mut e, line).unwrap();
+        assert!(e.draft.is_none());
+        let cad = e
+            .scene
+            .objects()
+            .last()
+            .unwrap()
+            .cad
+            .as_ref()
+            .unwrap();
+        assert_eq!(cad.source.face_count(), faces);
+        command(&mut e, "Undo").unwrap();
+        assert_eq!(e.scene.objects().len(), count);
+        command(&mut e, "Redo").unwrap();
+        assert_eq!(e.scene.objects().len(), count + 1);
+    }
+    let sources = e
+        .scene
+        .objects()
+        .iter()
+        .map(|row| row.cad.as_ref().unwrap().source.to_proto())
+        .collect::<Vec<_>>();
+    let bytes = crate::scene_archive::save(&e.scene).unwrap();
+    e.apply(Action::Close).unwrap();
+    crate::scene_document::open(&mut e.scene, &bytes).unwrap();
+    assert_eq!(
+        e.scene
+            .objects()
+            .iter()
+            .map(|row| row.cad.as_ref().unwrap().source.to_proto())
+            .collect::<Vec<_>>(),
+        sources
+    );
+}
+#[test]
+fn typed_defaults_and_brep_mesh_choices_preserve_the_current_answers() {
+    let mut e = editor();
+    command(&mut e, "Box").unwrap();
+    command(&mut e, "0,0,0").unwrap();
+    assert!(command(&mut e, "").is_err());
+    command(&mut e, "2").unwrap();
+    command(&mut e, "Mesh").unwrap();
+    assert_eq!(
+        e.draft
+            .as_ref()
+            .unwrap()
+            .primitive
+            .as_ref()
+            .unwrap()
+            .answers
+            .len(),
+        2
+    );
+    command(&mut e, "").unwrap();
+    assert!(e.scene.objects().is_empty());
+    command(&mut e, "").unwrap();
+    assert_eq!(e.scene.objects().len(), 1);
+    assert!(e.scene.objects()[0].cad.is_none());
+    let bounds = e.scene.bounds().unwrap();
+    assert_eq!(bounds.min, [-1., -1., 0.]);
+    assert_eq!(bounds.max, [1., 1., 2.]);
+    command(&mut e, "Undo").unwrap();
+    assert!(e.scene.objects().is_empty());
+    command(&mut e, "Redo").unwrap();
+    assert_eq!(e.scene.objects().len(), 1);
+}
+#[test]
+fn clicked_corners_and_signed_heights_follow_the_current_fixed_plane() {
+    let mut e = editor();
+    command(&mut e, "CPlane XZ").unwrap();
+    command(&mut e, "Box").unwrap();
+    e.apply(Action::ToolPoint([1., 2., 3.]))
+        .unwrap();
+    e.apply(Action::ToolPoint([2., 2., 5.]))
+        .unwrap();
+    assert!(e.scene.objects().is_empty());
+    command(&mut e, "-3").unwrap();
+    let source = &e.scene.objects()[0]
+        .cad
+        .as_ref()
+        .unwrap()
+        .source;
+    let bounds = crate::primitive_shape::tests::bounds(&source.vertex_points());
+    assert_eq!(bounds, [[0., 2., 1.], [2., 5., 5.]]);
+}
+#[test]
+fn invalid_direct_and_batched_shape_input_preserves_draft_points_and_redo() {
+    let mut e = editor();
+    command(&mut e, "Box 0,0,0 2 3 4").unwrap();
+    command(&mut e, "Undo").unwrap();
+    command(&mut e, "Line").unwrap();
+    command(&mut e, "w0,0,0").unwrap();
+    assert!(command(&mut e, "Box 0,0,0 0 3 4").is_err());
+    assert_eq!(e.draft.as_ref().unwrap().tool.name(), "Line");
+    assert_eq!(
+        e.draft.as_ref().unwrap().points,
+        vec![[0.; 3]]
+    );
+    command(&mut e, "Escape").unwrap();
+    command(&mut e, "Box").unwrap();
+    for text in [
+        "0,0,0 2 3 4 extra",
+        "0,0,0 2 3 4 Mesh",
+        "0,0,0 NaN",
+        "0,0,0 2 0",
+    ] {
+        assert!(command(&mut e, text).is_err(), "{text}");
+        assert!(
+            e.draft
+                .as_ref()
+                .unwrap()
+                .primitive
+                .as_ref()
+                .unwrap()
+                .answers
+                .is_empty()
+        );
+        assert!(e.scene.objects().is_empty());
+    }
+    command(&mut e, "Escape").unwrap();
+    command(&mut e, "Redo").unwrap();
+    assert_eq!(e.scene.objects().len(), 1);
+}
+#[test]
+fn height_clicks_use_the_normal_axis_and_refuse_an_axis_aligned_view() {
+    let mut draft = Draft::new(&crate::primitive_box::SHAPE, CPlane::Xy, 0).unwrap();
+    draft
+        .accept(Answer::Point(Point::new(0., 0., 0.)))
+        .unwrap();
+    draft.accept(Answer::Number(2.)).unwrap();
+    draft.accept(Answer::Number(3.)).unwrap();
+    assert_eq!(draft.next().unwrap().kind, Kind::Height);
+    let mut camera = crate::camera::Camera::default();
+    assert!(draft.on_axis(&camera, [0., 0.]).is_none());
+    camera.orbit(0., std::f64::consts::FRAC_PI_4);
+    let point = draft.on_axis(&camera, [0., 0.2]).unwrap();
+    assert!(point[0].abs() < 1e-12 && point[1].abs() < 1e-12);
+    assert!(point[2].is_finite());
+}
+#[test]
+fn pending_solid_wires_and_cancel_never_create_saved_geometry() {
+    let mut e = editor();
+    command(&mut e, "Box 0,0,0 2 3").unwrap();
+    let draft = e.draft.as_ref().unwrap();
+    assert_eq!(
+        draft
+            .primitive
+            .as_ref()
+            .unwrap()
+            .answers
+            .len(),
+        3
+    );
+    assert!(e.scene.objects().is_empty());
+    assert_eq!(draft.outlines().len(), 1);
+    e.apply(Action::ToolHover(Some([0., 0., 4.])))
+        .unwrap();
+    assert_eq!(e.draft.as_ref().unwrap().outlines().len(), 6);
+    assert!(e.scene.objects().is_empty());
+    command(&mut e, "Escape").unwrap();
+    assert!(e.draft.is_none());
+    assert!(e.scene.objects().is_empty());
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -1739,15 +2940,21 @@ Register the primitive component.
 
 **Locate this existing block:**
 
-```text
-
+```rust
 pub mod primitive_registry;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/74p-exercise-current-solid-input-and-original-persistence-02.rs" skip=29
+```rust
+pub mod primitive_registry;
+
+#[cfg(test)]
+mod primitive_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-74za-build-original-cylinders-with-signed-height"></a>18. Build cylinders with signed height
@@ -1782,7 +2989,7 @@ After that block, append this supplied code:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked local frame</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">exact kernel solid</text>
 </svg>
 </div>
@@ -1791,25 +2998,11 @@ After that block, append this supplied code:
 
 ### 1. `src/round_cylinder.rs`
 
-Type the whole original solid builder using the existing frame and question helpers.
+Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74za-build-original-cylinders-with-signed-height-typed-round_cylinder.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/round_cylinder.rs`
-
-Supply only the unchanged original representation and topology fixture.
-
-**Locate this existing block:**
-
-```text
 use crate::primitive_shape as shape;
 use crate::primitive_shape::{
     Answer, Ask, BREP_MESH, Frame, Part, Shape, nonzero, positive,
@@ -1841,7 +3034,8 @@ pub fn read(frame: &Frame, answers: &[Answer], _option: &str) -> Result<Part, St
     let mut part = Part::new(frame.clone());
 
     if let Some(radius) = answers.get(1) {
-        part.sizes.push(positive(frame.size(radius), "The radius")?);
+        part.sizes
+            .push(positive(frame.size(radius), "The radius")?);
     }
 
     if let Some(height) = answers.get(2) {
@@ -1859,9 +3053,17 @@ fn outline(part: &Part) -> Vec<Vec<Point>> {
     match part.sizes[..] {
         [radius] => vec![frame.ring(radius, 0.0)],
         [radius, height] => {
-            let mut wires = vec![frame.ring(radius, 0.0), frame.ring(radius, height)];
+            let mut wires = vec![
+                frame.ring(radius, 0.0),
+                frame.ring(radius, height),
+            ];
 
-            for (u, v) in [(1.0, 0.0), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0)] {
+            for (u, v) in [
+                (1.0, 0.0),
+                (0.0, 1.0),
+                (-1.0, 0.0),
+                (0.0, -1.0),
+            ] {
                 wires.push(vec![
                     frame.at(u * radius, v * radius, 0.0),
                     frame.at(u * radius, v * radius, height),
@@ -1881,31 +3083,83 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
     };
     let (frame, height) = part.frame.upright(height);
     let brep = BRep::create_cylinder(radius, height);
-    Ok(shape::solid(brep, option, &frame.to_xform(), "cylinder"))
+    Ok(shape::solid(
+        brep,
+        option,
+        &frame.to_xform(),
+        "cylinder",
+    ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitive_shape::tests::{
+        XY, XZ, bounds, build, corners, near, p, plane,
+    };
+
+    /// Three faces, 2r × 2r × h; a negative height goes below; the Front plane stands it along −Y.
+    #[test]
+    fn the_cylinder_stands_on_its_base() {
+        let answers = [
+            Answer::Point(p(0.0, 0.0, 0.0)),
+            Answer::Number(200.0),
+            Answer::Number(600.0),
+        ];
+        let Geometry::BRep(brep) =
+            build(&SHAPE, &plane(XY.0, XY.1), &answers, "Brep").unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(brep.face_count(), 3);
+        assert!(brep.is_solid());
+        let mesh = build(&SHAPE, &plane(XY.0, XY.1), &answers, "Mesh").unwrap();
+        let [low, high] = bounds(&corners(&mesh));
+        assert!((high[2] - 600.0).abs() < 1e-9 && low[2].abs() < 1e-9);
+        assert!((high[0] - 200.0).abs() < 1e-6 && (low[0] + 200.0).abs() < 1e-6);
+        let down = [
+            Answer::Point(p(0.0, 0.0, 0.0)),
+            Answer::Number(200.0),
+            Answer::Number(-600.0),
+        ];
+        let low = build(&SHAPE, &plane(XY.0, XY.1), &down, "Mesh").unwrap();
+        let [bottom, top] = bounds(&corners(&low));
+        assert!((bottom[2] + 600.0).abs() < 1e-9 && top[2].abs() < 1e-9);
+        let front = build(&SHAPE, &plane(XZ.0, XZ.1), &answers, "Mesh").unwrap();
+        let [a, b] = bounds(&corners(&front));
+        assert!(near(
+            [[0.0, a[1], 0.0], [0.0, b[1], 0.0]],
+            [[0.0, -600.0, 0.0], [0.0, 0.0, 0.0]]
+        ));
+        let zero = [
+            Answer::Point(p(0.0, 0.0, 0.0)),
+            Answer::Number(-1.0),
+        ];
+        assert!(build(&SHAPE, &plane(XY.0, XY.1), &zero, "Brep").is_err());
+    }
 }
 ```
 
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/74za-build-original-cylinders-with-signed-height-typed-round_cylinder-fixtures.rs" skip=2194
-```
-
-### 3. `src/lib.rs`
+### 2. `src/lib.rs`
 
 Register this shared original solid builder.
 
 **Locate this existing block:**
 
 ```rust
-#[cfg(test)]
 mod primitive_tests;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/75-reuse-current-round-solid-builders-02.rs" skip=34
+mod primitive_tests;
+
+pub mod round_cylinder;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-74zb-build-original-cones-and-spheres"></a>19. Build cones and spheres
@@ -1940,7 +3194,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">checked local frame</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/app/cplane.rs</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">exact kernel solid</text>
 </svg>
 </div>
@@ -1949,27 +3203,13 @@ After that block, type:
 
 ### 1. `src/round_cone.rs`
 
-Type the whole original solid builder using the existing frame and question helpers.
+Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74zb-build-original-cones-and-spheres-typed-round_cone.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 2. `src/round_cone.rs`
-
-Supply only the unchanged original representation and topology fixture.
-
-**Locate this existing block:**
-
-```text
 use crate::primitive_shape as shape;
-use crate::primitive_shape::{ BREP_MESH, Part, Shape};
+use crate::primitive_shape::{BREP_MESH, Part, Shape};
 use crate::round_cylinder as cylinder;
 use session_rust::{BRep, Geometry, Point};
 
@@ -1993,8 +3233,16 @@ fn outline(part: &Part) -> Vec<Vec<Point>> {
             let apex = frame.at(0.0, 0.0, height);
             let mut wires = vec![frame.ring(radius, 0.0)];
 
-            for (u, v) in [(1.0, 0.0), (0.0, 1.0), (-1.0, 0.0), (0.0, -1.0)] {
-                wires.push(vec![frame.at(u * radius, v * radius, 0.0), apex.clone()]);
+            for (u, v) in [
+                (1.0, 0.0),
+                (0.0, 1.0),
+                (-1.0, 0.0),
+                (0.0, -1.0),
+            ] {
+                wires.push(vec![
+                    frame.at(u * radius, v * radius, 0.0),
+                    apex.clone(),
+                ]);
             }
 
             wires
@@ -2016,54 +3264,68 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
         "cone",
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitive_shape::Answer;
+    use crate::primitive_shape::tests::{XZ, build, p, plane};
+
+    /// Two faces, the apex on the normal at the height.
+    #[test]
+    fn the_apex_is_on_the_normal() {
+        let answers = [
+            Answer::Point(p(0.0, 0.0, 0.0)),
+            Answer::Number(200.0),
+            Answer::Number(500.0),
+        ];
+        let Geometry::BRep(brep) =
+            build(&SHAPE, &plane(XZ.0, XZ.1), &answers, "Brep").unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(brep.face_count(), 2);
+        assert!(brep.is_solid());
+        assert!(
+            brep.vertex_points()
+                .iter()
+                .any(|q| q.distance(&p(0.0, -500.0, 0.0), None) < 1e-9)
+        );
+    }
+}
 ```
 
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/74zb-build-original-cones-and-spheres-typed-round_cone-fixtures.rs" skip=1360
-```
-
-### 3. `src/lib.rs`
+### 2. `src/lib.rs`
 
 Register this shared original solid builder.
 
 **Locate this existing block:**
 
 ```rust
-
 pub mod round_cylinder;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/75-reuse-current-round-solid-builders-04.rs" skip=25
+pub mod round_cylinder;
+
+pub mod round_cone;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-### 4. `src/round_sphere.rs`
+### 3. `src/round_sphere.rs`
 
-Type the whole original solid builder using the existing frame and question helpers.
+Type the whole original solid builder using the existing frame and question helpers. Supply only the unchanged original representation and topology fixture.
 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/74zb-build-original-cones-and-spheres-typed-round_sphere.rs"
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
-### 5. `src/round_sphere.rs`
-
-Supply only the unchanged original representation and topology fixture.
-
-**Locate this existing block:**
-
-```text
 use crate::primitive_shape as shape;
-use crate::primitive_shape::{ BREP_MESH, Part, Shape};
+use crate::primitive_shape::{BREP_MESH, Part, Shape};
 use session_rust::{BRep, Geometry};
 
 pub static SHAPE: Shape = Shape {
@@ -2088,32 +3350,79 @@ fn build(part: &Part, option: &str) -> Result<Geometry, String> {
         "sphere",
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::primitive_shape::Answer;
+    use crate::primitive_shape::tests::{XZ, build, corners, p, plane};
+
+    /// One face, poles on the normal; the Mesh option lies on the sphere; zero is refused.
+    #[test]
+    fn the_sphere_has_its_poles_on_the_normal() {
+        let front = plane(XZ.0, XZ.1);
+        let answers = [
+            Answer::Point(p(1.0, 2.0, 3.0)),
+            Answer::Number(10.0),
+        ];
+        let Geometry::BRep(brep) = build(&SHAPE, &front, &answers, "Brep").unwrap()
+        else {
+            panic!()
+        };
+        assert_eq!(brep.face_count(), 1);
+        assert!(brep.is_solid());
+        let points = brep.vertex_points();
+        assert!(
+            points
+                .iter()
+                .any(|q| q.distance(&p(1.0, -8.0, 3.0), None) < 1e-9)
+        );
+        assert!(
+            points
+                .iter()
+                .any(|q| q.distance(&p(1.0, 12.0, 3.0), None) < 1e-9)
+        );
+        let mesh = build(&SHAPE, &front, &answers, "Mesh").unwrap();
+        assert!(matches!(mesh, Geometry::Mesh(_)));
+
+        for q in corners(&mesh) {
+            assert!((q.distance(&p(1.0, 2.0, 3.0), None) - 10.0).abs() < 0.1);
+        }
+
+        let zero = [
+            Answer::Point(p(0.0, 0.0, 0.0)),
+            Answer::Number(0.0),
+        ];
+        assert!(build(&SHAPE, &front, &zero, "Brep").is_err());
+    }
+}
 ```
 
-After that block, append this supplied code:
-
-```text
---8<-- "journey/code/74zb-build-original-cones-and-spheres-typed-round_sphere-fixtures.rs" skip=698
-```
-
-### 6. `src/lib.rs`
+### 4. `src/lib.rs`
 
 Register this shared original solid builder.
 
 **Locate this existing block:**
 
 ```rust
-
 pub mod round_cone;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/75-reuse-current-round-solid-builders-06.rs" skip=21
+pub mod round_cone;
+
+pub mod round_sphere;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## Build & Run
+
+![Recorded visual output for Lesson 14.4 (74zb-build-original-cones-and-spheres)](../../../screenshots/journey/74zb-build-original-cones-and-spheres.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 14.4

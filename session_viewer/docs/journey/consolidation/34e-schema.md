@@ -104,82 +104,205 @@
 
 Validate shape, limits and failure/outcome consistency before trusting a decoded stored value. Keep recording bounded even if a caller bypasses admission and directly deserializes an oversized queue.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
+    }
+
+    pub fn failure(&self) -> Option<&Event> {
+        self.failure.as_ref()
+    }
+
+    pub fn record(
+        &mut self,
+        time: String,
+        elapsed_ms: f64,
+        kind: &str,
+        message: &str,
+    ) -> Result<(), &'static str> {
+        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 {
+            return Err("Invalid elapsed time");
+        }
+        let event = Event {
+            time,
+            elapsed_ms,
+            kind: kind.chars().take(64).collect(),
+            message: message.chars().take(4096).collect(),
+        };
+        self.last_seen.clone_from(&event.time);
+        if kind == "fatal" {
+            if self.failure.is_none() {
+                self.failure = Some(event.clone());
+            }
+            self.outcome = Outcome::Failed;
+        } else if kind == "milestone"
+            && message == "geometry on screen"
+            && self.failure.is_none()
+        {
             self.outcome = Outcome::Ready;
         }
-        if self.events.len() == 24 { self.events.pop_front(); }
-        self.events.push_back(event);
-        Ok(())
-    }
+        if self.events.len() == 24 {
+            self.events.pop_front();
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
-            self.outcome = Outcome::Ready;
-        }
-        while self.events.len() >= 24 { self.events.pop_front(); }
-        self.events.push_back(event);
-        Ok(())
-    }
-```
-
-**Locate this block:**
-
-```rust
-            context, events: Default::default(), failure: None }
-    }
-
-    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
-
-    pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {
-```
-
-Replace it with:
-
-```rust
-            context, events: Default::default(), failure: None }
     }
 
     pub fn valid(&self) -> bool {
         let text = |s: &str, max| s.chars().count() <= max;
-        let event = |e: &Event| !e.time.is_empty() && text(&e.time, 64) && !e.kind.is_empty()
-            && text(&e.kind, 64) && text(&e.message, 4096) && e.elapsed_ms.is_finite() && e.elapsed_ms >= 0.0;
-        self.version == 1 && !self.tab.is_empty() && text(&self.tab, 128)
-            && !self.started.is_empty() && text(&self.started, 64) && !self.last_seen.is_empty() && text(&self.last_seen, 64)
-            && !self.context.page.is_empty() && text(&self.context.page, 4096) && !self.context.page.contains(['?', '#'])
-            && text(&self.context.browser, 4096) && self.context.device_pixel_ratio.is_finite() && self.context.device_pixel_ratio > 0.0
-            && self.events.len() <= 24 && self.events.iter().all(event)
-            && self.events.iter().all(|e| e.kind != "fatal" || self.failure.is_some())
+        let event = |e: &Event| {
+            !e.time.is_empty()
+                && text(&e.time, 64)
+                && !e.kind.is_empty()
+                && text(&e.kind, 64)
+                && text(&e.message, 4096)
+                && e.elapsed_ms.is_finite()
+                && e.elapsed_ms >= 0.0
+        };
+        self.version == 1
+            && !self.tab.is_empty()
+            && text(&self.tab, 128)
+            && !self.started.is_empty()
+            && text(&self.started, 64)
+            && !self.last_seen.is_empty()
+            && text(&self.last_seen, 64)
+            && !self.context.page.is_empty()
+            && text(&self.context.page, 4096)
+            && !self.context.page.contains(['?', '#'])
+            && text(&self.context.browser, 4096)
+            && self.context.device_pixel_ratio.is_finite()
+            && self.context.device_pixel_ratio > 0.0
+            && self.events.len() <= 24
+            && self.events.iter().all(event)
+            && self
+                .events
+                .iter()
+                .all(|e| e.kind != "fatal" || self.failure.is_some())
             && match &self.failure {
-                Some(first) => event(first) && first.kind == "fatal" && self.outcome == Outcome::Failed,
+                Some(first) => {
+                    event(first)
+                        && first.kind == "fatal"
+                        && self.outcome == Outcome::Failed
+                }
                 None => self.outcome != Outcome::Failed,
             }
     }
 
-    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
+    pub fn failure(&self) -> Option<&Event> {
+        self.failure.as_ref()
+    }
 
-    pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {
+    pub fn record(
+        &mut self,
+        time: String,
+        elapsed_ms: f64,
+        kind: &str,
+        message: &str,
+    ) -> Result<(), &'static str> {
+        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 {
+            return Err("Invalid elapsed time");
+        }
+        let event = Event {
+            time,
+            elapsed_ms,
+            kind: kind.chars().take(64).collect(),
+            message: message.chars().take(4096).collect(),
+        };
+        self.last_seen.clone_from(&event.time);
+        if kind == "fatal" {
+            if self.failure.is_none() {
+                self.failure = Some(event.clone());
+            }
+            self.outcome = Outcome::Failed;
+        } else if kind == "milestone"
+            && message == "geometry on screen"
+            && self.failure.is_none()
+        {
+            self.outcome = Outcome::Ready;
+        }
+        while self.events.len() >= 24 {
+            self.events.pop_front();
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/diagnostic_shape_tests.rs`
 
 Optional authoring fixture. Verify typed metadata, bounded queues and consistent first-failure state.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/34e-schema-03.rs"
+```rust
+use crate::diagnostic::{Context, Report};
+
+pub(crate) fn report() -> Report {
+    Report::new(
+        "tab".into(),
+        "2026-10-03T18:00:00.000Z".into(),
+        Context {
+            page: "https://example.test/".into(),
+            browser: "Test".into(),
+            secure_context: true,
+            webgpu: true,
+            viewport: [900, 760],
+            canvas: [900, 760],
+            device_pixel_ratio: 1.0,
+        },
+    )
+}
+
+#[test]
+fn shape_rejects_bad_metadata() {
+    let good = serde_json::to_value(report()).unwrap();
+    for (key, bad) in [
+        ("version", serde_json::json!(2)),
+        ("tab", serde_json::json!("")),
+        (
+            "page",
+            serde_json::json!("https://example.test/?private=1"),
+        ),
+        ("devicePixelRatio", serde_json::json!(0)),
+        ("outcome", serde_json::json!("failed")),
+    ] {
+        let mut value = good.clone();
+        value[key] = bad;
+        assert!(
+            !serde_json::from_value::<Report>(value)
+                .unwrap()
+                .valid(),
+            "{key}"
+        );
+    }
+    assert!(report().valid());
+}
+
+#[test]
+fn shape_bounds_events_and_failure() {
+    let mut failure = report();
+    failure
+        .record("later".into(), 1.0, "fatal", "first")
+        .unwrap();
+    assert!(failure.valid());
+    let mut value = serde_json::to_value(failure).unwrap();
+    let event = serde_json::json!({"time":"now","kind":"phase","message":"test","elapsedMs":1.0});
+    value["events"] = serde_json::json!(vec![event; 25]);
+    let oversized: Report = serde_json::from_value(value.clone()).unwrap();
+    assert!(!oversized.valid());
+    value["events"] = serde_json::json!([]);
+    value["failure"]["message"] = serde_json::json!("😀".repeat(4097));
+    assert!(
+        !serde_json::from_value::<Report>(value.clone())
+            .unwrap()
+            .valid()
+    );
+    value["failure"]["message"] = serde_json::json!("first");
+    value["failure"]["kind"] = serde_json::json!("phase");
+    assert!(
+        !serde_json::from_value::<Report>(value)
+            .unwrap()
+            .valid()
+    );
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -189,7 +312,8 @@ Include the native shape-invariant checks.
 **Locate this existing block:**
 
 ```rust
-pub mod diagnostic;
+#[cfg(test)]
+mod diagnostic_tests;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
@@ -197,7 +321,8 @@ Edit the existing block to match this code; keep unchanged lines:
 ```rust
 #[cfg(test)]
 mod diagnostic_shape_tests;
-pub mod diagnostic;
+#[cfg(test)]
+mod diagnostic_tests;
 ```
 
 ## <a id="checkpoint-34ea-decode"></a>2. Admit only supported bounded saved JSON
@@ -246,21 +371,113 @@ Bound raw input and reject unsupported JSON fields before adopting a valid typed
 Create the file and type:
 
 ```rust
---8<-- "journey/code/34ea-decode-01.rs"
+use crate::diagnostic::Report;
+
+pub const MAX_BYTES: usize = 1024 * 1024;
+
+pub fn decode(text: &str) -> Option<Report> {
+    if text.len() > MAX_BYTES {
+        return None;
+    }
+    let value: serde_json::Value = serde_json::from_str(text).ok()?;
+    let fields = [
+        "version",
+        "tab",
+        "started",
+        "lastSeen",
+        "outcome",
+        "page",
+        "browser",
+        "secureContext",
+        "webgpu",
+        "viewport",
+        "canvas",
+        "devicePixelRatio",
+        "events",
+        "failure",
+    ];
+    if value
+        .as_object()?
+        .keys()
+        .any(|key| !fields.contains(&key.as_str()))
+    {
+        return None;
+    }
+    let report: Report = serde_json::from_value(value).ok()?;
+    report.valid().then_some(report)
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/report_store_tests.rs`
 
 Optional authoring fixture. Prove actual stored JSON admission and byte/text/schema boundaries.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/34ea-decode-02.rs"
+```rust
+use crate::{
+    diagnostic::Report,
+    diagnostic_shape_tests::report,
+    report_store::{MAX_BYTES, decode},
+};
+
+#[test]
+fn stored_json_rejects_invalid_shape() {
+    let good = serde_json::to_value(report()).unwrap();
+    for (key, bad) in [
+        ("version", serde_json::json!(2)),
+        ("tab", serde_json::json!("")),
+        (
+            "page",
+            serde_json::json!("https://example.test/?private=1"),
+        ),
+        ("devicePixelRatio", serde_json::json!(0)),
+        (
+            "events",
+            serde_json::json!([{"time":"now","kind":"fatal","message":"bad","elapsedMs":null}]),
+        ),
+        ("outcome", serde_json::json!("failed")),
+        ("unknown", serde_json::json!(true)),
+    ] {
+        let mut value = good.clone();
+        value[key] = bad;
+        assert!(decode(&value.to_string()).is_none(), "{key}");
+    }
+    assert!(decode("{").is_none());
+}
+
+#[test]
+fn stored_json_bounds_bytes_events_and_text() {
+    let json = serde_json::to_string(&report()).unwrap();
+    let padding = MAX_BYTES - json.len();
+    let padded = json + &" ".repeat(padding);
+    assert!(decode(&padded).is_some());
+    assert!(decode(&(padded + " ")).is_none());
+    let mut value = serde_json::to_value(report()).unwrap();
+    let event = serde_json::json!({"time":"now","kind":"phase","message":"test","elapsedMs":1.0});
+    value["events"] = serde_json::json!(vec![event; 25]);
+    assert!(decode(&value.to_string()).is_none());
+    let mut bypass: Report = serde_json::from_value(value).unwrap();
+    bypass
+        .record("later".into(), 2.0, "phase", "bounded")
+        .unwrap();
+    assert_eq!(
+        serde_json::to_value(bypass).unwrap()["events"]
+            .as_array()
+            .unwrap()
+            .len(),
+        24
+    );
+    let mut failure = report();
+    failure
+        .record("later".into(), 1.0, "fatal", "first reason")
+        .unwrap();
+    let json = serde_json::to_string(&failure).unwrap();
+    assert_eq!(decode(&json), Some(failure));
+    let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
+    value["failure"]["message"] = serde_json::json!("😀".repeat(4097));
+    assert!(decode(&value.to_string()).is_none());
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -270,16 +487,18 @@ Expose the decoder and its native acceptance checks.
 **Locate this existing block:**
 
 ```rust
-pub mod diagnostic;
+pub mod reload_url;
+pub mod row_metadata;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod reload_url;
 pub mod report_store;
 #[cfg(test)]
 mod report_store_tests;
-pub mod diagnostic;
+pub mod row_metadata;
 ```
 
 ## <a id="checkpoint-34eb-recency"></a>3. Choose a recent failure without blaming active tabs
@@ -328,21 +547,174 @@ Interpret a validated report’s chronology and return an eligible timestamp for
 Create the file and type:
 
 ```rust
---8<-- "journey/code/34eb-recency-01.rs"
+use crate::diagnostic::{Outcome, Report};
+
+pub fn eligible(
+    report: &Report,
+    now: f64,
+    tab: &str,
+    parse: impl Fn(&str) -> f64,
+) -> Option<f64> {
+    if !report.valid() || !now.is_finite() || now < 0.0 {
+        return None;
+    }
+    let started = parse(&report.started);
+    let seen = parse(&report.last_seen);
+    if !started.is_finite() || !seen.is_finite() || started > seen || seen > now {
+        return None;
+    }
+    match report.outcome {
+        Outcome::Failed => {
+            let failed = parse(&report.failure()?.time);
+            (failed.is_finite()
+                && failed >= started
+                && failed <= seen
+                && now - failed < 7_200_000.0)
+                .then_some(failed)
+        }
+        Outcome::Running
+            if now - seen < 7_200_000.0
+                && (report.tab == tab || now - seen > 120_000.0) =>
+        {
+            Some(seen)
+        }
+        _ => None,
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/report_recency_tests.rs`
 
 Optional authoring fixture. Cover the original stale-heartbeat regression, active tabs, temporal cutoffs and failure-time ranking.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/34eb-recency-02.rs"
+```rust
+use crate::{
+    diagnostic::Outcome, diagnostic_shape_tests::report, report_recency::eligible,
+};
+
+#[test]
+fn previous_run_selection_respects_actual_failure_time() {
+    let now = 1_000_000_000.0;
+    for (name, failed, same, seen_age, failure_age, expected) in [
+        (
+            "old failure, fresh heartbeat",
+            true,
+            false,
+            5000.0,
+            259_200_000.0,
+            false,
+        ),
+        (
+            "recent failure",
+            true,
+            false,
+            5000.0,
+            10000.0,
+            true,
+        ),
+        (
+            "failure at cutoff",
+            true,
+            false,
+            5000.0,
+            7_200_000.0,
+            false,
+        ),
+        (
+            "failure after heartbeat",
+            true,
+            false,
+            5000.0,
+            1000.0,
+            false,
+        ),
+        (
+            "future heartbeat",
+            true,
+            false,
+            -1.0,
+            1000.0,
+            false,
+        ),
+        (
+            "future failure",
+            true,
+            false,
+            0.0,
+            -1.0,
+            false,
+        ),
+        (
+            "active other tab",
+            false,
+            false,
+            120_000.0,
+            0.0,
+            false,
+        ),
+        (
+            "interrupted other tab",
+            false,
+            false,
+            120_001.0,
+            0.0,
+            true,
+        ),
+        (
+            "stale other tab",
+            false,
+            false,
+            7_200_000.0,
+            0.0,
+            false,
+        ),
+        (
+            "interrupted same tab",
+            false,
+            true,
+            0.0,
+            0.0,
+            true,
+        ),
+    ] {
+        let mut value = report();
+        value.started = "start".into();
+        if failed {
+            value
+                .record("failed".into(), 1.0, "fatal", "original")
+                .unwrap();
+        }
+        value.last_seen = "seen".into();
+        value.tab = if same {
+            "current"
+        } else {
+            "other"
+        }
+        .into();
+        let parser = |time: &str| match time {
+            "start" => now - 259_200_000.0,
+            "seen" => now - seen_age,
+            "failed" => now - failure_age,
+            _ => f64::NAN,
+        };
+        let selected = eligible(&value, now, "current", parser);
+        assert_eq!(selected.is_some(), expected, "{name}");
+        if expected {
+            assert_eq!(
+                selected,
+                Some(
+                    now - if failed {
+                        failure_age
+                    } else {
+                        seen_age
+                    }
+                )
+            );
+        }
+    }
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -352,12 +724,14 @@ Expose native selection policy before binding it to browser storage.
 **Locate this existing block:**
 
 ```rust
+pub mod reload_url;
 pub mod report_store;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod reload_url;
 pub mod report_recency;
 #[cfg(test)]
 mod report_recency_tests;
@@ -403,50 +777,83 @@ pub mod report_store;
 
 **What this code does:** Complete timestamp-policy acceptance before a stored candidate can create a notice or previous-report download.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/report_recency_tests.rs`
 
 Optional authoring fixture. Prove invalid clocks, healthy/closed runs, invalid failure ordering and unchanged metadata cannot become interruption evidence.
 
 **Locate this existing block:**
 
-```text
-use crate::{diagnostic::Outcome, diagnostic_shape_tests::report, report_recency::eligible};
-
-#[test]
-fn previous_run_selection_respects_actual_failure_time() {
-    let now = 1_000_000_000.0;
-    for (name, failed, same, seen_age, failure_age, expected) in [
-        ("old failure, fresh heartbeat", true, false, 5000.0, 259_200_000.0, false),
-        ("recent failure", true, false, 5000.0, 10000.0, true),
-        ("failure at cutoff", true, false, 5000.0, 7_200_000.0, false),
-        ("failure after heartbeat", true, false, 5000.0, 1000.0, false),
-        ("future heartbeat", true, false, -1.0, 1000.0, false),
-        ("future failure", true, false, 0.0, -1.0, false),
-        ("active other tab", false, false, 120_000.0, 0.0, false),
-        ("interrupted other tab", false, false, 120_001.0, 0.0, true),
-        ("stale other tab", false, false, 7_200_000.0, 0.0, false),
-        ("interrupted same tab", false, true, 0.0, 0.0, true),
-    ] {
-        let mut value = report(); value.started = "start".into();
-        if failed { value.record("failed".into(), 1.0, "fatal", "original").unwrap(); }
-        value.last_seen = "seen".into(); value.tab = if same { "current" } else { "other" }.into();
-        let parser = |time: &str| match time { "start" => now - 259_200_000.0, "seen" => now - seen_age,
-            "failed" => now - failure_age, _ => f64::NAN };
-        let selected = eligible(&value, now, "current", parser);
-        assert_eq!(selected.is_some(), expected, "{name}");
-        if expected { assert_eq!(selected, Some(now - if failed { failure_age } else { seen_age })); }
+```rust
     }
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/34ec-proof-01.rs" skip=1607
+```rust
+    }
+}
+
+#[test]
+fn invalid_clocks_and_healthy_runs_are_not_interruption_evidence() {
+    let mut value = report();
+    value.started = "start".into();
+    value.last_seen = "seen".into();
+    let clock = |time: &str| {
+        if time == "start" {
+            0.0
+        } else {
+            1000.0
+        }
+    };
+    for now in [f64::NAN, f64::INFINITY, -1.0] {
+        assert!(eligible(&value, now, "tab", clock).is_none());
+    }
+    assert!(eligible(&value, 2000.0, "tab", |_| f64::NAN).is_none());
+    assert!(
+        eligible(&value, 2000.0, "tab", |time| {
+            if time == "start" {
+                3000.0
+            } else {
+                1000.0
+            }
+        })
+        .is_none()
+    );
+    for state in [Outcome::Ready, Outcome::Closed] {
+        value.outcome = state;
+        assert!(eligible(&value, 2000.0, "tab", clock).is_none());
+    }
+}
+
+#[test]
+fn failure_before_start_is_rejected_without_mutating_report() {
+    let mut value = report();
+    value
+        .record("failed".into(), 1.0, "fatal", "original")
+        .unwrap();
+    value.started = "start".into();
+    value.last_seen = "seen".into();
+    let before = value.clone();
+    let clock = |time: &str| match time {
+        "start" => 1500.0,
+        "seen" => 1900.0,
+        "failed" => 1000.0,
+        _ => f64::NAN,
+    };
+    assert!(eligible(&value, 2000.0, "tab", clock).is_none());
+    assert_eq!(value, before);
+    assert!(
+        eligible(&value, 2000.0, "tab", |time| {
+            if time == "failed" {
+                f64::NAN
+            } else {
+                clock(time)
+            }
+        })
+        .is_none()
+    );
+}
 ```
 
 ## <a id="checkpoint-34f-storage"></a>5. Read previous reports from real browser storage
@@ -495,7 +902,76 @@ Read bounded validated candidates from actual browser storage and rank with the 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/34f-storage-01.rs"
+use crate::diagnostic::Report;
+use web_sys::Storage;
+
+pub const PREFIX: &str = "viewer-journey-report:";
+
+pub struct Store {
+    pub tab: String,
+    key: String,
+    storage: Option<Storage>,
+}
+
+impl Store {
+    pub fn open() -> Self {
+        let window = web_sys::window();
+        let session = window
+            .as_ref()
+            .and_then(|w| w.session_storage().ok().flatten());
+        let tab = session
+            .as_ref()
+            .and_then(|s| s.get_item(PREFIX).ok().flatten())
+            .filter(|tab| !tab.is_empty() && tab.chars().count() <= 128)
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        if let Some(session) = session {
+            let _ = session.set_item(PREFIX, &tab);
+        }
+        Self {
+            tab,
+            key: format!("{PREFIX}{}", uuid::Uuid::new_v4()),
+            storage: window.and_then(|w| w.local_storage().ok().flatten()),
+        }
+    }
+
+    pub fn reports(&self) -> Vec<(String, Report)> {
+        let Some(storage) = &self.storage else {
+            return Vec::new();
+        };
+        (0..storage.length().unwrap_or(0).min(256))
+            .filter_map(|i| storage.key(i).ok().flatten())
+            .filter(|key| key.starts_with(PREFIX))
+            .take(32)
+            .filter_map(|key| {
+                let text = storage.get_item(&key).ok().flatten()?;
+                Some((key, crate::report_store::decode(&text)?))
+            })
+            .collect()
+    }
+
+    pub fn previous(&self) -> Option<Report> {
+        let now = js_sys::Date::now();
+        self.reports()
+            .into_iter()
+            .filter_map(|(_, report)| {
+                let score = crate::report_recency::eligible(
+                    &report,
+                    now,
+                    &self.tab,
+                    js_sys::Date::parse,
+                )?;
+                Some((score, report))
+            })
+            .max_by(|a, b| a.0.total_cmp(&b.0))
+            .map(|(_, report)| report)
+    }
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn previous_storage_probe() -> String {
+    let store = Store::open();
+    serde_json::json!({"tab": store.tab, "key": store.key, "previous": store.previous()}).to_string()
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -505,12 +981,15 @@ Build the storage owner only for the browser target and expose its debug accepta
 **Locate this existing block:**
 
 ```rust
-mod browser_report;
+#[cfg(target_arch = "wasm32")]
+mod panel;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+#[cfg(target_arch = "wasm32")]
+mod panel;
 #[cfg(target_arch = "wasm32")]
 pub mod report_storage;
 ```
@@ -522,13 +1001,17 @@ Enable the pinned browser Storage bindings without changing package versions.
 **Locate this existing block:**
 
 ```toml
+wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Storage", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
 ## <a id="checkpoint-34fa-retain"></a>6. Retain only three diagnostic runs
@@ -574,70 +1057,110 @@ web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "
 
 Admit metadata, save to this run’s key and retain at most two older valid reports; refuse unbounded namespace examination and tolerate unavailable storage. Verify repeated writes use the same key and reach actual Web Storage; this debug export is not a runtime feature control.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::diagnostic::Report;
-use web_sys::Storage;
-
-pub const PREFIX: &str = "viewer-journey-report:";
-
-pub struct Store {
-    pub tab: String,
-    key: String,
-    storage: Option<Storage>,
-}
-
-impl Store {
-    pub fn open() -> Self {
-        let window = web_sys::window();
-        let session = window.as_ref().and_then(|w| w.session_storage().ok().flatten());
-        let tab = session.as_ref().and_then(|s| s.get_item(PREFIX).ok().flatten())
-            .filter(|tab| !tab.is_empty() && tab.chars().count() <= 128)
-            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-        if let Some(session) = session { let _ = session.set_item(PREFIX, &tab); }
-        Self { tab, key: format!("{PREFIX}{}", uuid::Uuid::new_v4()),
-            storage: window.and_then(|w| w.local_storage().ok().flatten()) }
     }
 
-    pub fn reports(&self) -> Vec<(String, Report)> {
-        let Some(storage) = &self.storage else { return Vec::new(); };
-        (0..storage.length().unwrap_or(0).min(256))
-            .filter_map(|i| storage.key(i).ok().flatten()).filter(|key| key.starts_with(PREFIX)).take(32)
-            .filter_map(|key| {
-                let text = storage.get_item(&key).ok().flatten()?;
-                Some((key, crate::report_store::decode(&text)?))
-            }).collect()
+    pub fn previous(&self) -> Option<Report> {
+        let now = js_sys::Date::now();
+        self.reports()
+            .into_iter()
+            .filter_map(|(_, report)| {
+                let score = crate::report_recency::eligible(
+                    &report,
+                    now,
+                    &self.tab,
+                    js_sys::Date::parse,
+                )?;
+                Some((score, report))
+            })
+            .max_by(|a, b| a.0.total_cmp(&b.0))
+            .map(|(_, report)| report)
+    }
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn previous_storage_probe() -> String {
+    let store = Store::open();
+    serde_json::json!({"tab": store.tab, "key": store.key, "previous": store.previous()}).to_string()
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     }
 
     pub fn write(&self, report: &Report) -> bool {
-        if !report.valid() || report.tab != self.tab { return false; }
-        let Some(storage) = &self.storage else { return false; };
-        let Ok(length) = storage.length() else { return false; };
-        if length > 256 { return false; }
+        if !report.valid() || report.tab != self.tab {
+            return false;
+        }
+        let Some(storage) = &self.storage else {
+            return false;
+        };
+        let Ok(length) = storage.length() else {
+            return false;
+        };
+        if length > 256 {
+            return false;
+        }
         let keys: Result<Vec<_>, _> = (0..length).map(|i| storage.key(i)).collect();
-        let Ok(keys) = keys else { return false; };
-        let keys: Vec<_> = keys.into_iter().flatten().filter(|key| key.starts_with(PREFIX)).collect();
-        if keys.len() > 32 { return false; }
-        let mut old = self.reports(); old.retain(|(key, _)| key != &self.key);
+        let Ok(keys) = keys else {
+            return false;
+        };
+        let keys: Vec<_> = keys
+            .into_iter()
+            .flatten()
+            .filter(|key| key.starts_with(PREFIX))
+            .collect();
+        if keys.len() > 32 {
+            return false;
+        }
+        let mut old = self.reports();
+        old.retain(|(key, _)| key != &self.key);
         old.retain(|(_, report)| js_sys::Date::parse(&report.last_seen).is_finite());
-        old.sort_by(|a, b| js_sys::Date::parse(&b.1.last_seen).total_cmp(&js_sys::Date::parse(&a.1.last_seen)));
-        let keep: Vec<_> = old.iter().take(2).map(|(key, _)| key).collect();
-        let Ok(text) = serde_json::to_string(report) else { return false; };
-        if text.len() > crate::report_store::MAX_BYTES || storage.set_item(&self.key, &text).is_err() { return false; }
+        old.sort_by(|a, b| {
+            js_sys::Date::parse(&b.1.last_seen)
+                .total_cmp(&js_sys::Date::parse(&a.1.last_seen))
+        });
+        let keep: Vec<_> = old
+            .iter()
+            .take(2)
+            .map(|(key, _)| key)
+            .collect();
+        let Ok(text) = serde_json::to_string(report) else {
+            return false;
+        };
+        if text.len() > crate::report_store::MAX_BYTES
+            || storage.set_item(&self.key, &text).is_err()
+        {
+            return false;
+        }
         let mut success = true;
         for key in keys {
-            if key != self.key && !keep.contains(&&key) { success &= storage.remove_item(&key).is_ok(); }
+            if key != self.key && !keep.contains(&&key) {
+                success &= storage.remove_item(&key).is_ok();
+            }
         }
         success
     }
 
     pub fn previous(&self) -> Option<Report> {
         let now = js_sys::Date::now();
-        self.reports().into_iter().filter_map(|(_, report)| {
-            let score = crate::report_recency::eligible(&report, now, &self.tab, js_sys::Date::parse)?;
-            Some((score, report))
-        }).max_by(|a, b| a.0.total_cmp(&b.0)).map(|(_, report)| report)
+        self.reports()
+            .into_iter()
+            .filter_map(|(_, report)| {
+                let score = crate::report_recency::eligible(
+                    &report,
+                    now,
+                    &self.tab,
+                    js_sys::Date::parse,
+                )?;
+                Some((score, report))
+            })
+            .max_by(|a, b| a.0.total_cmp(&b.0))
+            .map(|(_, report)| report)
     }
 }
 
@@ -650,8 +1173,13 @@ pub fn previous_storage_probe() -> String {
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn stored_report_probe(text: &str) -> Result<String, wasm_bindgen::JsValue> {
     let report = crate::report_store::decode(text).ok_or("Unsupported report")?;
-    let store = Store::open(); let first = store.write(&report); let second = store.write(&report);
-    Ok(serde_json::json!({"key": store.key, "first": first, "second": second}).to_string())
+    let store = Store::open();
+    let first = store.write(&report);
+    let second = store.write(&report);
+    Ok(
+        serde_json::json!({"key": store.key, "first": first, "second": second})
+            .to_string(),
+    )
 }
 ```
 
@@ -698,11 +1226,86 @@ pub fn stored_report_probe(text: &str) -> Result<String, wasm_bindgen::JsValue> 
 
 Keep current and previous diagnostic metadata independent of the GPU runtime and source documents. Select earlier evidence before writing this new run, retain stable tab identity and let denied storage leave startup usable. Save successful observations after releasing the current-report borrow; storage failure cannot replace a diagnostic error or interrupt drawing. Persist refreshed current context while retaining manual downloads when storage is unavailable. Serialize independent previous metadata before the download callback; report interruption separately from proof of a crash.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::diagnostic::{Context, Report};
-use std::cell::RefCell;
+use wasm_bindgen::{JsCast, JsValue};
+
+thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) }; }
+
+fn context() -> Result<Context, JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("No canvas")?
+        .dyn_into()?;
+    let location = window.location();
+    let navigator = window.navigator();
+    Ok(Context {
+        page: format!(
+            "{}{}",
+            location.origin()?,
+            location.pathname()?
+        ),
+        browser: navigator.user_agent()?,
+        secure_context: window.is_secure_context(),
+        webgpu: js_sys::Reflect::get(navigator.as_ref(), &"gpu".into())?.is_object(),
+        viewport: [
+            window
+                .inner_width()?
+                .as_f64()
+                .ok_or("No width")? as u32,
+            window
+                .inner_height()?
+                .as_f64()
+                .ok_or("No height")? as u32,
+        ],
+        canvas: [canvas.width(), canvas.height()],
+        device_pixel_ratio: window.device_pixel_ratio(),
+    })
+}
+
+pub fn start() -> Result<(), JsValue> {
+    let report = Report::new(
+        uuid::Uuid::new_v4().to_string(),
+        js_sys::Date::new_0().to_iso_string().into(),
+        context()?,
+    );
+    REPORT.with(|slot| slot.replace(Some(report)));
+    Ok(())
+}
+
+pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
+    let context = context()?;
+    let elapsed = web_sys::window()
+        .and_then(|window| window.performance())
+        .ok_or("No clock")?
+        .now();
+    REPORT.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        let report = slot.as_mut().ok_or("No report")?;
+        report.context = context;
+        report
+            .record(
+                js_sys::Date::new_0().to_iso_string().into(),
+                elapsed,
+                kind,
+                message,
+            )
+            .map_err(JsValue::from_str)
+    })
+}
+
+pub fn download() -> Result<(), JsValue> {
+    let json = diagnostic_snapshot()?;
+    crate::file_output::download_named(json.as_bytes(), "viewer-diagnostic.json")
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
 use wasm_bindgen::{JsCast, JsValue};
 
 thread_local! {
@@ -714,79 +1317,119 @@ thread_local! {
 fn context() -> Result<Context, JsValue> {
     let window = web_sys::window().ok_or("No browser window")?;
     let document = window.document().ok_or("No document")?;
-    let canvas: web_sys::HtmlCanvasElement = document.get_element_by_id("canvas").ok_or("No canvas")?.dyn_into()?;
-    let location = window.location(); let navigator = window.navigator();
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("No canvas")?
+        .dyn_into()?;
+    let location = window.location();
+    let navigator = window.navigator();
     Ok(Context {
-        page: format!("{}{}", location.origin()?, location.pathname()?),
-        browser: navigator.user_agent()?, secure_context: window.is_secure_context(),
+        page: format!(
+            "{}{}",
+            location.origin()?,
+            location.pathname()?
+        ),
+        browser: navigator.user_agent()?,
+        secure_context: window.is_secure_context(),
         webgpu: js_sys::Reflect::get(navigator.as_ref(), &"gpu".into())?.is_object(),
-        viewport: [window.inner_width()?.as_f64().ok_or("No width")? as u32,
-            window.inner_height()?.as_f64().ok_or("No height")? as u32],
-        canvas: [canvas.width(), canvas.height()], device_pixel_ratio: window.device_pixel_ratio(),
+        viewport: [
+            window
+                .inner_width()?
+                .as_f64()
+                .ok_or("No width")? as u32,
+            window
+                .inner_height()?
+                .as_f64()
+                .ok_or("No height")? as u32,
+        ],
+        canvas: [canvas.width(), canvas.height()],
+        device_pixel_ratio: window.device_pixel_ratio(),
     })
 }
 
 pub fn start() -> Result<(), JsValue> {
-    let store = crate::report_storage::Store::open(); let previous = store.previous();
-    let report = Report::new(store.tab.clone(), js_sys::Date::new_0().to_iso_string().into(), context()?);
-    PREVIOUS.with(|slot| slot.replace(previous)); STORE.with(|slot| slot.replace(Some(store)));
+    let store = crate::report_storage::Store::open();
+    let previous = store.previous();
+    let report = Report::new(
+        store.tab.clone(),
+        js_sys::Date::new_0().to_iso_string().into(),
+        context()?,
+    );
+    PREVIOUS.with(|slot| slot.replace(previous));
+    STORE.with(|slot| slot.replace(Some(store)));
     REPORT.with(|slot| slot.replace(Some(report)));
-    let _ = persist(); Ok(())
+    let _ = persist();
+    Ok(())
 }
 
 pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
     let context = context()?;
-    let elapsed = web_sys::window().and_then(|window| window.performance()).ok_or("No clock")?.now();
+    let elapsed = web_sys::window()
+        .and_then(|window| window.performance())
+        .ok_or("No clock")?
+        .now();
     REPORT.with(|slot| {
-        let mut slot = slot.borrow_mut(); let report = slot.as_mut().ok_or("No report")?;
+        let mut slot = slot.borrow_mut();
+        let report = slot.as_mut().ok_or("No report")?;
         report.context = context;
-        report.record(js_sys::Date::new_0().to_iso_string().into(), elapsed, kind, message).map_err(JsValue::from_str)
+        report
+            .record(
+                js_sys::Date::new_0().to_iso_string().into(),
+                elapsed,
+                kind,
+                message,
+            )
+            .map_err(JsValue::from_str)
     })?;
-    let _ = persist(); Ok(())
+    let _ = persist();
+    Ok(())
 }
 
 pub fn download() -> Result<(), JsValue> {
-    let json = diagnostic_snapshot()?; let _ = persist();
+    let json = diagnostic_snapshot()?;
+    let _ = persist();
     crate::file_output::download_named(json.as_bytes(), "viewer-diagnostic.json")
 }
 
 fn persist() -> bool {
     let report = REPORT.with(|slot| slot.borrow().clone());
-    let Some(report) = report else { return false; };
-    STORE.with(|slot| slot.borrow().as_ref().is_some_and(|store| store.write(&report)))
+    let Some(report) = report else {
+        return false;
+    };
+    STORE.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .is_some_and(|store| store.write(&report))
+    })
 }
 
 pub fn previous_notice() -> Option<&'static str> {
-    PREVIOUS.with(|slot| slot.borrow().as_ref().map(|report| if report.outcome == crate::diagnostic::Outcome::Failed {
-        "Previous viewer run failed. Type Report Previous."
-    } else { "Previous viewer run was interrupted. Type Report Previous." }))
+    PREVIOUS.with(|slot| {
+        slot.borrow().as_ref().map(|report| {
+            if report.outcome == crate::diagnostic::Outcome::Failed {
+                "Previous viewer run failed. Type Report Previous."
+            } else {
+                "Previous viewer run was interrupted. Type Report Previous."
+            }
+        })
+    })
 }
 
 pub fn download_previous() -> Result<(), JsValue> {
     let json = previous_diagnostic_snapshot()?;
-    crate::file_output::download_named(json.as_bytes(), "viewer-diagnostic-previous.json")
+    crate::file_output::download_named(
+        json.as_bytes(),
+        "viewer-diagnostic-previous.json",
+    )
 }
 
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn previous_diagnostic_snapshot() -> Result<String, JsValue> {
     PREVIOUS.with(|slot| {
-        let slot = slot.borrow(); let report = slot.as_ref().ok_or("No previous report")?;
-        serde_json::to_string_pretty(report).map_err(|error| JsValue::from_str(&error.to_string()))
-    })
-}
-
-pub fn fatal(message: &str) {
-    let first = REPORT.with(|slot| slot.borrow().as_ref().is_some_and(|report| report.failure().is_none()));
-    if observe("fatal", message).is_ok() && first { let _ = download(); }
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn diagnostic_snapshot() -> Result<String, JsValue> {
-    let context = context()?;
-    REPORT.with(|slot| {
-        let mut slot = slot.borrow_mut(); let report = slot.as_mut().ok_or("No report")?;
-        report.context = context;
-        serde_json::to_string_pretty(report).map_err(|error| JsValue::from_str(&error.to_string()))
+        let slot = slot.borrow();
+        let report = slot.as_ref().ok_or("No previous report")?;
+        serde_json::to_string_pretty(report)
+            .map_err(|error| JsValue::from_str(&error.to_string()))
     })
 }
 ```
@@ -800,29 +1443,28 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                    input.click();
-                }
-                None
-            } else if line == "report" {
-                let result = crate::browser_report::download().map(|()| "Diagnostic report downloaded.".to_owned())
-                    .unwrap_or_else(|error| format!("Diagnostic report failed: {error:?}"));
-                panel.result(&result);
-                None
+                        input.click();
+                    }
+                    None
+                } else if line == "report" {
+                    let result = crate::browser_report::download()
+                        .map(|()| "Diagnostic report downloaded.".to_owned())
 ```
 
 Replace it with:
 
 ```rust
-                    input.click();
-                }
-                None
-            } else if line == "report" || line == "report previous" {
-                let output = if line.ends_with(" previous") { crate::browser_report::download_previous() }
-                    else { crate::browser_report::download() };
-                let result = output.map(|()| "Diagnostic report downloaded.".to_owned())
-                    .unwrap_or_else(|error| format!("Diagnostic report failed: {error:?}"));
-                panel.result(&result);
-                None
+                        input.click();
+                    }
+                    None
+                } else if line == "report" || line == "report previous" {
+                    let output = if line.ends_with(" previous") {
+                        crate::browser_report::download_previous()
+                    } else {
+                        crate::browser_report::download()
+                    };
+                    let result = output
+                        .map(|()| "Diagnostic report downloaded.".to_owned())
 ```
 
 **Locate this block:**
@@ -842,7 +1484,9 @@ Replace it with:
             "View Reset",
         ],
     );
-    if let Some(message) = crate::browser_report::previous_notice() { panel.result(message); }
+    if let Some(message) = crate::browser_report::previous_notice() {
+        panel.result(message);
+    }
     panel.update(None, &canvas)?;
     if resize(
         &window,
@@ -851,8 +1495,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-            "Cancel Reload",
-            "Save",
             "Report",
             "Example Box",
             "Example Triangle",
@@ -862,8 +1504,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Cancel Reload",
-            "Save",
             "Report",
             "Report Previous",
             "Example Box",
@@ -878,13 +1518,17 @@ Expose the existing drawn status in the same diagnostic inspector so Chrome can 
 **Locate this existing block:**
 
 ```rust
+    pub fn inspect(&self) -> String {
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history,
+            "pointer_owned": self.pointer_owned,
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    pub fn inspect(&self) -> String {
         serde_json::json!({"controls": self.controls, "command": self.model.command, "history": self.model.history, "status": self.model.status,
+            "pointer_owned": self.pointer_owned,
 ```
 
 ## <a id="checkpoint-34fc-retention"></a>8. Preserve unsupported telemetry while pruning
@@ -934,21 +1578,36 @@ Read a bounded date/version header for retention without adopting, converting or
 
 ```rust
 pub const MAX_BYTES: usize = 1024 * 1024;
+
+pub fn decode(text: &str) -> Option<Report> {
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub const MAX_BYTES: usize = 1024 * 1024;
 
-pub fn retention_time(text: &str, now: f64, parse: impl Fn(&str) -> f64) -> Option<f64> {
-    if text.len() > MAX_BYTES || !now.is_finite() || now < 0.0 { return None; }
+pub fn retention_time(
+    text: &str,
+    now: f64,
+    parse: impl Fn(&str) -> f64,
+) -> Option<f64> {
+    if text.len() > MAX_BYTES || !now.is_finite() || now < 0.0 {
+        return None;
+    }
     let value: serde_json::Value = serde_json::from_str(text).ok()?;
-    if value.get("version")?.as_u64()? == 0 { return None; }
+    if value.get("version")?.as_u64()? == 0 {
+        return None;
+    }
     let seen = value.get("lastSeen")?.as_str()?;
-    if seen.is_empty() || seen.chars().count() > 64 { return None; }
+    if seen.is_empty() || seen.chars().count() > 64 {
+        return None;
+    }
     let time = parse(seen);
     (time.is_finite() && time <= now).then_some(time)
 }
+
+pub fn decode(text: &str) -> Option<Report> {
 ```
 
 ### 2. `src/report_storage.rs`
@@ -958,29 +1617,44 @@ Retain raw supported or unsupported bounded JSON by header time; a failed read a
 **Locate this existing block:**
 
 ```rust
-        let mut old = self.reports(); old.retain(|(key, _)| key != &self.key);
+        }
+        let mut old = self.reports();
+        old.retain(|(key, _)| key != &self.key);
         old.retain(|(_, report)| js_sys::Date::parse(&report.last_seen).is_finite());
-        old.sort_by(|a, b| js_sys::Date::parse(&b.1.last_seen).total_cmp(&js_sys::Date::parse(&a.1.last_seen)));
-        let keep: Vec<_> = old.iter().take(2).map(|(key, _)| key).collect();
+        old.sort_by(|a, b| {
+            js_sys::Date::parse(&b.1.last_seen)
+                .total_cmp(&js_sys::Date::parse(&a.1.last_seen))
+        });
+        let keep: Vec<_> = old
+            .iter()
+            .take(2)
+            .map(|(key, _)| key)
+            .collect();
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        let now = js_sys::Date::now(); let mut old = Vec::new();
+        }
+        let now = js_sys::Date::now();
+        let mut old = Vec::new();
         for key in keys.iter().filter(|key| *key != &self.key) {
-            let Ok(Some(text)) = storage.get_item(key) else { return false; };
-            if let Some(time) = crate::report_store::retention_time(&text, now, js_sys::Date::parse) {
+            let Ok(Some(text)) = storage.get_item(key) else {
+                return false;
+            };
+            if let Some(time) =
+                crate::report_store::retention_time(&text, now, js_sys::Date::parse)
+            {
                 old.push((time, key.clone()));
             }
         }
         old.sort_by(|a, b| b.0.total_cmp(&a.0));
-        let keep: Vec<_> = old.iter().take(2).map(|(_, key)| key).collect();
+        let keep: Vec<_> = old
+            .iter()
+            .take(2)
+            .map(|(_, key)| key)
+            .collect();
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/report_store_tests.rs`
 
@@ -988,44 +1662,61 @@ Optional authoring fixture. Prove unsupported fields/versions remain dateable wi
 
 **Locate this existing block:**
 
-```text
-use crate::{diagnostic::Report, diagnostic_shape_tests::report, report_store::{decode, MAX_BYTES}};
-
-#[test]
-fn stored_json_rejects_invalid_shape() {
-    let good = serde_json::to_value(report()).unwrap();
-    for (key, bad) in [("version", serde_json::json!(2)), ("tab", serde_json::json!("")),
-        ("page", serde_json::json!("https://example.test/?private=1")), ("devicePixelRatio", serde_json::json!(0)),
-        ("events", serde_json::json!([{"time":"now","kind":"fatal","message":"bad","elapsedMs":null}])),
-        ("outcome", serde_json::json!("failed")), ("unknown", serde_json::json!(true))] {
-        let mut value = good.clone(); value[key] = bad;
-        assert!(decode(&value.to_string()).is_none(), "{key}");
-    }
-    assert!(decode("{").is_none());
-}
-
-#[test]
-fn stored_json_bounds_bytes_events_and_text() {
-    let json = serde_json::to_string(&report()).unwrap();
-    let padding = MAX_BYTES - json.len(); let padded = json + &" ".repeat(padding);
-    assert!(decode(&padded).is_some()); assert!(decode(&(padded + " ")).is_none());
-    let mut value = serde_json::to_value(report()).unwrap();
-    let event = serde_json::json!({"time":"now","kind":"phase","message":"test","elapsedMs":1.0});
-    value["events"] = serde_json::json!(vec![event; 25]); assert!(decode(&value.to_string()).is_none());
-    let mut bypass: Report = serde_json::from_value(value).unwrap();
-    bypass.record("later".into(), 2.0, "phase", "bounded").unwrap();
-    assert_eq!(serde_json::to_value(bypass).unwrap()["events"].as_array().unwrap().len(), 24);
-    let mut failure = report(); failure.record("later".into(), 1.0, "fatal", "first reason").unwrap();
-    let json = serde_json::to_string(&failure).unwrap(); assert_eq!(decode(&json), Some(failure));
-    let mut value: serde_json::Value = serde_json::from_str(&json).unwrap();
-    value["failure"]["message"] = serde_json::json!("😀".repeat(4097)); assert!(decode(&value.to_string()).is_none());
+```rust
+    assert!(decode(&value.to_string()).is_none());
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/34fc-retention-03.rs" skip=1952
+```rust
+    assert!(decode(&value.to_string()).is_none());
+}
+
+#[test]
+fn unsupported_telemetry_can_be_retained_without_adoption() {
+    let mut value = serde_json::to_value(report()).unwrap();
+    value["lastSeen"] = serde_json::json!("seen");
+    value["futureTelemetry"] = serde_json::json!({"resources":["keep original"]});
+    for version in [1, 2] {
+        value["version"] = serde_json::json!(version);
+        let text = value.to_string();
+        let before = text.clone();
+        assert!(decode(&text).is_none());
+        assert_eq!(
+            crate::report_store::retention_time(&text, 2000.0, |_| 1000.0),
+            Some(1000.0)
+        );
+        assert_eq!(text, before);
+    }
+}
+
+#[test]
+fn retention_headers_reject_invalid_bounds_and_clocks() {
+    let text = serde_json::to_string(&report()).unwrap();
+    let retain = |text: &str, now: f64, parsed: f64| {
+        crate::report_store::retention_time(text, now, |_| parsed)
+    };
+    for now in [f64::NAN, f64::INFINITY, -1.0] {
+        assert!(retain(&text, now, 0.0).is_none());
+    }
+    for seen in [f64::NAN, f64::INFINITY, 2001.0] {
+        assert!(retain(&text, 2000.0, seen).is_none());
+    }
+    for bad in [
+        "{",
+        "{}",
+        r#"{"version":0,"lastSeen":"seen"}"#,
+    ] {
+        assert!(retain(bad, 2000.0, 0.0).is_none());
+    }
+    let mut value = serde_json::to_value(report()).unwrap();
+    value["lastSeen"] = serde_json::json!("x".repeat(65));
+    assert!(retain(&value.to_string(), 2000.0, 0.0).is_none());
+    let padded = text.clone() + &" ".repeat(MAX_BYTES - text.len());
+    assert!(retain(&padded, 2000.0, 0.0).is_some());
+    assert!(retain(&(padded + " "), 2000.0, 0.0).is_none());
+}
 ```
 
 ## Build & Run

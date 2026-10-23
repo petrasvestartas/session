@@ -104,7 +104,85 @@ Validate the original NURBS layout, parameter domains and bounded display input.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/55-validation-01.rs"
+use session_rust::NurbsSurface;
+
+pub fn validate(source: &NurbsSurface) -> Result<[[f64; 2]; 2], &'static str> {
+    if !(2..=3).contains(&source.m_dim) {
+        return Err("Surface dimension must be two or three");
+    }
+    let count = source.m_cv_count[0]
+        .checked_mul(source.m_cv_count[1])
+        .ok_or("Surface control count overflows")?;
+    if count > 65_536 || source.m_cv_count.iter().any(|n| *n < 2) {
+        return Err("Surface control count exceeds the display budget");
+    }
+    let size = source.m_dim + usize::from(source.m_is_rat);
+    if source
+        .m_cv_stride
+        .iter()
+        .any(|stride| *stride < size)
+    {
+        return Err("Surface control stride is too short");
+    }
+    let row_major = source.m_cv_stride[1]
+        .checked_mul(source.m_cv_count[1])
+        .is_some_and(|span| source.m_cv_stride[0] >= span);
+    let column_major = source.m_cv_stride[0]
+        .checked_mul(source.m_cv_count[0])
+        .is_some_and(|span| source.m_cv_stride[1] >= span);
+    if !row_major && !column_major {
+        return Err("Surface controls overlap in storage");
+    }
+    let end = (source.m_cv_count[0] - 1)
+        .checked_mul(source.m_cv_stride[0])
+        .and_then(|n| {
+            (source.m_cv_count[1] - 1)
+                .checked_mul(source.m_cv_stride[1])
+                .and_then(|m| n.checked_add(m))
+        })
+        .and_then(|n| n.checked_add(size))
+        .ok_or("Surface control range overflows")?;
+    if end > source.m_cv.len() {
+        return Err("Surface controls are incomplete");
+    }
+    for i in 0..source.m_cv_count[0] {
+        for j in 0..source.m_cv_count[1] {
+            let start = i * source.m_cv_stride[0] + j * source.m_cv_stride[1];
+            let values = &source.m_cv[start..start + size];
+            if values.iter().any(|v| !v.is_finite())
+                || source.m_is_rat && values[source.m_dim] <= 0.
+            {
+                return Err(
+                    "Surface controls need finite coordinates and positive weights",
+                );
+            }
+        }
+    }
+    let mut domains = [[0.; 2]; 2];
+    for dir in 0..2 {
+        let order = source.m_order[dir];
+        let count = source.m_cv_count[dir];
+        let knots = &source.m_nurbsknot[dir];
+        if !(2..=32).contains(&order)
+            || order > count
+            || knots.len() != count + order - 2
+            || knots.iter().any(|v| !v.is_finite())
+            || knots
+                .windows(2)
+                .any(|pair| pair[0] > pair[1])
+        {
+            return Err("Surface order or knots are invalid");
+        }
+        let (a, b) = source
+            .domain(dir)
+            .ok_or("Surface domain is missing")?;
+        if a >= b || !(b - a).is_finite() {
+            return Err("Surface domain must have finite positive length");
+        }
+        domains[dir] = [a, b];
+    }
+    Ok(domains)
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -118,10 +196,13 @@ Register the source component.
 mod shortcut_focus_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55-validation-02.rs" skip=39
+#[cfg(test)]
+mod shortcut_focus_tests;
+
+pub mod surface;
 ```
 
 ## <a id="checkpoint-55a-grid"></a>2. Keep UV coordinates beside world samples
@@ -170,15 +251,100 @@ Build the current 16–96-step UV grid and open domain border segment ranges.
 **Locate this existing block:**
 
 ```rust
-    }
     Ok(domains)
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55a-grid-01.rs" skip=3
+    Ok(domains)
+}
+
+pub struct Sample {
+    pub uv: [f64; 2],
+    pub point: [f64; 3],
+    pub normal: [f64; 3],
+}
+pub struct Boundary {
+    pub edge: usize,
+    pub segments: Vec<[u32; 2]>,
+}
+pub struct Grid {
+    pub steps: [usize; 2],
+    pub samples: Vec<Sample>,
+    pub indices: Vec<u32>,
+    pub boundaries: Vec<Boundary>,
+}
+
+impl Grid {
+    pub fn new(source: &NurbsSurface) -> Result<Self, &'static str> {
+        let domain = validate(source)?;
+        let [nu, nv] = source
+            .m_cv_count
+            .map(|count| (count * 4).clamp(16, 96));
+        let mut samples = Vec::with_capacity((nu + 1) * (nv + 1));
+        for i in 0..=nu {
+            for j in 0..=nv {
+                let uv = [
+                    domain[0][0] + (domain[0][1] - domain[0][0]) * i as f64 / nu as f64,
+                    domain[1][0] + (domain[1][1] - domain[1][0]) * j as f64 / nv as f64,
+                ];
+                let point = source
+                    .point_at(uv[0], uv[1])
+                    .ok_or("Surface sample cannot be evaluated")?;
+                let point = [point[0], point[1], point[2]];
+                let normal = source.normal_at(uv[0], uv[1]);
+                let normal = [normal[0], normal[1], normal[2]];
+                if point
+                    .iter()
+                    .chain(normal.iter())
+                    .any(|v| !v.is_finite())
+                {
+                    return Err("Surface sample must be finite");
+                }
+                samples.push(Sample {
+                    uv,
+                    point,
+                    normal,
+                });
+            }
+        }
+        let mut indices = Vec::with_capacity(nu * nv * 6);
+        for i in 0..nu {
+            for j in 0..nv {
+                let a = (i * (nv + 1) + j) as u32;
+                let b = a + (nv + 1) as u32;
+                indices.extend_from_slice(&[a, b, b + 1, a, b + 1, a + 1]);
+            }
+        }
+        let mut boundaries = Vec::new();
+        for edge in 0..4 {
+            if source.is_closed(edge / 2) {
+                continue;
+            }
+            let points = match edge {
+                0 => (0..=nv).collect::<Vec<_>>(),
+                1 => (0..=nv).map(|j| nu * (nv + 1) + j).collect(),
+                2 => (0..=nu).map(|i| i * (nv + 1)).collect(),
+                _ => (0..=nu).map(|i| i * (nv + 1) + nv).collect(),
+            };
+            boundaries.push(Boundary {
+                edge,
+                segments: points
+                    .windows(2)
+                    .map(|pair| [pair[0] as u32, pair[1] as u32])
+                    .collect(),
+            });
+        }
+        Ok(Self {
+            steps: [nu, nv],
+            samples,
+            indices,
+            boundaries,
+        })
+    }
+}
 ```
 
 ## <a id="checkpoint-55b-normals"></a>3. Use analytic normals and finite singular-point fallbacks
@@ -228,14 +394,53 @@ Normalise analytic normals and safely handle singular sample positions.
 
 ```rust
     }
-
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55b-normals-01.rs"
+    }
+
+    pub fn normal(&self, index: usize) -> Result<[f32; 3], &'static str> {
+        let sample = self
+            .samples
+            .get(index)
+            .ok_or("Missing surface sample")?;
+        if sample
+            .normal
+            .iter()
+            .map(|v| v * v)
+            .sum::<f64>()
+            > 1e-24
+        {
+            return crate::normals::unit(sample.normal.map(|v| v as f32));
+        }
+        let [nu, nv] = self.steps;
+        let i = index / (nv + 1);
+        let j = index % (nv + 1);
+        for a in [i.saturating_sub(1), i.min(nu - 1)] {
+            for b in [j.saturating_sub(1), j.min(nv - 1)] {
+                let p = self.samples[a * (nv + 1) + b].point;
+                let u = self.samples[(a + 1) * (nv + 1) + b].point;
+                let v = self.samples[a * (nv + 1) + b + 1].point;
+                let u =
+                    session_rust::Vector::new(u[0] - p[0], u[1] - p[1], u[2] - p[2]);
+                let v =
+                    session_rust::Vector::new(v[0] - p[0], v[1] - p[1], v[2] - p[2]);
+                let n = u.cross(&v);
+                if n.magnitude() > 1e-12 {
+                    return crate::normals::unit([
+                        n[0] as f32,
+                        n[1] as f32,
+                        n[2] as f32,
+                    ]);
+                }
+            }
+        }
+        Ok([0., 0., 1.])
+    }
+}
 ```
 
 ## <a id="checkpoint-55c-display"></a>4. Prepare derived surface display without losing its source
@@ -288,10 +493,122 @@ Keep the original surface and its UV cache beside the derived display; provide t
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55c-display-01.rs" skip=9
+    }
+}
+
+pub struct Prepared {
+    pub source: std::rc::Rc<NurbsSurface>,
+    pub grid: Grid,
+}
+impl Prepared {
+    pub fn new(source: std::rc::Rc<NurbsSurface>) -> Result<Self, &'static str> {
+        let _ = source.guid();
+        let grid = Grid::new(&source)?;
+        Ok(Self { source, grid })
+    }
+    pub fn mesh(&self) -> Result<crate::prepared::PreparedMesh, &'static str> {
+        let points = self
+            .grid
+            .samples
+            .iter()
+            .map(|s| session_rust::Point::new(s.point[0], s.point[1], s.point[2]))
+            .collect();
+        let faces = self
+            .grid
+            .indices
+            .chunks_exact(3)
+            .map(|tri| tri.iter().map(|i| *i as usize).collect())
+            .collect();
+        let mut source = session_rust::Mesh::from_vertices_and_faces(points, faces);
+        source.set_guid(self.source.guid().to_owned());
+        source.name = self.source.name.clone();
+        source.is_visible = self.source.is_visible;
+        source.is_locked = self.source.is_locked;
+        let colour = self
+            .source
+            .facecolors
+            .first()
+            .cloned()
+            .unwrap_or_default()
+            .to_f32();
+        source.set_objectcolor(session_rust::Color::new(
+            colour[0], colour[1], colour[2], colour[3],
+        ));
+        let vertices = self
+            .grid
+            .samples
+            .iter()
+            .map(|s| {
+                [
+                    s.point[0] as f32,
+                    s.point[1] as f32,
+                    s.point[2] as f32,
+                    colour[0],
+                    colour[1],
+                    colour[2],
+                ]
+            })
+            .collect();
+        let normals = (0..self.grid.samples.len())
+            .map(|i| self.grid.normal(i))
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut display = crate::mesh::Mesh::new(vertices, self.grid.indices.clone())?
+            .with_normals(normals)?;
+        display.parts.faces = vec![0];
+        display.parts.triangles = vec![0; self.grid.indices.len() / 3];
+        for boundary in &self.grid.boundaries {
+            for &[a, b] in &boundary.segments {
+                display
+                    .parts
+                    .edges
+                    .push((a as usize, b as usize));
+                display.parts.endpoints.push([
+                    self.grid.samples[a as usize].point,
+                    self.grid.samples[b as usize].point,
+                ]);
+            }
+        }
+        Ok(crate::prepared::PreparedMesh {
+            geometry: std::rc::Rc::new(source),
+            display,
+            source: None,
+            model: session_rust::Xform::identity(),
+        })
+    }
+    pub fn edge_ids(&self) -> impl Iterator<Item = usize> + '_ {
+        self.grid
+            .boundaries
+            .iter()
+            .flat_map(|b| std::iter::repeat_n(b.edge, b.segments.len()))
+    }
+}
+
+pub fn example() -> NurbsSurface {
+    let points = (0..3)
+        .flat_map(|i| {
+            (0..3).map(move |j| {
+                session_rust::Point::new(
+                    i as f64 - 1.,
+                    j as f64 - 1.,
+                    if i == 1 && j == 1 {
+                        1.2
+                    } else {
+                        0.
+                    },
+                )
+            })
+        })
+        .collect::<Vec<_>>();
+    let mut source = NurbsSurface::create(false, false, 2, 2, 3, 3, &points).unwrap();
+    source.name = "Parametric roof".into();
+    source.facecolors = vec![session_rust::Color::new(
+        0.35, 0.65, 0.85, 1.,
+    )];
+    source
+}
 ```
 
 ## <a id="checkpoint-55d-source-row"></a>5. Attach surface ownership to existing scene rows
@@ -342,68 +659,89 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
+            .iter_mut()
+            .find(|r| r.id == target.owner)
+        {
+            let mut source = (**row
 ```
 
 Replace it with:
 
 ```rust
-        let model=self.placement(target.owner).ok_or("Part owner is missing")?;
-        let local=&(&model.inverse().ok_or("Part placement cannot be inverted")?*delta)*&model;
-        if let Some(row)=self.objects.iter_mut().find(|r|r.id==target.owner) {
-            if row.surface.is_some() {return Err("CAD surface part editing connects after source parameter mapping");}
-            let mut source=(**row.geometry().ok_or("Reload editable sources before editing a part")?).clone();
-            for key in crate::part_preview::keys(&source,target.part)? {
-                let point=local.transform_point(&source.vertex_point(key).ok_or("Missing source vertex")?);
+            .iter_mut()
+            .find(|r| r.id == target.owner)
+        {
+            if row.surface.is_some() {
+                return Err(
+                    "CAD surface part editing connects after source parameter mapping",
+                );
+            }
+            let mut source = (**row
 ```
 
 **Locate this block:**
 
 ```rust
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object { id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
         Ok(id)
     }
 
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
+    pub(crate) fn copy_row(
+        &mut self,
+        id: ObjectId,
 ```
 
 Replace it with:
 
 ```rust
-        let generated=prepared.source.is_none();
-        let editable = crate::edit_source::EditSource::Loaded { geometry: prepared.geometry, source: prepared.source };
-        let label=metadata.name.clone();let node_guid=guid.clone();
-        self.objects.push(Object {surface:None, id, guid, metadata, mesh: Rc::new(prepared.display), model: prepared.model, editable });
-        if generated {crate::layer_edit::attach_generated(self,id,node_guid,label)?;}
         Ok(id)
     }
 
-    pub fn insert_surface(&mut self,source:Rc<session_rust::NurbsSurface>)->Result<ObjectId,&'static str> {
-        let prepared=Rc::new(crate::surface::Prepared::new(source)?);let mesh=prepared.mesh()?;let id=self.insert(mesh)?;
-        self.objects.iter_mut().find(|row|row.id==id).unwrap().surface=Some(prepared);Ok(id)
+    pub fn insert_surface(
+        &mut self,
+        source: Rc<session_rust::NurbsSurface>,
+    ) -> Result<ObjectId, &'static str> {
+        let prepared = Rc::new(crate::surface::Prepared::new(source)?);
+        let mesh = prepared.mesh()?;
+        let id = self.insert(mesh)?;
+        self.objects
+            .iter_mut()
+            .find(|row| row.id == id)
+            .unwrap()
+            .surface = Some(prepared);
+        Ok(id)
     }
 
-    pub(crate) fn copy_row(&mut self,id:ObjectId,all:bool)->Result<ObjectId,&'static str> {
-        if self.objects.iter().any(|row|row.id==id&&row.geometry().is_none()) {return Err("Reload editable sources before copying");}
-        if !self.contains(id) {return Err("Object is gone");}
+    pub(crate) fn copy_row(
+        &mut self,
+        id: ObjectId,
 ```
 
 **Locate this block:**
 
 ```rust
+        let label = metadata.name.clone();
+        let node_guid = guid.clone();
+        self.objects.push(Object {
+            id,
+            guid,
+            metadata,
+```
 
-#[derive(Clone)]
+Replace it with:
+
+```rust
+        let label = metadata.name.clone();
+        let node_guid = guid.clone();
+        self.objects.push(Object {
+            surface: None,
+            id,
+            guid,
+            metadata,
+```
+
+**Locate this block:**
+
+```rust
 pub struct Object {
     pub id: ObjectId,
     pub guid: String,
@@ -413,10 +751,8 @@ pub struct Object {
 Replace it with:
 
 ```rust
-
-#[derive(Clone)]
 pub struct Object {
-    pub surface:Option<Rc<crate::surface::Prepared>>,
+    pub surface: Option<Rc<crate::surface::Prepared>>,
     pub id: ObjectId,
     pub guid: String,
     pub metadata: Rc<crate::row_metadata::RowMetadata>,
@@ -429,16 +765,22 @@ Attach and share original NURBS ownership while preventing proxy saving or prema
 **Locate this existing block:**
 
 ```rust
-
 pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
-    if !scene.points().is_empty() { return Err("This checkpoint cannot save point objects yet"); }
-    if !scene.lines().is_empty() || !scene.paths().is_empty() { return Err("This checkpoint cannot save line objects yet"); }
+    if !scene.points().is_empty() {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55d-source-row-04.rs"
+pub fn snapshot(scene: &crate::scene::Scene) -> Result<Vec<u8>, &'static str> {
+    if scene
+        .objects()
+        .iter()
+        .any(|row| row.surface.is_some())
+    {
+        return Err("This checkpoint cannot save CAD surface objects yet");
+    }
+    if !scene.points().is_empty() {
 ```
 
 ### 3. `src/part_preview.rs`
@@ -448,16 +790,20 @@ Attach and share original NURBS ownership while preventing proxy saving or prema
 **Locate this existing block:**
 
 ```rust
-    let model=scene.placement(target.owner).ok_or("Part owner is missing")?;
-    let points=if let Some(row)=scene.objects().iter().find(|r|r.id==target.owner) {
-        let mesh=row.geometry().ok_or("Reload editable sources before editing a part")?;
-        keys(mesh,target.part)?.into_iter().map(|key|mesh.vertex_point(key).ok_or("Missing source vertex")).collect::<Result<Vec<_>,_>>()?
+    {
+        let mesh = row
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55d-source-row-05.rs"
+    {
+        if row.surface.is_some() {
+            return Err(
+                "CAD surface part editing connects after source parameter mapping",
+            );
+        }
+        let mesh = row
 ```
 
 ## <a id="checkpoint-55e-identities"></a>6. Resolve surface face and domain edges
@@ -508,69 +854,110 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        for row in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            sources.mesh_bases.push((row.id, u32::try_from(sources.faces.len()).map_err(|_| "Too many source faces")?));
-            for &key in &row.mesh.parts.faces { append(&mut sources.faces, Kind::Face, Target { owner: row.id, part: Part::Face(key) })?; }
-            for (&(a, b), ends) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints) {
-                let ids = append(&mut sources.edges, Kind::Edge, Target { owner: row.id, part: Part::MeshEdge(a, b) })?;
-                let ends = ends.map(|p| row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2])).to_f32());
-                sources.mesh_ink.push(crate::stroke::Stroke { start: ends[0], end: ends[1], colour: scene.view.edges.get(&row.id).map_or([0.,0.,0.,1.],|rgb|[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]), width: 1. });
-                sources.mesh_ids.push(id(row.id, ids[1]));
+                .iter()
+                .zip(&row.mesh.parts.endpoints)
+            {
+                let ids = append(
+                    &mut sources.edges,
+                    Kind::Edge,
+                    Target {
+                        owner: row.id,
+                        part: Part::MeshEdge(a, b),
+                    },
 ```
 
 Replace it with:
 
 ```rust
-        for row in scene.objects().iter().filter(|row| scene.visible(row.id)) {
-            sources.mesh_bases.push((row.id, u32::try_from(sources.faces.len()).map_err(|_| "Too many source faces")?));
-            for &key in &row.mesh.parts.faces { append(&mut sources.faces, Kind::Face, Target { owner: row.id, part: Part::Face(key) })?; }
-            let mut surface_edges=row.surface.as_ref().map(|surface|surface.edge_ids());
-            for (&(a, b), ends) in row.mesh.parts.edges.iter().zip(&row.mesh.parts.endpoints) {
-                let part=surface_edges.as_mut().and_then(|edges|edges.next()).map_or(Part::MeshEdge(a,b),Part::SurfaceEdge);
-                let ids = append(&mut sources.edges, Kind::Edge, Target { owner: row.id, part })?;
-                let ends = ends.map(|p| row.model.transform_point(&session_rust::Point::new(p[0], p[1], p[2])).to_f32());
-                sources.mesh_ink.push(crate::stroke::Stroke { start: ends[0], end: ends[1], colour: scene.view.edges.get(&row.id).map_or([0.,0.,0.,1.],|rgb|[rgb[0] as f32/255.,rgb[1] as f32/255.,rgb[2] as f32/255.,1.]), width: 1. });
-                sources.mesh_ids.push(id(row.id, ids[1]));
+                .iter()
+                .zip(&row.mesh.parts.endpoints)
+            {
+                let part = surface_edges
+                    .as_mut()
+                    .and_then(|edges| edges.next())
+                    .map_or(Part::MeshEdge(a, b), Part::SurfaceEdge);
+                let ids = append(
+                    &mut sources.edges,
+                    Kind::Edge,
+                    Target {
+                        owner: row.id,
+                        part,
+                    },
 ```
 
 **Locate this block:**
 
 ```rust
-use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Part { Object, Face(usize), MeshEdge(usize, usize), PathEdge(usize), Curve, Control(usize) }
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Target { pub owner: ObjectId, pub part: Part }
+                    },
+                )?;
+            }
+            for (&(a, b), ends) in row
+                .mesh
+                .parts
 ```
 
 Replace it with:
 
 ```rust
-use crate::{scene::{ObjectId, Scene}, sub_id::{self, Kind}};
+                    },
+                )?;
+            }
+            let mut surface_edges = row
+                .surface
+                .as_ref()
+                .map(|surface| surface.edge_ids());
+            for (&(a, b), ends) in row
+                .mesh
+                .parts
+```
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Part { Object, Face(usize), SurfaceEdge(usize), MeshEdge(usize, usize), PathEdge(usize), Curve, Control(usize) }
+**Locate this block:**
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Target { pub owner: ObjectId, pub part: Part }
+```rust
+    Face(usize),
+    MeshEdge(usize, usize),
+    PathEdge(usize),
+    Curve,
+```
+
+Replace it with:
+
+```rust
+    Face(usize),
+    SurfaceEdge(usize),
+    MeshEdge(usize, usize),
+    PathEdge(usize),
+    Curve,
 ```
 
 ### 2. `src/selection.rs`
 
 Resolve and highlight one original CAD face and four domain edges without exposing interior grid lines.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::{pick_sources::{Part, Target}, scene::Scene};
+            Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
+            Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
+            Part::PathEdge(index) => scene.paths().iter().any(|r| r.id == self.owner && matches!(&r.prepared.source,
+                crate::chain::Source::Polyline(line) if line.get_points().windows(2).nth(index).is_some_and(|pair| pair[0].to_f32() != pair[1].to_f32()))),
+            Part::Curve => scene.lines().iter().any(|r| r.id == self.owner) || scene.paths().iter().any(|r| r.id == self.owner && !matches!(r.prepared.source, crate::chain::Source::Polyline(_))),
+            Part::Control(index) => scene.paths().iter().any(|r| r.id == self.owner && r.controls_visible && matches!(&r.prepared.source,
+                crate::chain::Source::Curve(curve, _) if crate::controls::Control::new(std::rc::Rc::clone(curve), index).is_ok())),
+        }
+    }
 
-impl Target {
-    pub fn valid(self, scene: &Scene) -> bool {
-        if scene.pick_id(self.owner.value()).is_none() { return false; }
+    pub fn describe(self) -> String {
         match self.part {
-            Part::Object => true,
+            Part::Object => format!("Object {}", self.owner.value()),
+            Part::Face(key) => format!(
+                "Object {} · source face {key}",
+                self.owner.value()
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
             Part::Face(key) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.faces.contains(&key)),
             Part::SurfaceEdge(edge)=>scene.objects().iter().any(|r|r.id==self.owner&&r.surface.as_ref().is_some_and(|s|s.grid.boundaries.iter().any(|b|b.edge==edge))),
             Part::MeshEdge(a, b) => scene.objects().iter().any(|r| r.id == self.owner && r.mesh.parts.edges.contains(&(a, b))),
@@ -585,15 +972,13 @@ impl Target {
     pub fn describe(self) -> String {
         match self.part {
             Part::Object => format!("Object {}", self.owner.value()),
-            Part::Face(key) => format!("Object {} · source face {key}", self.owner.value()),
-            Part::SurfaceEdge(edge)=>format!("Object {} · surface domain edge {edge}",self.owner.value()),
-            Part::MeshEdge(a, b) => format!("Object {} · source edge {a}–{b}", self.owner.value()),
-            Part::PathEdge(index) => format!("Object {} · source segment {index}", self.owner.value()),
-            Part::Curve => format!("Object {} · original curve", self.owner.value()),
-            Part::Control(index) => format!("Object {} · original control {index}", self.owner.value()),
-        }
-    }
-}
+            Part::Face(key) => format!(
+                "Object {} · source face {key}",
+                self.owner.value()
+            ),
+            Part::SurfaceEdge(edge) => format!(
+                "Object {} · surface domain edge {edge}",
+                self.owner.value()
 ```
 
 ### 3. `src/highlight.rs`
@@ -603,16 +988,45 @@ Resolve and highlight one original CAD face and four domain edges without exposi
 **Locate this existing block:**
 
 ```rust
-                let mut object = row.clone(); object.mesh = Rc::new(display);
-                self.mesh = Some(GpuMesh::upload(device, layout, &object, true));
-            }
-            Part::MeshEdge(a, b) => {
+                }
+                Part::MeshEdge(a, b) => {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55e-identities-05.rs"
+                }
+                Part::SurfaceEdge(edge) => {
+                    let row = scene
+                        .objects()
+                        .iter()
+                        .find(|r| r.id == target.owner)
+                        .unwrap();
+                    let surface = row.surface.as_ref().unwrap();
+                    let boundary = surface
+                        .grid
+                        .boundaries
+                        .iter()
+                        .find(|b| b.edge == edge)
+                        .unwrap();
+                    for ends in &boundary.segments {
+                        let ends = ends.map(|index| {
+                            let p = surface.grid.samples[index as usize].point;
+                            row.model
+                                .transform_point(&session_rust::Point::new(
+                                    p[0], p[1], p[2],
+                                ))
+                                .to_f32()
+                        });
+                        strokes.push(crate::stroke::Stroke {
+                            start: ends[0],
+                            end: ends[1],
+                            colour: yellow,
+                            width: 3.,
+                        });
+                    }
+                }
+                Part::MeshEdge(a, b) => {
 ```
 
 ## <a id="checkpoint-55f-ownership"></a>7. Account for shared source and UV cache owners
@@ -665,10 +1079,54 @@ Count source control/metadata bytes and cached UV/triangle/boundary allocations 
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55f-ownership-01.rs" skip=8
+    }
+}
+
+pub fn surfaces<'a>(scenes: impl IntoIterator<Item = &'a Scene>) -> [usize; 5] {
+    let mut sources = HashSet::new();
+    let mut prepared = HashSet::new();
+    let mut usage = [0; 5];
+    for scene in scenes {
+        for row in scene.objects() {
+            if let Some(surface) = row.surface.as_ref() {
+                usage[0] += 1;
+                let source = &surface.source;
+                if sources.insert(Rc::as_ptr(source)) {
+                    usage[3] += source.m_cv.capacity() * 8
+                        + source
+                            .m_nurbsknot
+                            .iter()
+                            .map(|knots| knots.capacity() * 8)
+                            .sum::<usize>()
+                        + source.facecolors.capacity()
+                            * std::mem::size_of::<session_rust::Color>()
+                        + source.linecolors.capacity()
+                            * std::mem::size_of::<session_rust::Color>()
+                        + source.name.capacity();
+                }
+                if prepared.insert(Rc::as_ptr(surface)) {
+                    usage[4] += surface.grid.samples.capacity()
+                        * std::mem::size_of::<crate::surface::Sample>()
+                        + surface.grid.indices.capacity() * 4
+                        + surface.grid.boundaries.capacity()
+                            * std::mem::size_of::<crate::surface::Boundary>()
+                        + surface
+                            .grid
+                            .boundaries
+                            .iter()
+                            .map(|b| b.segments.capacity() * 8)
+                            .sum::<usize>();
+                }
+            }
+        }
+    }
+    usage[1] = sources.len();
+    usage[2] = prepared.len();
+    usage
+}
 ```
 
 ### 2. `src/browser.rs`
@@ -678,16 +1136,27 @@ Expose actual surface source, grid, face and edge identities and unique-owner ac
 **Locate this existing block:**
 
 ```rust
-    canvas.set_attribute("data-pick-gpu", &serde_json::to_string(&renderer.pick_usage()).unwrap())?;
-    canvas.set_attribute("data-point-gpu", &serde_json::to_string(&renderer.point_usage()).unwrap())?;
-    canvas.set_attribute("data-curve-cpu", &serde_json::to_string(&crate::memory::curves(editor.presentation_scenes())).unwrap())?;
-    canvas.set_attribute("data-control-count", &editor.scene.control_markers().len().to_string())?;
+    canvas.set_attribute(
+        "data-curve-cpu",
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55f-ownership-02.rs"
+    canvas.set_attribute(
+        "data-surface-cpu",
+        &serde_json::to_string(&crate::memory::surfaces(
+            editor.presentation_scenes(),
+        ))
+        .unwrap(),
+    )?;
+    let surfaces=editor.scene.objects().iter().filter_map(|row|row.surface.as_ref().map(|s|serde_json::json!({"id":row.id.value(),"source":s.source.guid(),"controls":s.source.m_cv_count,"steps":s.grid.steps,"samples":s.grid.samples.len(),"faces":row.mesh.parts.faces,"edges":s.grid.boundaries.iter().map(|b|b.edge).collect::<Vec<_>>()}))).collect::<Vec<_>>();
+    canvas.set_attribute(
+        "data-surfaces",
+        &serde_json::to_string(&surfaces).unwrap(),
+    )?;
+    canvas.set_attribute(
+        "data-curve-cpu",
 ```
 
 ## <a id="checkpoint-55g-surface"></a>8. Draw and pick the parametric roof
@@ -738,31 +1207,29 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                self.history.clear();
-                self.objects.clear(); self.selected = None;
+                self.objects.clear();
+                self.selected = None;
             }
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
 ```
 
 Replace it with:
 
 ```rust
-                self.history.clear();
-                self.objects.clear(); self.selected = None;
+                self.objects.clear();
+                self.selected = None;
             }
-            Action::AddSurface=>{let source=std::rc::Rc::new(crate::surface::example());self.history.try_edit(&mut self.scene,|scene|scene.insert_surface(source).map(|_|()))?;},
-            Action::AddNested=>{let loaded=crate::document::load(&crate::tree_specimen::nested(true))?;self.history.try_edit(&mut self.scene,|scene|scene.import(loaded))?;},
-            Action::Replace(bytes) => {
-                let loaded = crate::document::load(&bytes)?;
+            Action::AddSurface => {
+                let source = std::rc::Rc::new(crate::surface::example());
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert_surface(source).map(|_| ())
+                    })?;
+            }
 ```
 
 **Locate this block:**
 
 ```rust
-    Show,
-    AddBox,
     AddNested,
     AddLine,
     AddPoint,
@@ -772,8 +1239,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    Show,
-    AddBox,
     AddNested,
     AddSurface,
     AddLine,
@@ -788,35 +1253,262 @@ Create the parametric roof through the existing checked document transaction.
 **Locate this existing block:**
 
 ```rust
-    ("Show",||Action::Show),
     ("Example Box", || Action::AddBox),
-    ("Example Nested",||Action::AddNested),
-    ("Example Line", || Action::AddLine),
+    ("Example Nested", || Action::AddNested),
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55g-surface-03.rs"
+    ("Example Box", || Action::AddBox),
+    ("Example Surface", || Action::AddSurface),
+    ("Example Nested", || Action::AddNested),
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/surface_tests.rs`
 
 Copy malformed-input, exact UV/normal/boundary, rational, storage layout, source lifetime and placement-history checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/55g-surface-04.rs"
+```rust
+use crate::surface::{Grid, validate};
+use session_rust::{NurbsSurface, Point};
+
+fn plane() -> NurbsSurface {
+    NurbsSurface::create(
+        false,
+        false,
+        1,
+        1,
+        2,
+        2,
+        &[
+            Point::new(-1., -2., 0.),
+            Point::new(-1., 2., 0.),
+            Point::new(1., -2., 0.),
+            Point::new(1., 2., 0.),
+        ],
+    )
+    .unwrap()
+}
+
+#[test]
+fn parametric_grid_retains_exact_uvs_analytic_normals_and_four_original_boundaries() {
+    let source = plane();
+    let before = source.to_proto();
+    let grid = Grid::new(&source).unwrap();
+    assert_eq!(grid.steps, [16, 16]);
+    assert_eq!(grid.samples.len(), 289);
+    assert_eq!(grid.indices.len(), 16 * 16 * 6);
+    assert_eq!(grid.samples[0].point, [-1., -2., 0.]);
+    assert_eq!(grid.samples[288].point, [1., 2., 0.]);
+    assert_eq!(grid.samples[144].point, [0.; 3]);
+    assert_eq!(grid.samples[144].uv, [0.5, 0.5]);
+    assert_eq!(grid.normal(144).unwrap(), [0., 0., 1.]);
+    assert_eq!(
+        grid.boundaries
+            .iter()
+            .map(|b| b.edge)
+            .collect::<Vec<_>>(),
+        vec![0, 1, 2, 3]
+    );
+    assert!(
+        grid.boundaries
+            .iter()
+            .all(|b| b.segments.len() == 16)
+    );
+    assert_eq!(source.to_proto(), before);
+    assert!(
+        grid.indices
+            .iter()
+            .all(|i| (*i as usize) < grid.samples.len())
+    );
+}
+
+#[test]
+fn rational_sampling_preserves_weights_and_original_nonunit_parameter_domains() {
+    let mut source = plane();
+    source.to_rational();
+    assert!(source.set_cv_4d(1, 1, 2., 4., 0., 2.));
+    source.m_nurbsknot[0] = vec![2., 9.];
+    source.m_nurbsknot[1] = vec![-3., 5.];
+    let before = source.to_proto();
+    let grid = Grid::new(&source).unwrap();
+    assert_eq!(grid.samples[0].uv, [2., -3.]);
+    assert_eq!(grid.samples.last().unwrap().uv, [9., 5.]);
+    assert!(
+        (grid.samples[144].point[0] - 0.2).abs() < 1e-12
+            && (grid.samples[144].point[1] - 0.4).abs() < 1e-12
+    );
+    for sample in &grid.samples {
+        let point = source
+            .point_at(sample.uv[0], sample.uv[1])
+            .unwrap();
+        assert_eq!(sample.point, [point[0], point[1], point[2]]);
+    }
+    assert_eq!(
+        source.get_cv_4d(1, 1),
+        Some((2., 4., 0., 2.))
+    );
+    assert_eq!(source.to_proto(), before);
+}
+
+#[test]
+fn malformed_controls_weights_knots_and_overflow_are_refused_before_evaluation() {
+    let mut source = plane();
+    source.m_cv.pop();
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_cv_stride = [usize::MAX, 3];
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_cv_stride = [3, 3];
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_cv[0] = f64::NAN;
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_nurbsknot[0] = vec![2., 1.];
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_nurbsknot[0] = vec![1., 1.];
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.to_rational();
+    source.m_cv[3] = 0.;
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_cv_count = [usize::MAX, usize::MAX];
+    assert!(validate(&source).is_err());
+    let mut source = plane();
+    source.m_order[0] = 33;
+    assert!(validate(&source).is_err());
+}
+
+#[test]
+fn source_owned_surface_draws_one_face_and_only_original_domain_edges() {
+    let mut e = crate::editor::Editor::default();
+    e.apply(crate::editor::Action::Close)
+        .unwrap();
+    e.apply(crate::editor::Action::AddSurface)
+        .unwrap();
+    let row = &e.scene.objects()[0];
+    let id = row.id;
+    let surface = row.surface.as_ref().unwrap();
+    assert_eq!(
+        row.metadata.source_guid,
+        surface.source.guid()
+    );
+    assert_eq!(row.mesh.parts.faces, vec![0]);
+    assert!(
+        row.mesh
+            .parts
+            .triangles
+            .iter()
+            .all(|slot| *slot == 0)
+    );
+    assert_eq!(row.mesh.parts.endpoints.len(), 64);
+    assert_eq!(surface.grid.samples[144].uv, [0.5, 0.5]);
+    let sources = crate::pick_sources::Sources::new(&e.scene).unwrap();
+    assert_eq!(sources.faces.len(), 1);
+    assert_eq!(sources.edges.len(), 64);
+    assert!(sources.edges.iter().all(|target| matches!(
+        target.part,
+        crate::pick_sources::Part::SurfaceEdge(0..=3)
+    )));
+    assert!(
+        crate::document::snapshot(&e.scene)
+            .unwrap_err()
+            .contains("CAD surface")
+    );
+    assert_eq!(
+        crate::memory::surfaces([&e.scene])[..3],
+        [1, 1, 1]
+    );
+    let before = e.scene.objects()[0]
+        .surface
+        .as_ref()
+        .unwrap()
+        .source
+        .to_proto();
+    e.select_objects([id], false);
+    e.apply(crate::editor::Action::Translate([
+        0.123456789012345,
+        0.,
+        0.,
+    ]))
+    .unwrap();
+    assert_eq!(
+        e.scene.objects()[0]
+            .surface
+            .as_ref()
+            .unwrap()
+            .source
+            .to_proto(),
+        before
+    );
+    e.apply(crate::editor::Action::Undo).unwrap();
+    assert_eq!(
+        e.scene.placement(id).unwrap().m,
+        session_rust::Xform::identity().m
+    );
+    e.apply(crate::editor::Action::Undo).unwrap();
+    assert!(e.scene.objects().is_empty());
+    e.apply(crate::editor::Action::Redo).unwrap();
+    assert_eq!(e.scene.objects()[0].id, id);
+}
+
+#[test]
+fn metadata_and_display_owners_do_not_pin_original_surface_after_close() {
+    let mut e = crate::editor::Editor::default();
+    e.apply(crate::editor::Action::Close)
+        .unwrap();
+    e.apply(crate::editor::Action::AddSurface)
+        .unwrap();
+    let row = &e.scene.objects()[0];
+    let weak = std::rc::Rc::downgrade(&row.surface.as_ref().unwrap().source);
+    let metadata = row.metadata.clone();
+    let display = row.mesh.clone();
+    assert_eq!(
+        crate::memory::surfaces(e.presentation_scenes())[1..3],
+        [1, 1]
+    );
+    e.apply(crate::editor::Action::Close)
+        .unwrap();
+    assert!(weak.upgrade().is_none());
+    assert_eq!(metadata.name, "Parametric roof");
+    assert_eq!(display.indices().len(), 16 * 16 * 6);
+    assert_eq!(
+        crate::memory::surfaces(e.presentation_scenes()),
+        [0; 5]
+    );
+}
+
+#[test]
+fn transposed_padded_control_layout_samples_without_rewriting_original_storage() {
+    let source = plane();
+    let mut transposed = source.clone();
+    transposed.m_cv_stride.swap(0, 1);
+    let before = transposed.to_proto();
+    let grid = Grid::new(&transposed).unwrap();
+    assert_eq!(grid.samples[16].point, [1., -2., 0.]);
+    assert_eq!(grid.samples[272].point, [-1., 2., 0.]);
+    assert_eq!(transposed.to_proto(), before);
+    let mut padded = plane();
+    padded.m_cv_stride = [12, 6];
+    padded.m_cv = vec![0.; 21];
+    for (i, j) in [(0, 0), (0, 1), (1, 0), (1, 1)] {
+        assert!(padded.set_cv(i, j, &source.get_cv(i, j).unwrap()));
+    }
+    let before = padded.to_proto();
+    assert_eq!(
+        Grid::new(&padded).unwrap().samples[144].point,
+        [0.; 3]
+    );
+    assert_eq!(padded.to_proto(), before);
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/lib.rs`
 
@@ -824,20 +1516,22 @@ Register the source component.
 
 **Locate this existing block:**
 
-```text
+```rust
+mod shortcut_focus_tests;
 
 pub mod surface;
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/55g-surface-05.rs" skip=18
+```rust
+mod shortcut_focus_tests;
+
+pub mod surface;
+
+#[cfg(test)]
+mod surface_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/pick_gpu_tests.rs`
 
@@ -845,15 +1539,75 @@ Copy actual one-face and four-original-domain-edge GPU readbacks with unchanged 
 
 **Locate this existing block:**
 
-```text
-    renderer.set_scene(&e.scene,e.selected);assert_eq!(&renderer.stats()[..2],&gpu[..2]);e.apply(Action::Undo).unwrap();assert_eq!(e.scene.placement(id).unwrap().m,original);
+```rust
+    assert_eq!(e.scene.placement(id).unwrap().m, original);
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/55g-surface-06.rs" skip=177
+```rust
+    assert_eq!(e.scene.placement(id).unwrap().m, original);
+}
+
+#[test]
+fn actual_surface_pick_keeps_one_cad_face_and_four_domain_edge_ids() {
+    use crate::pick_sources::{Mode, Part};
+    let mut scene = Scene::demo();
+    scene.clear();
+    let source = Rc::new(crate::surface::example());
+    let _ = source.guid();
+    let before = source.to_proto();
+    let id = scene.insert_surface(source.clone()).unwrap();
+    let mut renderer = renderer(&scene);
+    let camera = crate::camera::Camera::default();
+    let transform = camera.uniform();
+    let gpu = renderer.stats();
+    let finish_at = |renderer: &mut Renderer| {
+        renderer
+            .device
+            .poll(wgpu::PollType::Wait {
+                submission_index: None,
+                timeout: Some(std::time::Duration::from_secs(5)),
+            })
+            .unwrap();
+        renderer
+            .take_pick(transform)
+            .unwrap()
+            .unwrap()
+            .and_then(|hit| renderer.resolve_pick(&scene, hit))
+    };
+    renderer.set_pick_mode(Mode::Face);
+    renderer
+        .request_pick([0., 0.], transform)
+        .unwrap();
+    assert_eq!(
+        finish_at(&mut renderer).unwrap().part,
+        Part::Face(0)
+    );
+    renderer.set_pick_mode(Mode::Edge);
+    for (point, edge) in [
+        ([-1., 0., 0.], 0),
+        ([1., 0., 0.], 1),
+        ([0., -1., 0.], 2),
+        ([0., 1., 0.], 3),
+    ] {
+        let point =
+            camera
+                .view_projection()
+                .transform_point(&session_rust::Point::new(
+                    point[0], point[1], point[2],
+                ));
+        renderer
+            .request_pick([point[0] as f32, point[1] as f32], transform)
+            .unwrap();
+        let target = finish_at(&mut renderer).unwrap();
+        assert_eq!(target.owner, id);
+        assert_eq!(target.part, Part::SurfaceEdge(edge));
+    }
+    assert_eq!(renderer.stats(), gpu);
+    assert_eq!(source.to_proto(), before);
+}
 ```
 
 ## <a id="checkpoint-55za-read-original-edge-use-samples"></a>9. Read edge-use samples
@@ -902,7 +1656,95 @@ Type the whole original helpers introduced today.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/55za-read-original-edge-use-samples-1.rs"
+use session_rust::Mesh;
+use session_rust::brep::{BRep, BRepOrientation};
+
+fn sample_order(a: &f64, b: &f64) -> std::cmp::Ordering {
+    a.partial_cmp(b)
+        .unwrap_or(std::cmp::Ordering::Equal)
+}
+
+fn parameter_order(a: &(f64, usize), b: &(f64, usize)) -> std::cmp::Ordering {
+    sample_order(&a.0, &b.0).then(a.1.cmp(&b.1))
+}
+
+fn total_parameter_order(a: &(f64, usize), b: &(f64, usize)) -> std::cmp::Ordering {
+    a.0.total_cmp(&b.0).then(a.1.cmp(&b.1))
+}
+
+fn same_parameter(a: &mut (f64, usize), b: &mut (f64, usize)) -> bool {
+    a.0 == b.0
+}
+
+fn parse_sample_index(value: &str) -> Option<usize> {
+    value.parse().ok()
+}
+
+pub struct EdgeUse {
+    pub edge: usize,
+    pub face: usize,
+    pub orientation: BRepOrientation,
+}
+
+fn pcurve_ends(b: &BRep, eu: &EdgeUse) -> Option<([f64; 2], [f64; 2])> {
+    let ci = b.pcurve_index(eu.edge, eu.face, eu.orientation);
+
+    if ci < 0 {
+        return None;
+    }
+
+    let c = b.m_curves_2d.get(ci as usize)?;
+
+    if c.degree() != 1 || c.is_rational() || c.cv_count() != 2 {
+        return None;
+    }
+
+    let p0 = c.get_cv(0)?;
+    let p1 = c.get_cv(c.cv_count().checked_sub(1)?)?;
+    Some(([p0[0], p0[1]], [p1[0], p1[1]]))
+}
+
+fn sample_values(fm: &Mesh, name: &str) -> Vec<f64> {
+    let mut vals = Vec::new();
+
+    for vertex in fm.vertex.values() {
+        if let Some(value) = vertex.attributes.get(name) {
+            vals.push(*value);
+        }
+    }
+
+    vals.sort_unstable_by(sample_order);
+    vals.dedup();
+    vals
+}
+
+fn nearest_sample(vals: &[f64], target: f64, wrap: Option<(f64, f64)>) -> Option<f64> {
+    let mut best: Option<(f64, f64)> = None;
+
+    for &v in vals {
+        let mut d = (v - target).abs();
+
+        if let Some((start, end)) = wrap {
+            d = d.min((v - (target - (end - start))).abs());
+        }
+
+        if match best {
+            Some((bd, _)) => d < bd,
+            None => true,
+        } {
+            best = Some((d, v));
+        }
+    }
+
+    Some(best?.1)
+}
+
+pub struct EdgeChain {
+    pub edge: usize,
+    pub face: usize,
+    pub keys: Vec<usize>,
+    pub other: Option<usize>,
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -916,10 +1758,13 @@ Register the original CAD edge records and lookup helpers.
 mod surface_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/55za-read-original-edge-use-samples-2.rs" skip=32
+#[cfg(test)]
+mod surface_tests;
+
+pub mod cad_edges;
 ```
 
 ## <a id="checkpoint-55zb-follow-original-isoparametric-boundaries"></a>10. Follow isoparametric boundaries
@@ -968,23 +1813,16 @@ Extend this original owner with today’s complete helper.
 **Locate this existing block:**
 
 ```rust
-        }
-
-        if match best {
-            Some((bd, _)) => d < bd,
-            None => true,
-        } {
-            best = Some((d, v));
-        }
-    }
-
-    Some(best?.1)
 }
+
+pub struct EdgeChain {
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
     let e = b.m_edges.get(eu.edge)?;
 
@@ -994,7 +1832,9 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
 
     let (p0, p1) = pcurve_ends(b, eu)?;
 
-    if !p0.into_iter().chain(p1).all(f64::is_finite) || (p0[0] != p1[0] && p0[1] != p1[1]) {
+    if !p0.into_iter().chain(p1).all(f64::is_finite)
+        || (p0[0] != p1[0] && p0[1] != p1[1])
+    {
         return None;
     }
 
@@ -1003,7 +1843,11 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
     } else {
         1
     };
-    let (fixed_name, free_name) = if fixed == 0 { ("u", "v") } else { ("v", "u") };
+    let (fixed_name, free_name) = if fixed == 0 {
+        ("u", "v")
+    } else {
+        ("v", "u")
+    };
     let vals = sample_values(fm, fixed_name);
 
     if vals.is_empty() {
@@ -1011,7 +1855,9 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
     }
 
     let face = b.m_faces.get(eu.face)?;
-    let srf = b.m_surfaces.get(face.surface_index as usize)?;
+    let srf = b
+        .m_surfaces
+        .get(face.surface_index as usize)?;
     let wrap = if srf.is_closed(fixed) {
         srf.domain(fixed)
     } else {
@@ -1030,8 +1876,10 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
     let mut on_line: Vec<(f64, usize)> = Vec::new();
 
     for (&key, vd) in fm.vertex.iter() {
-        let (Some(&f), Some(&t)) = (vd.attributes.get(fixed_name), vd.attributes.get(free_name))
-        else {
+        let (Some(&f), Some(&t)) = (
+            vd.attributes.get(fixed_name),
+            vd.attributes.get(free_name),
+        ) else {
             continue;
         };
         let lo = p0[1 - fixed].min(p1[1 - fixed]);
@@ -1059,6 +1907,8 @@ pub fn iso_chain(b: &BRep, fm: &Mesh, eu: &EdgeUse) -> Option<Vec<usize>> {
 
     Some(keys)
 }
+
+pub struct EdgeChain {
 ```
 
 ## <a id="checkpoint-55zc-follow-original-constrained-trim-labels"></a>11. Follow constrained trim labels
@@ -1107,28 +1957,22 @@ Extend this original owner with today’s complete helper.
 **Locate this existing block:**
 
 ```rust
-    if e.start_vertex == e.end_vertex {
-        keys.push(keys[0]);
-    }
-
-    Some(keys)
-}
-
-pub struct EdgeChain {
-    pub edge: usize,
-    pub face: usize,
-    pub keys: Vec<usize>,
     pub other: Option<usize>,
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    pub other: Option<usize>,
+}
+
 fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
     let prefix = format!("brep_edge/{edge}/");
-    let mut uses =
-        std::collections::BTreeMap::<usize, std::collections::BTreeMap<usize, usize>>::new();
+    let mut uses = std::collections::BTreeMap::<
+        usize,
+        std::collections::BTreeMap<usize, usize>,
+    >::new();
 
     for (&key, vertex) in &fm.vertex {
         for name in vertex.attributes.keys() {
@@ -1138,11 +1982,17 @@ fn constrained_chain(fm: &Mesh, edge: usize) -> Option<Vec<usize>> {
             let Some((use_id, sample)) = suffix.split_once('/') else {
                 continue;
             };
-            let (Ok(use_id), Ok(sample)) = (use_id.parse::<usize>(), sample.parse::<usize>())
-            else {
+            let (Ok(use_id), Ok(sample)) = (
+                use_id.parse::<usize>(),
+                sample.parse::<usize>(),
+            ) else {
                 continue;
             };
-            let value = uses.entry(use_id).or_default().entry(sample).or_insert(key);
+            let value = uses
+                .entry(use_id)
+                .or_default()
+                .entry(sample)
+                .or_insert(key);
             *value = (*value).min(key);
         }
     }

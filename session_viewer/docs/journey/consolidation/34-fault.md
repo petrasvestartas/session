@@ -107,21 +107,81 @@ Create the shared first-failure value; callback clones identify the same device 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/34-fault-01.rs"
+use std::sync::{Arc, Mutex};
+
+#[derive(Clone, Default)]
+pub struct Fault(Arc<Mutex<Option<String>>>);
+
+impl Fault {
+    pub fn remember(&self, message: String) -> bool {
+        let mut first = self.0.lock().unwrap();
+        if first.is_some() {
+            return false;
+        }
+        *first = Some(message);
+        true
+    }
+
+    pub fn message(&self) -> Option<String> {
+        self.0.lock().unwrap().clone()
+    }
+
+    pub fn same_device(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.0, &other.0)
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/gpu_fault_tests.rs`
 
 Optional authoring fixture. Verify first-reason retention, replacement-device isolation and concurrent callback delivery.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/34-fault-02.rs"
+```rust
+use crate::gpu_fault::Fault;
+
+#[test]
+fn cloned_callback_keeps_the_first_reason() {
+    let fault = Fault::default();
+    let callback = fault.clone();
+    assert!(fault.message().is_none());
+    assert!(callback.same_device(&fault));
+    assert!(callback.remember("device lost: original reason".into()));
+    assert!(!fault.remember("validation error after loss".into()));
+    assert_eq!(
+        fault.message().as_deref(),
+        Some("device lost: original reason")
+    );
+}
+
+#[test]
+fn replacement_device_has_an_independent_fault() {
+    let old = Fault::default();
+    let replacement = Fault::default();
+    assert!(!old.same_device(&replacement));
+    assert!(old.remember("late failure from old device".into()));
+    assert!(replacement.message().is_none());
+    assert!(replacement.remember("new device failed".into()));
+    assert_eq!(
+        old.message().as_deref(),
+        Some("late failure from old device")
+    );
+}
+
+#[test]
+fn concurrent_callbacks_accept_exactly_one_reason() {
+    let fault = Fault::default();
+    let a = fault.clone();
+    let b = fault.clone();
+    let a = std::thread::spawn(move || a.remember("first contender".into()));
+    let b = std::thread::spawn(move || b.remember("second contender".into()));
+    assert_ne!(a.join().unwrap(), b.join().unwrap());
+    assert!(matches!(
+        fault.message().as_deref(),
+        Some("first contender" | "second contender")
+    ));
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -131,16 +191,18 @@ Expose the signal and include its native tests.
 **Locate this existing block:**
 
 ```rust
-pub mod background;
+pub mod gesture;
+pub mod history;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod gesture;
 pub mod gpu_fault;
 #[cfg(test)]
 mod gpu_fault_tests;
-pub mod background;
+pub mod history;
 ```
 
 ## <a id="checkpoint-34a-stop"></a>2. Stop the viewer when its GPU device fails
@@ -186,15 +248,35 @@ pub mod background;
 
 Retain the device failure identity beside the callbacks that use that device. Only the matching device may dispose the active runtime; drop its owner after the slot borrow ends.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::{browser_reload::Shared, listeners::Listeners, read_gate::ReadGate};
-use std::{cell::RefCell, rc::Rc};
+    reload: Shared,
+}
 
-struct Runtime {
-    _listeners: Listeners,
-    request: Rc<RefCell<ReadGate>>,
+impl Drop for Runtime {
+    fn drop(&mut self) {
+        self.request.borrow_mut().cancel();
+        self.reload.borrow_mut().cancel();
+    }
+}
+
+thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
+
+pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared) {
+    ACTIVE.with(|slot| {
+        slot.replace(Some(Runtime {
+            _listeners: listeners,
+            request,
+            reload,
+        }))
+    });
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     reload: Shared,
     fault: crate::gpu_fault::Fault,
 }
@@ -208,25 +290,36 @@ impl Drop for Runtime {
 
 thread_local! { static ACTIVE: RefCell<Option<Runtime>> = const { RefCell::new(None) }; }
 
-pub fn install(listeners: Listeners, request: Rc<RefCell<ReadGate>>, reload: Shared, fault: crate::gpu_fault::Fault) {
-    ACTIVE.with(|slot| slot.replace(Some(Runtime { _listeners: listeners, request, reload, fault })));
+pub fn install(
+    listeners: Listeners,
+    request: Rc<RefCell<ReadGate>>,
+    reload: Shared,
+    fault: crate::gpu_fault::Fault,
+) {
+    ACTIVE.with(|slot| {
+        slot.replace(Some(Runtime {
+            _listeners: listeners,
+            request,
+            reload,
+            fault,
+        }))
+    });
 }
 
 pub fn stop_if(fault: &crate::gpu_fault::Fault) -> bool {
     let owner = ACTIVE.with(|slot| {
         let mut current = slot.borrow_mut();
-        if current.as_ref().is_some_and(|runtime| runtime.fault.same_device(fault)) { current.take() }
-        else { None }
+        if current
+            .as_ref()
+            .is_some_and(|runtime| runtime.fault.same_device(fault))
+        {
+            current.take()
+        } else {
+            None
+        }
     });
     owner.is_some()
 }
-
-pub fn stop() -> bool {
-    ACTIVE.with(|slot| slot.borrow_mut().take()).is_some()
-}
-
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn runtime_running() -> bool { ACTIVE.with(|slot| slot.borrow().is_some()) }
 ```
 
 ### 2. `src/browser.rs`
@@ -242,9 +335,7 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     listeners.listen(window.as_ref(), "viewer-reload")?;
     listeners.listen(window.as_ref(), "pagehide")?;
     crate::browser_runtime::install(listeners, owned_request, owned_reload);
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
+    report(
 ```
 
 Replace it with:
@@ -254,35 +345,37 @@ Replace it with:
     listeners.listen(window.as_ref(), "viewer-reload")?;
     listeners.listen(window.as_ref(), "pagehide")?;
     crate::browser_runtime::install(listeners, owned_request, owned_reload, fault);
-    report("Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.");
-    Ok(())
-}
+    report(
 ```
 
 **Locate this block:**
 
 ```rust
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new(None));
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if event.type_() == "pagehide" {
-            gesture.cancel();
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if event.type_() == "pagehide" {
+                gesture.cancel();
+                if event
 ```
 
 Replace it with:
 
 ```rust
-    let reload_delivery: crate::browser_reload::Delivery = std::rc::Rc::new(std::cell::RefCell::new(None));
+        std::rc::Rc::new(std::cell::RefCell::new(None));
     let owned_request = std::rc::Rc::clone(&request);
     let owned_reload = std::rc::Rc::clone(&reload);
     let active_fault = fault.clone();
-    let update = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        if active_fault.message().is_some() { return; }
-        if event.type_() == "pagehide" {
-            gesture.cancel();
-            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }
+    let update = Closure::<dyn FnMut(web_sys::Event)>::new(
+        move |event: web_sys::Event| {
+            if active_fault.message().is_some() {
+                return;
+            }
+            if event.type_() == "pagehide" {
+                gesture.cancel();
+                if event
 ```
 
 **Locate this block:**
@@ -291,10 +384,12 @@ Replace it with:
         .request_device(&wgpu::DeviceDescriptor::default())
         .await
         .map_err(|error| JsValue::from_str(&error.to_string()))?;
-    device.on_uncaptured_error(std::sync::Arc::new(|error| report(&error.to_string())));
+    device.on_uncaptured_error(std::sync::Arc::new(|error| {
+        report(&error.to_string())
+    }));
     let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
+    let width = (window
+        .inner_width()?
 ```
 
 Replace it with:
@@ -305,41 +400,53 @@ Replace it with:
         .map_err(|error| JsValue::from_str(&error.to_string()))?;
     let fault = crate::gpu_fault::Fault::default();
     let errors = fault.clone();
-    device.on_uncaptured_error(std::sync::Arc::new(move |error| failed(errors.clone(), format!("WebGPU error: {error}"))));
+    device.on_uncaptured_error(std::sync::Arc::new(move |error| {
+        failed(
+            errors.clone(),
+            format!("WebGPU error: {error}"),
+        )
+    }));
     let lost = fault.clone();
-    device.set_device_lost_callback(move |reason, message| failed(lost.clone(), format!("WebGPU device lost ({reason:?}): {message}")));
+    device.set_device_lost_callback(move |reason, message| {
+        failed(
+            lost.clone(),
+            format!("WebGPU device lost ({reason:?}): {message}"),
+        )
+    });
     let limit = device.limits().max_texture_dimension_2d;
-    let width = (window.inner_width()?.as_f64().ok_or("No window width")? as u32).clamp(1, limit);
-    let height = (window.inner_height()?.as_f64().ok_or("No window height")? as u32).clamp(1, limit);
+    let width = (window
+        .inner_width()?
 ```
 
 **Locate this block:**
 
 ```rust
-    }
 }
 
 fn save_result(bytes: &[u8]) -> Result<String, String> {
     crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
+        .map(|()| {
 ```
 
 Replace it with:
 
 ```rust
-    }
 }
 
 fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
+    if !fault.remember(message.clone()) {
+        return;
+    }
     wasm_bindgen_futures::spawn_local(async move {
-        if crate::browser_runtime::stop_if(&fault) { report(&format!("Cannot draw: {message}")); }
+        if crate::browser_runtime::stop_if(&fault) {
+            report(&format!("Cannot draw: {message}"));
+        }
     });
 }
 
 fn save_result(bytes: &[u8]) -> Result<String, String> {
     crate::file_output::download(bytes)
-        .map(|()| format!("Saved editable document ({} bytes)", bytes.len()))
+        .map(|()| {
 ```
 
 ## <a id="checkpoint-34b-report"></a>3. Describe a viewer run without keeping its document
@@ -388,21 +495,114 @@ Create a serializable report header with owned browser context and explicit run 
 Create the file and type:
 
 ```rust
---8<-- "journey/code/34b-report-01.rs"
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Context {
+    pub page: String,
+    pub browser: String,
+    pub secure_context: bool,
+    pub webgpu: bool,
+    pub viewport: [u32; 2],
+    pub canvas: [u32; 2],
+    pub device_pixel_ratio: f64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Outcome {
+    Running,
+    Ready,
+    Closed,
+    Failed,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Report {
+    pub version: u32,
+    pub tab: String,
+    pub started: String,
+    pub last_seen: String,
+    pub outcome: Outcome,
+    #[serde(flatten)]
+    pub context: Context,
+}
+
+impl Report {
+    pub fn new(tab: String, started: String, context: Context) -> Self {
+        Self {
+            version: 1,
+            tab,
+            last_seen: started.clone(),
+            started,
+            outcome: Outcome::Running,
+            context,
+        }
+    }
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/diagnostic_tests.rs`
 
 Optional authoring fixture. Check the actual JSON field names, round trip and independence of a retained snapshot.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/34b-report-02.rs"
+```rust
+use crate::diagnostic::{Context, Outcome, Report};
+
+fn context() -> Context {
+    Context {
+        page: "https://example.test/viewer/".into(),
+        browser: "Test browser".into(),
+        secure_context: true,
+        webgpu: true,
+        viewport: [900, 760],
+        canvas: [900, 760],
+        device_pixel_ratio: 1.0,
+    }
+}
+
+#[test]
+fn report_starts_running_with_flat_browser_context() {
+    let report = Report::new(
+        "tab-a".into(),
+        "2026-10-03T18:00:00.000Z".into(),
+        context(),
+    );
+    let value = serde_json::to_value(&report).unwrap();
+    assert_eq!(value["version"], 1);
+    assert_eq!(value["outcome"], "running");
+    assert_eq!(value["started"], value["lastSeen"]);
+    assert_eq!(value["secureContext"], true);
+    assert_eq!(value["devicePixelRatio"], 1.0);
+    assert_eq!(
+        value["viewport"],
+        serde_json::json!([900, 760])
+    );
+    assert!(value.get("context").is_none());
+    assert_eq!(
+        serde_json::from_value::<Report>(value).unwrap(),
+        report
+    );
+}
+
+#[test]
+fn report_snapshot_keeps_its_own_context() {
+    let mut live = Report::new("tab-a".into(), "start".into(), context());
+    let snapshot = live.clone();
+    live.context.canvas = [618, 1373];
+    live.context.device_pixel_ratio = 2.625;
+    live.outcome = Outcome::Ready;
+    assert_eq!(snapshot.context.canvas, [900, 760]);
+    assert_eq!(snapshot.outcome, Outcome::Running);
+    assert_eq!(
+        serde_json::from_str::<Report>(&serde_json::to_string(&live).unwrap()).unwrap(),
+        live
+    );
+}
 ```
 
 ### 3. `src/lib.rs`
@@ -412,16 +612,18 @@ Expose the report model and include its native tests.
 **Locate this existing block:**
 
 ```rust
-pub mod gpu_fault;
+pub mod camera;
+#[cfg(test)]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod camera;
 pub mod diagnostic;
 #[cfg(test)]
 mod diagnostic_tests;
-pub mod gpu_fault;
+#[cfg(test)]
 ```
 
 ## <a id="checkpoint-34ba-events"></a>4. Keep recent events without losing the first failure
@@ -467,28 +669,36 @@ pub mod gpu_fault;
 
 Describe an observation separately from its bounded owner and preserve its relative timing. Retain the recent event window separately from the first failure, so rotation cannot erase it. Validate relative time, bound observation text/history, and make failure survive later milestones and event rotation.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use serde::{Deserialize, Serialize};
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Context {
-    pub page: String,
-    pub browser: String,
-    pub secure_context: bool,
-    pub webgpu: bool,
-    pub viewport: [u32; 2],
-    pub canvas: [u32; 2],
-    pub device_pixel_ratio: f64,
+pub struct Report {
+    pub version: u32,
+    pub tab: String,
+    pub started: String,
+    pub last_seen: String,
+    pub outcome: Outcome,
+    #[serde(flatten)]
+    pub context: Context,
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Outcome { Running, Ready, Closed, Failed }
+impl Report {
+    pub fn new(tab: String, started: String, context: Context) -> Self {
+        Self {
+            version: 1,
+            tab,
+            last_seen: started.clone(),
+            started,
+            outcome: Outcome::Running,
+            context,
+        }
+    }
+```
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
 #[serde(rename_all = "camelCase")]
 pub struct Event {
     pub time: String,
@@ -513,32 +723,57 @@ pub struct Report {
 
 impl Report {
     pub fn new(tab: String, started: String, context: Context) -> Self {
-        Self { version: 1, tab, last_seen: started.clone(), started, outcome: Outcome::Running,
-            context, events: Default::default(), failure: None }
+        Self {
+            version: 1,
+            tab,
+            last_seen: started.clone(),
+            started,
+            outcome: Outcome::Running,
+            context,
+            events: Default::default(),
+            failure: None,
+        }
     }
 
-    pub fn failure(&self) -> Option<&Event> { self.failure.as_ref() }
+    pub fn failure(&self) -> Option<&Event> {
+        self.failure.as_ref()
+    }
 
-    pub fn record(&mut self, time: String, elapsed_ms: f64, kind: &str, message: &str) -> Result<(), &'static str> {
-        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 { return Err("Invalid elapsed time"); }
-        let event = Event { time, elapsed_ms, kind: kind.chars().take(64).collect(), message: message.chars().take(4096).collect() };
+    pub fn record(
+        &mut self,
+        time: String,
+        elapsed_ms: f64,
+        kind: &str,
+        message: &str,
+    ) -> Result<(), &'static str> {
+        if !elapsed_ms.is_finite() || elapsed_ms < 0.0 {
+            return Err("Invalid elapsed time");
+        }
+        let event = Event {
+            time,
+            elapsed_ms,
+            kind: kind.chars().take(64).collect(),
+            message: message.chars().take(4096).collect(),
+        };
         self.last_seen.clone_from(&event.time);
         if kind == "fatal" {
-            if self.failure.is_none() { self.failure = Some(event.clone()); }
+            if self.failure.is_none() {
+                self.failure = Some(event.clone());
+            }
             self.outcome = Outcome::Failed;
-        } else if kind == "milestone" && message == "geometry on screen" && self.failure.is_none() {
+        } else if kind == "milestone"
+            && message == "geometry on screen"
+            && self.failure.is_none()
+        {
             self.outcome = Outcome::Ready;
         }
-        if self.events.len() == 24 { self.events.pop_front(); }
+        if self.events.len() == 24 {
+            self.events.pop_front();
+        }
         self.events.push_back(event);
         Ok(())
     }
-}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/diagnostic_tests.rs`
 
@@ -546,40 +781,104 @@ Optional authoring fixture. Prove bounded history/text, retained first failure, 
 
 **Locate this existing block:**
 
-```text
-use crate::diagnostic::{Context, Outcome, Report};
-
-fn context() -> Context {
-    Context { page: "https://example.test/viewer/".into(), browser: "Test browser".into(),
-        secure_context: true, webgpu: true, viewport: [900, 760], canvas: [900, 760], device_pixel_ratio: 1.0 }
-}
-
-#[test]
-fn report_starts_running_with_flat_browser_context() {
-    let report = Report::new("tab-a".into(), "2026-10-03T18:00:00.000Z".into(), context());
-    let value = serde_json::to_value(&report).unwrap();
-    assert_eq!(value["version"], 1); assert_eq!(value["outcome"], "running");
-    assert_eq!(value["started"], value["lastSeen"]);
-    assert_eq!(value["secureContext"], true); assert_eq!(value["devicePixelRatio"], 1.0);
-    assert_eq!(value["viewport"], serde_json::json!([900, 760]));
-    assert!(value.get("context").is_none());
-    assert_eq!(serde_json::from_value::<Report>(value).unwrap(), report);
-}
-
-#[test]
-fn report_snapshot_keeps_its_own_context() {
-    let mut live = Report::new("tab-a".into(), "start".into(), context()); let snapshot = live.clone();
-    live.context.canvas = [618, 1373]; live.context.device_pixel_ratio = 2.625;
-    live.outcome = Outcome::Ready;
-    assert_eq!(snapshot.context.canvas, [900, 760]); assert_eq!(snapshot.outcome, Outcome::Running);
-    assert_eq!(serde_json::from_str::<Report>(&serde_json::to_string(&live).unwrap()).unwrap(), live);
+```rust
+        live
+    );
 }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/34ba-events-04.rs" skip=1382
+```rust
+        live
+    );
+}
+
+#[test]
+fn first_failure_survives_later_events() {
+    let mut report = Report::new("tab".into(), "start".into(), context());
+    report
+        .record("first".into(), 1.0, "fatal", "device lost")
+        .unwrap();
+    let first = report.failure().unwrap().clone();
+    for i in 0..30 {
+        report
+            .record(
+                format!("late-{i}"),
+                i as f64 + 2.0,
+                "fatal",
+                &format!("later-{i}"),
+            )
+            .unwrap();
+    }
+    assert_eq!(report.failure(), Some(&first));
+    let value = serde_json::to_value(&report).unwrap();
+    assert_eq!(value["events"].as_array().unwrap().len(), 24);
+    assert_eq!(value["events"][0]["message"], "later-6");
+    report
+        .record(
+            "drawn".into(),
+            40.0,
+            "milestone",
+            "geometry on screen",
+        )
+        .unwrap();
+    assert_eq!(report.outcome, Outcome::Failed);
+    assert_eq!(report.failure(), Some(&first));
+    assert_eq!(
+        serde_json::from_str::<Report>(&serde_json::to_string(&report).unwrap())
+            .unwrap(),
+        report
+    );
+}
+
+#[test]
+fn invalid_time_is_atomic_and_text_is_bounded() {
+    let mut report = Report::new("tab".into(), "start".into(), context());
+    report
+        .record(
+            "drawn".into(),
+            1.0,
+            "milestone",
+            "geometry on screen",
+        )
+        .unwrap();
+    assert_eq!(report.outcome, Outcome::Ready);
+    report
+        .record(
+            "later".into(),
+            2.0,
+            &"x".repeat(65),
+            &"😀".repeat(4097),
+        )
+        .unwrap();
+    let value = serde_json::to_value(&report).unwrap();
+    assert_eq!(
+        value["events"][1]["kind"]
+            .as_str()
+            .unwrap()
+            .chars()
+            .count(),
+        64
+    );
+    assert_eq!(
+        value["events"][1]["message"]
+            .as_str()
+            .unwrap()
+            .chars()
+            .count(),
+        4096
+    );
+    let before = report.clone();
+    for invalid in [f64::NAN, f64::INFINITY, -1.0] {
+        assert!(
+            report
+                .record("bad".into(), invalid, "fatal", "bad time")
+                .is_err()
+        );
+    }
+    assert_eq!(report, before);
+}
 ```
 
 ## <a id="checkpoint-34c-browser"></a>5. Read live diagnostic context outside the GPU runtime
@@ -628,7 +927,87 @@ Own one bounded report for the page and read actual browser metadata without kee
 Create the file and type:
 
 ```rust
---8<-- "journey/code/34c-browser-01.rs"
+use crate::diagnostic::{Context, Report};
+use std::cell::RefCell;
+use wasm_bindgen::{JsCast, JsValue};
+
+thread_local! { static REPORT: RefCell<Option<Report>> = const { RefCell::new(None) }; }
+
+fn context() -> Result<Context, JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let canvas: web_sys::HtmlCanvasElement = document
+        .get_element_by_id("canvas")
+        .ok_or("No canvas")?
+        .dyn_into()?;
+    let location = window.location();
+    let navigator = window.navigator();
+    Ok(Context {
+        page: format!(
+            "{}{}",
+            location.origin()?,
+            location.pathname()?
+        ),
+        browser: navigator.user_agent()?,
+        secure_context: window.is_secure_context(),
+        webgpu: js_sys::Reflect::get(navigator.as_ref(), &"gpu".into())?.is_object(),
+        viewport: [
+            window
+                .inner_width()?
+                .as_f64()
+                .ok_or("No width")? as u32,
+            window
+                .inner_height()?
+                .as_f64()
+                .ok_or("No height")? as u32,
+        ],
+        canvas: [canvas.width(), canvas.height()],
+        device_pixel_ratio: window.device_pixel_ratio(),
+    })
+}
+
+pub fn start() -> Result<(), JsValue> {
+    let report = Report::new(
+        uuid::Uuid::new_v4().to_string(),
+        js_sys::Date::new_0().to_iso_string().into(),
+        context()?,
+    );
+    REPORT.with(|slot| slot.replace(Some(report)));
+    Ok(())
+}
+
+pub fn observe(kind: &str, message: &str) -> Result<(), JsValue> {
+    let context = context()?;
+    let elapsed = web_sys::window()
+        .and_then(|window| window.performance())
+        .ok_or("No clock")?
+        .now();
+    REPORT.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        let report = slot.as_mut().ok_or("No report")?;
+        report.context = context;
+        report
+            .record(
+                js_sys::Date::new_0().to_iso_string().into(),
+                elapsed,
+                kind,
+                message,
+            )
+            .map_err(JsValue::from_str)
+    })
+}
+
+#[wasm_bindgen::prelude::wasm_bindgen]
+pub fn diagnostic_snapshot() -> Result<String, JsValue> {
+    let context = context()?;
+    REPORT.with(|slot| {
+        let mut slot = slot.borrow_mut();
+        let report = slot.as_mut().ok_or("No report")?;
+        report.context = context;
+        serde_json::to_string_pretty(report)
+            .map_err(|error| JsValue::from_str(&error.to_string()))
+    })
+}
 ```
 
 ### 2. `Cargo.toml`
@@ -638,13 +1017,17 @@ Enable typed browser address, identity and monotonic-clock access.
 **Locate this existing block:**
 
 ```toml
+wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```toml
+wasm-bindgen = "=0.2.128"
 web-sys = { version = "=0.3.105", features = ["Window", "Document", "Element", "HtmlCanvasElement", "EventTarget", "AddEventListenerOptions", "PageTransitionEvent", "Location", "Navigator", "Performance", "Event", "MouseEvent", "PointerEvent", "DomRect", "KeyboardEvent", "WheelEvent", "AddEventListenerOptions", "HtmlElement", "HtmlInputElement", "File", "FileList", "Blob", "CustomEvent", "CustomEventInit", "FocusOptions", "Url", "HtmlAnchorElement", "AbortController", "AbortSignal", "RequestInit", "Response", "Headers", "ReadableStream", "ReadableStreamDefaultReader"] }
+console_error_panic_hook = "=0.1.7"
 ```
 
 ### 3. `src/lib.rs`
@@ -658,11 +1041,13 @@ Compile the browser report bridge only for WebAssembly.
 mod browser_runtime;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 mod browser_report;
+#[cfg(target_arch = "wasm32")]
+mod browser_runtime;
 ```
 
 ### 4. `src/browser.rs`
@@ -672,12 +1057,14 @@ Start diagnostic context before awaiting the GPU connection; failure observation
 **Locate this existing block:**
 
 ```rust
+        .dyn_into()?;
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        .dyn_into()?;
     crate::browser_report::start()?;
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
 ```
@@ -725,43 +1112,36 @@ Edit the existing block to match this code; keep unchanged lines:
 
 Reuse the existing owned Blob/anchor cleanup for a named report while keeping Save’s filename unchanged. Choose the diagnostic JSON filename without changing the document download contract.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use wasm_bindgen::{JsCast, JsValue, closure::Closure};
+pub fn download(bytes: &[u8]) -> Result<(), JsValue> {
+    let window = web_sys::window().ok_or("No browser window")?;
+    let document = window.document().ok_or("No document")?;
+    let body = document.body().ok_or("No document body")?;
+    let anchor: web_sys::HtmlAnchorElement =
+        document.create_element("a")?.dyn_into()?;
+    anchor.set_hidden(true);
+    anchor.set_download("viewer.session");
+    body.append_child(&anchor)?;
+```
 
-pub fn download(bytes: &[u8]) -> Result<(), JsValue> { download_named(bytes, "viewer.session") }
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
+pub fn download(bytes: &[u8]) -> Result<(), JsValue> {
+    download_named(bytes, "viewer.session")
+}
 
 pub fn download_named(bytes: &[u8], name: &str) -> Result<(), JsValue> {
     let window = web_sys::window().ok_or("No browser window")?;
     let document = window.document().ok_or("No document")?;
     let body = document.body().ok_or("No document body")?;
-    let anchor: web_sys::HtmlAnchorElement = document.create_element("a")?.dyn_into()?;
+    let anchor: web_sys::HtmlAnchorElement =
+        document.create_element("a")?.dyn_into()?;
     anchor.set_hidden(true);
     anchor.set_download(name);
     body.append_child(&anchor)?;
-    let parts = js_sys::Array::new();
-    parts.push(&js_sys::Uint8Array::from(bytes));
-    let blob = match web_sys::Blob::new_with_u8_array_sequence(&parts) {
-        Ok(blob) => blob,
-        Err(error) => { anchor.remove(); return Err(error); }
-    };
-    let url = match web_sys::Url::create_object_url_with_blob(&blob) {
-        Ok(url) => url,
-        Err(error) => { anchor.remove(); return Err(error); }
-    };
-    anchor.set_href(&url);
-    anchor.click();
-    anchor.remove();
-    let cleanup: js_sys::Function = Closure::once_into_js(move || {
-        let _ = web_sys::Url::revoke_object_url(&url);
-    }).unchecked_into();
-    if let Err(error) = window.set_timeout_with_callback_and_timeout_and_arguments_0(&cleanup, 10_000) {
-        let _ = cleanup.call0(&JsValue::NULL);
-        return Err(error);
-    }
-    Ok(())
-}
 ```
 
 ### 2. `src/browser_report.rs`
@@ -771,20 +1151,30 @@ Download a current metadata snapshot and attempt one automatic download for the 
 **Locate this existing block:**
 
 ```rust
+}
+
 #[wasm_bindgen::prelude::wasm_bindgen]
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+}
+
 pub fn download() -> Result<(), JsValue> {
     let json = diagnostic_snapshot()?;
     crate::file_output::download_named(json.as_bytes(), "viewer-diagnostic.json")
 }
 
 pub fn fatal(message: &str) {
-    let first = REPORT.with(|slot| slot.borrow().as_ref().is_some_and(|report| report.failure().is_none()));
-    if observe("fatal", message).is_ok() && first { let _ = download(); }
+    let first = REPORT.with(|slot| {
+        slot.borrow()
+            .as_ref()
+            .is_some_and(|report| report.failure().is_none())
+    });
+    if observe("fatal", message).is_ok() && first {
+        let _ = download();
+    }
 }
 
 #[wasm_bindgen::prelude::wasm_bindgen]
@@ -799,28 +1189,25 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                    input.click();
-                }
-                None
-            } else if line == "save" {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
+                        input.click();
+                    }
+                    None
 ```
 
 Replace it with:
 
 ```rust
-                    input.click();
-                }
-                None
-            } else if line == "report" {
-                let result = crate::browser_report::download().map(|()| "Diagnostic report downloaded.".to_owned())
-                    .unwrap_or_else(|error| format!("Diagnostic report failed: {error:?}"));
-                panel.result(&result);
-                None
-            } else if line == "save" {
-                let result = crate::browser_reload::restore_for(crate::edit_intent::Intent::Save,
-                    &editor, std::rc::Rc::clone(&reload), std::rc::Rc::clone(&reload_delivery))
+                        input.click();
+                    }
+                    None
+                } else if line == "report" {
+                    let result = crate::browser_report::download()
+                        .map(|()| "Diagnostic report downloaded.".to_owned())
+                        .unwrap_or_else(|error| {
+                            format!("Diagnostic report failed: {error:?}")
+                        });
+                    panel.result(&result);
+                    None
 ```
 
 **Locate this block:**
@@ -872,26 +1259,20 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
-    wasm_bindgen_futures::spawn_local(async move {
-        if crate::browser_runtime::stop_if(&fault) { report(&format!("Cannot draw: {message}")); }
+        if crate::browser_runtime::stop_if(&fault) {
+            report(&format!("Cannot draw: {message}"));
+        }
     });
-}
 ```
 
 Replace it with:
 
 ```rust
-fn failed(fault: crate::gpu_fault::Fault, message: String) {
-    if !fault.remember(message.clone()) { return; }
-    wasm_bindgen_futures::spawn_local(async move {
         if crate::browser_runtime::stop_if(&fault) {
             crate::browser_report::fatal(&message);
             report(&format!("Cannot draw: {message}"));
         }
     });
-}
 ```
 
 ### 4. `src/lib.rs`
@@ -901,12 +1282,14 @@ Capture startup failure after diagnostic initialization, even when no GPU runtim
 **Locate this existing block:**
 
 ```rust
+        if let Err(error) = browser::run().await {
             browser::report(&format!("Cannot draw: {error:?}"));
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+        if let Err(error) = browser::run().await {
             browser_report::fatal(&format!("Cannot draw: {error:?}"));
             browser::report(&format!("Cannot draw: {error:?}"));
 ```

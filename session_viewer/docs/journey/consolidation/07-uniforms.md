@@ -106,7 +106,16 @@
 
 Declare the uniform resource before the vertex function. Its group and binding identify a resource slot. Use the first pair as scale and the second pair as offset. The swizzles xy and zw select those pairs.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```wgsl
+@vertex
+fn vertex(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
+    return vec4<f32>(position, 0.0, 1.0);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: vec4<f32>;
@@ -114,11 +123,6 @@ Replace the entire file with:
 @vertex
 fn vertex(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
     return vec4<f32>(position * transform.xy + transform.zw, 0.0, 1.0);
-}
-
-@fragment
-fn fragment() -> @location(0) vec4<f32> {
-    return vec4<f32>(0.9, 0.25, 0.45, 1.0);
 }
 ```
 
@@ -135,8 +139,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
             });
             pass.set_pipeline(&self.pipeline);
             pass.set_vertex_buffer(0, self.vertices.slice(..));
-            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
 ```
 
 Replace it with:
@@ -147,8 +149,37 @@ Replace it with:
             pass.set_pipeline(&self.pipeline);
             pass.set_bind_group(0, &self.view_group, &[]);
             pass.set_vertex_buffer(0, self.vertices.slice(..));
-            pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint16);
-            pass.draw_indexed(0..INDICES.len() as u32, 0, 0..1);
+```
+
+**Locate this block:**
+
+```rust
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
+    ) {
+        let [r, g, b] = background.rgb();
+        let mut encoder = self
+            .device
+```
+
+Replace it with:
+
+```rust
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
+        transform: &[f32; 4],
+    ) {
+        let bytes: Vec<u8> = transform
+            .iter()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        self.queue
+            .write_buffer(&self.uniform, 0, &bytes);
+        let [r, g, b] = background.rgb();
+        let mut encoder = self
+            .device
 ```
 
 **Locate this block:**
@@ -157,13 +188,14 @@ Replace it with:
             multiview_mask: None,
             cache: None,
         });
-        Self { device, queue, pipeline, vertices, indices }
+        Self {
+            device,
+            queue,
+            pipeline,
+            vertices,
+            indices,
+        }
     }
-
-    pub fn draw(&self, view: &wgpu::TextureView, background: &crate::background::Background) {
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
 ```
 
 Replace it with:
@@ -186,27 +218,21 @@ Replace it with:
                 resource: uniform.as_entire_binding(),
             }],
         });
-        Self { device, queue, pipeline, vertices, indices, uniform, view_group }
+        Self {
+            device,
+            queue,
+            pipeline,
+            vertices,
+            indices,
+            uniform,
+            view_group,
+        }
     }
-
-    pub fn draw(
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 4],
-    ) {
-        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
 ```
 
 **Locate this block:**
 
 ```rust
-    pipeline: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
 }
 
@@ -216,8 +242,6 @@ impl Renderer {
 Replace it with:
 
 ```rust
-    pipeline: wgpu::RenderPipeline,
-    vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
     uniform: wgpu::Buffer,
     view_group: wgpu::BindGroup,
@@ -235,25 +259,21 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view, background);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 Replace it with:
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view, background, transform);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 **Locate this block:**
@@ -304,50 +324,58 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+                ));
+                return;
+            }
+            if let Err(error) = present(&surface, &renderer, &background, &mut panel) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
 ```
 
 Replace it with:
 
 ```rust
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &background, &transform, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+                ));
+                return;
+            }
+            if let Err(error) = present(
+                &surface,
+                &renderer,
+                &background,
+                &transform,
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
+            }
+        });
 ```
 
 **Locate this block:**
 
 ```rust
-    );
-    panel.update(None, &canvas)?;
     let mut background = Background::default();
     present(&surface, &renderer, &background, &mut panel)?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
 ```
 
 Replace it with:
 
 ```rust
-    );
-    panel.update(None, &canvas)?;
     let mut background = Background::default();
     let transform = [0.75, 0.75, 0.25, 0.15];
-    present(&surface, &renderer, &background, &transform, &mut panel)?;
+    present(
+        &surface,
+        &renderer,
+        &background,
+        &transform,
+        &mut panel,
+    )?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
+    let click =
+        Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
 ```
 
 ## <a id="checkpoint-08-camera"></a>2. Move the view, keep the geometry
@@ -396,7 +424,69 @@ Create the camera state and its two tests. There are no browser or wgpu types in
 Create the file and type:
 
 ```rust
---8<-- "journey/code/08-camera-02.rs"
+pub struct Camera {
+    pub center: [f32; 2],
+    pub scale: f32,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            center: [0.0, 0.0],
+            scale: 1.0,
+        }
+    }
+}
+
+impl Camera {
+    pub fn pan(&mut self, dx: f32, dy: f32) {
+        self.center[0] += dx;
+        self.center[1] += dy;
+    }
+
+    pub fn zoom(&mut self, factor: f32) {
+        if factor.is_finite() && factor > 0.0 {
+            self.scale = (self.scale * factor).clamp(0.1, 10.0);
+        }
+    }
+
+    pub fn uniform(&self) -> [f32; 4] {
+        // Subtract the camera centre before scaling the world position.
+        [
+            self.scale,
+            self.scale,
+            -self.center[0] * self.scale,
+            -self.center[1] * self.scale,
+        ]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn panned_target_stays_at_the_screen_centre_when_zooming() {
+        let mut camera = Camera::default();
+        camera.pan(0.25, -0.5);
+        camera.zoom(2.0);
+        let [sx, sy, ox, oy] = camera.uniform();
+        assert_eq!(camera.center[0] * sx + ox, 0.0);
+        assert_eq!(camera.center[1] * sy + oy, 0.0);
+    }
+
+    #[test]
+    fn zoom_stays_positive_and_bounded() {
+        let mut camera = Camera::default();
+        camera.zoom(0.0001);
+        assert_eq!(camera.scale, 0.1);
+        camera.zoom(1_000.0);
+        assert_eq!(camera.scale, 10.0);
+        camera.zoom(f32::NAN);
+        camera.zoom(-1.0);
+        assert_eq!(camera.scale, 10.0);
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -406,16 +496,16 @@ Register the camera module so the browser and native tests can use it.
 **Locate this existing block:**
 
 ```rust
-pub mod background;
-pub mod renderer;
-#[cfg(target_arch = "wasm32")]
 mod browser;
+pub mod renderer;
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/08-camera-fullscreen-1.rs"
+mod browser;
+pub mod camera;
+pub mod renderer;
 ```
 
 ### 3. `src/browser.rs`
@@ -432,7 +522,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     click.forget();
     report("One view setting moves all four corners.");
     Ok(())
-}
 ```
 
 Replace it with:
@@ -443,60 +532,65 @@ Replace it with:
     click.forget();
     report("Pan and zoom change the view, not the mesh.");
     Ok(())
-}
 ```
 
 **Locate this block:**
 
 ```rust
-                return;
-            }
-        };
-        if line.as_deref() == Some("background") {
-            background.toggle();
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(&surface, &renderer, &background, &transform, &mut panel) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+                &surface,
+                &renderer,
+                &background,
+                &transform,
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
 ```
 
 Replace it with:
 
 ```rust
-                return;
-            }
-        };
+                &surface,
+                &renderer,
+                &background,
+                &camera.uniform(),
+                &mut panel,
+            ) {
+                report(&format!("Cannot redraw: {error:?}"));
+```
 
-        if let Some(line) = line {
-            match line.as_str() {
-                "background" => background.toggle(),
-                "zoom in" => camera.zoom(2.0),
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "view reset" => camera = Camera::default(),
-                _ => return,
+**Locate this block:**
+
+```rust
+                    return;
+                }
+            };
+            if line.as_deref() == Some("background") {
+                background.toggle();
             }
-        }
-        if let Err(error) = panel.update(None, &input_canvas) {
-            report(&format!("Cannot lay out commands: {error:?}"));
-            return;
-        }
-        if let Err(error) = present(
-            &surface,
-            &renderer,
-            &background,
-            &camera.uniform(),
-            &mut panel,
-        ) {
-            report(&format!("Cannot redraw: {error:?}"));
-        }
-    });
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
+```
+
+Replace it with:
+
+```rust
+                    return;
+                }
+            };
+
+            if let Some(line) = line {
+                match line.as_str() {
+                    "background" => background.toggle(),
+                    "zoom in" => camera.zoom(2.0),
+                    "zoom out" => camera.zoom(0.5),
+                    "pan left" => camera.pan(-0.25, 0.0),
+                    "pan right" => camera.pan(0.25, 0.0),
+                    "view reset" => camera = Camera::default(),
+                    _ => return,
+                }
+            }
+            if let Err(error) = panel.update(None, &input_canvas) {
+                report(&format!(
 ```
 
 **Locate this block:**
@@ -510,10 +604,14 @@ Replace it with:
     panel.update(None, &canvas)?;
     let mut background = Background::default();
     let transform = [0.75, 0.75, 0.25, 0.15];
-    present(&surface, &renderer, &background, &transform, &mut panel)?;
+    present(
+        &surface,
+        &renderer,
+        &background,
+        &transform,
+        &mut panel,
+    )?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
 ```
 
 Replace it with:
@@ -543,8 +641,6 @@ Replace it with:
         &mut panel,
     )?;
     let input_canvas = canvas.clone();
-    let click = Closure::<dyn FnMut(web_sys::Event)>::new(move |event: web_sys::Event| {
-        let line = match panel.update(Some(&event), &input_canvas) {
 ```
 
 **Locate this block:**
@@ -607,18 +703,73 @@ use wasm_bindgen::{JsCast, JsValue, closure::Closure};
 
 Keep the viewing angle in radians beside the centre and scale. Start without rotation and make Reset view restore that angle. Replace the four-number uniform with a column-major matrix and add rotation. Strengthen the camera test: its target must stay centred after both zooming and rotation.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-pub struct Camera {
-    pub center: [f32; 2],
+    pub scale: f32,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            center: [0.0, 0.0],
+            scale: 1.0,
+        }
+    }
+}
+
+impl Camera {
+    pub fn pan(&mut self, dx: f32, dy: f32) {
+        self.center[0] += dx;
+        self.center[1] += dy;
+    }
+
+    pub fn zoom(&mut self, factor: f32) {
+        if factor.is_finite() && factor > 0.0 {
+            self.scale = (self.scale * factor).clamp(0.1, 10.0);
+        }
+    }
+
+    pub fn uniform(&self) -> [f32; 4] {
+        // Subtract the camera centre before scaling the world position.
+        [
+            self.scale,
+            self.scale,
+            -self.center[0] * self.scale,
+            -self.center[1] * self.scale,
+        ]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn panned_target_stays_at_the_screen_centre_when_zooming() {
+        let mut camera = Camera::default();
+        camera.pan(0.25, -0.5);
+        camera.zoom(2.0);
+        let [sx, sy, ox, oy] = camera.uniform();
+        assert_eq!(camera.center[0] * sx + ox, 0.0);
+        assert_eq!(camera.center[1] * sy + oy, 0.0);
+    }
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     pub scale: f32,
     pub angle: f32,
 }
 
 impl Default for Camera {
     fn default() -> Self {
-        Self { center: [0.0, 0.0], scale: 1.0, angle: 0.0 }
+        Self {
+            center: [0.0, 0.0],
+            scale: 1.0,
+            angle: 0.0,
+        }
     }
 }
 
@@ -644,10 +795,22 @@ impl Camera {
         let [x, y] = self.center;
         // WGSL matrices are uploaded column by column.
         [
-            a, -b, 0.0, 0.0,
-            b,  a, 0.0, 0.0,
-            0.0, 0.0, 1.0, 0.0,
-            -a * x - b * y, b * x - a * y, 0.0, 1.0,
+            a,
+            -b,
+            0.0,
+            0.0,
+            b,
+            a,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            -a * x - b * y,
+            b * x - a * y,
+            0.0,
+            1.0,
         ]
     }
 }
@@ -667,26 +830,24 @@ mod tests {
         assert!((m[0] * x + m[4] * y + m[12]).abs() < 1.0e-6);
         assert!((m[1] * x + m[5] * y + m[13]).abs() < 1.0e-6);
     }
-
-    #[test]
-    fn zoom_stays_positive_and_bounded() {
-        let mut camera = Camera::default();
-        camera.zoom(0.0001);
-        assert_eq!(camera.scale, 0.1);
-        camera.zoom(1_000.0);
-        assert_eq!(camera.scale, 10.0);
-        camera.zoom(f32::NAN);
-        camera.zoom(-1.0);
-        assert_eq!(camera.scale, 10.0);
-    }
-}
 ```
 
 ### 2. `src/triangle.wgsl`
 
 Change the resource type to four columns of four floats. Multiply a world position by the matrix. Its final component 1 lets the translation column contribute.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```wgsl
+@group(0) @binding(0) var<uniform> transform: vec4<f32>;
+
+@vertex
+fn vertex(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
+    return vec4<f32>(position * transform.xy + transform.zw, 0.0, 1.0);
+}
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 @group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
@@ -695,65 +856,80 @@ Replace the entire file with:
 fn vertex(@location(0) position: vec2<f32>) -> @builtin(position) vec4<f32> {
     return transform * vec4<f32>(position, 0.0, 1.0);
 }
-
-@fragment
-fn fragment() -> @location(0) vec4<f32> {
-    return vec4<f32>(0.9, 0.25, 0.45, 1.0);
-}
 ```
 
 ### 3. `src/renderer.rs`
 
 Allocate 64 bytes for sixteen f32 matrix entries. Upload all sixteen matrix entries before drawing.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 4],
-    ) {
-        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-```
-
-Replace it with:
-
-```rust
-        &self,
-        view: &wgpu::TextureView,
-        background: &crate::background::Background,
-        transform: &[f32; 16],
-    ) {
-        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-```
-
-**Locate this block:**
-
-```rust
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("view transform"),
             size: 16,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
+        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("view settings"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        Self {
+            device,
+            queue,
+            pipeline,
+            vertices,
+            indices,
+            uniform,
+            view_group,
+        }
+    }
+
+    pub fn draw(
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
+        transform: &[f32; 4],
+    ) {
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("view transform"),
             size: 64,
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
+        let view_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("view settings"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[wgpu::BindGroupEntry {
+                binding: 0,
+                resource: uniform.as_entire_binding(),
+            }],
+        });
+        Self {
+            device,
+            queue,
+            pipeline,
+            vertices,
+            indices,
+            uniform,
+            view_group,
+        }
+    }
+
+    pub fn draw(
+        &self,
+        view: &wgpu::TextureView,
+        background: &crate::background::Background,
+        transform: &[f32; 16],
+    ) {
 ```
 
 ### 4. `src/browser.rs`
@@ -770,8 +946,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
     background: &Background,
     transform: &[f32; 4],
     panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
 ```
 
 Replace it with:
@@ -782,8 +956,6 @@ Replace it with:
     background: &Background,
     transform: &[f32; 16],
     panel: &mut crate::panel::Panel,
-) -> Result<(), JsValue> {
-    let frame = match surface.get_current_texture() {
 ```
 
 **Locate this block:**
@@ -811,31 +983,29 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "view reset" => camera = Camera::default(),
-                _ => return,
-            }
+                    "zoom out" => camera.zoom(0.5),
+                    "pan left" => camera.pan(-0.25, 0.0),
+                    "pan right" => camera.pan(0.25, 0.0),
+                    "view reset" => camera = Camera::default(),
+                    _ => return,
+                }
 ```
 
 Replace it with:
 
 ```rust
-                "zoom out" => camera.zoom(0.5),
-                "pan left" => camera.pan(-0.25, 0.0),
-                "pan right" => camera.pan(0.25, 0.0),
-                "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
-                "view reset" => camera = Camera::default(),
-                _ => return,
-            }
+                    "zoom out" => camera.zoom(0.5),
+                    "pan left" => camera.pan(-0.25, 0.0),
+                    "pan right" => camera.pan(0.25, 0.0),
+                    "orbit right" => camera.rotate(std::f32::consts::FRAC_PI_4),
+                    "view reset" => camera = Camera::default(),
+                    _ => return,
+                }
 ```
 
 **Locate this block:**
 
 ```rust
-            "Zoom Out",
-            "Pan Left",
             "Pan Right",
             "View Reset",
         ],
@@ -845,8 +1015,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Zoom Out",
-            "Pan Left",
             "Pan Right",
             "Orbit Right",
             "View Reset",

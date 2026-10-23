@@ -107,7 +107,25 @@ Normalize bounded display directions safely while preserving an explicit flat fa
 Create the file and type:
 
 ```rust
---8<-- "journey/code/41-normals-01.rs"
+pub fn unit(vector: [f32; 3]) -> Result<[f32; 3], &'static str> {
+    if vector.iter().any(|v| !v.is_finite()) {
+        return Err("Display normals must be finite");
+    }
+    let scale = vector
+        .iter()
+        .map(|v| v.abs())
+        .fold(0.0, f32::max);
+    if scale == 0.0 {
+        return Ok([0.0; 3]);
+    }
+    let vector = vector.map(|v| v / scale);
+    let length = vector
+        .iter()
+        .map(|v| v * v)
+        .sum::<f32>()
+        .sqrt();
+    Ok(vector.map(|v| v / length))
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -118,28 +136,70 @@ Register normal preparation and its source checks.
 
 ```rust
 pub mod mesh;
+pub mod offset;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub mod normals;
+pub mod mesh;
 #[cfg(test)]
 mod normal_source_tests;
+pub mod normals;
+pub mod offset;
 ```
 
 ### 3. `src/mesh.rs`
 
 Retain normal data independently of the established position/colour stream. Give manually created display meshes explicit flat normals by default. Carry kernel-extracted normal directions into checked display preparation. Require one finite checked normal per display vertex without touching original geometry. Count actual retained normal capacity in CPU display bytes.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-            let [r, g, b, _] = vertex.color;
-            [x, y, z, r, g, b]
-        }).collect();
+    vertices: Vec<[f32; 6]>,
+    indices: Vec<u32>,
+}
+
+impl Mesh {
+    pub fn new(
+        vertices: Vec<[f32; 6]>,
+        indices: Vec<u32>,
+    ) -> Result<Self, &'static str> {
+        if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {
+            return Err(
+                "Indices must describe complete triangles within the draw limit",
+            );
+        }
+        if indices
+            .iter()
+            .any(|&index| index as usize >= vertices.len())
+        {
+            return Err("A triangle refers to a missing vertex");
+        }
+        if vertices
+            .iter()
+            .flatten()
+            .any(|value| !value.is_finite())
+        {
+            return Err("Vertex values must be finite");
+        }
+        Ok(Self {
+            vertices,
+            indices,
+        })
+    }
+
+    pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
+        let render = mesh.to_render();
+        let vertices = render
+            .vertices
+            .iter()
+            .map(|vertex| {
+                let [x, y, z] = vertex.position;
+                let [r, g, b, _] = vertex.color;
+                [x, y, z, r, g, b]
+            })
+            .collect();
         Self::new(vertices, render.indices)
     }
 
@@ -147,83 +207,90 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         self.vertices.capacity() * std::mem::size_of::<[f32; 6]>()
             + self.indices.capacity() * std::mem::size_of::<u32>()
     }
-
-    pub fn vertices(&self) -> &[[f32; 6]] {
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-            let [r, g, b, _] = vertex.color;
-            [x, y, z, r, g, b]
-        }).collect();
-        let normals = render.vertices.iter().map(|vertex| vertex.normal).collect();
+    vertices: Vec<[f32; 6]>,
+    normals: Vec<[f32; 3]>,
+    indices: Vec<u32>,
+}
+
+impl Mesh {
+    pub fn new(
+        vertices: Vec<[f32; 6]>,
+        indices: Vec<u32>,
+    ) -> Result<Self, &'static str> {
+        if indices.len() % 3 != 0 || indices.len() > u32::MAX as usize {
+            return Err(
+                "Indices must describe complete triangles within the draw limit",
+            );
+        }
+        if indices
+            .iter()
+            .any(|&index| index as usize >= vertices.len())
+        {
+            return Err("A triangle refers to a missing vertex");
+        }
+        if vertices
+            .iter()
+            .flatten()
+            .any(|value| !value.is_finite())
+        {
+            return Err("Vertex values must be finite");
+        }
+        let normals = vec![[0.0; 3]; vertices.len()];
+        Ok(Self {
+            vertices,
+            normals,
+            indices,
+        })
+    }
+
+    pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
+        let render = mesh.to_render();
+        let vertices = render
+            .vertices
+            .iter()
+            .map(|vertex| {
+                let [x, y, z] = vertex.position;
+                let [r, g, b, _] = vertex.color;
+                [x, y, z, r, g, b]
+            })
+            .collect();
+        let normals = render
+            .vertices
+            .iter()
+            .map(|vertex| vertex.normal)
+            .collect();
         Self::new(vertices, render.indices)?.with_normals(normals)
     }
 
-    pub fn with_normals(mut self, normals: Vec<[f32; 3]>) -> Result<Self, &'static str> {
-        if normals.len() != self.vertices.len() { return Err("Each display vertex needs one normal"); }
-        self.normals = normals.into_iter().map(crate::normals::unit).collect::<Result<_, _>>()?; Ok(self)
+    pub fn with_normals(
+        mut self,
+        normals: Vec<[f32; 3]>,
+    ) -> Result<Self, &'static str> {
+        if normals.len() != self.vertices.len() {
+            return Err("Each display vertex needs one normal");
+        }
+        self.normals = normals
+            .into_iter()
+            .map(crate::normals::unit)
+            .collect::<Result<_, _>>()?;
+        Ok(self)
     }
 
-    pub fn normals(&self) -> &[[f32; 3]] { &self.normals }
+    pub fn normals(&self) -> &[[f32; 3]] {
+        &self.normals
+    }
 
     pub fn payload_bytes(&self) -> usize {
         self.vertices.capacity() * std::mem::size_of::<[f32; 6]>()
             + self.indices.capacity() * std::mem::size_of::<u32>()
             + self.normals.capacity() * std::mem::size_of::<[f32; 3]>()
     }
-
-    pub fn vertices(&self) -> &[[f32; 6]] {
 ```
-
-**Locate this block:**
-
-```rust
-        if vertices.iter().flatten().any(|value| !value.is_finite()) {
-            return Err("Vertex values must be finite");
-        }
-        Ok(Self { vertices, indices })
-    }
-
-    pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
-```
-
-Replace it with:
-
-```rust
-        if vertices.iter().flatten().any(|value| !value.is_finite()) {
-            return Err("Vertex values must be finite");
-        }
-        let normals = vec![[0.0; 3]; vertices.len()];
-        Ok(Self { vertices, normals, indices })
-    }
-
-    pub fn from_kernel(mesh: &session_rust::Mesh) -> Result<Self, &'static str> {
-```
-
-**Locate this block:**
-
-```rust
-pub struct Mesh {
-    vertices: Vec<[f32; 6]>,
-    indices: Vec<u32>,
-}
-```
-
-Replace it with:
-
-```rust
-pub struct Mesh {
-    vertices: Vec<[f32; 6]>,
-    normals: Vec<[f32; 3]>,
-    indices: Vec<u32>,
-}
-```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/memory.rs`
 
@@ -231,28 +298,84 @@ Copy the normal-capacity oracle for a display mesh retaining three normals.
 
 **Locate this existing block:**
 
-```text
-baseline[4] + 16 * 24 + 16 * 4
+```rust
+        assert_eq!(retained[3], baseline[3] + 1);
+        assert_eq!(retained[4], baseline[4] + 16 * 24 + 16 * 4);
+    }
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/41-normals-08.rs" skip=30
+```rust
+        assert_eq!(retained[3], baseline[3] + 1);
+        assert_eq!(
+            retained[4],
+            baseline[4] + 16 * 24 + 16 * 4 + 3 * 12
+        );
+    }
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/normal_source_tests.rs`
 
 Copy exact original attributes, normalized directions, flat zeros, malformed data and overflow-safe checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41-normals-09.rs"
+```rust
+use crate::{mesh::Mesh, normals::unit, prepared::PreparedMesh};
+
+#[test]
+fn original_vertex_normal_attributes_survive_normalized_display_preparation() {
+    let mut source = session_rust::Mesh::create_box(1.0, 1.0, 1.0);
+    for key in source.vertices() {
+        source.set_vertex_attribute(key, "nx", 4.0);
+        source.set_vertex_attribute(key, "ny", 0.0);
+        source.set_vertex_attribute(key, "nz", 3.0);
+    }
+    let prepared = PreparedMesh::new(source).unwrap();
+    assert!(
+        prepared
+            .display
+            .normals()
+            .iter()
+            .all(|n| (n[0] - 0.8).abs() < 1e-6 && (n[2] - 0.6).abs() < 1e-6)
+    );
+    assert_eq!(
+        prepared.geometry.vertex_attribute(0, "nx"),
+        Some(4.0)
+    );
+    assert_eq!(
+        prepared.geometry.vertex_attribute(0, "nz"),
+        Some(3.0)
+    );
+    let flat =
+        PreparedMesh::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0)).unwrap();
+    assert!(
+        flat.display
+            .normals()
+            .iter()
+            .all(|n| *n == [0.0; 3])
+    );
+}
+
+#[test]
+fn normal_streams_refuse_mismatches_and_nonfinite_values_without_overflow() {
+    assert!(
+        Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 2])
+            .unwrap()
+            .with_normals(vec![[0.0; 3]; 2])
+            .is_err()
+    );
+    assert!(
+        Mesh::new(vec![[0.0; 6]; 3], vec![0, 1, 2])
+            .unwrap()
+            .with_normals(vec![[f32::NAN; 3]; 3])
+            .is_err()
+    );
+    let huge = unit([f32::MAX, 0.0, f32::MAX]).unwrap();
+    assert!((huge[0] - 0.5f32.sqrt()).abs() < 1e-6);
+    assert_eq!(unit([0.0; 3]).unwrap(), [0.0; 3]);
+}
 ```
 
 ## <a id="checkpoint-41a-placement"></a>2. Transform normals with nonuniform surface placement
@@ -305,22 +428,47 @@ Prepare bounded cofactor columns for oriented affine normal transformation.
 }
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+    Ok(vector.map(|v| v / length))
+}
 
 pub fn matrix(model: &session_rust::Xform) -> Result<[f32; 16], &'static str> {
-    if !crate::placement::valid(&model.m) { return Err("Normal placement needs a finite affine matrix"); }
-    let column = |index: usize| [model.m[index * 4], model.m[index * 4 + 1], model.m[index * 4 + 2]];
-    let cross = |a: [f64; 3], b: [f64; 3]| [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+    if !crate::placement::valid(&model.m) {
+        return Err("Normal placement needs a finite affine matrix");
+    }
+    let column = |index: usize| {
+        [
+            model.m[index * 4],
+            model.m[index * 4 + 1],
+            model.m[index * 4 + 2],
+        ]
+    };
+    let cross = |a: [f64; 3], b: [f64; 3]| {
+        [
+            a[1] * b[2] - a[2] * b[1],
+            a[2] * b[0] - a[0] * b[2],
+            a[0] * b[1] - a[1] * b[0],
+        ]
+    };
     let [a, b, c] = [column(0), column(1), column(2)];
     let columns = [cross(b, c), cross(c, a), cross(a, b)];
-    let scale = columns.iter().flatten().map(|v| v.abs()).fold(0.0, f64::max);
+    let scale = columns
+        .iter()
+        .flatten()
+        .map(|v| v.abs())
+        .fold(0.0, f64::max);
     let mut matrix = [0.0; 16];
     if scale > 0.0 {
-        for col in 0..3 { for row in 0..3 { matrix[col * 4 + row] = (columns[col][row] / scale) as f32; } }
+        for col in 0..3 {
+            for row in 0..3 {
+                matrix[col * 4 + row] = (columns[col][row] / scale) as f32;
+            }
+        }
     }
-    matrix[15] = 1.0; Ok(matrix)
+    matrix[15] = 1.0;
+    Ok(matrix)
 }
 ```
 
@@ -331,28 +479,86 @@ Register nonuniform, reflected and singular placement checks.
 **Locate this existing block:**
 
 ```rust
-pub mod normals;
+#[cfg(test)]
+mod normal_source_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(test)]
 mod normal_matrix_tests;
+#[cfg(test)]
+mod normal_source_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 3. `src/normal_matrix_tests.rs`
 
 Copy perpendicularity, translation independence, winding, collapse and finite-range checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41a-placement-03.rs"
+```rust
+use crate::normals::matrix;
+use session_rust::Xform;
+
+fn vector(matrix: &[f32; 16], v: [f64; 3]) -> [f64; 3] {
+    std::array::from_fn(|row| {
+        (0..3)
+            .map(|col| matrix[col * 4 + row] as f64 * v[col])
+            .sum()
+    })
+}
+
+#[test]
+fn normal_cofactors_keep_transformed_tangents_perpendicular_and_ignore_translation() {
+    let mut model = Xform::identity();
+    model.m[0] = 2.0;
+    model.m[4] = 1.0;
+    model.m[5] = 3.0;
+    model.m[10] = 4.0;
+    let normal = vector(&matrix(&model).unwrap(), [1.0, 1.0, 1.0]);
+    for tangent in [[1.0, -3.0, 0.0], [2.0, 0.0, -4.0]] {
+        let dot: f64 = (0..3)
+            .map(|axis| normal[axis] * tangent[axis])
+            .sum();
+        assert!(dot.abs() < 1e-6);
+    }
+    let before = matrix(&model).unwrap();
+    model.m[12] = 123.456;
+    model.m[13] = -987.654;
+    assert_eq!(matrix(&model).unwrap(), before);
+}
+
+#[test]
+fn reflections_flattening_and_extreme_scale_keep_finite_oriented_normals() {
+    let mut reflected = Xform::identity();
+    reflected.m[0] = -2.0;
+    assert!(vector(&matrix(&reflected).unwrap(), [0.0, 0.0, 1.0])[2] < 0.0);
+    let mut flat = Xform::identity();
+    flat.m[10] = 0.0;
+    assert_eq!(
+        vector(&matrix(&flat).unwrap(), [0.0, 0.0, 1.0]),
+        [0.0, 0.0, 1.0]
+    );
+    flat.m[5] = 0.0;
+    assert_eq!(
+        vector(&matrix(&flat).unwrap(), [1.0; 3]),
+        [0.0; 3]
+    );
+    let mut huge = Xform::identity();
+    for index in [0, 5, 10] {
+        huge.m[index] = f32::MAX as f64;
+    }
+    let result = matrix(&huge).unwrap();
+    assert!(result.iter().all(|v| v.is_finite()));
+    assert_eq!([result[0], result[5], result[10]], [1.0; 3]);
+    huge.m[0] = f64::NAN;
+    assert!(matrix(&huge).is_err());
+    let mut perspective = Xform::identity();
+    perspective.m[3] = 0.1;
+    assert!(matrix(&perspective).is_err());
+}
 ```
 
 ## <a id="checkpoint-41b-drawing"></a>3. Draw smooth normals and sharp surface faces
@@ -398,15 +604,58 @@ Copy this supplied file:
 
 Share the checked normal stream with the geometry’s existing GPU lifetime. Upload three finite floats for each display vertex normal. Retain the normal allocation beside position and index buffers. Report actual normal allocation bytes as shared geometry. Bind the normal stream independently from position and colour attributes.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```rust
-use crate::mesh::Mesh;
-use std::rc::Rc;
-use wgpu::util::DeviceExt;
+    vertices: wgpu::Buffer,
+    indices: wgpu::Buffer,
+    index_count: u32,
+}
 
-pub struct GpuGeometry {
-    pub source: Rc<Mesh>,
+impl GpuGeometry {
+    pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
+        let bytes: Vec<u8> = source
+            .vertices()
+            .iter()
+            .flatten()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("shared mesh vertices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
+        });
+        let bytes: Vec<u8> = source
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
+        let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("shared mesh indices"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::INDEX,
+        });
+        let index_count = source.indices().len() as u32;
+        Self {
+            source,
+            vertices,
+            indices,
+            index_count,
+        }
+    }
+
+    pub fn allocated_bytes(&self) -> u64 {
+        self.vertices.size() + self.indices.size()
+    }
+
+    pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
+        pass.set_vertex_buffer(0, self.vertices.slice(..));
+        pass.set_index_buffer(
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```rust
     vertices: wgpu::Buffer,
     normals: wgpu::Buffer,
     indices: wgpu::Buffer,
@@ -415,35 +664,56 @@ pub struct GpuGeometry {
 
 impl GpuGeometry {
     pub fn upload(device: &wgpu::Device, source: Rc<Mesh>) -> Self {
-        let bytes: Vec<u8> = source.vertices().iter().flatten()
-            .flat_map(|value| value.to_ne_bytes()).collect();
+        let bytes: Vec<u8> = source
+            .vertices()
+            .iter()
+            .flatten()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
         let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh vertices"), contents: &bytes,
+            label: Some("shared mesh vertices"),
+            contents: &bytes,
             usage: wgpu::BufferUsages::VERTEX,
         });
-        let bytes: Vec<u8> = source.normals().iter().flatten().flat_map(|value| value.to_ne_bytes()).collect();
+        let bytes: Vec<u8> = source
+            .normals()
+            .iter()
+            .flatten()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
         let normals = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh normals"), contents: &bytes, usage: wgpu::BufferUsages::VERTEX,
+            label: Some("shared mesh normals"),
+            contents: &bytes,
+            usage: wgpu::BufferUsages::VERTEX,
         });
-        let bytes: Vec<u8> = source.indices().iter()
-            .flat_map(|index| index.to_ne_bytes()).collect();
+        let bytes: Vec<u8> = source
+            .indices()
+            .iter()
+            .flat_map(|index| index.to_ne_bytes())
+            .collect();
         let indices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("shared mesh indices"), contents: &bytes,
+            label: Some("shared mesh indices"),
+            contents: &bytes,
             usage: wgpu::BufferUsages::INDEX,
         });
         let index_count = source.indices().len() as u32;
-        Self { source, vertices, normals, indices, index_count }
+        Self {
+            source,
+            vertices,
+            normals,
+            indices,
+            index_count,
+        }
     }
 
-    pub fn allocated_bytes(&self) -> u64 { self.vertices.size() + self.normals.size() + self.indices.size() }
+    pub fn allocated_bytes(&self) -> u64 {
+        self.vertices.size() + self.normals.size() + self.indices.size()
+    }
 
     pub fn draw(&self, pass: &mut wgpu::RenderPass<'_>) {
         pass.set_vertex_buffer(0, self.vertices.slice(..));
         pass.set_vertex_buffer(1, self.normals.slice(..));
-        pass.set_index_buffer(self.indices.slice(..), wgpu::IndexFormat::Uint32);
-        pass.draw_indexed(0..self.index_count, 0, 0..1);
-    }
-}
+        pass.set_index_buffer(
 ```
 
 ### 2. `src/renderer.rs`
@@ -476,32 +746,51 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
+    ) -> [usize; 2] {
         let next = settings(object, selected);
         let mut writes = [0, 0];
         for (start, end) in [(0, 64), (64, 80)] {
             if next[start..end] != self.previous[start..end] {
-                queue.write_buffer(&self.model, start as u64, &next[start..end]);
-                writes[0] += 1;
 ```
 
 Replace it with:
 
 ```rust
-    pub fn update(&mut self, queue: &wgpu::Queue, object: &Object, selected: bool) -> [usize; 2] {
+    ) -> [usize; 2] {
         let next = settings(object, selected);
         let mut writes = [0, 0];
         for (start, end) in [(0, 64), (64, 80), (80, 144)] {
             if next[start..end] != self.previous[start..end] {
-                queue.write_buffer(&self.model, start as u64, &next[start..end]);
-                writes[0] += 1;
 ```
 
 **Locate this block:**
 
 ```rust
-    model_group: wgpu::BindGroup,
-    pub id: crate::scene::ObjectId,
+        0.0
+    };
+    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
+    bytes
+}
+```
+
+Replace it with:
+
+```rust
+        0.0
+    };
+    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
+    let normals = crate::normals::matrix(&object.model)
+        .expect("Scene placements are checked before insertion or editing");
+    for (index, value) in normals.iter().enumerate() {
+        bytes[80 + index * 4..84 + index * 4].copy_from_slice(&value.to_ne_bytes());
+    }
+    bytes
+}
+```
+
+**Locate this block:**
+
+```rust
     model: wgpu::Buffer,
     previous: [u8; 80],
 }
@@ -511,17 +800,11 @@ fn settings(object: &Object, selected: bool) -> [u8; 80] {
     for (index, value) in object.model.m.iter().enumerate() {
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
     }
-    let flag: f32 = if selected { 1.0 } else { 0.0 };
-    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
-    bytes
-}
 ```
 
 Replace it with:
 
 ```rust
-    model_group: wgpu::BindGroup,
-    pub id: crate::scene::ObjectId,
     model: wgpu::Buffer,
     previous: [u8; 144],
 }
@@ -531,14 +814,6 @@ fn settings(object: &Object, selected: bool) -> [u8; 144] {
     for (index, value) in object.model.m.iter().enumerate() {
         bytes[index * 4..index * 4 + 4].copy_from_slice(&(*value as f32).to_ne_bytes());
     }
-    let flag: f32 = if selected { 1.0 } else { 0.0 };
-    bytes[64..68].copy_from_slice(&flag.to_ne_bytes());
-    let normals = crate::normals::matrix(&object.model).expect("Scene placements are checked before insertion or editing");
-    for (index, value) in normals.iter().enumerate() {
-        bytes[80 + index * 4..84 + index * 4].copy_from_slice(&value.to_ne_bytes());
-    }
-    bytes
-}
 ```
 
 ### 4. `src/scene.rs`
@@ -549,15 +824,17 @@ Refuse invalid initial placement before consuming an ID or creating a row.
 
 ```rust
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
+        let next = self
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
     pub fn insert(&mut self, prepared: PreparedMesh) -> Result<ObjectId, &'static str> {
-        if !crate::placement::valid(&prepared.model.m) { return Err("Placement must be finite, affine and fit the display range"); }
-        let next = self.next_id.checked_add(1).ok_or("Object IDs exhausted")?;
+        if !crate::placement::valid(&prepared.model.m) {
+            return Err("Placement must be finite, affine and fit the display range");
+        }
+        let next = self
 ```
 
 ### 5. `src/geometry_cache.rs`
@@ -567,13 +844,20 @@ Count initialized normal payload separately from retained GPU capacity.
 **Locate this existing block:**
 
 ```rust
-        self.uploaded_bytes += (source.vertices().len() * 24 + source.indices().len() * 4) as u64;
+        self.uploads += 1;
+        self.uploaded_bytes +=
+            (source.vertices().len() * 24 + source.indices().len() * 4) as u64;
+        geometry
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        self.uploaded_bytes += (source.vertices().len() * 24 + source.normals().len() * 12 + source.indices().len() * 4) as u64;
+        self.uploads += 1;
+        self.uploaded_bytes += (source.vertices().len() * 24
+            + source.normals().len() * 12
+            + source.indices().len() * 4) as u64;
+        geometry
 ```
 
 ### 6. `src/renderer.rs`
@@ -583,25 +867,56 @@ Count complete initial object settings without confusing the separate ink view u
 **Locate this existing block:**
 
 ```rust
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 80 + self.settings_bytes as u64
+        self.geometry.uploaded_bytes
+            + self.settings_allocations as u64 * 80
+            + self.settings_bytes as u64
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 144 + self.settings_bytes as u64
+        self.geometry.uploaded_bytes
+            + self.settings_allocations as u64 * 144
+            + self.settings_bytes as u64
 ```
 
 ### 7. `src/triangle.wgsl`
 
 Keep the shader uniform layout identical to the 144-byte host settings. Interpolate the placed source normal across the rasterized face. Read the normal attribute from the separate shared stream. Transform a direction without adding the object’s translation. Choose source smoothing or sharp derivatives, then normalize without zero division or squaring huge vectors.
 
-Replace the entire file with:
+**Locate this existing block:**
 
 ```wgsl
-@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
-struct ObjectSettings {
-    model: mat4x4<f32>,
+    selection: vec4<f32>,
+}
+@group(1) @binding(0) var<uniform> object: ObjectSettings;
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+}
+
+@vertex
+fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>) -> VertexOutput {
+    var output: VertexOutput;
+    let world = object.model * vec4<f32>(position, 1.0);
+    output.position = transform * world;
+    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x > 0.5);
+    output.world = world.xyz;
+    return output;
+}
+
+@fragment
+fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Neighbouring fragments give two directions along this triangle's surface.
+    let normal = normalize(cross(dpdx(input.world), dpdy(input.world)));
+    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
+```
+
+Edit the existing block to match this code; keep unchanged lines:
+
+```wgsl
     selection: vec4<f32>,
     normal_matrix: mat4x4<f32>,
 }
@@ -634,10 +949,6 @@ fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
     let bounded = direction / max(scale, 1e-30);
     let normal = bounded / max(length(bounded), 1e-30);
     let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
 ```
 
 ### 8. `src/lib.rs`
@@ -647,28 +958,48 @@ Register atomic placement and normal-stream GPU boundary checks.
 **Locate this existing block:**
 
 ```rust
-pub mod normals;
+#[cfg(test)]
+mod normal_matrix_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(test)]
 mod normal_gpu_tests;
+#[cfg(test)]
+mod normal_matrix_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 9. `src/normal_gpu_tests.rs`
 
 Copy invalid-placement refusal and unchanged identity-allocation checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41b-drawing-20.rs"
+```rust
+use crate::{prepared::PreparedMesh, scene::Scene};
+
+#[test]
+fn invalid_initial_normal_placement_does_not_consume_an_object_identity() {
+    let mut scene = Scene::demo();
+    scene.clear();
+    let baseline = scene.clone();
+    let mut prepared =
+        PreparedMesh::new(session_rust::Mesh::create_box(1.0, 1.0, 1.0)).unwrap();
+    prepared.model.m[0] = f64::NAN;
+    assert!(scene.insert(prepared).is_err());
+    assert!(scene.objects().is_empty());
+    let source = session_rust::Mesh::create_box(1.0, 1.0, 1.0);
+    let actual = scene
+        .insert(PreparedMesh::new(source.clone()).unwrap())
+        .unwrap();
+    let mut baseline = baseline;
+    let expected = baseline
+        .insert(PreparedMesh::new(source).unwrap())
+        .unwrap();
+    assert_eq!(actual, expected);
+}
 ```
 
 ## <a id="checkpoint-41c-view"></a>4. Reveal oriented world normals in the renderer
@@ -723,8 +1054,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 match view {
                     Action::Background => self.background.toggle(),
                     Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
 ```
 
 Replace it with:
@@ -735,8 +1064,6 @@ Replace it with:
                     Action::Background => self.background.toggle(),
                     Action::NormalView(visible) => self.normal_view = visible,
                     Action::Zoom(factor) => self.camera.zoom(factor),
-                    Action::Pan(dx, dy) => self.camera.pan(dx, dy),
-                    Action::Orbit(yaw, pitch) => self.camera.orbit(yaw, pitch),
 ```
 
 **Locate this block:**
@@ -788,8 +1115,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    AddPoint,
-    AddCurve,
     AddColours(crate::colour::Mode),
     Controls(bool),
     AddPolyline,
@@ -799,8 +1124,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    AddPoint,
-    AddCurve,
     AddColours(crate::colour::Mode),
     NormalView(bool),
     Controls(bool),
@@ -812,7 +1135,47 @@ Replace it with:
 
 Describe camera transform and diagnostic mode in the view uniform. Use the transform field of the extended view settings. Receive actual face orientation rather than inferring winding from lighting. Recover oriented sharp-face normals from raster derivatives and actual front-facing state. Map oriented world-normal components into visible diagnostic RGB.
 
-Replace the entire file with:
+**Locate this existing block:**
+
+```wgsl
+@group(0) @binding(0) var<uniform> transform: mat4x4<f32>;
+struct ObjectSettings {
+    model: mat4x4<f32>,
+    selection: vec4<f32>,
+    normal_matrix: mat4x4<f32>,
+}
+@group(1) @binding(0) var<uniform> object: ObjectSettings;
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec3<f32>,
+    @location(1) world: vec3<f32>,
+    @location(2) normal: vec3<f32>,
+}
+
+@vertex
+fn vertex(@location(0) position: vec3<f32>, @location(1) colour: vec3<f32>, @location(2) normal: vec3<f32>) -> VertexOutput {
+    var output: VertexOutput;
+    let world = object.model * vec4<f32>(position, 1.0);
+    output.position = transform * world;
+    output.colour = select(colour, vec3<f32>(1.0, 0.75, 0.05), object.selection.x > 0.5);
+    output.world = world.xyz;
+    output.normal = (object.normal_matrix * vec4<f32>(normal, 0.0)).xyz;
+    return output;
+}
+
+@fragment
+fn fragment(input: VertexOutput) -> @location(0) vec4<f32> {
+    // Derivatives require neighbouring fragments; calculate the sharp face direction before choosing a potentially smooth interpolated source direction.
+    let face = cross(dpdx(input.world), dpdy(input.world));
+    let direction = select(face, input.normal, dot(input.normal, input.normal) > 0.0);
+    let scale = max(max(abs(direction.x), abs(direction.y)), abs(direction.z));
+    let bounded = direction / max(scale, 1e-30);
+    let normal = bounded / max(length(bounded), 1e-30);
+    let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
+```
+
+Edit the existing block to match this code; keep unchanged lines:
 
 ```wgsl
 struct ViewSettings { transform: mat4x4<f32>, display: vec4<f32>, }
@@ -854,10 +1217,6 @@ fn fragment(input: VertexOutput, @builtin(front_facing) front: bool) -> @locatio
     let normal = bounded / max(length(bounded), 1e-30);
     if view.display.x > 0.5 { return vec4<f32>(normal * 0.5 + vec3<f32>(0.5), 1.0); }
     let light = normalize(vec3<f32>(0.4, -0.6, 1.0));
-    // abs lights both sides of an open face; 0.3 keeps unlit faces readable.
-    let brightness = 0.3 + 0.7 * abs(dot(normal, light));
-    return vec4<f32>(input.colour * brightness, 1.0);
-}
 ```
 
 ### 3. `src/renderer.rs`
@@ -869,40 +1228,57 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        view: &wgpu::TextureView,
         background: &crate::background::Background,
         transform: &[f32; 16],
     ) {
-        let bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
+        let bytes: Vec<u8> = transform
+            .iter()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        self.queue
 ```
 
 Replace it with:
 
 ```rust
+        background: &crate::background::Background,
+        transform: &[f32; 16],
+    ) {
+        self.draw_mode(view, background, transform, false);
+    }
+
+    pub fn draw_mode(
+        &self,
         view: &wgpu::TextureView,
         background: &crate::background::Background,
         transform: &[f32; 16],
-    ) { self.draw_mode(view, background, transform, false); }
-
-    pub fn draw_mode(&self, view: &wgpu::TextureView, background: &crate::background::Background,
-        transform: &[f32; 16], normals: bool,
+        normals: bool,
     ) {
-        let mut bytes: Vec<u8> = transform.iter().flat_map(|value| value.to_ne_bytes()).collect();
-        let display = [if normals { 1.0f32 } else { 0.0 }, 0.0, 0.0, 0.0];
-        bytes.extend(display.iter().flat_map(|value| value.to_ne_bytes()));
-        self.queue.write_buffer(&self.uniform, 0, &bytes);
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
+        let mut bytes: Vec<u8> = transform
+            .iter()
+            .flat_map(|value| value.to_ne_bytes())
+            .collect();
+        let display = [
+            if normals {
+                1.0f32
+            } else {
+                0.0
+            },
+            0.0,
+            0.0,
+            0.0,
+        ];
+        bytes.extend(
+            display
+                .iter()
+                .flat_map(|value| value.to_ne_bytes()),
+        );
+        self.queue
 ```
 
 **Locate this block:**
 
 ```rust
-            cache: None,
-        });
         let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("view transform"),
             size: 64,
@@ -914,8 +1290,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            cache: None,
-        });
         let uniform = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("view transform and normal diagnostic"),
             size: 80,
@@ -933,25 +1307,21 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw(&view, background, transform);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 Replace it with:
 
 ```rust
-        format: Some(frame.texture.format().add_srgb_suffix()),
-        ..Default::default()
-    });
+            format: Some(frame.texture.format().add_srgb_suffix()),
+            ..Default::default()
+        });
     renderer.draw_mode(&view, background, transform, normals);
     panel.draw(renderer, &view);
-    frame.present();
-    Ok(())
 ```
 
 **Locate this block:**
@@ -980,72 +1350,79 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
+            .unwrap_or_default(),
+    )?;
+    canvas.set_attribute(
+        "data-camera-matrix",
+        &serde_json::to_string(&editor.camera.view_projection().m)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
-    let metadata: Vec<_> = editor.scene.objects().iter().map(|row| {
+            .unwrap_or_default(),
+    )?;
+    canvas.set_attribute(
+        "data-normal-view",
+        if editor.normal_view {
+            "true"
+        } else {
+            "false"
+        },
+    )?;
+    canvas.set_attribute(
+        "data-camera-matrix",
+        &serde_json::to_string(&editor.camera.view_projection().m)
+            .map_err(|error| JsValue::from_str(&error.to_string()))?,
 ```
 
 **Locate this block:**
 
 ```rust
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
+                    &renderer,
+                    &editor.background,
+                    &editor.camera.uniform(),
+                    &mut panel,
+                ) {
+                    report(&format!("Cannot redraw: {error:?}"));
 ```
 
 Replace it with:
 
 ```rust
-                &renderer,
-                &editor.background,
-                &editor.camera.uniform(),
-                editor.normal_view,
-                &mut panel,
-            ) {
-                report(&format!("Cannot redraw: {error:?}"));
+                    &renderer,
+                    &editor.background,
+                    &editor.camera.uniform(),
+                    editor.normal_view,
+                    &mut panel,
+                ) {
+                    report(&format!("Cannot redraw: {error:?}"));
 ```
 
 **Locate this block:**
 
 ```rust
-                    "example object color" => Action::AddColours(crate::colour::Mode::Object),
-                    "example point colors" => Action::AddColours(crate::colour::Mode::Points),
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "controls on" => Action::Controls(true),
-                    "controls off" => Action::Controls(false),
-                    "example polyline" => Action::AddPolyline,
+                        "example face colors" => {
+                            Action::AddColours(crate::colour::Mode::Faces)
+                        }
+                        "controls on" => Action::Controls(true),
+                        "controls off" => Action::Controls(false),
+                        "example polyline" => Action::AddPolyline,
 ```
 
 Replace it with:
 
 ```rust
-                    "example object color" => Action::AddColours(crate::colour::Mode::Object),
-                    "example point colors" => Action::AddColours(crate::colour::Mode::Points),
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "view normals on" => Action::NormalView(true),
-                    "view normals off" => Action::NormalView(false),
+                        "example face colors" => {
+                            Action::AddColours(crate::colour::Mode::Faces)
+                        }
+                        "view normals on" => Action::NormalView(true),
+                        "view normals off" => Action::NormalView(false),
 
-                    "controls on" => Action::Controls(true),
-                    "controls off" => Action::Controls(false),
-                    "example polyline" => Action::AddPolyline,
+                        "controls on" => Action::Controls(true),
+                        "controls off" => Action::Controls(false),
+                        "example polyline" => Action::AddPolyline,
 ```
 
 **Locate this block:**
@@ -1074,8 +1451,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-            "Example Object Color",
-            "Example Point Colors",
             "Example Face Colors",
             "Controls On",
             "Controls Off",
@@ -1085,12 +1460,9 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Example Object Color",
-            "Example Point Colors",
             "Example Face Colors",
             "View Normals On",
             "View Normals Off",
-
             "Controls On",
             "Controls Off",
             "Example Polyline",
@@ -1103,28 +1475,333 @@ Register the source-history independence check.
 **Locate this existing block:**
 
 ```rust
+mod close_report_tests;
+pub mod colour;
+#[cfg(test)]
+mod colour_input_tests;
+#[cfg(test)]
+mod colour_tests;
+#[cfg(test)]
+mod control_parent_tests;
+#[cfg(test)]
+mod control_tests;
+pub mod controls;
+pub mod curve;
+#[cfg(test)]
+mod curve_input_tests;
+#[cfg(test)]
+mod curve_layout_tests;
+#[cfg(test)]
+mod curve_sample_tests;
+#[cfg(test)]
+mod curve_source_tests;
+pub mod diagnostic;
+#[cfg(test)]
+mod diagnostic_shape_tests;
+#[cfg(test)]
+mod diagnostic_tests;
+pub mod drawing_document;
+#[cfg(test)]
+mod edit_delete_tests;
+pub mod edit_intent;
+#[cfg(test)]
+mod edit_move_tests;
+#[cfg(test)]
+mod edit_owner_tests;
+pub mod edit_replay;
+#[cfg(test)]
+mod edit_scope_tests;
+mod edit_source;
+pub mod editor;
+pub mod error_message;
+#[cfg(test)]
+mod error_message_tests;
+pub mod gesture;
+pub mod gpu_fault;
+#[cfg(test)]
+mod gpu_fault_tests;
+#[cfg(test)]
+mod heartbeat_tests;
+pub mod history;
+#[cfg(test)]
+mod index_width_tests;
+#[cfg(test)]
+mod line_scene_tests;
+pub mod load_measure;
+#[cfg(test)]
+mod load_measure_tests;
+pub mod load_phase;
+#[cfg(test)]
+mod load_phase_tests;
+pub mod marker;
+#[cfg(test)]
+mod marker_tests;
+pub mod memory;
+pub mod mesh;
+#[cfg(test)]
+mod normal_gpu_tests;
+#[cfg(test)]
+mod normal_matrix_tests;
+#[cfg(test)]
+mod normal_source_tests;
 pub mod normals;
+pub mod offset;
+pub mod origin;
+#[cfg(test)]
+mod origin_tests;
+#[cfg(test)]
+mod path_document_tests;
+#[cfg(test)]
+mod path_input_tests;
+#[cfg(test)]
+mod path_placement_tests;
+pub mod picking;
+pub mod placement;
+#[cfg(test)]
+mod point_document_tests;
+#[cfg(test)]
+mod point_input_tests;
+pub mod prepared;
+pub mod recovery;
+#[cfg(test)]
+mod recovery_tests;
+pub mod rehydrate;
+#[cfg(test)]
+mod rehydrate_tests;
+#[cfg(test)]
+mod reload_complete_tests;
+#[cfg(test)]
+mod reload_failure_tests;
+pub mod reload_job;
+#[cfg(test)]
+mod reload_precision_tests;
+pub mod reload_reply;
+#[cfg(test)]
+mod reload_reply_tests;
+pub mod reload_url;
+pub mod report_recency;
+#[cfg(test)]
+mod report_recency_tests;
+pub mod report_store;
+#[cfg(test)]
+mod report_store_tests;
+pub mod row_metadata;
+pub mod scene;
+pub mod shortcuts;
+#[cfg(test)]
+mod shortcuts_tests;
+#[cfg(test)]
+mod source_visibility_tests;
+pub mod startup;
+#[cfg(test)]
+mod startup_tests;
+pub mod stroke;
+pub mod stroke_gpu;
+#[cfg(test)]
+mod stroke_input_tests;
+#[cfg(test)]
+mod stroke_tests;
+pub mod suspension;
+#[cfg(test)]
+mod suspension_tests;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod close_report_tests;
+#[cfg(test)]
+mod control_parent_tests;
+#[cfg(test)]
+mod control_tests;
+pub mod controls;
+pub mod curve;
+#[cfg(test)]
+mod curve_input_tests;
+#[cfg(test)]
+mod curve_layout_tests;
+#[cfg(test)]
+mod curve_sample_tests;
+#[cfg(test)]
+mod curve_source_tests;
+pub mod diagnostic;
+#[cfg(test)]
+mod diagnostic_shape_tests;
+#[cfg(test)]
+mod diagnostic_tests;
+pub mod error_message;
+#[cfg(test)]
+mod error_message_tests;
+pub mod gpu_fault;
+#[cfg(test)]
+mod gpu_fault_tests;
+#[cfg(test)]
+mod heartbeat_tests;
+pub mod load_measure;
+#[cfg(test)]
+mod load_measure_tests;
+pub mod load_phase;
+#[cfg(test)]
+mod load_phase_tests;
+pub mod marker;
+#[cfg(test)]
+mod marker_tests;
+pub mod memory;
+pub mod mesh;
 #[cfg(test)]
 mod normal_view_tests;
+pub mod normals;
+#[cfg(test)]
+mod path_document_tests;
+#[cfg(test)]
+mod path_input_tests;
+#[cfg(test)]
+mod path_placement_tests;
+#[cfg(test)]
+mod point_document_tests;
+#[cfg(test)]
+mod point_input_tests;
+pub mod report_recency;
+#[cfg(test)]
+mod report_recency_tests;
+pub mod report_store;
+#[cfg(test)]
+mod report_store_tests;
+pub mod startup;
+#[cfg(test)]
+mod startup_tests;
+pub mod stroke;
+pub mod stroke_gpu;
+#[cfg(test)]
+mod stroke_input_tests;
+#[cfg(test)]
+mod stroke_tests;
+pub mod suspension;
+#[cfg(test)]
+mod suspension_tests;
+
+pub mod colour;
+#[cfg(test)]
+mod colour_input_tests;
+#[cfg(test)]
+mod colour_tests;
+pub mod drawing_document;
+#[cfg(test)]
+mod edit_delete_tests;
+pub mod edit_intent;
+#[cfg(test)]
+mod edit_move_tests;
+#[cfg(test)]
+mod edit_owner_tests;
+pub mod edit_replay;
+#[cfg(test)]
+mod edit_scope_tests;
+mod edit_source;
+pub mod editor;
+pub mod gesture;
+pub mod history;
+#[cfg(test)]
+mod index_width_tests;
+#[cfg(test)]
+mod line_scene_tests;
+#[cfg(test)]
+mod normal_gpu_tests;
+#[cfg(test)]
+mod normal_matrix_tests;
+#[cfg(test)]
+mod normal_source_tests;
+pub mod offset;
+pub mod origin;
+#[cfg(test)]
+mod origin_tests;
+pub mod picking;
+pub mod placement;
+pub mod prepared;
+pub mod recovery;
+#[cfg(test)]
+mod recovery_tests;
+pub mod rehydrate;
+#[cfg(test)]
+mod rehydrate_tests;
+#[cfg(test)]
+mod reload_complete_tests;
+#[cfg(test)]
+mod reload_failure_tests;
+pub mod reload_job;
+#[cfg(test)]
+mod reload_precision_tests;
+pub mod reload_reply;
+#[cfg(test)]
+mod reload_reply_tests;
+pub mod reload_url;
+pub mod row_metadata;
+pub mod scene;
+pub mod shortcuts;
+#[cfg(test)]
+mod shortcuts_tests;
+#[cfg(test)]
+mod source_visibility_tests;
+#[cfg(test)]
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 6. `src/normal_view_tests.rs`
 
 Copy the check that viewing normals preserves geometry, identity and Undo.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41c-view-22.rs"
+```rust
+use crate::{
+    colour::Mode,
+    editor::{Action, Change, Editor},
+};
+
+#[test]
+fn normal_view_changes_without_consuming_source_history() {
+    let mut editor = Editor::default();
+    editor.apply(Action::Close).unwrap();
+    editor
+        .apply(Action::AddColours(Mode::Faces))
+        .unwrap();
+    let id = editor.scene.objects()[0].id;
+    let original = editor.scene.objects()[0]
+        .geometry()
+        .unwrap()
+        .to_proto();
+    assert_eq!(
+        editor
+            .apply(Action::NormalView(true))
+            .unwrap(),
+        Change::View
+    );
+    assert_eq!(
+        editor.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        original
+    );
+    editor.apply(Action::Undo).unwrap();
+    assert!(editor.scene.objects().is_empty());
+    assert!(editor.normal_view);
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects()[0].id, id);
+    assert_eq!(
+        editor.scene.objects()[0]
+            .geometry()
+            .unwrap()
+            .to_proto(),
+        original
+    );
+    assert_eq!(
+        editor
+            .apply(Action::NormalView(false))
+            .unwrap(),
+        Change::View
+    );
+    assert!(!editor.normal_view);
+}
 ```
 
 ## <a id="checkpoint-41ca-input"></a>5. Inspect smooth normals and face winding through commands
@@ -1173,7 +1850,66 @@ Create original source specimens with missing, smooth or oppositely wound normal
 Create the file and type:
 
 ```rust
---8<-- "journey/code/41c-view-01.rs"
+use session_rust::{Color, Mesh, Point};
+
+#[derive(Clone, Copy)]
+pub enum Mode {
+    Sharp,
+    Smooth,
+    Winding,
+}
+
+pub fn specimen(mode: Mode) -> Mesh {
+    let winding = matches!(mode, Mode::Winding);
+    let xs: &[f64] = if winding {
+        &[-0.7, 0.0, 0.7]
+    } else {
+        &[-0.7, 0.7]
+    };
+    let mut points: Vec<Point> = xs
+        .iter()
+        .map(|&x| Point::new(x, -0.5, 0.0))
+        .chain(xs.iter().map(|&x| Point::new(x, 0.5, 0.0)))
+        .collect();
+    if winding {
+        points.extend([
+            Point::new(0.0, -0.5, 0.0),
+            Point::new(0.0, 0.5, 0.0),
+        ]);
+    }
+    let faces = if winding {
+        vec![vec![0, 1, 4, 3], vec![6, 7, 5, 2]]
+    } else {
+        vec![vec![0, 1, 3, 2]]
+    };
+    let mut mesh = Mesh::from_vertices_and_faces(points, faces);
+    mesh.set_objectcolor(Color::new(0.5, 0.5, 0.5, 1.0));
+    if matches!(mode, Mode::Smooth) {
+        for key in mesh.vertices() {
+            let right = key == 1 || key == 3;
+            mesh.set_vertex_attribute(
+                key,
+                "nx",
+                if right {
+                    1.0
+                } else {
+                    0.0
+                },
+            );
+            mesh.set_vertex_attribute(key, "ny", 0.0);
+            mesh.set_vertex_attribute(
+                key,
+                "nz",
+                if right {
+                    0.0
+                } else {
+                    1.0
+                },
+            );
+        }
+    }
+    mesh
+}
 ```
 
 ### 2. `src/editor.rs`
@@ -1185,34 +1921,33 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
+                    })?;
             }
             Action::Controls(visible) => self.scene.show_controls(visible),
             Action::AddColours(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
 ```
 
 Replace it with:
 
 ```rust
-                self.history.try_edit(&mut self.scene, |scene| scene.insert_path(prepared).map(|_| ()))?;
+                    })?;
             }
             Action::Controls(visible) => self.scene.show_controls(visible),
             Action::AddNormals(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::normal_example::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
+                let prepared = crate::prepared::PreparedMesh::new(
+                    crate::normal_example::specimen(mode),
+                )?;
+                self.history
+                    .try_edit(&mut self.scene, |scene| {
+                        scene.insert(prepared).map(|_| ())
+                    })?;
             }
             Action::AddColours(mode) => {
-                let prepared = crate::prepared::PreparedMesh::new(crate::colour::specimen(mode))?;
-                self.history.try_edit(&mut self.scene, |scene| scene.insert(prepared).map(|_| ()))?;
 ```
 
 **Locate this block:**
 
 ```rust
-    AddCurve,
-    AddColours(crate::colour::Mode),
     NormalView(bool),
     Controls(bool),
     AddPolyline,
@@ -1222,8 +1957,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    AddCurve,
-    AddColours(crate::colour::Mode),
     NormalView(bool),
     AddNormals(crate::normal_example::Mode),
     Controls(bool),
@@ -1240,38 +1973,36 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "view normals on" => Action::NormalView(true),
-                    "view normals off" => Action::NormalView(false),
+                        }
+                        "view normals on" => Action::NormalView(true),
+                        "view normals off" => Action::NormalView(false),
 
-                    "controls on" => Action::Controls(true),
-                    "controls off" => Action::Controls(false),
-                    "example polyline" => Action::AddPolyline,
+                        "controls on" => Action::Controls(true),
 ```
 
 Replace it with:
 
 ```rust
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "view normals on" => Action::NormalView(true),
-                    "view normals off" => Action::NormalView(false),
-                    "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
-                    "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
-                    "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
+                        }
+                        "view normals on" => Action::NormalView(true),
+                        "view normals off" => Action::NormalView(false),
+                        "example sharp" => {
+                            Action::AddNormals(crate::normal_example::Mode::Sharp)
+                        }
+                        "example smooth" => {
+                            Action::AddNormals(crate::normal_example::Mode::Smooth)
+                        }
+                        "example winding" => {
+                            Action::AddNormals(crate::normal_example::Mode::Winding)
+                        }
 
-
-                    "controls on" => Action::Controls(true),
-                    "controls off" => Action::Controls(false),
-                    "example polyline" => Action::AddPolyline,
+                        "controls on" => Action::Controls(true),
 ```
 
 **Locate this block:**
 
 ```rust
-            "Example Face Colors",
-            "View Normals On",
             "View Normals Off",
-
             "Controls On",
             "Controls Off",
             "Example Polyline",
@@ -1280,14 +2011,10 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Example Face Colors",
-            "View Normals On",
             "View Normals Off",
             "Example Sharp",
             "Example Smooth",
             "Example Winding",
-
-
             "Controls On",
             "Controls Off",
             "Example Polyline",
@@ -1300,29 +2027,138 @@ Register source normal attributes, view independence, history and editable round
 **Locate this existing block:**
 
 ```rust
+pub mod mesh;
+#[cfg(test)]
+mod normal_view_tests;
 pub mod normals;
+#[cfg(test)]
+mod path_document_tests;
+#[cfg(test)]
+mod path_input_tests;
+#[cfg(test)]
+mod path_placement_tests;
+#[cfg(test)]
+mod point_document_tests;
+#[cfg(test)]
+mod point_input_tests;
+pub mod report_recency;
+#[cfg(test)]
+mod report_recency_tests;
+pub mod report_store;
+#[cfg(test)]
+mod report_store_tests;
+pub mod startup;
+#[cfg(test)]
+mod startup_tests;
+pub mod stroke;
+pub mod stroke_gpu;
+#[cfg(test)]
+mod stroke_input_tests;
+#[cfg(test)]
+mod stroke_tests;
+pub mod suspension;
+#[cfg(test)]
+mod suspension_tests;
+
+pub mod colour;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+pub mod mesh;
 pub mod normal_example;
 #[cfg(test)]
 mod normal_input_tests;
+pub mod normals;
+#[cfg(test)]
+mod path_document_tests;
+#[cfg(test)]
+mod path_input_tests;
+#[cfg(test)]
+mod path_placement_tests;
+#[cfg(test)]
+mod point_document_tests;
+#[cfg(test)]
+mod point_input_tests;
+pub mod report_recency;
+#[cfg(test)]
+mod report_recency_tests;
+pub mod report_store;
+#[cfg(test)]
+mod report_store_tests;
+pub mod startup;
+#[cfg(test)]
+mod startup_tests;
+pub mod stroke;
+pub mod stroke_gpu;
+#[cfg(test)]
+mod stroke_input_tests;
+#[cfg(test)]
+mod stroke_tests;
+pub mod suspension;
+#[cfg(test)]
+mod suspension_tests;
+
+#[cfg(test)]
+mod normal_view_tests;
+
+pub mod colour;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 5. `src/normal_input_tests.rs`
 
 Copy source normal attributes, exact protobuf roundtrip, independent view mode, one-step history and Close checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41ca-input-05.rs"
+```rust
+use crate::{
+    document,
+    editor::{Action, Change, Editor},
+    normal_example::Mode,
+};
+
+#[test]
+fn normal_commands_preserve_original_attributes_history_and_roundtrips() {
+    for mode in [Mode::Sharp, Mode::Smooth, Mode::Winding] {
+        let mut editor = Editor::default();
+        editor.apply(Action::Close).unwrap();
+        editor
+            .apply(Action::AddNormals(mode))
+            .unwrap();
+        let id = editor.scene.objects()[0].id;
+        let source = editor.scene.objects()[0].geometry().unwrap();
+        let weak = std::rc::Rc::downgrade(source);
+        let original = source.to_proto();
+        if matches!(mode, Mode::Smooth) {
+            assert_eq!(source.vertex_attribute(1, "nx"), Some(1.0));
+            assert_eq!(source.vertex_attribute(0, "nz"), Some(1.0));
+        }
+        let bytes = document::snapshot(&editor.scene).unwrap();
+        let loaded = document::load(&bytes).unwrap();
+        assert_eq!(
+            loaded.meshes[0].geometry.to_proto(),
+            original
+        );
+        drop(loaded);
+        assert_eq!(
+            editor
+                .apply(Action::NormalView(true))
+                .unwrap(),
+            Change::View
+        );
+        assert!(editor.normal_view);
+        editor.apply(Action::Undo).unwrap();
+        assert!(editor.scene.objects().is_empty());
+        assert!(weak.upgrade().is_some());
+        editor.apply(Action::Redo).unwrap();
+        assert_eq!(editor.scene.objects()[0].id, id);
+        assert!(editor.normal_view);
+        editor.apply(Action::Close).unwrap();
+        assert!(weak.upgrade().is_none());
+    }
+}
 ```
 
 ## <a id="checkpoint-41d-grid"></a>6. Bound the ground grid and its camera depth range
@@ -1371,7 +2207,112 @@ Validate and prepare finite grid lines, current axis colours and depth-reach ref
 Create the file and type:
 
 ```rust
---8<-- "journey/code/41d-grid-01.rs"
+use crate::stroke::Stroke;
+
+pub const AXIS_COLOURS: [[f32; 4]; 3] = [
+    [0.910, 0.278, 0.545, 1.0],
+    [0.604, 0.804, 0.196, 1.0],
+    [0.129, 0.588, 0.918, 1.0],
+];
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Settings {
+    pub spacing: f64,
+    pub half_cells: u32,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            spacing: 1.0,
+            half_cells: 5,
+        }
+    }
+}
+
+impl Settings {
+    pub fn half(self) -> Result<f64, &'static str> {
+        let half = self.spacing * self.half_cells as f64;
+        if !self.spacing.is_finite()
+            || self.spacing <= 0.0
+            || self.half_cells == 0
+            || self.half_cells > 500
+            || !(half as f32).is_finite()
+            || self.spacing as f32 == 0.0
+        {
+            return Err("Grid spacing or extent is invalid");
+        }
+        Ok(half)
+    }
+
+    pub fn points(self) -> Result<Vec<[f64; 3]>, &'static str> {
+        let h = self.half()?;
+        Ok(vec![
+            [-h, -h, 0.0],
+            [-h, h, 0.0],
+            [h, -h, 0.0],
+            [h, h, 0.0],
+            [h, 0.0, 0.0],
+            [0.0, h, 0.0],
+            [0.0, 0.0, self.spacing],
+        ])
+    }
+
+    pub fn reach(self, target: [f64; 3]) -> Result<f64, &'static str> {
+        if target.iter().any(|v| !v.is_finite()) {
+            return Err("Grid target must be finite");
+        }
+        let reach = self
+            .points()?
+            .iter()
+            .map(|p| {
+                (p[0] - target[0])
+                    .hypot(p[1] - target[1])
+                    .hypot(p[2] - target[2])
+            })
+            .fold(0.0, f64::max);
+        if !reach.is_finite() {
+            return Err("Grid target exceeds the depth range");
+        }
+        Ok(reach)
+    }
+
+    pub fn strokes(self) -> Result<Vec<Stroke>, &'static str> {
+        let half = self.half()? as f32;
+        let n = self.half_cells as i32;
+        let mut strokes = Vec::new();
+        for k in -n..=n {
+            let t = (k as f64 * self.spacing) as f32;
+            for (start, end) in [
+                ([-half, t, 0.0], [half, t, 0.0]),
+                ([t, -half, 0.0], [t, half, 0.0]),
+            ] {
+                strokes.push(Stroke {
+                    start,
+                    end,
+                    colour: [0.55, 0.55, 0.55, 1.0],
+                    width: 1.0,
+                });
+            }
+        }
+        for (end, colour) in [
+            [half, 0.0, 0.0],
+            [0.0, half, 0.0],
+            [0.0, 0.0, self.spacing as f32],
+        ]
+        .into_iter()
+        .zip(AXIS_COLOURS)
+        {
+            strokes.push(Stroke {
+                start: [0.0; 3],
+                end,
+                colour,
+                width: 2.0,
+            });
+        }
+        Ok(strokes)
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -1381,15 +2322,18 @@ Register bounded ground-grid preparation and camera-range checks.
 **Locate this existing block:**
 
 ```rust
-pub mod normal_example;
+mod gpu_fault_tests;
+#[cfg(test)]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+mod gpu_fault_tests;
 pub mod grid;
 #[cfg(test)]
 mod grid_source_tests;
+#[cfg(test)]
 ```
 
 ### 3. `src/camera.rs`
@@ -1406,8 +2350,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
         let near = self.distance * NEAR_FRACTION;
         let far = (self.distance * 10.0).max(self.distance + self.radius * 2.0);
         let projection = match self.projection {
-            Projection::Perspective => Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far),
-            Projection::Orthographic => {
 ```
 
 Replace it with:
@@ -1416,17 +2358,18 @@ Replace it with:
         );
         let view = Xform::look_at_right_handed(&eye, &target, &up);
         let near = self.distance * NEAR_FRACTION;
-        let reach = self.grid.and_then(|grid| grid.reach(self.target).ok()).map_or(self.radius, |reach| self.radius.max(reach));
+        let reach = self
+            .grid
+            .and_then(|grid| grid.reach(self.target).ok())
+            .map_or(self.radius, |reach| self.radius.max(reach));
         let far = (self.distance * 10.0).max(self.distance + 2.0 * reach);
         let projection = match self.projection {
-            Projection::Perspective => Xform::perspective(2.0 * HALF_FOV, self.aspect, near, far),
-            Projection::Orthographic => {
 ```
 
 **Locate this block:**
 
 ```rust
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
+            ),
             aspect: 640.0 / 480.0,
             projection: Projection::Perspective,
         }
@@ -1437,7 +2380,7 @@ Replace it with:
 Replace it with:
 
 ```rust
-            orientation: Quaternion::from_axis_angle(Vector::x_axis(), -std::f64::consts::FRAC_PI_2),
+            ),
             aspect: 640.0 / 480.0,
             projection: Projection::Perspective,
             grid: None,
@@ -1449,8 +2392,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    pub orientation: Quaternion,
-    pub aspect: f64,
     pub projection: Projection,
 }
 
@@ -1460,8 +2401,6 @@ impl Default for Camera {
 Replace it with:
 
 ```rust
-    pub orientation: Quaternion,
-    pub aspect: f64,
     pub projection: Projection,
     pub grid: Option<crate::grid::Settings>,
 }
@@ -1469,18 +2408,119 @@ Replace it with:
 impl Default for Camera {
 ```
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 4. `src/grid_source_tests.rs`
 
 Copy checked grid capacity, source colour values, invalid input and actual camera corner-depth checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41d-grid-06.rs"
+```rust
+use crate::{
+    camera::{Camera, Projection},
+    grid::{AXIS_COLOURS, Settings},
+};
+
+#[test]
+fn ground_grid_has_bounded_finite_lines_and_current_axis_colours() {
+    let grid = Settings::default();
+    let strokes = grid.strokes().unwrap();
+    assert_eq!(strokes.len(), 25);
+    assert!(
+        strokes
+            .iter()
+            .all(|s| s.values().iter().all(|v| v.is_finite()))
+    );
+    assert_eq!(strokes[22].colour, AXIS_COLOURS[0]);
+    assert_eq!(strokes[22].end, [5.0, 0.0, 0.0]);
+    assert_eq!(strokes[23].colour, AXIS_COLOURS[1]);
+    assert_eq!(strokes[24].colour, AXIS_COLOURS[2]);
+    assert_eq!(strokes[24].end, [0.0, 0.0, 1.0]);
+    assert_eq!(
+        Settings {
+            half_cells: 500,
+            ..grid
+        }
+        .strokes()
+        .unwrap()
+        .len(),
+        2005
+    );
+    for bad in [
+        Settings {
+            spacing: 0.0,
+            ..grid
+        },
+        Settings {
+            spacing: f64::NAN,
+            ..grid
+        },
+        Settings {
+            spacing: f64::MAX,
+            ..grid
+        },
+        Settings {
+            half_cells: 501,
+            ..grid
+        },
+        Settings {
+            half_cells: 0,
+            ..grid
+        },
+    ] {
+        assert!(bad.strokes().is_err());
+    }
+    assert!(grid.reach([f64::NAN, 0.0, 0.0]).is_err());
+    assert_eq!(grid.reach([0.0; 3]).unwrap(), 50.0f64.sqrt());
+}
+
+#[test]
+fn small_scene_camera_depth_reaches_visible_distant_grid_corners_without_changing_fit()
+{
+    for projection in [
+        Projection::Perspective,
+        Projection::Orthographic,
+    ] {
+        let mut camera = Camera::default();
+        camera.projection = projection;
+        camera.isometric();
+        let bounds = crate::bounds::Bounds {
+            min: [-0.1; 3],
+            max: [0.1; 3],
+        };
+        camera.fit(&bounds);
+        let original = (camera.target, camera.radius, camera.distance);
+        let without = camera.view_projection();
+        camera.grid = Some(Settings::default());
+        let with = camera.view_projection();
+        assert_eq!(
+            (camera.target, camera.radius, camera.distance),
+            original
+        );
+        let mut previously_clipped = 0;
+        for point in Settings::default().points().unwrap() {
+            let p = session_rust::Point::new(point[0], point[1], point[2]);
+            let w = with.m[3] * point[0]
+                + with.m[7] * point[1]
+                + with.m[11] * point[2]
+                + with.m[15];
+            if w > 0.0 {
+                let old = without.transform_point(&p);
+                let new = with.transform_point(&p);
+                if old[2] > 1.0 {
+                    previously_clipped += 1;
+                }
+                assert!(
+                    new[2] <= 1.0,
+                    "An in-front grid reference cannot exceed the far depth"
+                );
+            }
+        }
+        assert!(
+            previously_clipped > 0,
+            "This fixture must exercise grid clipping under a small-scene range"
+        );
+    }
+}
 ```
 
 ### 5. `src/camera.rs`
@@ -1490,13 +2530,17 @@ Cover enabled grid corners in the same orthographic depth interval.
 **Locate this existing block:**
 
 ```rust
+                let w = h * self.aspect;
                 let depth_range = (self.distance + 2.0 * self.radius).max(1.0e-6);
+                Xform::orthographic(-w, w, -h, h, -depth_range, depth_range)
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
+                let w = h * self.aspect;
                 let depth_range = (self.distance + 2.0 * reach).max(1.0e-6);
+                Xform::orthographic(-w, w, -h, h, -depth_range, depth_range)
 ```
 
 ## <a id="checkpoint-41e-drawing"></a>7. Draw a depth-correct grid with shared stroke buffers
@@ -1545,76 +2589,128 @@ Hide coplanar grid ink without changing source strokes’ equal-depth drawing po
 **Locate this existing block:**
 
 ```rust
-pub fn ink() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::LessEqual) }
+}
+
+fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState {
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-pub fn grid() -> wgpu::DepthStencilState { state(false, wgpu::CompareFunction::Less) }
+}
+pub fn grid() -> wgpu::DepthStencilState {
+    state(false, wgpu::CompareFunction::Less)
+}
+
+fn state(write: bool, compare: wgpu::CompareFunction) -> wgpu::DepthStencilState {
 ```
 
 ### 2. `src/stroke_gpu.rs`
 
 Share stroke preparation while choosing a separate grid depth policy. Use the caller’s explicit ink or grid depth policy.
 
-Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
-
-**Locate this block:**
+**Locate this existing block:**
 
 ```rust
-                    write_mask: wgpu::ColorWrites::ALL })],
+    ) -> Self {
+        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("stroke"),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
+        });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("stroke"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: stride,
+                    step_mode: wgpu::VertexStepMode::Instance,
+                    attributes,
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
             }),
             primitive: Default::default(),
             depth_stencil: Some(crate::depth::ink()),
-            multisample: Default::default(), multiview_mask: None, cache: None,
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor { label: Some("stroke view"), size: 80,
+            multisample: Default::default(),
 ```
 
-Replace it with:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
-                    write_mask: wgpu::ColorWrites::ALL })],
-            }),
-            primitive: Default::default(),
-            depth_stencil: Some(depth),
-            multisample: Default::default(), multiview_mask: None, cache: None,
-        });
-        let uniform = device.create_buffer(&wgpu::BufferDescriptor { label: Some("stroke view"), size: 80,
-```
-
-**Locate this block:**
-
-```rust
-
-    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),
-        });
-```
-
-Replace it with:
-
-```rust
-
-    fn layout(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute]) -> Self {
-        Self::layout_depth(device, format, source, stride, vertices_per_instance, attributes, crate::depth::ink())
+    ) -> Self {
+        Self::layout_depth(
+            device,
+            format,
+            source,
+            stride,
+            vertices_per_instance,
+            attributes,
+            crate::depth::ink(),
+        )
     }
 
     pub fn grid(device: &wgpu::Device, format: wgpu::TextureFormat) -> Self {
-        Self::layout_depth(device, format, crate::stroke::SHADER, 44, 6,
-            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32], crate::depth::grid())
+        Self::layout_depth(
+            device,
+            format,
+            crate::stroke::SHADER,
+            44,
+            6,
+            &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3, 2 => Float32x4, 3 => Float32],
+            crate::depth::grid(),
+        )
     }
 
-    fn layout_depth(device: &wgpu::Device, format: wgpu::TextureFormat, source: &'static str,
-        stride: u64, vertices_per_instance: u32, attributes: &[wgpu::VertexAttribute], depth: wgpu::DepthStencilState,
+    fn layout_depth(
+        device: &wgpu::Device,
+        format: wgpu::TextureFormat,
+        source: &'static str,
+        stride: u64,
+        vertices_per_instance: u32,
+        attributes: &[wgpu::VertexAttribute],
+        depth: wgpu::DepthStencilState,
     ) -> Self {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("stroke"), source: wgpu::ShaderSource::Wgsl(source.into()),
+            label: Some("stroke"),
+            source: wgpu::ShaderSource::Wgsl(source.into()),
         });
+        let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: Some("stroke"),
+            layout: None,
+            vertex: wgpu::VertexState {
+                module: &shader,
+                entry_point: Some("vertex"),
+                compilation_options: Default::default(),
+                buffers: &[wgpu::VertexBufferLayout {
+                    array_stride: stride,
+                    step_mode: wgpu::VertexStepMode::Instance,
+                    attributes,
+                }],
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: &shader,
+                entry_point: Some("fragment"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format,
+                    blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            primitive: Default::default(),
+            depth_stencil: Some(depth),
+            multisample: Default::default(),
 ```
 
 ### 3. `src/renderer.rs`
@@ -1630,8 +2726,6 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
                 mesh.draw(&mut pass);
             }
             self.strokes.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
 ```
 
 Replace it with:
@@ -1642,65 +2736,111 @@ Replace it with:
             }
             self.grid.draw(&mut pass);
             self.strokes.draw(&mut pass);
-            self.paths.draw(&mut pass);
-            self.markers.draw(&mut pass);
 ```
 
 **Locate this block:**
 
 ```rust
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
+        let mut encoder = self
+            .device
 ```
 
 Replace it with:
 
 ```rust
-        self.strokes.view(&self.queue, transform, self.size, self.density);
-        self.paths.view(&self.queue, transform, self.size, self.density);
-        self.markers.view(&self.queue, transform, self.size, self.density);
-        self.grid.view(&self.queue, transform, self.size, self.density);
+            self.size,
+            self.density,
+        );
+        self.grid.view(
+            &self.queue,
+            transform,
+            self.size,
+            self.density,
+        );
         let [r, g, b] = background.rgb();
-        let mut encoder = self.device.create_command_encoder(&Default::default());
-        {
+        let mut encoder = self
+            .device
 ```
 
 **Locate this block:**
 
 ```rust
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 144 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes
+            + self.strokes.uploaded_bytes
+            + self.paths.uploaded_bytes
+            + self.markers.uploaded_bytes
     }
 
     pub fn stats(&self) -> [usize; 4] {
+        [
+            self.geometry.uploads,
 ```
 
 Replace it with:
 
 ```rust
-
-    pub fn uploaded_bytes(&self) -> u64 {
-        self.geometry.uploaded_bytes + self.settings_allocations as u64 * 144 + self.settings_bytes as u64
-            + self.strokes.uploaded_bytes + self.paths.uploaded_bytes + self.markers.uploaded_bytes + self.grid.uploaded_bytes
+            + self.strokes.uploaded_bytes
+            + self.paths.uploaded_bytes
+            + self.markers.uploaded_bytes
+            + self.grid.uploaded_bytes
     }
 
-    pub fn set_grid(&mut self, settings: Option<crate::grid::Settings>) -> Result<(), &'static str> {
-        if settings == self.grid_settings { return Ok(()); }
-        let strokes = settings.map(crate::grid::Settings::strokes).transpose()?.unwrap_or_default();
-        self.grid.set(&self.device, strokes)?; self.grid_settings = settings; Ok(())
+    pub fn set_grid(
+        &mut self,
+        settings: Option<crate::grid::Settings>,
+    ) -> Result<(), &'static str> {
+        if settings == self.grid_settings {
+            return Ok(());
+        }
+        let strokes = settings
+            .map(crate::grid::Settings::strokes)
+            .transpose()?
+            .unwrap_or_default();
+        self.grid.set(&self.device, strokes)?;
+        self.grid_settings = settings;
+        Ok(())
     }
 
     pub fn grid_usage(&self) -> [u64; 4] {
-        let [count, bytes] = self.grid.usage(); [count, bytes, self.grid.uploads, self.grid.uploaded_bytes]
+        let [count, bytes] = self.grid.usage();
+        [
+            count,
+            bytes,
+            self.grid.uploads,
+            self.grid.uploaded_bytes,
+        ]
     }
 
     pub fn stats(&self) -> [usize; 4] {
+        [
+            self.geometry.uploads,
+```
+
+**Locate this block:**
+
+```rust
+            strokes,
+            paths,
+            markers,
+            size: [640, 480],
+            density: 1.0,
+        };
+```
+
+Replace it with:
+
+```rust
+            strokes,
+            paths,
+            markers,
+            grid,
+            grid_settings: None,
+            size: [640, 480],
+            density: 1.0,
+        };
 ```
 
 **Locate this block:**
@@ -1709,12 +2849,9 @@ Replace it with:
         let strokes = crate::stroke_gpu::Lane::new(&device, format);
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, size: [640, 480], density: 1.0 };
-        renderer.set_scene(scene, None);
-        renderer
-    }
+        let mut renderer = Self {
+            device,
+            queue,
 ```
 
 Replace it with:
@@ -1724,19 +2861,14 @@ Replace it with:
         let paths = crate::stroke_gpu::Lane::joined(&device, format);
         let markers = crate::stroke_gpu::Lane::markers(&device, format);
         let grid = crate::stroke_gpu::Lane::grid(&device, format);
-        let mut renderer = Self { device, queue, pipeline, meshes: Vec::new(),
-            geometry: Default::default(), settings_allocations: 0, settings_writes: 0,
-            settings_bytes: 0, uniform, view_group, depth, strokes, paths, markers, grid, grid_settings: None, size: [640, 480], density: 1.0 };
-        renderer.set_scene(scene, None);
-        renderer
-    }
+        let mut renderer = Self {
+            device,
+            queue,
 ```
 
 **Locate this block:**
 
 ```rust
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
     markers: crate::stroke_gpu::Lane,
     size: [u32; 2],
     density: f32,
@@ -1746,8 +2878,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    strokes: crate::stroke_gpu::Lane,
-    paths: crate::stroke_gpu::Lane,
     markers: crate::stroke_gpu::Lane,
     grid: crate::stroke_gpu::Lane,
     grid_settings: Option<crate::grid::Settings>,
@@ -1804,25 +2934,20 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-                    }
-                    Action::ResetView => {
                         let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
+                        self.camera = Camera {
+                            aspect,
+                            ..Camera::default()
 ```
 
 Replace it with:
 
 ```rust
-                    }
-                    Action::ResetView => {
                         let aspect = self.camera.aspect;
-                        self.camera = Camera { aspect, grid: self.camera.grid, ..Camera::default() };
-                    }
-                    _ => unreachable!("Document actions were handled above"),
-                }
+                        self.camera = Camera {
+                            aspect,
+                            grid: self.camera.grid,
+                            ..Camera::default()
 ```
 
 **Locate this block:**
@@ -1843,7 +2968,10 @@ Replace it with:
                     Action::Background => self.background.toggle(),
                     Action::NormalView(visible) => self.normal_view = visible,
                     Action::Grid(settings) => {
-                        if let Some(grid) = settings { grid.half()?; grid.reach(self.camera.target)?; }
+                        if let Some(grid) = settings {
+                            grid.half()?;
+                            grid.reach(self.camera.target)?;
+                        }
                         self.camera.grid = settings;
                     }
                     Action::Zoom(factor) => self.camera.zoom(factor),
@@ -1854,8 +2982,6 @@ Replace it with:
 **Locate this block:**
 
 ```rust
-    AddCurve,
-    AddColours(crate::colour::Mode),
     NormalView(bool),
     AddNormals(crate::normal_example::Mode),
     Controls(bool),
@@ -1865,8 +2991,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-    AddCurve,
-    AddColours(crate::colour::Mode),
     NormalView(bool),
     Grid(Option<crate::grid::Settings>),
     AddNormals(crate::normal_example::Mode),
@@ -1883,81 +3007,86 @@ Edit these blocks from bottom to top. Keep the surrounding lines unchanged.
 **Locate this block:**
 
 ```rust
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+            .map(|id| format!("{id:?}"))
+            .unwrap_or_default(),
+    )?;
 ```
 
 Replace it with:
 
 ```rust
-    canvas.set_attribute("data-stroke-usage", &serde_json::to_string(&renderer.stroke_usage()).unwrap())?;
-    canvas.set_attribute("data-line-usage", &serde_json::to_string(&crate::memory::lines(editor.scenes())).unwrap())?;
-    canvas.set_attribute("data-selected-id", &editor.selected.map(|id| format!("{id:?}")).unwrap_or_default())?;
-    canvas.set_attribute("data-grid-enabled", if editor.camera.grid.is_some() { "true" } else { "false" })?;
-    canvas.set_attribute("data-grid-gpu", &serde_json::to_string(&renderer.grid_usage()).unwrap())?;
-    canvas.set_attribute("data-normal-view", if editor.normal_view { "true" } else { "false" })?;
-    canvas.set_attribute("data-camera-matrix", &serde_json::to_string(&editor.camera.view_projection().m).map_err(|error| JsValue::from_str(&error.to_string()))?)?;
-    canvas.set_attribute("data-object-count", &editor.scene.objects().len().to_string())?;
+            .map(|id| format!("{id:?}"))
+            .unwrap_or_default(),
+    )?;
+    canvas.set_attribute(
+        "data-grid-enabled",
+        if editor.camera.grid.is_some() {
+            "true"
+        } else {
+            "false"
+        },
+    )?;
+    canvas.set_attribute(
+        "data-grid-gpu",
+        &serde_json::to_string(&renderer.grid_usage()).unwrap(),
+    )?;
 ```
 
 **Locate this block:**
 
 ```rust
+                    }
                 }
             }
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
+            if let Err(error) = inspect(&editor, &renderer) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
 ```
 
 Replace it with:
 
 ```rust
+                    }
                 }
             }
-        }
-        if let Err(error) = renderer.set_grid(editor.camera.grid) {
-            report(error); return;
-        }
-        if let Err(error) = inspect(&editor, &renderer) {
-            report(&format!("Cannot report projection: {error:?}"));
-            return;
+            if let Err(error) = renderer.set_grid(editor.camera.grid) {
+                report(error);
+                return;
+            }
+            if let Err(error) = inspect(&editor, &renderer) {
+                report(&format!(
+                    "Cannot report projection: {error:?}"
 ```
 
 **Locate this block:**
 
 ```rust
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "view normals on" => Action::NormalView(true),
-                    "view normals off" => Action::NormalView(false),
-                    "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
-                    "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
-                    "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
+                        }
+                        "view normals on" => Action::NormalView(true),
+                        "view normals off" => Action::NormalView(false),
+                        "example sharp" => {
+                            Action::AddNormals(crate::normal_example::Mode::Sharp)
+                        }
 ```
 
 Replace it with:
 
 ```rust
-                    "example face colors" => Action::AddColours(crate::colour::Mode::Faces),
-                    "view normals on" => Action::NormalView(true),
-                    "view normals off" => Action::NormalView(false),
-                    "view grid on" => Action::Grid(Some(crate::grid::Settings::default())),
-                    "view grid off" => Action::Grid(None),
-                    "example sharp" => Action::AddNormals(crate::normal_example::Mode::Sharp),
-                    "example smooth" => Action::AddNormals(crate::normal_example::Mode::Smooth),
-                    "example winding" => Action::AddNormals(crate::normal_example::Mode::Winding),
+                        }
+                        "view normals on" => Action::NormalView(true),
+                        "view normals off" => Action::NormalView(false),
+                        "view grid on" => {
+                            Action::Grid(Some(crate::grid::Settings::default()))
+                        }
+                        "view grid off" => Action::Grid(None),
+                        "example sharp" => {
+                            Action::AddNormals(crate::normal_example::Mode::Sharp)
+                        }
 ```
 
 **Locate this block:**
 
 ```rust
-            "Example Face Colors",
-            "View Normals On",
             "View Normals Off",
             "Example Sharp",
             "Example Smooth",
@@ -1967,8 +3096,6 @@ Replace it with:
 Replace it with:
 
 ```rust
-            "Example Face Colors",
-            "View Normals On",
             "View Normals Off",
             "View Grid On",
             "View Grid Off",
@@ -1984,28 +3111,72 @@ Register atomic grid state, camera reset and source-history checks.
 **Locate this existing block:**
 
 ```rust
-pub mod grid;
+#[cfg(test)]
+mod grid_source_tests;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
 #[cfg(test)]
 mod grid_input_tests;
+#[cfg(test)]
+mod grid_source_tests;
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 4. `src/grid_input_tests.rs`
 
 Copy validation atomicity, reset preservation, view-only history and independent source/grid release checks.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/41f-input-09.rs"
+```rust
+use crate::{
+    editor::{Action, Change, Editor},
+    grid::Settings,
+    normal_example::Mode,
+};
+
+#[test]
+fn grid_commands_preserve_source_history_camera_settings_and_viewport_lifetime() {
+    let mut editor = Editor::default();
+    editor.apply(Action::Close).unwrap();
+    editor
+        .apply(Action::AddNormals(Mode::Sharp))
+        .unwrap();
+    let id = editor.scene.objects()[0].id;
+    let weak = std::rc::Rc::downgrade(editor.scene.objects()[0].geometry().unwrap());
+    assert_eq!(
+        editor
+            .apply(Action::Grid(Some(Settings::default())))
+            .unwrap(),
+        Change::View
+    );
+    editor
+        .apply(Action::Orbit(0.2, 0.1))
+        .unwrap();
+    editor.apply(Action::ResetView).unwrap();
+    assert_eq!(editor.camera.grid, Some(Settings::default()));
+    editor.apply(Action::Undo).unwrap();
+    assert!(editor.scene.objects().is_empty());
+    editor.apply(Action::Redo).unwrap();
+    assert_eq!(editor.scene.objects()[0].id, id);
+    let before = editor.camera.grid;
+    assert!(
+        editor
+            .apply(Action::Grid(Some(Settings {
+                spacing: f64::NAN,
+                ..Settings::default()
+            })))
+            .is_err()
+    );
+    assert_eq!(editor.camera.grid, before);
+    editor.apply(Action::Close).unwrap();
+    assert!(weak.upgrade().is_none());
+    assert_eq!(editor.camera.grid, before);
+    editor.apply(Action::Grid(None)).unwrap();
+    assert!(editor.camera.grid.is_none());
+}
 ```
 
 ## Build & Run

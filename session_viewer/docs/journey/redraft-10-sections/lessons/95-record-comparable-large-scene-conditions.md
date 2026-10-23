@@ -1,6 +1,6 @@
 # 18.7 · Measured frame costs and dependency-aware cache reports
 
-**Goal:** Prove cache invalidation and honest performance reports. · **Steps:** 7 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`session_viewer/src/lib.rs`)
+**Goal:** Prove cache invalidation and honest performance reports. · **Steps:** 7 · **Source:** [engine/gpu/ssao.rs](../../../../src/engine/gpu/ssao.rs) · [engine/gpu/ssao/pipelines.rs](../../../../src/engine/gpu/ssao/pipelines.rs) · [shaders/ssao.wgsl](../../../../src/shaders/ssao.wgsl) · [shaders/triangle.wgsl](../../../../src/shaders/triangle.wgsl) · [shaders/ink_visibility.wgsl](../../../../src/shaders/ink_visibility.wgsl) · [engine/gpu/surface_outline.rs](../../../../src/engine/gpu/surface_outline.rs) · [engine/gpu/render.rs](../../../../src/engine/gpu/render.rs) · [engine/performance.rs](../../../../src/engine/performance.rs) · [engine/gpu/timing.rs](../../../../src/engine/gpu/timing.rs) · [app/command/tool/elements.rs](../../../../src/app/command/tool/elements.rs) (`src/shaders/hzb.wgsl,src/shaders/ssao.wgsl,src/app/wood_elements.rs`)
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
 <svg xmlns="http://www.w3.org/2000/svg" width="1120" height="200" viewBox="0 0 1120 200" style="width:100%;max-width:100%;height:auto;display:block;margin:0 auto;" role="img">
@@ -32,35 +32,28 @@
   <rect x="296" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">2. session_viewer/src</text>
   <rect x="314" y="48" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="65" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/hzb.wgsl</text>
   <rect x="314" y="80" width="212" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/engine/gpu/device.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="97" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">src/shaders/ssao.wgsl</text>
   <rect x="314" y="112" width="212" height="24" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="128" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">✓ cargo check (wasm32)</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="420" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#111111">Record comparable large s…</text>
   <line x1="544" y1="100" x2="572" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="576" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. Scene Tree Hierarchy</text>
-  <rect x="650" y="50" width="100" height="28" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="68" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">Group (Mp)</text>
-  <line x1="680" y1="78" x2="640" y2="108" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
-  <line x1="720" y1="78" x2="760" y2="108" stroke="#111111" stroke-width="1.5" marker-end="url(#arr)"/>
-  <rect x="600" y="112" width="80" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="640" y="129" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part A</text>
-  <rect x="720" y="112" width="80" height="26" rx="4" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="760" y="129" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Part B</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">3. HZB Mip Pyramid &amp; SSAO</text>
+  <rect x="606" y="54" width="84" height="84" fill="#dbeafe" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="648" y="100" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mip 0</text>
+  <rect x="702" y="68" width="52" height="52" fill="#93c5fd" stroke="#111111" stroke-width="1.75"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="728" y="98" text-anchor="middle" font-family="monospace" font-size="9" font-weight="700" fill="#111111">Mip 1</text>
+  <rect x="764" y="82" width="28" height="28" fill="#60a5fa" stroke="#111111" stroke-width="1.75"/>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="700" y="172" text-anchor="middle" font-family="monospace" font-size="9.5" fill="#111111">Measured frame costs and de…</text>
   <line x1="824" y1="100" x2="852" y2="100" stroke="#111111" stroke-width="2" marker-end="url(#arr)"/>
   <rect x="856" y="14" width="248" height="172" rx="8" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Layer Colours &amp; Lamps</text>
-  <rect x="880" y="52" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="898" cy="70" r="6" fill="#facc15" stroke="#111111" stroke-width="1.25"/>
-  <rect x="912" y="63" width="14" height="14" rx="3" fill="#ef4444" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="994" y="74" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Layer_01 (Lamp ON)</text>
-  <rect x="880" y="98" width="188" height="36" rx="5" fill="#ffffff" stroke="#111111" stroke-width="1.5"/>
-  <circle cx="898" cy="116" r="6" fill="#e5e7eb" stroke="#111111" stroke-width="1.25"/>
-  <rect x="912" y="109" width="14" height="14" rx="3" fill="#3b82f6" stroke="#111111" stroke-width="1"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="994" y="120" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">[Rename Layer_02|]</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="34" text-anchor="middle" font-family="monospace" font-size="11.5" font-weight="700" fill="#111111">4. Timber WoodElement &amp; Joints</text>
+  <polygon points="888,122 924,62 1054,62 1018,122" fill="#fed7aa" stroke="#111111" stroke-width="2"/>
+  <rect x="954" y="62" width="34" height="28" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+  <line x1="971" y1="46" x2="971" y2="76" stroke="#16a34a" stroke-width="2.25" marker-end="url(#arrG)"/>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="976" y="142" text-anchor="middle" font-family="monospace" font-size="9.5" font-weight="700" fill="#111111">Mortise/Tenon + Dir</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="980" y="172" text-anchor="middle" font-family="sans-serif" font-size="10" font-weight="700" fill="#111111">Prove cache invalidation…</text>
 </svg>
 </div>
@@ -97,7 +90,7 @@
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
@@ -111,7 +104,48 @@ Own explicit conditions instead of unqualified performance claims.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/95-record-comparable-large-scene-conditions-01.rs"
+#[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+pub struct Conditions {
+    pub machine: String,
+    pub browser: String,
+    pub adapter: String,
+    pub scene_sha256: String,
+    pub viewport: [u32; 2],
+    pub dpr: f64,
+    pub camera: String,
+    pub settings: String,
+    pub measurement: String,
+}
+
+impl Conditions {
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if [
+            &self.machine,
+            &self.browser,
+            &self.adapter,
+            &self.camera,
+            &self.settings,
+            &self.measurement,
+        ]
+        .iter()
+        .any(|v| v.trim().is_empty())
+        {
+            return Err("Record every measurement condition");
+        }
+        if self.scene_sha256.len() != 64
+            || !self
+                .scene_sha256
+                .bytes()
+                .all(|v| v.is_ascii_hexdigit())
+        {
+            return Err("Record the original scene SHA-256");
+        }
+        if self.viewport.contains(&0) || !self.dpr.is_finite() || self.dpr <= 0. {
+            return Err("Invalid viewport or pixel density");
+        }
+        Ok(())
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -122,13 +156,22 @@ Register the completed performance owner.
 
 ```rust
 #[cfg(test)]
+mod ambient_shader_contract;
+#[cfg(test)]
 mod comparison_tests;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95-record-comparable-large-scene-conditions-02.rs" skip=35
+#[cfg(test)]
+mod comparison_tests;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod bench_config;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-95a-measure-warmed-frame-times-and-the-slow-tail"></a>2. Measure warmed frame times and the slow tail
@@ -163,7 +206,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
@@ -177,7 +220,42 @@ Summarize real samples with an explicit warmup and slow-frame tail.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/95a-measure-warmed-frame-times-and-the-slow-tail-01.rs"
+#[derive(Debug, PartialEq, serde::Serialize)]
+pub struct Summary {
+    pub samples: usize,
+    pub median_ms: f64,
+    pub p95_ms: f64,
+    pub max_ms: f64,
+}
+
+pub fn summarize(samples: &[f64], warmup: usize) -> Result<Summary, &'static str> {
+    if samples
+        .iter()
+        .any(|v| !v.is_finite() || *v <= 0.)
+    {
+        return Err("Frame durations must be positive and finite");
+    }
+    let measured = samples
+        .get(warmup..)
+        .filter(|v| !v.is_empty())
+        .ok_or("No measured frames after warmup")?;
+    let mut sorted = measured.to_vec();
+    sorted.sort_by(f64::total_cmp);
+    let count = sorted.len();
+    let middle = count / 2;
+    let median = if count % 2 == 0 {
+        sorted[middle - 1] * 0.5 + sorted[middle] * 0.5
+    } else {
+        sorted[middle]
+    };
+    let rank = (count * 95).div_ceil(100) - 1;
+    Ok(Summary {
+        samples: count,
+        median_ms: median,
+        p95_ms: sorted[rank],
+        max_ms: sorted[count - 1],
+    })
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -187,14 +265,25 @@ Register the completed performance owner.
 **Locate this existing block:**
 
 ```rust
+mod comparison_tests;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod bench_config;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95a-measure-warmed-frame-times-and-the-slow-tail-02.rs" skip=23
+mod comparison_tests;
+
+pub mod bench_config;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod bench_samples;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-95b-reject-incomparable-before-and-after-runs"></a>3. Reject incomparable before and after runs
@@ -229,7 +318,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
@@ -243,7 +332,52 @@ Compare matched measurements and retain original-source memory accounting.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/95b-reject-incomparable-before-and-after-runs-01.rs"
+use crate::{
+    bench_config::Conditions,
+    bench_samples::{Summary, summarize},
+};
+
+#[derive(serde::Serialize, serde::Deserialize)]
+pub struct Run {
+    pub conditions: Conditions,
+    pub revision: String,
+    pub warmup: usize,
+    pub frame_ms: Vec<f64>,
+    pub gpu_buffers: u64,
+    pub gpu_textures: u64,
+    pub original_bytes: u64,
+}
+
+pub struct Comparison {
+    pub before: Summary,
+    pub after: Summary,
+    pub median_change_ms: f64,
+    pub p95_change_ms: f64,
+}
+
+pub fn compare(before: &Run, after: &Run) -> Result<Comparison, &'static str> {
+    before.conditions.validate()?;
+    after.conditions.validate()?;
+    if before.conditions != after.conditions {
+        return Err("Runs have different hardware, scene or rendering conditions");
+    }
+    if before.revision.trim().is_empty() || after.revision.trim().is_empty() {
+        return Err("Record both renderer revisions");
+    }
+    if before.original_bytes != after.original_bytes {
+        return Err(
+            "Original source memory changed; inspect retention before comparing",
+        );
+    }
+    let a = summarize(&before.frame_ms, before.warmup)?;
+    let b = summarize(&after.frame_ms, after.warmup)?;
+    Ok(Comparison {
+        median_change_ms: b.median_ms - a.median_ms,
+        p95_change_ms: b.p95_ms - a.p95_ms,
+        before: a,
+        after: b,
+    })
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -253,14 +387,25 @@ Register the completed performance owner.
 **Locate this existing block:**
 
 ```rust
+pub mod bench_config;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod bench_samples;
+pub mod finite_project_source;
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95b-reject-incomparable-before-and-after-runs-02.rs" skip=24
+pub mod bench_config;
+
+pub mod bench_samples;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod bench_compare;
+pub mod finite_project_source;
 ```
 
 ## <a id="checkpoint-95c-witness-immutable-tree-inputs-across-camera-frames"></a>4. Witness immutable tree inputs across camera frames
@@ -295,7 +440,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
@@ -309,7 +454,50 @@ Witness shared layer inputs without retaining geometry payloads.
 Create the file and type:
 
 ```rust
---8<-- "journey/code/95c-witness-immutable-tree-inputs-across-camera-frames-01.rs"
+use crate::{
+    hierarchy::Document,
+    scene::{ObjectId, Scene},
+    view_flags::Flags,
+};
+use std::{
+    collections::{HashMap, HashSet},
+    rc::Rc,
+};
+
+pub struct Witness {
+    documents: Vec<Rc<Document>>,
+    groups: Rc<HashSet<(u32, String)>>,
+    graphs: Rc<HashMap<u32, Rc<session_rust::Graph>>>,
+    view: Rc<Flags>,
+    selection: Vec<ObjectId>,
+    epoch: u64,
+}
+
+impl Witness {
+    pub fn new(scene: &Scene, selection: &[ObjectId], epoch: u64) -> Self {
+        Self {
+            documents: scene.forest.documents.clone(),
+            groups: scene.groups.clone(),
+            graphs: scene.graphs.clone(),
+            view: scene.view.clone(),
+            selection: selection.to_vec(),
+            epoch,
+        }
+    }
+    pub fn matches(&self, scene: &Scene, selection: &[ObjectId], epoch: u64) -> bool {
+        self.epoch == epoch
+            && self.selection == selection
+            && Rc::ptr_eq(&self.groups, &scene.groups)
+            && Rc::ptr_eq(&self.graphs, &scene.graphs)
+            && Rc::ptr_eq(&self.view, &scene.view)
+            && self.documents.len() == scene.forest.documents.len()
+            && self
+                .documents
+                .iter()
+                .zip(&scene.forest.documents)
+                .all(|(a, b)| Rc::ptr_eq(a, b))
+    }
+}
 ```
 
 ### 2. `src/lib.rs`
@@ -319,14 +507,39 @@ Register the completed performance owner.
 **Locate this existing block:**
 
 ```rust
+pub mod bench_samples;
 
+#[cfg(test)]
+mod ambient_shader_contract;
 pub mod bench_compare;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, type:
+Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95c-witness-immutable-tree-inputs-across-camera-frames-02.rs" skip=24
+pub mod bench_samples;
+
+pub mod bench_compare;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+pub mod tree_witness;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## <a id="checkpoint-95d-reuse-layer-rows-while-rotating-and-zooming"></a>5. Reuse layer rows while rotating and zooming
@@ -361,7 +574,7 @@ After that block, type:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
@@ -375,19 +588,78 @@ Cache unchanged scene/selection/epoch inputs before rebuilding layer state.
 **Locate this existing block:**
 
 ```rust
-
-#[derive(Default)]
-pub struct TreePanel {pub graph_open:bool,pub graph:Vec<(String,String,String,String)>,pub edit:Option<(String,crate::layer_edit::Edit)>,pub rename:Option<(String,String)>,pub rename_error:String,rename_focus:bool,pub confirm:Option<(String,usize)>,pub property:Option<(String,crate::layer_properties::Property)>,pub menu_rects:Vec<egui::Rect>,states:std::collections::HashMap<String,RowState>,pub open:bool,pub rows:Vec<Row>,pub selected:Vec<ObjectId>,expanded:HashSet<String>,pub rect:Option<egui::Rect>,pub action:Option<(Vec<ObjectId>,bool)>,page:usize}
+pub struct TreePanel {
+    pub graph_open: bool,
+    pub graph: Vec<(String, String, String, String)>,
+    pub edit: Option<(String, crate::layer_edit::Edit)>,
+    pub rename: Option<(String, String)>,
+    pub rename_error: String,
+    rename_focus: bool,
+    pub confirm: Option<(String, usize)>,
+    pub property: Option<(String, crate::layer_properties::Property)>,
+    pub menu_rects: Vec<egui::Rect>,
+    states: std::collections::HashMap<String, RowState>,
+    pub open: bool,
+    pub rows: Vec<Row>,
+    pub selected: Vec<ObjectId>,
+    expanded: HashSet<String>,
+    pub rect: Option<egui::Rect>,
+    pub action: Option<(Vec<ObjectId>, bool)>,
+    page: usize,
+}
 impl TreePanel {
-    pub fn refresh(&mut self,scene:&crate::scene::Scene,selected:Vec<ObjectId>) {
-        self.graph=crate::graph_edit::rows(scene);
-        for doc in &scene.forest.documents{for(index,node)in doc.nodes.iter().enumerate(){if scene.groups.contains(&(doc.key,node.source.guid.clone()))&&doc.nodes[index+1..node.end].iter().filter_map(|n|n.object).any(|id|selected.contains(&id)){let mut parent=Some(index);while let Some(i)=parent{self.expanded.insert(format!("{}/{}",doc.key,doc.nodes[i].source.guid));parent=doc.nodes[i].parent;}}}}
+    pub fn refresh(&mut self, scene: &crate::scene::Scene, selected: Vec<ObjectId>) {
+        self.graph = crate::graph_edit::rows(scene);
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95d-reuse-layer-rows-while-rotating-and-zooming-01.rs"
+pub struct TreePanel {
+    witness: Option<crate::tree_witness::Witness>,
+    pub refreshes: u64,
+    pub graph_open: bool,
+    pub graph: Vec<(String, String, String, String)>,
+    pub edit: Option<(String, crate::layer_edit::Edit)>,
+    pub rename: Option<(String, String)>,
+    pub rename_error: String,
+    rename_focus: bool,
+    pub confirm: Option<(String, usize)>,
+    pub property: Option<(String, crate::layer_properties::Property)>,
+    pub menu_rects: Vec<egui::Rect>,
+    states: std::collections::HashMap<String, RowState>,
+    pub open: bool,
+    pub rows: Vec<Row>,
+    pub selected: Vec<ObjectId>,
+    expanded: HashSet<String>,
+    pub rect: Option<egui::Rect>,
+    pub action: Option<(Vec<ObjectId>, bool)>,
+    page: usize,
+}
+impl TreePanel {
+    pub fn refresh_cached(
+        &mut self,
+        scene: &crate::scene::Scene,
+        selected: Vec<ObjectId>,
+        epoch: u64,
+    ) {
+        if self
+            .witness
+            .as_ref()
+            .is_some_and(|w| w.matches(scene, &selected, epoch))
+        {
+            return;
+        }
+        self.refresh(scene, selected.clone());
+        self.witness = Some(crate::tree_witness::Witness::new(
+            scene, &selected, epoch,
+        ));
+        self.refreshes += 1;
+    }
+
+    pub fn refresh(&mut self, scene: &crate::scene::Scene, selected: Vec<ObjectId>) {
+        self.witness = None;
+        self.graph = crate::graph_edit::rows(scene);
 ```
 
 ### 2. `src/browser.rs`
@@ -397,17 +669,23 @@ Use the cache from the actual teaching frame loop.
 **Locate this existing block:**
 
 ```rust
-        panel.number(number);
-        panel.lasso=editor.lasso.as_ref().map_or_else(Vec::new,|l|l.points.iter().map(|p|[(p.0/l.density) as f32,(p.1/l.density) as f32]).collect());
-        panel.tree.refresh(&editor.scene,editor.selected_objects());
-        if let Err(error) = renderer.set_preview(editor.draft.as_ref()) { panel.result(error); }
-        renderer.set_pick_mode(if editor.element.is_some()||editor.trimming_picks()||editor.split.is_some()||editor.editing_boundaries()||editor.gathering_curves(){crate::pick_sources::Mode::Object}else{editor.pick_mode});
+                });
+            panel
+                .tree
+                .refresh(&editor.scene, editor.selected_objects());
+            if let Err(error) = renderer.set_preview(editor.draft.as_ref()) {
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95d-reuse-layer-rows-while-rotating-and-zooming-02.rs"
+                });
+            panel.tree.refresh_cached(
+                &editor.scene,
+                editor.selected_objects(),
+                editor.interaction_epoch,
+            );
+            if let Err(error) = renderer.set_preview(editor.draft.as_ref()) {
 ```
 
 ## <a id="checkpoint-95e-borrow-graph-edges-and-index-their-labels"></a>6. Borrow graph edges and index their labels
@@ -442,7 +720,7 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
@@ -456,16 +734,102 @@ Avoid full graph protobuf conversion and repeated node scans for display rows.
 **Locate this existing block:**
 
 ```rust
-
-pub fn rows(scene:&Scene)->Vec<(String,String,String,String)>{
-    scene.forest.documents.iter().flat_map(|doc|{let graph=scene.graphs.get(&doc.key).map(|g|g.to_proto()).or_else(||doc.header.as_ref().and_then(|h|h.header.graph.clone()));let name=|guid:&str|doc.nodes.iter().find(|n|n.source.name==guid||n.object.is_some_and(|id|scene.row_guid(id)==Some(guid))).map_or_else(||guid.to_owned(),|n|n.label.clone());graph.into_iter().flat_map(|g|g.edges.into_iter().map(|edge|(doc.label.clone(),name(&edge.v0),name(&edge.v1),edge.attribute))).collect::<Vec<_>>()}).collect()
+pub fn rows(scene: &Scene) -> Vec<(String, String, String, String)> {
+    scene
+        .forest
+        .documents
+        .iter()
+        .flat_map(|doc| {
+            let graph = scene
+                .graphs
+                .get(&doc.key)
+                .map(|g| g.to_proto())
+                .or_else(|| {
+                    doc.header
+                        .as_ref()
+                        .and_then(|h| h.header.graph.clone())
+                });
+            let name = |guid: &str| {
+                doc.nodes
+                    .iter()
+                    .find(|n| {
+                        n.source.name == guid
+                            || n.object
+                                .is_some_and(|id| scene.row_guid(id) == Some(guid))
+                    })
+                    .map_or_else(|| guid.to_owned(), |n| n.label.clone())
+            };
+            graph
+                .into_iter()
+                .flat_map(|g| {
+                    g.edges.into_iter().map(|edge| {
+                        (
+                            doc.label.clone(),
+                            name(&edge.v0),
+                            name(&edge.v1),
+                            edge.attribute,
+                        )
+                    })
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect()
 }
 ```
 
 Edit the existing block to match this code; keep unchanged lines:
 
 ```rust
---8<-- "journey/code/95e-borrow-graph-edges-and-index-their-labels-01.rs"
+pub fn rows(scene: &Scene) -> Vec<(String, String, String, String)> {
+    let mut rows = Vec::new();
+    for doc in &scene.forest.documents {
+        let mut labels = std::collections::HashMap::new();
+        for node in &doc.nodes {
+            labels
+                .entry(node.source.name.as_str())
+                .or_insert(node.label.as_str());
+            if let Some(guid) = node.object.and_then(|id| scene.row_guid(id)) {
+                labels
+                    .entry(guid)
+                    .or_insert(node.label.as_str());
+            }
+        }
+        let mut push = |from: &str, to: &str, attribute: &str| {
+            rows.push((
+                doc.label.clone(),
+                labels
+                    .get(from)
+                    .copied()
+                    .unwrap_or(from)
+                    .to_owned(),
+                labels
+                    .get(to)
+                    .copied()
+                    .unwrap_or(to)
+                    .to_owned(),
+                attribute.to_owned(),
+            ))
+        };
+        if let Some(graph) = scene.graphs.get(&doc.key) {
+            for (u, neighbors) in &graph.edges {
+                for (v, edge) in neighbors {
+                    if u <= v {
+                        push(&edge.v0, &edge.v1, &edge.attribute);
+                    }
+                }
+            }
+        } else if let Some(graph) = doc
+            .header
+            .as_ref()
+            .and_then(|h| h.header.graph.as_ref())
+        {
+            for edge in &graph.edges {
+                push(&edge.v0, &edge.v1, &edge.attribute);
+            }
+        }
+    }
+    rows
+}
 ```
 
 ## <a id="checkpoint-95f-prove-cache-invalidation-and-honest-performance-reports"></a>7. Prove cache invalidation and honest performance reports
@@ -500,30 +864,213 @@ Edit the existing block to match this code; keep unchanged lines:
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="704" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">reuse unchanged scene work</text>
   <line x1="830" y1="36" x2="856" y2="36" stroke="#111111" stroke-width="1.75" marker-end="url(#arr)"/>
   <rect x="860" y="10" width="246" height="52" rx="6" fill="#ffffff" stroke="#111111" stroke-width="1.75"/>
-  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/lib.rs</text>
+  <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="30" text-anchor="middle" font-family="monospace" font-size="10" font-weight="700" fill="#111111">3. -&gt; src/shaders/hzb.wgsl</text>
   <text paint-order="stroke fill" stroke="#ffffff" stroke-width="5" stroke-linejoin="round" x="983" y="48" text-anchor="middle" font-family="sans-serif" font-size="9.5" fill="#111111">measure rotation and zoom</text>
 </svg>
 </div>
 
 **What this code does:** Prove cache invalidation and honest performance reports.
 
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
-
 ### 1. `src/bench_tests.rs`
 
 Copy supplied invalid-data, comparability, original-source, cache and history fixtures.
 
-Copy this supplied file:
+Create the file and type:
 
-```text
---8<-- "journey/code/95f-prove-cache-invalidation-and-honest-performance-reports-01.rs"
+```rust
+use crate::{
+    bench_compare::{Run, compare},
+    bench_config::Conditions,
+    bench_samples::summarize,
+};
+fn run() -> Run {
+    Run {
+        conditions: Conditions {
+            machine: "Lenovo fixture".into(),
+            browser: "Chrome fixture".into(),
+            adapter: "recorded adapter".into(),
+            scene_sha256: "a".repeat(64),
+            viewport: [1280, 720],
+            dpr: 1.,
+            camera: "saved pose and orbit path".into(),
+            settings: "same opacity, AO, outlines and MSAA".into(),
+            measurement: "presented browser frames".into(),
+        },
+        revision: "before".into(),
+        warmup: 2,
+        frame_ms: vec![500., 200., 16., 17., 18., 20.],
+        gpu_buffers: 100,
+        gpu_textures: 200,
+        original_bytes: 300,
+    }
+}
+#[test]
+fn warmup_and_slow_tail_are_reported_separately() {
+    let values: Vec<f64> = std::iter::once(5000.)
+        .chain((1..=100).map(|v| v as f64))
+        .collect();
+    let s = summarize(&values, 1).unwrap();
+    assert_eq!(s.samples, 100);
+    assert_eq!(s.median_ms, 50.5);
+    assert_eq!(s.p95_ms, 95.);
+    assert_eq!(s.max_ms, 100.);
+}
+#[test]
+fn missing_or_invalid_timings_are_never_performance_evidence() {
+    for (values, warmup) in [
+        (vec![], 0),
+        (vec![16.], 1),
+        (vec![f64::NAN], 0),
+        (vec![0.], 0),
+        (vec![f64::INFINITY], 0),
+    ] {
+        assert!(summarize(&values, warmup).is_err());
+    }
+}
+#[test]
+fn comparisons_reject_changed_scene_hardware_and_quality() {
+    let a = run();
+    let mut b = run();
+    b.revision = "after".into();
+    b.frame_ms = vec![400., 100., 10., 11., 12., 13.];
+    let result = compare(&a, &b).unwrap();
+    assert_eq!(result.median_change_ms, -6.);
+    assert_eq!(result.p95_change_ms, -7.);
+    b.conditions.adapter = "different GPU".into();
+    assert!(compare(&a, &b).is_err());
+    b.conditions = a.conditions.clone();
+    b.conditions.scene_sha256 = "b".repeat(64);
+    assert!(compare(&a, &b).is_err());
+    b.conditions = a.conditions.clone();
+    b.conditions.settings = "AO disabled".into();
+    assert!(compare(&a, &b).is_err());
+    b.conditions = a.conditions.clone();
+    b.original_bytes = 0;
+    assert!(compare(&a, &b).is_err());
+}
+#[test]
+fn records_round_trip_conditions_without_invented_measurements() {
+    let a = run();
+    let bytes = serde_json::to_vec(&a).unwrap();
+    let b: Run = serde_json::from_slice(&bytes).unwrap();
+    assert_eq!(b.conditions, a.conditions);
+    assert_eq!(b.frame_ms, a.frame_ms);
+    assert!(compare(&a, &b).is_ok());
+}
+#[test]
+fn tree_cache_reuses_camera_frames_but_refreshes_edits_and_history() {
+    use crate::editor::{Action, Editor};
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddBox).unwrap();
+    let id = e.scene.objects()[0].id;
+    let original = crate::source_edit::original(&e.scene, id).unwrap();
+    let mut panel = crate::tree_panel::TreePanel::default();
+    panel.refresh_cached(
+        &e.scene,
+        e.selected_objects(),
+        e.interaction_epoch,
+    );
+    assert_eq!(panel.refreshes, 1);
+    let before = panel
+        .rows
+        .iter()
+        .map(|r| r.label.clone())
+        .collect::<Vec<_>>();
+    for _ in 0..20 {
+        e.apply(Action::Orbit(0.01, 0.)).unwrap();
+        panel.refresh_cached(
+            &e.scene,
+            e.selected_objects(),
+            e.interaction_epoch,
+        );
+    }
+    assert_eq!(panel.refreshes, 1);
+    assert!(crate::source_edit::same(
+        &original,
+        &crate::source_edit::original(&e.scene, id).unwrap()
+    ));
+    e.apply(Action::SelectAll).unwrap();
+    panel.refresh_cached(
+        &e.scene,
+        e.selected_objects(),
+        e.interaction_epoch,
+    );
+    assert_eq!(panel.refreshes, 2);
+    e.apply(Action::Hide).unwrap();
+    panel.refresh_cached(
+        &e.scene,
+        e.selected_objects(),
+        e.interaction_epoch,
+    );
+    assert_eq!(panel.refreshes, 3);
+    e.apply(Action::Undo).unwrap();
+    panel.refresh_cached(
+        &e.scene,
+        e.selected_objects(),
+        e.interaction_epoch,
+    );
+    assert_eq!(panel.refreshes, 4);
+    assert!(panel.rows.is_empty());
+    e.apply(Action::Redo).unwrap();
+    panel.refresh_cached(
+        &e.scene,
+        e.selected_objects(),
+        e.interaction_epoch,
+    );
+    assert_eq!(panel.refreshes, 5);
+    assert_eq!(
+        panel
+            .rows
+            .iter()
+            .map(|r| r.label.clone())
+            .collect::<Vec<_>>(),
+        before
+    );
+    e.apply(Action::Close).unwrap();
+    panel.refresh_cached(
+        &e.scene,
+        e.selected_objects(),
+        e.interaction_epoch,
+    );
+    assert!(panel.rows.is_empty());
+    assert!(panel.graph.is_empty());
+}
+#[test]
+fn graph_rows_keep_one_original_edge_and_document_labels() {
+    use crate::editor::{Action, Editor};
+    let mut e = Editor::default();
+    e.apply(Action::Close).unwrap();
+    e.apply(Action::AddBox).unwrap();
+    e.apply(Action::AddBox).unwrap();
+    e.apply(Action::SelectAll).unwrap();
+    e.apply(Action::AddEdge).unwrap();
+    let before = e
+        .scene
+        .graphs
+        .iter()
+        .map(|(key, graph)| (*key, graph.to_proto()))
+        .collect::<Vec<_>>();
+    let rows = crate::graph_edit::rows(&e.scene);
+    assert_eq!(rows.len(), 1);
+    assert!(!rows[0].0.is_empty());
+    assert!(!rows[0].1.is_empty());
+    assert!(!rows[0].2.is_empty());
+    assert_eq!(rows[0].3, "");
+    assert_eq!(
+        e.scene
+            .graphs
+            .iter()
+            .map(|(key, graph)| (*key, graph.to_proto()))
+            .collect::<Vec<_>>(),
+        before
+    );
+    e.apply(Action::Undo).unwrap();
+    assert!(crate::graph_edit::rows(&e.scene).is_empty());
+    e.apply(Action::Redo).unwrap();
+    assert_eq!(crate::graph_edit::rows(&e.scene), rows);
+}
 ```
-
-**Supplied validation fixture:**
-
-Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
 
 ### 2. `src/lib.rs`
 
@@ -531,18 +1078,46 @@ Register supplied performance correctness fixtures.
 
 **Locate this existing block:**
 
-```text
+```rust
+pub mod bench_compare;
 
+#[cfg(test)]
+mod ambient_shader_contract;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
 pub mod tree_witness;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
-After that block, append this supplied code:
+Edit the existing block to match this code; keep unchanged lines:
 
-```text
---8<-- "journey/code/95f-prove-cache-invalidation-and-honest-performance-reports-02.rs" skip=23
+```rust
+pub mod bench_compare;
+
+pub mod tree_witness;
+
+#[cfg(test)]
+mod ambient_shader_contract;
+#[cfg(test)]
+mod bench_tests;
+pub mod finite_project_source;
+#[cfg(test)]
+mod finite_scan_contract;
+#[cfg(test)]
+mod finite_tiles_contract;
+pub mod source_mesh_topology;
+
+#[cfg(target_arch = "wasm32")]
 ```
 
 ## Build & Run
+
+![Recorded visual output for Lesson 18.7 (95f-prove-cache-invalidation-and-honest-performance-reports)](../../../screenshots/journey/95f-prove-cache-invalidation-and-honest-performance-reports.png)
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 18.7
