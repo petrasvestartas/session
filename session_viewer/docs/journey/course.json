@@ -91676,6 +91676,20 @@
           "copy": true,
           "supplied": "validation",
           "why": "Record the actual pulled and locally corrected production source inventory at the final endpoint; preserve earlier checkpoint inventories and all source-verification assertions."
+        },
+        {
+          "path": "src/plane_original.rs",
+          "before": "    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{dots:Vec::new(),dot_styles:Vec::new(),glyph_flags:0,ink:Default::default(),dot_colours:Vec::new(),pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};\n",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen.rs",
+          "why": "Retain the original clipping-plane width and colour in its display pen.",
+          "copy": true
+        },
+        {
+          "path": "src/plane_original.rs",
+          "before": "pub fn insert(scene:&mut crate::scene::Scene,plane:Rc<Plane>)->Result<crate::scene::ObjectId,&'static str>{let id=scene.insert(prepared(&plane)?)?;scene.objects_mut().iter_mut().find(|r|r.id==id).unwrap().original=Some(Geometry::Plane(plane));Ok(id)}\n",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen-test.rs",
+          "why": "Check custom guide pens, original ownership and explicit display precedence.",
+          "copy": true
         }
       ],
       "frame": "journey/checks/94-comparison.rs",

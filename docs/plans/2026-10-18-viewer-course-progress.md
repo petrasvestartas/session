@@ -1,5 +1,8 @@
 - [x] Source integration complete: 59 late-chapter teaching introductions and 20 figures now accompany the committed Argo diagrams from `d1d0871f`; all diagram and checkpoint code bytes retained. [Integration record](../../session_viewer/docs/journey/release/concurrent-teaching-integration-review.json).
 
+- [x] Current clipping-guide source: original pen CPU regression passes; authoring22/22, structure1,361/reference43 and changed lesson22.6 desktop/phone publication pass.
+- [ ] Clipping-guide image parity remains unfinished: three pairs differ72 pixels and clipped glass264 pixels. Zero new pairs accepted. Coverage/cap-visibility corrections are being prepared; full1,061-test integration waits for focused image success.
+
 - [x] Published and reviewed the integrated teaching content: 59 introductions, 111 links, 21 decoded images and 17 inspected views. Duplicate navigation and phone overflow fixes pass four additional views. [UI proof](../../session_viewer/docs/journey/release/docs-navigation-overflow-review.json). Gemini first 10/redraft and current whole-book handoff remain deferred.
 
 - [x] Final CAD canonical native frame passes at97d:640x480, blue surfaces/black outlines and white corner assertions;42.738s,peak2,405,543,936B. Image individually reviewed. [Frame proof](../../session_viewer/docs/journey/release/final-cad-native-frame-review.json). Browser acceptance remains separate.

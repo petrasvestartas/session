@@ -44717,6 +44717,42 @@ Edit the existing block to match this code; keep unchanged lines:
 }
 ```
 
+### 246. `src/plane_original.rs`
+
+Retain the original clipping-plane width and colour in its display pen.
+
+Copy this supplied source update.
+
+**Locate this existing block:**
+
+```rust
+    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{dots:Vec::new(),dot_styles:Vec::new(),glyph_flags:0,ink:Default::default(),dot_colours:Vec::new(),pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
+```
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen.rs"
+```
+
+### 247. `src/plane_original.rs`
+
+Check custom guide pens, original ownership and explicit display precedence.
+
+Supplied validation fixture.
+
+**Locate this existing block:**
+
+```rust
+pub fn insert(scene:&mut crate::scene::Scene,plane:Rc<Plane>)->Result<crate::scene::ObjectId,&'static str>{let id=scene.insert(prepared(&plane)?)?;scene.objects_mut().iter_mut().find(|r|r.id==id).unwrap().original=Some(Geometry::Plane(plane));Ok(id)}
+```
+
+After that block, append this supplied code:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen-test.rs" skip=251
+```
+
 ## Build & Run
 
 ![Recorded visual output for Lesson 22.6 (96zzzzzzc)](../../screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png)

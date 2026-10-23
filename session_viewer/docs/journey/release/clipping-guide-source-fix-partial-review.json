@@ -1,0 +1,211 @@
+{
+  "status": "PARTIAL applied source:CPU regression PASS;four strict pairs FAIL, repair unaccepted",
+  "recordedUtc": "2026-10-23T23:13:54.057Z",
+  "testFixtureCorrection": {
+    "proof": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/in-memory-source-proof.json",
+      "sha256": "c3d57c6cf76ec97f7470c60366eacacea1aae4cef857fad1c721219c32976074"
+    },
+    "nonTestPrefixIdentical": true,
+    "meaning": "Initialize actual lazy Plane GUID before full-source snapshot; all pen/style/owner assertions retained.",
+    "previousFocusedFailure": {
+      "log": {
+        "path": "target/course-windows-20261018/material-owner-clip-e6-pinned-preparation/focused-cpu-20261023T230510334Z/output.log",
+        "sha256": "73bce44b0a7e51a2af68d38dceeb04f391876f26c80a45fb02b5790c5eb43dd1"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/material-owner-clip-e6-pinned-preparation/focused-cpu-20261023T230510334Z/resources.json",
+        "sha256": "40d6626dd78f0d3eef5a3183c19ff55a71c8b7b2037f1dfb6e6fccca15bdc88b"
+      },
+      "scope": "Preserved failed0/1 CPU result. Width/style assertions passed before empty-to-initialized GUID snapshot mismatch; not acceptance."
+    }
+  },
+  "source": {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "fingerprint": "446614c6db2da06557279eea716834a8d8b66de4978d1c374b410ac8a0107f9e",
+    "courseSha256": "72c30e437901ffce1d83a8fa56abb1b82c0d402a3315000206482b6546d0a6be",
+    "files": 713,
+    "changedFiles": [
+      "src/plane_original.rs"
+    ],
+    "application": {
+      "path": "target/course-windows-20261018/clipping-guide-canonical-application/application.json",
+      "sha256": "46e9c201d2f78c13f7d325a8a4bf933ff837f6534e6c83dc46c68b68e90d2105"
+    },
+    "stageProof": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/current-source-proof.json",
+      "sha256": "973e4a9c4a7595d616a7bcb65c8acd3af3f5fd5e0abae02f9b42f079c6f29fb9"
+    }
+  },
+  "authoring": {
+    "status": "PASS22/22",
+    "log": {
+      "path": "target/course-windows-20261018/clipping-guide-progress-preparation/authoring-guid-v3/authoring.log",
+      "sha256": "792ef8b21c8f424cdf18f128da8c0f1040cce057dca5cb5f74ccd43f071cda7a"
+    }
+  },
+  "structure": {
+    "status": "PASS1361/307viewer/43reference/351final",
+    "log": {
+      "path": "target/course-windows-20261018/clipping-guide-progress-preparation/authoring-guid-v3/structure.log",
+      "sha256": "726b513a6403152dbcbc3f377f98676d314610b208ab6569eeb462417791433f"
+    }
+  },
+  "outcomes": {
+    "focusedCpu": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/focused-test.json",
+      "sha256": "059ed0ec9e513d4b6c863f6b49964890beacf7a9184bb5adba666ad390039244"
+    },
+    "failedPairs": {
+      "status": "FAIL4/4 strict paired images;zero newly accepted pairs",
+      "acceptedNewPairs": 0,
+      "manifest": {
+        "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/frames-20261023T231046853Z/manifest.json",
+        "sha256": "ad6e7527e032d627ea10da4b0afb531038f6c7c720354201f7c58211e546f63f"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/run-20261023T231046855Z/resources.json",
+        "sha256": "88efb04ea082d19d4d1c4782bbad99a487dad5e0acc08c654040dc597e29fe31"
+      },
+      "command": {
+        "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/run-20261023T231046855Z/command.json",
+        "sha256": "547faacb75d9bfe29ab86bffed8c14bb3db24a5c8a71948d95c378afb73b9faf"
+      },
+      "log": {
+        "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/run-20261023T231046855Z/output.log",
+        "sha256": "467f8a259766d15d5fccacc05cf22a15ea8207a823bf62d688e315cacfbdc8d8"
+      },
+      "residuals": [
+        {
+          "case": "copied-selected-glass",
+          "changedPixels": 72,
+          "maxChannelDelta": 15,
+          "sourceSha256": "a956c5940118532a1932326161d85d0972d7d167eb7e5801ef22b823556ad117"
+        },
+        {
+          "case": "locked-source-glass",
+          "changedPixels": 72,
+          "maxChannelDelta": 15,
+          "sourceSha256": "a956c5940118532a1932326161d85d0972d7d167eb7e5801ef22b823556ad117"
+        },
+        {
+          "case": "copied-selected-clipped-glass",
+          "changedPixels": 264,
+          "maxChannelDelta": 37,
+          "sourceSha256": "a956c5940118532a1932326161d85d0972d7d167eb7e5801ef22b823556ad117"
+        },
+        {
+          "case": "copied-selected-clipped-xray",
+          "changedPixels": 72,
+          "maxChannelDelta": 15,
+          "sourceSha256": "a956c5940118532a1932326161d85d0972d7d167eb7e5801ef22b823556ad117"
+        }
+      ],
+      "frameHashes": {
+        "actual-copied-source.pb": "a956c5940118532a1932326161d85d0972d7d167eb7e5801ef22b823556ad117",
+        "before-decoded.txt": "dab1d30c208ca88b967ff2fbec9f95d673b29b7b90841786bffe325764e37089",
+        "before-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "before-noop-decoded.txt": "134ab1ccf5b02c1f5244984caeed23c8a5a28127a03a1bb54cd47c68f0abe5d0",
+        "before-noop-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "before-noop.session": "2e972a06dabd17f119aa1fbdc74e0eb71300c9a1289ea17c157093be68af4f02",
+        "before.session": "72a4bc693c189b79f46d41e900d0013c566afc79d1ccc470532959d17a6ab360",
+        "copied-selected-clipped-glass-after-init-decoded.txt": "9cf76e7e498c9e7425f29c9732eef8a8ac89a31a13421f40ccce0859c5ec0102",
+        "copied-selected-clipped-glass-after-init-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "copied-selected-clipped-glass-after-init.session": "e991a68c7be74f2764b31db05b7047cd67cd631ec2b6f54eb014246be3f518ee",
+        "copied-selected-clipped-glass-after-render-decoded.txt": "65a1dd679fd00851dd4548509b26c1c42fbbd4c12743e8c0aa06b8c656d6b4de",
+        "copied-selected-clipped-glass-after-render-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "copied-selected-clipped-glass-after-render.session": "4de169ea82f377bbbb4b0479ed11ca2a08cf1f639f4d79f2547d9d5ef44f0711",
+        "copied-selected-clipped-glass-course.ppm": "2bfb30a72ef3591c0e55ceb35f398221ff44b3a00032f8c1cf8eaa8d7e129773",
+        "copied-selected-clipped-glass-course.rgba": "13b1f94e7f1b9636e67be745b823a4b1c88cf0165d60af3689a31f90b2ae340e",
+        "copied-selected-clipped-glass-production.ppm": "b9d38ffce5f3b1dfeb534fe12a44a0a0f4b1dbdb3fff24e5753780536d5e71d8",
+        "copied-selected-clipped-glass-production.rgba": "a35718d33923664a86c7e9ec1ae2551935c0df0cbd515a998e7dfe8e4feadb60",
+        "copied-selected-clipped-xray-after-init-decoded.txt": "92bc9cdb70753cbd9edabac6ab09e0643b2be53aebe32501c48005c229ce081d",
+        "copied-selected-clipped-xray-after-init-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "copied-selected-clipped-xray-after-init.session": "df6b4bfac068f2e4c2562147623bd0204b74cf879901765f467318d4a9b440e4",
+        "copied-selected-clipped-xray-after-render-decoded.txt": "da9fed78cace972b4e0970a51c3bb7f953b1ad1211411d35986a1dbfdc91e81f",
+        "copied-selected-clipped-xray-after-render-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "copied-selected-clipped-xray-after-render.session": "e49662dc513691d42f961bb36a132b16d9b49b0941ab45f71724b804ad1ec737",
+        "copied-selected-clipped-xray-course.ppm": "02e4e65d1cd44478b56e4e23b5355ae223dd56917e75bca6a017f296c29e1628",
+        "copied-selected-clipped-xray-course.rgba": "1aa4d7bbe73098faeb84dc1409078e9464cba5bf0b3108dac227876f6500284b",
+        "copied-selected-clipped-xray-production.ppm": "05828c991a40f4dd408045bb88205fdc30680258c828df134ca8d5067d7da507",
+        "copied-selected-clipped-xray-production.rgba": "d3774daf7dbe38e3119fb8132689201edf19a589b524adfc9279c0cafe77bc23",
+        "copied-selected-glass-after-init-decoded.txt": "d170cd895452fcd0cecc58ef83003164df427d1e5b1582f8c01194cdf7e5d539",
+        "copied-selected-glass-after-init-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "copied-selected-glass-after-init.session": "d9d933807c988346215cd306c51b22f9aaa5f52aa0a84f8a8919de6b20448129",
+        "copied-selected-glass-after-render-decoded.txt": "e5a4d2f9a7e9f114f4ce27a4c79b5d90ef891f6f85426c62fdb862dd828e6e8b",
+        "copied-selected-glass-after-render-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "copied-selected-glass-after-render.session": "d9384f073b09a679a72e8c71225ac3ae7b3db8e741ea61f56a435a7a79859daf",
+        "copied-selected-glass-course.ppm": "50b7a2b884fbb0e2022f2463c291bddc41557d94fa68aa96e176458c5c8f999c",
+        "copied-selected-glass-course.rgba": "94f284e1322d2b7441feb4e24f60676a5e20135dffd8dfea63a5b626f4671aa4",
+        "copied-selected-glass-production.ppm": "9f29e4d1ac36e4aba667f5ec0f708bbc798399a0061bcd25c4235796100ebbe1",
+        "copied-selected-glass-production.rgba": "94e5b76ba372f4a83c71d97620b1d1cffe91334138c3c41740a1e3fae0c8cf78",
+        "copy-operation.json": "63f54f9997031ee332fe150e8120af119c258aa30b8b5c07fb14557196e1a0a7",
+        "locked-source-glass-after-init-decoded.txt": "c7142c9bc0828df2a328eeb04c1a3069caf099143df9f96f8bca1581b6a0802a",
+        "locked-source-glass-after-init-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "locked-source-glass-after-init.session": "bf16be50d03c9682790821c41ffd7a10962119a72169947a5a32b78e5009151e",
+        "locked-source-glass-after-render-decoded.txt": "00bdfddc858844c6ee8d1d06ca15f8a9abba61ddfe448fbd238199ff81a8413c",
+        "locked-source-glass-after-render-metadata.json": "a7db1cfa50ca428120b67076c96b7647e1171189552095cf619cdfbf580fd0f8",
+        "locked-source-glass-after-render.session": "ec9c460c6e202e3a72dc3fccadd7daf2c7c55bae1f23a3fe584c0719dd3ea7c9",
+        "locked-source-glass-course.ppm": "78421aabd0e5291e6be80ac71d34883077dfbd04adc490581dc50ddb5b51fce3",
+        "locked-source-glass-course.rgba": "197dccd456dce5623924ebf29357cda2931a53997c26284d78584f987682e1bc",
+        "locked-source-glass-production.ppm": "3f939e041c78526d5898d2970f33660293f77d479acc21b2299016da6634bb79",
+        "locked-source-glass-production.rgba": "d440f4ea749a374f3efc3cd6888ea578ed0221efebc3ac28ed0c776ad004679e",
+        "manifest.json": "ad6e7527e032d627ea10da4b0afb531038f6c7c720354201f7c58211e546f63f"
+      },
+      "elapsedSeconds": 31.267,
+      "peakJobCommitBytes": 732372992,
+      "imageReview": "Separate root diagnosis; no visual acceptance inferred."
+    }
+  },
+  "pending": [
+    "Source repair remains unaccepted: residual paired-image differences under diagnosis."
+  ],
+  "dependencyCaveat": {
+    "interruptedV1": "Earlier e6 build was interrupted after generated-lock dependency drift was identified. Its folder/logs and dependency-delta audit remain historical; no successful V1 acceptance inferred.",
+    "deltaAudit": {
+      "path": "target/course-windows-20261018/material-owner-clip-e6-preparation/dependency-delta-audit.json",
+      "sha256": "3863f5a72b6ff5c8e2c2d1a5fe01b4134591afa9565d39741f0213cffe6f4c27"
+    },
+    "pinnedV3": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/preparation-guid-v3.json",
+      "sha256": "967194ddc774444314afb6e9d325d935ff1900c515b125760c85cd51328161ee"
+    },
+    "actualLockedV3Metadata": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/lock-validation.metadata.json",
+      "sha256": "06da54381a323313d23df9fa059d5cd2355d2fd1492bfc3b2ec0bac977b2dd3b"
+    },
+    "preservation": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/dependency-preservation-proof.json",
+      "sha256": "55bfbf4bfb3f45d7e2b7eb88d867b10ba6cf4e6007eb82b60c8461fc90263730"
+    },
+    "lockedMetadataRecovery": {
+      "path": "target/course-windows-20261018/material-owner-clip-e6-pinned-preparation/lock-validation-recovery.json",
+      "sha256": "eab0b956b0ddb81b6a28fd699bcddf3e78435c1ffd853254ca6a52647d78f27e"
+    },
+    "scope": "Pinned registry preservation and priorV2 locked metadata recovery remain distinct from actualV3 locked metadata/build/focused outcomes; no dependency or failed-test proof is relabelled."
+  },
+  "compilerPrefixReuse": {
+    "record": {
+      "path": "docs/journey/release/reader-compilation-review.json",
+      "sha256": "bd5cc63246a164589fbf560e34c260318f608aa0bd9d14bd328ab42cc3109167"
+    },
+    "endpoints": 101,
+    "phases": 202,
+    "scope": "Earlier reader source/edit prefixes are exactly unchanged by the appended final-step fix. Original202 execution source/signature/log hashes remain original; no relabelling as e6 execution."
+  },
+  "priorProofs": "All97d/f739 native1060/material8/Plane/browser proofs retain their recorded metadata; no rebinding to e6. Feature3/18 and pending17 callbacks unchanged.",
+  "scope": "Partial checkpoint only: applied source and focusedCPU regression pass, but all four strict image pairs fail. Zero new pairs accepted; repair remains unaccepted/residual diagnosis. Full1061, current browser/WASM, image and docs publication remain pending.",
+  "rootResidualImageReview": {
+    "status": "All8 original-resolution residual PNGs individually inspected; all4 pairs remain FAIL",
+    "images": {
+      "copied-selected-clipped-glass-course.png": "8d81b438b8dee85057553b4cd3a252f3514340e0592125deb5bb3721ebfcba50",
+      "copied-selected-clipped-glass-production.png": "2e21cc0e983ee91ec8a1ac35521c91700075639ff49f8b0e247081391a71b5ab",
+      "copied-selected-clipped-xray-course.png": "7afa352b59954d9267c2211e9dab513bfdc7f69b0c6c55bc5b7d8585bcd70e1c",
+      "copied-selected-clipped-xray-production.png": "0f614b5df7addeafcdd5dfc9ae68bb2e7fbd14a8838f6f6db5e7c1e8237054e5",
+      "copied-selected-glass-course.png": "693f8d83898fd2a8b694472b63b766b7c78974c322e407257eb9a1b23fb9dd92",
+      "copied-selected-glass-production.png": "2c1cadbb39c46ee2f6c46f545d8cb98713939221da9b0230ffe0737b3f6eda8e",
+      "locked-source-glass-course.png": "39b32f0fc671f7798c9dc3804760d940ce640797ea7c883f6e0105755a4b00b6",
+      "locked-source-glass-production.png": "2a8cb613a360c6bd322fcc15b86cac3d274460f8b23801bc3fa7ff939a008ecb"
+    }
+  }
+}

@@ -45996,6 +45996,51 @@ After that block, append this supplied code:
 
 </details>
 
+### 386. `src/plane_original.rs`
+
+Retain the original clipping-plane width and colour in its display pen.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```text
+    let endpoints=edges.iter().map(|&(a,b)|[&points[a],&points[b]].map(|p|[p[0],p[1],p[2]])).collect();display.parts=crate::mesh_parts::Parts{dots:Vec::new(),dot_styles:Vec::new(),glyph_flags:0,ink:Default::default(),dot_colours:Vec::new(),pens:Vec::new(),faces:Vec::new(),triangles:Vec::new(),edges,endpoints};
+```
+
+</details>
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```text
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen.rs"
+```
+
+<details>
+<summary>Supplied validation fixture</summary>
+
+Copy this supplied authoring fixture once. Continue with the browser build below; the course does not require running native tests.
+
+### 387. `src/plane_original.rs`
+
+Check custom guide pens, original ownership and explicit display precedence.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```text
+pub fn insert(scene:&mut crate::scene::Scene,plane:Rc<Plane>)->Result<crate::scene::ObjectId,&'static str>{let id=scene.insert(prepared(&plane)?)?;scene.objects_mut().iter_mut().find(|r|r.id==id).unwrap().original=Some(Geometry::Plane(plane));Ok(id)}
+```
+
+</details>
+
+After that block, append this supplied code:
+
+```text
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen-test.rs" skip=251
+```
+
+</details>
+
 ## Run and check
 
 Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:
