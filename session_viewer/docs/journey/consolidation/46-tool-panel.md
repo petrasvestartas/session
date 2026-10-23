@@ -1,22 +1,85 @@
 # 7.1 · Active tools own their command input
 
-Give a running tool the shared command panel without allowing ordinary commands to consume its answers.
+**Section 5: Interactive Drawing, Snapping, Gumball Handles, and Scene Hierarchy** · **Lesson 7.1** (Redraft `5.1`) · **1 checkpoint (`46-tool-panel`)**
 
-## Ownership and data flow
+> **Learning Goal:** Keep active values and tool controls inside the existing GPU command panel.
 
-The active tool supplies prompt and value state; the panel renders that state and routes its pointer/keyboard input back to the tool. Input ownership is decided before ordinary feature commands are parsed, so coordinates and cancellation reach the active operation. Keeping one shared panel avoids a second competing editor and prepares point tools, numeric handles and interruption behavior.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 7 Interactive CAD Manipulation: Construction-Plane Ray Hit, Snap Priority & 3D Gumball (widget.wgsl)</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How 2D mouse drags become exact 3D CAD coordinates via construction planes, geometric snapping, and constant-screen-size Gumball handles.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="240" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="138" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Construction Plane &amp; Snapping</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Ray R(t) = O + t·D intersects Plane(P0, N):</text>
+    <text x="28" y="124" font-size="10.5" font-weight="700" fill="#1d4ed8">  t = dot(P0 - O, N) / dot(D, N)</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1e40af">• Snap Priority within pixel radius:</text>
+    <text x="28" y="160" font-size="10" fill="#1e3a8a">  1. Endpoint / Vertex   2. Midpoint</text>
+    <text x="28" y="175" font-size="10" fill="#1e3a8a">  3. Curve Nearest       4. Grid Step</text>
+    <text x="28" y="193" font-size="10" fill="#1e3a8a">• Typed "x,y,z" overrides cursor ray</text>
 
-command_dock/mod.rs owns shared command state; app/ui/command_line.rs adapts it to maintained application actions. app/command/tool.rs owns production tool prompts and answers. The checkpoint adapter is staged before the full maintained registry.
+    <line x1="258" y1="138" x2="288" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="290" y="68" width="250" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="415" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. Tool State &amp; Preview Overlay</text>
+    <text x="302" y="108" font-size="10.5" fill="#7c2d12">• Active Tool (Line / Polyline / Point)</text>
+    <text x="302" y="126" font-size="10.5" font-weight="600" fill="#c2410c">• Rubber-band preview buffer:</text>
+    <text x="302" y="142" font-size="10" fill="#7c2d12">  Updates every pointermove without</text>
+    <text x="302" y="157" font-size="10" fill="#7c2d12">  polluting Undo history stack</text>
+    <text x="302" y="176" font-size="10.5" fill="#7c2d12">• Enter / Final Click -&gt; 1 atomic Undo</text>
+    <text x="302" y="192" font-size="10.5" fill="#7c2d12">• Escape -&gt; cancel &amp; clear preview</text>
 
-Production source reference: [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+    <line x1="540" y1="138" x2="570" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Build the capability
+    <rect x="572" y="68" width="248" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="696" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. 3D Gumball Widget (widget.wgsl)</text>
+    <text x="584" y="108" font-size="10.5" fill="#064e3b">• Placed at selection bounding center</text>
+    <text x="584" y="126" font-size="10.5" font-weight="600" fill="#047857">• Scaled by camera distance w so</text>
+    <text x="584" y="142" font-size="10.5" font-weight="600" fill="#047857">  handles stay constant pixel size!</text>
+    <text x="584" y="160" font-size="10" fill="#064e3b">• Axis arrows (Translate X/Y/Z)</text>
+    <text x="584" y="175" font-size="10" fill="#064e3b">• Arc rings (Rotate) + Boxes (Scale)</text>
+    <text x="584" y="192" font-size="10" fill="#064e3b">• Picked via Rg32Uint widget sub_id</text>
+    
+</svg>
+</div>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+active tool prompt and values → shared egui command dock → owned pointer and keyboard → unfiltered tool input.
+```
+
+- Keep active values and tool controls inside the existing GPU command panel.
+- **Why it works (Why return a tool value before checking ordinary command names?):** A value such as60 and an empty Enter belong to the running tool. The tool decides whether to keep a value, advance a point or commit.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust (CAD Math)** | Ray–Plane Intersection `t = dot(P0 - O, N) / dot(D, N)` | Projects a 2D mouse ray onto the active 3D construction plane (`Plane`), with priority snapping (`Endpoint > Midpoint > Curve > Grid`). |
+| **Rust (Editor)** | Preview Overlay vs. Atomic Undo Commit | Rubber-band preview geometry updates on every `pointermove` without touching the Undo stack; `Enter` or final click commits one atomic kernel transaction. |
+| **WGSL (`widget.wgsl`)** | Perspective-Compensated 3D Gumball Handles | Scales axis arrows, rotation arcs, and scale boxes by camera depth `w` so the 3D Gumball gizmo stays a constant clickable pixel size at any zoom. |
+
+**Production source (`session_viewer/src`):** [app/command/mod.rs](../../../src/app/command/mod.rs), [app/command/tool.rs](../../../src/app/command/tool.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/snap.rs](../../../src/app/snap.rs), [app/gizmo.rs](../../../src/app/gizmo.rs), [engine/gpu/widget.rs](../../../src/engine/gpu/widget.rs), [app/deform.rs](../../../src/app/deform.rs).
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-46-tool-panel"></a>
 
@@ -465,9 +528,9 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 46-tool-panel
@@ -478,12 +541,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
-The drawing remains the two-box scene from the preceding selection lesson; this checkpoint adds tool-owned panel handoff. In the supplied widget fixture, click `Thickness 40`, enter `60` and submit once. The active owner must receive 60 without a Help completion intercepting it. The actual point/line tool is connected in the construction-plane lesson.
+Inspect the copied tool_buttons_tests, then repeat the two-box selection and Undo exercise. This preparation adds the panel handoff; the point tool connects it at48.
 
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Inspect the supplied widget fixture: click Thickness40, type60 and press Enter. Explain why the owner must receive60 without a Help completion or a second submission.
 
 Continue with [Typed commands and host requests](47-registry.md).
