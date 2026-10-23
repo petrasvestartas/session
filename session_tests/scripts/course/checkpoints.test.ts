@@ -356,13 +356,22 @@ test('field renames replace whole references without changing longer names', () 
     assert.throws(() => edited(source, edit, 'self.targets.depth\n'), /two field references/);
 });
 
-test('the compact target-owner lesson reconstructs its independently accepted application', () => {
+test('the compact target-owner lesson preserves its accepted source apart from the scoped Escape repair', () => {
     const id = '96zzzzzzv-reuse-coherent-frame-targets';
     const record = JSON.parse(read(path.join(viewer, 'docs/journey/visual-review.json'))).steps[id];
     const step = course().steps.find(step => step.id === id)!;
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
-    assert.equal(fingerprint(expected(id)), record.applicationFingerprint);
+    const files = expected(id);
+    assert.equal(fingerprint(files), 'b087e7f4308e7a45b5c209792acfc250414fe928a3ed4844ce7aa65137021625');
+    const escape = course().steps.find(step => step.id === '85as-register-current-names-views-and-command-aliases')!
+        .edits.filter(edit => ['src/panel.rs', 'src/browser.rs'].includes(edit.path));
+    assert.equal(escape.length, 2);
+    for (const edit of escape) {
+        const after = read(path.join(viewer, 'docs', edit.snippet));
+        files[edit.path] = edited(files[edit.path], {...edit, before: after}, edit.before!);
+    }
+    assert.equal(fingerprint(files), record.applicationFingerprint);
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);
     assert(typingLoad(step).minutes[1] <= 60);

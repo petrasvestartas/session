@@ -2393,7 +2393,7 @@
     {
       "root": "viewer",
       "path": "Trunk.toml",
-      "sha256": "e36cf10ae1b9029bdcaa6b55468bef4dab8a3211db52763dcfc1e7521bebb9f8",
+      "sha256": "b597b1d06c7d8bbfcdf80a16d71de27bc3aa2f20c10a57742ac58d3cb027742a",
       "topic": "Build, startup and application ownership",
       "lessons": "00–02,34–35,94,96"
     },

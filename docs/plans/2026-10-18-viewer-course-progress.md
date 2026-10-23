@@ -6,19 +6,23 @@ The book now has **22 chapters and 111 reader-facing lessons**. All **1,360 codi
 
 Open the locally built tutorials at **http://127.0.0.1:8788/docs/#/course**. An isolated, visible Chrome window has been opened there. The local preview server must remain running.
 
-## Stage totals
+## Current stage totals - authoritative 2026-10-23
 
-| Stage | Accomplished | Left | Status |
+| Stage | Done | Left | Status |
 | --- | --- | --- | --- |
-| Source synchronization | All 16 GitHub checkouts pulled to remote branch tips; all 25,829 tutorial files unchanged at the pull boundary | No source repositories awaiting this pull | Done |
-| Windows tooling and missing inputs | Cross-platform pull entry points; guarded Windows builds; reproducible fixtures; WARP canvas presentation; actual docs build and cached no-op verified | Windows capture host ports authored and five focused native checks pass; validate course tooling, actual Windows frames and 4/4 regenerated inputs with the appropriate checkpoint contracts | In progress |
-| A. Course consolidation | 22/22 chapters integrated; 111 lessons; all 1,360 coding IDs retained; strict docs build and changed-page UI checks pass | 0 chapters awaiting editorial integration | Done for editorial structure; runtime acceptance is separate |
-| B1. Production display reconciliation | Ribbon/cloud paired evidence; Matrix five core plus three compact-owner tests; Plane four focused tests; hidden-range GPU proof; two actual 2M cloud tests and 18 production LOD comparisons | Point/glyph/sphere five tests and printed-fill two tests pass; printed alpha and all eight matched mesh images pass; finish matched CAD/vector/Plane, controls and browser evidence; 5/5 full groups remain open | In progress |
-| B2. Runtime and performance | Maintained dependency detached from normal native builds; integrated frame coalescing compiles natively and in WASM; 3/3 scheduler semantic tests pass | Browser lifecycle acceptance and 5/5 measured categories; 3/3 full implementation groups remain open | In progress |
-| B3. Reload camera and base grid | Both implementations updated; 4/4 course native regressions and 3/3 maintained grid checks pass | Actual deferred-load browser checks; 4/4 full combinations remain open | In progress |
-| C. Final integration | All 1,360 checkpoint IDs and snippet references are present; prior docs/navigation baseline is built and checked | Latest full native run: 1,055/1,059 passed; all 4 failures subsequently passed in focused checks, including two corrected whole-owner fixtures and two fixture-directory errors. A clean final full run, 5/5 final gates and feature evidence for 19/22 chapters remain | In progress |
+| Source synchronization | All fetched source integrated safely; tutorial edits and Gemini commits preserved; eight isolated pull-launcher safety tests pass | 0 repositories awaiting the authorized pull | Done |
+| Course consolidation | 22/22 chapters, 111/111 reader lessons, 1,360 coding checkpoints plus reference preserved | 0 reader lessons awaiting initial drafting | Draft structure done |
+| Native and browser builds | Current learner native 1,059/1,059 pass; latest Matrix included; optimized WASM passes; maintained CI 558 native tests plus WASM/all-targets passes | Rebuild WASM/browser after the scoped Escape fix; historical own-checkpoint contracts remain separate | In progress |
+| Performance | 5/5 categories measured on the same small demo; unchanged ordered-input/coalescing/idle/disposal callback passes | Remaining startup/feature lifecycle acceptance; no hardware performance claim | Measurements done; full implementation groups open |
+| Original fixture browser contracts | 4/4 deterministic inputs generated; first historical checkpoint passes WASM, 800 native tests, optimized web and native frame | 0/4 full browser callbacks accepted; first exposes a confirmed Escape-selection handoff defect, now being fixed without changing assertions | In progress |
+| Display comparisons | Exact native Point8/8, Mesh8/8, placedPlane16/16, plainPlane16/16, originalcoveredPlane1/1, residentSheet32/32, headedLine4/4, cloudLOD18 pairs and other scoped controls | Generated covered/print and full original covered Plane matrices; CAD/joined/display controls and browser acceptance; full groups remain open | In progress |
+| Reload and held grid | Course and maintained native regressions pass | 0/4 route/live browser combinations accepted; maintained optimized build running | In progress |
+| Chapter visual acceptance | Drafts and earlier partial visual proofs retained | Nine owned chapter sets (11,13-20), twelve canonical entry callbacks; Gemini owns1-10 | In progress |
+| Final release | Local docs/navigation/SVG/desktop/phone proofs and source-history checks pass within their recorded scopes | 0/5 final gates closed: matching final source/builds, runnable checkpoints, feature coverage, navigation/history, final browser inspection/publication | In progress |
 
-**Remaining work is five bounded batches:** missing inputs/environment, display reconciliation, runtime/performance, reload/grid, and final integration. A batch is not a promised one-session duration. Build and GPU defects are not yet measured well enough to give a reliable number of working sessions. The counts above describe accepted work, rather than treating existing source as verified behavior.
+These counts overlap and are not a completion percentage or session estimate. Check `session_viewer/docs/journey/consolidation/current-state.json` for current manifests. Root integrates and publishes; three agents handle the Escape fix, Plane evidence and chapter-browser preparation. Only one heavy build/GPU/browser job runs at once, with two CPUs and the authorized memory overrides.
+
+The sections below are the retained chronological work log. Earlier unchecked boxes and failure counts are historical snapshots; the current table above supersedes them.
 
 ## Source synchronization — done
 

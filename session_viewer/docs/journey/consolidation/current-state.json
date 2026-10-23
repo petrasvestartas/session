@@ -36,12 +36,12 @@
     "publishedCi": "PASS atb7cdd5dc: run39928419284,WASM+native all-target checks,558 maintained native tests pass,61ignored GPU tests. This is separate from learner1059-test WARP suite.",
     "pullLauncherSafety": "PASS:pull-launcher-regression.json;8isolated Bash/cmd help/invalid/dirty/unpublished cases,HEADandpayload preserved. No destructive force run.",
     "nativeFullCurrent": "PASS1059/1059,zero failures/ignored: integrated-full-native-source-freeze.json,a45/713files,actual WARP,1468.642s,peak1480597504B. Subsequent sole src/browser.rs change is WASM-only; native source unchanged.",
-    "nativeSourceAfterDisposal": "Native source unchanged from1059-test a45 pass: sole source delta is WASM-only browser.rs. Native acceptance remains bound to original run; optimized WASM/browser now verified at63acaf79.",
+    "nativeSourceAfterDisposal": "Full1059 native run remains accepted at a45. Later compiled-code changes are only WASM browser/panel; current_inventory.json metadata additionally refreshes maintained Trunk hook hash. Focused inventory native check and source-matching final browser rebuild remain pending.",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
-    "docsCurrent": "PASS: performance-docs-build.json123.448s,peak1973448704bytes. performance-visible.json verifies complete SVG,current Matrix/Point/Plane figures and five evidence links; desktop/390px performance screenshots individually inspected,zero document overflow/errors.",
+    "docsCurrent": "Earlier accepted desktop/phone evidence retains its source scope. New combined docs build is running after Gemini and Escape authoring edits; do not rebind old images to new source.",
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
     "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
@@ -56,7 +56,10 @@
     "historical94cVerification": "PASS: source-matching WASM,native800/800,optimized web and native frame checks. Actual native PNG individually inspected; sample.pb generated at own checkpoint. Scripted browser callback pending.",
     "publicProgress": "PASS: progress-docs-build118.13s/1977106432B; progress-visible verifies desktop+390px done/left checklists and release scope,all4screenshots individually inspected,manifest5categories,zero document overflow/errors. Superseded checks archived.",
     "cadSelectionDiagnostic": "PASS: exact canonical wire archivec5ae22c6 and byte-exact embedded PB816e9f38,actual production/course selected RGBA0differences,0black/372yellow pixels. One DPR1/sample1 case,source/archive/Object-pick checks pass. Frozen black-core assertion unchanged; user contract choice pending.",
-    "docsAfterGemini": "Latest progress/desktop/phone proof predates new Gemini a4ba2c22 source edits. Rebuild and inspect the combined book before final docs acceptance; native/runtime proofs unchanged."
+    "docsAfterGemini": "Combined docs rebuilt by actual maintained portable prehook after Gemini a4ba2c22 and Escape authoring changes. Fresh visible-browser inspection remains queued; previous images retain previous-source scope.",
+    "historical94cBrowser": "FAILED, preserved: after file/recovery/stroke/joined/Point/curve/color/normal/grid phases pass, gpu-pick-view second Point click times out. Focused exact helper confirms selected origin gizmo handles the click as ScaleUniform; GPU submissions stay1, no pending read. Failure JSON/PNG and focused log retained; canonical assertions unchanged.",
+    "maintainedWindowsHook": "PASS: portableNode Windows docs prehook and maintained optimized bundle; maintained-grid-web-tools.resources.json exit0. Cargo lock unchanged; matching wasm-bindgen0.2.128 fetched. Linux/macOS dispatch retains Bash but not executed here.",
+    "escapeAuthoring": "PASS:22/22 authoring tests,1361 checkpoint replays/full structure and43 reference histories. Scoped85as focusedpanel/unconsumedcanvas Action::Escape handoff preserved in96zzzzzr full replacement. Browser retest pending; canonical assertions unchanged."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -67,18 +70,18 @@
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
   "currentDefects": [
+    "Confirmed historical Escape handoff defect: focused panel swallows prepared Escape and unconsumed canvas branch cancels gesture without dispatching Action::Escape. Minimal scoped authoring fix at85as and downstream96zzzzzr being implemented; canonical assertions unchanged.",
     "Frozen CAD browser assertion expects black core/yellow fringe with outlines off; actual production and tutorial both produce yellow only. Exact fixture proof and proposed one-assertion patch prepared; user choice pending.",
     "Matched Plane/CAD/joined/sheet ingress, controls and selected-family visual acceptance remain open",
     "Historical fixture callbacks, remaining startup/feature lifecycle and route/live camera-grid acceptance remain open",
     "Current chapter-specific feature images, coverage closure, checkpoint/tooling gates and final docs review remain open"
   ],
   "onlyHeavy": {
-    "category": "Unchanged historical94c scripted browser callback",
-    "label": "historical-94c-browser",
-    "timeoutSeconds": 1800,
-    "jobCommitLimitBytes": 6442450944
+    "task": "source-matching historical94c verification after Escape fix",
+    "session": 36757,
+    "logs": "target/course-checks/94c-prove-the-original-comparison-and-inspect-differences-*.log"
   },
-  "next": "Complete Plane/CAD/joined control comparisons, four historical callbacks and four route/live camera-grid combinations; verify chapter evidence and release gates.",
+  "next": "Finish94c four-phase verification, regenerate its own sample and rerun unchanged browser callback; then fixed final learner/reload-grid/Plane and chapter queues.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -157,23 +160,28 @@
   },
   "currentSource": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
+    "fingerprint": "64e13d5f3f0fdfbbf7a75b7da0c0d47d93dbbd5ae33dc1a81f80f3b59ea86bd9",
     "files": 713,
     "recordedAt": "2026-10-23T10:09:33.393Z"
   },
   "coordination": {
     "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
-    "integrator": "Chapters11\u201322, runtime, shared metadata, builds, validation and Git integration.",
-    "geminiLatestCommit": "a4ba2c22: black-and-white rounded SVG schematics and notebook revisions for first10 chapters/redraft. Committed concurrently; preserved. Fresh combined docs build queued after active historical browser job."
+    "integrator": "Chapters11–22, runtime, shared metadata, builds, validation and Git integration.",
+    "geminiLatestCommit": "a4ba2c22: black-and-white rounded SVG schematics and notebook revisions for first10 chapters/redraft. Committed concurrently; preserved. Fresh combined docs build queued after active historical browser job.",
+    "activeAgents": {
+      "browser_startup_memory": "Owns focused Escape authoring fix; no heavy jobs.",
+      "plane_completion": "Prepares48 remaining Plane native comparisons; waits for exclusive heavy slot.",
+      "chapter_browser_queue": "Prepares12 canonical entry callbacks for nine remaining owned chapter visual sets; no heavy jobs."
+    }
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
     "status": "Full-code checkpoint with measured scheduling, verified current lesson layouts, plain Plane pairs and integrated fetched upstream root/Wood sources pushed. Remaining release gates open.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "4f2f7863",
-    "parentCommit": "cfaed8a",
+    "sessionCommit": "ab8e45c2",
+    "parentCommit": "96a3d3d",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
-    "geminiHead": "d4af0558e2a7017f53e4ad23904950ed1b27f17d"
+    "geminiHead": "a4ba2c22"
   },
   "recovery": {
     "completedAt": "2026-10-23T08:50:38.128521+00:00",

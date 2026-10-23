@@ -8,8 +8,8 @@ public_url = "./"
 # serves it next to the viewer; a no-op while its sources are unchanged.
 [[hooks]]
 stage = "pre_build"
-command = "bash"
-command_arguments = ["../session_tests/scripts/build-viewer-docs.sh"]
+command = "node"
+command_arguments = ["../session_tests/scripts/build-viewer-docs.cjs"]
 
 [watch]
 # This replaces Trunk's default watch set, so the shared path dependency is explicit.

@@ -4,7 +4,7 @@ Connect original-source recipes to real commands, guides, lasso selection and po
 
 ## Ownership and data flow
 
-Text owns height and words before placement, while original Plane retains frame/display semantics and edit eligibility. Trim owns targets/cutters/remaining part state and previews removed parts without mutating saved sources. Guide buffers and lasso loops are bounded presentation owners. Graph links and groups retain document namespaces, remap appended identities and preserve world placement through one reversible edit. Shared pending command state routes clicks, typing, retries and cancellation once; Save/reopen keeps original planes, text, source rows and group relationships.
+Text owns height and words before placement, while original Plane retains frame/display semantics and edit eligibility. Trim owns targets/cutters/remaining part state and previews removed parts without mutating saved sources. Guide buffers and lasso loops are bounded presentation owners. Graph links and groups retain document namespaces, remap appended identities and preserve world placement through one reversible edit. Shared pending command state routes clicks, typing, retries and cancellation once; Save/reopen keeps original planes, text, source rows and group relationships. After Escape is registered, both the command dock and unconsumed canvas input forward it to the editor. An active operation cancels first; ordinary Escape clears selection so the next object click reaches picking.
 
 ## The maintained implementation
 
@@ -14922,6 +14922,48 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 ```
 
 </details>
+
+### 2. `src/panel.rs`
+
+Forward the command dock's accepted Escape to the editor without adding a second reply.
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+        if line == "Escape" { return Ok(None); }
+```
+
+</details>
+
+Replace it with:
+
+```rust
+--8<-- "journey/code/85as-register-current-names-views-and-command-aliases-10.rs"
+```
+
+### 3. `src/browser.rs`
+
+Route unconsumed canvas Escape through the same editor cancellation and selection policy.
+
+<details>
+<summary>Locate this block</summary>
+
+```rust
+            if key.key() == "Escape" {
+                gesture.cancel();
+                event.prevent_default();
+                return None;
+            }
+```
+
+</details>
+
+Replace it with:
+
+```rust
+--8<-- "journey/code/85as-register-current-names-views-and-command-aliases-11.rs"
+```
 
 </details>
 
