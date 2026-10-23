@@ -10770,6 +10770,34 @@
       "bundle": "9ddbb33c6515165a8bafce5d61e93e55897a358d18057af64ac83212fb95dfc7",
       "commands": [],
       "keyboardRoundtrip": false
+    },
+    "96y-address-feature-pixels-to-original-cad-owners": {
+      "source": "64e29bb898fe649e7d02777e43578e257a33e9dddf1e43c6eb2d3a92d9f97db3",
+      "checker": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9",
+      "extraChecker": "d36738655a912f3f48919bd77414faf61f0b42ba26b02af0acb55d1c0d5bb625",
+      "browser": "145.0.7632.6",
+      "headless": true,
+      "captured": "2026-10-23T16:01:41.599Z",
+      "status": "Wheel zooms; type commands anywhere in the drawing. Escape cancels a drag.",
+      "canvas": "f3aee0b6f3a72eca3553e0a5a086bce01e0fdb198bc61c164265897ee4c0664d",
+      "file": "96y-address-feature-pixels-to-original-cad-owners-browser.png",
+      "initialViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "initialCanvas": {
+        "x": 0,
+        "y": 0,
+        "width": 900,
+        "height": 760
+      },
+      "screenshotViewport": {
+        "width": 900,
+        "height": 760
+      },
+      "bundle": "989aeb1a7e43add12be2bde7519e8cd7b676814f69086698933020721f8ad79a",
+      "commands": [],
+      "keyboardRoundtrip": false
     }
   }
 }

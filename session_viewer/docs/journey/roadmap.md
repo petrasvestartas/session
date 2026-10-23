@@ -7,7 +7,7 @@
 - [x] Authored route: 22/22 chapters, 111 reader lessons and 1,361 preserved checkpoints; all 22 authoring tests and structure checks pass.
 - [x] Historical native proof: 1,059/1,059 tests pass at a45. [Source and reuse boundary](release/native-final-source-review.json).
 - [x] Current hierarchy ownership fix: original editing targets and complete display membership are separate; focused native feature tests pass 2/2.
-- [ ] Current 34d5e443 native acceptance: three runtime modules and one test file changed; fresh full native/inventory verification remains pending.
+- [ ] Current97d4a9ff final native acceptance: hierarchy changes remain and TextPlane4x now uses production pixel-center interpolation. Native witness rebuild and fresh final native/inventory verification remain pending.
 - [x] Earlier learner WASM and optimized browser builds retain their recorded source scope. Current optimized WASM/browser acceptance remains pending.
 - [x] Five performance categories measured on the same small demo; ordered input, idle and disposal checks pass at 63acaf79. [Measurements and limits](release/runtime-performance-review.json).
 - [x] All 80 Plane native RGBA pairs pass across plain, placed, generated covered, generated print and retained-original covered matrices. These results make no owner-pick or browser claim.
@@ -15,14 +15,20 @@
 - [x] Portable Windows maintained build and optimized bundle pass; Linux/macOS Bash dispatch is retained.
 - [x] Both production-aligned harness corrections are approved and applied: additive selection retains existing owners, and selected CAD with outlines off matches production yellow without a black core.
 - [x] Focused approved multi-selection WARP check passes at DPR1/2 and both projections; 94.869 s, peak 758,722,560 B.
-- [ ] Complete the affected full browser callbacks; focused helper success does not close fixture acceptance.
+- [x] Four selection-preserving shortcut corrections are approved/applied. Actual layers/labels bodies and shared delete helper pass focused DPR1/2 checks:143.238s,780,898,304B.
+- [ ] Complete94c and final enclosing callbacks; focused affected-module success skips recursive prerequisites.
 - [x] Current 96y native phase passes 831/831 with zero failures or ignored tests (74.61 s test execution). The prior 830-test pass remains historical.
 - [x] Current96y WASM, optimized web and inspected native WARP frame pass alongside831/831 native tests.
 - [x] The live-count correction has explicit approval and is applied: expected2/1/2/2 and all original-owner behavior assertions remain; Undo/Redo memory accounting is unchanged. [Source review](release/feature-owner-count-contract-review.json).
-- [x] All21 reader and5 queued inventory gates verify433 external entries after metadata-only repairs; zero stale inventories and identical final713 runtime files.
-- [ ] Complete the current96y original-owner browser rerun; final-endpoint native acceptance remains separate.
-- [ ] Historical fixture callbacks: 0/4 accepted in this pass. Preserve earlier failures and verify the current source and approved checkers.
-- [ ] Reload/grid browser combinations: 0/4 accepted.
+- [x] All21 reader and5 queued inventory gates verify433 external entries; current97d retains witness hash493e57a9. The c54-to97d runtime delta is only text_plane.rs; all713 stage files match.
+- [x] Current96y complete browser callback passes after the approved live-count correction: original-owner picks,locking,highlighting,Delete/Undo and archive regeneration; actual screenshot inspected.
+- [ ] Historical fixture callbacks: 1/4 accepted in this pass (96y). Preserve earlier failures and verify the current source and approved checkers.
+- [x] Optimized c54 web build passes184.718s/1,368,760,320B; root verified WASM byte-identical to34d. This predates97d TextPlane correction.
+- [ ] Reload/grid browser combinations:0/4. Preflight correctly refused stalec54 after97d changed; no reload execution or acceptance artifacts.
+- [x] Matrix six browser cases and24 saved-image review pass at recorded34d source; cells,digits,selection,picks,independent title,controls and archive returns verified. [Scoped record](release/matrix-browser-review.json).
+- [x] Matrix native8/8 actual production/course pairs match allRGBA pixels including independent titles at97d,DPR1/2,samples1/4,selected/unselected;112.052s,810,409,984B. Figures inspected. [Native record](release/matrix-native-review.json).
+- [ ] Rerun Matrix browser at corrected97d source; earlier six cases/24-image review remain at34d. Full Matrix feature stays partial.
+- [ ] Chapter19 still requires96h inventory callback despite96y complete browser PASS.
 - [ ] Current integration chapter visual queue: chapters 11 and 13-20, nine feature sets through twelve canonical entry callbacks.
 - [ ] Complete remaining CAD, joined/vector, owner-pick and display-control/browser acceptance. Coverage remains 18 partial feature rows and 0 complete.
 - [ ] Rebuild docs for the latest hierarchy/progress metadata edits; the v6 review belongs to the prior built source.

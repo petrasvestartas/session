@@ -1,0 +1,202 @@
+{
+  "reviewedUtc": "2026-10-23T16:33:42.648501+00:00",
+  "status": "passed-scoped-behavior-and-saved-image-review",
+  "scope": "Focused current learner Matrix browser behavior and independent review of all24unique savedPNG artifacts passed at the recordedsource/fixture/settings. Native production/course pairedacceptance and completeMatrixfeature/finalreleaseacceptance remain separate.",
+  "sourceFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+  "fixture": {
+    "path": "target/course-windows-20261018/matrix-production-pairs/matrix.pb",
+    "bytes": 1746,
+    "sha256": "b44c5b9cec32df2a77de1eaaac607273d2a6950df46740558ca1e3882f462646",
+    "values": [
+      [
+        -2,
+        1.2,
+        5
+      ],
+      [
+        0,
+        1.005,
+        5
+      ]
+    ],
+    "cell": 0.3,
+    "title": "stiffness",
+    "matrixGuid": "6d0aaee0-0430-4000-8000-000000000701",
+    "distantGuardGuid": "6d0aaee0-0430-4000-8000-000000000702",
+    "placement": [
+      -0.3,
+      0.2,
+      -0.4
+    ]
+  },
+  "behavior": {
+    "status": "passed",
+    "cases": 6,
+    "densities": [
+      1,
+      2
+    ],
+    "sampleSequence": [
+      1,
+      4,
+      1
+    ],
+    "elapsedSeconds": 594.58,
+    "peakJobCommitBytes": 1003307008,
+    "asserted": [
+      "Actual min/max/zero cell colors and six -2 glyphstroke probes",
+      "Original Matrix and separate title integer GPU owners",
+      "Selected borders preserve sampled cellinteriors; selectionclear exactpixels",
+      "Hide/Show and unrelatedLines/Edges/Points controls exactrestoration",
+      "Title remains drawn andpickable while Matrixhidden",
+      "Original componentsemantic fields and precise central placement preserved through realSave/Open",
+      "Saved independenttitle source retained; archive pixelrestoration and1/4/1sample exactreturns"
+    ]
+  },
+  "findings": [
+    {
+      "finding": "All displayed original values are legible in representative normalrenders: -2,1.2,5 / blankbluezero,1.005,5. The zero cell emits no numericzero. Selectednormalrenders show yellow boundarylines and the transformgizmo over part ofthe1.2cell.",
+      "scope": "Actual recordedviewport/pose/font/MSAAonly."
+    },
+    {
+      "finding": "The independent black stiffness title is present in actualPNGpixel data for all24images and remains alone when theMatrix ishidden. Metadata bare=true and independentworldplacement match currenttitle policy.",
+      "scope": "No confirmed selection-based title-hiding policy or rendererdefect."
+    },
+    {
+      "finding": "Initial image-tool previews misleadingly appeared to omit title/digits/gizmo. This diagnosis was retracted after directPNGdecoding: all12fullpage/canvaspairs have exactlyzero sceneRGBApixel differences, each24image has titleblackpixels, and each16Matriximage has -2glyphcoverage. Sourcefiles/hashes stayed unchanged.",
+      "scope": "Previewpresentation limitation; no runtimecodechange justified. The rawPNGs and allhashes are retained."
+    }
+  ],
+  "sourceReview": {
+    "selection": "src/shaders/matrix.wgsl matrix_color/fs_main: selectedflag changesedgepen only; samefragment computes originalfillanddigits.",
+    "independentTitle": "Course src/production_matrix.rs::title createsbareWorldPlane text; src/scene_document.rs imports it as independent source and archiveopening restores savedtitle metadata.",
+    "maintainedQuality": "src/engine/performance.rs::drag_tier returns0atrest; wheelhold200ms. TIER_RETRY_MS1000 is tier-retry timing, not an unconditional one-second capture barrier. src/engine/gpu/render.rs stillcalls ink/widget/UI aftertier choice.",
+    "currentDriver": "target/course-windows-20261018/matrix-browser-contract.cjs::settle awaits onlytwoRAFs, not an explicitlyobservedGPUqueuefence. Existing quality-settings.cjs and presentation-probe.cjs awaittwoRAFs thenqueue.onSubmittedWorkDone()."
+  },
+  "stableCapturePrerequisite": "Capture-method limitation and future recommendation, not an additional acceptance gate: this driver awaitedtwoRAFs without anexplicit observedGPUqueuefence. Future captures should reuse existingquality/presentation-probe settling: stop input, confirmrequested samplecount, awaittwoRAFs thenactualdevice.queue.onSubmittedWorkDone(). Original-resolution inspection anddecodedPNGmetrics established the current saved-image result; no rendererchange is justified by misleadingtoolpreviews.",
+  "scenePairComparison": {
+    "pairs": 12,
+    "comparison": "Fullpage and correspondingcanvasRGBA, excluding onlybottom34CSSpixel commanddock",
+    "changedScenePixelsPerPair": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "performedOn": "DecodedoriginalPNGbuffers, no tolerance"
+  },
+  "limits": [
+    "This is a scoped PASS for the six behavioral cases and review of actual savedimages; it does not complete the wholeMatrixfeature or production/course pairedacceptance.",
+    "The driverreuses samples1filenames onthe finalsample-return, so24uniquePNGfiles remain; they are not36distinct sequentialframecaptures. Sixbehaviorcase records stillremain.",
+    "The browsercase doesnotestablish production/course nativeimageparity, arbitrarycamera/occlusion, performance, allMatrixfamilycontrols or entirecoursecompletion.",
+    "Some image-toolpreviews were incomplete despite identicaldecodedscene data; sourcePNGhashes andcorroborating pixelrecords are provided ratherthan aninventedrenderer diagnosis."
+  ],
+  "representatives": [
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-unselected-dpr1.png",
+      "source": "matrix-unselected-dpr1-samples4.png",
+      "sha256": "3bb21ab9a72189992b1bcc518d07e3ff7a49008ca175fce4c521d31583a530f6",
+      "density": 1,
+      "samples": 4,
+      "state": "unselected",
+      "individuallyViewed": true,
+      "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-selected-dpr1.png",
+      "source": "matrix-selected-dpr1-samples4.png",
+      "sha256": "5dd85d5c5373a554fbb35dac94921ee51a4aedd2fdc642796a2e4d93b9b9e125",
+      "density": 1,
+      "samples": 4,
+      "state": "selected",
+      "individuallyViewed": true,
+      "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-title-only-dpr1.png",
+      "source": "matrix-title-only-dpr1-samples4.png",
+      "sha256": "6ebd672a4387cade7bc10d2d54012d612cd5940a679c29a65f8139e6f70d6634",
+      "density": 1,
+      "samples": 4,
+      "state": "title-only",
+      "individuallyViewed": true,
+      "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-unselected-dpr2.png",
+      "source": "matrix-unselected-dpr2-samples4.png",
+      "sha256": "1354354fb195692f2a23837edb4952e0feb6d6cabd44c128a9b74241b4c7ba84",
+      "density": 2,
+      "samples": 4,
+      "state": "unselected",
+      "individuallyViewed": true,
+      "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-selected-dpr2.png",
+      "source": "matrix-selected-dpr2-samples4.png",
+      "sha256": "17bd2b0c63f0a6acaaad7f2167f29071f970092eb7914161d9b6b19fa9356b13",
+      "density": 2,
+      "samples": 4,
+      "state": "selected",
+      "individuallyViewed": true,
+      "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+    },
+    {
+      "file": "screenshots/journey/review/96zzzzzzzq-matrix-browser-title-only-dpr2.png",
+      "source": "matrix-title-only-dpr2-samples4.png",
+      "sha256": "d34ade55b170a2611df65a8c7b32c4cc449f7057bfa05a3a43494232d445803f",
+      "density": 2,
+      "samples": 4,
+      "state": "title-only",
+      "individuallyViewed": true,
+      "publicationMeaning": "Scoped reviewed browser figure; not wholeMatrixfeature or production/course pairedacceptance."
+    }
+  ],
+  "evidence": {
+    "results": "../../target/course-windows-20261018/matrix-browser-current/results.json",
+    "resources": "../../target/course-windows-20261018/matrix-browser-current.resources.json",
+    "fullImageReview": "../../target/course-windows-20261018/matrix-browser-visual-review.json",
+    "driverSha256": "1b7126b9942cfc9870927b1c0bb9446ff6da16e141f9d42a28ccaad4bc2bf29b",
+    "canonicalHelperSha256": "4479b747f4a24f9abcace05cbf5466b72be1fc697fee85f64acf7aac13ac32f9"
+  },
+  "allImageHashes": {
+    "matrix-selected-dpr1-samples1-canvas.png": "954acdca384eb2b0d4b4838944372d4c465fab666eddb11c2a7491f1f79c2d69",
+    "matrix-selected-dpr1-samples1.png": "198611481d1351aba5d74eea2147df0135b0644b562b88666b70964ddcfb54a8",
+    "matrix-selected-dpr1-samples4-canvas.png": "e191bf01b07be7e738425bf8a1259470bfea0858416cb411f7ae2d87404946ff",
+    "matrix-selected-dpr1-samples4.png": "5dd85d5c5373a554fbb35dac94921ee51a4aedd2fdc642796a2e4d93b9b9e125",
+    "matrix-selected-dpr2-samples1-canvas.png": "4e3d4c6931044ac8a63f8f634bf65c9014a66e4c96b47215c1dcb3d1a7444470",
+    "matrix-selected-dpr2-samples1.png": "4f1a4f78b31c24996ca80038911376477323cd391e37eb0e92ee2b87198f6d5d",
+    "matrix-selected-dpr2-samples4-canvas.png": "309b2c6b85bf27e14b89098518469bdd56e6250ffe9ee105638191671aa5ebab",
+    "matrix-selected-dpr2-samples4.png": "17bd2b0c63f0a6acaaad7f2167f29071f970092eb7914161d9b6b19fa9356b13",
+    "matrix-title-only-dpr1-samples1-canvas.png": "2e90633f7769ee9b6060c798f8d00dee0cb897ba10dddb9003c3df7f8a39f994",
+    "matrix-title-only-dpr1-samples1.png": "b7fea132689df27d751de2dfb3388780781374647c90b98862c99f0dab19d6f3",
+    "matrix-title-only-dpr1-samples4-canvas.png": "86a4be4dea222696480c29db5f0f996acd5a5766229034ea9d565256fa9eb82d",
+    "matrix-title-only-dpr1-samples4.png": "6ebd672a4387cade7bc10d2d54012d612cd5940a679c29a65f8139e6f70d6634",
+    "matrix-title-only-dpr2-samples1-canvas.png": "8a7daa83a815d1b6b10faad1d9a6947068a286781f6e3d70f0b6873d3c5dca2a",
+    "matrix-title-only-dpr2-samples1.png": "25fc29fa0b50fbb48aee3747aab5af53005703f933b2b36e2c0fd78a53a1b96f",
+    "matrix-title-only-dpr2-samples4-canvas.png": "86647ee4202141f89a2dc533cbedbf03d443c518ec87368a1fd901c082268e46",
+    "matrix-title-only-dpr2-samples4.png": "d34ade55b170a2611df65a8c7b32c4cc449f7057bfa05a3a43494232d445803f",
+    "matrix-unselected-dpr1-samples1-canvas.png": "1dba1b38b996211eed011cea246b74344a78d9339a6fc6f3ba42adfed86e8ef0",
+    "matrix-unselected-dpr1-samples1.png": "2bbb3c61c42a26f1bb6a7247c077fb09b2d8a4fadafdad2f0a1055702a1607b4",
+    "matrix-unselected-dpr1-samples4-canvas.png": "204f9743f74d7cb4613151b7f6af940c6ebbeb19f8d2f9ee3aaf67334d6ae294",
+    "matrix-unselected-dpr1-samples4.png": "3bb21ab9a72189992b1bcc518d07e3ff7a49008ca175fce4c521d31583a530f6",
+    "matrix-unselected-dpr2-samples1-canvas.png": "72d92cef068116fd586ba7a918e62318318a2aa07db3eccac480e4b951819cce",
+    "matrix-unselected-dpr2-samples1.png": "3295e3ac9d3d4f88645bb7714b5f3d62599b7f42d1366700c361ec84b34b62e3",
+    "matrix-unselected-dpr2-samples4-canvas.png": "a4718ad0a86940f066b569c079f7de235c45861e2cd583e59a243671c51cc161",
+    "matrix-unselected-dpr2-samples4.png": "1354354fb195692f2a23837edb4952e0feb6d6cabd44c128a9b74241b4c7ba84"
+  },
+  "pathBases": {
+    "evidence": "Relative to docs/journey; target records are local-only artifacts.",
+    "representativeFiles": "Relative to docs; six image copies are public documentation assets."
+  },
+  "captureMethodDecision": "Integrator confirmed explicitqueuefencing was not a pre-existing requiredgate. Its absence remains a capture-method limitation andfuture improvement, not a blocker after the previewconcern was disproven."
+}

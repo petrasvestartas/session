@@ -4,7 +4,7 @@
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
   "endpointStatus": "Current hierarchy original-target/display-members fix authored; source-matching native and browser acceptance pending. Prior evidence retains its original fingerprints.",
-  "courseSha256": "79e92591d4e6c616c785981de8ffc668a43be684c219604860fb7dc542c60988",
+  "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
   "chapters": 22,
   "existingSteps": 1361,
   "proposedReaderLessons": 111,
@@ -73,9 +73,10 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source.",
+        "acceptedScope": "Ordered input and presentation coalescing, disposal and idle assertions passed on the measured browser source. Approved selection-preserving dock handoff and affected layers/labels/delete checks also pass in focused94c execution.",
         "records": [
-          "release/runtime-performance-review.json"
+          "release/runtime-performance-review.json",
+          "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json"
         ],
         "remainingAcceptance": [
           "Rebuild the final browser from the current fingerprint and rerun lifecycle, recovery and focused/unfocused Escape handoff.",
@@ -186,7 +187,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at the recorded translated orthographic pose; complete learner native suite passed.",
+        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at the recorded translated orthographic pose; historical a45 learner native1059 suite passed.",
         "records": [
           "release/mesh-native-review.json"
         ],
@@ -402,7 +403,7 @@
         ],
         "remainingAcceptance": [
           "Complete joined/headed/CAD width, AA, clipping, visibility and display-toggle controls against actual production.",
-          "Resolve the recorded selected CAD color contract conflict before claiming canonical cad-wire browser acceptance; preserve the assertion meanwhile."
+          "Run complete cad-wire callback with user-approved outlines-off production-yellow/zero-black contract; preserve other source/archive/pick assertions."
         ],
         "chapterBrowserEntries": [
           {
@@ -541,7 +542,7 @@
           "release/cad-selected-native-review.json"
         ],
         "remainingAcceptance": [
-          "Resolve the black-core/yellow-fringe browser contract conflict: actual selected ordinary wire has zero black and372 yellow whole-frame pixels in this exact case.",
+          "Run complete cad-wire callback with user-approved outlines-off production-yellow/zero-black contract; preserve other source/archive/pick assertions.",
           "Complete wire/mixed/trimmed-hole/isoline and mirrored/nonuniform family controls, source ownership and unchanged cad-wire browser acceptance.",
           "Run the chapter15 network callback and inspect interior curve continuity rather than relying on aggregate pixel counts."
         ],
@@ -615,7 +616,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Complete native suite passed; retained staged cap/section fixtures do not independently establish full production extraction parity.",
+        "acceptedScope": "Historical a45 native1059 suite passed; retained staged cap/section fixtures do not independently establish full production extraction parity.",
         "records": [
           "consolidation/current-state.json"
         ],
@@ -726,7 +727,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Corrected Point/Mesh and selected-wire native records include bounded course Object ownership checks. The focused browser failure exposed an Escape handoff defect; authored fix and replay pass, browser retest pending.",
+        "acceptedScope": "Recorded Point/Mesh/wire native ownership checks, focused Escape repeated picking and complete96y feature-original-pick browser callback pass. Original ownership,locking,highlight,Delete/Undo and archive regeneration verified at recorded sources.",
         "records": [
           "release/point-native-review.json",
           "release/mesh-native-review.json",
@@ -734,8 +735,8 @@
           "consolidation/current-state.json"
         ],
         "remainingAcceptance": [
-          "Pass unchanged gpu-pick-view and its enclosing historical callbacks after rebuilding the scoped Escape fix.",
-          "Run feature-original-pick.cjs at96y for feature IDs, then verify stale/cropped/rebased requests and final multi-owner selection with actual images."
+          "Complete94c recursive callback after approved shortcuts, retaining prior failure evidence.",
+          "Run96h inventory entry for chapter19 and remaining chapter20/final ownership and stale/cropped/rebased request checks.96y alone does not close chapter19."
         ],
         "chapterBrowserEntries": [
           {
@@ -836,7 +837,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Native suite passed; known normalized slot lookup correspondence remains scoped source evidence, not complete arena parity.",
+        "acceptedScope": "Historical a45 native1059 suite passed; known normalized slot lookup correspondence remains scoped source evidence, not complete arena parity.",
         "records": [
           "consolidation/current-state.json"
         ],
@@ -1043,7 +1044,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Native suite passed and selected source matches remain recorded; no complete current browser GTAO/outline acceptance is inferred.",
+        "acceptedScope": "Historical a45 native1059 suite passed and selected source matches remain recorded; no complete current browser GTAO/outline acceptance is inferred.",
         "records": [
           "consolidation/current-state.json"
         ],
@@ -1118,7 +1119,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract.",
+        "acceptedScope": "Historical a45 native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract.",
         "records": [
           "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
           "../../target/course-windows-20261018/cloud-ink-production-after.json",
@@ -1215,7 +1216,7 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Native opacity/printed-fill tests are covered by the full suite; the retained printed-lid Plane comparison is one bounded exact case.",
+        "acceptedScope": "Native opacity/printed-fill tests are covered by the historical a45 full suite; the retained printed-lid Plane comparison is one bounded exact case.",
         "records": [
           "release/plane-original-covered-review.json",
           "consolidation/current-state.json"
@@ -1340,10 +1341,11 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Complete native suite passed. Existing original archive checks retain source identity; the new Escape authoring handoff is structure-tested but browser acceptance remains pending.",
+        "acceptedScope": "Historical a45 native1059 plus recorded96y831 suite and complete96y feature-owner browser pass. Focused affected layers/labels/delete modules pass with approved production-aligned input preparation; complete enclosing callbacks remain pending.",
         "records": [
           "consolidation/current-state.json",
-          "release/cad-selected-native-review.json"
+          "release/cad-selected-native-review.json",
+          "../../target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json"
         ],
         "remainingAcceptance": [
           "Run freeform, network, current-commands and inventory entry callbacks at their declared checkpoints with recursive prerequisites.",
@@ -1525,7 +1527,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "Latest-camera publication and held world-grid behavior are implemented in maintained/course runtimes; focused native checks and actual grid near/far/rebase frames pass. Sixteen corrected-witness mirrored/nonuniform placed Plane pairs match all RGBA pixels across DPR1/2, samples1/4, halfsize50/100 and selection. Plain/covered/printed-fill Plane controls and all four deferred-load browser reload/grid combinations remain unaccepted.",
+      "remainingDefect": "All80 declared Plane native pairs pass with recorded source/pose scope; owner-pick/browser/full display controls and all four route/live reload-grid combinations remain open.",
       "proposedLessons": [
         "46-tool-panel",
         "47-registry",
@@ -1724,7 +1726,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "Five Matrix native tests pass, including actual GPU cells/digits/selection/object-picking at1/4/1 samples, archive identity/title and shader provenance. Four rendered images individually inspected. Browser and full production/course image parity remain pending.",
+      "remainingDefect": "TextPlane4x correction and all eight actual native Matrix pairs pass at97d. Corrected-source browser rerun and full final feature gates pending; six prior browser cases stay at34d.",
       "proposedLessons": [
         "96zzzzzzzm-retain-visible-instance-ranges"
       ],
@@ -1733,13 +1735,14 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Five focused Matrix native tests and four individually inspected frames cover actual cells/digits, selection, Object picks at1/4/1 samples, original archive/title and shader provenance.",
+        "acceptedScope": "Eight97d actual production/course native pairs match every RGBA pixel including independent title,DPR1/2,samples1/4 and selection; figures inspected. Course original owner pick is tested, production picking excluded. Earlier six browser cases/24-image review retain34d source scope.",
         "records": [
-          "release/matrix-native-review.json"
+          "release/matrix-native-review.json",
+          "release/matrix-browser-review.json"
         ],
         "remainingAcceptance": [
-          "Complete actual production/course Matrix full-frame pairs, independent title placement and display controls.",
-          "Run and inspect current Matrix browser interactions, picks and archive roundtrip; native images alone do not close browser acceptance."
+          "Rerun corrected-source97d Matrix browser interactions,picks,display controls and archive return.",
+          "Complete final integrated canonical callbacks and full declared family coverage; native8pair success does not close the feature row."
         ],
         "chapterBrowserEntries": []
       }
@@ -21568,7 +21571,9 @@
         "Camera, original Plane and reload behavior"
       ],
       "basis": "Native actual-production family/Sheet witness, not a learner runtime module; corrected initial GPU rebase and camera setup underpin the listed bounded pairs.",
-      "hashBaseline": "current-viewer-2026-10-23.json"
+      "hashBaseline": "current-viewer-2026-10-23.json",
+      "currentSha256": "493e57a9a0a049e906738bfca8072947d022607c3458c4c0b53b2ed5d8b6ad4b",
+      "currentHashNote": "Original sha256 remains historical. Current dated inventory hash adds native diagnostic initial Matrix-title preparation; no production shader or learner runtime changes."
     }
   ],
   "classificationMeaning": {
@@ -21605,12 +21610,12 @@
   },
   "currentIntegration": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+    "fingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
     "files": 713,
-    "recordedAt": "2026-10-23T15:18:06.081401+00:00",
-    "courseSha256": "7ff01a99ec094fa20a8ac46f2448ab73b361d33250b6bb43e5a96e44ae4ea4bd",
+    "recordedAt": "2026-10-23T17:02:35.831075+00:00",
+    "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Current source replay and authoring checks pass. Native runtime hierarchy, tree-panel presentation and layer-property code changed after prior native acceptance; new source-matching native and browser verification remains pending. No feature row has complete final acceptance.",
+    "scope": "Current97d source replay retains713files/1361IDs. TextPlane4x now uses exact production pixel-center WGSL; eight actual native Matrix pairs match fullRGBA and images are inspected. Fresh final native/full browser acceptance remains pending. Earlier96y/Matrix browser/shortcut proofs retain recorded sources;18features remain partial.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21635,16 +21640,43 @@
       "log": "../../target/course-windows-20261018/integrated-full-native-source-freeze.log",
       "elapsedSeconds": 1468.642,
       "peakJobCommitBytes": 1480597504,
-      "currentDelta": "Current source changes include native src/hierarchy.rs, src/tree_panel.rs and src/layer_properties.rs plus one src/feature_pick_tests.rs regression separating original editing targets from complete display membership. Prior browser/panel WASM and inventory metadata deltas also remain. The1059-test a45 run and any64-candidate reuse review are historical evidence; they do not validate this current native source.",
-      "currentFinalAcceptance": "Current96y focused2/2 and full831/831 native suite pass after hierarchy correction. Final-endpoint full native suite and original-owner browser acceptance remain pending."
+      "currentDelta": "a45-to64 reuse proof remains historical. Current97d retains native hierarchy/tree/layer changes sincea45 and now changes TextPlane4x shader interpolation fromc54.96y831 native proof remains bound to its checkpoint; fresh final native/inventory and Matrix paired verification pending.",
+      "currentFinalAcceptance": "Matrix native8/8 exact at97d with inspected figures; full final native/inventory acceptance pending.96y831 and a45full1059 retain recorded source bindings."
     },
     "browser": {
       "lastMeasuredFingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
       "performanceRecord": "release/runtime-performance-review.json",
       "performanceCategoriesMeasured": 5,
       "scope": "Small two-triangle demo, Windows WARP/Chrome145, one fresh process per version, six warm wheel samples. Submission-to-fence is GPU completion evidence, not compositor/FPS timing; no broad speedup claim.",
-      "currentFinalAcceptance": "pending source-matching optimized bundle, unchanged callbacks and individually inspected feature images",
-      "historical94c": "New-source four-phase verification in progress: WASM,800 native tests and optimized web reported passed; frame phase and subsequent unchanged browser callback require their own final records. The prior Escape-related browser failure is retained."
+      "currentFinalAcceptance": "Final97d optimized bundle and full callback acceptance pending after TextPlane runtime change. Prior34d Matrix browser and complete96y fixture proofs are not rebound.",
+      "historical94c": "Retained full-run failure:1547.193s/1133228032B at layers.cjs33, Escape cleared the selected Hide target. User approved four corrections in layers/delete-selection/labels; all affected bodies now pass focused checks. Complete94c callback retest remains pending.",
+      "historicalFixtures": {
+        "accepted": 1,
+        "total": 4,
+        "passed": [
+          "96y-address-feature-pixels-to-original-cad-owners"
+        ],
+        "remaining": [
+          "94c-prove-the-original-comparison-and-inspect-differences",
+          "96h-prove-current-source-grammar-and-explicit-differences",
+          "96v-project-definition-and-per-instance-features"
+        ]
+      },
+      "focusedShortcutModules": {
+        "resources": "../../target/course-windows-20261018/selected-shortcuts-affected-modules.resources.json",
+        "elapsedSeconds": 143.238,
+        "peakJobCommitBytes": 780898304,
+        "scope": "All affected module bodies/DPRs and helper cases pass; recursive prerequisites skipped, full94c pending."
+      },
+      "matrixRecord": "release/matrix-browser-review.json",
+      "lastFinalOptimizedBuild": {
+        "status": "passed-at-recorded-source",
+        "fingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
+        "resources": "target/course-windows-20261018/final-original-owners-web.resources.json",
+        "elapsedSeconds": 184.718,
+        "peakJobCommitBytes": 1368760320,
+        "scope": "c54 optimized web build; root verified WASM byte-identical to34d (digest prefix9e23a49d,suffix471d1e8a). This does not validate97d TextPlane change."
+      }
     },
     "maintainedOptimizedBuild": {
       "status": "passed",
@@ -21655,7 +21687,7 @@
     },
     "productionSourceInventory": {
       "path": "current-viewer-2026-10-23.json",
-      "sha256": "d1b034d79e4060c543ba4ce817098c26409c611d1ad7b0933f50ed911f8ee031",
+      "sha256": "9c14d47411b1f013feefa8e8d8a5ac730b002f701d64325807f96d654e0d158e",
       "files": 307,
       "mappedPaths": 307,
       "historicalRowsPreserved": 301,
@@ -21672,15 +21704,40 @@
       "path": "../../target/course-windows-20261018/remaining-chapter-browser-queue.json",
       "chapters": 9,
       "entryCallbacks": 12,
-      "status": "planned, not acceptance",
+      "status": "96y entry passed at recorded source; remaining entries pending, including96h for chapter19. Queue file retains original planning scope.",
       "requirements": "Each entry needs its own checkpoint build signature, optimized bundle, original sample, unchanged recursive callback pass and individual feature-image review. Do not substitute the final runtime for historical layouts."
     },
     "remainingFinalGates": [
-      "Focused hierarchy/property and inventory native checks, then the full native suite at the current final source; prior1059-test acceptance cannot be reused across these native code changes.",
+      "Fresh final97d native/inventory and full suite, plus corrected Matrix native pairs; historical a45 aggregate acceptance does not cover hierarchy/TextPlane changes.",
       "Current final optimized WASM/browser and full declared canonical callbacks, retaining all failures and contract conflicts.",
       "Four maintained/course by route/live reload-grid browser combinations.",
-      "Twelve entry callbacks for nine queued chapters, plus remaining final feature-specific controls/pairs and individual visual reviews listed per row.",
+      "Remaining chapter entry callbacks, including96h despite96y PASS, plus full display controls/pairs and individual source-bound feature reviews.",
       "Final source/inventory/coverage and publication review; authored22 chapters and307 accounted production files are not complete feature acceptance."
-    ]
+    ],
+    "inventoryRefresh": {
+      "fromFingerprint": "34d5e443db93c963ba895466249a0e56c7c170352304973997650552b21ae299",
+      "changedLearnerFiles": [
+        "src/current_inventory.json"
+      ],
+      "unchangedLearnerFiles": 712,
+      "externalRecord": "viewer/src/selftest/stroke_witness.rs",
+      "sha256": "493e57a9a0a049e906738bfca8072947d022607c3458c4c0b53b2ed5d8b6ad4b",
+      "preflight": "21reader+5queued gates PASS;433entries",
+      "proof": "../../target/course-windows-20261018/matrix-title-labels-inventory-refresh.json",
+      "priorProof": "../../target/course-windows-20261018/matrix-title-inventory-refresh.json",
+      "externalChange": "Diagnostic helper registers Matrix titles and publishes scene.visible_texts to the text lane, matching maintained append/update_label; production shaders and learner runtime unchanged.",
+      "toFingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91"
+    },
+    "runtimeDeltaFromC54": {
+      "fromFingerprint": "c54a9960f80340aa9d01aa7c0e0eaf5920b18fefa360656a123e6ccb8ad09f91",
+      "toFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+      "changedFiles": [
+        "src/text_plane.rs"
+      ],
+      "unchangedFiles": 712,
+      "scope": "Removed4x-only WGSL per-sample interpolation rewrite; all sample counts include exact production text_plane.wgsl. Four-sample pipeline retained. Native and WASM runtime inputs changed; no new runtime acceptance claimed.",
+      "freeze": "target/course-windows-20261018/matrix-canonical-msaa-fix.json",
+      "stageAll713Match": true
+    }
   }
 }

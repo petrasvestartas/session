@@ -363,7 +363,7 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     const fields = step.edits.filter(edit => edit.rename_field);
     assert.equal(fields.length, 2);
     const files = expected(id);
-    assert.equal(fingerprint(files), '25d36bd703476561f0e2c024b16a28c352331b42cdd14b99785a12a0f07d553c');
+    assert.equal(fingerprint(files), '09db6bbe0f3e74eef99b165db08613800e1a7c4484c15c4b9ef3644f205becf0');
     const currentInputs = course().steps.find(step => step.id === '96zzzzg-own-shared-record-cap-pick-resources')!
         .edits.find(edit => edit.path === 'src/current_inventory.json')!;
     const archivedInputs = read(path.join(viewer, 'docs/journey/current-runtime-inputs-2026-10-14-cap-pick-resources.json'));
@@ -407,6 +407,8 @@ test('the compact target-owner lesson preserves its accepted source apart from s
     const assertion = (value: number) => `assert_eq!(snapshot.files.iter().filter(|v|v.root=="viewer").count(),${value});`;
     files[testPath] = edited(files[testPath], {path: testPath, snippet: '', why: '', before: assertion(currentCount)}, assertion(previousCount));
     assert.equal(fingerprint(files), record.applicationFingerprint);
+    assert.equal(fingerprint(expected('96zzzzzzzq-draw-original-cad-wire-curves')),
+        '97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23');
     const counted = fields.reduce((sum, edit) => sum + edit.before!.length + read(path.join(viewer, 'docs', edit.snippet)).length, 0);
     assert(counted > 0 && counted < 100);
     assert(typingLoad(step).minutes[1] <= 60);

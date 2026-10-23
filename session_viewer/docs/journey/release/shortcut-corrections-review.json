@@ -1,0 +1,28 @@
+{
+    "status":  "passed-focused-checks; full canonical rerun pending",
+    "scope":  "The four user-approved shortcut corrections preserve all existing selection, Hide/Delete, history and archive assertions. Focused checks pass; this record does not establish full canonical checkpoint acceptance.",
+    "approvedChanges":  [
+                            "Remove Escape after each of the two successful tree selections in layers.cjs, because production Escape clears selection.",
+                            "In delete-selection.cjs and labels.cjs, release text focus with a physical click on the published Command label before Delete."
+                        ],
+    "evidence":  {
+                     "manifest":  "target/course-windows-20261018/selected-shortcuts-affected-modules/manifest.json",
+                     "resources":  "target/course-windows-20261018/selected-shortcuts-affected-modules.resources.json",
+                     "elapsedSeconds":  143.238,
+                     "peakJobCommitBytes":  780898304,
+                     "cases":  [
+                                   "layers body at DPR 1 and 2",
+                                   "labels.focused at DPR 1 and 2",
+                                   "Delete/Undo with one and two selected objects at DPR 1 and 2"
+                               ],
+                     "limits":  [
+                                    "Recursive tree and glyph prerequisites were skipped in the focused runner.",
+                                    "The previous full 94c callback failure remains preserved; a full rerun is pending."
+                                ]
+                 },
+    "sources":  {
+                    "layers.cjs":  "16d06ec19a5757b618a55d2787ee3d83167829f5f0cb5b781137c81322962ba8",
+                    "labels.cjs":  "f793b3f49f294772ecf78bf1f30c1f6585ec232f2ba3ee1e5981c489fdea501b",
+                    "delete-selection.cjs":  "6deae266a416362e94206b5adac266225b06d28ec37c2e266cb4e5c5520db427"
+                }
+}

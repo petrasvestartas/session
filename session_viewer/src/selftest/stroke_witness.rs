@@ -317,6 +317,8 @@ async fn render_inner(
     let walked_ink=walked_ink(&scene);
     eprintln!("stroke witness: uploading original source");
     scene.upload_to(&mut gpu);
+    scene.add_matrix_titles(&mut gpu);
+    gpu.text.set_labels(scene.visible_texts())?;
     let rebase = gpu.rebase_anchor(&session_rust::Point::new(0.0, 0.0, 0.0), 1.0, 0.0);
     anyhow::ensure!(rebase.anchor[0] == 0.0 && rebase.anchor[1] == 0.0 && rebase.anchor[2] == 0.0);
     for guid in &families.selected_guids {

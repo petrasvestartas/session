@@ -13906,9 +13906,7 @@ After that block, append this supplied code:
 <details>
 <summary>Implementation 96zzzzzzzd-retarget-cached-text: Retarget cached text colour</summary>
 
-Match world text, nameplates and screen glyph colour to physical sample counts while retaining original sources, shaping, fonts, atlas contents, world-plane raster images and independent original-owner queries.
-
-Data flow: Original text/shaping → retained font/atlas/world raster → cached matching colour recipes → independent original-owner queries.
+Continue from [Cache cloud and sheet sample recipes](../96zzzzzzzca-cache-cloud-and-sheet-samples.md). [Save or recover your work](../recovery.md).
 
 ### 1. `src/text_plate.rs`
 
@@ -14436,33 +14434,6 @@ Replace it with:
 <summary>Locate this block</summary>
 
 ```rust
-    {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("text_plane.wgsl").into()),
-        });
-        let colour_groups = [Some(&layout)];
-        let id_groups = [Some(&layout), Some(&pick)];
-```
-
-</details>
-
-Replace it with:
-
-```rust
-    {
-        let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-            label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(if target.samples==4 {include_str!("text_plane.wgsl").replace("@location(0) uv:","@location(0) @interpolate(perspective,sample) uv:").replace("@location(1) color:","@location(1) @interpolate(perspective,sample) color:").replace("@location(5) original:","@location(5) @interpolate(perspective,sample) original:").into()}else{include_str!("text_plane.wgsl").into()}),
-        });
-        let colour_groups = [Some(&layout)];
-        let id_groups = [Some(&layout), Some(&pick)];
-```
-
-<details>
-<summary>Locate this block</summary>
-
-```rust
     vertices: GrowBuf,
     layout: wgpu::BindGroupLayout,
     sampler: wgpu::Sampler,
@@ -14868,7 +14839,7 @@ fn pipeline(ctx: &GpuCtx, target: Target, layout: &wgpu::BindGroupLayout, ids: b
     {
         let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
             label: Some("world text shader"),
-            source: wgpu::ShaderSource::Wgsl(if target.samples==4 {include_str!("text_plane.wgsl").replace("@location(0) uv:","@location(0) @interpolate(perspective,sample) uv:").replace("@location(1) color:","@location(1) @interpolate(perspective,sample) color:").replace("@location(5) original:","@location(5) @interpolate(perspective,sample) original:").into()}else{include_str!("text_plane.wgsl").into()}),
+            source: wgpu::ShaderSource::Wgsl(include_str!("text_plane.wgsl").into()),
         });
         let colour_groups = [Some(&layout)];
         let id_groups = [Some(&layout), Some(&pick)];
@@ -15134,14 +15105,6 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 ```text
 --8<-- "journey/code/96zzzzzzzd-retarget-cached-text-19.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-20.rs"
-```
-
-```text
---8<-- "journey/code/96zzzzzzzd-retarget-cached-text-21.rs"
 ```
 
 ```text
