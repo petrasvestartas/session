@@ -270,3 +270,16 @@ Latest verification: all 29 original failing tests have now passed in focused ru
 - [x] Combined Gemini and Codex docs build passes. Prior 26 route/layout captures were individually reviewed; the subsequent shared SVG parser fix passes five focused tests and a fresh build. Visible Chrome confirms the complete first diagram, current Matrix, decoded Point/Plane images and linked evidence records.
 - [x] The EXACT original 2223-byte covered Plane input passes its retained case with zero RGBA differences (6.955s); distinct generated controls remain separate.
 - [ ] Performance baseline optimized build running, followed by paired measured categories. Four historical fixture callbacks, four reload/grid combinations, nine owned chapter visual sets, remaining display controls and full runnable-checkpoint/release acceptance remain open.
+
+
+### Browser performance and observed disposal defect
+
+- [x] Both source-bound WARP samples measured: resize/wheel burst56 ->1 presentations, idle0 ->0 submissions. Raw timings, allocations/uploads, six interaction fence traces and screenshots retained in performance-a45.
+- [ ] Acceptance withheld: unchanged lifecycle callback found one empty GPU upload on final pagehide (no texture acquisition). Corrected final teardown now stops before preview restoration, cancels its frame and uses identity-checked deferred stop. Cached pages retain restoration/resume semantics. Browser rebuild and unchanged assertion rerun running.
+
+
+### Performance measurement and lifecycle acceptance
+
+- [x] Corrected optimized WASM/browser build PASS182.878s; source63acaf79,713files. Only browser.rs changed from the1059-test native source, and that module is WASM-only.
+- [x] Allfive categories measured on identical small demo, pinned Chromium145/WARP,900x760,DPR1. Unchanged browser lifecycle/coalescing assertions PASS, including final disposal without late submissions. Burst56->1frames,uploads283136->5056bytes,idle0. Steady interaction timing did not consistently improve; no broad speedup claim. Public runtime-performance-review.json retains raw observations, source identities and resource limits.
+- [ ] Plain Plane16-case batch running. Four historical callbacks, four reload/grid combinations, nine owned chapter visual sets, other display controls and final release gates remain.

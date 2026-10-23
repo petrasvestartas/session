@@ -16,6 +16,7 @@ async function main() {
         '--use-adapter-luid=' + warp.luid, '--enable-dawn-features=d3d_skip_shader_optimizations'];
     let browser;
     const report = {scope:'Fresh-browser Windows WARP software GPU measurements; OS driver caches are not cleared; no hardware FPS claim', browser:null,
+        scene:'Unmodified built-in two-triangle demo with default grid/UI; no imported CAD or sample document',
         args, viewport:{width:900,height:760}, deviceScaleFactor:1, samples:[], status:'running'};
     const save = () => fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify(report,null,2) + '\n');
     save();

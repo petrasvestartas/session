@@ -96,7 +96,11 @@
     "combinedDocs": "PASS: combined-docs-build.json,124.818s,1920954368-byte peak. combined-docs-layouts.json/combined-ui inspection:26/26 captures individually inspected,111links,folds,legacy alias andphone; no errors/overflow. Subsequent shared SVG parser correction awaits rebuild/visible check.",
     "originalCoveredPlane": "PASS: original2223-byte covered sourceSHA93caa5f9ba83b8215b533cf1144270e0313d3dc709152dc7df13427b0b194bf2 rerendered unchanged;0RGBA differences,6.955s,729751552-byte peak. Historical5204-pixel mismatch retained; generated opaque/print fixtures are distinct and not substitutions.",
     "svgRendering": "PASS: shared SVG tokenizer, five focused parser tests, svg-docs-build.json (123.144s), and svg-visible.json. Complete Gemini diagram visually inspected after full reload; original authored Markdown unchanged.",
-    "nativeFullHistorical": "Completed: 1055 passed / 4 failed, integrated-full-native-tests-final.json; 1653.797 s, peak 1491730432 bytes. Two failures were missing relative fixtures from staging cwd; two were obsolete raw whole-owner IDs (actual 1, expected 0). Fixtures now additionally assert resolved original Object; focused rerun running. No full-suite pass claimed."
+    "nativeFullHistorical": "Completed: 1055 passed / 4 failed, integrated-full-native-tests-final.json; 1653.797 s, peak 1491730432 bytes. Two failures were missing relative fixtures from staging cwd; two were obsolete raw whole-owner IDs (actual 1, expected 0). Fixtures now additionally assert resolved original Object; focused rerun running. No full-suite pass claimed.",
+    "performanceInitial": "MEASURED, NOT ACCEPTED: performance-a45 has both WARP samples, burst56->1 frames, idle0. Unchanged lifecycle callback exposed one empty upload on final pagehide; no extra texture/presentation. Original failed evidence retained.",
+    "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
+    "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
+    "nativeSourceAfterDisposal": "Native source unchanged from1059-test a45 pass: sole source delta is WASM-only browser.rs. Native acceptance remains bound to original run; optimized WASM/browser now verified at63acaf79."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -112,12 +116,12 @@
     "Current chapter-specific feature images, coverage closure, checkpoint/tooling gates and final docs review remain open"
   ],
   "onlyHeavy": {
-    "category": "Optimized performance comparison baseline",
-    "label": "performance-before-a45-web",
-    "timeoutSeconds": 900,
-    "jobCommitLimitBytes": 4294967296
+    "category": "Native plain Plane16-case comparisons",
+    "label": "plane-plain-corrected",
+    "timeoutSeconds": 600,
+    "jobCommitLimitBytes": 6442450944
   },
-  "next": "Finish paired browser performance measurements; run unchanged historical fixture callbacks at their own checkpoints; complete Plane/CAD controls and route/live camera-grid acceptance.",
+  "next": "Complete Plane/CAD/joined control comparisons, four historical callbacks and four route/live camera-grid combinations; verify chapter evidence and release gates.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -165,8 +169,8 @@
       }
     },
     "runtime": {
-      "status": "Dependency detachment and frame coalescing compile natively and in WASM; three CPU scheduler tests pass; browser semantic and five measurement categories remain pending",
-      "measurementCategoriesDone": 0,
+      "status": "Five performance categories measured and unchanged coalescing/disposal browser contract passes on small demo. Full startup/feature and reference-runtime lifecycle remain separate.",
+      "measurementCategoriesDone": 5,
       "measurementCategoriesTotal": 5,
       "implementationGroupsAccepted": 0,
       "implementationGroupsTotal": 3
@@ -195,20 +199,20 @@
   },
   "currentSource": {
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "a45eada2fbdbd940d5e85b50e7e5fe12ccef69e794abd71111264cce0368fe2c",
+    "fingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
     "files": 713,
-    "recordedAt": "2026-10-23T08:47:16.211Z"
+    "recordedAt": "2026-10-23T10:09:33.393Z"
   },
   "coordination": {
-    "gemini": "Owns sections1?10 in session/session_viewer/docs/journey, including active original chapter prose and redraft-10-sections files. Preserve those changes; stage only named owned paths.",
+    "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
     "integrator": "Chapters11\u201322, runtime, shared metadata, builds, validation and Git integration."
   },
   "publication": {
     "branch": "codex/viewer-course-checkpoints-20261023",
-    "status": "Full-code source, ten Gemini section commits and native Point/mesh/Plane figures are published through Sessionc38ec05a and parent503cdf8. Clean1059-test learner native pass recorded locally; next checkpoint follows current docs/browser batch.",
+    "status": "Full-code source, Gemini sections, SVG parser, original Plane fixture and native/WASM/optimized source-freeze checkpoint pushed. Remaining release gates open.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "b7cdd5dcf6f3c8a923e262661327717a8beba739",
-    "parentCommit": "a574827",
+    "sessionCommit": "c32a3221",
+    "parentCommit": "bb3d364",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
     "geminiHead": "d4af0558e2a7017f53e4ad23904950ed1b27f17d"
   },

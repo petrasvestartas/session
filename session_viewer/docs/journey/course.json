@@ -90017,9 +90017,9 @@
         },
         {
           "path": "src/browser.rs",
-          "before": "        if event.type_() == \"pagehide\" {\n",
+          "before": "        if event.type_() == \"pagehide\" {\n            gesture.cancel();touch.cancel();let _=editor.apply(Action::CanvasCancel); let _=editor.apply(Action::GizmoCancel);\n            crate::browser_upload::prepare(&mut renderer,editor.display_scene(),editor.whole_selection(),active_fault.clone());renderer.set_gizmo(&editor.camera,None,-1.);\n            if event.dyn_ref::<web_sys::PageTransitionEvent>().is_some_and(|event| event.persisted()) { return; }\n            wasm_bindgen_futures::spawn_local(async { crate::browser_runtime::stop(); });\n            return;\n        }\n",
           "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-performance-browser-pagehide.rs",
-          "why": "Cancel the pending animation frame immediately on both cached and final pagehide."
+          "why": "Cancel queued presentation on pagehide; final disposal stops before preview uploads, while cached pages retain cancellation state for resume."
         },
         {
           "path": "src/browser.rs",
