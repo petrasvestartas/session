@@ -18,9 +18,21 @@ Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/rend
 
 Apply every input event to the document and camera in order. Request one animation frame to present the latest state after the previous GPU submission completes. A burst of wheel or resize events therefore changes the camera immediately while sharing one pending presentation. This keeps source geometry and its GPU buffers resident during navigation.
 
-The runtime owns that pending frame. Suspending the page cancels its callback while retaining one dirty frame for resumption; final disposal cancels it permanently. Late input and GPU completion callbacks cannot revive a disposed runtime. The native scheduler tests cover these transitions. The unchanged browser check now passes ordered input, one pending frame, suspension ownership and final disposal without late submissions. Final pagehide stops before preview-upload work; a cached page retains cancellation state for resume. Identity-checked deferred teardown cannot stop a replacement runtime.
+The runtime owns that pending frame. Suspending the page cancels its callback while retaining one dirty frame for resumption; final disposal cancels it permanently. Late input and GPU completion callbacks cannot revive a disposed runtime. The native scheduler tests cover these transitions. The unchanged browser check now passes ordered input, one pending frame and final disposal without late submissions. Final pagehide stops before preview-upload work; a cached page retains cancellation state for resume. Identity-checked deferred teardown cannot stop a replacement runtime.
 
-A [source-bound WARP measurement](../release/runtime-performance-review.json) records all five categories on the unchanged small two-triangle demo and default grid/UI at900 x760,DPR1. One resize/wheel burst falls from56frames/112submissions to1frame/2submissions; upload writes fall from283,136 to5,056bytes, with no new buffers or textures. Both versions submit nothing during the measured idle interval. First-frame readiness is11.772s before and11.094s after in this single-process pair; six warm interaction fence durations have medians11.10ms and14.05ms. These observations do not establish a steady-frame speedup or CAD/hardware performance. Queue fence timings include submission, prior work and callback scheduling, rather than isolated GPU execution. The record also retains input-to-frame delays, exact settings, source identities and the unsuccessful initial disposal run's separate location.
+### Measured scheduling behavior
+
+The [source-bound WARP record](../release/runtime-performance-review.json) compares the same small two-triangle demo and default grid/UI at 900 by 760, DPR 1. It records one fresh process per version and six warm wheel interactions.
+
+| Measurement | Before | After |
+| --- | ---: | ---: |
+| First frame ready | 11.772 s | 11.094 s |
+| Median input to presentation start | 14.60 ms | 34.15 ms |
+| Median warm frame submission to fence callback | 11.10 ms | 14.05 ms |
+| Burst upload writes / new buffers and textures | 283,136 bytes / 0 | 5,056 bytes / 0 |
+| Idle submissions | 0 | 0 |
+
+The resize/wheel burst falls from 56 frames and 112 submissions to one frame and two submissions. Individual interaction timings do not consistently improve. This small observation set does not establish a steady-frame speedup, CAD performance or hardware FPS. Queue fence timings include submission, prior queue work and callback scheduling, rather than isolated GPU execution. The record retains raw observations, exact settings and source identities; the initial failed disposal run remains separate historical evidence.
 
 The learner library's normal native dependencies no longer include the maintained viewer. Reference comparisons use a development dependency, so the supplied comparison examples remain available without bringing the reference application into the learner's runtime.
 
@@ -37,6 +49,8 @@ The two native 256 × 256 frames below show the fractional grid and its zero-off
 ![Native held grid preserves the fractional origin near and far from the world origin](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-fractional-native.png)
 
 ![Native grid with the fractional origin removed shows the changed axis positions](../../screenshots/journey/review/96zzzzzzzq-draw-original-cad-wire-curves-grid-zero-native.png)
+
+The [plain Plane comparison record](../release/plane-plain-native-review.json) adds 16 exact native full-frame pairs across DPR 1/2, one/four samples, sizes 50/100 and selection. This records an unobstructed source; covered and printed-fill controls remain separate.
 
 ## Pens, points and printed fills
 

@@ -1215,5 +1215,10 @@
   },
   "categoryCount": 5,
   "samplingLimit": "One fresh process per version, six warm wheel interactions, one48-resize/six-wheel burst and one200ms idle interval. Descriptive measurements only; no significance or hardware-FPS claim.",
-  "visualReview": "Both actual screenshots individually inspected; same grid/camera/UI and two original resident rows; small demo geometry not asserted visibly resolved."
+  "visualReview": "Both actual screenshots individually inspected; same grid/camera/UI and two original resident rows; small demo geometry not asserted visibly resolved.",
+  "historicalFailure": {
+    "manifest": "target/course-windows-20261018/performance-a45/manifest.json",
+    "diagnostic": "target/course-windows-20261018/disposal-probe.json",
+    "observation": "Final pagehide added one empty upload submission with no additional getCurrentTexture call. Final teardown corrected; canonical assertion unchanged."
+  }
 }

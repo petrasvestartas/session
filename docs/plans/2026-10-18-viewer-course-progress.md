@@ -283,3 +283,30 @@ Latest verification: all 29 original failing tests have now passed in focused ru
 - [x] Corrected optimized WASM/browser build PASS182.878s; source63acaf79,713files. Only browser.rs changed from the1059-test native source, and that module is WASM-only.
 - [x] Allfive categories measured on identical small demo, pinned Chromium145/WARP,900x760,DPR1. Unchanged browser lifecycle/coalescing assertions PASS, including final disposal without late submissions. Burst56->1frames,uploads283136->5056bytes,idle0. Steady interaction timing did not consistently improve; no broad speedup claim. Public runtime-performance-review.json retains raw observations, source identities and resource limits.
 - [ ] Plain Plane16-case batch running. Four historical callbacks, four reload/grid combinations, nine owned chapter visual sets, other display controls and final release gates remain.
+
+
+Current checkpoint: Session639a9b2e / parentf6bb8a4, both pushed. Gemini chapters1-10 preserved. Source63acaf79 changes only WASM browser.rs from the1059-test native source.
+
+The nine owned chapters without a complete accepted visual set have12 canonical entry callbacks (recursive dependencies already cover earlier checks):
+
+| Chapter | Current entry callbacks left |
+| --- | --- |
+| 11 Outlines and point clouds |65c cloud-points|
+| 13 Definitions and sheets |70d nested-placements|
+| 14 Coordinates and tools |76d freeform, retain actual sheet state|
+| 15 Transforms/surfaces |80d network; resolve faint/discontinuous projected interior curves|
+| 16 Editing/measurement |85ay current-commands; capture measurement before Escape|
+| 17 Visibility/clipping |88ad caps, including holes and original ownership|
+| 18 Lighting/comparison |95f historical performance callback, distinct from scheduling measurements|
+| 19 Integration/ownership |96h inventory and96y feature-original-pick|
+| 20 Shared GPU |96zzo slot-pipeline,96zzq measured-file-reader,96zzzzx arena-empty|
+
+These run at their own checkpoint. Docs layout captures and partial native pairs remain separate evidence.
+
+
+### Plain Plane, visible book and upstream integration
+
+- [x] Plain Plane16/16 exact native RGBA pairs PASS328.082s,976461824-byte peak; selected/unselected representative frames individually inspected. Covered/printed-fill controls remain separate.
+- [x] Latest docs build PASS123.448s; visible Chrome confirms the performance table on desktop and390px phone,complete Gemini SVG,current Matrix and Point/Plane figures. Five evidence links resolve, including the complete performance and16-case plain Plane records. No document overflow/errors.
+- [x] All fetched root changes integrated by conflict-free mergee2ed12f. Wood fast-forwarded07c57552 ->5318ba20,14incoming C++/tests/examples/docs commits. Entire Rust/proto/data/generated dependency trees unchanged; tutorial work preserved.
+- [ ] Historical94c Vulkan probe running with restored canonical lock. Earlier cached lock was stale; no canonical dependency upgrades or waived assertions. Four historical callbacks, four reload/grid combinations, nine owned chapter feature sets, remaining display controls and final release gates remain.

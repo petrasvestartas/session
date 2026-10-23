@@ -46,7 +46,7 @@
     "integratedNativeBuild": "PASS: checkpoint-native-build.json; all tests and diagnostic examples compile from the refreshed713-file canonical source snapshot.",
     "cloudProductionLod": "PASS: 18 actual production/course LOD pairs on original 2,000,064-point source, resident counts around 2M and mirrored/nonuniform placements; cloud-lod-production-pairs.json.",
     "headedLineProductionParity": "PASS: four DPR1/2 x samples1/4 actual production/course pairs, zero whole-frame pixel differences; vector-line-production-pairs-warp.json, 68.003 s.",
-    "frameSchedule": "PASS: 3/3 CPU semantic tests including ordered bursts, suspension and disposal; frame-schedule-native-tests.json. Actual browser burst/lifecycle measurement pending.",
+    "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "normalDependencies": "PASS: locked normal native dependency tree excludes session_viewer; normal-dependency-tree.json. Diagnostic/dev examples still compile.",
     "integratedWasmBuild": "PASS: integrated-plane-wasm-build-2.json, 11.755 s, 1346953216 bytes peak. Completion callback captures only Send device identity and resolves the active runtime frame; no Rc crosses the queue callback boundary. This build predates the glyph/mesh/printed-fill batch; final WASM refresh pending.",
     "compactMatrix": "PASS: 3/3 storage/provenance/GPU regressions, including ObjectId 16777217, identical dense/sparse pixels and original-owner picks at 1x/4x; matrix-compact-native-tests-fixed.json.",
@@ -100,7 +100,10 @@
     "performanceInitial": "MEASURED, NOT ACCEPTED: performance-a45 has both WARP samples, burst56->1 frames, idle0. Unchanged lifecycle callback exposed one empty upload on final pagehide; no extra texture/presentation. Original failed evidence retained.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
-    "nativeSourceAfterDisposal": "Native source unchanged from1059-test a45 pass: sole source delta is WASM-only browser.rs. Native acceptance remains bound to original run; optimized WASM/browser now verified at63acaf79."
+    "nativeSourceAfterDisposal": "Native source unchanged from1059-test a45 pass: sole source delta is WASM-only browser.rs. Native acceptance remains bound to original run; optimized WASM/browser now verified at63acaf79.",
+    "plainPlane": "PASS: plane-plain-corrected16/16 exact RGBA pairs,DPR1/2,samples1/4,sizes50/100,selected/unselected;328.082s,976461824-byte peak. Two representative images inspected. Public plane-plain-native-review.json; covered/print controls separate.",
+    "docsCurrent": "PASS: performance-docs-build.json123.448s,peak1973448704bytes. performance-visible.json verifies complete SVG,current Matrix/Point/Plane figures and five evidence links; desktop/390px performance screenshots individually inspected,zero document overflow/errors.",
+    "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained."
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -112,14 +115,14 @@
   },
   "currentDefects": [
     "Matched Plane/CAD/joined/sheet ingress, controls and selected-family visual acceptance remain open",
-    "Current-source browser fixtures, lifecycle, performance and route/live camera-grid acceptance remain open",
+    "Historical fixture callbacks, remaining startup/feature lifecycle and route/live camera-grid acceptance remain open",
     "Current chapter-specific feature images, coverage closure, checkpoint/tooling gates and final docs review remain open"
   ],
   "onlyHeavy": {
-    "category": "Native plain Plane16-case comparisons",
-    "label": "plane-plain-corrected",
-    "timeoutSeconds": 600,
-    "jobCommitLimitBytes": 6442450944
+    "category": "Unmodified historical Vulkan native GPU probe",
+    "label": "historical-vulkan-probe-current-lock",
+    "timeoutSeconds": 900,
+    "jobCommitLimitBytes": 4294967296
   },
   "next": "Complete Plane/CAD/joined control comparisons, four historical callbacks and four route/live camera-grid combinations; verify chapter evidence and release gates.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
@@ -140,7 +143,8 @@
       "status": "editorial structure done",
       "chaptersDone": 22,
       "chaptersTotal": 22,
-      "lessons": 111
+      "lessons": 111,
+      "readerFacingLessonsRemaining": 0
     },
     "display": {
       "status": "in progress: ordinary ribbon extracted and native semantic checks pass; full groups open",
@@ -211,8 +215,8 @@
     "branch": "codex/viewer-course-checkpoints-20261023",
     "status": "Full-code source, Gemini sections, SVG parser, original Plane fixture and native/WASM/optimized source-freeze checkpoint pushed. Remaining release gates open.",
     "scope": "Course, runtime and Windows tooling; remaining release gates are explicitly open.",
-    "sessionCommit": "c32a3221",
-    "parentCommit": "bb3d364",
+    "sessionCommit": "639a9b2e",
+    "parentCommit": "f6bb8a4",
     "ci": "https://github.com/petrasvestartas/session/actions/runs/39928419284",
     "geminiHead": "d4af0558e2a7017f53e4ad23904950ed1b27f17d"
   },
@@ -223,5 +227,13 @@
     "structure": "PASS: recovery-structure.json; 1361 current and43 archived reference checkpoints.",
     "cause": "Older Windows launcher ignored --help and invoked force synchronization. Portable launchers restored; help and invalid options now return before execution, local edits block implicit resets.",
     "evidence": "target/course-windows-20261018/recovery-after-force-sync"
+  },
+  "latestFetchedSourceIntegration": {
+    "date": "2026-10-23",
+    "rootMerge": "e2ed12f",
+    "wood": "5318ba20048d6f4996fce2d593ee9560a9de0621",
+    "sessionMainAncestor": true,
+    "tutorialPreservation": "All Gemini and Codex commits/worktree edits preserved; no reset or clean. Root merge has no conflicts.",
+    "nativeDependencyIdentity": "Wood entire rust/,src/proto/,data/,generated/ trees unchanged from tested07c57552. Incoming14commits update C++/tests/examples/docs."
   }
 }
