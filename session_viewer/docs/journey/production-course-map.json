@@ -21675,12 +21675,12 @@
       "scope": "640x480 94-comparison native frame only; full browser and whole-checkpoint acceptance remain separate."
     },
     "id": "96zzzzzzzq-draw-original-cad-wire-curves",
-    "fingerprint": "446614c6db2da06557279eea716834a8d8b66de4978d1c374b410ac8a0107f9e",
+    "fingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
     "files": 713,
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
-    "courseSha256": "72c30e437901ffce1d83a8fa56abb1b82c0d402a3315000206482b6546d0a6be",
+    "courseSha256": "7aee0b146b7804e1bb5db44b6e229131f16d5041033f4e82dbf5cc3250054544",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Current4466 source713files includes e6 pen fix plus test-only stable GUID. CPU1 passes;four paired images fail,zero new pairs accepted. Old97d/f739 proofs retain original scope. Existing3complete/15partial and17pending callbacks unchanged; residual diagnosis/full integration/publication pending.",
+    "scope": "Current e432 source713files has focusedCPU2/four strict ribbon guide pairs accepted. Prior97d/f739 native1060/material8/Plane80/browser proofs retain original scopes.3complete/15partial,17callbacks unchanged; fullnative1062/browser/docs publication pending.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -22205,10 +22205,10 @@
       "finiteBoundary": "OrdinaryPlane80criterionretainsitsexactscope;guidebugbelongsstillpartialClipping/globaldisplay."
     },
     "clippingGuideSourceFix": {
-      "status": "PARTIAL applied source:CPU regression PASS;four strict pairs FAIL, repair unaccepted",
-      "record": "release/clipping-guide-source-fix-partial-review.json",
-      "priorFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
-      "scope": "Partial checkpoint only: applied source and focusedCPU regression pass, but all four strict image pairs fail. Zero new pairs accepted; repair remains unaccepted/residual diagnosis. Full1061, current browser/WASM, image and docs publication remain pending."
+      "status": "PASS focusedCPU2 and four strict full-RGBA pairs;full integration/browser/docs pending",
+      "record": "release/clipping-guide-ribbon-native-review.json",
+      "priorFingerprint": "446614c6db2da06557279eea716834a8d8b66de4978d1c374b410ac8a0107f9e",
+      "scope": "Production ribbon guide fix:CPU2 and four fixed-source strict pairs accepted; root8image review separately explicit. Fullnative1062, current browser/WASM and fresh docs build/visible publication remain pending."
     }
   },
   "authoringPrerequisiteRepair": {

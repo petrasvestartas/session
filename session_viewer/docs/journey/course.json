@@ -91690,6 +91690,20 @@
           "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen-test.rs",
           "why": "Check custom guide pens, original ownership and explicit display precedence.",
           "copy": true
+        },
+        {
+          "path": "src/production_joined.rs",
+          "before": "        if crate::clipping_geometry::is_clipping(source) {continue;}\n",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-production-ribbons.rs",
+          "why": "Render clipping guides with the production ribbon coverage and section-cap visibility.",
+          "copy": true
+        },
+        {
+          "path": "src/pick_sources.rs",
+          "before": "                sources.mesh_legacy.push(if row.mesh.parts.ink.active{0}else if line_frame{crate::ink_ranges::LINES}else{crate::ink_ranges::EDGES});\n",
+          "snippet": "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-no-duplicate-ink.rs",
+          "why": "Retain clipping-guide query rows while drawing each guide once in the line family.",
+          "copy": true
         }
       ],
       "frame": "journey/checks/94-comparison.rs",

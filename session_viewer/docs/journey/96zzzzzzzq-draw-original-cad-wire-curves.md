@@ -46041,6 +46041,44 @@ After that block, append this supplied code:
 
 </details>
 
+### 388. `src/production_joined.rs`
+
+Render clipping guides with the production ribbon coverage and section-cap visibility.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```text
+        if crate::clipping_geometry::is_clipping(source) {continue;}
+```
+
+</details>
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```text
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-production-ribbons.rs"
+```
+
+### 389. `src/pick_sources.rs`
+
+Retain clipping-guide query rows while drawing each guide once in the line family.
+
+<details>
+<summary>Locate the existing block</summary>
+
+```text
+                sources.mesh_legacy.push(if row.mesh.parts.ink.active{0}else if line_frame{crate::ink_ranges::LINES}else{crate::ink_ranges::EDGES});
+```
+
+</details>
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```text
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-no-duplicate-ink.rs"
+```
+
 ## Run and check
 
 Run this from `session_viewer` to select the fixed dependency versions and install supplied binary assets. It updates Cargo.lock and preserves the previous lock. It does not write implementation code:

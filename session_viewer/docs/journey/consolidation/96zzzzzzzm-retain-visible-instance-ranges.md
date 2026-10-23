@@ -44753,6 +44753,42 @@ After that block, append this supplied code:
 --8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-source-pen-test.rs" skip=251
 ```
 
+### 248. `src/production_joined.rs`
+
+Render clipping guides with the production ribbon coverage and section-cap visibility.
+
+Copy this supplied source update.
+
+**Locate this existing block:**
+
+```rust
+        if crate::clipping_geometry::is_clipping(source) {continue;}
+```
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-production-ribbons.rs"
+```
+
+### 249. `src/pick_sources.rs`
+
+Retain clipping-guide query rows while drawing each guide once in the line family.
+
+Copy this supplied source update.
+
+**Locate this existing block:**
+
+```rust
+                sources.mesh_legacy.push(if row.mesh.parts.ink.active{0}else if line_frame{crate::ink_ranges::LINES}else{crate::ink_ranges::EDGES});
+```
+
+Update the existing block with this supplied code; keep unchanged lines:
+
+```rust
+--8<-- "journey/code/96zzzzzzzq-draw-original-cad-wire-curves-clipping-guide-no-duplicate-ink.rs"
+```
+
 ## Build & Run
 
 ![Recorded visual output for Lesson 22.6 (96zzzzzzc)](../../screenshots/journey/96zzzzzzc-draw-the-construction-grid-as-physical-lines-browser.png)

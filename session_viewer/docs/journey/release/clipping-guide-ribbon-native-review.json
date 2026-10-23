@@ -1,0 +1,224 @@
+{
+  "status": "PASS focusedCPU2 and four strict full-RGBA pairs;full integration/browser/docs pending",
+  "recordedUtc": "2026-10-23T23:26:24.560Z",
+  "testFixtureCorrection": {
+    "proof": {
+      "path": "target/course-windows-20261018/clipping-guide-regression-guid-v3/in-memory-source-proof.json",
+      "sha256": "c3d57c6cf76ec97f7470c60366eacacea1aae4cef857fad1c721219c32976074"
+    },
+    "nonTestPrefixIdentical": true,
+    "meaning": "Initialize actual lazy Plane GUID before full-source snapshot; all pen/style/owner assertions retained.",
+    "previousFocusedFailure": {
+      "log": {
+        "path": "target/course-windows-20261018/material-owner-clip-e6-pinned-preparation/focused-cpu-20261023T230510334Z/output.log",
+        "sha256": "73bce44b0a7e51a2af68d38dceeb04f391876f26c80a45fb02b5790c5eb43dd1"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/material-owner-clip-e6-pinned-preparation/focused-cpu-20261023T230510334Z/resources.json",
+        "sha256": "40d6626dd78f0d3eef5a3183c19ff55a71c8b7b2037f1dfb6e6fccca15bdc88b"
+      },
+      "scope": "Preserved failed0/1 CPU result. Width/style assertions passed before empty-to-initialized GUID snapshot mismatch; not acceptance."
+    }
+  },
+  "rootVisualReview": {
+    "conversion": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/root-view/conversion.json",
+      "sha256": "7c66dd814c2d75a43361e4a2c186895c5728c11a6d54d644c291d35a86b4137f"
+    },
+    "images": [
+      {
+        "case": "copied-selected-glass",
+        "side": "production",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\copied-selected-glass-production.png",
+        "pngSha256": "2c1cadbb39c46ee2f6c46f545d8cb98713939221da9b0230ffe0737b3f6eda8e",
+        "rgbaSha256": "94e5b76ba372f4a83c71d97620b1d1cffe91334138c3c41740a1e3fae0c8cf78",
+        "ppmSha256": "9f29e4d1ac36e4aba667f5ec0f708bbc798399a0061bcd25c4235796100ebbe1",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "copied-selected-glass",
+        "side": "course",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\copied-selected-glass-course.png",
+        "pngSha256": "2c1cadbb39c46ee2f6c46f545d8cb98713939221da9b0230ffe0737b3f6eda8e",
+        "rgbaSha256": "94e5b76ba372f4a83c71d97620b1d1cffe91334138c3c41740a1e3fae0c8cf78",
+        "ppmSha256": "9f29e4d1ac36e4aba667f5ec0f708bbc798399a0061bcd25c4235796100ebbe1",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "locked-source-glass",
+        "side": "production",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\locked-source-glass-production.png",
+        "pngSha256": "2a8cb613a360c6bd322fcc15b86cac3d274460f8b23801bc3fa7ff939a008ecb",
+        "rgbaSha256": "d440f4ea749a374f3efc3cd6888ea578ed0221efebc3ac28ed0c776ad004679e",
+        "ppmSha256": "3f939e041c78526d5898d2970f33660293f77d479acc21b2299016da6634bb79",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "locked-source-glass",
+        "side": "course",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\locked-source-glass-course.png",
+        "pngSha256": "2a8cb613a360c6bd322fcc15b86cac3d274460f8b23801bc3fa7ff939a008ecb",
+        "rgbaSha256": "d440f4ea749a374f3efc3cd6888ea578ed0221efebc3ac28ed0c776ad004679e",
+        "ppmSha256": "3f939e041c78526d5898d2970f33660293f77d479acc21b2299016da6634bb79",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "copied-selected-clipped-glass",
+        "side": "production",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\copied-selected-clipped-glass-production.png",
+        "pngSha256": "2e21cc0e983ee91ec8a1ac35521c91700075639ff49f8b0e247081391a71b5ab",
+        "rgbaSha256": "a35718d33923664a86c7e9ec1ae2551935c0df0cbd515a998e7dfe8e4feadb60",
+        "ppmSha256": "b9d38ffce5f3b1dfeb534fe12a44a0a0f4b1dbdb3fff24e5753780536d5e71d8",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "copied-selected-clipped-glass",
+        "side": "course",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\copied-selected-clipped-glass-course.png",
+        "pngSha256": "2e21cc0e983ee91ec8a1ac35521c91700075639ff49f8b0e247081391a71b5ab",
+        "rgbaSha256": "a35718d33923664a86c7e9ec1ae2551935c0df0cbd515a998e7dfe8e4feadb60",
+        "ppmSha256": "b9d38ffce5f3b1dfeb534fe12a44a0a0f4b1dbdb3fff24e5753780536d5e71d8",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "copied-selected-clipped-xray",
+        "side": "production",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\copied-selected-clipped-xray-production.png",
+        "pngSha256": "0f614b5df7addeafcdd5dfc9ae68bb2e7fbd14a8838f6f6db5e7c1e8237054e5",
+        "rgbaSha256": "d3774daf7dbe38e3119fb8132689201edf19a589b524adfc9279c0cafe77bc23",
+        "ppmSha256": "05828c991a40f4dd408045bb88205fdc30680258c828df134ca8d5067d7da507",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      },
+      {
+        "case": "copied-selected-clipped-xray",
+        "side": "course",
+        "png": "C:\\pc\\3_code\\code_rust\\wood_research\\session\\session_viewer\\target\\course-windows-20261018\\clipping-guide-ribbon-v4-preparation\\root-view\\copied-selected-clipped-xray-course.png",
+        "pngSha256": "0f614b5df7addeafcdd5dfc9ae68bb2e7fbd14a8838f6f6db5e7c1e8237054e5",
+        "rgbaSha256": "d3774daf7dbe38e3119fb8132689201edf19a589b524adfc9279c0cafe77bc23",
+        "ppmSha256": "05828c991a40f4dd408045bb88205fdc30680258c828df134ca8d5067d7da507",
+        "alphaValues": [
+          255
+        ],
+        "decodedRgbaExact": true
+      }
+    ],
+    "reviewedByRoot": true,
+    "scope": "Eight lossless original PNGs inspected only when explicit root flag supplied; fixed fixture four pairs only."
+  },
+  "source": {
+    "id": "96zzzzzzzq-draw-original-cad-wire-curves",
+    "fingerprint": "e432b904b457958d0162c0acece4adebd97494934e793062dcaa56217637edf6",
+    "courseSha256": "7aee0b146b7804e1bb5db44b6e229131f16d5041033f4e82dbf5cc3250054544",
+    "files": 713,
+    "changedFiles": [
+      "src/pick_sources.rs",
+      "src/plane_original.rs",
+      "src/production_joined.rs"
+    ],
+    "application": {
+      "path": "target/course-windows-20261018/clipping-guide-residual-diagnosis-v4/in-memory-source-proof.json",
+      "sha256": "ff098938386391fc1724e65947b27f43a198280d81f2de5b309be1ddbdbe30bd"
+    },
+    "stageProof": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/current-source-proof.json",
+      "sha256": "949bbbeee6c5622c670c6576a776da26079252e31022ee2b1d000352d74e294e"
+    }
+  },
+  "authoring": {
+    "status": "PASS22/22",
+    "log": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/authoring/authoring.log",
+      "sha256": "94ee6aee64bc1f7e89b73f08752111bc1f66b17a537d48862a344ffbfb44819d"
+    }
+  },
+  "structure": {
+    "status": "PASS1361/307viewer/43reference/351final",
+    "log": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/authoring/structure.log",
+      "sha256": "726b513a6403152dbcbc3f377f98676d314610b208ab6569eeb462417791433f"
+    }
+  },
+  "outcomes": {
+    "focusedCpu": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/focused-test.json",
+      "sha256": "9359b47760fdb98f106d29018ead0af5f6a3863dddbc60de2c03c8186b9ca71d"
+    },
+    "pairs": {
+      "readiness": {
+        "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/ready-for-one-integration-native.json",
+        "sha256": "e257ace0c70b9b6469144007e3b5a6846f91b98e99268ba495b05f29aa9d79b3"
+      },
+      "acceptance": {
+        "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/run-20261023T232139728Z/acceptance.json",
+        "sha256": "b8a96adf3cc4afc965acebf1cd803eecde673df55e8e66a788746c4f94f5ff83"
+      },
+      "manifest": {
+        "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/frames-20261023T232139728Z/manifest.json",
+        "sha256": "33b43b0d3e5e94876c8bf6417bc6a1719972efe4ea3515bd66e050b37453c3bc"
+      },
+      "resources": {
+        "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/run-20261023T232139728Z/resources.json",
+        "sha256": "a1c564b62bbbffc8a41e2c1e9d1b7ff528555b831739a3e9735d05a6a179d8a9"
+      },
+      "pairs": 4,
+      "imageReview": "Root individually inspected all8 lossless original PNGs"
+    }
+  },
+  "pending": [],
+  "dependencyCaveat": {
+    "interruptedV1": "Earlier e6 build was interrupted after generated-lock dependency drift was identified. Its folder/logs and dependency-delta audit remain historical; no successful V1 acceptance inferred.",
+    "deltaAudit": {
+      "path": "target/course-windows-20261018/material-owner-clip-e6-preparation/dependency-delta-audit.json",
+      "sha256": "3863f5a72b6ff5c8e2c2d1a5fe01b4134591afa9565d39741f0213cffe6f4c27"
+    },
+    "pinnedV4": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/preparation-ribbon-v4.json",
+      "sha256": "1903c28bef3925e029150cf22ec541b79ea40193cf7a12ea6faa6f548e874849"
+    },
+    "actualLockedV4Metadata": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/lock-validation.metadata.json",
+      "sha256": "43cfec67afdf2151745c044dd9e6dd7f887bc150dbeda4c1ab95fb0cf39e5ed7"
+    },
+    "preservation": {
+      "path": "target/course-windows-20261018/clipping-guide-ribbon-v4-preparation/dependency-preservation-proof.json",
+      "sha256": "d9598f0170cb200f34f71f03e3a543c6ae589ab7653d1f6cb0bf6fc0fb0343de"
+    },
+    "lockedMetadataRecovery": {
+      "path": "target/course-windows-20261018/material-owner-clip-e6-pinned-preparation/lock-validation-recovery.json",
+      "sha256": "eab0b956b0ddb81b6a28fd699bcddf3e78435c1ffd853254ca6a52647d78f27e"
+    },
+    "scope": "Pinned registry preservation and priorV2 locked metadata recovery remain distinct from actualV4 locked metadata/build/focused outcomes; no dependency or failed-test proof is relabelled."
+  },
+  "compilerPrefixReuse": {
+    "record": {
+      "path": "docs/journey/release/reader-compilation-review.json",
+      "sha256": "bd5cc63246a164589fbf560e34c260318f608aa0bd9d14bd328ab42cc3109167"
+    },
+    "endpoints": 101,
+    "phases": 202,
+    "scope": "Earlier reader source/edit prefixes are exactly unchanged by the appended final-step fix. Original202 execution source/signature/log hashes remain original; no relabelling as e6 execution."
+  },
+  "priorProofs": "All97d/f739 native1060/material8/Plane/browser proofs retain their recorded metadata; no rebinding to e6. Feature3/18 and pending17 callbacks unchanged.",
+  "scope": "Production ribbon guide fix:CPU2 and four fixed-source strict pairs accepted; root8image review separately explicit. Fullnative1062, current browser/WASM and fresh docs build/visible publication remain pending."
+}

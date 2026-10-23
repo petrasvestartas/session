@@ -1,7 +1,9 @@
 - [x] Source integration complete: 59 late-chapter teaching introductions and 20 figures now accompany the committed Argo diagrams from `d1d0871f`; all diagram and checkpoint code bytes retained. [Integration record](release/concurrent-teaching-integration-review.json).
 
-- [x] Current clipping-guide source: original pen CPU regression passes; authoring22/22, structure1,361/reference43 and changed lesson22.6 desktop/phone publication pass.
-- [ ] Clipping-guide image parity remains unfinished: three pairs differ72 pixels and clipped glass264 pixels. Zero new pairs accepted. Coverage/cap-visibility corrections are being prepared; full1,061-test integration waits for focused image success.
+- [ ] Current e432 integration: full1,062-test native suite running; current native frame/WASM/web bundle and changed lesson desktop/phone publication pending.
+
+- [x] Clipping-guide authoring22/22 and structure1,361/reference43 pass. Initial pen-update docs publication passed at its recorded source; fresh ribbon-update publication remains pending.
+- [x] Clipping-guide focused repair: two CPU regressions and all four unchanged full-RGBA pairs pass at zero tolerance. All eight original PNGs inspected. Prior72/264-pixel failures remain preserved.
 
 - [x] Published and reviewed the integrated teaching content: 59 introductions, 111 links, 21 decoded images and 17 inspected views. Duplicate navigation and phone overflow fixes pass four additional views. [UI proof](release/docs-navigation-overflow-review.json). Gemini first 10/redraft and current whole-book handoff remain deferred.
 
