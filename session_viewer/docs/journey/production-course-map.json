@@ -3,7 +3,7 @@
   "scope": "Initial production-to-course source/coverage audit; proposals are not completed consolidation or rendering acceptance.",
   "sourceAuthority": "session_viewer/src",
   "endpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
-  "endpointStatus": "Current97d optimized bundle and finite Matrix acceptance pass. Final integrated native/canonical callbacks,17other feature checklists and release gates remain pending.",
+  "endpointStatus": "Current97d native1060/1060,optimized bundle and finite Matrix plus Camera/Plane acceptance pass. Required historical/canonical callbacks,16 partial feature checklists and global release0/5 remain open.",
   "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
   "chapters": 22,
   "existingSteps": 1361,
@@ -187,9 +187,10 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at the recorded translated orthographic pose; historical a45 learner native1059 suite passed.",
+        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production.",
         "records": [
-          "release/mesh-native-review.json"
+          "release/mesh-native-review.json",
+          "release/sheet-text-native-controls-review.json"
         ],
         "remainingAcceptance": [
           "Validate material, lighting, normal, clipping and opaque/transparent display controls against actual production.",
@@ -299,12 +300,13 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight extracted splat/resolve pairs, eighteen actual 2,000,064-point LOD/placement pairs and twelve focused cloud/Line controls passed; these are bounded native results.",
+        "acceptedScope": "Eight extracted splat/resolve pairs, eighteen actual 2,000,064-point LOD/placement pairs and twelve focused cloud/Line controls passed; these are bounded native results. Current97d native1060 assertions separately verify resident-prefix bounds, far placement, original control IDs outside coarse LOD, streamed selection isolation and actual opaque/EDL fixture pixels. Complete display-group/streaming-control coverage remains partial.",
         "records": [
           "../../target/course-windows-20261018/cloud-integrated-witness-run.json",
           "../../target/course-windows-20261018/cloud-lod-production-pairs.json",
           "../../target/course-windows-20261018/cloud-ink-production-after.json",
-          "consolidation/current-state.json"
+          "consolidation/current-state.json",
+          "release/sheet-text-native-controls-review.json"
         ],
         "remainingAcceptance": [
           "Run the complete current cloud display-group and streaming controls, retaining resident counts and original owners.",
@@ -405,15 +407,16 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight ordinary ribbon pairs, four headed-Line pairs and 32 resident Sheet ingress pairs retain their recorded scope. Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim.",
+        "acceptedScope": "Eight ordinary ribbon pairs, four headed-Line pairs and 32 resident Sheet ingress pairs retain their recorded scope. Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim. Current1060-suite named native width/analytic-AA/clipping/occlusion/family-flag assertions are accepted only within the18 reviewed test bodies; arbitrary production-parity/material/tolerance and actual browser obligations remain.",
         "records": [
           "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
           "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
           "release/cad-selected-native-review.json",
-          "release/ink-family-controls-native-review.json"
+          "release/ink-family-controls-native-review.json",
+          "release/native-control-semantics-review.json"
         ],
         "remainingAcceptance": [
-          "Verify only the still-unproven width/AA/clipping and other named display controls against actual production. The 14 accepted joined/CAD visibility pairs are complete and must not be repeated merely to fill a Cartesian profile.",
+          "Retain only still-unproven actual production-parity/material/tolerance controls beyond the18 accepted native semantic test bodies; their named width/analytic-AA/clipping/family assertions must not be repeated. The 14 accepted joined/CAD visibility pairs are complete and must not be repeated merely to fill a Cartesian profile.",
           "Run complete cad-wire callback with user-approved outlines-off production-yellow/zero-black contract; preserve other source/archive/pick assertions."
         ],
         "chapterBrowserEntries": [
@@ -477,10 +480,11 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight original Point and eight Mesh corrected translated-pose pairs match full RGBA across DPR1/2, samples1/4 and selection.",
+        "acceptedScope": "Eight original Point and eight Mesh corrected translated-pose pairs match full RGBA across DPR1/2, samples1/4 and selection. Their historical bindings are retained. Current97d native assertions additionally verify mesh-marker ownership and source lifetime through perspective/orthographic rebasing, plus original Point size/selection coverage at DPR1/2 and samples1/4. Full named control coverage and browser review remain partial.",
         "records": [
           "release/point-native-review.json",
-          "release/mesh-native-review.json"
+          "release/mesh-native-review.json",
+          "release/sheet-text-native-controls-review.json"
         ],
         "remainingAcceptance": [
           "Validate marker/normal/glyph/sphere controls, depth occlusion and original-owner picks beyond the recorded orthographic pose.",
@@ -978,13 +982,13 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Thirty-two actual resident Sheet ingress pairs passed projection, placement, DPR, samples and selection. They do not exercise network streaming or all text shaping.",
+        "acceptedScope": "Thirty-two actual resident Sheet ingress pairs passed projection, placement, DPR, samples and selection at their recorded inputs. Separate current97d native1060 assertions now fulfill the original text shaping, glyph scale, placements, clipping, original queries and retained-resource-lifetime criterion. These bounded native results do not accept network/browser workflows or all text shaping.",
         "records": [
-          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json"
+          "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
+          "release/sheet-text-native-controls-review.json"
         ],
         "remainingAcceptance": [
-          "Run the inherited sheets/drawing checks through the chapter13/14 entry callbacks and inspect the actual Sheet state before later scene replacement.",
-          "Verify text shaping, glyph scale, placements, clipping, original queries and retained resource lifetime separately."
+          "Run the inherited sheets/drawing checks through the chapter13/14 entry callbacks and inspect the actual Sheet state before later scene replacement."
         ],
         "chapterBrowserEntries": [
           {
@@ -1158,12 +1162,13 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Historical a45 native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract. The current 14-pair ink record adds two independent CAD family states and three representative joined/selection/placement specimens; it does not close finite sag/tolerance, arbitrary clipping or triangle-tile contracts.",
+        "acceptedScope": "Historical a45 native suite and bounded ribbon/cloud/Sheet comparisons passed; finite visibility source correspondence does not close every address and tolerance contract. The current 14-pair ink record adds two independent CAD family states and three representative joined/selection/placement specimens; it does not close finite sag/tolerance, arbitrary clipping or triangle-tile contracts. Current1060-suite named native width/analytic-AA/clipping/occlusion/family-flag assertions are accepted only within the18 reviewed test bodies; arbitrary production-parity/material/tolerance and actual browser obligations remain.",
         "records": [
           "../../target/course-windows-20261018/ribbon-final-stroke-run.json",
           "../../target/course-windows-20261018/cloud-ink-production-after.json",
           "../../target/course-windows-20261018/sheet-actual-ingress-camera-fixed.json",
-          "release/ink-family-controls-native-review.json"
+          "release/ink-family-controls-native-review.json",
+          "release/native-control-semantics-review.json"
         ],
         "remainingAcceptance": [
           "Run chapter17 caps and chapter20 slot/arena callbacks, including hidden/reenabled families and original source picks.",
@@ -1567,7 +1572,7 @@
         }
       ],
       "classification": "staged",
-      "remainingDefect": "All80 Plane native pairs and four reload/grid browser combinations pass within their recorded scopes. Original Plane owner-pick/browser/full display controls and the listed historical callback remain open.",
+      "remainingDefect": "None within the original three finite Camera/Plane/reload criteria. Required76d freeform browser proof remains pending in the global/chapter queue; finite closure is not chapter/global release acceptance.",
       "proposedLessons": [
         "46-tool-panel",
         "47-registry",
@@ -1596,9 +1601,9 @@
       "runnableCheckpoint": "96zzzzzzzq-draw-original-cad-wire-curves",
       "evidence": "docs/journey/visual-review.json; docs/screenshots/journey/browser.json; chapter source checkpoints. Existence is not current acceptance.",
       "currentVerification": {
-        "status": "partial",
+        "status": "complete",
         "integration": "#/currentIntegration",
-        "acceptedScope": "All80 Plane native full-RGBA pairs across five matrices pass within recorded fixtures/settings, without owner-pick/browser claims. Maintained/course native grid precision and two Windows pairs pass. PASS 4/4 maintained/course by route/live reload-grid browser cases at current97d: 75.783s,626356224B. Conditional Ctrl+A helper is approved and applied; supported view:top and valid near-cap origin fixtures corrected. All camera, deferred-load, grid-command, collinear-error and far-coordinate assertions retained. Four saved images individually inspected; no cross-runtime pixel-parity or visible far-grid claim. Public release/reload-grid-browser-review.json.",
+        "acceptedScope": "All80 Plane native full-RGBA pairs across five matrices pass within recorded fixtures/settings, without owner-pick/browser claims. Maintained/course native grid precision and two Windows pairs pass. PASS 4/4 maintained/course by route/live reload-grid browser cases at current97d: 75.783s,626356224B. Conditional Ctrl+A helper is approved and applied; supported view:top and valid near-cap origin fixtures corrected. All camera, deferred-load, grid-command, collinear-error and far-coordinate assertions retained. Four saved images individually inspected; no cross-runtime pixel-parity or visible far-grid claim. Public release/reload-grid-browser-review.json. Current1060-suite actual Plane size/visibility/selection/open-owner and camera reference assertions pass; see the finite review and native semantic record.",
         "records": [
           "release/plane-placed-native-review.json",
           "release/plane-plain-native-review.json",
@@ -1608,20 +1613,21 @@
           "release/plane-generated-covered-native-review.json",
           "release/plane-generated-print-native-review.json",
           "release/plane-original-covered-matrix-native-review.json",
-          "release/reload-grid-browser-review.json"
+          "release/reload-grid-browser-review.json",
+          "release/camera-plane-finite-review.json",
+          "release/native-control-semantics-review.json"
         ],
-        "remainingAcceptance": [
-          "Complete actual original Plane owner-pick/browser and named display-control acceptance beyond the80 accepted native pairs; covered/print image equality does not assert covered picking.",
-          "Complete the source-specific camera/curve lesson callback and remaining declared controls; reload latest-pose,held-grid,collinear-error and far-coordinate browser assertions are already accepted in the four recorded cases."
-        ],
-        "chapterBrowserEntries": [
+        "remainingAcceptance": [],
+        "finiteRequirementAudit": "Original three finite requirements accepted:four reload/grid cases,80 Plane native pairs and actual Plane/camera native semantics. No invented Camera object-picking or occluded-overlay picking requirement. Required76d callback remains separately pending global/chapter proof.",
+        "outstandingGlobalChapterProof": [
           {
             "chapter": 14,
             "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
-            "callback": "journey/checks/browser/freeform.cjs"
+            "callback": "journey/checks/browser/freeform.cjs",
+            "status": "required-pending",
+            "scope": "Source-specific curve/tool/history browser assertions; not part of the three finite Camera/Plane acceptance criteria."
           }
-        ],
-        "finiteRequirementAudit": "Original three requirements now have4reload/80Plane/currentcamera-grid image proof. Most recent remaining strings add Planeownerpick/browsercontrols. No furtherfullmatrix is implied: confirm actualsupportedproduction picking/control contract before treating it as an extraacceptance gate. Keep partial until this precise boundary is resolved;76dfreeform remains required for coordinate/tool/history coverage."
+        ]
       },
       "planeNativeMatrices": {
         "passed": 80,
@@ -1633,7 +1639,7 @@
           "release/plane-generated-print-native-review.json",
           "release/plane-original-covered-matrix-native-review.json"
         ],
-        "scope": "Exact declared native source/placement/DPR/sample/size/selection comparisons; original Plane owner-pick/browser/full display controls remain separate. Four reload/grid cases are accepted separately."
+        "scope": "80 exact native fixture/DPR/sample/size/selection pairs. Open Plane owner/size/visibility/selection semantics pass separately in1060 native suite; no covered-overlay pick or arbitrary browser control claim."
       }
     },
     {
@@ -21643,8 +21649,8 @@
     "chaptersTotal": 22,
     "readerFacingLessons": 111,
     "preservedCheckpoints": 1361,
-    "featuresComplete": 1,
-    "featuresPartial": 17,
+    "featuresComplete": 2,
+    "featuresPartial": 16,
     "featuresTotal": 18
   },
   "authoredReaderLessons": 111,
@@ -21664,7 +21670,7 @@
     "recordedAt": "2026-10-23T17:02:35.831075+00:00",
     "courseSha256": "f739c713178ed6d98d91f6f6f33165e18880a4f5effecc153c269e6c23709d9c",
     "historicalCourseSha256": "8453513dc6d5ae34d081becc435ee893bbb82cc89d31386ed6fa7141e7576b1b",
-    "scope": "Current97d source retains713files/1361 reconstructed IDs. Matrix finite feature is complete through8native pairs and6corrected browser cases with24 individually reviewed PNGs.17other features and0/5 final release gates remain open; prior proofs keep their recorded input bindings.",
+    "scope": "Current97d source retains713files/1361 reconstructed IDs. Matrix finite feature is complete through8native pairs and6corrected browser cases with24 individually reviewed PNGs.16other features and0/5 final release gates remain open; prior proofs keep their recorded input bindings.",
     "state": "consolidation/current-state.json",
     "evidencePaths": "Paths in currentIntegration/currentVerification are relative to docs/journey; target evidence is local and is not a public hosted artifact.",
     "authoring": {
@@ -21732,7 +21738,8 @@
         "status": "passed-scoped-native-14-pairs",
         "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23"
       },
-      "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending."
+      "historical94cCurrent": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
+      "currentDelta": "Historicala45 full1059 and96y831 retain their original source bindings. Current97d final native1060/1060 passes at its own source; bounded Matrix8/CAD5/ink14 and18 inspected semantic bodies remain separately scoped."
     },
     "browser": {
       "lastMeasuredFingerprint": "63acaf79da6dfdde9c35f32d917806560cca2d2b4e9bf73cb1129566076e4856",
@@ -21810,8 +21817,8 @@
       "hashPolicy": "Valid UTF-8 text hashes normalize CRLF to LF; invalid UTF-8 remains raw. All307 current src paths/hashes matched the dated inventory during this audit. Existing301 row sha256/classification/basis values remain historical; current hashes come from the dated inventory. Six appended rows use the dated current hash and explicitly scoped staged basis. Complete path accounting is not verified extraction or feature parity."
     },
     "featureStatusCounts": {
-      "complete": 1,
-      "partial": 17,
+      "complete": 2,
+      "partial": 16,
       "open": 0,
       "meaning": "Complete accepts the named finite feature requirements at recorded source/fixture/settings; it does not close global release. Partial rows retain specific unaccepted requirements."
     },
@@ -21825,7 +21832,7 @@
     "remainingFinalGates": [
       "Freeze current integrated runtime and finish affected final native/frame and required compiler proof using valid phase reuse; retain historical source scopes.",
       "Finish the named final canonical browser callback and required historical entry callbacks without weakening frozen assertions.",
-      "Close the17 remaining finite feature checklists and their actual declared source-specific lesson checks; Matrix is complete.",
+      "Close the16 remaining finite feature checklists and their actual declared source-specific lesson checks; Matrix and Camera finite features are complete.",
       "Finish required current reader/checkpoint proof accounting, source inventory, navigation/aliases, docs build and visible local publication review."
     ],
     "inventoryRefresh": {
@@ -21954,8 +21961,8 @@
         "distinctSourceSpecificCallbackEntries": 18,
         "nonCallbackIntegrationActions": 3,
         "namedActions": 21,
-        "remainingFeatureChecklists": 17,
-        "meaning": "13historical+3existinglate display entries+maintained97+learnerfinalCAD=18source-specific callbacks. Three noncallback native/proof/publication groups make21named groups, overlapping17feature checklists. Importedhelper presence is not execution:source-faces defaultentry invokes surface-lighting parentassertions skipped bymesh-markers.feature calls.",
+        "remainingFeatureChecklists": 16,
+        "meaning": "13historical+3existinglate display entries+maintained97+learnerfinalCAD=18source-specific callbacks. Three noncallback native/proof/publication groups make21named groups, overlapping16feature checklists. Importedhelper presence is not execution:source-faces defaultentry invokes surface-lighting parentassertions skipped bymesh-markers.feature calls.",
         "eta": "No total ETA; missing successful callback durations and unscopednative tuples prevent an honest walltime estimate."
       },
       "phaseReuse94c": {
@@ -22021,12 +22028,12 @@
         {
           "id": "joined-production-controls",
           "requirement": "Actualproduction joined/headed/CAD width/AA/clipping/visibility controls.",
-          "next": "The two CAD family states and three representative joined jobs are accepted in ink-family-controls-native-review.json. Do not repeat those 14 pairs. Reconcile only unsupported width/AA/clipping and actual browser requirements with source/proof before defining further work."
+          "next": "Named width/analytic-AA/clipping/family native assertions already pass in the18 inspected current1060-suite bodies. Do not repeat them or14 matched ink pairs. Retain genuinely unsupported production-parity/material/tolerance and required browser controls only."
         },
         {
           "id": "cross-family-production-control-proof",
           "requirement": "Materials/lighting,markers/normals,finite/depth,ambient,transparency/Xray andcloud/textstreamcontrols are grouped in existingrows but no exactremainingnativeCartesianmatrix is declared.",
-          "next": "Retain accepted native14 ink controls and all prior scoped pairs. Existing source-faces, mesh-marker and quality callbacks still cover named controls; unsupported material/lighting/finite/transparent tuples need precise proof review, not a new Cartesian job queue."
+          "next": "Retain accepted native14 ink controls and all prior scoped pairs. Existing source-faces, mesh-marker and quality callbacks still cover named controls; unsupported material/lighting/finite/transparent tuples need precise proof review, not a new Cartesian job queue. Separate Sheet/text native shaping/scale/placement/clipping/query/lifetime proof is complete; named Point/marker/Cloud native subclaims are also accepted within release/sheet-text-native-controls-review.json. Do not rerun these accepted assertions; unproved full controls and browser obligations remain."
         },
         {
           "id": "legible-isolines",
@@ -22053,10 +22060,32 @@
         "peakJobCommitBytes": 963235840,
         "uniqueFramesReviewed": 14,
         "decodedImages": 28,
-        "remaining": "Unsupported width/AA/clipping/material/production-picking and browser contracts stay open; optional full Cartesian profiles are not required."
+        "remaining": "Bounded18 native semantic assertions also accepted separately. Unsupported production-parity/material/tolerance,production picking and actual browser requirements outside those bodies remain; no optionalCartesian profile mandate."
       },
       "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
-      "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs"
+      "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs",
+      "finiteCameraPlaneClosure": {
+        "status": "complete",
+        "record": "release/camera-plane-finite-review.json",
+        "requiredOutstandingGlobalChapterProof": {
+          "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+          "callback": "journey/checks/browser/freeform.cjs",
+          "chapter": 14,
+          "status": "required-pending"
+        }
+      },
+      "nativeControlSemantics": {
+        "record": "release/native-control-semantics-review.json",
+        "inspectedPassedBodies": 18,
+        "scope": "Named native semantics only; actual production-parity/material/isoline/browser requirements outside those assertions remain."
+      },
+      "sheetTextNativeCriterion": {
+        "status": "one native criterion complete; Sheet/text feature remains partial",
+        "record": "release/sheet-text-native-controls-review.json",
+        "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+        "accepted": "Separate shaping, glyph scale, placements, clipping, original queries and retained-resource-lifetime assertions in the recorded1060-suite.",
+        "remaining": "Required chapter13/14 source-specific callbacks and actual Sheet-state image inspection; all other unproved control/material/browser and global obligations remain."
+      }
     },
     "docsCurrent": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred.",
     "readerCompilerProof": {

@@ -1,0 +1,239 @@
+{
+  "status": "COMPLETE:three original finite Camera/Plane/reload acceptance criteria",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "authority": {
+    "savedPlan": {
+      "path": "viewer-course-consolidation-plan.md (saved user plan)",
+      "sha256": "0d8819420522c8d2b8c8ce84f32002a65ac240906a0a286eeb3849bb672ed9f3",
+      "literalLines": [
+        {
+          "line": 22,
+          "text": "- Tests verify faithful extraction, staged integration, and regression safety. They do not justify substituting different shader algorithms merely because self-authored tests pass. Matched GPU images use the same original source, camera, viewport/DPR, samples, settings, and output encoding."
+        },
+        {
+          "line": 24,
+          "text": "- Architecture or performance improvements to production require an observed problem, a focused justified change, and regression evidence. No speculative renderer replacement. The requested reload camera/grid corrections remain explicitly in scope."
+        },
+        {
+          "line": 56,
+          "text": "1. **Display completeness:** reconcile divergent course rendering with the actual production shaders and pipelines; complete pending CAD evidence without restarting already valid builds; consolidate pen width/AA, marker/cloud display controls, original Plane, and relevant color rules into existing lessons. Diagnose the known fine stroke-end difference with a matched witness. Verify real BRep holes, legible NURBS isolines, mirrored/nonuniform placement, and family visibility independently."
+        },
+        {
+          "line": 58,
+          "text": "3. **Reload behavior, after implementation coverage:** in maintained and course viewers, Session reload retains the latest camera pose, including user motion while loading. The shown base grid changes only after an explicit construction-plane command that actually changes its plane. Account for floating-origin coordinate rebasing when checking the world plane."
+        },
+        {
+          "line": 64,
+          "text": "Freeze runtime source after the reload/grid correction. Run the complete required Native/WASM/build checks and declared runnable-checkpoint checks against that final state. Inspect actual feature evidence for every chapter, close the coverage table, verify navigation/aliases and local publication, and report the final counts and known limitations. Never relabel stale results as current."
+        },
+        {
+          "line": 99,
+          "text": "The book teaches the complete viewer through a finite, coherent sequence; every required feature has a lesson and truthful evidence; remaining private drafts are either integrated or explicitly obsolete; runnable lessons and required checks pass; load/frame improvements have measurements; reload preserves camera and construction plane; and the local docs browser displays the final published book. No further chapter is created merely to close a validation gate."
+        }
+      ]
+    },
+    "originalFiniteFeatureRow": {
+      "gitRevision": "7baf0e2e",
+      "gitPath": "session_viewer/docs/journey/production-course-map.json",
+      "blobSha256": "c0d728cc09bafa5422c36cb69977e334625dbd855d5415f4cf273dfd1206f2ad",
+      "literalCriteria": [
+        "Run all four maintained/course by route/live reload-grid combinations using the built maintained bundle and source-matching learner bundle.",
+        "Validate opaque-covered and full printed-fill Plane controls across DPR, samples, sizes and selection; the single original printed lid is not opaque occlusion evidence.",
+        "Inspect current camera/grid feature frames and preserve latest pose during deferred reload."
+      ],
+      "scope": "Earliest inspected committed row containing these three explicit remainingAcceptance entries; not claimed as a verbatim user-authored list."
+    }
+  },
+  "criteriaMapping": [
+    {
+      "literalCriterion": "Run all four maintained/course by route/live reload-grid combinations using the built maintained bundle and source-matching learner bundle.",
+      "decision": "SATISFIED",
+      "records": [
+        "release/reload-grid-browser-review.json"
+      ],
+      "actualEvidence": "4/4 maintained/course route/live cases: trusted orbit/pan/wheel while original PB request held; old scene remains; replacement retains latest camera/grid and updates counts; actual queue.onSubmittedWorkDone fence. Captures individually reviewed.75.783s/626356224B.",
+      "limit": "Maintained served bundle retains its own source/build proof; current maintained working-tree hashes do not claim a new build."
+    },
+    {
+      "literalCriterion": "Validate opaque-covered and full printed-fill Plane controls across DPR, samples, sizes and selection; the single original printed lid is not opaque occlusion evidence.",
+      "decision": "SATISFIED for declared finite native display/control contract",
+      "records": [
+        "release/plane-plain-native-review.json",
+        "release/plane-placed-native-review.json",
+        "release/plane-generated-covered-native-review.json",
+        "release/plane-generated-print-native-review.json",
+        "release/plane-original-covered-matrix-native-review.json",
+        "release/native-97d-integration-review.json"
+      ],
+      "actualEvidence": "80 actual-production/course full-RGBA pairs across five distinct retained/generated input matrices,DPR1/2,samples1/4,size50/100,selected/unselected; exact retained-original2223B source separate from generatedprint2215B/opaque source. Full1060 suite adds actual open Plane owner pick,size,selection,visibility,presentation/source/history assertions.",
+      "limit": "No occluded overlay pick promise, arbitrary transform sweep or new browser Plane-control crossproduct inferred."
+    },
+    {
+      "literalCriterion": "Inspect current camera/grid feature frames and preserve latest pose during deferred reload.",
+      "decision": "SATISFIED",
+      "records": [
+        "release/reload-grid-browser-review.json",
+        "release/grid-native-review.json",
+        "release/grid-windows-pair-review.json"
+      ],
+      "actualEvidence": "All four actual browser frames individually reviewed; delivered pose equals latest pending pose. Held XY survives Front; explicit View changes plane once; repeated View,Top,Reset preserve held plane. Actual cancel/collinear rejection and valid near-cap fractional origin/basis exact. Native near/far/return grid and two matched RGBA pairs retain precision proof.",
+      "limit": "Browser captures precede far-grid commands: no visible far-anchor image or cross-runtime browser pixel-parity claim."
+    }
+  ],
+  "verifiedNativeBodies": [
+    {
+      "test": "scene::production_plane_tests::actual_plane_grid_arrows_size_visibility_selection_and_owner_picking",
+      "source": "target/course-final-original-owners/src/production_plane_tests.rs",
+      "sourceSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "normalizedLfSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "line": 98,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "samples1/4; original Plane id16777217; actual grid grey>200 and both colored arrows>20 pixels",
+        "integer GPU pick resolves to original Plane owner; selected frame differs in>100 pixels",
+        "size100?50 narrows grey extent to40?60%, row usage unchanged; size100 restores exact frame",
+        "lines=false produces all-white frame; edges/points=false with lines=true preserves Plane",
+        "opaque lid hides>90% grey grid; colored arrows retain>=80%; source protobuf exact"
+      ],
+      "scopeLimit": "Bounded native orthographic specimen; no covered Plane pick assertion and no browser input proof. Existing80 matched pairs separately establish production/course RGBA equality."
+    },
+    {
+      "test": "scene::production_plane_tests::plane_size_command_is_presentation_only_and_validates_its_argument",
+      "source": "target/course-final-original-owners/src/production_plane_tests.rs",
+      "sourceSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "normalizedLfSha256": "d3d18f64b82afdddbf1b61238049867cf907fb9d1f78592bb8b5dfbdf1f0a222",
+      "line": 68,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "View Plane Size250 returns Change::View; selection/history/source protobuf unchanged",
+        "missing,zero,negative,NaN and extra-token arguments rejected"
+      ],
+      "scopeLimit": "Native command semantics, not browser delivery."
+    },
+    {
+      "test": "camera_navigation_tests::zoom_at_matches_current_cursor_anchor_and_preserves_originals",
+      "source": "target/course-final-original-owners/src/camera_navigation_tests.rs",
+      "sourceSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "normalizedLfSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "line": 19,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "meters/mm ?both projections ?DPR1/2/3: distance/target match actual maintained reference within relative1e-10",
+        "original object IDs,protobuf geometry and f64 model matrices unchanged"
+      ],
+      "scopeLimit": "Native reference comparison; existing4 reload browser cases cover latest pose during deferred loading, not historical76d tool callback."
+    },
+    {
+      "test": "camera_navigation_tests::framed_projection_matches_current_clipped_corners_and_mode_guards",
+      "source": "target/course-final-original-owners/src/camera_navigation_tests.rs",
+      "sourceSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "normalizedLfSha256": "df17ae6f3f2203d0240ea94d561ffc7d3ebea3540a154cd0b7ced224cf89a869",
+      "line": 29,
+      "observedSuiteResult": "ok",
+      "actualAssertions": [
+        "meters/mm ?aspects.4/1.5/3 ?full/cropped frames ?2targets:distance,target,extent and all16 normalized matrix values match maintained reference",
+        "repeated Perspective mode and Orthographic return preserve pose/frame"
+      ],
+      "scopeLimit": "Native camera requirements satisfied in declared finite domain; no new arbitrary projection grid required."
+    }
+  ],
+  "rawProductionBoundary": [
+    {
+      "source": {
+        "path": "src/app/walk/mod.rs",
+        "sha256": "ac677c9a11ddbfa3e995443b0bf1548b105ced70320a6208b9956d7eba86bce1"
+      },
+      "lines": "219-272",
+      "finding": "Exhaustive maintained Geometry drawing dispatch has meshes,curves,Plane,OBB,points,clouds,Elements; camera is viewer state rather than a separately drawn pickable Geometry. This does not claim all archived component types are handled."
+    },
+    {
+      "source": {
+        "path": "src/app/walk/frames.rs",
+        "sha256": "1bf83056cc5e36a94514c86ab43ef13d7a10ad9b9de62cfc8df847e3dbd33d8f"
+      },
+      "lines": "53-88",
+      "finding": "Ordinary Plane produces one compact PlaneRow/frame and size-dependent bounds; separate clipping Plane path uses named clipping flags."
+    },
+    {
+      "source": {
+        "path": "src/shaders/plane.wgsl",
+        "sha256": "e9934e566c2cdb31ce648cd0f221f1ba7728df130f15fe8e69b8eba44d452312"
+      },
+      "lines": "1-2,34-57",
+      "finding": "Includes arrow.wgsl; grid vertices call arrow_corner(...false), colored axes call arrow_corner(...true). Grid hidden by solids, colored arrows overlay them."
+    },
+    {
+      "source": {
+        "path": "src/shaders/arrow.wgsl",
+        "sha256": "41166470f26b141dda7c03a753e14542dfdf3ed572f7f6920850c09afb03b80d"
+      },
+      "lines": "298-322",
+      "finding": "fs_main sets over=color.a>1.5 and skips ink_visible for overlay; fs_id ALWAYS checks ink_visible and discards hidden fragments. Visible colored overlay does not imply occluded GPU pick ownership."
+    }
+  ],
+  "laterRequirements": {
+    "currentRemainingAcceptance": [
+      "Complete actual original Plane owner-pick/browser and named display-control acceptance beyond the80 accepted native pairs; covered/print image equality does not assert covered picking.",
+      "Complete the source-specific camera/curve lesson callback and remaining declared controls; reload latest-pose,held-grid,collinear-error and far-coordinate browser assertions are already accepted in the four recorded cases."
+    ],
+    "finding": "The three original finite requirements have concrete accepted evidence. Vague later owner-pick/browser/full-controls requirement must cite an actual declared unsupported contract before adding a new job. Supported open owner/size/selection/visibility already passes native; no Camera-as-pickable-object or occluded overlay-pick obligation exists in original three criteria.",
+    "removeInventedObligations": [
+      "Camera must draw/pick as a separate scene object",
+      "Colored Plane overlay arrows must own integer picks through an opaque lid",
+      "A fresh native/browser crossproduct solely because later text says full controls"
+    ]
+  },
+  "genuinePendingBrowser": {
+    "checkpoint": "76d-exercise-exact-curves-and-rational-control-edits",
+    "source": {
+      "path": "docs/journey/checks/browser/freeform.cjs",
+      "sha256": "9b19c196f14e68f4aabc504a1f5623f6724861749f8f92bee1fd0ba965ee9e20"
+    },
+    "directBodyLines": "5-9",
+    "literalAssertionScope": [
+      "Interactive arc-center360 input:zero curves,one pending point;90 creates rational curve with count3.",
+      "Undo removes curve;Redo restores exact original metadata.",
+      "CPlane XZ,Curve controls then Close produces one curve and no active tool.",
+      "Explicit circle,ellipse,arc,parabola,freeform commands plus View Reset/Fit produce five original curves."
+    ],
+    "recursiveBoundary": "Body first awaits round.cjs; Torus/Capsule/QuadSphere/Undo/Redo bodies and further prerequisites need actual owning checkpoint execution. Parent require imports are not evidence they ran.",
+    "status": "PENDING chapter/canonical source-specific browser obligation. Native suite does not execute browser commands. Direct freeform assertions contain no Camera-geometry pick or occluded original Plane pick requirement."
+  },
+  "decision": {
+    "cameraReload": "All actual finite camera/reload/grid criteria satisfied; no new job required for those criteria.",
+    "planeDisplay": "Original finite Plane display/control criteria satisfied by80 exact matched pairs plus concrete native1060 assertions; no invented extra matrix required.",
+    "combinedFeatureRow": "Original three finite criteria complete. Required76d source-specific freeform browser callback remains PENDING in the global/chapter queue; this finite closure does not count it as executed.",
+    "globalRelease": "No chapter/global browser/release closure inferred."
+  },
+  "evidenceBindings": [
+    {
+      "path": "docs/journey/release/reload-grid-browser-review.json",
+      "sha256": "7be8355bd91f61c2bacc23c7384606e1027b5ed509726e025f6ab72ba5d01143"
+    },
+    {
+      "path": "docs/journey/release/plane-plain-native-review.json",
+      "sha256": "a5ae4aba4e155dabb6faae1d793f155731c133565108d8ccd5e3ffc15c1449c1"
+    },
+    {
+      "path": "docs/journey/release/plane-placed-native-review.json",
+      "sha256": "8daedebcb33618832f55c333d0004d3c86d16639c8e3b0cce4aed5b6ee5fc2a6"
+    },
+    {
+      "path": "docs/journey/release/plane-generated-covered-native-review.json",
+      "sha256": "474aa54e83aa3de4fd0141aef15d04c29ddb299e0c966f24c3930eb4edbafcbf"
+    },
+    {
+      "path": "docs/journey/release/plane-generated-print-native-review.json",
+      "sha256": "d62117f3177d2441d8d712919fe9307dea9da0d19b52beeea6a97cac8b32270f"
+    },
+    {
+      "path": "docs/journey/release/plane-original-covered-matrix-native-review.json",
+      "sha256": "fdcb7e5eb91b0a3101ae1ebbde3d139764666cb40d35595b03d1ac0ffeb59137"
+    },
+    {
+      "path": "docs/journey/release/native-97d-integration-review.json",
+      "sha256": "64c7515eecd6c4e90b0ac1d9f3d76900193d16956e8a9f34319c6ebe0a670e91"
+    }
+  ],
+  "actions": "Evidence reconciliation only; no new runtime jobs. No occluded overlay-pick or Camera-as-geometry assertion added."
+}
