@@ -1,22 +1,90 @@
 # 9.1 · Original surfaces, analytic normals and trim boundaries
 
-Display a validated parametric surface while retaining its original controls, UV addresses and complete boundaries.
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 9.1** (Redraft `6.1`) · **11 checkpoints (`55-validation` → `55zc-follow-original-constrained-trim-labels`)**
 
-## Ownership and data flow
+> **Learning Goal:** Validate original surface control storage.
 
-Validate NURBS storage, knot domains and weights before sampling an exact UV grid. Each sample retains parameter coordinates beside its world point; analytic normals use finite singular fallback rather than silently emitting NaNs. A shared original surface owns its derived display/UV cache, source face and domain borders. Original edge-use sampling and constrained trim labels prepare the later BRep boundary path. Picking resolves source parts and diagnostics count unique owners across history.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 9 CAD B-Rep Pipeline: Topological Loops/Trims, Crease Normals & Analytical Boundary Wires</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How exact Boundary Representations (B-Rep) combine shaded trimmed surface meshes with crisp analytical boundary & isoline curves.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="245" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="140" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. B-Rep Topological Validation</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Solid -&gt; Faces -&gt; Loops (Outer + Holes)</text>
+    <text x="28" y="126" font-size="10.5" fill="#1e3a8a">• Trim curves in 2D (u, v) domain</text>
+    <text x="28" y="144" font-size="10.5" font-weight="600" fill="#1d4ed8">• Validate orientation, loop closure,</text>
+    <text x="28" y="160" font-size="10.5" font-weight="600" fill="#1d4ed8">  and manifold edge adjacency</text>
+    <text x="28" y="180" font-size="10.5" fill="#1e3a8a">• Preserve exact NURBS surface source</text>
 
-app/walk/brep.rs walks maintained NurbsSurface/BRep faces; brep_edges.rs assembles boundary display and brep_shapes.rs caches repeated walks. app/surface_preview.rs and app/deform.rs retain original surface editing. The early rectangular parameter grid is staging toward maintained trimmed-face tessellation, not proof that arbitrary holes render correctly.
+    <line x1="263" y1="112" x2="295" y2="112" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+    <line x1="263" y1="175" x2="295" y2="175" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="297" y="68" width="275" height="68" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="309" y="86" font-size="11" font-weight="700" fill="#9a3412">2A. Shaded Trimmed Faces (Surface Lane)</text>
+    <text x="309" y="104" font-size="10.5" fill="#7c2d12">• Tessellate within (u,v) trim loops</text>
+    <text x="309" y="120" font-size="10.5" fill="#7c2d12">• Smooth normals across G1; split at creases!</text>
 
-Production source reference: [app/walk/brep.rs](../../../src/app/walk/brep.rs), [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs), [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs).
+    <rect x="297" y="145" width="275" height="68" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="309" y="163" font-size="11" font-weight="700" fill="#065f46">2B. Boundary Wires &amp; Isolines (Ribbon Lane)</text>
+    <text x="309" y="181" font-size="10.5" fill="#064e3b">• Extract 3D topological edges + UV isolines</text>
+    <text x="309" y="197" font-size="10.5" fill="#064e3b">• Render via ribbon.wgsl with depth bias</text>
 
-## Build the capability
+    <line x1="572" y1="138" x2="602" y2="138" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+    <rect x="604" y="68" width="216" height="145" rx="6" fill="#fdf2f8" stroke="#f472b6" stroke-width="1.5"/>
+    <text x="712" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9d174d">3. Unified B-Rep Sub-Picking</text>
+    <text x="616" y="108" font-size="10.5" fill="#831843">• Every triangle &amp; wire carries</text>
+    <text x="616" y="124" font-size="10.5" font-weight="600" fill="#9d174d">  [brep_owner_id, sub_id]</text>
+    <text x="616" y="144" font-size="10" fill="#831843">• Click selects whole B-Rep solid</text>
+    <text x="616" y="159" font-size="10" fill="#831843">  or drills into Face #i / Edge #j</text>
+    <text x="616" y="178" font-size="10.5" fill="#831843">• Outlines &amp; Point Clouds (Sec 6)</text>
+    <text x="616" y="193" font-size="10" fill="#831843">  share the same owner ID contract</text>
+    
+</svg>
+</div>
+
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+original NURBS → storage bounds → weights and knots → finite domains.
+original surface owner → existing scene identity → current layer → shared placement history.
+original edge use → face-mesh samples → ordered CAD boundary chain.
+```
+
+- Validate original surface control storage.
+- Resolve original surface face and domain edges.
+- Read ordered edge-use and interval labels from mesh vertices.
+- **Why it works (Why validate strides before reading a control point?):** The kernel control accessor expects complete storage. Invalid strides or missing values could index past the source buffer; rejecting them before evaluation preserves the scene.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust (`session_rust`)** | `BRep` Faces, Outer/Inner Trim Loops & Edge Adjacency | Validates topological loop closure and manifold edges so trimmed CAD surfaces and analytical boundary curves stay synchronized. |
+| **Rust / WGSL** | Crease-Split Vertex Normals vs. Smooth `G1` Normals | Averages vertex normals across smooth surface patches (`angle < crease_threshold`) and splits vertices along sharp mechanical creases for crisp shading. |
+| **WebGPU (`Rg32Uint`)** | Unified `[brep_owner_id, face_or_edge_sub_id]` Picking | Both shaded B-Rep face triangles and boundary ribbon wires write the same B-Rep owner ID plus sub-element index for whole-solid or sub-face/edge selection. |
+
+**Production source (`session_viewer/src`):** [app/walk/brep.rs](../../../src/app/walk/brep.rs), [app/walk/brep_edges.rs](../../../src/app/walk/brep_edges.rs), [app/walk/brep_orient.rs](../../../src/app/walk/brep_orient.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs).
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-55-validation"></a>
 
@@ -2472,9 +2540,9 @@ Use these original edit fragments when comparing a saved checkpoint. Apply the c
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 55zc-follow-original-constrained-trim-labels
@@ -2485,12 +2553,12 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
-The blue original parametric roof introduced at checkpoint 55g-surface remains the visible specimen. The final retained checkpoints add original edge-use, isoparametric and constrained-trim boundary lookup; they do not yet connect coherent BRep drawing. Inspect the UV cache and original face/domain-border identities, then trace duplicate candidates, missing samples and an interior interval point through the lookup.
+Constrained trim labels can resolve their original boundaries before coherent BRep drawing is connected.
 
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Trace duplicate vertex candidates, a missing sample and an interior interval point through the original lookup.
 
 Continue with [Shared CAD boundaries across incident faces](56-chains.md).
