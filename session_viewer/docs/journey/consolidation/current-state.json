@@ -121,21 +121,21 @@
   },
   "currentDefects": [
     "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
-    "Reader compiler checks pass73/101 endpoints and147/202 phases.53u prerequisite move is applied and its unchanged CPU focus regression passes. Source converges exactly at54a; final713 source unchanged. Generated checkpoint references are updated;2consolidated Gemini reader code proposals remain prepared and its chapters untouched.",
+    "Reader compiler checks pass89/101 endpoints and179/202 phases.53u prerequisite move is applied and its unchanged CPU focus regression passes. Source converges exactly at54a; final713 source unchanged. Generated checkpoint references are updated;2consolidated Gemini reader code proposals remain prepared and its chapters untouched.",
     "Original18 source-specific callback entries: finalCAD accepted1;17remain including13historical.65c complete browser failed at legacy document-error wording after successful file/read phases; failure preserved and source-aware candidate prepared.96y fixture proof remains accepted within its scope; historical fixture set1/4.",
     "Matrix, Camera/Plane and Joined finite features are3/18 complete;15remain partial. Global release0/5. Native1060 and scoped docs content/layout proofs pass; Gemini first10/redraft and current combined-book handoff remain deferred."
   ],
   "onlyHeavy": {
-    "task": "Reader compiler lane:next32phases",
-    "rootSession": 65233,
+    "task": "Reader compiler lane:final23phases",
+    "rootSession": 57980,
     "status": "running-unaccepted",
     "memoryLimitMiB": 4096,
     "processors": 2,
     "timeoutSecondsPerPhase": 1800,
-    "completedBeforeBatch": "73/101 endpoints;147/202 phases",
-    "scope": "Compiler-only; completed phase counters exclude this running batch."
+    "completedBeforeBatch": "89/101 endpoints;179/202 phases",
+    "scope": "Compiler-only; running phases excluded from accepted counters."
   },
-  "next": "Finish28remainingreaderendpoints withoutchangingthecurrentauthoringfreeze,thenapplythepreparedfinal-stepguidepenrepair,runnewnamedregressionandtheSAME4visiblepairs.Strictoldproofscopeandtwofrozenharnessapprovalquestionsretained.",
+  "next": "Finish12remainingreaderendpoints,thenapplypreparedguidepenrepair,executeactualnewCPUregressionandSAME4visiblefrozen-sourcepairs.One1061integrationrunonlyafterfocusedproofPASS.Preserve2pendingharnessexceptions/Geminiownership.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
   "progressPlan": "../../../../docs/plans/2026-10-18-viewer-course-progress.md",
   "stages": {
@@ -607,7 +607,7 @@
     "executionWaitRecord": "docs/journey/release/warp-browser-wait-review.json",
     "executionWaitHelper": "session_tests/scripts/course/warp-browser-timeout.cjs",
     "readerCompilerProof": {
-      "status": "Compiler-only lane:73/101 endpoints,147/202 phases passed",
+      "status": "Compiler-only lane:89/101 endpoints,179/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
@@ -615,12 +615,12 @@
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 73,
-      "remainingEndpoints": 28,
-      "successfulPhases": 147,
+      "successfulEndpoints": 89,
+      "remainingEndpoints": 12,
+      "successfulPhases": 179,
       "record": "docs/journey/release/reader-compilation-review.json",
       "reusedPriorPhases": 82,
-      "newV2Phases": 65
+      "newV2Phases": 97
     },
     "latest94cTailAttempt": {
       "status": "failed-historical-command-echo-assertion",
