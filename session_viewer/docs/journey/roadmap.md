@@ -60,7 +60,7 @@ The [WARP wait record](release/warp-browser-wait-review.json) preserves the meas
 
 - [x] Restored authored introductions in 59 lessons (chapters 11–22), preserving formatted code and diagrams. Lesson 22.6 includes 15 restored figures and five accepted native-control figures. [Restoration proof](release/late-chapter-teaching-restoration.json). Docs build and scoped browser review pass. [Visible review](release/late-chapter-visible-review.json).
 
-- [x] Compiler-only lane: 57/101 endpoints and 115/202 phases pass; 44 endpoints remain. The Layers prerequisite is repaired and its unchanged CPU focus regression passes; the earlier failed phase is preserved. Other compiler phases typecheck tests/examples without executing them. [Shared compiler proof](release/reader-compilation-review.json).
+- [x] Compiler-only lane:73/101 endpoints and147/202 phases pass;28 endpoints remain. The Layers prerequisite is repaired and its unchanged CPU focus regression passes; the earlier failed phase is preserved. Other compiler phases typecheck tests/examples without executing them. [Shared compiler proof](release/reader-compilation-review.json).
 - [x] Moved the existing focus helper before its first test use; all source files converge at 54a and final713 stays identical. [Repair and Gemini code handoff](release/53u-prerequisite-review.json). The generated checkpoint references are updated; Gemini's two consolidated reader code updates remain prepared for handoff.
 
 ### Active validation queue
