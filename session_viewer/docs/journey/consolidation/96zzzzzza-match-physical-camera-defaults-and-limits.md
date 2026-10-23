@@ -44,6 +44,20 @@
 </svg>
 </div>
 
+Match maintained camera rays, finite grid depth reach and CSS wheel navigation without changing original geometry.
+
+## Ownership and data flow
+
+Keep target, eye/up, distance, world-up, projection and free-canvas frame as explicit camera state. Compute world rays directly from camera axes and target-plane scale, with parallel orthographic rays and perspective rays from the eye. Cached world bounds and the finite construction grid determine far reach; grid shader generates physical lines and BRG axes in the chosen world frame. Wheel input changes navigation state and framed projection without document history. This checkpoint introduces navigation. The final integration in lesson22.6 adds latest-camera publication and a held world-grid plane; focused native checks pass, while the four browser reload/grid combinations remain pending.
+
+## The maintained implementation
+
+camera.rs depth_reach/view_proj_anchored/ray use actual units, NEAR_FRACTION and grid reach. src/shaders/grid.wgsl draws with `STEP=1000` and `HALF=5000` through `GridFrame` then subtracts line.anchor. app/cplane.rs owns explicit plane choice; state.rs clear stores load_camera and fit_loaded conditionally fits only while pose is unchanged. That current guard is not acceptance that whole-scene reload preserves the latest pose and base world plane under all in-flight motion/rebases.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [camera.rs](../../../src/camera.rs), [state.rs](../../../src/state.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [shaders/grid.wgsl](../../../src/shaders/grid.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [app/cplane.rs](../../../src/app/cplane.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzza-match-physical-camera-defaults-and-limits"></a>1. Match physical camera defaults and limits
 
 **What this code does:** Keep camera defaults and numeric limits in physical units.

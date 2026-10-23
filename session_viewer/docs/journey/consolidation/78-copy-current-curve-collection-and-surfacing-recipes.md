@@ -44,6 +44,20 @@
 </svg>
 </div>
 
+Pick original placed profiles and produce extrusion or revolution results through one checked tool owner.
+
+## Ownership and data flow
+
+Gather owns ordered original profile identities plus world-frame copies used by the recipe. Each pick and geometric answer validates freshness before adoption; typed batches and options are atomic. Lifted-profile wires and axis-constrained cursor input remain temporary. Completion inserts every generated original in one history transaction, then restores selection/lifecycle predictably. Browser integer picking resolves profiles back to their original owners rather than selecting sampled chord fragments.
+
+## The maintained implementation
+
+app/command/tool/gather.rs owns maintained original profile collection; surfacing.rs aligns source curves and evaluates exact recipes. state/drawing.rs and command/tool.rs route answers, temporary guides and completion. app/scene.rs inserts generated originals and app/walk/brep.rs prepares retained source display.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/deform.rs](../../../src/app/deform.rs), [state/edit.rs](../../../src/state/edit.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/command/tool/surfacing.rs](../../../src/app/command/tool/surfacing.rs), [app/walk/mesh.rs](../../../src/app/walk/mesh.rs), [app/walk/brep.rs](../../../src/app/walk/brep.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-78-copy-current-curve-collection-and-surfacing-recipes"></a>1. Copy current curve collection and surfacing recipes
 
 **What this code does:** Copy current curve collection and surfacing recipes.

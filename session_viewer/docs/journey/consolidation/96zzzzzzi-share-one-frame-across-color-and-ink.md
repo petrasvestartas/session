@@ -47,6 +47,20 @@
 </svg>
 </div>
 
+Layer original contact polygons and boundaries using the same current frame and source ownership as ordinary ink.
+
+## Ownership and data flow
+
+Contact geometry remains an original semantic feature, with fill and boundary layers derived from its source rather than arbitrary depth nudges. Shared frame metadata reaches colour and integer/query paths; contact overlays must not steal the underlying original face address. Preserve authored contact colour, opaque/unlit semantics and selected-owner behavior while retaining original Element ancestry.
+
+## The maintained implementation
+
+app/walk/mod.rs and mesh_ink.rs prepare maintained original features; src/shaders/triangle.wgsl detects CONTACT_ALPHA and applies LAYER_CONTACT through depth_layer. engine/gpu/faces.rs retains actual source-face IDs and render.rs orders highlight/contact/ink layers. The interim course contact lane remains staged wherever it differs from these maintained records.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzzi-share-one-frame-across-color-and-ink"></a>1. Share one frame across color and ink
 
 **What this code does:** Remove repeated ink-frame buffers and updates while keeping one explicit surface/ink layout and independent request-specific picking.

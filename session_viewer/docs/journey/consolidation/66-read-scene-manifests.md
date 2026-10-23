@@ -54,6 +54,20 @@
 </svg>
 </div>
 
+Save/reopen all supported original sources and adopt complete URL-loaded scenes with explicit revision ownership.
+
+## Ownership and data flow
+
+Bound manifests, scalar fields, geometry addresses and nested protobuf records before preparing a source document. The viewer archive stores original document protobufs plus geometry-free metadata for placement, layers, presentation, labels and namespaces; copied rows receive independent identities without destroying shared source relationships. Reopen privately reconstructs all documents/settings and adopts only a complete candidate. Manifest placements share repeated sources, while URL resolution, validators and byte revisions identify published source versions. A cancellable loader accepts only the current completion and live watchers request an explicit new revision rather than mutating a prepared old source.
+
+## The maintained implementation
+
+app/manifest.rs bounds manifest bytes/items and parses YAML/TOML entries; app/session_io.rs owns the SESSION-VIEWER archive; app/validate.rs and app/decode.rs validate original data. app/loader.rs, app/live.rs and app/route.rs own maintained URL/scene loading and reload generations. This lesson consolidates the full save/load boundary before large-source range optimization.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/manifest.rs](../../../src/app/manifest.rs), [app/session_io.rs](../../../src/app/session_io.rs), [app/stream.rs](../../../src/app/stream.rs), [app/range_gate.rs](../../../src/app/range_gate.rs), [app/fetch.rs](../../../src/app/fetch.rs), [app/loader.rs](../../../src/app/loader.rs), [app/live.rs](../../../src/app/live.rs).
+
 ## <a id="checkpoint-66-read-scene-manifests"></a>1. Parse and bound scene manifests
 
 **What this code does:** Parse supported manifest forms, then bound bytes, record counts and text content.

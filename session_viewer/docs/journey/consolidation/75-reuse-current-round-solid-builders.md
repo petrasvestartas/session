@@ -46,6 +46,20 @@
 </svg>
 </div>
 
+Build checked round kernel solids and preserve circles, ellipses and arcs as original rational curves.
+
+## Ownership and data flow
+
+Round recipes share dimensions and a right-handed placement frame while retaining signed-height semantics and checked radii. Tori, capsules and mesh-only quad-sphere patches keep their original geometry family distinction. Curve recipes then form exact rational circle/ellipse/arc spans; centre-angle and three-point arc inputs validate their frame and degeneracy before a source exists. Preview samples remain derived and cannot replace the rational source. Original ownership/history connects through the same answer machinery as other shapes.
+
+## The maintained implementation
+
+app/command/tool/shape.rs supplies maintained round and conic recipes; verbs/torus.rs, capsule.rs, cylinder.rs and cone.rs register families, with verb-specific exact curve builders for circle/ellipse/arc. session_rust NurbsCurve and BRep/Mesh constructors remain authoritative original outputs. Parabola helpers prepare the final recipe connection next.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/walk/sheet.rs](../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs), [app/stream.rs](../../../src/app/stream.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/coords.rs](../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../src/app/deform.rs).
+
 ## <a id="checkpoint-75-reuse-current-round-solid-builders"></a>1. Build tori with checked radii
 
 **What this code does:** Collect a center and two radii with the existing question owner.

@@ -1,439 +1,691 @@
 {
-  "status": "OPEN: concurrent tutorial edits require additive teaching integration and publication review",
-  "recordedUtc": "2026-10-23T20:59:31.642Z",
-  "baselineCommit": "fa3d9132",
-  "scope": "Snapshot during active external editing. External files preserved; no runtime proof invalidated by prose and schematic changes.",
+  "status": "DONE source integration; PENDING current docs build and visible publication review",
+  "recordedUtc": "2026-10-23T21:22:27.189258+00:00",
+  "authoredIntroBaseline": "fa3d9132",
+  "schematicCheckpoint": "d1d0871f",
+  "appliedAtPreparedHead": "60bdc4718e296eed361fc4776e49588f0f95b7a0",
+  "scope": "59 chapters11?22 teaching introductions integrated additively with committed Argo diagrams. All current prefixes, body schematics and fenced code preserved. First10/redraft ownership continues; no Gemini handoff or current whole-book acceptance.",
   "counts": {
-    "pages": 59,
-    "changedPages": 59,
-    "pagesWithRemovedIntroHeadings": 59,
-    "pagesWithChangedCheckpointBodies": 59,
-    "pagesWithChangedBodiesBeyondSchematics": 0,
-    "pagesWithChangedFencedCodePayloads": 0,
-    "missingIntroFigures": 20
+    "integratedIntroductions": 59,
+    "restoredIntroFigures22_6": 20,
+    "preservedCheckpointBodies": 59,
+    "runtimeInputsChanged": 0
+  },
+  "currentPublication": "Pending fresh docs build and scoped visible review at these new hashes.",
+  "previousVisibleProof": {
+    "record": "release/late-chapter-visible-review.json",
+    "scope": "Accepted only at its own prior source/build hashes; not rebound to the current new diagrams."
+  },
+  "mergeManifest": {
+    "path": "target/course-windows-20261018/argo-late-intro-merge-proposals-v2/manifest.json",
+    "sha256": "4e9290fa5020624d3dae0be758c0cc22d0f82f7fbae8eef82f301e4f347c4f3d"
+  },
+  "previousConcurrentSnapshot": {
+    "status": "OPEN: concurrent tutorial edits require additive teaching integration and publication review",
+    "counts": {
+      "pages": 59,
+      "changedPages": 59,
+      "pagesWithRemovedIntroHeadings": 59,
+      "pagesWithChangedCheckpointBodies": 59,
+      "pagesWithChangedBodiesBeyondSchematics": 0,
+      "pagesWithChangedFencedCodePayloads": 0,
+      "missingIntroFigures": 20
+    }
   },
   "pages": [
     {
       "path": "docs/journey/consolidation/63-radius.md",
-      "snapshotSha256": "f1cfd45bb049245419b18b2e4687080968aa40d028ec0146f4771ee66f2b450e",
-      "previouslyReviewedLfSha256": "949b67d7a7cf464fb2261c137da9f676c4148a7fdf9f9a200643a6b246908a4a",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "0ca57e4a11a258957dfafc1076beae46c2b9102551c342cbd59d85b71866bd2a",
+      "preservedPrefixSha256": "5133cc0e765e30bfbe4d011cc44c3257b76a47059ec1962148b6a78cf16621da",
+      "preservedCheckpointBodySha256": "8d38cf63db9b4d2df4bbdf413d92564c2af81395b882864dc341a39a92a7fa18",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/64-nodes.md",
-      "snapshotSha256": "1dc70091b19c99a724ee297f5bf086a3ef20aede0bcebdf98c8627648426aef0",
-      "previouslyReviewedLfSha256": "fe776f934338a277752d2f44af5983db6b1ad3ec367247e28d27811cb381652d",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "80eaf94ef6d3502a466390db216c708fc3bb02cd071ce082759f32192b346700",
+      "preservedPrefixSha256": "4234ad67a6208ef5976889db78d4a88c2ef818eaa62237f0c046f0a8afb0e786",
+      "preservedCheckpointBodySha256": "21bef11a24fadbcb21f9c6be8fbb5b814fb7ea8f03acd8d3b50aa4743b2207d1",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/64f-projection.md",
-      "snapshotSha256": "f0496423cecd13c56ae2fd7f520de73709a734c9c2b01ffb36547819dfec5913",
-      "previouslyReviewedLfSha256": "7469eafbc1e76343076e08eaaf37c6f69e9188c55fcf3fdd189b9e00f330f566",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "cc56a1b8a1e9f1a464d79965d4f9160167d0d6f6359e1aeb50f8e615d37622df",
+      "preservedPrefixSha256": "688872060252fda5dfead5e7b3243a3960e9fdfbc22ed18aa1afafa1d264bda1",
+      "preservedCheckpointBodySha256": "eb51c04a3df16346d21b1956e789fc9a1b5d0ddeb146cf17f3520df524fc3c55",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/65-originals.md",
-      "snapshotSha256": "9896736b31319c12ecacf08bbeeb308e655649d1885ed8e03707c87f44127fac",
-      "previouslyReviewedLfSha256": "f10cba38970c260349db160b1ef1eea5056e200b30c7baaca0eff3f068db123c",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "68a0c927081ddda7572b7a63dbfcc44b0d3320439854a608e9f74c82fe477300",
+      "preservedPrefixSha256": "de29a367a0fe49897f2218102cee32cd280a91b442468195cfb86d007bb25286",
+      "preservedCheckpointBodySha256": "7afc2adec3d55d97d59c44fa209119135457c8bb057e1c8565b3e052f531d704",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/66-read-scene-manifests.md",
-      "snapshotSha256": "a166c09f6cb7d4843eafb1e722984cd5d85861664a321c571b75933543136fcd",
-      "previouslyReviewedLfSha256": "12f98a69068fdb7eebfa40ad983b018a0baf4a6d3b4741d93bcc1eea65f78c3d",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "c92d78168c38ce8a7ba81c56c8d0f0279b48f8c056f260b710559f0896689554",
+      "preservedPrefixSha256": "82cf5dad47f2f357e0b756478c60e442c889eae2e7affb2a8d5578301f1a5b79",
+      "preservedCheckpointBodySha256": "d21ab63d80ce90b77b9b0972dd9137e23501e57f2547c57aae6117947164a40b",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/67-supply-checked-array-layout-readers.md",
-      "snapshotSha256": "9804a68cedc47bac0df9c0c259d0933d59566705e5e76e920807328401304d8b",
-      "previouslyReviewedLfSha256": "f9ba25ffee9b640c3a5edffc24807dad9cb126a7dcce96ba22e133d1cdd267c6",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "fd616e361c1c3ef7587f7930a2be01c4e50adb9422dc1d57c804ea9ecf0ac780",
+      "preservedPrefixSha256": "ec00f95f8a3750087d7ea381f9533b3034adc48ce5663cd15620954646a646c9",
+      "preservedCheckpointBodySha256": "d2d3e3cfcccf941873336bddf5379a2c951073cc4d832c9e61e408a7bc8410d2",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/66za-own-original-range-read-permits.md",
-      "snapshotSha256": "1b9fef577788a74442e6dc74eb8ab562381ddf7537f4ad304cae0ee304604d34",
-      "previouslyReviewedLfSha256": "80fcbad17943a47b870cd8b1af3f9a60d0e282619307982ea768a163e3cc5492",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "1dbf979b1739a309b33def809075b4655b2a96676f2cff8785e32902418d5a29",
+      "preservedPrefixSha256": "6d8fd286309555a3a27f496c9cc425739c3bcb97416ac89cc4b049afead0eeb7",
+      "preservedCheckpointBodySha256": "cd09273712d28af2977e4a5990749a2526b29eb1fca5e3705171f329ac0485d3",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/68-reserve-page-bytes-before-reading.md",
-      "snapshotSha256": "8519463b1658de1796a3e0d07e66818831e19fe6441967fd09e8bc151c6e73a0",
-      "previouslyReviewedLfSha256": "180549841b182f14c8b24769a85c7319a2f187d70ae27527a47fdbab35840e2c",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "d520188b5850e1da9edf36d53cc790d7497bccbe3a1dacf5656d6210787abac4",
+      "preservedPrefixSha256": "0931414f977ebc606c31d3179b27ed57af15495fb7d1420a08d9cb27a47f22df",
+      "preservedCheckpointBodySha256": "6c400e87c621fa0b6c45fe1142b6c0a9a45d74d2559d115683ad6da4c87ad0f7",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/69-validate-original-definition-references.md",
-      "snapshotSha256": "6d4bcaef6264d2e888a11d0df38429b4c4aeabbb8db6fc66d6f33be7e9dc6daf",
-      "previouslyReviewedLfSha256": "7343efea8a046faa2aedafdc418702f116420cb3d0cc4c97ab96f9a17b2cf71d",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "f4db70a0b4c8444318f7b7a2a2890a7f14f85775f98792d432acbb2f4fa4f52f",
+      "preservedPrefixSha256": "4df11c5eb4091bb9083f6d7c999f9e91df9418e3b8e8aa3efd8765581ee0bb03",
+      "preservedCheckpointBodySha256": "547db123bc15c4f8b9bd732eeb477fa747191aea4236e4bd9f4272e8d754234d",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/69j-preserve-per-instance-original-colours.md",
-      "snapshotSha256": "4950c40b72c82a981b8e82f97e28d4e60cd216a2717967e2c88ad413bfd82320",
-      "previouslyReviewedLfSha256": "ab53a56789584625dd1561ba37ff4793f876a69b8e3084c10e1c01169fe470ab",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "01d7e624ad8986b222a816a11dbb82ecc7b498960e692e96f059eb6adff6dd2b",
+      "preservedPrefixSha256": "7d1fdbac9ccfae9d7899a53b51926daba337d3fac0faaab580b56296115137e6",
+      "preservedCheckpointBodySha256": "913957cc3c68c318ffd775e319f6b070ca6a83577b5db88d2c427830929fff2f",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/70-evaluate-source-ancestry-once-per-document.md",
-      "snapshotSha256": "b9f1786501cbcc5ffb46775032bb9f3d901e0b8f1fc3aa43f0d73c46086452df",
-      "previouslyReviewedLfSha256": "3175c44e3d86f56ac40dfd166e3612803259350033e945339e6384355b54b285",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "58d0e3ac7cd583002b0b118ca649c412960b84f553ff79145779d21b1c3de7c8",
+      "preservedPrefixSha256": "685fe45df5f8650e1a7c2ea7862860ff17b24abe2535d2865d89b84a783f4f95",
+      "preservedCheckpointBodySha256": "fefea6a7d0be73504be6b52e8a39bf5e8b7f5d458d3eb64b3259618d74d8fdaa",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/70za-read-original-sheet-metadata-records.md",
-      "snapshotSha256": "bfd7ab8ffb5260a3076b9b49139cbac39ab9694e3ea318b9aa5f37129adb8a79",
-      "previouslyReviewedLfSha256": "e17d4f4964fc76cd7bb48fdac76739ff8a00fe5ef6984f68727b7a76c1934664",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "c366e68d46e6d67d563d565ba7d8d14094e19caeaf45d503d1b6eaddc7432de2",
+      "preservedPrefixSha256": "860089048d9f27e752bd23fc8c09877786fa6ad710e621e9564c1fb1f53366be",
+      "preservedCheckpointBodySha256": "b1a0e8b1821b5571ccfd9e79452d59475626957b497778b051f6e915df966706",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/71-read-original-sheet-entity-metadata.md",
-      "snapshotSha256": "83c56a61fe066d140ad8e6a14a7d13ef47fc624f2d7e8e06eedf9b6fc8096d4f",
-      "previouslyReviewedLfSha256": "28897ac0b6916503bf48c44cd4e8f78bf1e0f6681facfc9d6fa2a4c3d5392fdb",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "30c4c46df1fdb6a5bc32b6dcf3e71c4c271cce2b5b3c0b18bab8971a41eb7c14",
+      "preservedPrefixSha256": "279f29372e7b227f281c845cedfd2f9f3aaa307cf18ea1ab73d8ae3637cf247d",
+      "preservedCheckpointBodySha256": "4f4a1724712d5850100d7483049c1aebf06eb2e83da03d4c24ab4c441309955e",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/72-copy-current-construction-planes-and-coordinate-forms.md",
-      "snapshotSha256": "dba5fb36eaebe7bcfdd1ce936ce16ee9fac25efcbf17ff2c9113ae2c5a28c3f0",
-      "previouslyReviewedLfSha256": "5327cfb51c0c21da9c69a5f252a032092edfb6b6d17d93a74a1f7b53cdde6d7f",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "574f57d9820c2c176fe5dc2dd17f1d35b90f0dbd9542497df424c13945b92b9a",
+      "preservedPrefixSha256": "f119199eb4c1705fd36784ce1bf1ea386ae2b351541da4271aba8d8531e09c33",
+      "preservedCheckpointBodySha256": "d3df658477ca10b3a08b0b5f0f8156b28d7930dfdda1398b2f10692d3ea11f42",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/73-construct-rectangles-and-polygons-in-plane-axes.md",
-      "snapshotSha256": "cedad111d7525186cac552ac7a9fabf1f6ad23f424180284aa524e769f50b5d2",
-      "previouslyReviewedLfSha256": "864573b1e24bd7aa35a26f85186bb645e57d7c4c1f0a5d34a5cc3fe430241877",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "0d24a2f7a19e35d28d9a6c968e6d9dbb9b5063a125fd5707026c5520c936a683",
+      "preservedPrefixSha256": "c880cfa54e62610ec6b3501bbdf559e7b6d494c5611fc431cb899569bef1f85d",
+      "preservedCheckpointBodySha256": "2eeccb88dc73516318440dd21c6676dfd5f2d5e2a7a3e8aa61f38b24707de464",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/74-copy-current-solid-geometry-and-question-definitions.md",
-      "snapshotSha256": "c429a85cf179684422a55bae27171801ec644963bf0be728418785528af0743e",
-      "previouslyReviewedLfSha256": "dcf99d221297eb68837a48b6c83074c4d01dbd81ba2781650a911173b7434b20",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "7bf65258cbf4f1d703a30d9e69b997ec4a337a7c6b1ca525582ca24fb6768722",
+      "preservedPrefixSha256": "cc30afd16b300c5b7038ffcc5f88ee12c58182b0089318d191955e805fb52019",
+      "preservedCheckpointBodySha256": "30d32c6f842d20d9c2e85724e76cba73aab5884ba0bb123e4129eebd7f9dc2d5",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/75-reuse-current-round-solid-builders.md",
-      "snapshotSha256": "5be1a57d55a562b6f30fb3b7fa6af0ef6642c89c9a301164cd45e214233fda8d",
-      "previouslyReviewedLfSha256": "08951d648d219c9e86cf7afe5544026e38c9a65fcac6ee855d7b879ecdd80568",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "9862bec676eb4081c6dbe3134d3b65eed91a30a1d6afa3a87d582f8d03aa19ca",
+      "preservedPrefixSha256": "44bf8e5cfa144c71be9084781f33aed14e28aa9bc7f11eb0d221fddecd463388",
+      "preservedCheckpointBodySha256": "4bc8e16a183dff55703e653e489b7e7642db03f5f5ee66f6406895e6d0bbd87d",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/76-copy-exact-planar-curve-definitions.md",
-      "snapshotSha256": "a67791877a9cc1860d0a9ae133fd3e4e6fdc3f0ad38a7c1e0d5d6116a4c97fb3",
-      "previouslyReviewedLfSha256": "76d3649e3beafe4ce579c4b2cc0f77ec1fa046878fe3de0a300742186f447cb0",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "e585a02c884b4c6ceefa8f117a8b5a8ea97a9fd2de97a01e3c3f9635c5b94367",
+      "preservedPrefixSha256": "9af0b639033b32ace3a0aa0c613966fede6a80a658b06dbf355a009e527e3548",
+      "preservedCheckpointBodySha256": "de8131e944a58d9e0cced9b30149d56cfde6e224a65fce4755469a650ee38c2d",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/77-copy-current-transformation-and-source-edit-algorithms.md",
-      "snapshotSha256": "8acb090f7c3000657d53d84c6be6e72a1f64557ac98865a563fd025072388b66",
-      "previouslyReviewedLfSha256": "594a788c10b33eecbf7e8f26c72ac94aad34805f4639c97d5316f8a31f72ad7d",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "880fc4d8a8b9e595a34a2e3465106c0d9c583ff735acbcf08882abb6df1266f0",
+      "preservedPrefixSha256": "e1d01419545e0dc4f5bc639e1ee8a10a671b6fa984986c802cd991bd7657aa24",
+      "preservedCheckpointBodySha256": "ad72d08a329826978d94a700322af907fd95e5622a620421aa5b134e0a63f893",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/78-copy-current-curve-collection-and-surfacing-recipes.md",
-      "snapshotSha256": "0a6c4851f771fade6ff2898481a0abe2bcc5225956af99f3c0f8b45b90f09146",
-      "previouslyReviewedLfSha256": "552675b9994685d1a87d99ac3520c2db908046ed3c2e86700fc19ac2086b1431",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "b1f9a01bbe04e216d60c08f5c674bdebba4fcddd558bce368ab50a00d1f00af3",
+      "preservedPrefixSha256": "024e576f9bd459e309f5e8546849c610c2479fffacab8b9bfb4f335427a562e2",
+      "preservedCheckpointBodySha256": "c6b2da4aaffb6696f79f3f37391d60f8f4735dac283dc9d2a21279e2a8fe0f33",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/79-retain-current-loft-section-order-and-degree-options.md",
-      "snapshotSha256": "08b19fe4282a5323fa5ab64673088b4848b5dc49fab7af5cf5c3ba45cb71d340",
-      "previouslyReviewedLfSha256": "0c688f0802f608ffb06a9b437922187ce89223de1e8407a619b8977c48c6758b",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "c4e2c62f0791c01ca85e765a3c7dc6be6ede515f81a14c323480a6a17e013493",
+      "preservedPrefixSha256": "bddffd45780661dd34c88c3ad2fab72f6b57406ed0761928ea535fc775bbffb0",
+      "preservedCheckpointBodySha256": "37fdbae690167c37bf9e4c656887dc93a61839783af0f8c3bf8a3c12c291dd8f",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/80-build-a-surface-through-two-directions-of-original-curves.md",
-      "snapshotSha256": "403f52e61be71c94d80a7ed4ee41562a9a90e03eecbdf2239a15d7fa76d183de",
-      "previouslyReviewedLfSha256": "61de3e3d83f347fe41fb87e64d82b56544dfdb7853c542025fe2c8f009bd93a9",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "17b376d32c94cd5c060f1167ab3df9b9ba45df07f83825cfcbb2ff07faf8b75c",
+      "preservedPrefixSha256": "c41ecccfee08b9321207ac2ee93df5ad50eaf5fa4805f19fd7b98e3aeefc1b17",
+      "preservedCheckpointBodySha256": "d59c2971e355261763544e59cb6305e1830edb6b0563f0cbd886d9772837330f",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/81-project-originals-through-the-current-plane-algorithms.md",
-      "snapshotSha256": "28725025f2dbfc155604d8ef40e90568269b76ed80d205d0e90a564bd78022f3",
-      "previouslyReviewedLfSha256": "c438eda371c8bdfa83717f1a168140872c20e60602c527a4199731e3d6aaf164",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "719bdb007b720ca420dda506658fb7ca32399126961a6e58f572c598501ddadb",
+      "preservedPrefixSha256": "13f5f2a23c6bd9ab74cfd2ec138d8ce2559b06ba7b48c0291f5788b2cfcadd43",
+      "preservedCheckpointBodySha256": "6fa9f312e9e1befabd13abf6f99f1e9b55701ba33fde279d6a536af25508f5db",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/82-divide-current-original-curve-families.md",
-      "snapshotSha256": "1a0b17c5553e0d38746414d54a2c3e6acdfd80721dcf1da7225f3abefd30c644",
-      "previouslyReviewedLfSha256": "aea4fd7911a1ec71ac6767e9c18bb5d4f94b10233f823d9fdf2259f037325199",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "75da71a9576f06bda63599fa50af219d84adc072c1f9fa88887d1928d28cda8d",
+      "preservedPrefixSha256": "c75825e8e7e78e6ca67925a77517fd7d6102f0fac152abec9265609c24dff053",
+      "preservedCheckpointBodySha256": "815e2b76b364d3153236c2021ed118b23d099c74ab6cbd5964b63cd87c6a6951",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/83-split-original-faces-without-separating-the-solid.md",
-      "snapshotSha256": "d2e6b0d38167c25d9443460025f55a188b9a0623a88a2236310ec94c18f32a37",
-      "previouslyReviewedLfSha256": "d5bd9afcb8156ffe4a1a59fc6cb6da3b18ca15537ca7eadf905c4db8116e76f7",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "35f600e2b16a6b49dd8875cf0df440cd257eed36ff3fb644ca6c511e658d7fa4",
+      "preservedPrefixSha256": "e2485bf87e65a6d196a3f89de3e04a746b0de76aada3378e7b5abcb8359ce98b",
+      "preservedCheckpointBodySha256": "90e3ecb98ce2ae67646c174b9cf51b4304c05246694dd8f2f76a12908dc87a67",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/84-measure-original-curves-surfaces-and-closed-solids.md",
-      "snapshotSha256": "02ee46958b2987b58c2fdfe10a40f69ac2e4e8899d8b7414c5f135c7bdbe8dd2",
-      "previouslyReviewedLfSha256": "77ba9d9be1db42b79614f3d3348cc492d1214f7558e0bcce32f73a5c266737d5",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "4e5db04f2fe0dc64c7ab0960bba114023f7a3184b047c8b75f5b70961ee7912d",
+      "preservedPrefixSha256": "f127a632406e9203803a46bbf5caca70a75d3c2960ba26ec76a1242546ad866a",
+      "preservedCheckpointBodySha256": "bfcf1549e0921905560284d5cb0d9fce14ee92ac5695be9e764b0c5b213059c3",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/85-copy-current-original-command-recipes.md",
-      "snapshotSha256": "8f76422e3c506011dd2928ad9e1998febbadee2e2c4bf1b2a482978f038e8eba",
-      "previouslyReviewedLfSha256": "2614c5165276c52e0bc7b16c90be29cf2565d78e694d9c5366ed4564be432449",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "6d3774b5aa1fa604840db37741269c54de656837989f77cb7517ffcf2f6559aa",
+      "preservedPrefixSha256": "b23b4a6d3a9c2f9d62a339ed9da02783c168c38ffe8bb555cf4046521b36dd1d",
+      "preservedCheckpointBodySha256": "e98aa4e491ee79b13a338c2f7b2c46078d2f7d371a7a045fa02d6a0c74f0b633",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/86-copy-finite-tile-allocation-rules.md",
-      "snapshotSha256": "479aceba12d1c10ebaabc2c9ae1d15b5e3eca43becaf91f0d4bb0e74e86c9fb8",
-      "previouslyReviewedLfSha256": "1a66a67f565f878cc9504779703792e31aca1b48160b7e7b79999cf825c8eced",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "cafd69ddf55d4f96d6b90edb7d6b37aa4b19c712d873129805f10b12762b1721",
+      "preservedPrefixSha256": "f05ae1322f23e0835d6edcd876e7f108b00f5d52302b5c392ceff00e2fcbc32b",
+      "preservedCheckpointBodySha256": "78e5cffcfafb52df5debfa389bf2fe0eff4de67e9dd718b79c75788315eeb82e",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/86s-test-visibility-at-the-original-center-line.md",
-      "snapshotSha256": "10521753a63da4bfaf5e513e0dcf364885eb632a68548467615350fe733ab374",
-      "previouslyReviewedLfSha256": "5ebda86f7f397e057a0c651e17731b8d04c8804f4605cac34454f04f7d20c9e8",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "d230714388fe72686dc4da9b89d39b60bfc04d4a2ffddf033479686d301d1a96",
+      "preservedPrefixSha256": "84fb27b7f7691c623dc47ad295dec19cc626387f774913f7e7c87deaa9e633fb",
+      "preservedCheckpointBodySha256": "097b7d324744a01f16086e043bb11c16864a12a527e9c8ed4daf7659c15eeded",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/87-copy-current-original-plane-modes.md",
-      "snapshotSha256": "34de1d68c0e69376df09de6ca7adb88e974daa5396fe674feb8f79875a736395",
-      "previouslyReviewedLfSha256": "f3ab27a7e122159dcdba62dc68aaa655102d2bd742edb6b9c888cb650dc58b86",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "23e82a00ea5fce4697366d6a473dd2156dac6e30ba081900792a8f373903c077",
+      "preservedPrefixSha256": "c489301bbf2a8edb36f469a3c4a5a86345bfd7af424945136c3c0bff59eef1e0",
+      "preservedCheckpointBodySha256": "367cd770e990524078b9fa94bc86cc0ae066c1e33b1fdcb5e9faf4c4124e5c99",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/88-copy-original-closedness-and-winding.md",
-      "snapshotSha256": "9e118379ecec858e94eed9f27d6797728e5b4e5ef091ad8ce0a0fe0ed749dbbf",
-      "previouslyReviewedLfSha256": "ceab1bc88cbdf953974c352274518184a607dfa350df0c42e92d8b3ba44b18a9",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "019d78080c0ce7a0d4e2c4a403a08ad8f2878741af00e1af00f5cddedbc792aa",
+      "preservedPrefixSha256": "925a214f38bfee2d743697e5029190375ef167afdb1e596dd71877ebbf350ac7",
+      "preservedCheckpointBodySha256": "1c69604534598915d8011439244d0f05931bcc1f4528d67c98ae5d252681fda4",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/89-copy-density-scaled-depth-reduction.md",
-      "snapshotSha256": "cc55225f59db068e0396929190bf2900e5f4071a5aa686579e4573b5dda5ae13",
-      "previouslyReviewedLfSha256": "32255c301d51204ba6f20862a12e06767c364d48ba0a97605e885969112046c8",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "7a2257b003d130d44f6cf19d2680de4b34dd01738e38901233558f19125a3720",
+      "preservedPrefixSha256": "fdaed7686393dffd2f4c7ef0f1dfadc33dd34ad89f5c8a4d824b3bcb24296942",
+      "preservedCheckpointBodySha256": "d5f5a16d9645e4ccbabaaa83047c2c683eec672dc2d1ae2749241932accda16f",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/90-copy-maintained-original-contact-radius.md",
-      "snapshotSha256": "ec0266f621ee8ff23288d7f59372d0f99cf01ae70b9e9343efdbf35277ac9b46",
-      "previouslyReviewedLfSha256": "648148a91d40beb8506c82c71dda08717da2936c9769cea3a091a5c0661ac6e3",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "143f5c73f850bfe881603c445b5b20d8292c13a972073749b8a775c7742db96c",
+      "preservedPrefixSha256": "978c27471b3337a010593200fd1b814747c79062fcaa609fd15aee4b30e44b99",
+      "preservedCheckpointBodySha256": "4e51f4b9787433b7f673aff96a25a7a9ebd154398372182f7a32e797183aa5cd",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/91-include-visible-section-coverage.md",
-      "snapshotSha256": "79152558a4adbbcb4dbeab9e6f79d8ed04a13d480ce399b0e874d940c14cffd7",
-      "previouslyReviewedLfSha256": "e68c16ba78c0c6ba25d785d5ee9632998860debf502344f66b8b7c237bc01070",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "0a5d6bb4b511b2614da7be9a5cc00502013dd49bfbd36fcbae726f5e1f14823d",
+      "preservedPrefixSha256": "205938d2af6fb0fd9d6a563575a33b4d99cfaf0e3f4f6f70e38605016dc37449",
+      "preservedCheckpointBodySha256": "223afd3cee6ae957fa01638950d3e10bafc0fbefa176bd3f6edb465199cb550b",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/92-link-current-wood-element-builders.md",
-      "snapshotSha256": "e5df3532466ba183186e20e419d0ec6b2ad40a26c9bfa585c86c3bda089bdedb",
-      "previouslyReviewedLfSha256": "0a9bc7f1c531f922a353fca6033c995aa4f74b399929499952fcb91063fcb682",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "512967fb7d14c36718217b720dd818376f5045ca26b742299612fffcc73fb609",
+      "preservedPrefixSha256": "fe46eb4e13746f766d37c6f5038bb1ff90825d6f0163e98c639257a83d423dee",
+      "preservedCheckpointBodySha256": "76127e1ac0a79f234a97f9f947aab92cb94b66e226e7268ea2a40b822678b9e8",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/93-classify-original-solids-independently-of-clipping.md",
-      "snapshotSha256": "790c3baf6e6bd14086c5d6a3172e53e0822b5a0eebb14d47fb56ba399b510f07",
-      "previouslyReviewedLfSha256": "3e069c686162dd819250f9ff9ec13cae994da71a55256ca5f4671431c102b0e6",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "ad6ba6e944484903644eca89089db375f13dda59e536f5cbd2a7bcbff13eea31",
+      "preservedPrefixSha256": "129d1b31bb41b532f63c341d8c5274021cb9005f6658fa111ecb4c47433feef8",
+      "preservedCheckpointBodySha256": "106a9a6f7b9d105b10e3c3ae7e84c47d66efc9fbc1e13707e8b03ad280a1329c",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/94-declare-the-rendering-comparison-contract.md",
-      "snapshotSha256": "8c906ca5bf3b6d2de72ca1b7daa3e7f0fb89b5cd4da0ff5455be67508f4b537a",
-      "previouslyReviewedLfSha256": "0638464b724dcbcf1976ffc2bbf562c3a20ff4f5faf5712eb12c32e747af880c",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "451d4d9d7861a4ee686d5c1b46de8efc2b5bd845d31c1863e6506ac9ffb26f34",
+      "preservedPrefixSha256": "5ca7237a97fe5436e00bff20d0e855fe8f98af84db5e12c10d0a5b7b2d0cafc7",
+      "preservedCheckpointBodySha256": "a32708709d2b8985bb7a73efc6842a23f8699913dee68f96fd019920d0a6b651",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/95-record-comparable-large-scene-conditions.md",
-      "snapshotSha256": "86ee00d4831fb721a6950038d983b0092432937609b21eef128cdb0281c6ac29",
-      "previouslyReviewedLfSha256": "25edf7c42b794b2a22cbd273d76b0d5435222744f1cb9342f75ecef8e2c10566",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "120f79850743938175d6fac75bec919d93b97809e298cc3c8c73ee114741fd70",
+      "preservedPrefixSha256": "05ae10e8f9a71ba5ea28930ea360edc38a597d472115cda866086162d8023372",
+      "preservedCheckpointBodySha256": "eaa9738bc86b04a0c98ceb3f8f191e6a228d8fba5c98fd1d0473306b5e5beeb8",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96-retain-non-drawing-originals-and-validate-raw-planes.md",
-      "snapshotSha256": "96537ff7cfa1a770cf228d84796c07d3a393019f8e4d833c388f56aa80e7e29f",
-      "previouslyReviewedLfSha256": "ed0a166ff16643ebb89da5ffb7ee1368a398e9f6bc9f098445c7747204b48c36",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "b77879cf785fe43b01544310f2b15ed87ebf3ac9af9fafce872ad7a606f9de4e",
+      "preservedPrefixSha256": "0c2a531f34d68b6564e2c0ffa16db8f3b05804fb1171011a9c18598922253c57",
+      "preservedCheckpointBodySha256": "5df19ca9b7b6e794dd013694c20f515c911c1cacda911eeade83ef78b3462c08",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96i-separate-own-and-hosted-element-features.md",
-      "snapshotSha256": "be148e60da11230ffc848f2f5616bcf7c3eeb7a96b1b990c78d6547d711f48d0",
-      "previouslyReviewedLfSha256": "549c39ec9c888e02de1c692148cb858227469b83c498d8dc7bcc5dd1c804b28c",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "198db8006217466f92ad81812f68d4c6b903383fd846def08bf0fcff0c23de0a",
+      "preservedPrefixSha256": "f147f7c3add3983ce37322d58520c52540e8023c79d9f4752b48883a2339c899",
+      "preservedCheckpointBodySha256": "e9ac51495e9575dc0d2bba37c1eb26d90d26b10ad17d0e4d5706c9b83c9189ab",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96s-resolve-feature-rows-to-original-element-owners.md",
-      "snapshotSha256": "556f3546d05d5ecf53a59b9911df56c867eac284206bec7814783e6246da3cd9",
-      "previouslyReviewedLfSha256": "42057f659a8d1b3f2222fa89f20e648d50f3bce16fcb2f67a792d47df29714d1",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "e5c38c00009d57565f8c93dd3d2ea198ad379485f1334f541a1d5ba46e9c4da9",
+      "preservedPrefixSha256": "f94054a8f11402ddc35defec23b3bc755465d7e69edbd393542460e0f30a5d30",
+      "preservedCheckpointBodySha256": "c7821865c9cadab0f2ef2a13785376bc0add5e51b54d7462b902bf98f7211bd7",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96za-address-original-controls-with-family-keys.md",
-      "snapshotSha256": "bafad0df2a339bc5686d3cad3a4c76711880f91c3cab4709bc5fe1a50b32fe66",
-      "previouslyReviewedLfSha256": "9db08e4f605abf266d0f44288ca96aa09a552a7a7b5bcb103e1c59df5fd78716",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "57561a1e768cf78832e467839adcac98b00254955bf2cb1cb4385f6635102fcc",
+      "preservedPrefixSha256": "9b1ee6b72dc59b4c543171d41094f02fe591aafaa7cac831ce428d6b7e6e4d2c",
+      "preservedCheckpointBodySha256": "f412e752f528c5d66586c45298e31b866a3478ff2f66c7b4ef9e5f1f2aaebea1",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zh-bind-the-shared-geometry-as-storage.md",
-      "snapshotSha256": "13cbc569b1fa26afbf6a04b39df206d8f1dd079242fef3e0c4a7c4282094ae07",
-      "previouslyReviewedLfSha256": "a7e83c249e8fff347c47be9f8c257091fe8ee5ea5cc0a22d160c0294220fa14d",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "492e5521c14a0c899f82127b0092bc810f2d0aa0736d75f63f63f00638f62749",
+      "preservedPrefixSha256": "e9a80b62eaf8ea75ae6df6cc733148f9cbbbc1d8de059327b5b5ae58414de4b3",
+      "preservedCheckpointBodySha256": "0f59856c8f8c1d22210445a893985425987a372c414a2bc841de9f6b6249bbca",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzc-share-section-addresses-with-outlines-and-ambient.md",
-      "snapshotSha256": "f9bae19f853c84d2cc86eb353b456261c4fcb68f639b05e18c4986eedb211842",
-      "previouslyReviewedLfSha256": "67bf8d2ca2e80f65f067494012d60442ed3b168ffcb2fadbb9eaf2ab5250edd6",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "30f6f05e8efdb4f03ef1d3e7870ce78d277760774c889bdc71603a4bdbd331c5",
+      "preservedPrefixSha256": "c79d1b3383bf3c0ef9fbca1fd8c3e439b257970dd9898c96f671b1f713b18353",
+      "preservedCheckpointBodySha256": "319808882810480eebae5ddb12be6eb4f4c43708a06db8e9c9c7a4269368e8e3",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzg-grow-buffers-without-losing-rows.md",
-      "snapshotSha256": "15afdec61746c26553ff0f1d1e48845cfe80a04a04279b45bb4e2009f5e7c25e",
-      "previouslyReviewedLfSha256": "1472ad11dc0720a5bfd5e92fce31e0266235e65e853a425376fda26c2378511c",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "1a5f400bd2fd2fb0aa551b230ffd3bd170ee5e62d034a7ae800cf0c0ec337cce",
+      "preservedPrefixSha256": "c22f51a7e0db8b3adf56137228eeeb29fd551ac838d5a640c83604300e72ba21",
+      "preservedCheckpointBodySha256": "7b843f8ee7f008ac119c0fcfc6a74119d6c513846571aa9d19f7f37af04f79b0",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzu-separate-primitive-addresses-from-selection.md",
-      "snapshotSha256": "822b8bfeb7f15a4a0be1e587820a323b68fa2b50e9efffe5529b067d811a70bf",
-      "previouslyReviewedLfSha256": "81670ad555fbe328017735edb322042b0ed40f53370215dda9546d579293f136",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "22ef7d2dbb3cd5262d2850536c9c544d3e079f108b15b40c81f1f5b2f5009e99",
+      "preservedPrefixSha256": "338ceca4a225e98c1c22bb0c70ca9e5e5cc1bd6573e266fa9b58a70dfbe63c86",
+      "preservedCheckpointBodySha256": "d62cc1f029f08916c4570c651ea4f8e46edd08345c597b548c1aedcaea3349a2",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzs-allocate-stable-object-record-rows.md",
-      "snapshotSha256": "c63e34a8e4c0213153f663983a36fb83fb2f00db6a5791ae3d8149c8536a4b4e",
-      "previouslyReviewedLfSha256": "f62b10771ac2fcc361701a1a154689e5950951dc32ee5607eae939c414f1cd82",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "9da61f152a70001b9e153e1ace58679542559347efdb9e81d4bfb619de91adc4",
+      "preservedPrefixSha256": "afd2ecb7effdc9ba80a504c94e4e4c8b14dad1bd20061aa2a1439b8d325dcd44",
+      "preservedCheckpointBodySha256": "4d1f1edbc83fb6054c9eb6226a9f7aabd5946fa8277552d466bb1d16753ad7cc",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzi-adapt-incremental-slots-to-pulled-draws.md",
-      "snapshotSha256": "f03b09d964308213d94cd7562c372650713bf77c9b1b87a4e98098b5e3f5448e",
-      "previouslyReviewedLfSha256": "cb391eec3688514551c9bd29c639f46a4acca149e83cc999b76475ce934e9323",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "ae3792beb5a71e43350d29dbbf8051f0083f5f81ed6afeb533b3cb9cd76955f3",
+      "preservedPrefixSha256": "69f89c115e05be51de77bcb41a7aa46c99751328994b4346f3ee1cc13a46e028",
+      "preservedCheckpointBodySha256": "beb87f38fd658a6a583b8c0a1eb3890647ad0dc503d7ebceb4a465913aaa70db",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzy-prepare-unit-aware-anchored-camera-space.md",
-      "snapshotSha256": "a8af5bde8c924f4b18ef7350dfde083794298616ef3f255e2d3b0dc1a5d1137b",
-      "previouslyReviewedLfSha256": "e6cb9f8cc6899f56dab253af8442afb79608d81d0a7f44c2dc38af7856b20daf",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "f0ee6fe930c3d354492a2d95ddb5361e882a3035b87003ad75d8301dc5b8569a",
+      "preservedPrefixSha256": "2830d414eb997d7ee2ef1457540e405d431bdd999c9265900764257388da7b4d",
+      "preservedCheckpointBodySha256": "733e91716dc97117c3d41ec7b1c135f5b71265308915d2c4bc0982f2dd34505d",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzj-project-cpu-queries-around-the-precise-target.md",
-      "snapshotSha256": "22c6657a306d48a2703fbee885996e69b14d0bab1f601fa908fc2ee87247e20d",
-      "previouslyReviewedLfSha256": "c7450d170aae01527de8eaf8624d49c475cfcaad05544a2f5c30ea4a8385bb44",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "43aec30c0aa2c585db241904b3bfaf015fce3e1164d97542f317c45d8a6b649c",
+      "preservedPrefixSha256": "4fad02c475c210f4fb0516b614fe46f01ec516de0b8a23532c03f67333407af7",
+      "preservedCheckpointBodySha256": "d175aed87bf0b52a60b7f02fc707b4db8c935479beab295e7ed388484fedf240",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzq-prepare-one-shared-render-origin.md",
-      "snapshotSha256": "be6beb40059e05cf163938d80d77a356d4e563e203d49607b6afaf0335f7cc44",
-      "previouslyReviewedLfSha256": "f9ce4601d189742474d01a0908dcaf611951a139e6c1fe9a421aa36d5ff6e161",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "0ec9a9aed15e0ba7a2174a6df9ff96163b33141bcdb056d7f49aa43c58c4d313",
+      "preservedPrefixSha256": "6018dfdbbc44dcd0b8b1bba1b2cd7188e811dc6d7bac88b777262183c3b51242",
+      "preservedCheckpointBodySha256": "d4454ff5f75591c3cd78194cd99dc7422d64ca3fa432e8e86a6e2a63595c55b6",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzt-share-depth-endpoints-and-comparisons.md",
-      "snapshotSha256": "506980f3103e23f0506639a061faac00558c6d7cd250dff42155cb5bd308101b",
-      "previouslyReviewedLfSha256": "319ddc1b35bb5d3ffd6d208ffc0d284e35abb9ac6031f495942ea09ab57d7fa9",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "9f854bc3e8fd3d7b94609a00c8ed0cc74699f2449a6124aa402c9408e90c2f19",
+      "preservedPrefixSha256": "3b69c0e3e6494b71ada19d70dceaae72ff0652e835a2f459fd376fc837b2bb5c",
+      "preservedCheckpointBodySha256": "5921d526b60ad66a5e847031e1935629dd7ef0b8c5824e0b707dd425cefb8def",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzza-match-physical-camera-defaults-and-limits.md",
-      "snapshotSha256": "b681a5ddc33b39d42636c423844473f43f22344186b96a5181049ff1a23ac621",
-      "previouslyReviewedLfSha256": "231ad9d0d9771e05defd4aa012af936ad058c3bb3f37aaa9f13e3af7833e1eb9",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "07f2d7e6f85df264cdeffec84283f1f3884cbacdb79b19956b3bf1fd59177093",
+      "preservedPrefixSha256": "6f971fd1523a53b0a9549d8229c2d93661913bbe2d87b4934e731d184bff2507",
+      "preservedCheckpointBodySha256": "04debc0a066e2fd33d21e0abf86eed90f05c88c6d74b0f682c2abe8a0fd90b47",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzzg-share-current-surface-lighting-and-camera-uniforms.md",
-      "snapshotSha256": "e3ed5706d36e889772d322542cd498937f3db4f13330514b3b5e79514c480838",
-      "previouslyReviewedLfSha256": "76cbf518bca8b3cbf0d9ad4a8c17c4794ebbba55223bdfd73cbdd0611b4e8d1f",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "2b945c55290c75bbcebd6b0b0dac2fa2010379cd6a53d46cc07feed1a461c511",
+      "preservedPrefixSha256": "a0a93f5edfd33b78a323cdd8fbbcd6f96393d6647b59d7bcda499f1c38c89081",
+      "preservedCheckpointBodySha256": "96017ead3a76ec981abc2e8a9bbef04e6080355ae919c8f5998941d91e361b31",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzzi-share-one-frame-across-color-and-ink.md",
-      "snapshotSha256": "c947cc52943be291b8e653d5598a7c414ab9545a51187e12fdf04c09f2ec9de9",
-      "previouslyReviewedLfSha256": "073e02c368949aa239c93c01d689e06bcb43a9a3cffef66b11df74831c72ae69",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "a59930f05ce74eaa68c0e4adce5cce0c218397a2a6648e0b7b8c9c122decdca5",
+      "preservedPrefixSha256": "80f877d51064ea31427be989202ab82e9cd4a4025420b19c09c2168f829da063",
+      "preservedCheckpointBodySha256": "2cb6fc49ddd13eb99f2179abc5e86fa9d6335ef1443949222dd93c4a2e771204",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzzn-respect-original-boundary-pens.md",
-      "snapshotSha256": "e09bee02a5b711ced9b5659046e342e43c6814dbd53b3f6992f9c60118b4de13",
-      "previouslyReviewedLfSha256": "15994c52e86a73cfc5ed198b8847ca3596d88857aa53033a0d80541075293ab2",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "a31db4df43233eaed34497e95080169eb20a90afd2315d496e0ede02b8c42b9b",
+      "preservedPrefixSha256": "795a4455ab3d382e24bc9710f9bbbdbc1bf2ed1611c79b936dcc2a4e1c074340",
+      "preservedCheckpointBodySha256": "0b80719f3e1915dd0ab7ee68d35c5268faacb0fcb0499251ed55a0b51925bc9a",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzzr-share-geometric-ambient-inputs.md",
-      "snapshotSha256": "285ab085049e83f8d5f90e47d0f341a60f0855300895cb5a60489a34c341bf84",
-      "previouslyReviewedLfSha256": "2920dbd030f9e08e81055510e735b94d91a55220e171942fe7682ce19bb066fe",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "550b1524afb612c8a18a9c784183d0db9d8b22523311dc3290423e8334f223cf",
+      "preservedPrefixSha256": "2054e94470f7fb031e807e27e40a1968f0c587534bd0057ec3e5d25a858ab7ad",
+      "preservedCheckpointBodySha256": "fd68bd87eb3747b8fa743c7e8b2c91d26862218612692080ed356e12dff4ae3d",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzzu-keep-depth-and-address-samples-separate.md",
-      "snapshotSha256": "c02df18ca8aaf1b62487b1961bb1d205f65151f52462922f53bb215ec02c6b72",
-      "previouslyReviewedLfSha256": "5141f5a74fa0c28e8b37cb3d27ebcf459a08d654f9452d2a3724742c2456412a",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "0ec1037c0d7099daef1c7e090275a8e19fd5f00773def9cda4d7551e45e08717",
+      "preservedPrefixSha256": "35e12c4a95b4123fa57f5f1e59c88a9f0efce9f1d072f0d2e07c4238d7e88175",
+      "preservedCheckpointBodySha256": "cda445faab071cbff43e1395378449ede8cbe5a65e10d0f83a1ec49cc0798404",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation"
+      ],
+      "figures": 0
     },
     {
       "path": "docs/journey/consolidation/96zzzzzzzm-retain-visible-instance-ranges.md",
-      "snapshotSha256": "e443cef36e507ae2d7c8340fc6a2e110d6807e7c1897e8034de54d87fa30be91",
-      "previouslyReviewedLfSha256": "683e73f169f44a6c54c401221a26bdfe79b15732db2df79ef498e60f1ec7d373",
-      "fencedCodePayloadsEqual": true,
-      "checkpointAnchorsEqual": true
+      "afterSha256": "2ce8a033a13c0be92f373792c95c5b81685b0547dec7a0a29a5ce0e11ff17e24",
+      "preservedPrefixSha256": "96b5ab031f165d5a58009aac31945d87bfc9abd500ad3cfd6246b6bfd52b6c0e",
+      "preservedCheckpointBodySha256": "acef6e44b7ee1f4905b9b3956095cf109d1d57efbc8fe62eafc6cd1726159d3e",
+      "sections": [
+        "Ownership and data flow",
+        "The maintained implementation",
+        "Ordered input and presentation",
+        "Reload and the shown grid",
+        "Pens, points and printed fills",
+        "Matrix cells and titles",
+        "Native family controls"
+      ],
+      "figures": 20
     }
-  ],
-  "matrix": "Lesson22.6 lost20 introductory teaching figures and the actual2x3 Matrix, cell digits, independent title, archive and native/browser control explanations. The replacement4x4 transform schematic does not replace that teaching.",
-  "preservation": "The reviewed teaching content remains in commitdf4b50a4 and descendantfa3d9132. Merge proposals retain current schematics and checkpoint bodies; apply only after external editing settles.",
-  "remaining": [
-    "Integrate the59 introductions without overwriting external schematics.",
-    "Retain the latest Matrix shader teaching and accepted scoped evidence links.",
-    "Build and inspect the integrated final docs; previous visible proof applies only to its recorded source hashes."
-  ],
-  "priorVisibleReview": "late-chapter-visible-review.json",
-  "auditSha256": "ca5aa995d14a0114a53cdee85610480c7372a965134ad9868c88048584e04685"
+  ]
 }

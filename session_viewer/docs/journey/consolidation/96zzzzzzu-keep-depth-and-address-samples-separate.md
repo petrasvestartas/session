@@ -47,6 +47,20 @@
 </svg>
 </div>
 
+Retarget every frame consumer to compatible colour, depth and primitive-address samples while reusing unchanged pipelines.
+
+## Ownership and data flow
+
+Depth and integer physical addresses are distinct attachments with the same selected sample count; resolve colour in the canvas format and keep appropriate single/multisample views plus placeholders. A sample-count/size/format change retargets surface, ink, overlays, cap crossing, cloud resolve/query, text, outlines and ambient resources coherently. Variant caches key actual layouts/source/target/sample facts and reuse unchanged pipelines; bounded quality chooses supported 1x/4x from physical pixel/device policy. A successful per-lane compile does not prove the whole retargeted frame.
+
+## The maintained implementation
+
+engine/gpu/targets.rs owns Depth32Float, optional MSAA colour and Rg16Uint primitive attachments, with 1x/4x placeholders. engine/pipelines/mod.rs Cache/Target and build.rs expanded shader sources identify variants; frame.rs provides exact shared bindings. Production budgets differ by device type and disable unforced MSAA at high pixel scale. ssao/pipelines.rs, text.rs, splat.rs and clip.rs retain their own current target dependencies.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzzu-keep-depth-and-address-samples-separate"></a>1. Keep depth and address samples separate
 
 **What this code does:** Define matching frame attachments without averaging depth or physical primitive addresses.

@@ -48,6 +48,20 @@
 </svg>
 </div>
 
+Read a bounded original sheet side-table record without loading or rewriting the drawing.
+
+## Ownership and data flow
+
+A sheet entity ID addresses one original side-table record. Validate its header/count and fixed offset/length entry before decoding the bounded JSON body; source revision and sheet identity must remain attached to the request. This endpoint adds pure metadata parsing. It preserves the current drawing; asynchronous selection queries and ranged sheet rendering connect in the next chapter.
+
+## The maintained implementation
+
+app/sheet_query.rs defines SHM1, an 8-byte header, 16-byte records and a 64KiB maximum entity blob. EntityMeta retains original guid/name/kind/width/colour. Query owns cancellation independently of drawing storage; parsing a record does not prove the source sheet is rendered or loaded completely.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/scene_instances.rs](../../../src/app/scene_instances.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [app/walk/brep_shapes.rs](../../../src/app/walk/brep_shapes.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs).
+
 <a id="checkpoint-70za-read-original-sheet-metadata-records"></a>
 
 **What this code does:** Describe the original sheet side-table layout and entity identity fields.

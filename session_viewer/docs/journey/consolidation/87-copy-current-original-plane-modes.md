@@ -44,6 +44,20 @@
 </svg>
 </div>
 
+Cut all eligible geometry with one bounded set of placed original planes while preserving source identities and command state.
+
+## Ownership and data flow
+
+Plane construction validates a frame and kept half-space, then world placement produces normal/offset without rewriting source geometry. Pack at most six planes with explicit uniform offsets, conditioned inverse camera and stable hatch coordinates. Shared tests apply to mesh/instance faces, finite ink, cloud discs, sheets and text anchors; original clipping-plane ink has explicit exemption flags. Mode commands and presentation switches keep accepted draft points, one plane-source transaction and current selection/locking rules. Resource/selection masks invalidate only when their dependencies change.
+
+## The maintained implementation
+
+app/clipping.rs and engine/gpu/clip.rs own maintained plane policy and ClipUniform; ClipPlane keeps points where normal·point + offset ≥0. src/shaders/clip.wgsl is shared through build.rs include expansion, with family shaders preserving actual source owner IDs. The course forward-depth adapter and staged finite-ink integration are not a replacement final shader path.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [shaders/project_triangles.wgsl](../../../src/shaders/project_triangles.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [shaders/cap.wgsl](../../../src/shaders/cap.wgsl), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-87-copy-current-original-plane-modes"></a>1. Describe clipping half-spaces
 
 **What this code does:** Describe original clipping half-spaces.

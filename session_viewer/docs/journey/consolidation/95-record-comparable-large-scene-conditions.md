@@ -46,6 +46,20 @@
 </svg>
 </div>
 
+Measure a comparable large scene and reuse immutable presentation data only under valid dependency witnesses.
+
+## Ownership and data flow
+
+Record actual scene counts, source identity, camera, viewport/DPR, sample count, adapter/backend and warmup before timing. Report warmed distributions and the slow tail separately from startup and GPU completion. Reject before/after runs with mismatched conditions. Tree/layer/graph caches borrow immutable source structure and invalidate after actual dependency changes, not every camera frame; source ownership must remain unchanged. Private optimization proposals and uncompiled drafts are not completed improvements. Software-GPU measurements describe that environment and cannot become hardware-FPS claims or final responsiveness acceptance.
+
+## The maintained implementation
+
+engine/performance.rs tracks maintained frames, draw counts, interaction windows and adaptive quality tiers; engine/gpu/timing.rs records GPU scopes. app/hierarchy.rs refreshes on row_revision and app/ui/layers.rs consumes current rows; app/inspection.rs reports actual owners/counters. Measure same final runtime inputs after integration before claiming a performance gain; this consolidation runs no benchmark.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/ssao.rs](../../../src/engine/gpu/ssao.rs), [engine/gpu/ssao/pipelines.rs](../../../src/engine/gpu/ssao/pipelines.rs), [shaders/ssao.wgsl](../../../src/shaders/ssao.wgsl), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [engine/gpu/surface_outline.rs](../../../src/engine/gpu/surface_outline.rs), [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/performance.rs](../../../src/engine/performance.rs), [engine/gpu/timing.rs](../../../src/engine/gpu/timing.rs), [app/command/tool/elements.rs](../../../src/app/command/tool/elements.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-95-record-comparable-large-scene-conditions"></a>1. Record comparable large scene conditions
 
 **What this code does:** Record comparable large scene conditions.

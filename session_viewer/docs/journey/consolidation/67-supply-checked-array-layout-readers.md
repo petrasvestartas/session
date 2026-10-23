@@ -54,6 +54,20 @@
 </svg>
 </div>
 
+Probe bounded protobuf metadata and retain exact source array ranges before reading point or sheet pages.
+
+## Ownership and data flow
+
+A field header carries wire type, body offset and next offset; checked arithmetic refuses overflow and enclosing-message overrun. Bounded metadata windows avoid downloading coordinate payloads while finding original column locations. Validate doubles, packed integers, side-array lengths and full octree ownership/bounds before granting a range source. Decode only checked array slices into existing GPU owner formats, preserving original precise coordinates/IDs separately from display floats.
+
+## The maintained implementation
+
+app/stream.rs Field, CloudFields, SheetFields and MetadataWindow implement maintained layout discovery. Coordinates consume 24 bytes per cloud point and 48 per sheet segment in original doubles; app/fetch.rs reads requested intervals. This preparation endpoint changes admission/layout knowledge, not the visible renderer.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/manifest.rs](../../../src/app/manifest.rs), [app/session_io.rs](../../../src/app/session_io.rs), [app/stream.rs](../../../src/app/stream.rs), [app/range_gate.rs](../../../src/app/range_gate.rs), [app/fetch.rs](../../../src/app/fetch.rs), [app/loader.rs](../../../src/app/loader.rs), [app/live.rs](../../../src/app/live.rs).
+
 ## <a id="checkpoint-67-supply-checked-array-layout-readers"></a>1. Bound scalar headers and byte addresses
 
 **What this code does:** Bound scalar headers and byte addresses.

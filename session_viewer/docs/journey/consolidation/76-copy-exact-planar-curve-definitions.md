@@ -46,6 +46,20 @@
 </svg>
 </div>
 
+Create original exact curves and edit their rational controls without losing original precision or transaction boundaries.
+
+## Ownership and data flow
+
+A checked frame resolves parabola inputs into an original curve; registry options route conics through the shared answer owner. Freeform collection retains original control coordinates, degree and closure until one validated NURBS source can be inserted. Diagnostics expose control/weight/knot facts directly from the source, not sampled display chords. A control edit previews derived display and then commits one reversible source change; Save/reopen and Undo restore exact rational values and identity.
+
+## The maintained implementation
+
+app/command/tool/shape.rs supplies original conic construction, app/command/tool/gather.rs collects freeform points, and app/deform.rs applies maintained original control edits. app/walk/curves.rs derives rendering samples after source validation; app/session_io.rs persists original Session data. Display tessellation remains a cache, never the editable mathematical curve.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/walk/sheet.rs](../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs), [app/stream.rs](../../../src/app/stream.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/coords.rs](../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../src/app/deform.rs).
+
 ## <a id="checkpoint-76-copy-exact-planar-curve-definitions"></a>1. Read parabola inputs in a checked frame
 
 **What this code does:** Complete the original parabola questions and input reader.

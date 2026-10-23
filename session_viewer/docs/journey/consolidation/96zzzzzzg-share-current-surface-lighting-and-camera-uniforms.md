@@ -47,6 +47,20 @@
 </svg>
 </div>
 
+Share maintained flat/Arctic surface frames and expose headlight/backface controls without rewriting source colours.
+
+## Ownership and data flow
+
+Prepared original RGBA, source normals and row properties determine surface appearance; view uniforms select light/backface diagnostics. Camera-dependent values come from the same frame as geometry and picking, preventing highlight/light direction from lagging a view change. Contact/printed fills retain their explicit semantic colour/lighting rules. This is presentation state and must preserve source data, shared geometry and document history.
+
+## The maintained implementation
+
+src/shaders/triangle.wgsl transform_vertex/face shading use original colours, cofactor normals, mirrored winding and current selection; frame.rs owns shared line/view uniforms. engine/gpu/view.rs defaults headlight/backface Off and reads actual startup options. Earlier learner lighting shaders are staged, not alternative final production algorithms.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzzg-share-current-surface-lighting-and-camera-uniforms"></a>1. Share flat and Arctic surface frames
 
 **What this code does:** Keep original fill colors and Arctic sky shading in one surface shader, with stable ambient cameras during wide zoom.

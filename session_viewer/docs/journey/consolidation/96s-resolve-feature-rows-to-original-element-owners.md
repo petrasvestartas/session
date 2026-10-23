@@ -48,6 +48,20 @@
 </svg>
 </div>
 
+Resolve feature pixels to original CAD owners and detach copied source identities without losing exact placement or style.
+
+## Ownership and data flow
+
+A derived feature row must resolve to its actual Element or CAD owner before selection, editing or Save. Independent definition/per-instance features retain their ancestry and display placement. Copy allocates a new original identity then regenerates derived rows, preventing a later edit from targeting its sibling by stale source GUID. Exact box corners frame the free canvas; source visibility and authored pixel styles propagate through every derived pass and whole-source highlight.
+
+## The maintained implementation
+
+app/scene.rs identity_of/source lookup, app/scene_instances.rs definitions and app/hierarchy.rs feature Pick records are maintained ownership boundaries. State and app/selection.rs resolve selection modes; camera.rs fits current free-canvas bounds. app/walk derives feature lanes after original ownership is fixed.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/session_io.rs](../../../src/app/session_io.rs), [app/command/mod.rs](../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/scene.rs](../../../src/app/scene.rs), [app/selection.rs](../../../src/app/selection.rs), [app/deform.rs](../../../src/app/deform.rs), [app/walk/mod.rs](../../../src/app/walk/mod.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96s-resolve-feature-rows-to-original-element-owners"></a>1. Resolve feature rows to Element owners
 
 **What this code does:** Trace each derived feature back to the nearest original Element without crossing an independent child Element.

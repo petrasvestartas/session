@@ -42,6 +42,20 @@
 </svg>
 </div>
 
+Draw authored original edges and default mesh controls without changing source identity or crowding the display.
+
+## Ownership and data flow
+
+Original pen width/colour and boundary facing determine which edges produce display ink. Closed boundary neighbours retain coherent joins; default mesh vertex dots and crowded-marker tapering are derived display policy. Mesh edges, original lines/curves and source controls are separate semantic families, with colour and integer shape/owner rules kept aligned. Source UV/border or control data must not be replaced by the rendered marker approximation.
+
+## The maintained implementation
+
+app/walk/mesh_ink.rs and encode.rs prepare maintained edge pens/facing; engine/gpu/segments.rs stores linked ribbon rows and glyphs.rs owns dots. src/shaders/ribbon.wgsl, vector.wgsl/arrow.wgsl and glyph.wgsl are authoritative shape/filter paths. Old course boundary/AA fragments remain staged until production extraction is integrated into the existing checkpoints and rechecked.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzzn-respect-original-boundary-pens"></a>1. Respect boundary pens
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">

@@ -42,6 +42,20 @@
 </svg>
 </div>
 
+Retain a solid when splitting one original face and measure source geometry rather than display approximations.
+
+## Ownership and data flow
+
+A face split preserves the original BRep relationship instead of turning every face into an unrelated object. Measurement visitors then traverse original mesh triangles and curves, format dimensions with declared units and integrate original parametric surface area. Validate supported finite inputs and distinguish geometric algorithm tolerances from visual tessellation density. This endpoint prepares measure calculations; full command/annotation routing connects in the next lesson.
+
+## The maintained implementation
+
+app/splitting.rs handles original BRep/Element face selection; app/command/verbs/measure.rs collects borrowed original Geometry plus placement and selected face. area.rs, length.rs and session_rust measure/split algorithms supply actual calculations; render meshes remain derived display.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../src/app/walk/frames.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-83-split-original-faces-without-separating-the-solid"></a>1. Split faces without separating the solid
 
 **What this code does:** Divide a selected original surface face while preserving joined topology and one-step history.

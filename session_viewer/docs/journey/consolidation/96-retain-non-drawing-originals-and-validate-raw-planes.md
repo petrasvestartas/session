@@ -48,6 +48,22 @@
 </svg>
 </div>
 
+Retain original non-drawing data and exact source grammar instead of saving only what happens to render.
+
+## Ownership and data flow
+
+Source closure includes unused definitions, components, interactions and frame families beside displayed objects. Preserve those namespaces and metadata through archives without inventing visible rows for every record. Compare the actual maintained registry/parser with course commands and record explicit unsupported or staged differences. Diagnostics count retained original records separately from GPU geometry; exact round trips prove original metadata survived, not just a similar picture.
+
+The October 23 inventory records 312 viewer, 109 kernel and 12 Wood source/build entries. Hash valid UTF-8 source text after normalizing CRLF to LF; keep binary bytes unchanged. The verifier still requires every declared path and exact digest. The course intentionally rejects extra Opacity arguments at this checkpoint; the maintained parser accepts them, and 96zzr later teaches that behavior.
+
+## The maintained implementation
+
+app/session_io.rs preserves original Session document protobufs plus viewer metadata. app/command/mod.rs and verbs define the maintained Spec/Action vocabulary; app/inspection.rs reports actual source owners. app/validate.rs rejects malformed original planes and data before display preparation. Course grammar is staging wherever it differs from these production registrations.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/session_io.rs](../../../src/app/session_io.rs), [app/command/mod.rs](../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/scene.rs](../../../src/app/scene.rs), [app/selection.rs](../../../src/app/selection.rs), [app/deform.rs](../../../src/app/deform.rs), [app/walk/mod.rs](../../../src/app/walk/mod.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96-retain-non-drawing-originals-and-validate-raw-planes"></a>1. Retain non drawing originals and validate raw planes
 
 **What this code does:** Retain non drawing originals and validate raw planes.

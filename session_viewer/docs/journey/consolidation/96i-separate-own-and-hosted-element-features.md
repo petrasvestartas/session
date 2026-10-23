@@ -48,6 +48,20 @@
 </svg>
 </div>
 
+Show own attributes and hosted interaction features while preserving one editable original Element owner.
+
+## Ownership and data flow
+
+Distinguish the Element’s own attributes from hosted interaction pieces. A bounded derived feature tree groups original interaction identity without becoming independently saved editable geometry. Imported and created Elements use the same projection path; nested original Elements remain editable at their original parent. Retain original coordinates while projecting display outlines, and verify archives preserve original feature payload rather than serializing derived rows as new sources.
+
+## The maintained implementation
+
+app/walk/mod.rs walks maintained geometry/features, app/hierarchy.rs resolves element-feature panel lines and app/scene.rs retains Session owners. Element geometry stays original session_rust Element; derived lanes and tree rows provide presentation/query addresses. Independent attributes/interactions switches are view policy, not source mutation.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/session_io.rs](../../../src/app/session_io.rs), [app/command/mod.rs](../../../src/app/command/mod.rs), [app/hierarchy.rs](../../../src/app/hierarchy.rs), [app/scene.rs](../../../src/app/scene.rs), [app/selection.rs](../../../src/app/selection.rs), [app/deform.rs](../../../src/app/deform.rs), [app/walk/mod.rs](../../../src/app/walk/mod.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96i-separate-own-and-hosted-element-features"></a>1. Separate own attributes from hosted features
 
 **What this code does:** Identify own attributes and interaction features by original feature type. Check readable names and face labels without changing any geometry.

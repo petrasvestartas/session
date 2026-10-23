@@ -45,6 +45,20 @@
 </svg>
 </div>
 
+Make colour, first picking and fitted ink read the same original surface geometry and physical triangle identities.
+
+## Ownership and data flow
+
+Bind shared geometry for shader access and assign each original surface draw an unambiguous physical primitive range. The colour pass writes primitive addresses beside depth; cropped first-pick images preserve current crop/clipping ownership. Finite ink reconstructs neighbouring surface depth and slack from actual source triangles, separating hidden colour from integer pick eligibility. Section addresses join the same visibility images. This data plumbing does not define a substitute stroke/marker shape.
+
+## The maintained implementation
+
+engine/gpu/arena.rs stores maintained shared compact vertices/indices; faces.rs and triangle_tiles.rs track actual primitive/source addresses. src/shaders/triangle.wgsl and ink_visibility.wgsl share production geometry and visibility contracts. Maintained ribbon.wgsl/vector.wgsl/arrow.wgsl remain the authoritative ink geometry and AA algorithms; retained course fragments are staged pending the existing-boundary runtime reconciliation.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../src/app/scene_sync/tombs.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zh-bind-the-shared-geometry-as-storage"></a>1. Bind the shared geometry as storage
 
 **What this code does:** Reuse the existing geometry buffers for shader vertex reads.

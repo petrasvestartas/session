@@ -17,7 +17,7 @@
     "finalCadNativeFrame": "PASS: canonical640x480 native frame at97d, exactPNG individually reviewed; release/final-cad-native-frame-review.json. Full browser and whole-checkpoint acceptance remain separate.",
     "finalChapterAudit": "PASS: 21 lessons, 197 checkpoints, 4840 original code blocks, 2346 snippet includes, 247 relative links",
     "navigation": "PASS: 111 lessons in contents/daily plan; 1360 aliases and all local links retained",
-    "courseTools": "PASS: latest 22/22 authoring tests. Runtime, browser and final release acceptance remain separate.",
+    "courseTools": "PASS: current integrated authoring tests 22/22, zero failures/skipped, 9677.8855 ms; target/course-windows-20261018/argo-diagrams-teaching-authoring-tests.log. Runtime, browser and final release acceptance remain separate.",
     "softwareWebGpu": "PASS: Windows WARP selected by verified currentLUID, strict Microsoft/warp/fallback identity,16exacttexturepixels, canvascompletion+sRGBscreenshot; software-warp-check.resources.json exit0,1.795s,422383616bytes. Earlier SwiftShaderoffscreen result is not presentation proof.",
     "nativeFixtureSourceChecks": "Four deterministic original inputs generated. Current96y focused feature_pick_tests2/2 and full native831/831 pass at their recorded source; complete feature-original-pick browser callback passes after approved live-count correction. Historical fixture callbacks1/4 accepted;94c,96h,96v remain pending.",
     "normalDependencies": "PASS: locked normal native dependency tree excludes session_viewer; normal-dependency-tree.json. Diagnostic/dev examples still compile.",
@@ -42,10 +42,10 @@
     "frameSchedule": "PASS: three native CPU semantics plus unchanged browser coalescing/disposal contract at63acaf79. Ordered input, one pending frame, geometry reuse, idle0 and no late disposal submissions; cached-page browser resume remains separate.",
     "performance": "PASS: performance-disposal resources/manifest and public runtime-performance-review.json. Five categories measured on same small demo; resize burst56->1frames,uploads283136->5056bytes,idle0. Raw warm timings retained, no steady-frame or hardware speedup claim. Unchanged lifecycle callback passes.",
     "disposalFix": "PASS: optimized disposal-web182.878s and unchanged browser lifecycle callback; final teardown has no late submissions. Original failed run retained.",
-    "docsCurrent": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
+    "docsCurrent": "DONE source integration: 59 authored introductions and 20 teaching figures now accompany committed Argo diagrams d1d0871f. Current docs build and visible publication review PENDING at the newly integrated hashes. Earlier scoped visible proof remains accepted only at its own source/build hashes.",
     "historicalLock": "Cached94c lock was stale (missing getrandom dependency edge only). Current canonical94-Cargo.lock already correct; exact canonical bytes restored to ignored cache, no canonical lock or test assertion changes. Initial --locked abort retained.",
     "historicalVulkanProbe": "PASS: unchanged94c glyph-atlas GPU test, canonical lock SHA1df9f908 restored, explicit pinned Vulkan SwiftShader ICD environment; historical-vulkan-probe-current-lock.json. Full checkpoint/callback acceptance remains separate.",
-    "structuralCurrent": "PASS: recovery-structure.json;1361 course reconstructions,307 current viewer source files,43 reference checkpoints and351 archived final files.",
+    "structuralCurrent": "PASS: target/course-windows-20261018/argo-diagrams-teaching-structure.log; 1361 lesson checkpoints, 307 viewer source files, 43 reference checkpoints and 351 final files. Structure only; no docs build claim.",
     "historicalArchive": "history/2026-10-23-before-progress-reconciliation.json; previous repairs and superseded source/build statements retained with their evidence.",
     "productionSources": "PASS: all fetched upstream root source merged at e2ed12f and clean Wood fast-forwarded to5318ba20; Session origin/main ancestor retained. Tutorial work preserved. Wood Rust/proto/data/generated inputs match tested07c57552 exactly.",
     "endpointWasm": "PASS optimized97d WASM through final-97d-web-build182.487s; source/artifact hashes recorded. Reuse matching compiler proof; remaining canonical obligations are separate.",
@@ -57,7 +57,7 @@
     "historical94cVerification": "PASS current94c native800/800:guard188.26s,actual tests87.26s;fresh WARP frame inspected,SHA256 D57B09B12F4239A6203C0E8AD14E850C71B59DE102A302CA1DC9639912C179F8. Original WASM57.334s and optimized web152.536s reused only under unchanged native-only dependency-graph proof. Complete canonical94c browser callback remains pending.",
     "publicProgress": "PASS at v9 built source: changed contents/roadmap v2, 111 links and three individually inspected original-resolution views. Actual CSS viewports 853/260 at 1280/390 captured pixels; later progress edits retain a separate publication obligation.",
     "cadSelectionDiagnostic": "PASS: one exact canonical wire archivec5ae22c6/embedded PB816e9f38 selected native pair,0 RGBA differences,0 black/372 yellow pixels; source/archive/course Object-pick checks pass. The production-aligned outlines-off yellow/zero-black browser assertion is user-approved and applied. Full CAD browser acceptance remains pending.",
-    "docsAfterGemini": "External editing is active across consolidation and redraft pages. Preserve external schematics; restore teaching additively after handoff. Final combined-book acceptance remains pending.",
+    "docsAfterGemini": "59 owned late-chapter introductions are merged additively with committed Argo diagrams. Current docs build/visible review pending; external first 10/redraft ownership and final combined-book handoff remain deferred.",
     "historical94cBrowser": "Full 94c remains unaccepted: last run reached sheets.cjs:33 and failed after 2171.988 s. Focused Sheets v3 then passed all original assertions in 113.034 s; first metadata selection took 58.3313 s on WARP, exceeding the default 30 s. Current focused comparison tail is diagnostic only.",
     "maintainedWindowsHook": "PASS: portableNode Windows docs prehook and maintained optimized bundle; maintained-grid-web-tools.resources.json exit0. Cargo lock unchanged; matching wasm-bindgen0.2.128 fetched. Linux/macOS dispatch retains Bash but not executed here.",
     "escapeAuthoring": "PASS22/22 and structure/replay. Four user-approved shortcut corrections pass focused actual layers/labels/delete helper checks; complete enclosing94c/final callbacks remain pending.",
@@ -87,7 +87,7 @@
     "nativeInkControls": "PASS: Current 97d native ink controls pass 14/14 exact production/course RGBA pairs: two mixed-CAD no-lines/no-edges states and open arrowed, closed headless, placed selected joined strokes. Five invocations, 201.558 s, peak 963235840 B; 28 PNGs decoded and all 14 unique frames individually inspected. Fixed styles/cameras only; no arbitrary width/AA/clipping/material sweep, production owner-picking or browser acceptance claim. Public release/ink-family-controls-native-review.json.",
     "sheetsFocused": "PASS focused Sheets v3: all original assertions and fixtures, including source-axis metadata and held Close response, pass in 113.034 s. First metadata pick took 58.3313 s on WARP; this explains the 30 s context-default failure. Presheet nested-placement prerequisites were deliberately omitted, so this is not full 94c acceptance. Frozen files unchanged.",
     "warpContextBudget": "Opt-in external WARP context default 120 s and outer guard 7200 s are being recorded for bounded retries; all explicit operation timeouts and frozen assertions remain unchanged. No canonical pass is inferred from a larger budget.",
-    "lateChapterTeaching": "PENDING current source: concurrent Argo edits removed59 late-chapter introductions and20 introductory figures. Earlier scoped build/visible review remains accepted only at its recorded source hashes; integrate teaching and review publication after external handoff.",
+    "lateChapterTeaching": "DONE source integration: 59 authored introductions and 20 teaching figures now accompany committed Argo diagrams d1d0871f. Current docs build and visible publication review PENDING at the newly integrated hashes. Earlier scoped visible proof remains accepted only at its own source/build hashes.",
     "browserInputCorrections": "APPROVED/APPLIED:three input sites, all assertions retained; focused DPR1/2 candidate proof is separate from pending full canonical94c acceptance.",
     "cameraPlaneFinite": "COMPLETE:three original finite Camera/Plane/reload criteria accepted through reload4/4,80 native exact pairs and actual native Plane/camera assertions. Required76d freeform remains pending global/chapter proof. release/camera-plane-finite-review.json.",
     "nativeControlSemantics": "PASS source/evidence review of18 actual native test bodies and individual1060-suite PASS entries:open Plane owner/size/visibility/selection,camera reference,width/analytic AA,family independence,clipping/occlusion,source/archive preservation within bounded fixtures. release/native-control-semantics-review.json. No arbitrary production-parity/material or browser closure.",
@@ -105,7 +105,7 @@
   "currentDefects": [
     "Approved three-site browser input correction is applied: visible command-field lower-edge click plus physical Escape for two completed measurements. All assertions retained. Focused candidates passed at DPR1/2; complete canonical94c replay remains pending. Native/WASM/web build inputs remain unchanged.",
     "96y fixture callback passes;96h and96v callbacks remain pending. Chapter19 is not complete because its96h inventory entry remains open.",
-    "Final native1060/1060 and scoped restored59-lesson docs/browser review pass at their recorded inputs. Remaining compiler phases, historical/canonical browser callbacks and16 partial features remain open. Gemini1–10 handoff/current combined-book acceptance is deferred.",
+    "Final native1060/1060 and scoped restored59-lesson docs/browser review pass at their recorded inputs. Remaining compiler phases, historical/canonical browser callbacks and16 partial features remain open. Gemini1\u00e2\u20ac\u201c10 handoff/current combined-book acceptance is deferred.",
     "Matrix and Camera are2/18 complete;16 features remain partial and global release0/5. CAD baseline5 does not accept all named controls/browser checks; Original finite Camera/Plane criteria are complete; required76d browser remains globally pending."
   ],
   "onlyHeavy": {
@@ -230,8 +230,8 @@
   },
   "coordination": {
     "gemini": "Owns sections 1-10 in session/session_viewer/docs/journey, including original chapter prose and redraft-10-sections. Preserve changes; stage only named owned paths.",
-    "integrator": "Chapters11–22, runtime, shared metadata, builds, validation and Git integration.",
-    "geminiLatestCommit": "bc861507 reformats all111 lessons and changes docs presentation. That commit and first-ten chapter ownership are preserved. Root restored59 authored introductions additively in chapters11–22 without changing formatted checkpoint code. Current combined-book acceptance requires rebuilt visible review and Gemini handoff; prior v7/v9 reviews keep their original built-source scopes.",
+    "integrator": "Chapters11\u00e2\u20ac\u201c22, runtime, shared metadata, builds, validation and Git integration.",
+    "geminiLatestCommit": "bc861507 reformats all111 lessons and changes docs presentation. That commit and first-ten chapter ownership are preserved. Root restored59 authored introductions additively in chapters11\u00e2\u20ac\u201c22 without changing formatted checkpoint code. Current combined-book acceptance requires rebuilt visible review and Gemini handoff; prior v7/v9 reviews keep their original built-source scopes.",
     "activeAgents": {
       "browser_startup_memory": "Prepares remaining canonical callback inputs and maintained97/finalCAD build-reuse audits; no heavy jobs.",
       "plane_completion": "Completed bounded native Matrix,CAD baseline5 and reload/grid evidence/image reviews; updating four public progress files only. No heavy job ownership.",
@@ -267,7 +267,16 @@
     "nativeDependencyIdentity": "Wood entire rust/,src/proto/,data/,generated/ trees unchanged from tested07c57552. Incoming14commits update C++/tests/examples/docs."
   },
   "historicalWindowsState": "history/2026-10-23-before-progress-reconciliation.json",
-  "pendingHarnessChoices": [],
+  "pendingHarnessChoices": [
+    {
+      "choice": "Split Select Object setup and optional phase reuse",
+      "status": "awaiting-user-answer",
+      "applied": false,
+      "candidateEvidence": "target/course-windows-20261018/split-control-candidate-v1.resources.json",
+      "candidate": "Focused DPR1/2 pass,41.194s,peak787517440B; diagnostic only, not applied canonical acceptance.",
+      "phaseReuse": "Optional phase reuse question sent; no answer yet."
+    }
+  ],
   "planeMatrices": {
     "nativeCasesPassed": 80,
     "nativeCasesTotal": 80,
@@ -636,8 +645,12 @@
     }
   },
   "concurrentTeachingIntegration": {
-    "status": "required-pending-external-edit-handoff",
+    "status": "source-integration-done-publication-pending",
     "record": "release/concurrent-teaching-integration-review.json",
-    "previousScopedPublication": "PASS scoped restored chapters11–22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1–10/current combined-book handoff remains deferred."
+    "previousScopedPublication": "PASS scoped restored chapters11\u00e2\u20ac\u201c22:59 source/built/served introductions,111 contents links,555 restored relative links,21 source-matching decoded images(20 teaching figures plus retained checkpoint screenshot),20 individually inspected original-resolution views including inline Matrix desktop/phone. Docs build53.394s,peak1595437056B. Root progress wording is reviewed separately after publication. Gemini1\u00e2\u20ac\u201c10/current combined-book handoff remains deferred.",
+    "schematicCheckpoint": "d1d0871f",
+    "integratedLessons": 59,
+    "restoredTeachingFigures": 20,
+    "currentPublication": "Fresh docs build and visible review pending at newly integrated hashes; prior visible proof remains source-bound. Gemini first10/current whole-book handoff remains deferred."
   }
 }

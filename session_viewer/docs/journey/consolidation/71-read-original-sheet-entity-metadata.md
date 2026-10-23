@@ -46,6 +46,20 @@
 </svg>
 </div>
 
+Stream precise original drawing columns, render authored world pens and query metadata only for the current selected entity.
+
+## Ownership and data flow
+
+Decode original segment endpoints and side columns under one source revision. Complete Sheet sources and explicitly partial ranged sources have different edit/save capabilities; charged page owners stay alive beside shared GPU buffers. Independent placed rows reuse page uploads, while world-unit pen radii project with the current lens in colour and integer coverage. Metadata requests retain only a weak source plus their own cancellation gate, so superseded queries cannot pin drawings or deliver late answers. Publication-owned staged prefixes retire with their source. The final frame/coordinate helpers prepare construction-plane input for the next lesson.
+
+## The maintained implementation
+
+app/walk/sheet.rs emits maintained SheetSlice/SheetRows into the separate sheet segment lane, retaining source entity IDs and half authored width. app/sheet_query.rs owns metadata identity and cancellation; app/stream.rs discovers fixed sheet columns and app/loader.rs bounds prefix/follow-up reads. app/cplane.rs owns original construction frames. Streamed shells remain explicitly display-only.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/walk/sheet.rs](../../../src/app/walk/sheet.rs), [app/sheet_query.rs](../../../src/app/sheet_query.rs), [app/stream.rs](../../../src/app/stream.rs), [app/cplane.rs](../../../src/app/cplane.rs), [app/coords.rs](../../../src/app/coords.rs), [app/command/tool/shape.rs](../../../src/app/command/tool/shape.rs), [app/command/tool/gather.rs](../../../src/app/command/tool/gather.rs), [app/deform.rs](../../../src/app/deform.rs).
+
 ## <a id="checkpoint-71-read-original-sheet-entity-metadata"></a>1. Own cancellable sheet-entity lookups
 
 **What this code does:** Complete the original lookup owner with its query id, sheet row and entity index.

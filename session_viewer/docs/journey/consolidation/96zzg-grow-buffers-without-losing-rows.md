@@ -45,6 +45,20 @@
 </svg>
 </div>
 
+Grow shared storage without losing live geometry and route source preparation through one original-document boundary.
+
+## Ownership and data flow
+
+Retain compact mesh ranges in one arena and borrow current buffer handles for every dependent bind group. Object records supply placement/properties independently from immutable vertex/index ranges; eight-byte draw slots identify the placed owner. Growth replaces buffers only after copying or republishing live rows and invalidates bindings that borrow the old handles. Contact-fill classification, Close/Opacity commands and full Session preparation share the actual current source boundary; Reload must not bypass validation or create a second incompatible display owner.
+
+## The maintained implementation
+
+engine/gpu/arena.rs owns five growing mesh buffers plus source-face/slot state; buffers.rs GrowBuf owns growth/write operations. objects.rs InstanceTable retains original f64 translations separately from packed instance properties. app/decode.rs, loader.rs and scene_sync.rs prepare/adopt/synchronize actual original sources. The learner unified record/arena abstraction is staged where production still uses separate lane tables.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/arena.rs](../../../src/engine/gpu/arena.rs), [engine/gpu/buffers.rs](../../../src/engine/gpu/buffers.rs), [engine/gpu/objects.rs](../../../src/engine/gpu/objects.rs), [engine/gpu/slots.rs](../../../src/engine/gpu/slots.rs), [engine/gpu/instanced.rs](../../../src/engine/gpu/instanced.rs), [engine/gpu/faces.rs](../../../src/engine/gpu/faces.rs), [engine/gpu/clip.rs](../../../src/engine/gpu/clip.rs), [engine/gpu/triangle_tiles.rs](../../../src/engine/gpu/triangle_tiles.rs), [app/scene_sync/tombs.rs](../../../src/app/scene_sync/tombs.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzg-grow-buffers-without-losing-rows"></a>1. Grow buffers without losing rows
 
 **What this code does:** Preserve uploaded GPU records when a shared buffer grows.

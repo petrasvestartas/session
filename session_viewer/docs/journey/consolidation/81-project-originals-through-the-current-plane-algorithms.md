@@ -45,6 +45,20 @@
 </svg>
 </div>
 
+Project or extend current original geometry in its placed frame without losing row identity or accepted input.
+
+## Ownership and data flow
+
+Capture original source identity/placement and convert world cutters/planes to the target frame before geometric work. Projection prepares complete replacement sources as one transaction; extension owns eligible boundaries, precise reach and the selected original endpoint. CSS hit testing chooses the visible end, while original algorithms determine straight/curved stopping points. Previews and guides are derived and refresh only changed originals. Current pending input owns answers/cancellation and restores selection on failure. The final Split validator prepares the next capability.
+
+## The maintained implementation
+
+app/command/verbs/project_to_plane.rs and extend.rs own maintained commands; extend/reach.rs resolves actual extension boundaries. app/deform.rs and app/scene.rs retain source/row identity, and command/tool.rs coordinates accepted tool state. This editing boundary rebuilds original sources before app/walk prepares display.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../src/app/walk/frames.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-81-project-originals-through-the-current-plane-algorithms"></a>1. Project originals in their placed frame
 
 **What this code does:** Conjugate the world projection through the original placement transform.

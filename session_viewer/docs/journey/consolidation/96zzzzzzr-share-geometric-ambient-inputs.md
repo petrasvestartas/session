@@ -47,6 +47,20 @@
 </svg>
 </div>
 
+Shade current source surfaces before drawing their ink while retaining correct original contact metadata.
+
+## Ownership and data flow
+
+Geometric ambient inputs borrow current original properties and placed surface facts, not a stale selected overlay. The frame’s dependency order is explicit: prepare optional passes, project finite tiles, render cached points, draw faces/sections/cloud depth, apply ambient and outline hooks, draw ink/text, service pending picks, then widget and UI. Contact features keep their original ambient classification and cannot contaminate an unrelated parent’s material metadata.
+
+## The maintained implementation
+
+engine/gpu/render.rs encode_frame and pass.rs PASSES are the maintained order; clip precedes ssao and surface_outline hooks. ssao.rs and objects.rs provide actual contact properties and resources; src/shaders/ambient_geometry.wgsl, ssao.wgsl and ambient_composite.wgsl supply maintained reconstruction/shading. Preserve these algorithms and dependencies during course extraction.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [engine/gpu/render.rs](../../../src/engine/gpu/render.rs), [engine/gpu/pass.rs](../../../src/engine/gpu/pass.rs), [engine/gpu/targets.rs](../../../src/engine/gpu/targets.rs), [engine/gpu/frame.rs](../../../src/engine/gpu/frame.rs), [engine/gpu/view.rs](../../../src/engine/gpu/view.rs), [engine/pipelines/mod.rs](../../../src/engine/pipelines/mod.rs), [shaders/triangle.wgsl](../../../src/shaders/triangle.wgsl), [shaders/ribbon.wgsl](../../../src/shaders/ribbon.wgsl), [shaders/vector.wgsl](../../../src/shaders/vector.wgsl), [shaders/ink_visibility.wgsl](../../../src/shaders/ink_visibility.wgsl), [app/scene.rs](../../../src/app/scene.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-96zzzzzzr-share-geometric-ambient-inputs"></a>1. Share geometric ambient inputs
 
 **What this code does:** Shade contacts from actual face geometry while preserving authored lighting normals and one contact-radius owner.

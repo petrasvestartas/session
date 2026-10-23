@@ -45,6 +45,20 @@
 </svg>
 </div>
 
+Connect original-source recipes to real commands, guides, lasso selection and portable group ownership.
+
+## Ownership and data flow
+
+Text owns height and words before placement, while original Plane retains frame/display semantics and edit eligibility. Trim owns targets/cutters/remaining part state and previews removed parts without mutating saved sources. Guide buffers and lasso loops are bounded presentation owners. Graph links and groups retain document namespaces, remap appended identities and preserve world placement through one reversible edit. Shared pending command state routes clicks, typing, retries and cancellation once; Save/reopen keeps original planes, text, source rows and group relationships. After Escape is registered, both the command dock and unconsumed canvas input forward it to the editor. An active operation cancels first; ordinary Escape clears selection so the next object click reaches picking.
+
+## The maintained implementation
+
+app/command/verbs/text.rs, trim.rs and explode.rs expose maintained commands; app/command/tool/cut.rs and state/drawing.rs own pending input. app/hierarchy.rs, layers.rs and scene.rs own document links/groups. app/walk/frames.rs and engine/gpu/planes.rs draw the actual original Plane; later rendering reconciliation must preserve its maintained grid/arrows rather than replace it with alternate geometry.
+
+All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+
+Production source reference: [app/command/verbs/project_to_plane.rs](../../../src/app/command/verbs/project_to_plane.rs), [app/command/verbs/extend.rs](../../../src/app/command/verbs/extend.rs), [app/splitting.rs](../../../src/app/splitting.rs), [app/command/verbs/measure.rs](../../../src/app/command/verbs/measure.rs), [app/command/verbs/trim/parts.rs](../../../src/app/command/verbs/trim/parts.rs), [app/command/verbs/explode.rs](../../../src/app/command/verbs/explode.rs), [app/walk/frames.rs](../../../src/app/walk/frames.rs), [build.rs](../../../build.rs).
+
 ## <a id="checkpoint-85-copy-current-original-command-recipes"></a>1. Write text placement and curve heads
 
 **What this code does:** Build world-plane labels with readable axes and the original rounded scale steps.

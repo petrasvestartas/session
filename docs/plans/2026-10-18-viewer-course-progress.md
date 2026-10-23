@@ -1,4 +1,6 @@
-#- [ ] Current publication requires merging59 late-chapter introductions and20 teaching figures removed by active external schematic edits. Prior source-bound reviews remain historical; preserve Argo's new diagrams and restore Matrix teaching additively after handoff. [Integration record](../../session_viewer/docs/journey/release/concurrent-teaching-integration-review.json).
+- [x] Source integration complete: 59 late-chapter teaching introductions and 20 figures now accompany the committed Argo diagrams from `d1d0871f`; all diagram and checkpoint code bytes retained. [Integration record](../../session_viewer/docs/journey/release/concurrent-teaching-integration-review.json).
+
+- [ ] Publish and review a fresh docs build at the integrated source hashes. Prior visible proof keeps its original build scope; Gemini first 10/redraft and current whole-book handoff remain deferred.
 
 - [x] Final CAD canonical native frame passes at97d:640x480, blue surfaces/black outlines and white corner assertions;42.738s,peak2,405,543,936B. Image individually reviewed. [Frame proof](../../session_viewer/docs/journey/release/final-cad-native-frame-review.json). Browser acceptance remains separate.
 
