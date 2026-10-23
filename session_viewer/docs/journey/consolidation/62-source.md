@@ -1,22 +1,89 @@
 # 10.4 · Original world labels, plates and integer picks
 
-Place editable source words in the world, render their retained coverage and resolve clicks back to original label owners.
+**Section 6: CAD B-Rep Topology, World Text Atlases, Outlines, and Point Clouds** · **Lesson 10.4** (Redraft `6.9`) · **37 checkpoints (`62-source` → `62o-labels`)**
 
-## Ownership and data flow
+> **Learning Goal:** Own original scene words and font metrics.
 
-A source row owns original words, font metrics and placement while shaping and projected extents remain derived. World-plane and billboard labels retain world scale; screen/anchor/nameplate modes retain CSS sizing. Plates and glyph quads each own explicit buffers/pipelines; bounded coverage textures rebuild only when source/font/raster witnesses change. Frame preparation keeps CSS and physical coordinates separate, loads shared scene depth, draws anchored/world text before overlays and emits original IDs through bounded picking. Missing whole fonts adopt as one checked set, and errors remain visible.
+## Visual WebGPU & Architecture Schematic
 
-## The maintained implementation
+<div class="webgpu-schematic" style="margin:1.1rem 0;padding:0.75rem;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+<svg viewBox="0 0 840 240" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;display:block;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#059669"/>
+    </marker>
+  </defs>
+  <rect x="4" y="4" width="832" height="232" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="20" y="28" font-size="14" font-weight="700" fill="#0f172a">Chapter 10 WebGPU Text & Shared Arena Pipeline: Glyph Atlas Packing, World/Billboard Text & Matrix Shader</text>
+  <text x="20" y="46" font-size="11.5" fill="#475569">How crisp typography (text_plane.wgsl / text.wgsl) and procedural cell digits (matrix.wgsl) render in 3D world space.</text>
+  <line x1="16" y1="54" x2="824" y2="54" stroke="#e2e8f0" stroke-width="1"/>
+  
+    <rect x="18" y="68" width="235" height="145" rx="6" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+    <text x="135" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1e40af">1. Shelf-Packed Glyph Atlas</text>
+    <text x="28" y="108" font-size="10.5" fill="#1e3a8a">• Rasterize needed Unicode codepoints</text>
+    <text x="28" y="126" font-size="10.5" font-weight="600" fill="#1d4ed8">• Pack into R8Unorm GPU Atlas Texture</text>
+    <text x="28" y="142" font-size="10" fill="#1e3a8a">  with 1px padding (no bilinear bleed!)</text>
+    <text x="28" y="160" font-size="10.5" fill="#1e3a8a">• queue.write_texture dirty rects only</text>
+    <text x="28" y="178" font-size="10.5" fill="#1e3a8a">• Layout baseline, kerning &amp; line</text>
+    <text x="28" y="193" font-size="10.5" fill="#1e3a8a">  wraps into instanced glyph quads</text>
 
-app/scene_text.rs owns maintained scene text rows; engine/text.rs defines the five placement variants. engine/gpu/text.rs orchestrates TextLane, text_plane.rs owns world coverage planes and text_plate.rs owns nameplates. src/shaders/text_plane.wgsl and text_plate.wgsl are maintained colour/ID paths. The many retained implementation checkpoints form one complete source-to-pixel feature rather than separate tiny reading assignments.
+    <line x1="253" y1="138" x2="283" y2="138" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
 
-All production paths above are relative to `session_viewer/src`. The implementation below preserves the runnable teaching sequence. Early `src/renderer.rs`, `src/browser.rs` and local WGSL are staged prerequisites; production drawing remains in `engine/gpu`, `engine/pipelines` and `src/shaders`. Later rendering lessons must converge to those maintained paths.
+    <rect x="285" y="68" width="265" height="145" rx="6" fill="#fff7ed" stroke="#fdba74" stroke-width="1.5"/>
+    <text x="417" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#9a3412">2. World-Plane vs Screen Billboard</text>
+    <text x="297" y="108" font-size="10.5" font-weight="600" fill="#c2410c">• text_plane.wgsl (3D World Text):</text>
+    <text x="297" y="123" font-size="10" fill="#7c2d12">  q_world = origin + u*plane_x + v*plane_y</text>
+    <text x="297" y="138" font-size="10" fill="#7c2d12">  Foreshortens naturally with 3D perspective</text>
+    <text x="297" y="158" font-size="10.5" font-weight="600" fill="#c2410c">• text.wgsl (Screen-Aligned Label):</text>
+    <text x="297" y="173" font-size="10" fill="#7c2d12">  Expands along camera Right/Up vectors;</text>
+    <text x="297" y="188" font-size="10" fill="#7c2d12">  optional background plate + 3D leader line</text>
 
-Production source reference: [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs).
+    <line x1="550" y1="138" x2="580" y2="138" stroke="#059669" stroke-width="2" marker-end="url(#arrow-green)"/>
 
-## Build the capability
+    <rect x="582" y="68" width="238" height="145" rx="6" fill="#ecfdf5" stroke="#6ee7b7" stroke-width="1.5"/>
+    <text x="701" y="88" text-anchor="middle" font-size="11.5" font-weight="700" fill="#065f46">3. Whole-Text Pick &amp; Matrix (Sec 10)</text>
+    <text x="594" y="108" font-size="10.5" fill="#064e3b">• Clicking any glyph or plate writes</text>
+    <text x="594" y="124" font-size="10.5" font-weight="600" fill="#047857">  the parent Text owner_id to Rg32Uint</text>
+    <text x="594" y="144" font-size="10.5" fill="#064e3b">• Later in Sec 10 (matrix.wgsl):</text>
+    <text x="594" y="160" font-size="10" fill="#064e3b">  16-word header + 3 words/cell renders</text>
+    <text x="594" y="175" font-size="10" fill="#064e3b">  procedural 3-decimal digits (0 blank)</text>
+    <text x="594" y="190" font-size="10" fill="#064e3b">  + plate-less world title &amp; yellow select</text>
+    
+</svg>
+</div>
 
-Apply these implementation checkpoints in order in the same `workspace/journey` project. Expand a block while typing; each retains its original complete Type section, including its snippet includes and locate/replace context. Intermediate IDs remain recoverable checkpoints within this lesson.
+### Lesson Data Flow (`Rust` → `WebGPU` → `WGSL`)
+
+```
+original words and placement → shared source → checked shaping → derived extent.
+rasterize the shaped run into owned coverage bytes.
+original text example → current placement and coverage → original integer pick → one reversible edit.
+```
+
+- Own original scene words and font metrics.
+- Allocate bounded coverage storage from the shaped glyph bounds.
+- Create pick move and delete the original scene labels.
+- **Why it works (Does a glyph cache replace the original words?):** No. The original label remains a shared source. Shaped metrics, glyph coverage and integer pick addresses are derived presentation data. Screen-only specimens stay outside scene rows.
+
+### Language & Shader Bridge (`Rust` ↔ `WGSL` ↔ `Browser`)
+
+| Layer | Construct | First-Year Student Explanation |
+| :--- | :--- | :--- |
+| **Rust / WebGPU** | Shelf-Packed `R8Unorm` Glyph Atlas + 1px Padding | Rasterizes Unicode glyphs on demand into a single-channel GPU texture with a 1-pixel transparent gutter so bilinear filtering never bleeds neighbor glyphs. |
+| **WGSL (`text_plane.wgsl` / `text.wgsl`)** | World-Plane Quad vs. Screen-Aligned Billboard Quad | `text_plane.wgsl` expands glyph quads along 3D plane axes `(plane_x, plane_y)` that foreshorten in perspective; `text.wgsl` expands along camera `(Right, Up)` vectors. |
+| **WGSL (`matrix.wgsl`)** | Procedural Matrix Cell Digits (16-word Header + 3 words/cell) | Draws heatmap cells and procedural 3-decimal digits directly in the fragment shader (leaving `0` cells blank), with a plate-less world title and yellow selection border. |
+
+**Production source (`session_viewer/src`):** [engine/text.rs](../../../src/engine/text.rs), [engine/gpu/text.rs](../../../src/engine/gpu/text.rs), [engine/gpu/text_plane.rs](../../../src/engine/gpu/text_plane.rs), [engine/gpu/text_plate.rs](../../../src/engine/gpu/text_plate.rs), [app/scene_text.rs](../../../src/app/scene_text.rs), [app/fonts.rs](../../../src/app/fonts.rs).
+
+## Implementation Checkpoints
+
+Apply these checkpoints in order inside `workspace/journey`. Expand each block to view the Rust/WGSL/HTML edits:
 
 <a id="checkpoint-62-source"></a>
 
@@ -7457,9 +7524,9 @@ After that block, append this supplied code:
 
 </details>
 
-## Run, check and save
+## Run, Check, and Save
 
-From `session_viewer`, after restoring any experimental edits:
+From `session_viewer`:
 
 ```sh
 npm --prefix ../session_tests run course -- dependencies 62o-labels
@@ -7470,12 +7537,10 @@ REGEN_PROTO=0 cargo build --lib --locked --target wasm32-unknown-unknown -j1
 REGEN_PROTO=0 CARGO_BUILD_JOBS=1 trunk serve --port 8780
 ```
 
-Open `http://127.0.0.1:8780/`. Keep an existing Trunk server running so saving rebuilds it. `check` compares your typed source with the selected endpoint without replacing your project; `save` records that source for recovery. The commands are learner instructions, not a claim that this consolidation batch has rerun GPU or browser acceptance. [Checkpoint recovery](../recovery.md) explains restoring a saved state.
+Open `http://127.0.0.1:8780/`. Use [checkpoint recovery](../recovery.md) to restore any saved checkpoint.
 
-## Result and experiment
+## Expected Visual Result & Experiment
 
 Type Close, Example CAD, Example Scene Text, Fit and View Isometric; use Select Next twice. The original world-sized label appears on a selected yellow plate. Move, Undo, Redo and Delete operate on its stable scene row. Example Anchor keeps CSS-sized ink at depth; Example Nameplate overlays its source center; Example Billboard preserves world size while facing the camera. Ω fetches the current whole fonts. Close releases the labels. Save explicitly refuses text until mixed persistence connects.
 
-Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
-
-Recorded screenshot paths are identified in the chapter coverage map as historical, pending fresh acceptance. No uninspected screenshot is embedded here. Source comparison, a successful build and visual behavior are separate checks.
+- **Try this:** Type Close, Example CAD, Example Scene Text, Fit and View Isometric. Use Select Next twice to select the label; Move 0.25 0 0, Undo, Redo and Delete. Test the other three placements and compare all original source fields.
