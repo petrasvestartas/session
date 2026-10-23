@@ -1,0 +1,93 @@
+{
+  "status": "PASS: seven inspected native semantic bodies and their individual successful entries in the current 1060-test suite",
+  "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23",
+  "nativeSuite": {
+    "record": "native-97d-integration-review.json",
+    "manifest": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/manifest.json",
+      "sha256": "027c6247176e0eb24124989504dc7eea35287eb95dc495a1fa725e5b8b52ef46"
+    },
+    "stdout": {
+      "path": "target/course-windows-20261018/native-full-97d-20261023T194428611Z/suite.stdout.log",
+      "sha256": "17df2d8db27d2f76718efdc54fd9025965d659e40bd357ebe14563eafa08d465"
+    },
+    "tests": {
+      "passed": 1060,
+      "failed": 0,
+      "ignored": 0,
+      "filtered": 0,
+      "threads": 1
+    }
+  },
+  "proofs": [
+    {
+      "test": "renderer::surface_controls_tests::actual_headlight_backfaces_and_original_record_restoration",
+      "source": "target/course-final-original-owners/src/surface_controls_gpu_tests.rs",
+      "sourceSha256": "c417e503d3586e395007df07d03b0be3ab14b6da8b429f144172f482631fd12e",
+      "stdoutLine": 748,
+      "observedResult": "ok",
+      "actualAssertions": "Mirrored/unmirrored source; perspective/orthographic; unlit pixel51,102,153; headlight darkens; backface pixel204,13,13; uniform/storage record paths restore exact images; no geometry uploads or source mutation."
+    },
+    {
+      "test": "renderer::surface_lighting_tests::actual_unlit_and_sky_preserve_original_records",
+      "source": "target/course-final-original-owners/src/surface_lighting_tests.rs",
+      "sourceSha256": "6a1c59b39faeac284a1a90bb7ed9e1244d251c218ed9bab40231183151925c46",
+      "stdoutLine": 749,
+      "observedResult": "ok",
+      "actualAssertions": "Unlit exact source RGB51,102,153; isolated sky fragment RGB44,88,132; uniform/storage records restore exact pixels; owner/source/uploads unchanged. Explicitly isolates sky from ambient compositor."
+    },
+    {
+      "test": "renderer::surface_lighting_tests::wide_ambient_and_depth_pyramid_keep_real_passes_without_geometry_uploads",
+      "source": "target/course-final-original-owners/src/surface_lighting_tests.rs",
+      "sourceSha256": "6a1c59b39faeac284a1a90bb7ed9e1244d251c218ed9bab40231183151925c46",
+      "stdoutLine": 752,
+      "observedResult": "ok",
+      "actualAssertions": "6000x4000x1000 box, top orthographic distance24000; real ambient and six-level depth pyramid execute without errors; repeat keeps usage/allocation state; zoom retains source and upload count. No actual-production image comparison."
+    },
+    {
+      "test": "renderer::opacity_gpu_tests::actual_closed_faces_blend_hidden_ink_fades_and_xray_picks_original_ink",
+      "source": "target/course-final-original-owners/src/opacity_gpu_tests.rs",
+      "sourceSha256": "f1c8011978735e41caa2b67f93420e2cd418b100141fefb85ab9a9e0dac64d30",
+      "stdoutLine": 721,
+      "observedResult": "ok",
+      "actualAssertions": "Closed face initially covers green original Line; opacity0.5 shows hidden green ink and single blended face; Object pick still face; opacity0 renders original green Line and empty face region; original Line picked, closed face not picked; opacity1 exact restoration; source/uploads unchanged."
+    },
+    {
+      "test": "renderer::opacity_gpu_tests::actual_open_surfaces_remain_opaque_and_mirrored_closed_faces_keep_glass",
+      "source": "target/course-final-original-owners/src/opacity_gpu_tests.rs",
+      "sourceSha256": "f1c8011978735e41caa2b67f93420e2cd418b100141fefb85ab9a9e0dac64d30",
+      "stdoutLine": 722,
+      "observedResult": "ok",
+      "actualAssertions": "Open original frame remains exact at opacity0.5 and0; mirrored closed original preserves center glass pixel at0.5."
+    },
+    {
+      "test": "renderer::opacity_gpu_tests::actual_xray_survives_scene_refresh_without_hiding_open_originals",
+      "source": "target/course-final-original-owners/src/opacity_gpu_tests.rs",
+      "sourceSha256": "f1c8011978735e41caa2b67f93420e2cd418b100141fefb85ab9a9e0dac64d30",
+      "stdoutLine": 723,
+      "observedResult": "ok",
+      "actualAssertions": "Closed original stays invisible after scene refresh at opacity0; replacing it with an open original restores opaque red face under same Xray setting."
+    },
+    {
+      "test": "view_command_tests::xray_on_off_and_toggle_preserve_nonzero_opacity_until_an_actual_switch",
+      "source": "target/course-final-original-owners/src/view_command_tests.rs",
+      "sourceSha256": "0e691d45a480963e8ab145bebeb88e098434e63e0579e1e5ffab0e37873f0fe0",
+      "stdoutLine": 1051,
+      "observedResult": "ok",
+      "actualAssertions": "Semantic Xray On/Off/toggle sequence preserves0.95 until actual switch and then toggles0/1; history,camera,empty source stable; invalid argument rejected. CPU command semantics only."
+    }
+  ],
+  "acceptedScope": "Course-renderer native semantics: headlight/backface restoration, unlit and isolated sky colors, wide-view ambient/depth-pyramid reuse, glass/Xray colors and original picks, mirrored/open/closed handling, refresh and Xray commands. These seven bodies supplement the separate 18-body native-control record.",
+  "scopeLimits": [
+    "The GPU bodies instantiate the course Renderer; no independent maintained-production renderer is compared. The Xray command body is CPU-only.",
+    "Fixed specimens and settings only; no arbitrary material, lighting, normal, clipping, opacity, sag or tolerance sweep is established.",
+    "No browser input, browser frame inspection or source-specific callback acceptance is implied.",
+    "No feature status or outstanding actual-production parity requirement closes through this record."
+  ],
+  "remainingAcceptance": [
+    "Compare transparent materials, Xray, locked/source selection, copied objects and clipping using actual production fixtures.",
+    "Validate material, lighting, normal, clipping and opaque/transparent display controls against actual production.",
+    "Complete required source-specific browser callbacks and inspect actual blend/depth and lighting output."
+  ],
+  "reuse": "Do not rerun these exact seven assertions solely to fill a control matrix. Preserve the separate accepted 18 native semantic bodies and 14 matched ink pairs."
+}

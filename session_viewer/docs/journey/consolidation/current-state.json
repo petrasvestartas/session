@@ -90,6 +90,7 @@
     "browserInputCorrections": "APPROVED/APPLIED:three input sites, all assertions retained; focused DPR1/2 candidate proof is separate from pending full canonical94c acceptance.",
     "cameraPlaneFinite": "COMPLETE:three original finite Camera/Plane/reload criteria accepted through reload4/4,80 native exact pairs and actual native Plane/camera assertions. Required76d freeform remains pending global/chapter proof. release/camera-plane-finite-review.json.",
     "nativeControlSemantics": "PASS source/evidence review of18 actual native test bodies and individual1060-suite PASS entries:open Plane owner/size/visibility/selection,camera reference,width/analytic AA,family independence,clipping/occlusion,source/archive preservation within bounded fixtures. release/native-control-semantics-review.json. No arbitrary production-parity/material or browser closure.",
+    "materialLightingTransparencyNativeSemantics": "PASS: seven inspected current97d native bodies and individual1060-suite PASS entries cover bounded lighting, glass/Xray pixels and original picks, mirrored/open/closed handling, refresh and commands. release/material-lighting-transparency-native-review.json. Course-native semantics only; all actual-production parity and browser obligations remain.",
     "sheetTextNativeCriterion": "PASS: one original finite Sheet/text native criterion closes through separate current97d shaping, scale, placement, clipping, original-query and lifetime assertions in native1060. release/sheet-text-native-controls-review.json. Four audited rows remain partial; all source-specific browser/control/material gaps remain."
   },
   "resourceGuard": {
@@ -591,6 +592,7 @@
       "inspectedPassedBodies": 18,
       "scope": "Named native semantics only; actual production-parity/material/isoline/browser requirements outside those assertions remain."
     },
+    "materialLightingTransparencyNativeSemantics": {"record": "release/material-lighting-transparency-native-review.json", "inspectedPassedBodies": 7, "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23", "scope": "Bounded course-native lighting, glass/Xray, original-pick, refresh and presentation semantics; no independent production-parity or browser closure."},
     "sheetTextNativeCriterion": {
       "status": "one native criterion complete; Sheet/text feature remains partial",
       "record": "release/sheet-text-native-controls-review.json",

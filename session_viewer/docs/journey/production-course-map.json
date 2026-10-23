@@ -187,8 +187,9 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production.",
+        "acceptedScope": "Eight corrected actual-production/course Mesh pairs match full RGBA at their original a45 translated orthographic pose. Current97d native1060/1060 independently passes mesh-marker placement, sparse original-owner picks and source-lifetime assertions; this does not accept every material/lighting/opaque-transparent control against production. Seven separately reviewed current native bodies additionally cover bounded headlight/backface and unlit/sky restoration, ambient/depth-pyramid reuse, glass/Xray pixels and picks, and Xray commands; no independent production material/lighting comparison is implied.",
         "records": [
+          "release/material-lighting-transparency-native-review.json",
           "release/mesh-native-review.json",
           "release/sheet-text-native-controls-review.json"
         ],
@@ -1261,8 +1262,9 @@
       "currentVerification": {
         "status": "partial",
         "integration": "#/currentIntegration",
-        "acceptedScope": "Native opacity/printed-fill tests are covered by the historical a45 full suite; the retained printed-lid Plane comparison is one bounded exact case.",
+        "acceptedScope": "Current97d native1060 individually passes three inspected opacity/Xray GPU bodies and the Xray semantic command body: closed-face glass reveals hidden original ink, Xray retains original ink picks while closed faces do not pick, open and mirrored surfaces retain their bounded contracts, scene refresh preserves Xray behavior, and opacity restoration preserves source and uploads. Historical a45 printed-fill and the bounded printed-lid Plane pair retain their original scope. These are course-native semantics, not actual-production material/blend parity or browser acceptance.",
         "records": [
+          "release/material-lighting-transparency-native-review.json",
           "release/plane-original-covered-review.json",
           "consolidation/current-state.json"
         ],
@@ -22079,6 +22081,7 @@
         "inspectedPassedBodies": 18,
         "scope": "Named native semantics only; actual production-parity/material/isoline/browser requirements outside those assertions remain."
       },
+      "materialLightingTransparencyNativeSemantics": {"record": "release/material-lighting-transparency-native-review.json", "inspectedPassedBodies": 7, "sourceFingerprint": "97d4a9ff577fe4e932ee9561260e4bd0adbc2a82943883d111949038af33fd23", "scope": "Bounded course-native lighting, glass/Xray, original-pick, refresh and presentation semantics; no independent production-parity or browser closure."},
       "sheetTextNativeCriterion": {
         "status": "one native criterion complete; Sheet/text feature remains partial",
         "record": "release/sheet-text-native-controls-review.json",
