@@ -22153,7 +22153,7 @@
     },
     "docsCurrent": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
     "readerCompilerProof": {
-      "status": "Compiler-only lane:89/101 endpoints,179/202 phases passed",
+      "status": "Compiler-only lane:101/101 endpoints,202/202 phases passed",
       "readerEndpoints": 111,
       "compilerOnlyEndpoints": 101,
       "maximumCompilerPhases": 202,
@@ -22161,12 +22161,12 @@
       "scope": "Separate Native cargo check --tests --examples and WASM lib builds for missing reader compilation proof. Ten reader endpoints have matching scoped proof or separately scheduled canonical work. These exclusions remain obligations until scheduled work passes. Native typechecking does not run/link tests or frames; no optimized packaging, screenshot or browser acceptance claim.",
       "localPlan": "target/course-windows-20261018/reader-compile-lane-plan.json",
       "belongsTo": "Existing final integration/runnable-proof group; not an additional browser entry or101 full GPU suites.",
-      "successfulEndpoints": 89,
-      "remainingEndpoints": 12,
-      "successfulPhases": 179,
+      "successfulEndpoints": 101,
+      "remainingEndpoints": 0,
+      "successfulPhases": 202,
       "record": "docs/journey/release/reader-compilation-review.json",
       "reusedPriorPhases": 82,
-      "newV2Phases": 97
+      "newV2Phases": 120
     },
     "lateChapterTeaching": {
       "status": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
