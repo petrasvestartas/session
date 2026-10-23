@@ -8,6 +8,8 @@
 
 **Course status: 22 authored chapters, 111 reader lessons and 1,361 preserved checkpoints. Source-bound checkpoint acceptance is being refreshed.**
 
+- [x] Lesson 22.6 now teaches lighting, backface color and opaque/glass/Xray behavior with six actual production figures. The 48.251 s docs build and changed-page check pass: 27 images decode, eight desktop/phone views individually inspected. [Material teaching review](release/material-teaching-visible-review.json).
+
 ## Current completion stages - 2026-10-23
 
 - [x] Applied the three approved browser input corrections: visible command-field click and two physical Escape cancellations. All assertions retained; focused candidates pass at DPR 1/2. The full replay passed those sites, then failed Split setup because Control mode was retained. The tested Object-mode correction awaits the separate saved-plan exception; full acceptance remains pending.

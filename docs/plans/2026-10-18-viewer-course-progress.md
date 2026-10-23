@@ -8,6 +8,8 @@
 
 Updated 2026-10-23 on Windows. This is the current execution plan, not a declaration that the viewer course is finished.
 
+- [x] Lesson 22.6 now teaches lighting, backface color and opaque/glass/Xray behavior with six actual production figures. The 48.251 s docs build and changed-page check pass: 27 images decode, eight desktop/phone views individually inspected. [Material teaching review](../../session_viewer/docs/journey/release/material-teaching-visible-review.json).
+
 The book now has **22 chapters and 111 reader-facing lessons**. All **1,360 coding checkpoints**, plus the maintained-viewer reference comparison, remain recoverable. The previous Windows checkout had 18 integrated chapters and 287 reader-facing entries; the older Linux state file reported only 14 chapters and 691 entries.
 
 Open the locally built tutorials at **http://127.0.0.1:8788/docs/#/course**. An isolated, visible Chrome window has been opened there. The local preview server must remain running.

@@ -99,7 +99,17 @@
       "acceptedScope": "Eight exact actual-production/course material native pairs pass at97d,DPR1/samples1:unlit/headlight/backface/returned-unlit and closedMesh+hiddenLine opaque/glass/Xray/returned-opaque.26.285s,693067776B;16PNG conversions exact,all6unique images individually reviewed by root. Complete decodedProto+archiveMetadata source integrity; fresh production instances. No AO/sky/copied/locked/clipped/pick/browser or whole-feature closure.",
       "record": "release/material-production-pairs-native-review.json"
     },
-    "docsNavigationLayout": "PASS: release/docs-navigation-overflow-review.json; one progress/contents link, wrapped phone prose, code scroll remains local, four original views inspected."
+    "docsNavigationLayout": "PASS: release/docs-navigation-overflow-review.json; one progress/contents link, wrapped phone prose, code scroll remains local, four original views inspected.",
+    "materialTeachingPublication": {
+      "status": "PASS scoped22.6 material teaching publication",
+      "record": "release/material-teaching-visible-review.json",
+      "lessonSha256": "98bb951807cf0bd10a1b0db1ad00a45cc318aebc5d975df4427221a0c535b7a7",
+      "materialFigures": 6,
+      "totalIntroImages": 26,
+      "totalPageImages": 27,
+      "inspectedCaptures": 8,
+      "scope": "Only changed22.6 material teaching at recorded source/build; prior broader proofs remain source-bound and global/first10 handoff pending."
+    }
   },
   "resourceGuard": {
     "command": "../../../../session_tests/scripts/run-guarded.cmd",
@@ -110,20 +120,20 @@
     "authorization": "User requested more memory on 2026-10-20. Browser jobs now use -MemoryLimitMiB 6144 after 4 GiB startup stalls; builds may use 4096. Default stays 2048 for other callers. Two CPUs and one heavy job retained."
   },
   "currentDefects": [
-    "Approved three-site browser input correction is applied: visible command-field lower-edge click plus physical Escape for two completed measurements. All assertions retained. Focused candidates passed at DPR1/2; complete canonical94c replay remains pending. Native/WASM/web build inputs remain unchanged.",
-    "96y fixture callback passes;96h and96v callbacks remain pending. Chapter19 is not complete because its96h inventory entry remains open.",
-    "Final native1060/1060 and scoped restored59-lesson docs/browser review pass at their recorded inputs. Remaining compiler phases, historical/canonical browser callbacks and16 partial features remain open. Gemini1â€“10 handoff/current combined-book acceptance is deferred.",
-    "Matrix and Camera are2/18 complete;16 features remain partial and global release0/5. CAD baseline5 does not accept all named controls/browser checks; Original finite Camera/Plane criteria are complete; required76d browser remains globally pending."
+    "All three approved browser input corrections are applied. The 2603.825-second full94c replay passed those sites, then failed Split setup with inherited Control mode. The tested Object-mode correction and full replay/qualified phase-reuse choice await their separate saved-plan exception.",
+    "Reader compiler checks pass41/101 endpoints and82/202 phases.53u Layers calls a helper introduced later; a chronological move is prepared, with exact source convergence at54a and every later checkpoint.",
+    "Original18 source-specific callback entries: finalCAD accepted1;17remain including13historical.96y fixture proof remains accepted within its scope; historical fixture set1/4.",
+    "Matrix, Camera/Plane and Joined finite features are3/18 complete;15remain partial. Global release0/5. Native1060 and scoped docs content/layout proofs pass; Gemini first10/redraft and current combined-book handoff remain deferred."
   ],
   "onlyHeavy": {
-    "task": "Historical65c source-specific proportional build",
-    "rootSession": 62519,
+    "task": "Historical65c complete original browser callback",
+    "rootSession": 88474,
     "status": "running",
-    "memoryLimitMiB": 4096,
+    "memoryLimitMiB": 6144,
     "processors": 2,
-    "timeoutSecondsPerPhase": 1800,
-    "compilerLane": "41/101 endpoints;82/202 phases passed.53u native compile failure retained and under repair.",
-    "scope": "Native check, WASM library, optimized web and native frame; no historical full-suite execution claim."
+    "timeoutSecondsPerPhase": 7200,
+    "compilerLane": "41/101 endpoints;82/202 phases passed.53u native compile failure retained and repair prepared.",
+    "scope": "Native check, WASM library, optimized web, inspected native frame and specimen generation passed. Original browser callback is running, unaccepted until completion and frame review. No historical full-native-suite execution claim."
   },
   "next": "Finish historical65c build, individually inspect its native frame and run its complete original browser callback. Repair53u historical test dependency, then resume remaining60 reader endpoints with verified source bindings. Split Object-mode correction and full replay/qualified reuse choice await the separate frozen-harness exception. Preserve Gemini edits and accepted native1060, reload4/4, Matrix, Camera/Plane and Joined finite closure.",
   "localDocs": "http://127.0.0.1:8788/docs/#/course",
@@ -694,6 +704,16 @@
     "restoredTeachingFigures": 20,
     "currentPublication": "PASS scoped integrated content publication:59 introductions,111 links,21 images and17 inspected views at recorded source/build. Separate docs UI review resolves duplicate progress navigation and Matrix phone prose overflow; four inspected UI views retain their frontend source hashes. First10/current whole-book, SVG/runtime parity and global release acceptance remain separate.",
     "visibleReview": "release/concurrent-teaching-visible-review.json",
-    "docsUiReview": "release/docs-navigation-overflow-review.json"
+    "docsUiReview": "release/docs-navigation-overflow-review.json",
+    "materialPagePublication": {
+      "status": "PASS scoped22.6 material teaching publication",
+      "record": "release/material-teaching-visible-review.json",
+      "lessonSha256": "98bb951807cf0bd10a1b0db1ad00a45cc318aebc5d975df4427221a0c535b7a7",
+      "materialFigures": 6,
+      "totalIntroImages": 26,
+      "totalPageImages": 27,
+      "inspectedCaptures": 8,
+      "scope": "Only changed22.6 material teaching at recorded source/build; prior broader proofs remain source-bound and global/first10 handoff pending."
+    }
   }
 }

@@ -186,6 +186,28 @@ Visibility controls retain the original source while changing the lanes submitte
 
 ![Placed selected joined stroke retains its joins at display density two and four samples](../../screenshots/journey/review/96zzzzzzzq-ink-controls-97d-joined-placed-selected-dpr2-msaa4.png)
 
+## Lighting, backfaces and transparent surfaces
+
+Lighting and surface opacity change presentation while retaining the original geometry. Compare the same winding panels with lighting off, with the production headlight, and with backface colouring enabled. The headlight changes the shading; backface colouring exposes the reversed panel in red.
+
+![Original winding panels with lighting disabled](../release/material-pairs-97d-winding-unlit.png)
+
+![The same winding panels shaded by the production headlight](../release/material-pairs-97d-winding-headlight.png)
+
+![Backface colouring marks the reversed winding panel red](../release/material-pairs-97d-winding-backface.png)
+
+A separate closed red Mesh has an original green Line behind its front face. Opaque display hides the Line. At opacity 0.5, the glass surface reveals an attenuated Line; at opacity zero, Xray leaves the green Line visible without the surface. Closedness comes from the maintained solid verification before the source walk, rather than an assumed display flag.
+
+![Opaque closed red Mesh hides the original green Line behind its front face](../release/material-pairs-97d-closed-restored-opaque.png)
+
+![Glass at opacity 0.5 reveals the attenuated original green Line](../release/material-pairs-97d-closed-glass.png)
+
+![Xray at opacity zero shows the original green Line without the red surface](../release/material-pairs-97d-closed-xray.png)
+
+**Supporting material evidence.** The [material comparison record](../release/material-production-pairs-native-review.json) contains eight exact native production/course full-RGBA pairs: the three winding states and a return to unlit, plus opaque, glass, Xray and a return to opaque for the closed fixture. These six figures are the distinct production frames; the corresponding course frames match every pixel. The comparisons use display density one, one sample, fixed cameras and no selection. Winding frames are 640 by 480; closed-fixture frames are 320 by 240.
+
+The returned settings reproduce the earlier pixels, but each production case constructs a fresh instance; this is not a same-instance restoration or browser lifecycle proof. Complete decoded source documents and archive metadata remain equal through rendering and Save, even when protobuf map entries encode in a different order. These named cases do not cover AO, sky, clipping, copied or locked owners, picking, or an exhaustive material matrix.
+
 ## <a id="checkpoint-96zzzzzzzm-retain-visible-instance-ranges"></a>1. Retain visible instance ranges
 
 <div class="webgpu-schematic" style="width:100%;margin:6px auto;">
